@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="760" height="390" viewBox="0 0 760 390" role="img" aria-label="Répartition du compte TFSA1">
+<rect width="100%" height="100%" fill="#ffffff"/>
+<text x="28" y="38" font-family="Arial, sans-serif" font-size="22" font-weight="700" fill="#111827">Répartition du compte TFSA1</text>
+<text x="28" y="66" font-family="Arial, sans-serif" font-size="13" fill="#4b5563">Valeur totale estimée: 8 530.12 $ CAD | Positions: 12</text>
+<path d="M 170.000 190.000 L 287.979 187.752 A 118.000 118.000 0 0 0 170.000 72.000 Z" fill="#2563eb" stroke="#ffffff" stroke-width="2"/>
+<path d="M 170.000 190.000 L 222.756 295.550 A 118.000 118.000 0 0 0 287.979 187.752 Z" fill="#16a34a" stroke="#ffffff" stroke-width="2"/>
+<path d="M 170.000 190.000 L 108.529 290.724 A 118.000 118.000 0 0 0 222.756 295.550 Z" fill="#dc2626" stroke="#ffffff" stroke-width="2"/>
+<path d="M 170.000 190.000 L 53.864 210.889 A 118.000 118.000 0 0 0 108.529 290.724 Z" fill="#9333ea" stroke="#ffffff" stroke-width="2"/>
+<path d="M 170.000 190.000 L 63.063 140.114 A 118.000 118.000 0 0 0 53.864 210.889 Z" fill="#f59e0b" stroke="#ffffff" stroke-width="2"/>
+<path d="M 170.000 190.000 L 81.121 112.382 A 118.000 118.000 0 0 0 63.063 140.114 Z" fill="#0891b2" stroke="#ffffff" stroke-width="2"/>
+<path d="M 170.000 190.000 L 105.325 91.303 A 118.000 118.000 0 0 0 81.121 112.382 Z" fill="#db2777" stroke="#ffffff" stroke-width="2"/>
+<path d="M 170.000 190.000 L 170.000 72.000 A 118.000 118.000 0 0 0 105.325 91.303 Z" fill="#4b5563" stroke="#ffffff" stroke-width="2"/>
+<rect x="330" y="99" width="14" height="14" rx="3" fill="#2563eb"/>
+<text x="354" y="112" font-family="Arial, sans-serif" font-size="14" fill="#111827">MSFT</text>
+<text x="540" y="112" font-family="Arial, sans-serif" font-size="14" fill="#4b5563">24.7 %</text>
+<text x="630" y="112" font-family="Arial, sans-serif" font-size="14" fill="#4b5563">2 106.67 $</text>
+<rect x="330" y="129" width="14" height="14" rx="3" fill="#16a34a"/>
+<text x="354" y="142" font-family="Arial, sans-serif" font-size="14" fill="#111827">LLY</text>
+<text x="540" y="142" font-family="Arial, sans-serif" font-size="14" fill="#4b5563">17.9 %</text>
+<text x="630" y="142" font-family="Arial, sans-serif" font-size="14" fill="#4b5563">1 529.13 $</text>
+<rect x="330" y="159" width="14" height="14" rx="3" fill="#dc2626"/>
+<text x="354" y="172" font-family="Arial, sans-serif" font-size="14" fill="#111827">MA</text>
+<text x="540" y="172" font-family="Arial, sans-serif" font-size="14" fill="#4b5563">16.1 %</text>
+<text x="630" y="172" font-family="Arial, sans-serif" font-size="14" fill="#4b5563">1 373.16 $</text>
+<rect x="330" y="189" width="14" height="14" rx="3" fill="#9333ea"/>
+<text x="354" y="202" font-family="Arial, sans-serif" font-size="14" fill="#111827">AVGO</text>
+<text x="540" y="202" font-family="Arial, sans-serif" font-size="14" fill="#4b5563">13.4 %</text>
+<text x="630" y="202" font-family="Arial, sans-serif" font-size="14" fill="#4b5563">1 147.02 $</text>
+<rect x="330" y="219" width="14" height="14" rx="3" fill="#f59e0b"/>
+<text x="354" y="232" font-family="Arial, sans-serif" font-size="14" fill="#111827">AAPL</text>
+<text x="540" y="232" font-family="Arial, sans-serif" font-size="14" fill="#4b5563">9.8 %</text>
+<text x="630" y="232" font-family="Arial, sans-serif" font-size="14" fill="#4b5563">834.19 $</text>
+<rect x="330" y="249" width="14" height="14" rx="3" fill="#0891b2"/>
+<text x="354" y="262" font-family="Arial, sans-serif" font-size="14" fill="#111827">TOI.V</text>
+<text x="540" y="262" font-family="Arial, sans-serif" font-size="14" fill="#4b5563">4.5 %</text>
+<text x="630" y="262" font-family="Arial, sans-serif" font-size="14" fill="#4b5563">382.00 $</text>
+<rect x="330" y="279" width="14" height="14" rx="3" fill="#db2777"/>
+<text x="354" y="292" font-family="Arial, sans-serif" font-size="14" fill="#111827">INTU</text>
+<text x="540" y="292" font-family="Arial, sans-serif" font-size="14" fill="#4b5563">4.3 %</text>
+<text x="630" y="292" font-family="Arial, sans-serif" font-size="14" fill="#4b5563">370.42 $</text>
+<rect x="330" y="309" width="14" height="14" rx="3" fill="#4b5563"/>
+<text x="354" y="322" font-family="Arial, sans-serif" font-size="14" fill="#111827">Autres</text>
+<text x="540" y="322" font-family="Arial, sans-serif" font-size="14" fill="#4b5563">9.2 %</text>
+<text x="630" y="322" font-family="Arial, sans-serif" font-size="14" fill="#4b5563">787.53 $</text>
+<text x="28" y="330" font-family="Arial, sans-serif" font-size="12" fill="#6b7280">Les montants sont approximatifs et dépendent des prix gratuits disponibles au moment de l’analyse.</text>
+</svg>

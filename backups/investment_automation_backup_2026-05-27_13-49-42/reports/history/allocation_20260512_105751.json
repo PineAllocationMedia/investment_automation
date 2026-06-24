@@ -1,0 +1,74 @@
+{
+  "allocations": [
+    {
+      "allocation_type": "Allocation VFV obligatoire | Redirection VFV",
+      "amount": 125.0,
+      "percentage": 0.25,
+      "reason": "Filet de s\u00e9curit\u00e9 S&P 500 selon moyenne des scores. | Solde non pla\u00e7able sans violer les plafonds de concentration ou de qualit\u00e9.",
+      "ticker": "VFV.TO"
+    },
+    {
+      "allocation_type": "Optimisation mensuelle high-CAGR",
+      "amount": 200.0,
+      "percentage": 0.4,
+      "reason": "Allocation de d\u00e9marrage: titre core \u00e0 0 $, qualit\u00e9 et th\u00e8se suffisantes, mais sizing limit\u00e9 par la surveillance technique/valorisation.",
+      "ticker": "META"
+    },
+    {
+      "allocation_type": "Optimisation mensuelle high-CAGR",
+      "amount": 100.0,
+      "percentage": 0.2,
+      "reason": "Allocation de d\u00e9marrage: titre core \u00e0 0 $, qualit\u00e9 et th\u00e8se suffisantes, mais sizing limit\u00e9 par la surveillance technique/valorisation.",
+      "ticker": "INTU"
+    },
+    {
+      "allocation_type": "Optimisation mensuelle high-CAGR",
+      "amount": 75.0,
+      "percentage": 0.15,
+      "reason": "Allocation high-CAGR: VFV reste le filet de s\u00e9curit\u00e9, mais le surplus est r\u00e9allou\u00e9 vers un titre admissible avec th\u00e8se intacte et avantage clair face \u00e0 VFV.",
+      "ticker": "GOOGL"
+    }
+  ],
+  "analysis_date": "2026-05-12",
+  "average_score_ex_vfv": 7.6984798251781115,
+  "created_at": "2026-05-12T10:57:51",
+  "decision_quality": {
+    "allocated_core_count": 3,
+    "core_allocation_percent": 0.75,
+    "data_quality_status": "ROBUST",
+    "decision_quality_level": "MEDIUM",
+    "decision_quality_score": 68.1,
+    "eligible_core_count": 5,
+    "main_reasons": [
+      "La cotisation est investie dans au moins une position core admissible, pas seulement dans VFV.",
+      "5 position(s) core passent les principaux garde-fous d\u2019ajout.",
+      "Les titres recommand\u00e9s ont des donn\u00e9es suffisamment fiables pour une d\u00e9cision m\u00e9canique.",
+      "META se d\u00e9tache clairement du candidat suivant selon le capital_allocation_score.",
+      "La recommandation ne semble pas provenir d\u2019un changement historique non expliqu\u00e9."
+    ],
+    "profile_calibration": "HIGH_CAGR_LONG_TERM",
+    "risk_status": "WATCH",
+    "sensitivity_status": "HIGHLY_SENSITIVE",
+    "stability_status": "STABLE",
+    "summary": "Recommandation utilisable mais \u00e0 surveiller: META, INTU, GOOGL; certains risques ou donn\u00e9es r\u00e9duisent la robustesse.",
+    "vfv_mandatory_percent": 0.1,
+    "vfv_redirection_percent": 0.15,
+    "vfv_total_percent": 0.25,
+    "watchpoints": [
+      "VFV re\u00e7oit une redirection mod\u00e9r\u00e9e parce que certains titres sont limit\u00e9s par les garde-fous.",
+      "META re\u00e7oit 40% de la cotisation avec une surveillance active; le score tient compte du sizing r\u00e9el.",
+      "INTU re\u00e7oit 20% de la cotisation avec une surveillance active; le score tient compte du sizing r\u00e9el.",
+      "GOOGL re\u00e7oit du capital avec un risque cycle/bulle HIGH, acceptable seulement avec sizing limit\u00e9.",
+      "5 alerte(s) de concentration ou facteur commun existent dans le portefeuille.",
+      "L\u2019allocation est sensible aux hypoth\u00e8ses prudentes; valider les donn\u00e9es prioritaires avant d\u2019augmenter fortement la cotisation."
+    ],
+    "why_not_high": [
+      "Il manque environ 14 point(s) pour atteindre HIGH.",
+      "VFV re\u00e7oit 15% de redirection, signe que certains titres sont limit\u00e9s par les garde-fous.",
+      "Le portefeuille contient encore des risques de concentration, devise ou facteur commun \u00e0 surveiller.",
+      "Allocation vers des titres sous surveillance: META, INTU.",
+      "Risque cycle/bulle/tendance sur: GOOGL."
+    ]
+  },
+  "mandatory_vfv_percent": 0.1
+}

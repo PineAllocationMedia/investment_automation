@@ -1,0 +1,86 @@
+{
+  "allocations": [
+    {
+      "allocation_type": "Allocation VFV obligatoire | Redirection VFV",
+      "amount": 180.0,
+      "percentage": 0.36,
+      "reason": "Filet de s\u00e9curit\u00e9 S&P 500 selon moyenne des scores. | Solde non pla\u00e7able sans violer les plafonds de concentration ou de qualit\u00e9.",
+      "ticker": "VFV.TO"
+    },
+    {
+      "allocation_type": "Defensive ETF fallback",
+      "amount": 75.0,
+      "percentage": 0.15,
+      "reason": "R\u00e9serve d\u00e9fensive de mode: prot\u00e8ge une partie de la cotisation avant les actions individuelles. Prix gratuit indisponible; ETF d\u00e9fensif pr\u00e9-approuv\u00e9 par configuration, utilisable comme stabilisateur limit\u00e9 \u00e0 valider manuellement avant achat.",
+      "ticker": "CBIL.TO"
+    },
+    {
+      "allocation_type": "Defensive ETF fallback",
+      "amount": 75.0,
+      "percentage": 0.15,
+      "reason": "R\u00e9serve d\u00e9fensive de mode: prot\u00e8ge une partie de la cotisation avant les actions individuelles. Prix gratuit indisponible; ETF d\u00e9fensif pr\u00e9-approuv\u00e9 par configuration, utilisable comme stabilisateur limit\u00e9 \u00e0 valider manuellement avant achat.",
+      "ticker": "CASH.TO"
+    },
+    {
+      "allocation_type": "Defensive ETF fallback",
+      "amount": 100.0,
+      "percentage": 0.2,
+      "reason": "R\u00e9serve d\u00e9fensive de mode: prot\u00e8ge une partie de la cotisation avant les actions individuelles. Prix gratuit indisponible; ETF d\u00e9fensif pr\u00e9-approuv\u00e9 par configuration, utilisable comme stabilisateur limit\u00e9 \u00e0 valider manuellement avant achat.",
+      "ticker": "VSB.TO"
+    },
+    {
+      "allocation_type": "Defensive ETF fallback",
+      "amount": 25.0,
+      "percentage": 0.05,
+      "reason": "R\u00e9serve d\u00e9fensive de mode: prot\u00e8ge une partie de la cotisation avant les actions individuelles. Prix gratuit indisponible; ETF d\u00e9fensif pr\u00e9-approuv\u00e9 par configuration, utilisable comme stabilisateur limit\u00e9 \u00e0 valider manuellement avant achat.",
+      "ticker": "ZFS.TO"
+    },
+    {
+      "allocation_type": "Optimisation mensuelle",
+      "amount": 45.0,
+      "percentage": 0.09,
+      "reason": "Meilleur gain marginal apr\u00e8s simulation de la contribution: qualit\u00e9, th\u00e8se intacte, avantage vs VFV et concentration post-achat acceptables.",
+      "ticker": "GOOGL"
+    }
+  ],
+  "analysis_date": "2026-05-23",
+  "analysis_mode": "balanced",
+  "average_score_ex_vfv": 8.098985415345593,
+  "created_at": "2026-05-23T16:55:31",
+  "decision_quality": {
+    "allocated_core_count": 1,
+    "core_allocation_percent": 0.64,
+    "data_quality_status": "ROBUST",
+    "decision_quality_level": "MEDIUM",
+    "decision_quality_score": 76.0,
+    "eligible_core_count": 8,
+    "main_reasons": [
+      "La cotisation est investie dans au moins une position core admissible, pas seulement dans VFV.",
+      "8 position(s) core passent les principaux garde-fous d\u2019ajout.",
+      "Les titres recommand\u00e9s ont des donn\u00e9es suffisamment fiables pour une d\u00e9cision m\u00e9canique.",
+      "1 alerte(s) de concentration ou facteur commun existent dans le portefeuille.",
+      "APP se d\u00e9tache clairement du candidat suivant selon le capital_allocation_score."
+    ],
+    "profile_calibration": "STANDARD_RISK_ADJUSTED",
+    "risk_status": "ACCEPTABLE",
+    "sensitivity_status": "HIGHLY_SENSITIVE",
+    "stability_status": "LIMITED_HISTORY",
+    "summary": "Recommandation utilisable mais \u00e0 surveiller: GOOGL; certains risques ou donn\u00e9es r\u00e9duisent la robustesse.",
+    "vfv_mandatory_percent": 0.25,
+    "vfv_redirection_percent": 0.11,
+    "vfv_total_percent": 0.36,
+    "watchpoints": [
+      "VFV re\u00e7oit une redirection mod\u00e9r\u00e9e parce que certains titres sont limit\u00e9s par les garde-fous.",
+      "Les titres recommand\u00e9s manquent encore d\u2019historique local comparable.",
+      "L\u2019allocation est sensible aux hypoth\u00e8ses prudentes et le meilleur choix change; valider les donn\u00e9es prioritaires avant d\u2019augmenter fortement la cotisation."
+    ],
+    "why_not_high": [
+      "Il manque environ 6 point(s) pour atteindre HIGH.",
+      "VFV re\u00e7oit 11% de redirection, signe que certains titres sont limit\u00e9s par les garde-fous.",
+      "La recommandation bouge avec les nouvelles donn\u00e9es ou manque encore d\u2019historique local.",
+      "VFV re\u00e7oit une redirection mod\u00e9r\u00e9e parce que certains titres sont limit\u00e9s par les garde-fous."
+    ]
+  },
+  "mandatory_vfv_percent": 0.25,
+  "model_rules_version": "2026-05-12-high-cagr-stability-v3"
+}

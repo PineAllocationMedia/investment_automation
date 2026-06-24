@@ -1,0 +1,117 @@
+ticker,ticker_display,company_name,source,maintenance_status,reason,suggested_action
+ABNB,ABNB,Airbnb,nasdaq100_wikipedia,ACTIVE_TOP_IDEA,Passe les filtres stricts de découverte high-CAGR.,À lire manuellement; ajouter à data/market_universe.csv seulement si la thèse te convainc.
+MNST,MNST,Monster Beverage,nasdaq100_wikipedia,ACTIVE_TOP_IDEA,Passe les filtres stricts de découverte high-CAGR.,À lire manuellement; ajouter à data/market_universe.csv seulement si la thèse te convainc.
+ROST,ROST,Ross Stores,nasdaq100_wikipedia,KEEP_WATCHING,Titre intéressant mais pas assez parfait aujourd’hui.,Garder dans le radar automatique; ne pas ajouter en priorité.
+VST,VST,Vistra Corp .,sp500_wikipedia,KEEP_WATCHING,Titre intéressant mais pas assez parfait aujourd’hui.,Garder dans le radar automatique; ne pas ajouter en priorité.
+CSCO,CSCO,Cisco,nasdaq100_wikipedia,KEEP_WATCHING,Titre intéressant mais pas assez parfait aujourd’hui.,Garder dans le radar automatique; ne pas ajouter en priorité.
+WTW,WTW,Willis Towers Watson,sp500_wikipedia,KEEP_WATCHING,Titre intéressant mais pas assez parfait aujourd’hui.,Garder dans le radar automatique; ne pas ajouter en priorité.
+AMD,AMD,Advanced Micro Devices,nasdaq100_wikipedia,KEEP_WATCHING,Titre intéressant mais pas assez parfait aujourd’hui.,Garder dans le radar automatique; ne pas ajouter en priorité.
+AON,AON,Aon plc,config/market_scanner.yaml:discovery_universe,KEEP_WATCHING,Titre intéressant mais pas assez parfait aujourd’hui.,Garder dans le radar automatique; ne pas ajouter en priorité.
+CB,CB,Chubb Limited,config/market_scanner.yaml:discovery_universe,KEEP_WATCHING,Titre intéressant mais pas assez parfait aujourd’hui.,Garder dans le radar automatique; ne pas ajouter en priorité.
+CTSH,CTSH,Cognizant,nasdaq100_wikipedia,KEEP_WATCHING,Titre intéressant mais pas assez parfait aujourd’hui.,Garder dans le radar automatique; ne pas ajouter en priorité.
+EA,EA,Electronic Arts,nasdaq100_wikipedia,KEEP_WATCHING,Titre intéressant mais pas assez parfait aujourd’hui.,Garder dans le radar automatique; ne pas ajouter en priorité.
+EXC,EXC,Exelon,nasdaq100_wikipedia,KEEP_WATCHING,Titre intéressant mais pas assez parfait aujourd’hui.,Garder dans le radar automatique; ne pas ajouter en priorité.
+NXPI,NXPI,NXP Semiconductors,nasdaq100_wikipedia,KEEP_WATCHING,Titre intéressant mais pas assez parfait aujourd’hui.,Garder dans le radar automatique; ne pas ajouter en priorité.
+PCAR,PCAR,Paccar,nasdaq100_wikipedia,KEEP_WATCHING,Titre intéressant mais pas assez parfait aujourd’hui.,Garder dans le radar automatique; ne pas ajouter en priorité.
+PDD,PDD,PDD Holdings,nasdaq100_wikipedia,KEEP_WATCHING,Titre intéressant mais pas assez parfait aujourd’hui.,Garder dans le radar automatique; ne pas ajouter en priorité.
+PEP,PEP,PepsiCo,nasdaq100_wikipedia,KEEP_WATCHING,Titre intéressant mais pas assez parfait aujourd’hui.,Garder dans le radar automatique; ne pas ajouter en priorité.
+RELX,RELX,RELX PLC,config/market_scanner.yaml:discovery_universe,KEEP_WATCHING,Titre intéressant mais pas assez parfait aujourd’hui.,Garder dans le radar automatique; ne pas ajouter en priorité.
+SNDK,SNDK,Sandisk,nasdaq100_wikipedia,KEEP_WATCHING,Titre intéressant mais pas assez parfait aujourd’hui.,Garder dans le radar automatique; ne pas ajouter en priorité.
+TDG,TDG,TransDigm Group Incorporated,config/market_scanner.yaml:discovery_universe,KEEP_WATCHING,Titre intéressant mais pas assez parfait aujourd’hui.,Garder dans le radar automatique; ne pas ajouter en priorité.
+TFII.TO,TFII.TO*,TFI International Inc.,config/market_scanner.yaml:discovery_universe,QUARANTINE,Qualité des données insuffisante.,Ne pas proposer comme idée prioritaire tant que les données gratuites restent faibles.
+FI,FI*,Fiserv Inc.,config/market_scanner.yaml:discovery_universe,QUARANTINE,Prix indisponible avec les données gratuites.,Garder hors recommandations jusqu’à ce que le ticker ou les données soient validés.
+CME,CME,CME Group Inc.,config/market_scanner.yaml:discovery_universe,IGNORE_FOR_NOW,Ne passe pas les filtres de découverte prioritaires.,Ne rien faire.
+DXCM,DXCM,DexCom,nasdaq100_wikipedia,IGNORE_FOR_NOW,Ne passe pas les filtres de découverte prioritaires.,Ne rien faire.
+MRVL,MRVL,Marvell Technology,nasdaq100_wikipedia,IGNORE_FOR_NOW,Ne passe pas les filtres de découverte prioritaires.,Ne rien faire.
+PLTR,PLTR,Palantir Technologies,nasdaq100_wikipedia,IGNORE_FOR_NOW,Ne passe pas les filtres de découverte prioritaires.,Ne rien faire.
+URI,URI,United Rentals,sp500_wikipedia,IGNORE_FOR_NOW,Ne passe pas les filtres de découverte prioritaires.,Ne rien faire.
+VRTX,VRTX,Vertex Pharmaceuticals,nasdaq100_wikipedia,IGNORE_FOR_NOW,Ne passe pas les filtres de découverte prioritaires.,Ne rien faire.
+WEC,WEC,WEC Energy Group,sp500_wikipedia,IGNORE_FOR_NOW,Ne passe pas les filtres de découverte prioritaires.,Ne rien faire.
+WFC,WFC,Wells Fargo,sp500_wikipedia,IGNORE_FOR_NOW,Ne passe pas les filtres de découverte prioritaires.,Ne rien faire.
+WMB,WMB,Williams Companies,sp500_wikipedia,IGNORE_FOR_NOW,Ne passe pas les filtres de découverte prioritaires.,Ne rien faire.
+ADSK,ADSK,Autodesk,nasdaq100_wikipedia,IGNORE_FOR_NOW,Ne passe pas les filtres de découverte prioritaires.,Ne rien faire.
+IFC.TO,IFC.TO,Intact Financial Corporation,config/market_scanner.yaml:discovery_universe,IGNORE_FOR_NOW,Ne passe pas les filtres de découverte prioritaires.,Ne rien faire.
+MCHP,MCHP,Microchip Technology,nasdaq100_wikipedia,IGNORE_FOR_NOW,Ne passe pas les filtres de découverte prioritaires.,Ne rien faire.
+VZ,VZ,Verizon,sp500_wikipedia,IGNORE_FOR_NOW,Ne passe pas les filtres de découverte prioritaires.,Ne rien faire.
+XOM,XOM,ExxonMobil,sp500_wikipedia,IGNORE_FOR_NOW,Ne passe pas les filtres de découverte prioritaires.,Ne rien faire.
+AMT,AMT,American Tower Corporation,config/market_scanner.yaml:discovery_universe,IGNORE_FOR_NOW,Ne passe pas les filtres de découverte prioritaires.,Ne rien faire.
+BKR,BKR,Baker Hughes,nasdaq100_wikipedia,IGNORE_FOR_NOW,Ne passe pas les filtres de découverte prioritaires.,Ne rien faire.
+EQIX,EQIX,Equinix Inc.,config/market_scanner.yaml:discovery_universe,IGNORE_FOR_NOW,Ne passe pas les filtres de découverte prioritaires.,Ne rien faire.
+MAR,MAR,Marriott International,nasdaq100_wikipedia,IGNORE_FOR_NOW,Ne passe pas les filtres de découverte prioritaires.,Ne rien faire.
+REGN,REGN,Regeneron Pharmaceuticals,nasdaq100_wikipedia,IGNORE_FOR_NOW,Ne passe pas les filtres de découverte prioritaires.,Ne rien faire.
+USB,USB,U.S. Bancorp,sp500_wikipedia,IGNORE_FOR_NOW,Ne passe pas les filtres de découverte prioritaires.,Ne rien faire.
+XEL,XEL,Xcel Energy,nasdaq100_wikipedia,IGNORE_FOR_NOW,Ne passe pas les filtres de découverte prioritaires.,Ne rien faire.
+KDP,KDP,Keurig Dr Pepper,nasdaq100_wikipedia,IGNORE_FOR_NOW,Ne passe pas les filtres de découverte prioritaires.,Ne rien faire.
+LITE,LITE,Lumentum,nasdaq100_wikipedia,IGNORE_FOR_NOW,Ne passe pas les filtres de découverte prioritaires.,Ne rien faire.
+VTR,VTR,Ventas,sp500_wikipedia,IGNORE_FOR_NOW,Ne passe pas les filtres de découverte prioritaires.,Ne rien faire.
+MDLZ,MDLZ,Mondelez International,nasdaq100_wikipedia,IGNORE_FOR_NOW,Ne passe pas les filtres de découverte prioritaires.,Ne rien faire.
+VICI,VICI,Vici Properties,sp500_wikipedia,IGNORE_FOR_NOW,Ne passe pas les filtres de découverte prioritaires.,Ne rien faire.
+CNR.TO,CNR.TO,Canadian National Railway Company,config/market_scanner.yaml:discovery_universe,IGNORE_FOR_NOW,Ne passe pas les filtres de découverte prioritaires.,Ne rien faire.
+WSM,WSM,"Williams-Sonoma, Inc.",sp500_wikipedia,IGNORE_FOR_NOW,Ne passe pas les filtres de découverte prioritaires.,Ne rien faire.
+CDNS,CDNS,Cadence Design Systems,nasdaq100_wikipedia,IGNORE_FOR_NOW,Ne passe pas les filtres de découverte prioritaires.,Ne rien faire.
+ULTA,ULTA,Ulta Beauty,sp500_wikipedia,IGNORE_FOR_NOW,Ne passe pas les filtres de découverte prioritaires.,Ne rien faire.
+CCEP,CCEP,Coca-Cola Europacific Partners,nasdaq100_wikipedia,IGNORE_FOR_NOW,Ne passe pas les filtres de découverte prioritaires.,Ne rien faire.
+WAT,WAT,Waters Corporation,config/market_scanner.yaml:discovery_universe,IGNORE_FOR_NOW,Ne passe pas les filtres de découverte prioritaires.,Ne rien faire.
+PAYX,PAYX,Paychex Inc.,config/market_scanner.yaml:discovery_universe,IGNORE_FOR_NOW,Ne passe pas les filtres de découverte prioritaires.,Ne rien faire.
+CSX,CSX,CSX Corporation,nasdaq100_wikipedia,IGNORE_FOR_NOW,Ne passe pas les filtres de découverte prioritaires.,Ne rien faire.
+VLO,VLO,Valero Energy,sp500_wikipedia,IGNORE_FOR_NOW,Ne passe pas les filtres de découverte prioritaires.,Ne rien faire.
+XYL,XYL,Xylem Inc.,sp500_wikipedia,IGNORE_FOR_NOW,Ne passe pas les filtres de découverte prioritaires.,Ne rien faire.
+CP.TO,CP.TO,Canadian Pacific Kansas City Limited,config/market_scanner.yaml:discovery_universe,IGNORE_FOR_NOW,Ne passe pas les filtres de découverte prioritaires.,Ne rien faire.
+ARM,ARM,Arm Holdings,nasdaq100_wikipedia,IGNORE_FOR_NOW,Ne passe pas les filtres de découverte prioritaires.,Ne rien faire.
+WMT,WMT,Walmart,nasdaq100_wikipedia,IGNORE_FOR_NOW,Ne passe pas les filtres de découverte prioritaires.,Ne rien faire.
+VEEV,VEEV,Veeva Systems Inc.,config/market_scanner.yaml:discovery_universe,IGNORE_FOR_NOW,Ne passe pas les filtres de découverte prioritaires.,Ne rien faire.
+SBUX,SBUX,Starbucks,nasdaq100_wikipedia,IGNORE_FOR_NOW,Ne passe pas les filtres de découverte prioritaires.,Ne rien faire.
+UNP,UNP,Union Pacific Corporation,sp500_wikipedia,IGNORE_FOR_NOW,Ne passe pas les filtres de découverte prioritaires.,Ne rien faire.
+ATD.TO,ATD.TO,Alimentation Couche-Tard Inc.,config/market_scanner.yaml:discovery_universe,IGNORE_FOR_NOW,Ne passe pas les filtres de découverte prioritaires.,Ne rien faire.
+HEI,HEI,HEICO Corporation,config/market_scanner.yaml:discovery_universe,IGNORE_FOR_NOW,Ne passe pas les filtres de découverte prioritaires.,Ne rien faire.
+AZO,AZO,AutoZone Inc.,config/market_scanner.yaml:discovery_universe,IGNORE_FOR_NOW,Ne passe pas les filtres de découverte prioritaires.,Ne rien faire.
+CTAS,CTAS,Cintas Corporation,config/market_scanner.yaml:discovery_universe,IGNORE_FOR_NOW,Ne passe pas les filtres de découverte prioritaires.,Ne rien faire.
+ICE,ICE,Intercontinental Exchange Inc.,config/market_scanner.yaml:discovery_universe,IGNORE_FOR_NOW,Ne passe pas les filtres de découverte prioritaires.,Ne rien faire.
+WST,WST,West Pharmaceutical Services,sp500_wikipedia,IGNORE_FOR_NOW,Ne passe pas les filtres de découverte prioritaires.,Ne rien faire.
+ZTS,ZTS,Zoetis,sp500_wikipedia,IGNORE_FOR_NOW,Ne passe pas les filtres de découverte prioritaires.,Ne rien faire.
+SHOP,SHOP,Shopify,nasdaq100_wikipedia,IGNORE_FOR_NOW,Ne passe pas les filtres de découverte prioritaires.,Ne rien faire.
+CBOE,CBOE,Cboe Global Markets Inc.,config/market_scanner.yaml:discovery_universe,IGNORE_FOR_NOW,Ne passe pas les filtres de découverte prioritaires.,Ne rien faire.
+CMCSA,CMCSA,Comcast,nasdaq100_wikipedia,IGNORE_FOR_NOW,Ne passe pas les filtres de découverte prioritaires.,Ne rien faire.
+TMUS,TMUS,T-Mobile US,nasdaq100_wikipedia,IGNORE_FOR_NOW,Ne passe pas les filtres de découverte prioritaires.,Ne rien faire.
+PYPL,PYPL,PayPal,nasdaq100_wikipedia,IGNORE_FOR_NOW,Ne passe pas les filtres de découverte prioritaires.,Ne rien faire.
+WM,WM,Waste Management Inc.,config/market_scanner.yaml:discovery_universe,IGNORE_FOR_NOW,Ne passe pas les filtres de découverte prioritaires.,Ne rien faire.
+CMG,CMG,Chipotle Mexican Grill Inc.,config/market_scanner.yaml:discovery_universe,IGNORE_FOR_NOW,Ne passe pas les filtres de découverte prioritaires.,Ne rien faire.
+VRSK,VRSK,Verisk Analytics,nasdaq100_wikipedia,IGNORE_FOR_NOW,Ne passe pas les filtres de découverte prioritaires.,Ne rien faire.
+ORLY,ORLY,O'Reilly Automotive Inc.,config/market_scanner.yaml:discovery_universe,IGNORE_FOR_NOW,Ne passe pas les filtres de découverte prioritaires.,Ne rien faire.
+ZBRA,ZBRA,Zebra Technologies,sp500_wikipedia,IGNORE_FOR_NOW,Ne passe pas les filtres de découverte prioritaires.,Ne rien faire.
+PANW,PANW,Palo Alto Networks Inc.,config/market_scanner.yaml:discovery_universe,IGNORE_FOR_NOW,Ne passe pas les filtres de découverte prioritaires.,Ne rien faire.
+MCD,MCD,McDonald's Corporation,config/market_scanner.yaml:discovery_universe,IGNORE_FOR_NOW,Ne passe pas les filtres de découverte prioritaires.,Ne rien faire.
+IDXX,IDXX,IDEXX Laboratories Inc.,config/market_scanner.yaml:discovery_universe,IGNORE_FOR_NOW,Ne passe pas les filtres de découverte prioritaires.,Ne rien faire.
+MSI,MSI,Motorola Solutions Inc.,config/market_scanner.yaml:discovery_universe,IGNORE_FOR_NOW,Ne passe pas les filtres de découverte prioritaires.,Ne rien faire.
+SYK,SYK,Stryker Corporation,config/market_scanner.yaml:discovery_universe,IGNORE_FOR_NOW,Ne passe pas les filtres de découverte prioritaires.,Ne rien faire.
+AXON,AXON,Axon Enterprise,nasdaq100_wikipedia,IGNORE_FOR_NOW,Ne passe pas les filtres de découverte prioritaires.,Ne rien faire.
+VLTO,VLTO,Veralto,sp500_wikipedia,IGNORE_FOR_NOW,Ne passe pas les filtres de découverte prioritaires.,Ne rien faire.
+VTRS,VTRS,Viatris,sp500_wikipedia,IGNORE_FOR_NOW,Ne passe pas les filtres de découverte prioritaires.,Ne rien faire.
+WYNN,WYNN,Wynn Resorts,sp500_wikipedia,IGNORE_FOR_NOW,Ne passe pas les filtres de découverte prioritaires.,Ne rien faire.
+WRB,WRB,W. R. Berkley Corporation,sp500_wikipedia,IGNORE_FOR_NOW,Ne passe pas les filtres de découverte prioritaires.,Ne rien faire.
+VRSN,VRSN,Verisign,sp500_wikipedia,IGNORE_FOR_NOW,Ne passe pas les filtres de découverte prioritaires.,Ne rien faire.
+IQV,IQV,IQVIA Holdings Inc.,config/market_scanner.yaml:discovery_universe,IGNORE_FOR_NOW,Ne passe pas les filtres de découverte prioritaires.,Ne rien faire.
+RSG,RSG,Republic Services Inc.,config/market_scanner.yaml:discovery_universe,IGNORE_FOR_NOW,Ne passe pas les filtres de découverte prioritaires.,Ne rien faire.
+WDAY,WDAY,"Workday, Inc.",nasdaq100_wikipedia,IGNORE_FOR_NOW,Ne passe pas les filtres de découverte prioritaires.,Ne rien faire.
+KHC,KHC,Kraft Heinz,nasdaq100_wikipedia,IGNORE_FOR_NOW,Ne passe pas les filtres de découverte prioritaires.,Ne rien faire.
+FER,FER,Ferrovial,nasdaq100_wikipedia,IGNORE_FOR_NOW,Ne passe pas les filtres de découverte prioritaires.,Ne rien faire.
+SHW,SHW,The Sherwin-Williams Company,config/market_scanner.yaml:discovery_universe,IGNORE_FOR_NOW,Ne passe pas les filtres de découverte prioritaires.,Ne rien faire.
+FAST,FAST,Fastenal Company,config/market_scanner.yaml:discovery_universe,IGNORE_FOR_NOW,Ne passe pas les filtres de découverte prioritaires.,Ne rien faire.
+ODFL,ODFL,Old Dominion Freight Line Inc.,config/market_scanner.yaml:discovery_universe,IGNORE_FOR_NOW,Ne passe pas les filtres de découverte prioritaires.,Ne rien faire.
+GEHC,GEHC,GE HealthCare,nasdaq100_wikipedia,IGNORE_FOR_NOW,Ne passe pas les filtres de découverte prioritaires.,Ne rien faire.
+ZBH,ZBH,Zimmer Biomet,sp500_wikipedia,IGNORE_FOR_NOW,Ne passe pas les filtres de découverte prioritaires.,Ne rien faire.
+ZS,ZS,Zscaler,nasdaq100_wikipedia,IGNORE_FOR_NOW,Ne passe pas les filtres de découverte prioritaires.,Ne rien faire.
+XYZ,XYZ,"Block, Inc.",sp500_wikipedia,IGNORE_FOR_NOW,Ne passe pas les filtres de découverte prioritaires.,Ne rien faire.
+ADP,ADP,Automatic Data Processing,nasdaq100_wikipedia,IGNORE_FOR_NOW,Ne passe pas les filtres de découverte prioritaires.,Ne rien faire.
+TYL,TYL,Tyler Technologies Inc.,config/market_scanner.yaml:discovery_universe,IGNORE_FOR_NOW,Ne passe pas les filtres de découverte prioritaires.,Ne rien faire.
+RACE,RACE,Ferrari N.V.,config/market_scanner.yaml:discovery_universe,IGNORE_FOR_NOW,Ne passe pas les filtres de découverte prioritaires.,Ne rien faire.
+FANG,FANG,Diamondback Energy,nasdaq100_wikipedia,IGNORE_FOR_NOW,Ne passe pas les filtres de découverte prioritaires.,Ne rien faire.
+VMC,VMC,Vulcan Materials Company,sp500_wikipedia,IGNORE_FOR_NOW,Ne passe pas les filtres de découverte prioritaires.,Ne rien faire.
+DASH,DASH,DoorDash,nasdaq100_wikipedia,IGNORE_FOR_NOW,Ne passe pas les filtres de découverte prioritaires.,Ne rien faire.
+INSM,INSM,Insmed Incorporated,nasdaq100_wikipedia,IGNORE_FOR_NOW,Ne passe pas les filtres de découverte prioritaires.,Ne rien faire.
+CHTR,CHTR,Charter Communications,nasdaq100_wikipedia,IGNORE_FOR_NOW,Ne passe pas les filtres de découverte prioritaires.,Ne rien faire.
+WY,WY,Weyerhaeuser,sp500_wikipedia,IGNORE_FOR_NOW,Ne passe pas les filtres de découverte prioritaires.,Ne rien faire.
+UPS,UPS,United Parcel Service,sp500_wikipedia,IGNORE_FOR_NOW,Ne passe pas les filtres de découverte prioritaires.,Ne rien faire.
+WBD,WBD,Warner Bros. Discovery,nasdaq100_wikipedia,IGNORE_FOR_NOW,Ne passe pas les filtres de découverte prioritaires.,Ne rien faire.
+TTWO,TTWO,Take-Two Interactive,nasdaq100_wikipedia,IGNORE_FOR_NOW,Ne passe pas les filtres de découverte prioritaires.,Ne rien faire.
+MSTR,MSTR,MicroStrategy,nasdaq100_wikipedia,IGNORE_FOR_NOW,Ne passe pas les filtres de découverte prioritaires.,Ne rien faire.

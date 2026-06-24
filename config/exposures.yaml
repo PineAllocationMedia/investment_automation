@@ -1,0 +1,74 @@
+TSLA:
+  region: United States
+  currency: USD
+  factor_exposure: [growth, consumer, technology, rates_sensitive]
+
+MSFT:
+  region: United States
+  currency: USD
+  factor_exposure: [technology, cloud, AI, growth]
+
+AVGO:
+  region: United States
+  currency: USD
+  factor_exposure: [semiconductors, AI, infrastructure, growth]
+
+MA:
+  region: United States
+  currency: USD
+  factor_exposure: [payments, financials, consumer, global_growth]
+
+LLY:
+  region: United States
+  currency: USD
+  factor_exposure: [healthcare, pharma, innovation]
+
+ASML:
+  region: Europe
+  currency: EUR
+  factor_exposure: [semiconductors, capex_cycle, geopolitics]
+
+SIEGY:
+  region: Europe
+  currency: EUR
+  factor_exposure: [industrial, automation, electrification]
+
+SBGSY:
+  region: Europe
+  currency: EUR
+  factor_exposure: [industrial, electrification, automation]
+
+BAM:
+  region: Canada
+  currency: CAD
+  factor_exposure: [alternative_assets, rates_sensitive, financials]
+
+CSU.TO:
+  region: Canada
+  currency: CAD
+  factor_exposure: [software, vertical_markets, acquisitive_growth]
+
+WSP.TO:
+  region: Canada
+  currency: CAD
+  factor_exposure: [engineering, infrastructure, industrial]
+
+VFV.TO:
+  region: United States
+  currency: CAD
+  factor_exposure: [broad_market, S&P500]
+
+XUS.TO:
+  region: United States
+  currency: CAD
+  factor_exposure: [broad_market, S&P500, large_cap]
+
+QQC.TO:
+  region: United States
+  currency: CAD
+  factor_exposure: [Nasdaq100, technology, growth, mega_cap]
+
+FBTC.TO:
+  region: Global
+  currency: CAD
+  factor_exposure: [bitcoin, crypto, high_volatility, speculative_asset, alternative_asset]

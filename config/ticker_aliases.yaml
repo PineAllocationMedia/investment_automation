@@ -1,0 +1,145 @@
+aliases:
+  GOOG:
+    ticker: GOOGL
+    company_name: Alphabet Inc.
+    reason: GOOG et GOOGL sont deux classes d'actions d'Alphabet; GOOGL est utilisee comme ticker principal pour eviter les doublons.
+
+  FBTC:
+    ticker: FBTC.TO
+    company_name: Fidelity Advantage Bitcoin ETF
+    reason: Pour le FNB Bitcoin canadien en dollars CAD, Yahoo Finance utilise FBTC.TO. Le ticker FBTC sans suffixe peut pointer vers le FNB Bitcoin americain.
+
+  CSU:
+    ticker: CSU.TO
+    company_name: Constellation Software Inc.
+    reason: Yahoo Finance utilise CSU.TO pour l'action canadienne.
+
+  WSP:
+    ticker: WSP.TO
+    company_name: WSP Global Inc.
+    reason: Yahoo Finance utilise WSP.TO pour l'action canadienne.
+
+  SCHN:
+    ticker: SBGSY
+    company_name: Schneider Electric S.E.
+    reason: Utilise l'ADR Schneider Electric comme approximation gratuite.
+
+  TOI:
+    ticker: TOI.V
+    company_name: Topicus.com Inc.
+    reason: TOI sans suffixe correspond a une autre compagnie sur Yahoo Finance.
+
+  NANO:
+    ticker: NANO.TO
+    company_name: Nano One Materials Corp.
+    reason: Yahoo Finance utilise NANO.TO pour l'action canadienne.
+
+  STN:
+    ticker: STN.TO
+    company_name: Stantec Inc.
+    reason: Yahoo Finance utilise STN.TO pour l'action canadienne.
+
+  DSG:
+    ticker: DSG.TO
+    company_name: The Descartes Systems Group Inc.
+    reason: Yahoo Finance utilise DSG.TO pour l'action canadienne.
+
+  WCN:
+    ticker: WCN.TO
+    company_name: Waste Connections Inc.
+    reason: Yahoo Finance utilise WCN.TO pour la cotation canadienne.
+
+  GIB:
+    ticker: GIB-A.TO
+    company_name: CGI Inc.
+    reason: Yahoo Finance utilise GIB-A.TO pour l'action canadienne de CGI.
+
+  GFL:
+    ticker: GFL.TO
+    company_name: GFL Environmental Inc.
+    reason: Yahoo Finance utilise GFL.TO pour la cotation canadienne.
+
+  CLS:
+    ticker: CLS.TO
+    company_name: Celestica Inc.
+    reason: Yahoo Finance utilise CLS.TO pour la cotation canadienne.
+
+  PNG:
+    ticker: PNG.V
+    company_name: Kraken Robotics Inc.
+    reason: Yahoo Finance utilise PNG.V pour cette action canadienne de croissance.
+
+  CCO:
+    ticker: CCO.TO
+    company_name: Cameco Corporation
+    reason: CCO sans suffixe correspond a Clear Channel Outdoor, pas Cameco.
+
+  DOL:
+    ticker: DOL.TO
+    company_name: Dollarama Inc.
+    reason: DOL sans suffixe correspond a un ETF americain, pas Dollarama.
+
+  RBA:
+    ticker: RBA.TO
+    company_name: RB Global Inc.
+    reason: Yahoo Finance utilise RBA.TO pour la cotation canadienne de RB Global/Ritchie Bros.
+
+  NPI:
+    ticker: NPI.TO
+    company_name: Northland Power Inc.
+    reason: Yahoo Finance utilise NPI.TO pour l'action canadienne.
+
+  BLX:
+    ticker: BLX.TO
+    company_name: Boralex Inc.
+    reason: Yahoo Finance utilise BLX.TO pour l'action canadienne.
+
+  FTS:
+    ticker: FTS.TO
+    company_name: Fortis Inc.
+    reason: Yahoo Finance utilise FTS.TO pour la cotation canadienne.
+
+  FNV:
+    ticker: FNV.TO
+    company_name: Franco-Nevada Corporation
+    reason: Yahoo Finance utilise FNV.TO pour la cotation canadienne.
+
+  TRI:
+    ticker: TRI.TO
+    company_name: Thomson Reuters Corporation
+    reason: Yahoo Finance utilise TRI.TO pour la cotation canadienne.
+
+  SLF:
+    ticker: SLF.TO
+    company_name: Sun Life Financial Inc.
+    reason: Yahoo Finance utilise SLF.TO pour la cotation canadienne.
+
+  NTR:
+    ticker: NTR.TO
+    company_name: Nutrien Ltd.
+    reason: Yahoo Finance utilise NTR.TO pour la cotation canadienne.
+
+  WPM:
+    ticker: WPM.TO
+    company_name: Wheaton Precious Metals Corp.
+    reason: Yahoo Finance utilise WPM.TO pour la cotation canadienne.
+
+  MFC:
+    ticker: MFC.TO
+    company_name: Manulife Financial Corporation
+    reason: Yahoo Finance utilise MFC.TO pour la cotation canadienne.
+
+  AEM:
+    ticker: AEM.TO
+    company_name: Agnico Eagle Mines Limited
+    reason: Yahoo Finance utilise AEM.TO pour la cotation canadienne.
+
+  ENB:
+    ticker: ENB.TO
+    company_name: Enbridge Inc.
+    reason: Yahoo Finance utilise ENB.TO pour la cotation canadienne.
+
+  TD:
+    ticker: TD.TO
+    company_name: The Toronto-Dominion Bank
+    reason: Yahoo Finance utilise TD.TO pour la cotation canadienne.

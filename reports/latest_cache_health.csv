@@ -1,0 +1,9 @@
+category,status,severity,count,cleaned_count,details,suggested_action
+summary,WARN,LOW,616,0,"308 cache(s) marché, 307 dernière(s) bonne(s) donnée(s), 1 cache(s) auxiliaire(s).",Lire reports/latest_cache_health.csv.
+direct_market_cache,PASS,LOW,307,0,307 cache(s) direct(s) utilisable(s); 0 last-known-good créé(s) depuis cache direct.,Aucune action.
+last_known_good,PASS,LOW,307,0,307 fichier(s) last-known-good; 0 très ancien(s).,Aucune action.
+temporary_files,PASS,LOW,0,0,0 fichier(s) temporaire(s) détecté(s); 0 supprimé(s).,Aucune action.
+corrupt_json,PASS,LOW,0,0,0 cache(s) JSON illisible(s); 0 mis en quarantaine.,Aucune action.
+unavailable_cache,WARN,MEDIUM,1,0,1 cache(s) sans prix utilisable; 0 supprimé(s).,Normal pour certains tickers mal couverts; vérifier seulement si un titre important est touché.
+legacy_fallback_cache,PASS,LOW,0,0,0 ancien(s) cache(s) fallback; 0 copié(s) en last-known-good; 0 supprimé(s).,Aucune action.
+old_direct_cache,WARN,MEDIUM,10,0,10 cache(s) direct(s) datent de plus de 30 jours.,Utiliser --refresh-market-data si une décision importante dépend de ces titres.

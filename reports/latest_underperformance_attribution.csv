@@ -1,0 +1,6 @@
+metric,status,value,interpretation,impact
+Sous-performance observée,NONE,5.0 %,Statut réel: TWR_FLOW_ADJUSTED_AHEAD_OF_SP500; écart préféré vs S&P 500: 5.0 %.,Évite de confondre une mauvaise année normale avec une erreur de modèle.
+Horizon de preuve,TOO_SHORT,,Historique trop court: une correction automatique serait fragile.,"Plus l’horizon réel est long, plus une sous-performance devient significative."
+Problèmes de processus,MINOR_PROCESS_SIGNAL,1,Rotation ou changement du titre principal élevé (18.5 % / 50.0 %).,Indique si la sous-performance semble venir d’une mécanique perfectible plutôt que du marché.
+Diagnostic d’attribution,NO_UNDERPERFORMANCE,,"Aucune sous-performance significative détectée; les corrections doivent rester basées sur la mécanique, pas sur la performance.",Classe la sous-performance avant de laisser le modèle s’auto-ajuster.
+Gouverneur de correction,NORMAL_SAFE_TUNING,,Aucune sous-performance significative; conserver les règles normales d’amélioration.,Les corrections restent limitées aux paramètres secondaires.

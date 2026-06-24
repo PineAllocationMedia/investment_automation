@@ -1,0 +1,32 @@
+{
+  "allocations": [],
+  "analysis_date": "2026-05-12",
+  "average_score_ex_vfv": 7.6984798251781115,
+  "created_at": "2026-05-12T10:43:43",
+  "decision_quality": {
+    "allocated_core_count": 0,
+    "core_allocation_percent": 0.0,
+    "data_quality_status": "NOT_APPLICABLE",
+    "decision_quality_level": "HIGH",
+    "decision_quality_score": 100.0,
+    "eligible_core_count": 5,
+    "main_reasons": [
+      "Capital analys\u00e9 \u00e0 0 $, donc aucune d\u00e9cision d\u2019allocation active n\u2019est requise."
+    ],
+    "profile_calibration": "HIGH_CAGR_LONG_TERM",
+    "risk_status": "WATCH",
+    "sensitivity_status": "NOT_APPLICABLE",
+    "stability_status": "NOT_APPLICABLE",
+    "summary": "Aucune nouvelle cotisation \u00e0 allouer; le rapport sert surtout \u00e0 surveiller le portefeuille.",
+    "vfv_mandatory_percent": 0.1,
+    "vfv_redirection_percent": 0.0,
+    "vfv_total_percent": 0.0,
+    "watchpoints": [
+      "Aucun point de fragilit\u00e9 majeur d\u00e9tect\u00e9."
+    ],
+    "why_not_high": [
+      "Rien de majeur."
+    ]
+  },
+  "mandatory_vfv_percent": 0.1
+}

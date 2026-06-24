@@ -1,0 +1,464 @@
+ticker,company_name,source,priority,last_seen
+ZS,Zscaler,nasdaq100_wikipedia,5.0,2026-05-27
+XEL,Xcel Energy,nasdaq100_wikipedia,5.0,2026-05-27
+WMT,Walmart,nasdaq100_wikipedia,5.0,2026-05-27
+WDAY,"Workday, Inc.",nasdaq100_wikipedia,5.0,2026-05-27
+WBD,Warner Bros. Discovery,nasdaq100_wikipedia,5.0,2026-05-27
+VRTX,Vertex Pharmaceuticals,nasdaq100_wikipedia,5.0,2026-05-27
+VRSK,Verisk Analytics,nasdaq100_wikipedia,5.0,2026-05-27
+TTWO,Take-Two Interactive,nasdaq100_wikipedia,5.0,2026-05-27
+TMUS,T-Mobile US,nasdaq100_wikipedia,5.0,2026-05-27
+SNDK,Sandisk,nasdaq100_wikipedia,5.0,2026-05-27
+SHOP,Shopify,nasdaq100_wikipedia,5.0,2026-05-27
+SBUX,Starbucks,nasdaq100_wikipedia,5.0,2026-05-27
+ROST,Ross Stores,nasdaq100_wikipedia,5.0,2026-05-27
+REGN,Regeneron Pharmaceuticals,nasdaq100_wikipedia,5.0,2026-05-27
+PYPL,PayPal,nasdaq100_wikipedia,5.0,2026-05-27
+PLTR,Palantir Technologies,nasdaq100_wikipedia,5.0,2026-05-27
+PEP,PepsiCo,nasdaq100_wikipedia,5.0,2026-05-27
+PDD,PDD Holdings,nasdaq100_wikipedia,5.0,2026-05-27
+PCAR,Paccar,nasdaq100_wikipedia,5.0,2026-05-27
+PAYX,Paychex,nasdaq100_wikipedia,5.0,2026-05-27
+PANW,Palo Alto Networks,nasdaq100_wikipedia,5.0,2026-05-27
+ORLY,O'Reilly Automotive,nasdaq100_wikipedia,5.0,2026-05-27
+ODFL,Old Dominion Freight Line,nasdaq100_wikipedia,5.0,2026-05-27
+NXPI,NXP Semiconductors,nasdaq100_wikipedia,5.0,2026-05-27
+MSTR,MicroStrategy,nasdaq100_wikipedia,5.0,2026-05-27
+MRVL,Marvell Technology,nasdaq100_wikipedia,5.0,2026-05-27
+MNST,Monster Beverage,nasdaq100_wikipedia,5.0,2026-05-27
+MDLZ,Mondelez International,nasdaq100_wikipedia,5.0,2026-05-27
+MCHP,Microchip Technology,nasdaq100_wikipedia,5.0,2026-05-27
+MAR,Marriott International,nasdaq100_wikipedia,5.0,2026-05-27
+LITE,Lumentum,nasdaq100_wikipedia,5.0,2026-05-27
+KHC,Kraft Heinz,nasdaq100_wikipedia,5.0,2026-05-27
+KDP,Keurig Dr Pepper,nasdaq100_wikipedia,5.0,2026-05-27
+INSM,Insmed Incorporated,nasdaq100_wikipedia,5.0,2026-05-27
+IDXX,Idexx Laboratories,nasdaq100_wikipedia,5.0,2026-05-27
+GEHC,GE HealthCare,nasdaq100_wikipedia,5.0,2026-05-27
+FER,Ferrovial,nasdaq100_wikipedia,5.0,2026-05-27
+FAST,Fastenal,nasdaq100_wikipedia,5.0,2026-05-27
+FANG,Diamondback Energy,nasdaq100_wikipedia,5.0,2026-05-27
+EXC,Exelon,nasdaq100_wikipedia,5.0,2026-05-27
+EA,Electronic Arts,nasdaq100_wikipedia,5.0,2026-05-27
+DXCM,DexCom,nasdaq100_wikipedia,5.0,2026-05-27
+DASH,DoorDash,nasdaq100_wikipedia,5.0,2026-05-27
+CTSH,Cognizant,nasdaq100_wikipedia,5.0,2026-05-27
+CTAS,Cintas,nasdaq100_wikipedia,5.0,2026-05-27
+CSX,CSX Corporation,nasdaq100_wikipedia,5.0,2026-05-27
+CSCO,Cisco,nasdaq100_wikipedia,5.0,2026-05-27
+CMCSA,Comcast,nasdaq100_wikipedia,5.0,2026-05-27
+CHTR,Charter Communications,nasdaq100_wikipedia,5.0,2026-05-27
+CDNS,Cadence Design Systems,nasdaq100_wikipedia,5.0,2026-05-27
+CCEP,Coca-Cola Europacific Partners,nasdaq100_wikipedia,5.0,2026-05-27
+BKR,Baker Hughes,nasdaq100_wikipedia,5.0,2026-05-27
+AXON,Axon Enterprise,nasdaq100_wikipedia,5.0,2026-05-27
+ARM,Arm Holdings,nasdaq100_wikipedia,5.0,2026-05-27
+AMD,Advanced Micro Devices,nasdaq100_wikipedia,5.0,2026-05-27
+ADSK,Autodesk,nasdaq100_wikipedia,5.0,2026-05-27
+ADP,Automatic Data Processing,nasdaq100_wikipedia,5.0,2026-05-27
+ABNB,Airbnb,nasdaq100_wikipedia,5.0,2026-05-27
+ZTS,Zoetis,sp500_wikipedia,4.0,2026-05-27
+ZBRA,Zebra Technologies,sp500_wikipedia,4.0,2026-05-27
+ZBH,Zimmer Biomet,sp500_wikipedia,4.0,2026-05-27
+XYZ,"Block, Inc.",sp500_wikipedia,4.0,2026-05-27
+XYL,Xylem Inc.,sp500_wikipedia,4.0,2026-05-27
+XOM,ExxonMobil,sp500_wikipedia,4.0,2026-05-27
+WYNN,Wynn Resorts,sp500_wikipedia,4.0,2026-05-27
+WY,Weyerhaeuser,sp500_wikipedia,4.0,2026-05-27
+WTW,Willis Towers Watson,sp500_wikipedia,4.0,2026-05-27
+WST,West Pharmaceutical Services,sp500_wikipedia,4.0,2026-05-27
+WSM,"Williams-Sonoma, Inc.",sp500_wikipedia,4.0,2026-05-27
+WRB,W. R. Berkley Corporation,sp500_wikipedia,4.0,2026-05-27
+WMB,Williams Companies,sp500_wikipedia,4.0,2026-05-27
+WM,Waste Management,sp500_wikipedia,4.0,2026-05-27
+WFC,Wells Fargo,sp500_wikipedia,4.0,2026-05-27
+WEC,WEC Energy Group,sp500_wikipedia,4.0,2026-05-27
+WAT,Waters Corporation,sp500_wikipedia,4.0,2026-05-27
+VZ,Verizon,sp500_wikipedia,4.0,2026-05-27
+VTRS,Viatris,sp500_wikipedia,4.0,2026-05-27
+VTR,Ventas,sp500_wikipedia,4.0,2026-05-27
+VST,Vistra Corp .,sp500_wikipedia,4.0,2026-05-27
+VRSN,Verisign,sp500_wikipedia,4.0,2026-05-27
+VMC,Vulcan Materials Company,sp500_wikipedia,4.0,2026-05-27
+VLTO,Veralto,sp500_wikipedia,4.0,2026-05-27
+VLO,Valero Energy,sp500_wikipedia,4.0,2026-05-27
+VICI,Vici Properties,sp500_wikipedia,4.0,2026-05-27
+VEEV,Veeva Systems,sp500_wikipedia,4.0,2026-05-27
+USB,U.S. Bancorp,sp500_wikipedia,4.0,2026-05-27
+URI,United Rentals,sp500_wikipedia,4.0,2026-05-27
+UPS,United Parcel Service,sp500_wikipedia,4.0,2026-05-27
+UNP,Union Pacific Corporation,sp500_wikipedia,4.0,2026-05-27
+ULTA,Ulta Beauty,sp500_wikipedia,4.0,2026-05-27
+UHS,Universal Health Services,sp500_wikipedia,4.0,2026-05-27
+UDR,"UDR, Inc.",sp500_wikipedia,4.0,2026-05-27
+UBER,Uber,sp500_wikipedia,4.0,2026-05-27
+UAL,United Airlines Holdings,sp500_wikipedia,4.0,2026-05-27
+TYL,Tyler Technologies,sp500_wikipedia,4.0,2026-05-27
+TXT,Textron,sp500_wikipedia,4.0,2026-05-27
+TTD,Trade Desk (The),sp500_wikipedia,4.0,2026-05-27
+TSN,Tyson Foods,sp500_wikipedia,4.0,2026-05-27
+TSCO,Tractor Supply,sp500_wikipedia,4.0,2026-05-27
+TRV,Travelers Companies (The),sp500_wikipedia,4.0,2026-05-27
+TROW,T. Rowe Price,sp500_wikipedia,4.0,2026-05-27
+TRMB,Trimble Inc.,sp500_wikipedia,4.0,2026-05-27
+TRGP,Targa Resources,sp500_wikipedia,4.0,2026-05-27
+TPR,"Tapestry, Inc.",sp500_wikipedia,4.0,2026-05-27
+TPL,Texas Pacific Land Corporation,sp500_wikipedia,4.0,2026-05-27
+TKO,TKO Group Holdings,sp500_wikipedia,4.0,2026-05-27
+TGT,Target Corporation,sp500_wikipedia,4.0,2026-05-27
+TFC,Truist Financial,sp500_wikipedia,4.0,2026-05-27
+TER,Teradyne,sp500_wikipedia,4.0,2026-05-27
+TEL,TE Connectivity,sp500_wikipedia,4.0,2026-05-27
+TECH,Bio-Techne,sp500_wikipedia,4.0,2026-05-27
+TDY,Teledyne Technologies,sp500_wikipedia,4.0,2026-05-27
+TDG,TransDigm Group,sp500_wikipedia,4.0,2026-05-27
+TAP,Molson Coors Beverage Company,sp500_wikipedia,4.0,2026-05-27
+T,AT&T,sp500_wikipedia,4.0,2026-05-27
+SYY,Sysco,sp500_wikipedia,4.0,2026-05-27
+SYK,Stryker Corporation,sp500_wikipedia,4.0,2026-05-27
+SYF,Synchrony Financial,sp500_wikipedia,4.0,2026-05-27
+SWKS,Skyworks Solutions,sp500_wikipedia,4.0,2026-05-27
+SWK,Stanley Black & Decker,sp500_wikipedia,4.0,2026-05-27
+SW,Smurfit Westrock,sp500_wikipedia,4.0,2026-05-27
+STZ,Constellation Brands,sp500_wikipedia,4.0,2026-05-27
+STT,State Street Corporation,sp500_wikipedia,4.0,2026-05-27
+STLD,Steel Dynamics,sp500_wikipedia,4.0,2026-05-27
+STE,Steris,sp500_wikipedia,4.0,2026-05-27
+SRE,Sempra,sp500_wikipedia,4.0,2026-05-27
+SPG,Simon Property Group,sp500_wikipedia,4.0,2026-05-27
+SOLV,Solventum,sp500_wikipedia,4.0,2026-05-27
+SNA,Snap-on,sp500_wikipedia,4.0,2026-05-27
+SLB,Schlumberger,sp500_wikipedia,4.0,2026-05-27
+SJM,J.M. Smucker Company (The),sp500_wikipedia,4.0,2026-05-27
+SHW,Sherwin-Williams,sp500_wikipedia,4.0,2026-05-27
+SCHW,Charles Schwab Corporation,sp500_wikipedia,4.0,2026-05-27
+SBAC,SBA Communications,sp500_wikipedia,4.0,2026-05-27
+SATS,EchoStar,sp500_wikipedia,4.0,2026-05-27
+RVTY,Revvity,sp500_wikipedia,4.0,2026-05-27
+RSG,Republic Services,sp500_wikipedia,4.0,2026-05-27
+ROL,"Rollins, Inc.",sp500_wikipedia,4.0,2026-05-27
+RMD,ResMed,sp500_wikipedia,4.0,2026-05-27
+RL,Ralph Lauren Corporation,sp500_wikipedia,4.0,2026-05-27
+RJF,Raymond James Financial,sp500_wikipedia,4.0,2026-05-27
+RF,Regions Financial Corporation,sp500_wikipedia,4.0,2026-05-27
+REG,Regency Centers,sp500_wikipedia,4.0,2026-05-27
+RCL,Royal Caribbean Group,sp500_wikipedia,4.0,2026-05-27
+Q,Qnity Electronics,sp500_wikipedia,4.0,2026-05-27
+PTC,PTC Inc.,sp500_wikipedia,4.0,2026-05-27
+PSX,Phillips 66,sp500_wikipedia,4.0,2026-05-27
+PSKY,Paramount Skydance Corporation,sp500_wikipedia,4.0,2026-05-27
+PSA,Public Storage,sp500_wikipedia,4.0,2026-05-27
+PRU,Prudential Financial,sp500_wikipedia,4.0,2026-05-27
+PPL,PPL Corporation,sp500_wikipedia,4.0,2026-05-27
+PPG,PPG Industries,sp500_wikipedia,4.0,2026-05-27
+POOL,Pool Corporation,sp500_wikipedia,4.0,2026-05-27
+PODD,Insulet Corporation,sp500_wikipedia,4.0,2026-05-27
+PNW,Pinnacle West Capital,sp500_wikipedia,4.0,2026-05-27
+PNR,Pentair,sp500_wikipedia,4.0,2026-05-27
+PNC,PNC Financial Services,sp500_wikipedia,4.0,2026-05-27
+PM,Philip Morris International,sp500_wikipedia,4.0,2026-05-27
+PKG,Packaging Corporation of America,sp500_wikipedia,4.0,2026-05-27
+PHM,PulteGroup,sp500_wikipedia,4.0,2026-05-27
+PFG,Principal Financial Group,sp500_wikipedia,4.0,2026-05-27
+PFE,Pfizer,sp500_wikipedia,4.0,2026-05-27
+PEG,Public Service Enterprise Group,sp500_wikipedia,4.0,2026-05-27
+PCG,PG&E Corporation,sp500_wikipedia,4.0,2026-05-27
+OXY,Occidental Petroleum,sp500_wikipedia,4.0,2026-05-27
+OTIS,Otis Worldwide,sp500_wikipedia,4.0,2026-05-27
+ORCL,Oracle Corporation,sp500_wikipedia,4.0,2026-05-27
+ON,ON Semiconductor,sp500_wikipedia,4.0,2026-05-27
+OMC,Omnicom Group,sp500_wikipedia,4.0,2026-05-27
+OKE,Oneok,sp500_wikipedia,4.0,2026-05-27
+O,Realty Income,sp500_wikipedia,4.0,2026-05-27
+NWSA,News Corp (Class A),sp500_wikipedia,4.0,2026-05-27
+NWS,News Corp (Class B),sp500_wikipedia,4.0,2026-05-27
+NVR,"NVR, Inc.",sp500_wikipedia,4.0,2026-05-27
+NUE,Nucor,sp500_wikipedia,4.0,2026-05-27
+NTRS,Northern Trust,sp500_wikipedia,4.0,2026-05-27
+NTAP,NetApp,sp500_wikipedia,4.0,2026-05-27
+NSC,Norfolk Southern,sp500_wikipedia,4.0,2026-05-27
+NRG,NRG Energy,sp500_wikipedia,4.0,2026-05-27
+NOC,Northrop Grumman,sp500_wikipedia,4.0,2026-05-27
+NKE,"Nike, Inc.",sp500_wikipedia,4.0,2026-05-27
+NI,NiSource,sp500_wikipedia,4.0,2026-05-27
+NDSN,Nordson Corporation,sp500_wikipedia,4.0,2026-05-27
+NDAQ,"Nasdaq, Inc.",sp500_wikipedia,4.0,2026-05-27
+NCLH,Norwegian Cruise Line Holdings,sp500_wikipedia,4.0,2026-05-27
+MTD,Mettler Toledo,sp500_wikipedia,4.0,2026-05-27
+MTB,M&T Bank,sp500_wikipedia,4.0,2026-05-27
+MSI,Motorola Solutions,sp500_wikipedia,4.0,2026-05-27
+MS,Morgan Stanley,sp500_wikipedia,4.0,2026-05-27
+MRSH,Marsh McLennan,sp500_wikipedia,4.0,2026-05-27
+MRNA,Moderna,sp500_wikipedia,4.0,2026-05-27
+MPC,Marathon Petroleum,sp500_wikipedia,4.0,2026-05-27
+MOS,Mosaic Company (The),sp500_wikipedia,4.0,2026-05-27
+MO,Altria,sp500_wikipedia,4.0,2026-05-27
+MMM,3M,sp500_wikipedia,4.0,2026-05-27
+MLM,Martin Marietta Materials,sp500_wikipedia,4.0,2026-05-27
+MKC,McCormick & Company,sp500_wikipedia,4.0,2026-05-27
+MGM,MGM Resorts,sp500_wikipedia,4.0,2026-05-27
+MET,MetLife,sp500_wikipedia,4.0,2026-05-27
+MDT,Medtronic,sp500_wikipedia,4.0,2026-05-27
+MCK,McKesson Corporation,sp500_wikipedia,4.0,2026-05-27
+MCD,McDonald's,sp500_wikipedia,4.0,2026-05-27
+MAS,Masco,sp500_wikipedia,4.0,2026-05-27
+MAA,Mid-America Apartment Communities,sp500_wikipedia,4.0,2026-05-27
+LYV,Live Nation Entertainment,sp500_wikipedia,4.0,2026-05-27
+LYB,LyondellBasell,sp500_wikipedia,4.0,2026-05-27
+LVS,Las Vegas Sands,sp500_wikipedia,4.0,2026-05-27
+LUV,Southwest Airlines,sp500_wikipedia,4.0,2026-05-27
+LULU,Lululemon Athletica,sp500_wikipedia,4.0,2026-05-27
+LOW,Lowe's,sp500_wikipedia,4.0,2026-05-27
+LNT,Alliant Energy,sp500_wikipedia,4.0,2026-05-27
+LMT,Lockheed Martin,sp500_wikipedia,4.0,2026-05-27
+LII,Lennox International,sp500_wikipedia,4.0,2026-05-27
+LHX,L3Harris,sp500_wikipedia,4.0,2026-05-27
+LH,Labcorp,sp500_wikipedia,4.0,2026-05-27
+LEN,Lennar,sp500_wikipedia,4.0,2026-05-27
+LDOS,Leidos,sp500_wikipedia,4.0,2026-05-27
+L,Loews Corporation,sp500_wikipedia,4.0,2026-05-27
+KVUE,Kenvue,sp500_wikipedia,4.0,2026-05-27
+KR,Kroger,sp500_wikipedia,4.0,2026-05-27
+KO,Coca-Cola Company (The),sp500_wikipedia,4.0,2026-05-27
+KMI,Kinder Morgan,sp500_wikipedia,4.0,2026-05-27
+KMB,Kimberly-Clark,sp500_wikipedia,4.0,2026-05-27
+KIM,Kimco Realty,sp500_wikipedia,4.0,2026-05-27
+KEYS,Keysight Technologies,sp500_wikipedia,4.0,2026-05-27
+KEY,KeyCorp,sp500_wikipedia,4.0,2026-05-27
+JPM,JPMorgan Chase,sp500_wikipedia,4.0,2026-05-27
+JKHY,Jack Henry & Associates,sp500_wikipedia,4.0,2026-05-27
+JCI,Johnson Controls,sp500_wikipedia,4.0,2026-05-27
+JBL,Jabil,sp500_wikipedia,4.0,2026-05-27
+JBHT,J.B. Hunt,sp500_wikipedia,4.0,2026-05-27
+J,Jacobs Solutions,sp500_wikipedia,4.0,2026-05-27
+IVZ,Invesco,sp500_wikipedia,4.0,2026-05-27
+ITW,Illinois Tool Works,sp500_wikipedia,4.0,2026-05-27
+IT,Gartner,sp500_wikipedia,4.0,2026-05-27
+IRM,Iron Mountain,sp500_wikipedia,4.0,2026-05-27
+IR,Ingersoll Rand,sp500_wikipedia,4.0,2026-05-27
+IQV,IQVIA,sp500_wikipedia,4.0,2026-05-27
+IP,International Paper,sp500_wikipedia,4.0,2026-05-27
+INVH,Invitation Homes,sp500_wikipedia,4.0,2026-05-27
+INCY,Incyte,sp500_wikipedia,4.0,2026-05-27
+IFF,International Flavors & Fragrances,sp500_wikipedia,4.0,2026-05-27
+IEX,IDEX Corporation,sp500_wikipedia,4.0,2026-05-27
+ICE,Intercontinental Exchange,sp500_wikipedia,4.0,2026-05-27
+IBM,IBM,sp500_wikipedia,4.0,2026-05-27
+IBKR,Interactive Brokers,sp500_wikipedia,4.0,2026-05-27
+HWM,Howmet Aerospace,sp500_wikipedia,4.0,2026-05-27
+HUM,Humana,sp500_wikipedia,4.0,2026-05-27
+HUBB,Hubbell Incorporated,sp500_wikipedia,4.0,2026-05-27
+HSY,Hershey Company (The),sp500_wikipedia,4.0,2026-05-27
+HST,Host Hotels & Resorts,sp500_wikipedia,4.0,2026-05-27
+HSIC,Henry Schein,sp500_wikipedia,4.0,2026-05-27
+HRL,Hormel Foods,sp500_wikipedia,4.0,2026-05-27
+HPQ,HP Inc.,sp500_wikipedia,4.0,2026-05-27
+HPE,Hewlett Packard Enterprise,sp500_wikipedia,4.0,2026-05-27
+HOOD,Robinhood Markets,sp500_wikipedia,4.0,2026-05-27
+HLT,Hilton Worldwide,sp500_wikipedia,4.0,2026-05-27
+HII,Huntington Ingalls Industries,sp500_wikipedia,4.0,2026-05-27
+HIG,Hartford (The),sp500_wikipedia,4.0,2026-05-27
+HCA,HCA Healthcare,sp500_wikipedia,4.0,2026-05-27
+HBAN,Huntington Bancshares,sp500_wikipedia,4.0,2026-05-27
+HAS,Hasbro,sp500_wikipedia,4.0,2026-05-27
+HAL,Halliburton,sp500_wikipedia,4.0,2026-05-27
+GWW,W. W. Grainger,sp500_wikipedia,4.0,2026-05-27
+GS,Goldman Sachs,sp500_wikipedia,4.0,2026-05-27
+GRMN,Garmin,sp500_wikipedia,4.0,2026-05-27
+GPN,Global Payments,sp500_wikipedia,4.0,2026-05-27
+GPC,Genuine Parts Company,sp500_wikipedia,4.0,2026-05-27
+GNRC,Generac,sp500_wikipedia,4.0,2026-05-27
+GM,General Motors,sp500_wikipedia,4.0,2026-05-27
+GLW,Corning Inc.,sp500_wikipedia,4.0,2026-05-27
+GL,Globe Life,sp500_wikipedia,4.0,2026-05-27
+GIS,General Mills,sp500_wikipedia,4.0,2026-05-27
+GEN,Gen Digital,sp500_wikipedia,4.0,2026-05-27
+GE,GE Aerospace,sp500_wikipedia,4.0,2026-05-27
+GDDY,GoDaddy,sp500_wikipedia,4.0,2026-05-27
+GD,General Dynamics,sp500_wikipedia,4.0,2026-05-27
+FSLR,First Solar,sp500_wikipedia,4.0,2026-05-27
+FRT,Federal Realty Investment Trust,sp500_wikipedia,4.0,2026-05-27
+FOXA,Fox Corporation (Class A),sp500_wikipedia,4.0,2026-05-27
+FOX,Fox Corporation (Class B),sp500_wikipedia,4.0,2026-05-27
+FIX,Comfort Systems USA,sp500_wikipedia,4.0,2026-05-27
+FITB,Fifth Third Bancorp,sp500_wikipedia,4.0,2026-05-27
+FISV,Fiserv,sp500_wikipedia,4.0,2026-05-27
+FIS,Fidelity National Information Services,sp500_wikipedia,4.0,2026-05-27
+FFIV,"F5, Inc.",sp500_wikipedia,4.0,2026-05-27
+FE,FirstEnergy,sp500_wikipedia,4.0,2026-05-27
+FDX,FedEx,sp500_wikipedia,4.0,2026-05-27
+FDS,FactSet,sp500_wikipedia,4.0,2026-05-27
+FCX,Freeport-McMoRan,sp500_wikipedia,4.0,2026-05-27
+F,Ford Motor Company,sp500_wikipedia,4.0,2026-05-27
+EXR,Extra Space Storage,sp500_wikipedia,4.0,2026-05-27
+EXPE,Expedia Group,sp500_wikipedia,4.0,2026-05-27
+EXPD,Expeditors International,sp500_wikipedia,4.0,2026-05-27
+EXE,Expand Energy,sp500_wikipedia,4.0,2026-05-27
+EW,Edwards Lifesciences,sp500_wikipedia,4.0,2026-05-27
+EVRG,Evergy,sp500_wikipedia,4.0,2026-05-27
+ETR,Entergy,sp500_wikipedia,4.0,2026-05-27
+ESS,Essex Property Trust,sp500_wikipedia,4.0,2026-05-27
+ES,Eversource Energy,sp500_wikipedia,4.0,2026-05-27
+ERIE,Erie Indemnity,sp500_wikipedia,4.0,2026-05-27
+EQT,EQT Corporation,sp500_wikipedia,4.0,2026-05-27
+EQR,Equity Residential,sp500_wikipedia,4.0,2026-05-27
+EQIX,Equinix,sp500_wikipedia,4.0,2026-05-27
+EPAM,EPAM Systems,sp500_wikipedia,4.0,2026-05-27
+EOG,EOG Resources,sp500_wikipedia,4.0,2026-05-27
+EMR,Emerson Electric,sp500_wikipedia,4.0,2026-05-27
+EME,Emcor,sp500_wikipedia,4.0,2026-05-27
+ELV,Elevance Health,sp500_wikipedia,4.0,2026-05-27
+EL,Estée Lauder Companies (The),sp500_wikipedia,4.0,2026-05-27
+EIX,Edison International,sp500_wikipedia,4.0,2026-05-27
+EG,Everest Group,sp500_wikipedia,4.0,2026-05-27
+ED,Consolidated Edison,sp500_wikipedia,4.0,2026-05-27
+EBAY,eBay Inc.,sp500_wikipedia,4.0,2026-05-27
+DVN,Devon Energy,sp500_wikipedia,4.0,2026-05-27
+DVA,DaVita,sp500_wikipedia,4.0,2026-05-27
+DTE,DTE Energy,sp500_wikipedia,4.0,2026-05-27
+DRI,Darden Restaurants,sp500_wikipedia,4.0,2026-05-27
+DPZ,Domino's,sp500_wikipedia,4.0,2026-05-27
+DOW,Dow Inc.,sp500_wikipedia,4.0,2026-05-27
+DOV,Dover Corporation,sp500_wikipedia,4.0,2026-05-27
+DOC,Healthpeak Properties,sp500_wikipedia,4.0,2026-05-27
+DLTR,Dollar Tree,sp500_wikipedia,4.0,2026-05-27
+DLR,Digital Realty,sp500_wikipedia,4.0,2026-05-27
+DIS,Walt Disney Company (The),sp500_wikipedia,4.0,2026-05-27
+DHI,D. R. Horton,sp500_wikipedia,4.0,2026-05-27
+DGX,Quest Diagnostics,sp500_wikipedia,4.0,2026-05-27
+DG,Dollar General,sp500_wikipedia,4.0,2026-05-27
+DECK,Deckers Brands,sp500_wikipedia,4.0,2026-05-27
+DE,Deere & Company,sp500_wikipedia,4.0,2026-05-27
+DD,DuPont,sp500_wikipedia,4.0,2026-05-27
+DAL,Delta Air Lines,sp500_wikipedia,4.0,2026-05-27
+D,Dominion Energy,sp500_wikipedia,4.0,2026-05-27
+CVX,Chevron Corporation,sp500_wikipedia,4.0,2026-05-27
+CVS,CVS Health,sp500_wikipedia,4.0,2026-05-27
+CVNA,Carvana,sp500_wikipedia,4.0,2026-05-27
+CTVA,Corteva,sp500_wikipedia,4.0,2026-05-27
+CSGP,CoStar Group,sp500_wikipedia,4.0,2026-05-27
+CRM,Salesforce,sp500_wikipedia,4.0,2026-05-27
+CRL,Charles River Laboratories,sp500_wikipedia,4.0,2026-05-27
+CRH,CRH plc,sp500_wikipedia,4.0,2026-05-27
+CPT,Camden Property Trust,sp500_wikipedia,4.0,2026-05-27
+CPB,Campbell's Company (The),sp500_wikipedia,4.0,2026-05-27
+CPAY,Corpay,sp500_wikipedia,4.0,2026-05-27
+COR,Cencora,sp500_wikipedia,4.0,2026-05-27
+COO,Cooper Companies (The),sp500_wikipedia,4.0,2026-05-27
+COIN,Coinbase,sp500_wikipedia,4.0,2026-05-27
+COHR,Coherent Corp.,sp500_wikipedia,4.0,2026-05-27
+COF,Capital One,sp500_wikipedia,4.0,2026-05-27
+CNP,CenterPoint Energy,sp500_wikipedia,4.0,2026-05-27
+CNC,Centene Corporation,sp500_wikipedia,4.0,2026-05-27
+CMS,CMS Energy,sp500_wikipedia,4.0,2026-05-27
+CMI,Cummins,sp500_wikipedia,4.0,2026-05-27
+CMG,Chipotle Mexican Grill,sp500_wikipedia,4.0,2026-05-27
+CME,CME Group,sp500_wikipedia,4.0,2026-05-27
+CLX,Clorox,sp500_wikipedia,4.0,2026-05-27
+CL,Colgate-Palmolive,sp500_wikipedia,4.0,2026-05-27
+CINF,Cincinnati Financial,sp500_wikipedia,4.0,2026-05-27
+CIEN,Ciena,sp500_wikipedia,4.0,2026-05-27
+CI,Cigna,sp500_wikipedia,4.0,2026-05-27
+CHRW,C.H. Robinson,sp500_wikipedia,4.0,2026-05-27
+CHD,Church & Dwight,sp500_wikipedia,4.0,2026-05-27
+CFG,Citizens Financial Group,sp500_wikipedia,4.0,2026-05-27
+CF,CF Industries,sp500_wikipedia,4.0,2026-05-27
+CDW,CDW Corporation,sp500_wikipedia,4.0,2026-05-27
+CCL,Carnival Corporation,sp500_wikipedia,4.0,2026-05-27
+CCI,Crown Castle,sp500_wikipedia,4.0,2026-05-27
+CBRE,CBRE Group,sp500_wikipedia,4.0,2026-05-27
+CBOE,Cboe Global Markets,sp500_wikipedia,4.0,2026-05-27
+CB,Chubb Limited,sp500_wikipedia,4.0,2026-05-27
+CASY,Casey's,sp500_wikipedia,4.0,2026-05-27
+CARR,Carrier Global,sp500_wikipedia,4.0,2026-05-27
+CAH,Cardinal Health,sp500_wikipedia,4.0,2026-05-27
+CAG,Conagra Brands,sp500_wikipedia,4.0,2026-05-27
+BXP,"BXP, Inc.",sp500_wikipedia,4.0,2026-05-27
+BSX,Boston Scientific,sp500_wikipedia,4.0,2026-05-27
+BRO,Brown & Brown,sp500_wikipedia,4.0,2026-05-27
+BR,Broadridge Financial Solutions,sp500_wikipedia,4.0,2026-05-27
+BNY,BNY Mellon,sp500_wikipedia,4.0,2026-05-27
+BLDR,Builders FirstSource,sp500_wikipedia,4.0,2026-05-27
+BIIB,Biogen,sp500_wikipedia,4.0,2026-05-27
+BG,Bunge Global,sp500_wikipedia,4.0,2026-05-27
+BF-B,Brown–Forman,sp500_wikipedia,4.0,2026-05-27
+BEN,Franklin Resources,sp500_wikipedia,4.0,2026-05-27
+BDX,Becton Dickinson,sp500_wikipedia,4.0,2026-05-27
+BBY,Best Buy,sp500_wikipedia,4.0,2026-05-27
+BAX,Baxter International,sp500_wikipedia,4.0,2026-05-27
+BALL,Ball Corporation,sp500_wikipedia,4.0,2026-05-27
+BAC,Bank of America,sp500_wikipedia,4.0,2026-05-27
+BA,Boeing,sp500_wikipedia,4.0,2026-05-27
+AZO,AutoZone,sp500_wikipedia,4.0,2026-05-27
+AXP,American Express,sp500_wikipedia,4.0,2026-05-27
+AWK,American Water Works,sp500_wikipedia,4.0,2026-05-27
+AVY,Avery Dennison,sp500_wikipedia,4.0,2026-05-27
+AVB,AvalonBay Communities,sp500_wikipedia,4.0,2026-05-27
+ATO,Atmos Energy,sp500_wikipedia,4.0,2026-05-27
+ARES,Ares Management,sp500_wikipedia,4.0,2026-05-27
+ARE,Alexandria Real Estate Equities,sp500_wikipedia,4.0,2026-05-27
+APTV,Aptiv,sp500_wikipedia,4.0,2026-05-27
+APO,Apollo Global Management,sp500_wikipedia,4.0,2026-05-27
+APD,Air Products,sp500_wikipedia,4.0,2026-05-27
+APA,APA Corporation,sp500_wikipedia,4.0,2026-05-27
+AOS,A. O. Smith,sp500_wikipedia,4.0,2026-05-27
+AON,Aon plc,sp500_wikipedia,4.0,2026-05-27
+AMT,American Tower,sp500_wikipedia,4.0,2026-05-27
+AMP,Ameriprise Financial,sp500_wikipedia,4.0,2026-05-27
+AME,Ametek,sp500_wikipedia,4.0,2026-05-27
+AMCR,Amcor,sp500_wikipedia,4.0,2026-05-27
+ALLE,Allegion,sp500_wikipedia,4.0,2026-05-27
+ALL,Allstate,sp500_wikipedia,4.0,2026-05-27
+ALGN,Align Technology,sp500_wikipedia,4.0,2026-05-27
+ALB,Albemarle Corporation,sp500_wikipedia,4.0,2026-05-27
+AKAM,Akamai Technologies,sp500_wikipedia,4.0,2026-05-27
+AIZ,Assurant,sp500_wikipedia,4.0,2026-05-27
+AIG,American International Group,sp500_wikipedia,4.0,2026-05-27
+AFL,Aflac,sp500_wikipedia,4.0,2026-05-27
+AES,AES Corporation,sp500_wikipedia,4.0,2026-05-27
+AEE,Ameren,sp500_wikipedia,4.0,2026-05-27
+ADM,Archer Daniels Midland,sp500_wikipedia,4.0,2026-05-27
+ACGL,Arch Capital Group,sp500_wikipedia,4.0,2026-05-27
+A,Agilent Technologies,sp500_wikipedia,4.0,2026-05-27
+WN.TO,George Weston Limited,tsx60_wikipedia,3.0,2026-05-27
+TRP.TO,TC Energy Corporation,tsx60_wikipedia,3.0,2026-05-27
+TOU.TO,Tourmaline Oil Corp.,tsx60_wikipedia,3.0,2026-05-27
+TECK-B.TO,Teck Resources Limited,tsx60_wikipedia,3.0,2026-05-27
+T.TO,Telus Corporation,tsx60_wikipedia,3.0,2026-05-27
+SU.TO,Suncor Energy Inc.,tsx60_wikipedia,3.0,2026-05-27
+SHOP.TO,Shopify Inc.,tsx60_wikipedia,3.0,2026-05-27
+SAP.TO,Saputo Inc.,tsx60_wikipedia,3.0,2026-05-27
+RY.TO,Royal Bank of Canada,tsx60_wikipedia,3.0,2026-05-27
+RCI-B.TO,Rogers Communications Inc.,tsx60_wikipedia,3.0,2026-05-27
+QSR.TO,Restaurant Brands International Inc.,tsx60_wikipedia,3.0,2026-05-27
+PPL.TO,Pembina Pipeline Corporation,tsx60_wikipedia,3.0,2026-05-27
+POW.TO,Power Corporation of Canada,tsx60_wikipedia,3.0,2026-05-27
+OTEX.TO,Open Text Corporation,tsx60_wikipedia,3.0,2026-05-27
+NA.TO,National Bank of Canada,tsx60_wikipedia,3.0,2026-05-27
+MRU.TO,Metro Inc.,tsx60_wikipedia,3.0,2026-05-27
+L.TO,Loblaw Companies Limited,tsx60_wikipedia,3.0,2026-05-27
+K.TO,Kinross Gold Corporation,tsx60_wikipedia,3.0,2026-05-27
+IMO.TO,Imperial Oil Limited,tsx60_wikipedia,3.0,2026-05-27
+IFC.TO,Intact Financial Corporation,tsx60_wikipedia,3.0,2026-05-27
+H.TO,Hydro One Limited,tsx60_wikipedia,3.0,2026-05-27
+GIL.TO,Gildan Activewear Inc.,tsx60_wikipedia,3.0,2026-05-27
+FSV.TO,FirstService Corporation,tsx60_wikipedia,3.0,2026-05-27
+FM.TO,First Quantum Minerals Ltd.,tsx60_wikipedia,3.0,2026-05-27
+FFH.TO,Fairfax Financial Holdings Limited,tsx60_wikipedia,3.0,2026-05-27
+EMA.TO,Emera Incorporated,tsx60_wikipedia,3.0,2026-05-27
+CVE.TO,Cenovus Energy Inc.,tsx60_wikipedia,3.0,2026-05-27
+CTC-A.TO,Canadian Tire Corporation Limited,tsx60_wikipedia,3.0,2026-05-27
+CP.TO,Canadian Pacific Kansas City Limited,tsx60_wikipedia,3.0,2026-05-27
+CNR.TO,Canadian National Railway Company,tsx60_wikipedia,3.0,2026-05-27
+CNQ.TO,Canadian Natural Resources Limited,tsx60_wikipedia,3.0,2026-05-27
+CM.TO,Canadian Imperial Bank of Commerce,tsx60_wikipedia,3.0,2026-05-27
+CCL-B.TO,CCL Industries Inc.,tsx60_wikipedia,3.0,2026-05-27
+CAE.TO,CAE Inc.,tsx60_wikipedia,3.0,2026-05-27
+BNS.TO,Bank of Nova Scotia,tsx60_wikipedia,3.0,2026-05-27
+BN.TO,Brookfield Corporation,tsx60_wikipedia,3.0,2026-05-27
+BMO.TO,Bank of Montreal,tsx60_wikipedia,3.0,2026-05-27
+BIP-UN.TO,Brookfield Infrastructure Partners L.P.,tsx60_wikipedia,3.0,2026-05-27
+BCE.TO,BCE Inc.,tsx60_wikipedia,3.0,2026-05-27
+BAM.TO,Brookfield Asset Management Ltd.,tsx60_wikipedia,3.0,2026-05-27
+ATD.TO,Alimentation Couche-Tard Inc.,tsx60_wikipedia,3.0,2026-05-27
+ABX.TO,Barrick Mining Corporation,tsx60_wikipedia,3.0,2026-05-27

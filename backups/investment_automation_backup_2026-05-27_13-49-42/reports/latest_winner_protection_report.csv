@@ -1,0 +1,25 @@
+ticker,shares,average_cost,average_cost_currency,average_cost_cad,acquisition_value,acquisition_value_currency,acquisition_value_cad,current_value,current_value_currency,quote_currency,quote_to_cad_rate,current_price_cad,unrealized_gain_amount,unrealized_gain_percent,personal_high_price,drawdown_from_personal_high,winner_protection_status,winner_protection_action,winner_protection_reason
+AAPL,2.0,396.94,CAD,396.94,793.88,CAD,793.88,856.36,CAD,USD,1.3751,428.1786,62.48,0.07870207084194081,311.3800048828125,0.0,NOT_A_WINNER,HOLD,La position n’est pas encore un winner important selon le coût fourni.
+ANET,0.0,,,,,,,0.0,,USD,1.3751,212.8655,,,,,NO_POSITION,NONE,Aucune position détenue; protection des winners non applicable.
+APP,0.1579,495.503483217226,USD,681.3668,78.24,USD,107.59,122.63,CAD,USD,1.3751,776.6221,15.04,0.13978994330328098,564.7750244140625,0.0,NOT_A_WINNER,HOLD,La position n’est pas encore un winner important selon le coût fourni.
+ASML,0.0235,1529.3617021276596,USD,2103.0253,35.94,USD,49.42,51.7,CAD,USD,1.3751,2199.8988,2.28,0.04613516794819916,1636.5899658203125,-0.022473501606816493,NOT_A_WINNER,HOLD,La position n’est pas encore un winner important selon le coût fourni.
+AVGO,2.0,541.0,CAD,541.0,1082.0,CAD,1082.0,1151.48,CAD,USD,1.3751,575.7406,69.48,0.06421441774491687,418.69000244140625,0.0,NOT_A_WINNER,HOLD,La position n’est pas encore un winner important selon le coût fourni.
+BAM,5.0,63.91799999999999,CAD,63.918,319.59,CAD,319.59,334.36,CAD,USD,1.3751,66.8711,14.77,0.04621546356268991,48.630001068115234,0.0,NOT_A_WINNER,HOLD,La position n’est pas encore un winner important selon le coût fourni.
+CSU.TO,0.0,,,,,,,0.0,,CAD,1.0,2675.0,,,,,NO_POSITION,NONE,Aucune position détenue; protection des winners non applicable.
+FBTC.TO,0.3034,34.97033618984838,CAD,34.9703,10.61,CAD,10.61,10.37,CAD,CAD,1.0,34.18,-0.24,-0.022620169651272448,34.61000061035156,-0.012424163466994376,NOT_A_WINNER,HOLD,La position n’est pas encore un winner important selon le coût fourni.
+GOOGL,0.3974,391.72118772018115,USD,538.6558,155.67,USD,214.06,213.67,CAD,USD,1.3751,537.6641,-0.39,-0.0018219190881062497,391.0,0.0,NOT_A_WINNER,HOLD,La position n’est pas encore un winner important selon le coût fourni.
+INTU,1.1819,,,,,,,505.48,CAD,USD,1.3751,427.6836,,,319.94000244140625,-0.027880269299453975,NO_COST_DATA,HOLD,Coût d’acquisition absent; remplir average_cost et average_cost_currency pour activer la protection.
+LLY,1.0,1439.87,CAD,1439.87,1439.87,CAD,1439.87,1495.01,CAD,USD,1.3751,1495.0087,55.14,0.03829512386534906,1087.199951171875,0.0,NOT_A_WINNER,HOLD,La position n’est pas encore un winner important selon le coût fourni.
+LRCX,0.0,,,,,,,0.0,,USD,1.3751,438.0244,,,,,NO_POSITION,NONE,Aucune position détenue; protection des winners non applicable.
+MA,2.0,769.125,CAD,769.125,1538.25,CAD,1538.25,1358.62,CAD,USD,1.3751,679.3079,-179.63,-0.11677555663903794,498.7449951171875,-0.009501448826999659,NOT_A_WINNER,HOLD,La position n’est pas encore un winner important selon le coût fourni.
+META,0.2364,609.010152284264,USD,837.4499,143.97,USD,197.97,199.02,CAD,USD,1.3751,841.8706,1.05,0.0053038339142295055,612.2249755859375,0.0,NOT_A_WINNER,HOLD,La position n’est pas encore un winner important selon le coût fourni.
+MSFT,4.0,652.0,CAD,652.0,2608.0,CAD,2608.0,2271.42,CAD,USD,1.3751,567.8544,-336.58,-0.1290567484662576,418.864990234375,-0.014109567044031213,NOT_A_WINNER,HOLD,La position n’est pas encore un winner important selon le coût fourni.
+NANO.TO,107.0,0.94,CAD,0.94,100.58,CAD,100.58,99.51,CAD,CAD,1.0,0.93,-1.07,-0.010638297872340385,0.9300000071525574,0.0,NOT_A_WINNER,HOLD,La position n’est pas encore un winner important selon le coût fourni.
+QQC.TO,1.0,46.23,CAD,46.23,46.23,CAD,46.23,49.18,CAD,CAD,1.0,49.18,2.95,0.06381137789314306,49.18000030517578,0.0,NOT_A_WINNER,HOLD,La position n’est pas encore un winner important selon le coût fourni.
+SBGSY,0.0,,,,,,,0.0,,USD,1.3751,85.9437,,,,,NO_POSITION,NONE,Aucune position détenue; protection des winners non applicable.
+SIEGY,0.0,,,,,,,0.0,,USD,1.3751,218.7922,,,,,NO_POSITION,NONE,Aucune position détenue; protection des winners non applicable.
+TMC,8.0,7.71,CAD,7.71,61.68,CAD,61.68,62.48,CAD,USD,1.3751,7.8104,0.8,0.012970168612191912,5.679900169372559,0.0,NOT_A_WINNER,HOLD,La position n’est pas encore un winner important selon le coût fourni.
+TOI.V,4.0,103.77,CAD,103.77,415.08,CAD,415.08,382.32,CAD,CAD,1.0,95.58,-32.76,-0.07892454466608845,96.25,-0.006961019937094193,NOT_A_WINNER,HOLD,La position n’est pas encore un winner important selon le coût fourni.
+TSLA,0.0,,,,,,,0.0,,USD,1.3751,607.7736,,,,,NO_POSITION,NONE,Aucune position détenue; protection des winners non applicable.
+WSP.TO,0.0,,,,,,,0.0,,CAD,1.0,190.935,,,,,NO_POSITION,NONE,Aucune position détenue; protection des winners non applicable.
+XUS.TO,4.0,59.635,CAD,59.635,238.54,CAD,238.54,257.3,CAD,CAD,1.0,64.325,18.76,0.078645090970068,64.32499694824219,0.0,NOT_A_WINNER,HOLD,La position n’est pas encore un winner important selon le coût fourni.

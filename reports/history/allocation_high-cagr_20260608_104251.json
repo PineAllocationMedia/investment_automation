@@ -1,0 +1,67 @@
+{
+  "allocations": [
+    {
+      "allocation_type": "Allocation VFV obligatoire",
+      "amount": 5.0,
+      "percentage": 0.05,
+      "reason": "Filet de s\u00e9curit\u00e9 S&P 500 selon moyenne des scores.",
+      "ticker": "VFV.TO"
+    },
+    {
+      "allocation_type": "Optimisation mensuelle high-CAGR",
+      "amount": 70.0,
+      "percentage": 0.7,
+      "reason": "Quality drawdown: le titre a chut\u00e9, mais la th\u00e8se, la vente GREEN, la durabilit\u00e9 et le cash-flow restent assez solides; l'allocation est permise de fa\u00e7on limit\u00e9e pour \u00e9viter de manquer un winner temporairement puni.",
+      "ticker": "APP"
+    },
+    {
+      "allocation_type": "Optimisation mensuelle high-CAGR",
+      "amount": 25.0,
+      "percentage": 0.25,
+      "reason": "Quality drawdown: le titre a chut\u00e9, mais la th\u00e8se, la vente GREEN, la durabilit\u00e9 et le cash-flow restent assez solides; l'allocation est permise de fa\u00e7on limit\u00e9e pour \u00e9viter de manquer un winner temporairement puni.",
+      "ticker": "META"
+    }
+  ],
+  "analysis_date": "2026-06-08",
+  "analysis_mode": "high-cagr",
+  "average_score_ex_vfv": 8.224653349100521,
+  "created_at": "2026-06-08T10:42:51",
+  "decision_quality": {
+    "allocated_core_count": 2,
+    "core_allocation_percent": 0.95,
+    "data_quality_status": "ROBUST",
+    "decision_quality_level": "MEDIUM",
+    "decision_quality_score": 76.0,
+    "eligible_core_count": 9,
+    "main_reasons": [
+      "La cotisation est investie dans au moins une position core admissible, pas seulement dans VFV.",
+      "9 position(s) core passent les principaux garde-fous d\u2019ajout.",
+      "Les titres recommand\u00e9s ont des donn\u00e9es suffisamment fiables pour une d\u00e9cision m\u00e9canique.",
+      "Certaines positions ont une surveillance de fiabilit\u00e9, mais le cap n\u2019a pas r\u00e9duit l\u2019allocation finale: META.",
+      "Garde-fou cluster cach\u00e9 actif sur: APP (EXTREME), META (EXTREME). Il r\u00e9duit l\u00e9g\u00e8rement le sizing quand la cotisation renforcerait un pari sous-jacent d\u00e9j\u00e0 charg\u00e9.",
+      "La part VFV reste principalement un filet de s\u00e9curit\u00e9, pas un d\u00e9faut majeur de candidats."
+    ],
+    "profile_calibration": "HIGH_CAGR_LONG_TERM",
+    "risk_status": "WATCH",
+    "sensitivity_status": "MODERATELY_SENSITIVE",
+    "stability_status": "STABLE",
+    "summary": "Recommandation utilisable mais \u00e0 surveiller: APP, META; certains risques ou donn\u00e9es r\u00e9duisent la robustesse.",
+    "vfv_mandatory_percent": 0.05,
+    "vfv_redirection_percent": 0.0,
+    "vfv_total_percent": 0.05,
+    "watchpoints": [
+      "Fourchette de confiance large sur: META",
+      "META re\u00e7oit 25% de la cotisation avec une surveillance active; le score tient compte du sizing r\u00e9el.",
+      "4 alerte(s) de concentration ou facteur commun existent dans le portefeuille.",
+      "L\u2019allocation bouge mod\u00e9r\u00e9ment sous hypoth\u00e8ses prudentes (r\u00e9allocation max 25%, variation VFV 0%)."
+    ],
+    "why_not_high": [
+      "Il manque environ 6 point(s) pour atteindre HIGH.",
+      "Le portefeuille contient encore des risques de concentration, devise ou facteur commun \u00e0 surveiller.",
+      "Allocation vers des titres sous surveillance: META.",
+      "Fourchette de confiance large sur: META"
+    ]
+  },
+  "mandatory_vfv_percent": 0.05,
+  "model_rules_version": "2026-05-12-high-cagr-stability-v3"
+}

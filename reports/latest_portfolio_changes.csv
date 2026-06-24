@@ -1,0 +1,6 @@
+date,ticker,account_type,account_tax_category,change_type,shares_before,shares_after,shares_change,average_cost_before,average_cost_after,average_cost_currency_before,average_cost_currency_after,estimated_change_value_cad,current_value_cad_after,reason,source
+2026-06-18,AAPL,TFSA2,TFSA,POSITION_ADDED,0.0,0.1851,0.1851,,415.6132,,USD,77.2,77.2,Nouvelle position detectee dans portfolio.csv pour ce compte.,AUTO_FROM_PORTFOLIO_DIFF
+2026-06-18,ANET,TFSA2,TFSA,POSITION_ADDED,0.0,0.3253,0.3253,,236.4894,,USD,77.08,77.08,Nouvelle position detectee dans portfolio.csv pour ce compte.,AUTO_FROM_PORTFOLIO_DIFF
+2026-06-18,FBTC.TO,TFSA2,TFSA,SHARES_INCREASED,1.9662,2.2045,0.2383,34.0505,33.5496,CAD,CAD,7.03,65.03,Nombre d'actions augmente dans portfolio.csv depuis la derniere analyse.,AUTO_FROM_PORTFOLIO_DIFF
+2026-06-18,MSFT,TFSA2,TFSA,POSITION_ADDED,0.0,0.1012,0.1012,,525.0,,USD,53.3,53.3,Nouvelle position detectee dans portfolio.csv pour ce compte.,AUTO_FROM_PORTFOLIO_DIFF
+2026-06-18,VFV.TO,TFSA2,TFSA,SHARES_INCREASED,0.9365,1.2024,0.2659,181.4522,182.9092,CAD,CAD,50.01,226.12,Nombre d'actions augmente dans portfolio.csv depuis la derniere analyse.,AUTO_FROM_PORTFOLIO_DIFF

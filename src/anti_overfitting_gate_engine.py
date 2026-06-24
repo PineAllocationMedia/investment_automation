@@ -1,0 +1,448 @@
+from __future__ import annotations
+
+from datetime import date, datetime
+from typing import Any
+
+from .model_tuning import TUNABLE_PARAMETER_LIMITS
+from .utils import pct, safe_float
+
+
+ANTI_OVERFITTING_FIELDS = [
+    "overfit_gate_status",
+    "overfit_gate_score",
+    "overfit_gate_reason",
+    "in_sample_out_of_sample_status",
+    "regime_consistency_status",
+    "do_no_harm_status",
+    "risk_adjusted_status",
+    "cooldown_status",
+]
+
+PASSING_GATE_STATUSES = {"PASS", "PASS_WITH_LIMITS"}
+
+
+def build_anti_overfitting_context(
+    *,
+    model_metrics: dict[str, Any],
+    backtest_summary_rows: list[dict[str, Any]] | None = None,
+    backtest_monthly_rows: list[dict[str, Any]] | None = None,
+    tuning_history_rows: list[dict[str, Any]] | None = None,
+    mode: str = "high-cagr",
+    settings: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    settings = settings or {}
+    sample_count = int(safe_float(model_metrics.get("allocation_sample_count")) or 0)
+    span_days = int(safe_float(model_metrics.get("span_days")) or 0)
+    min_samples = int(safe_float(settings.get("min_distinct_allocation_dates")) or 4)
+    cooldown_days = int(safe_float(settings.get("min_days_between_same_parameter_tuning")) or 45)
+    summaries = backtest_summary_rows or []
+    monthly = backtest_monthly_rows or []
+    return {
+        "mode": mode,
+        "sample_count": sample_count,
+        "span_days": span_days,
+        "minimum_sample_count": min_samples,
+        "cooldown_days": cooldown_days,
+        "backtest_period_status": _backtest_period_status(summaries),
+        "in_sample_out_of_sample_status": _split_sample_status(monthly),
+        "regime_consistency_status": _regime_consistency_status(summaries),
+        "do_no_harm_status": _do_no_harm_status(summaries),
+        "risk_adjusted_status": _risk_adjusted_status(summaries),
+        "tuning_history_rows": tuning_history_rows or [],
+        "backtest_summary_count": len(summaries),
+        "monthly_backtest_count": len(monthly),
+    }
+
+
+def apply_anti_overfitting_gate_to_suggestions(
+    suggestions: list[dict[str, Any]],
+    context: dict[str, Any],
+) -> list[dict[str, Any]]:
+    gated: list[dict[str, Any]] = []
+    for suggestion in suggestions:
+        row = dict(suggestion)
+        gate = evaluate_anti_overfitting_gate(row, context)
+        row.update(gate)
+        if (
+            row.get("can_auto_apply") is True
+            and str(row.get("status") or "") == "PENDING_SAFE_APPLY"
+            and str(gate.get("overfit_gate_status") or "") not in PASSING_GATE_STATUSES
+        ):
+            row["can_auto_apply"] = False
+            row["status"] = "REVIEW_ONLY"
+        gated.append(row)
+    return gated
+
+
+def evaluate_anti_overfitting_gate(suggestion: dict[str, Any], context: dict[str, Any]) -> dict[str, Any]:
+    parameter = str(suggestion.get("parameter") or "")
+    safety = str(suggestion.get("safety_level") or "").upper()
+    delta = safe_float(suggestion.get("suggested_delta")) or 0.0
+    if parameter not in TUNABLE_PARAMETER_LIMITS or safety != "SAFE":
+        return _gate_result(
+            "NOT_APPLICABLE",
+            100,
+            "Suggestion informative ou non ajustable automatiquement.",
+            context,
+            "NOT_APPLICABLE",
+        )
+
+    sample_count = int(safe_float(context.get("sample_count")) or 0)
+    minimum = int(safe_float(context.get("minimum_sample_count")) or 4)
+    if sample_count < minimum:
+        return _gate_result(
+            "REVIEW_ONLY",
+            45,
+            f"Historique insuffisant: {sample_count} date(s) avec allocation, minimum {minimum}.",
+            context,
+            "INSUFFICIENT_HISTORY",
+        )
+
+    cooldown_status = _cooldown_status(
+        context.get("tuning_history_rows") or [],
+        mode=str(context.get("mode") or ""),
+        parameter=parameter,
+        cooldown_days=int(safe_float(context.get("cooldown_days")) or 45),
+    )
+    posture = _suggestion_posture(parameter, delta)
+    regime = str(context.get("regime_consistency_status") or "LIMITED")
+    split = str(context.get("in_sample_out_of_sample_status") or "LIMITED")
+    harm = str(context.get("do_no_harm_status") or "LIMITED")
+    risk_adjusted = str(context.get("risk_adjusted_status") or "LIMITED")
+
+    if cooldown_status == "COOLDOWN_ACTIVE":
+        return _gate_result(
+            "REVIEW_ONLY",
+            55,
+            "Même paramètre ajusté récemment; attendre plus de recul avant un nouvel auto-ajustement.",
+            context,
+            cooldown_status,
+        )
+
+    if posture in {"MORE_AGGRESSIVE", "MORE_REACTIVE", "DRAWNDOWN_OPPORTUNITY"}:
+        if regime == "RECENT_ONLY":
+            return _gate_result(
+                "REVIEW_ONLY",
+                58,
+                "Le signal semble surtout favorable à la période récente; application automatique refusée pour éviter le surapprentissage.",
+                context,
+                cooldown_status,
+            )
+        if harm == "FAIL":
+            return _gate_result(
+                "REVIEW_ONLY",
+                52,
+                "Le test do-no-harm vs VFV/S&P 500 est faible; la suggestion reste en revue manuelle.",
+                context,
+                cooldown_status,
+            )
+        if risk_adjusted == "FAIL":
+            return _gate_result(
+                "REVIEW_ONLY",
+                55,
+                "Le rendement ajusté au drawdown n’est pas assez robuste pour appliquer automatiquement une hausse de risque.",
+                context,
+                cooldown_status,
+            )
+
+    if split == "WEAK" and posture in {"MORE_AGGRESSIVE", "MORE_REACTIVE"}:
+        return _gate_result(
+            "REVIEW_ONLY",
+            58,
+            "La séparation ancien/récent ne soutient pas assez la suggestion pour l’appliquer automatiquement.",
+            context,
+            cooldown_status,
+        )
+
+    if "LIMITED" in {regime, split, harm, risk_adjusted} or regime == "MIXED" or harm == "WATCH":
+        return _gate_result(
+            "PASS_WITH_LIMITS",
+            72,
+            "Preuve utile mais incomplète; l’ajustement peut rester SAFE parce qu’il est petit et plafonné.",
+            context,
+            cooldown_status,
+        )
+
+    return _gate_result(
+        "PASS",
+        86,
+        "La suggestion ne montre pas de risque évident de surapprentissage selon les preuves disponibles.",
+        context,
+        cooldown_status,
+    )
+
+
+def anti_overfitting_summary(suggestions: list[dict[str, Any]], context: dict[str, Any]) -> dict[str, Any]:
+    statuses = [str(row.get("overfit_gate_status") or "") for row in suggestions]
+    pass_count = sum(1 for status in statuses if status in PASSING_GATE_STATUSES)
+    review_count = sum(1 for status in statuses if status == "REVIEW_ONLY")
+    blocked_count = sum(1 for status in statuses if status == "BLOCKED")
+    applicable_count = sum(1 for status in statuses if status not in {"", "NOT_APPLICABLE"})
+    if applicable_count == 0:
+        status = "NO_AUTOMATIC_TUNING_NEEDED"
+    elif review_count or blocked_count:
+        status = "PASS_WITH_MANUAL_REVIEWS" if pass_count else "OBSERVE_OR_REVIEW"
+    elif any(status == "PASS_WITH_LIMITS" for status in statuses):
+        status = "PASS_WITH_LIMITS"
+    else:
+        status = "PASS"
+    return {
+        "overfit_gate_status": status,
+        "overfit_gate_pass_count": pass_count,
+        "overfit_gate_review_count": review_count + blocked_count,
+        "overfit_gate_interpretation": _summary_read(status, context),
+    }
+
+
+def anti_overfitting_context_rows(context: dict[str, Any]) -> list[dict[str, Any]]:
+    return [
+        _context_row(
+            "Backtests multi-périodes",
+            context.get("regime_consistency_status", "LIMITED"),
+            f"{context.get('backtest_summary_count', 0)} résumé(s)",
+            "Vérifie que le modèle ne dépend pas seulement d’une fenêtre récente.",
+        ),
+        _context_row(
+            "Ancien vs récent",
+            context.get("in_sample_out_of_sample_status", "LIMITED"),
+            f"{context.get('monthly_backtest_count', 0)} mois simulé(s)",
+            "Compare la robustesse des périodes anciennes et récentes quand les données existent.",
+        ),
+        _context_row(
+            "Do-no-harm vs VFV",
+            context.get("do_no_harm_status", "LIMITED"),
+            "",
+            "Refuse les auto-ajustements agressifs si le modèle détériore nettement le benchmark.",
+        ),
+        _context_row(
+            "Rendement ajusté au risque",
+            context.get("risk_adjusted_status", "LIMITED"),
+            "",
+            "Évite de favoriser une hausse de rendement théorique obtenue avec trop de drawdown.",
+        ),
+        _context_row(
+            "Cooldown tuning",
+            f"{context.get('cooldown_days', 45)} jours",
+            "",
+            "Empêche de modifier trop souvent le même paramètre.",
+        ),
+    ]
+
+
+def _backtest_period_status(rows: list[dict[str, Any]]) -> str:
+    if not rows:
+        return "LIMITED"
+    excess_values = [safe_float(row.get("excess_value_vs_vfv")) for row in rows]
+    values = [value for value in excess_values if value is not None]
+    if not values:
+        return "LIMITED"
+    if all(value >= 0 for value in values):
+        return "SUPPORTIVE"
+    if all(value < 0 for value in values):
+        return "WEAK"
+    return "MIXED"
+
+
+def _regime_consistency_status(rows: list[dict[str, Any]]) -> str:
+    if len(rows) < 2:
+        return "LIMITED"
+    values = [safe_float(row.get("excess_value_vs_vfv")) for row in rows]
+    values = [value for value in values if value is not None]
+    if len(values) < 2:
+        return "LIMITED"
+    positives = sum(1 for value in values if value >= 0)
+    if positives == len(values):
+        return "PASS"
+    if positives == 0:
+        return "WEAK"
+    periods = [int(safe_float(row.get("period_years")) or 0) for row in rows]
+    shortest = min((period for period in periods if period > 0), default=0)
+    recent_row = next((row for row in rows if int(safe_float(row.get("period_years")) or 0) == shortest), rows[0])
+    if (safe_float(recent_row.get("excess_value_vs_vfv")) or 0.0) > 0 and positives < len(values):
+        return "RECENT_ONLY"
+    return "MIXED"
+
+
+def _do_no_harm_status(rows: list[dict[str, Any]]) -> str:
+    if not rows:
+        return "LIMITED"
+    values = [safe_float(row.get("excess_value_vs_vfv")) for row in rows]
+    values = [value for value in values if value is not None]
+    if not values:
+        return "LIMITED"
+    negative_count = sum(1 for value in values if value < 0)
+    avg_excess = sum(values) / len(values)
+    if negative_count == len(values) and avg_excess < 0:
+        return "FAIL"
+    if negative_count:
+        return "WATCH"
+    return "PASS"
+
+
+def _risk_adjusted_status(rows: list[dict[str, Any]]) -> str:
+    if not rows:
+        return "LIMITED"
+    failures = 0
+    watch = 0
+    usable = 0
+    for row in rows:
+        drawdown = safe_float(row.get("max_drawdown_on_capital_multiple"))
+        excess = safe_float(row.get("excess_value_vs_vfv"))
+        if drawdown is None and excess is None:
+            continue
+        usable += 1
+        if drawdown is not None and drawdown <= -0.50 and (excess is None or excess < 0):
+            failures += 1
+        elif drawdown is not None and drawdown <= -0.40:
+            watch += 1
+    if usable == 0:
+        return "LIMITED"
+    if failures:
+        return "FAIL"
+    if watch:
+        return "WATCH"
+    return "PASS"
+
+
+def _split_sample_status(rows: list[dict[str, Any]]) -> str:
+    by_period: dict[str, list[dict[str, Any]]] = {}
+    for row in rows:
+        period = str(row.get("period_years") or "")
+        by_period.setdefault(period, []).append(row)
+    statuses = [_split_status_for_rows(period_rows) for period_rows in by_period.values()]
+    statuses = [status for status in statuses if status != "LIMITED"]
+    if not statuses:
+        return "LIMITED"
+    if "RECENT_ONLY" in statuses:
+        return "RECENT_ONLY"
+    if "WEAK" in statuses:
+        return "WEAK"
+    if "MIXED" in statuses:
+        return "MIXED"
+    return "PASS"
+
+
+def _split_status_for_rows(rows: list[dict[str, Any]]) -> str:
+    ordered = sorted(rows, key=lambda row: str(row.get("date") or ""))
+    if len(ordered) < 24:
+        return "LIMITED"
+    split_index = max(12, int(len(ordered) * 0.70))
+    old = ordered[:split_index]
+    recent = ordered[split_index:]
+    if len(recent) < 6:
+        return "LIMITED"
+    old_excess = _segment_excess(old)
+    recent_excess = _segment_excess(recent)
+    if old_excess is None or recent_excess is None:
+        return "LIMITED"
+    if old_excess >= -0.02 and recent_excess >= -0.02:
+        return "PASS"
+    if old_excess < -0.02 and recent_excess > 0.02:
+        return "RECENT_ONLY"
+    if old_excess < -0.02 and recent_excess < -0.02:
+        return "WEAK"
+    return "MIXED"
+
+
+def _segment_excess(rows: list[dict[str, Any]]) -> float | None:
+    if len(rows) < 2:
+        return None
+    first = rows[0]
+    last = rows[-1]
+    portfolio_start = safe_float(first.get("capital_multiple"))
+    portfolio_end = safe_float(last.get("capital_multiple"))
+    vfv_start = safe_float(first.get("vfv_capital_multiple"))
+    vfv_end = safe_float(last.get("vfv_capital_multiple"))
+    if None in {portfolio_start, portfolio_end, vfv_start, vfv_end}:
+        return None
+    return (portfolio_end - portfolio_start) - (vfv_end - vfv_start)
+
+
+def _cooldown_status(rows: list[dict[str, Any]], *, mode: str, parameter: str, cooldown_days: int) -> str:
+    if cooldown_days <= 0:
+        return "PASS"
+    latest: date | None = None
+    for row in rows:
+        if str(row.get("mode") or "") != mode or str(row.get("parameter") or "") != parameter:
+            continue
+        parsed = _parse_date(row.get("applied_at"))
+        if parsed and (latest is None or parsed > latest):
+            latest = parsed
+    if latest is None:
+        return "PASS"
+    days = (date.today() - latest).days
+    if days < cooldown_days:
+        return "COOLDOWN_ACTIVE"
+    return "PASS"
+
+
+def _suggestion_posture(parameter: str, delta: float) -> str:
+    if parameter in {"vfv_adjustment", "defensive_reserve_adjustment"}:
+        return "MORE_AGGRESSIVE" if delta < 0 else "MORE_DEFENSIVE"
+    if parameter == "min_capital_score_adjustment":
+        return "MORE_AGGRESSIVE" if delta < 0 else "QUALITY_FILTER"
+    if parameter in {"cycle_budget_adjustment", "cycle_individual_cap_adjustment", "single_stock_cap_adjustment"}:
+        return "MORE_AGGRESSIVE" if delta > 0 else "RISK_DAMPENER"
+    if parameter == "quality_drawdown_score_adjustment":
+        return "DRAWNDOWN_OPPORTUNITY" if delta > 0 else "RISK_DAMPENER"
+    if parameter == "stability_strength_adjustment":
+        return "STABILITY" if delta > 0 else "MORE_REACTIVE"
+    return "NEUTRAL"
+
+
+def _parse_date(value: Any) -> date | None:
+    text = str(value or "").strip()
+    if not text:
+        return None
+    try:
+        return datetime.fromisoformat(text[:19]).date()
+    except ValueError:
+        try:
+            return datetime.fromisoformat(text[:10]).date()
+        except ValueError:
+            return None
+
+
+def _gate_result(
+    status: str,
+    score: float,
+    reason: str,
+    context: dict[str, Any],
+    cooldown_status: str,
+) -> dict[str, Any]:
+    return {
+        "overfit_gate_status": status,
+        "overfit_gate_score": round(score, 1),
+        "overfit_gate_reason": reason,
+        "in_sample_out_of_sample_status": context.get("in_sample_out_of_sample_status", "LIMITED"),
+        "regime_consistency_status": context.get("regime_consistency_status", "LIMITED"),
+        "do_no_harm_status": context.get("do_no_harm_status", "LIMITED"),
+        "risk_adjusted_status": context.get("risk_adjusted_status", "LIMITED"),
+        "cooldown_status": cooldown_status,
+    }
+
+
+def _summary_read(status: str, context: dict[str, Any]) -> str:
+    if status == "PASS":
+        return "Les suggestions automatiques disponibles passent les garde-fous anti-overfitting."
+    if status == "PASS_WITH_LIMITS":
+        return "Les suggestions peuvent être appliquées, mais avec preuve encore incomplète et petits ajustements seulement."
+    if status == "PASS_WITH_MANUAL_REVIEWS":
+        return "Certaines suggestions passent, d’autres restent en revue manuelle pour éviter de réagir au dernier cycle."
+    if status == "OBSERVE_OR_REVIEW":
+        return "Aucune suggestion automatique assez robuste; observer ou valider manuellement."
+    return (
+        "Aucun tuning automatique nécessaire. "
+        f"Backtest: {context.get('regime_consistency_status', 'LIMITED')}; "
+        f"do-no-harm: {context.get('do_no_harm_status', 'LIMITED')}."
+    )
+
+
+def _context_row(check: str, status: Any, value: Any, interpretation: str) -> dict[str, Any]:
+    return {
+        "check": check,
+        "status": str(status or ""),
+        "value": "" if value is None else str(value),
+        "interpretation": interpretation,
+    }
+

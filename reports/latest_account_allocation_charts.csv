@@ -1,0 +1,3 @@
+account_type,total_value_cad,positions_count,chart_path,top_positions,note
+TFSA1,8530.12,12,charts/account_TFSA1.svg,"MSFT 25 %, LLY 18 %, MA 16 %, AVGO 13 %, AAPL 10 %",Certaines petites positions sont regroupées dans Autres.
+TFSA2,1390.07,7,charts/account_TFSA2.svg,"APP 33 %, META 22 %, GOOGL 19 %, VFV.TO 13 %, INTU 5 %",Toutes les positions positives du compte sont affichées.

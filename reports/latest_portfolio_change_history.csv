@@ -1,0 +1,92 @@
+date,ticker,account_type,account_tax_category,change_type,shares_before,shares_after,shares_change,average_cost_before,average_cost_after,average_cost_currency_before,average_cost_currency_after,estimated_change_value_cad,current_value_cad_after,reason,source
+2026-05-12,AAPL,TFSA1,TFSA,BASELINE,0.0,2.0,2.0,,396.94,,CAD,,793.88,Point de depart automatique: premiere analyse avec historique de portefeuille active.,AUTO_FROM_PORTFOLIO_DIFF
+2026-05-12,ASML,TFSA2,TFSA,BASELINE,0.0,0.0235,0.0235,,,,,,0.0,Point de depart automatique: premiere analyse avec historique de portefeuille active.,AUTO_FROM_PORTFOLIO_DIFF
+2026-05-12,AVGO,TFSA1,TFSA,BASELINE,0.0,2.0,2.0,,541.0,,CAD,,1082.0,Point de depart automatique: premiere analyse avec historique de portefeuille active.,AUTO_FROM_PORTFOLIO_DIFF
+2026-05-12,BAM,TFSA1,TFSA,BASELINE,0.0,5.0,5.0,,63.918,,CAD,,319.59,Point de depart automatique: premiere analyse avec historique de portefeuille active.,AUTO_FROM_PORTFOLIO_DIFF
+2026-05-12,GOOGL,TFSA2,TFSA,BASELINE,0.0,0.1779,0.1779,,,,,,0.0,Point de depart automatique: premiere analyse avec historique de portefeuille active.,AUTO_FROM_PORTFOLIO_DIFF
+2026-05-12,INTU,TFSA1,TFSA,BASELINE,0.0,1.0,1.0,,568.87,,CAD,,568.87,Point de depart automatique: premiere analyse avec historique de portefeuille active.,AUTO_FROM_PORTFOLIO_DIFF
+2026-05-12,INTU,TFSA2,TFSA,BASELINE,0.0,0.1819,0.1819,,,,,,0.0,Point de depart automatique: premiere analyse avec historique de portefeuille active.,AUTO_FROM_PORTFOLIO_DIFF
+2026-05-12,LLY,TFSA1,TFSA,BASELINE,0.0,1.0,1.0,,1439.87,,CAD,,1439.87,Point de depart automatique: premiere analyse avec historique de portefeuille active.,AUTO_FROM_PORTFOLIO_DIFF
+2026-05-12,MA,TFSA1,TFSA,BASELINE,0.0,2.0,2.0,,769.125,,CAD,,1538.25,Point de depart automatique: premiere analyse avec historique de portefeuille active.,AUTO_FROM_PORTFOLIO_DIFF
+2026-05-12,META,TFSA2,TFSA,BASELINE,0.0,0.2364,0.2364,,,,,,0.0,Point de depart automatique: premiere analyse avec historique de portefeuille active.,AUTO_FROM_PORTFOLIO_DIFF
+2026-05-12,MSFT,TFSA1,TFSA,BASELINE,0.0,4.0,4.0,,652.0,,CAD,,2608.0,Point de depart automatique: premiere analyse avec historique de portefeuille active.,AUTO_FROM_PORTFOLIO_DIFF
+2026-05-12,NANO.TO,TFSA1,TFSA,BASELINE,0.0,107.0,107.0,,0.94,,CAD,101.65,101.65,Point de depart automatique: premiere analyse avec historique de portefeuille active.,AUTO_FROM_PORTFOLIO_DIFF
+2026-05-12,QQC.TO,TFSA1,TFSA,BASELINE,0.0,1.0,1.0,,46.23,,CAD,47.5,47.5,Point de depart automatique: premiere analyse avec historique de portefeuille active.,AUTO_FROM_PORTFOLIO_DIFF
+2026-05-12,TMC,TFSA1,TFSA,BASELINE,0.0,8.0,8.0,,7.71,,CAD,,61.68,Point de depart automatique: premiere analyse avec historique de portefeuille active.,AUTO_FROM_PORTFOLIO_DIFF
+2026-05-12,TOI.V,TFSA1,TFSA,BASELINE,0.0,4.0,4.0,,103.77,,CAD,374.16,374.16,Point de depart automatique: premiere analyse avec historique de portefeuille active.,AUTO_FROM_PORTFOLIO_DIFF
+2026-05-12,VFV.TO,TFSA2,TFSA,BASELINE,0.0,0.5569,0.5569,,,,,99.92,99.92,Point de depart automatique: premiere analyse avec historique de portefeuille active.,AUTO_FROM_PORTFOLIO_DIFF
+2026-05-12,XUS.TO,TFSA1,TFSA,BASELINE,0.0,4.0,4.0,,59.635,,CAD,250.52,250.52,Point de depart automatique: premiere analyse avec historique de portefeuille active.,AUTO_FROM_PORTFOLIO_DIFF
+2026-05-12,ASML,TFSA2,TFSA,COST_BASIS_UPDATED,0.0235,0.0235,0.0,,2064.6809,,USD,0.0,50.51,Cout moyen ou devise du cout moyen modifie dans portfolio.csv.,AUTO_FROM_PORTFOLIO_DIFF
+2026-05-12,GOOGL,TFSA2,TFSA,COST_BASIS_UPDATED,0.1779,0.1779,0.0,,536.5936,,USD,0.0,96.26,Cout moyen ou devise du cout moyen modifie dans portfolio.csv.,AUTO_FROM_PORTFOLIO_DIFF
+2026-05-12,INTU,TFSA2,TFSA,COST_BASIS_UPDATED,0.1819,0.1819,0.0,,534.0847,,USD,0.0,97.32,Cout moyen ou devise du cout moyen modifie dans portfolio.csv.,AUTO_FROM_PORTFOLIO_DIFF
+2026-05-12,META,TFSA2,TFSA,COST_BASIS_UPDATED,0.2364,0.2364,0.0,,822.1658,,USD,0.0,194.56,Cout moyen ou devise du cout moyen modifie dans portfolio.csv.,AUTO_FROM_PORTFOLIO_DIFF
+2026-05-13,VFV.TO,TFSA2,TFSA,COST_BASIS_UPDATED,0.5569,0.5569,0.0,,179.5475,,CAD,0.0,99.92,Cout moyen ou devise du cout moyen modifie dans portfolio.csv.,AUTO_FROM_PORTFOLIO_DIFF
+2026-05-14,ASML,TFSA2,TFSA,COST_BASIS_UPDATED,0.0235,0.0235,0.0,2064.6809,2099.1489,USD,USD,0.0,51.25,Cout moyen ou devise du cout moyen modifie dans portfolio.csv.,AUTO_FROM_PORTFOLIO_DIFF
+2026-05-14,GOOGL,TFSA2,TFSA,COST_BASIS_UPDATED,0.1779,0.1779,0.0,536.5936,545.5312,USD,USD,0.0,97.21,Cout moyen ou devise du cout moyen modifie dans portfolio.csv.,AUTO_FROM_PORTFOLIO_DIFF
+2026-05-14,INTU,TFSA2,TFSA,COST_BASIS_UPDATED,0.1819,0.1819,0.0,534.0847,542.9357,USD,USD,0.0,93.31,Cout moyen ou devise du cout moyen modifie dans portfolio.csv.,AUTO_FROM_PORTFOLIO_DIFF
+2026-05-14,META,TFSA2,TFSA,COST_BASIS_UPDATED,0.2364,0.2364,0.0,822.1658,835.8714,USD,USD,0.0,200.31,Cout moyen ou devise du cout moyen modifie dans portfolio.csv.,AUTO_FROM_PORTFOLIO_DIFF
+2026-05-14,ASML,TFSA2,TFSA,COST_BASIS_UPDATED,0.0235,0.0235,0.0,2099.1489,2064.6809,USD,USD,0.0,50.41,Cout moyen ou devise du cout moyen modifie dans portfolio.csv.,AUTO_FROM_PORTFOLIO_DIFF
+2026-05-14,GOOGL,TFSA2,TFSA,COST_BASIS_UPDATED,0.1779,0.1779,0.0,545.5312,536.5936,USD,USD,0.0,95.61,Cout moyen ou devise du cout moyen modifie dans portfolio.csv.,AUTO_FROM_PORTFOLIO_DIFF
+2026-05-14,INTU,TFSA2,TFSA,COST_BASIS_UPDATED,0.1819,0.1819,0.0,542.9357,534.0847,USD,USD,0.0,91.78,Cout moyen ou devise du cout moyen modifie dans portfolio.csv.,AUTO_FROM_PORTFOLIO_DIFF
+2026-05-14,META,TFSA2,TFSA,COST_BASIS_UPDATED,0.2364,0.2364,0.0,835.8714,822.1658,USD,USD,0.0,197.02,Cout moyen ou devise du cout moyen modifie dans portfolio.csv.,AUTO_FROM_PORTFOLIO_DIFF
+2026-05-21,ASML,TFSA2,TFSA,COST_BASIS_UPDATED,0.0235,0.0235,0.0,2064.6809,2095.7447,USD,USD,0.0,50.57,Cout moyen ou devise du cout moyen modifie dans portfolio.csv.,AUTO_FROM_PORTFOLIO_DIFF
+2026-05-21,GOOGL,TFSA2,TFSA,COST_BASIS_UPDATED,0.1779,0.1779,0.0,536.5936,544.6318,USD,USD,0.0,93.67,Cout moyen ou devise du cout moyen modifie dans portfolio.csv.,AUTO_FROM_PORTFOLIO_DIFF
+2026-05-21,INTU,TFSA2,TFSA,COST_BASIS_UPDATED,0.1819,0.1819,0.0,534.0847,542.1111,USD,USD,0.0,76.99,Cout moyen ou devise du cout moyen modifie dans portfolio.csv.,AUTO_FROM_PORTFOLIO_DIFF
+2026-05-21,META,TFSA2,TFSA,COST_BASIS_UPDATED,0.2364,0.2364,0.0,822.1658,834.5178,USD,USD,0.0,193.55,Cout moyen ou devise du cout moyen modifie dans portfolio.csv.,AUTO_FROM_PORTFOLIO_DIFF
+2026-05-21,APP,TFSA2,TFSA,POSITION_ADDED,0.0,0.1579,0.1579,,678.974,,USD,107.28,107.28,Nouvelle position detectee dans portfolio.csv pour ce compte.,AUTO_FROM_PORTFOLIO_DIFF
+2026-05-21,FBTC.TO,TFSA2,TFSA,POSITION_ADDED,0.0,0.3034,0.3034,,34.9703,,CAD,10.61,10.61,Nouvelle position detectee dans portfolio.csv pour ce compte.,AUTO_FROM_PORTFOLIO_DIFF
+2026-05-21,GOOGL,TFSA2,TFSA,SHARES_INCREASED,0.1779,0.3974,0.2195,544.6318,536.764,USD,USD,115.57,209.24,Nombre d'actions augmente dans portfolio.csv depuis la derniere analyse.,AUTO_FROM_PORTFOLIO_DIFF
+2026-05-21,VFV.TO,TFSA2,TFSA,SHARES_INCREASED,0.5569,0.6396,0.0827,179.5475,179.753,CAD,CAD,14.99,115.97,Nombre d'actions augmente dans portfolio.csv depuis la derniere analyse.,AUTO_FROM_PORTFOLIO_DIFF
+2026-05-22,APP,TFSA2,TFSA,COST_BASIS_UPDATED,0.1579,0.1579,0.0,678.974,680.0507,USD,USD,0.0,104.14,Cout moyen ou devise du cout moyen modifie dans portfolio.csv.,AUTO_FROM_PORTFOLIO_DIFF
+2026-05-22,ASML,TFSA2,TFSA,COST_BASIS_UPDATED,0.0235,0.0235,0.0,2095.7447,2099.1489,USD,USD,0.0,52.79,Cout moyen ou devise du cout moyen modifie dans portfolio.csv.,AUTO_FROM_PORTFOLIO_DIFF
+2026-05-22,GOOGL,TFSA2,TFSA,COST_BASIS_UPDATED,0.3974,0.3974,0.0,536.764,537.6447,USD,USD,0.0,209.12,Cout moyen ou devise du cout moyen modifie dans portfolio.csv.,AUTO_FROM_PORTFOLIO_DIFF
+2026-05-22,INTU,TFSA2,TFSA,COST_BASIS_UPDATED,0.1819,0.1819,0.0,542.1111,542.9907,USD,USD,0.0,79.69,Cout moyen ou devise du cout moyen modifie dans portfolio.csv.,AUTO_FROM_PORTFOLIO_DIFF
+2026-05-22,META,TFSA2,TFSA,COST_BASIS_UPDATED,0.2364,0.2364,0.0,834.5178,835.8714,USD,USD,0.0,197.9,Cout moyen ou devise du cout moyen modifie dans portfolio.csv.,AUTO_FROM_PORTFOLIO_DIFF
+2026-05-24,APP,TFSA2,TFSA,COST_BASIS_UPDATED,0.1579,0.1579,0.0,680.0507,681.444,USD,USD,0.0,104.59,Cout moyen ou devise du cout moyen modifie dans portfolio.csv.,AUTO_FROM_PORTFOLIO_DIFF
+2026-05-24,ASML,TFSA2,TFSA,COST_BASIS_UPDATED,0.0235,0.0235,0.0,2099.1489,2102.9787,USD,USD,0.0,52.77,Cout moyen ou devise du cout moyen modifie dans portfolio.csv.,AUTO_FROM_PORTFOLIO_DIFF
+2026-05-24,GOOGL,TFSA2,TFSA,COST_BASIS_UPDATED,0.3974,0.3974,0.0,537.6447,538.7016,USD,USD,0.0,209.29,Cout moyen ou devise du cout moyen modifie dans portfolio.csv.,AUTO_FROM_PORTFOLIO_DIFF
+2026-05-24,INTU,TFSA2,TFSA,COST_BASIS_UPDATED,0.1819,0.1819,0.0,542.9907,544.0352,USD,USD,0.0,80.03,Cout moyen ou devise du cout moyen modifie dans portfolio.csv.,AUTO_FROM_PORTFOLIO_DIFF
+2026-05-24,META,TFSA2,TFSA,COST_BASIS_UPDATED,0.2364,0.2364,0.0,835.8714,837.5212,USD,USD,0.0,198.39,Cout moyen ou devise du cout moyen modifie dans portfolio.csv.,AUTO_FROM_PORTFOLIO_DIFF
+2026-05-27,APP,TFSA2,TFSA,COST_BASIS_UPDATED,0.1579,0.1579,0.0,681.444,681.3806,USD,USD,0.0,122.63,Cout moyen ou devise du cout moyen modifie dans portfolio.csv.,AUTO_FROM_PORTFOLIO_DIFF
+2026-05-27,GOOGL,TFSA2,TFSA,COST_BASIS_UPDATED,0.3974,0.3974,0.0,538.7016,538.6512,USD,USD,0.0,213.67,Cout moyen ou devise du cout moyen modifie dans portfolio.csv.,AUTO_FROM_PORTFOLIO_DIFF
+2026-05-27,INTU,TFSA2,TFSA,COST_BASIS_UPDATED,0.1819,0.1819,0.0,544.0352,543.9802,USD,USD,0.0,77.8,Cout moyen ou devise du cout moyen modifie dans portfolio.csv.,AUTO_FROM_PORTFOLIO_DIFF
+2026-05-27,META,TFSA2,TFSA,COST_BASIS_UPDATED,0.2364,0.2364,0.0,837.5212,837.4365,USD,USD,0.0,199.02,Cout moyen ou devise du cout moyen modifie dans portfolio.csv.,AUTO_FROM_PORTFOLIO_DIFF
+2026-05-29,APP,TFSA2,TFSA,SHARES_INCREASED,0.1579,0.3967,0.2388,681.3806,746.0045,USD,USD,185.46,308.09,Nombre d'actions augmente dans portfolio.csv depuis la derniere analyse.,AUTO_FROM_PORTFOLIO_DIFF
+2026-05-29,FBTC.TO,TFSA2,TFSA,SHARES_INCREASED,0.3034,1.7025,1.3991,34.9703,34.7724,CAD,CAD,47.82,58.19,Nombre d'actions augmente dans portfolio.csv depuis la derniere analyse.,AUTO_FROM_PORTFOLIO_DIFF
+2026-05-29,GOOGL,TFSA2,TFSA,SHARES_INCREASED,0.3974,0.4305,0.0331,538.6512,538.6063,USD,USD,17.8,231.46,Nombre d'actions augmente dans portfolio.csv depuis la derniere analyse.,AUTO_FROM_PORTFOLIO_DIFF
+2026-05-29,META,TFSA2,TFSA,SHARES_INCREASED,0.2364,0.336,0.0996,837.4365,838.6607,USD,USD,83.85,282.87,Nombre d'actions augmente dans portfolio.csv depuis la derniere analyse.,AUTO_FROM_PORTFOLIO_DIFF
+2026-05-29,VFV.TO,TFSA2,TFSA,SHARES_INCREASED,0.6396,0.8293,0.1897,179.753,180.8272,CAD,CAD,34.97,152.88,Nombre d'actions augmente dans portfolio.csv depuis la derniere analyse.,AUTO_FROM_PORTFOLIO_DIFF
+2026-05-29,APP,TFSA2,TFSA,COST_BASIS_UPDATED,0.3967,0.3967,0.0,746.0045,748.8782,USD,USD,0.0,335.73,Cout moyen ou devise du cout moyen modifie dans portfolio.csv.,AUTO_FROM_PORTFOLIO_DIFF
+2026-05-29,ASML,TFSA2,TFSA,COST_BASIS_UPDATED,0.0235,0.0235,0.0,2102.9787,2111.0638,USD,USD,0.0,52.32,Cout moyen ou devise du cout moyen modifie dans portfolio.csv.,AUTO_FROM_PORTFOLIO_DIFF
+2026-05-29,GOOGL,TFSA2,TFSA,COST_BASIS_UPDATED,0.4305,0.4305,0.0,538.6063,540.6736,USD,USD,0.0,226.02,Cout moyen ou devise du cout moyen modifie dans portfolio.csv.,AUTO_FROM_PORTFOLIO_DIFF
+2026-05-29,INTU,TFSA2,TFSA,COST_BASIS_UPDATED,0.1819,0.1819,0.0,543.9802,546.0693,USD,USD,0.0,83.25,Cout moyen ou devise du cout moyen modifie dans portfolio.csv.,AUTO_FROM_PORTFOLIO_DIFF
+2026-05-29,META,TFSA2,TFSA,COST_BASIS_UPDATED,0.336,0.336,0.0,838.6607,841.875,USD,USD,0.0,293.37,Cout moyen ou devise du cout moyen modifie dans portfolio.csv.,AUTO_FROM_PORTFOLIO_DIFF
+2026-06-04,APP,TFSA2,TFSA,COST_BASIS_UPDATED,0.3967,0.3967,0.0,748.8782,749.1303,USD,USD,0.0,315.53,Cout moyen ou devise du cout moyen modifie dans portfolio.csv.,AUTO_FROM_PORTFOLIO_DIFF
+2026-06-04,ASML,TFSA2,TFSA,COST_BASIS_UPDATED,0.0235,0.0235,0.0,2111.0638,2111.9149,USD,USD,0.0,55.42,Cout moyen ou devise du cout moyen modifie dans portfolio.csv.,AUTO_FROM_PORTFOLIO_DIFF
+2026-06-04,GOOGL,TFSA2,TFSA,COST_BASIS_UPDATED,0.4305,0.4305,0.0,540.6736,540.8827,USD,USD,0.0,218.82,Cout moyen ou devise du cout moyen modifie dans portfolio.csv.,AUTO_FROM_PORTFOLIO_DIFF
+2026-06-04,INTU,TFSA2,TFSA,COST_BASIS_UPDATED,0.1819,0.1819,0.0,546.0693,546.2892,USD,USD,0.0,78.34,Cout moyen ou devise du cout moyen modifie dans portfolio.csv.,AUTO_FROM_PORTFOLIO_DIFF
+2026-06-04,META,TFSA2,TFSA,COST_BASIS_UPDATED,0.336,0.336,0.0,841.875,842.1726,USD,USD,0.0,296.08,Cout moyen ou devise du cout moyen modifie dans portfolio.csv.,AUTO_FROM_PORTFOLIO_DIFF
+2026-06-04,APP,TFSA2,TFSA,SHARES_INCREASED,0.3967,0.602,0.2053,749.1303,768.9203,USD,USD,163.3,478.83,Nombre d'actions augmente dans portfolio.csv depuis la derniere analyse.,AUTO_FROM_PORTFOLIO_DIFF
+2026-06-04,FBTC.TO,TFSA2,TFSA,SHARES_INCREASED,1.7025,1.9196,0.2171,34.7724,34.1582,CAD,CAD,6.34,56.05,Nombre d'actions augmente dans portfolio.csv depuis la derniere analyse.,AUTO_FROM_PORTFOLIO_DIFF
+2026-06-04,GOOGL,TFSA2,TFSA,SHARES_INCREASED,0.4305,0.5253,0.0948,540.8827,535.1418,USD,USD,48.19,267.01,Nombre d'actions augmente dans portfolio.csv depuis la derniere analyse.,AUTO_FROM_PORTFOLIO_DIFF
+2026-06-04,META,TFSA2,TFSA,SHARES_INCREASED,0.336,0.3516,0.0156,842.1726,843.942,USD,USD,13.75,309.83,Nombre d'actions augmente dans portfolio.csv depuis la derniere analyse.,AUTO_FROM_PORTFOLIO_DIFF
+2026-06-04,VFV.TO,TFSA2,TFSA,SHARES_INCREASED,0.8293,0.9095,0.0802,180.8272,181.3634,CAD,CAD,14.95,169.51,Nombre d'actions augmente dans portfolio.csv depuis la derniere analyse.,AUTO_FROM_PORTFOLIO_DIFF
+2026-06-08,APP,TFSA2,TFSA,COST_BASIS_UPDATED,0.602,0.602,0.0,768.9203,770.4817,USD,USD,0.0,473.89,Cout moyen ou devise du cout moyen modifie dans portfolio.csv.,AUTO_FROM_PORTFOLIO_DIFF
+2026-06-08,ASML,TFSA2,TFSA,COST_BASIS_UPDATED,0.0235,0.0235,0.0,2111.9149,2116.1702,USD,USD,0.0,56.55,Cout moyen ou devise du cout moyen modifie dans portfolio.csv.,AUTO_FROM_PORTFOLIO_DIFF
+2026-06-08,GOOGL,TFSA2,TFSA,COST_BASIS_UPDATED,0.5253,0.5253,0.0,535.1418,536.2269,USD,USD,0.0,262.65,Cout moyen ou devise du cout moyen modifie dans portfolio.csv.,AUTO_FROM_PORTFOLIO_DIFF
+2026-06-08,INTU,TFSA2,TFSA,COST_BASIS_UPDATED,0.1819,0.1819,0.0,546.2892,547.3887,USD,USD,0.0,75.87,Cout moyen ou devise du cout moyen modifie dans portfolio.csv.,AUTO_FROM_PORTFOLIO_DIFF
+2026-06-08,META,TFSA2,TFSA,COST_BASIS_UPDATED,0.3516,0.3516,0.0,843.942,845.6485,USD,USD,0.0,285.72,Cout moyen ou devise du cout moyen modifie dans portfolio.csv.,AUTO_FROM_PORTFOLIO_DIFF
+2026-06-08,APP,TFSA2,TFSA,SHARES_INCREASED,0.602,0.6878,0.0858,770.4817,772.8409,USD,USD,67.54,541.43,Nombre d'actions augmente dans portfolio.csv depuis la derniere analyse.,AUTO_FROM_PORTFOLIO_DIFF
+2026-06-08,FBTC.TO,TFSA2,TFSA,SHARES_INCREASED,1.9196,1.9662,0.0466,34.1582,34.0505,CAD,CAD,1.36,57.59,Nombre d'actions augmente dans portfolio.csv depuis la derniere analyse.,AUTO_FROM_PORTFOLIO_DIFF
+2026-06-08,META,TFSA2,TFSA,SHARES_INCREASED,0.3516,0.3803,0.0287,845.6485,843.4657,USD,USD,23.32,309.05,Nombre d'actions augmente dans portfolio.csv depuis la derniere analyse.,AUTO_FROM_PORTFOLIO_DIFF
+2026-06-08,VFV.TO,TFSA2,TFSA,SHARES_INCREASED,0.9095,0.9365,0.027,181.3634,181.4522,CAD,CAD,4.97,172.53,Nombre d'actions augmente dans portfolio.csv depuis la derniere analyse.,AUTO_FROM_PORTFOLIO_DIFF
+2026-06-18,APP,TFSA2,TFSA,COST_BASIS_UPDATED,0.6878,0.6878,0.0,772.8409,781.5644,USD,USD,0.0,453.1,Cout moyen ou devise du cout moyen modifie dans portfolio.csv.,AUTO_FROM_PORTFOLIO_DIFF
+2026-06-18,ASML,TFSA2,TFSA,COST_BASIS_UPDATED,0.0235,0.0235,0.0,2116.1702,2140.0,USD,USD,0.0,63.68,Cout moyen ou devise du cout moyen modifie dans portfolio.csv.,AUTO_FROM_PORTFOLIO_DIFF
+2026-06-18,GOOGL,TFSA2,TFSA,COST_BASIS_UPDATED,0.5253,0.5253,0.0,536.2269,542.2806,USD,USD,0.0,267.23,Cout moyen ou devise du cout moyen modifie dans portfolio.csv.,AUTO_FROM_PORTFOLIO_DIFF
+2026-06-18,INTU,TFSA2,TFSA,COST_BASIS_UPDATED,0.1819,0.1819,0.0,547.3887,553.5459,USD,USD,0.0,67.38,Cout moyen ou devise du cout moyen modifie dans portfolio.csv.,AUTO_FROM_PORTFOLIO_DIFF
+2026-06-18,META,TFSA2,TFSA,COST_BASIS_UPDATED,0.3803,0.3803,0.0,843.4657,852.9845,USD,USD,0.0,304.38,Cout moyen ou devise du cout moyen modifie dans portfolio.csv.,AUTO_FROM_PORTFOLIO_DIFF
+2026-06-18,AAPL,TFSA2,TFSA,POSITION_ADDED,0.0,0.1851,0.1851,,415.6132,,USD,77.2,77.2,Nouvelle position detectee dans portfolio.csv pour ce compte.,AUTO_FROM_PORTFOLIO_DIFF
+2026-06-18,ANET,TFSA2,TFSA,POSITION_ADDED,0.0,0.3253,0.3253,,236.4894,,USD,77.08,77.08,Nouvelle position detectee dans portfolio.csv pour ce compte.,AUTO_FROM_PORTFOLIO_DIFF
+2026-06-18,FBTC.TO,TFSA2,TFSA,SHARES_INCREASED,1.9662,2.2045,0.2383,34.0505,33.5496,CAD,CAD,7.03,65.03,Nombre d'actions augmente dans portfolio.csv depuis la derniere analyse.,AUTO_FROM_PORTFOLIO_DIFF
+2026-06-18,MSFT,TFSA2,TFSA,POSITION_ADDED,0.0,0.1012,0.1012,,525.0,,USD,53.3,53.3,Nouvelle position detectee dans portfolio.csv pour ce compte.,AUTO_FROM_PORTFOLIO_DIFF
+2026-06-18,VFV.TO,TFSA2,TFSA,SHARES_INCREASED,0.9365,1.2024,0.2659,181.4522,182.9092,CAD,CAD,50.01,226.12,Nombre d'actions augmente dans portfolio.csv depuis la derniere analyse.,AUTO_FROM_PORTFOLIO_DIFF

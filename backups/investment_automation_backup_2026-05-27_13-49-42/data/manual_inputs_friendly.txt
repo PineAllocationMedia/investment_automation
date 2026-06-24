@@ -1,0 +1,18 @@
+# Fichier 2 optionnel: corrections manuelles.
+# L'agent remplit maintenant les donnees automatiquement autant que possible.
+# Vous pouvez laisser ce fichier tel quel.
+#
+# Remplissez ce fichier seulement si vous voulez corriger une donnee
+# ou confirmer une information importante que vous avez verifiee vous-meme.
+#
+# Exemple:
+#
+# [MSFT]
+# roic_5y_avg = 25
+# moat_clear = TRUE
+# manual_confidence_level = HIGH
+# notes = Donnees verifiees dans le rapport annuel.
+#
+# Vrai/faux acceptes: TRUE/FALSE, yes/no, oui/non, 1/0.
+# manual_confidence_level accepte: HIGH, MEDIUM, LOW.
+# Les champs catastrophic_* doivent rester FALSE sauf probleme majeur confirme.

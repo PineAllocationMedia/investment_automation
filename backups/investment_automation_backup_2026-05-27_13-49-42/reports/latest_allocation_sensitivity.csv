@@ -1,0 +1,5 @@
+ticker,base_amount,prudent_amount,strict_data_amount,min_amount,max_amount,max_change_amount,max_change_percent,robustness_note
+APP,220.5,220.5,220.5,220.5,220.5,0.0,0.0,Stable dans les tests prudents.
+GOOGL,7.0,7.0,7.0,7.0,7.0,0.0,0.0,Stable dans les tests prudents.
+META,87.5,87.5,87.5,87.5,87.5,0.0,0.0,Stable dans les tests prudents.
+VFV.TO,35.0,35.0,35.0,35.0,35.0,0.0,0.0,Stable dans les tests prudents.

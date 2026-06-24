@@ -1,0 +1,32 @@
+{
+  "errors": [
+    "income: HTTP 404",
+    "balance: HTTP 404",
+    "cashflow: HTTP 404"
+  ],
+  "fetched_at": "2026-06-18T11:12:23",
+  "parsed_payload": {
+    "available": false,
+    "company_name": "Invesco NASDAQ 100 Index ETF CAD Units",
+    "coverage_status": "NO_USABLE_FIELDS",
+    "errors": [
+      "income: HTTP 404",
+      "balance: HTTP 404",
+      "cashflow: HTTP 404"
+    ],
+    "fields": [],
+    "latest_period": "",
+    "source": "StockAnalysis Canadian financial pages",
+    "ticker": "QQC.TO",
+    "urls": {
+      "balance": "https://stockanalysis.com/quote/tsx/QQC/financials/balance-sheet/",
+      "cashflow": "https://stockanalysis.com/quote/tsx/QQC/financials/cash-flow-statement/",
+      "income": "https://stockanalysis.com/quote/tsx/QQC/financials/"
+    }
+  },
+  "urls": {
+    "balance": "https://stockanalysis.com/quote/tsx/QQC/financials/balance-sheet/",
+    "cashflow": "https://stockanalysis.com/quote/tsx/QQC/financials/cash-flow-statement/",
+    "income": "https://stockanalysis.com/quote/tsx/QQC/financials/"
+  }
+}

@@ -1,0 +1,1523 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rapport trimestriel d’investissement</title>
+<style>body{font-family:Arial,sans-serif;line-height:1.5;max-width:1100px;margin:32px auto;padding:0 18px;color:#1f2933}table{border-collapse:collapse;width:100%;margin:16px 0}th,td{border:1px solid #d9e2ec;padding:7px;text-align:left;font-size:14px}th{background:#f0f4f8}code{background:#f0f4f8;padding:2px 4px}img{max-width:100%;height:auto}.note{background:#fff8db;border-left:4px solid #f0b429;padding:10px 12px}</style>
+</head>
+<body>
+<h1>Rapport compact d'investissement</h1>
+<ul>
+<li>Date: 2026-05-27</li>
+<li>Mode utilisé: high-cagr</li>
+<li>Capital analysé: 350.00 $</li>
+<li>Valeur totale du portefeuille: 9 538.88 $</li>
+<li>Rapport complet: <code>reports/latest_report.html</code></li>
+</ul>
+<blockquote>
+<p>Ceci n’est pas un conseil financier. Ce rapport applique seulement les règles mécaniques du guide fourni. Les données gratuites peuvent être incomplètes, retardées ou erronées. Toute décision finale doit être validée manuellement.</p>
+</blockquote>
+<h2>1. Décision en 60 secondes</h2>
+<ul>
+<li>Allocation recommandée: VFV.TO 35.00 $, APP 220.50 $, META 87.50 $, GOOGL 7.00 $</li>
+<li>Changement principal: GOOGL: DECREASED (Allocation réduite: capital_allocation_score baisse de -16.1; score fondamental baisse de -1.0; risque cycle/bulle HIGH: allocation plafonnée; stabilité mensuelle: REDUCE_AFTER_SCORE_DROP.)</li>
+<li>Dernier changement portefeuille: depuis la dernière analyse: 2026-05-27 - APP (TFSA2), COST_BASIS_UPDATED variation 0.0, valeur estimée 0.00 $.</li>
+<li>Répartition par compte: TFSA1: 8 745.72 $ (MSFT 26 %, LLY 17 %, MA 16 %, AVGO 13 %, AAPL 10 %); TFSA2: 793.16 $ (GOOGL 27 %, META 25 %, APP 15 %, VFV.TO 15 %, INTU 10 %)</li>
+<li>Qualité de décision: HIGH (90.0/100). Recommandation robuste: APP, META, GOOGL; VFV reste contrôlé et les garde-fous sont cohérents.</li>
+<li>Robustesse: ROBUST (100.0/100) - L’allocation reste assez stable sous hypothèses prudentes.</li>
+<li>VFV: 10 % obligatoire avant redirections.</li>
+<li>ETF défensifs: Désactivé pour ce mode.</li>
+<li>Régime de marché: BUBBLE_RISK (79.3/100). Un thème de croissance/tech/semi semble très dominant; le modèle limite modérément la surexposition au thème chaud.</li>
+<li>Vente/surveillance: CSU.TO=WATCH, NANO.TO=WATCH, SIEGY=WATCH, TMC=WATCH / META=WATCH, WSP.TO (WSP)=MANUAL_REVIEW, TSLA=MANUAL_REVIEW, TOI.V (TOI)<em>=MANUAL_REVIEW, TMC</em>=MANUAL_REVIEW, SIEGY=MANUAL_REVIEW, SBGSY (SCHN)=MANUAL_REVIEW, NANO.TO (NANO)*=MANUAL_REVIEW</li>
+<li>Quality drawdown: ANET=opportunité potentielle, APP=opportunité potentielle, ASML=opportunité potentielle, AVGO=opportunité potentielle, BAM=opportunité potentielle, INTU=opportunité potentielle</li>
+<li>Promotions externes: aucune promotion fondée; market universe à surveiller: ADI, NTR.TO; scanner/discovery: ABNB, MNST.</li>
+<li>Risque principal: forte exposition USD</li>
+<li>Donnée à valider en priorité: APP - Juste valeur (TRES_HAUTE)</li>
+</ul>
+<h2>2. Portefeuille actuel</h2>
+<p>Cette section résume seulement les changements et la répartition actuelle. Le détail complet reste dans le rapport long et les CSV d’historique.</p>
+<h3>Changements automatiques récents</h3>
+<table>
+<thead>
+<tr>
+<th>date</th>
+<th>ticker</th>
+<th>compte</th>
+<th>changement</th>
+<th>variation</th>
+<th>valeur_estimée</th>
+<th>lecture</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>2026-05-27</td>
+<td>APP</td>
+<td>TFSA2</td>
+<td>COST_BASIS_UPDATED</td>
+<td>0.0</td>
+<td>0.00 $</td>
+<td>Depuis la dernière analyse. Cout moyen ou devise du cout moyen modifie dans portfolio.csv.</td>
+</tr>
+<tr>
+<td>2026-05-27</td>
+<td>GOOGL</td>
+<td>TFSA2</td>
+<td>COST_BASIS_UPDATED</td>
+<td>0.0</td>
+<td>0.00 $</td>
+<td>Depuis la dernière analyse. Cout moyen ou devise du cout moyen modifie dans portfolio.csv.</td>
+</tr>
+<tr>
+<td>2026-05-27</td>
+<td>INTU</td>
+<td>TFSA2</td>
+<td>COST_BASIS_UPDATED</td>
+<td>0.0</td>
+<td>0.00 $</td>
+<td>Depuis la dernière analyse. Cout moyen ou devise du cout moyen modifie dans portfolio.csv.</td>
+</tr>
+<tr>
+<td>2026-05-27</td>
+<td>META</td>
+<td>TFSA2</td>
+<td>COST_BASIS_UPDATED</td>
+<td>0.0</td>
+<td>0.00 $</td>
+<td>Depuis la dernière analyse. Cout moyen ou devise du cout moyen modifie dans portfolio.csv.</td>
+</tr>
+</tbody>
+</table>
+<h3>Résumé cumulatif des changements</h3>
+<table>
+<thead>
+<tr>
+<th>compte</th>
+<th>ticker</th>
+<th>achats/ajouts</th>
+<th>ventes/réductions</th>
+<th>variation_nette</th>
+<th>valeur_nette_estimée</th>
+<th>dernière_date</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>TFSA2</td>
+<td>APP</td>
+<td>1</td>
+<td>0</td>
+<td>0.1579</td>
+<td>107.28 $</td>
+<td>2026-05-27</td>
+</tr>
+<tr>
+<td>TFSA2</td>
+<td>GOOGL</td>
+<td>2</td>
+<td>0</td>
+<td>0.3974</td>
+<td>115.57 $</td>
+<td>2026-05-27</td>
+</tr>
+<tr>
+<td>TFSA2</td>
+<td>INTU</td>
+<td>1</td>
+<td>0</td>
+<td>0.1819</td>
+<td>0.00 $</td>
+<td>2026-05-27</td>
+</tr>
+<tr>
+<td>TFSA2</td>
+<td>META</td>
+<td>1</td>
+<td>0</td>
+<td>0.2364</td>
+<td>0.00 $</td>
+<td>2026-05-27</td>
+</tr>
+<tr>
+<td>TFSA2</td>
+<td>ASML</td>
+<td>1</td>
+<td>0</td>
+<td>0.0235</td>
+<td>0.00 $</td>
+<td>2026-05-24</td>
+</tr>
+<tr>
+<td>TFSA2</td>
+<td>FBTC.TO</td>
+<td>1</td>
+<td>0</td>
+<td>0.3034</td>
+<td>10.61 $</td>
+<td>2026-05-21</td>
+</tr>
+</tbody>
+</table>
+<h3>Répartition actuelle par compte</h3>
+<p>Diagrammes circulaires par compte, basés sur la valeur actuelle estimée en CAD.</p>
+<h4>TFSA1</h4>
+<p><img alt="Répartition du compte TFSA1" src="charts/account_TFSA1.svg" /></p>
+<h4>TFSA2</h4>
+<p><img alt="Répartition du compte TFSA2" src="charts/account_TFSA2.svg" /></p>
+<table>
+<thead>
+<tr>
+<th>compte</th>
+<th>valeur_totale</th>
+<th>positions</th>
+<th>principales_positions</th>
+<th>note</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>TFSA1</td>
+<td>8 745.72 $</td>
+<td>12</td>
+<td>MSFT 26 %, LLY 17 %, MA 16 %, AVGO 13 %, AAPL 10 %</td>
+<td>Certaines petites positions sont regroupées dans Autres.</td>
+</tr>
+<tr>
+<td>TFSA2</td>
+<td>793.16 $</td>
+<td>7</td>
+<td>GOOGL 27 %, META 25 %, APP 15 %, VFV.TO 15 %, INTU 10 %</td>
+<td>Certaines petites positions sont regroupées dans Autres.</td>
+</tr>
+</tbody>
+</table>
+<h2>3. Allocation à exécuter</h2>
+<table>
+<thead>
+<tr>
+<th>ticker</th>
+<th>amount</th>
+<th>percentage</th>
+<th>reason</th>
+<th>confidence</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>VFV.TO</td>
+<td>35.00 $</td>
+<td>10.0 %</td>
+<td>Filet de sécurité S&amp;P 500 selon moyenne des scores.</td>
+<td>HIGH</td>
+</tr>
+<tr>
+<td>APP</td>
+<td>220.50 $</td>
+<td>63.0 %</td>
+<td>Quality drawdown: le titre a chuté, mais la thèse, la vente GREEN, la durabilité et le cash-flow restent assez solides; l'allocation est permise de façon lim...</td>
+<td>HIGH</td>
+</tr>
+<tr>
+<td>META</td>
+<td>87.50 $</td>
+<td>25.0 %</td>
+<td>Quality drawdown: le titre a chuté, mais la thèse, la vente GREEN, la durabilité et le cash-flow restent assez solides; l'allocation est permise de façon lim...</td>
+<td>HIGH</td>
+</tr>
+<tr>
+<td>GOOGL</td>
+<td>7.00 $</td>
+<td>2.0 %</td>
+<td>Allocation réduite: entreprise de qualité possible, mais thème/cycle déjà chaud ou cyclique; le sizing limite le risque de payer une tendance.</td>
+<td>HIGH</td>
+</tr>
+</tbody>
+</table>
+<h3>ETF défensifs possibles</h3>
+<p>Cette couche sert de stabilisateur dans les modes prudents. Elle est désactivée en <code>high-cagr</code> et ne remplace pas la recherche de compounders de qualité.</p>
+<table>
+<thead>
+<tr>
+<th>ticker</th>
+<th>statut</th>
+<th>score</th>
+<th>rôle</th>
+<th>raison</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td></td>
+<td>DESACTIVE</td>
+<td></td>
+<td></td>
+<td>Couche ETF défensive inactive pour ce mode.</td>
+</tr>
+</tbody>
+</table>
+<h3>Régime de marché</h3>
+<p>Cette couche sert de contexte léger de sizing. Elle ne vend rien, ne garde pas de cash volontairement et ne remplace pas les fondamentaux.</p>
+<table>
+<thead>
+<tr>
+<th>metric</th>
+<th>status</th>
+<th>value</th>
+<th>interpretation</th>
+<th>impact</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Régime de marché</td>
+<td>BUBBLE_RISK</td>
+<td>79.3</td>
+<td>Un thème de croissance/tech/semi semble très dominant; le modèle limite modérément la surexposition au thème chaud.</td>
+<td>Contexte de sizing seulement; ne déclenche jamais une vente ou du cash volontaire.</td>
+</tr>
+<tr>
+<td>Signaux principaux</td>
+<td>INFO</td>
+<td>tech/IA/semi surperforme le marché large sur 6 mois (37.7 %); semi-conducteurs très forts sur 6 mois (98.7 %); semi-conducteurs très forts sur 1 an (169.6 %); VIX bas (17.0) pendant leadership de croissance</td>
+<td>Lecture basée sur ETF/indices gratuits et données yfinance.</td>
+<td>Aide à réduire les allocations trop concentrées dans un thème de marché extrême.</td>
+</tr>
+<tr>
+<td>Garde-fou anti-surcorrection</td>
+<td>ACTIVE</td>
+<td>impact plafonné</td>
+<td>Le régime ne remplace pas les fondamentaux, la thèse, la valorisation ou VFV.</td>
+<td>Protège le profil long terme contre le market timing macro.</td>
+</tr>
+<tr>
+<td>Sources gratuites suivies</td>
+<td>YFINANCE_PROXY</td>
+<td>IWM, QQQ, SOXX, SPY, TLT, UUP, VFV.TO, XLF, XLI, XLK, XLP, XLU, XLV, ^TNX, ^VIX</td>
+<td>ETF/indices utilisés comme proxys de climat de marché.</td>
+<td>Sources gratuites imparfaites, mais répétables et compatibles avec un agent local.</td>
+</tr>
+</tbody>
+</table>
+<table>
+<thead>
+<tr>
+<th>universe</th>
+<th>ticker</th>
+<th>market_regime_status</th>
+<th>market_regime_score</th>
+<th>market_regime_allocation_adjustment</th>
+<th>market_regime_exposure</th>
+<th>market_regime_reason</th>
+<th>market_regime_guardrail</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>CORE_PORTFOLIO</td>
+<td>AAPL</td>
+<td>BUBBLE_RISK</td>
+<td>79.3</td>
+<td>-3.85</td>
+<td>tech_ai_semi, hot_valuation, strong_balance, high_quality_growth</td>
+<td>régime euphorique: exposition tech/IA/semi déjà très favorisée; valorisation chaude pendant un régime de bulle/tendance</td>
+<td>Impact plafonné: aucun achat/vente automatique, aucun market timing, aucun cash volontaire. Mode high-cagr: ajustement max -4.0/+1.5 points.</td>
+</tr>
+<tr>
+<td>CORE_PORTFOLIO</td>
+<td>TSLA</td>
+<td>BUBBLE_RISK</td>
+<td>79.3</td>
+<td>-3.85</td>
+<td>tech_ai_semi, cyclical, recession_sensitive, rate_sensitive, high_beta, hot_valuation, strong_balance</td>
+<td>régime euphorique: exposition tech/IA/semi déjà très favorisée; valorisation chaude pendant un régime de bulle/tendance</td>
+<td>Impact plafonné: aucun achat/vente automatique, aucun market timing, aucun cash volontaire. Mode high-cagr: ajustement max -4.0/+1.5 points.</td>
+</tr>
+<tr>
+<td>CORE_PORTFOLIO</td>
+<td>WSP.TO (WSP)</td>
+<td>BUBBLE_RISK</td>
+<td>79.3</td>
+<td>-3.85</td>
+<td>tech_ai_semi, cyclical, recession_sensitive, hot_valuation, strong_balance</td>
+<td>régime euphorique: exposition tech/IA/semi déjà très favorisée; valorisation chaude pendant un régime de bulle/tendance</td>
+<td>Impact plafonné: aucun achat/vente automatique, aucun market timing, aucun cash volontaire. Mode high-cagr: ajustement max -4.0/+1.5 points.</td>
+</tr>
+<tr>
+<td>MARKET_SCANNER</td>
+<td>AMAT</td>
+<td>BUBBLE_RISK</td>
+<td>79.3</td>
+<td>-3.85</td>
+<td>tech_ai_semi, cyclical, recession_sensitive, high_beta, hot_valuation, strong_balance, high_quality_growth</td>
+<td>régime euphorique: exposition tech/IA/semi déjà très favorisée; valorisation chaude pendant un régime de bulle/tendance</td>
+<td>Impact plafonné: aucun achat/vente automatique, aucun market timing, aucun cash volontaire. Mode high-cagr: ajustement max -4.0/+1.5 points.</td>
+</tr>
+<tr>
+<td>MARKET_SCANNER</td>
+<td>CRWD</td>
+<td>BUBBLE_RISK</td>
+<td>79.3</td>
+<td>-3.85</td>
+<td>tech_ai_semi, hot_valuation, strong_balance</td>
+<td>régime euphorique: exposition tech/IA/semi déjà très favorisée; valorisation chaude pendant un régime de bulle/tendance</td>
+<td>Impact plafonné: aucun achat/vente automatique, aucun market timing, aucun cash volontaire. Mode high-cagr: ajustement max -4.0/+1.5 points.</td>
+</tr>
+<tr>
+<td>MARKET_SCANNER</td>
+<td>FTNT</td>
+<td>BUBBLE_RISK</td>
+<td>79.3</td>
+<td>-3.85</td>
+<td>tech_ai_semi, hot_valuation, strong_balance, quality_drawdown</td>
+<td>régime euphorique: exposition tech/IA/semi déjà très favorisée; valorisation chaude pendant un régime de bulle/tendance</td>
+<td>Impact plafonné: aucun achat/vente automatique, aucun market timing, aucun cash volontaire. Mode high-cagr: ajustement max -4.0/+1.5 points.</td>
+</tr>
+<tr>
+<td>MARKET_SCANNER</td>
+<td>PNG.V</td>
+<td>BUBBLE_RISK</td>
+<td>79.3</td>
+<td>-3.85</td>
+<td>tech_ai_semi, hot_valuation, strong_balance</td>
+<td>régime euphorique: exposition tech/IA/semi déjà très favorisée; valorisation chaude pendant un régime de bulle/tendance</td>
+<td>Impact plafonné: aucun achat/vente automatique, aucun market timing, aucun cash volontaire. Mode high-cagr: ajustement max -4.0/+1.5 points.</td>
+</tr>
+<tr>
+<td>MARKET_SCANNER</td>
+<td>SNOW</td>
+<td>BUBBLE_RISK</td>
+<td>79.3</td>
+<td>-3.85</td>
+<td>tech_ai_semi, hot_valuation, strong_balance</td>
+<td>régime euphorique: exposition tech/IA/semi déjà très favorisée; valorisation chaude pendant un régime de bulle/tendance</td>
+<td>Impact plafonné: aucun achat/vente automatique, aucun market timing, aucun cash volontaire. Mode high-cagr: ajustement max -4.0/+1.5 points.</td>
+</tr>
+<tr>
+<td>MARKET_SCANNER</td>
+<td>SNPS</td>
+<td>BUBBLE_RISK</td>
+<td>79.3</td>
+<td>-3.85</td>
+<td>tech_ai_semi, cyclical, recession_sensitive, hot_valuation, strong_balance</td>
+<td>régime euphorique: exposition tech/IA/semi déjà très favorisée; valorisation chaude pendant un régime de bulle/tendance</td>
+<td>Impact plafonné: aucun achat/vente automatique, aucun market timing, aucun cash volontaire. Mode high-cagr: ajustement max -4.0/+1.5 points.</td>
+</tr>
+<tr>
+<td>DISCOVERY_IDEAS</td>
+<td>CDNS</td>
+<td>BUBBLE_RISK</td>
+<td>79.3</td>
+<td>-3.85</td>
+<td>tech_ai_semi, cyclical, recession_sensitive, hot_valuation, strong_balance, quality_drawdown</td>
+<td>régime euphorique: exposition tech/IA/semi déjà très favorisée; valorisation chaude pendant un régime de bulle/tendance</td>
+<td>Impact plafonné: aucun achat/vente automatique, aucun market timing, aucun cash volontaire. Mode high-cagr: ajustement max -4.0/+1.5 points.</td>
+</tr>
+<tr>
+<td>DISCOVERY_IDEAS</td>
+<td>PANW</td>
+<td>BUBBLE_RISK</td>
+<td>79.3</td>
+<td>-3.85</td>
+<td>tech_ai_semi, hot_valuation, strong_balance</td>
+<td>régime euphorique: exposition tech/IA/semi déjà très favorisée; valorisation chaude pendant un régime de bulle/tendance</td>
+<td>Impact plafonné: aucun achat/vente automatique, aucun market timing, aucun cash volontaire. Mode high-cagr: ajustement max -4.0/+1.5 points.</td>
+</tr>
+<tr>
+<td>DISCOVERY_IDEAS</td>
+<td>TTWO</td>
+<td>BUBBLE_RISK</td>
+<td>79.3</td>
+<td>-3.85</td>
+<td>tech_ai_semi, hot_valuation, strong_balance</td>
+<td>régime euphorique: exposition tech/IA/semi déjà très favorisée; valorisation chaude pendant un régime de bulle/tendance</td>
+<td>Impact plafonné: aucun achat/vente automatique, aucun market timing, aucun cash volontaire. Mode high-cagr: ajustement max -4.0/+1.5 points.</td>
+</tr>
+</tbody>
+</table>
+<h2>4. Pourquoi ces montants</h2>
+<h3>Synthèse longue de la recommandation</h3>
+<p>En excluant VFV.TO, la cotisation va vers APP, META, GOOGL parce que ces positions ressortent comme les meilleurs compromis actuels entre qualité d’entreprise, potentiel de composition long terme, thèse intacte, valorisation acceptable et risque de portefeuille. L’agent ne récompense pas seulement une hausse ou une baisse de prix: il exige que l’avantage attendu reste supérieur au coût d’opportunité de VFV.TO. Les textes ci-dessous détaillent chaque titre recommandé séparément.</p>
+<p><strong>APP (AppLovin Corporation) — justification détaillée.</strong> APP (AppLovin Corporation) reçoit 220.50 $ (63.0 %) comme première destination hors VFV. Son profil est le suivant: profil Compounder croissance/qualité, secteur Communication Services, industrie Advertising Agencies. Profil par défaut pour compounders de qualité et croissance. Le titre est retenu parce qu’il combine score d’allocation 98.9/100, conviction 90/100, un potentiel qualitatif élevé, une thèse intacte, un statut de vente vert et un avantage vs VFV jugé clairement meilleur que VFV. Le modèle ne le choisit donc pas pour une simple tendance de prix: il estime que le compromis qualité, croissance, valorisation et risque marginal est actuellement meilleur que VFV.TO. Le montant reflète un sizing normal lié à une opportunité de baisse de qualité encadrée, une valorisation non extrême face à la juste valeur disponible, un risque cycle/bulle moyen, un niveau de fiabilité des données élevé et l’effet de concentration après achat. Par rapport à la dernière recommandation comparable: INCREASED, de 125.00 $ à 220.50 $. Allocation augmentée: stabilité mensuelle: CONTINUITY_IF_CLOSE. Fiche qualitative automatique de APP (AppLovin Corporation): niveau de preuve PARTIAL_SOURCE_BACKED, sources utilisées: profil d'activité Yahoo Finance/yfinance, SEC EDGAR companyfacts, nouvelles publiques gratuites et sources publiques de thèse de marché. APP (AppLovin Corporation) est classée dans Communication Services / Advertising Agencies; le profil gratuit détecte surtout IA et publicité. Avantage concurrentiel et rempart: Le profil d'activité gratuit fait ressortir effets de réseau et échelle et données; le modèle les traite comme indices de moat à confirmer. Protection en crise: La protection en crise est appuyée par bilan jugé solide, free cash flow positif et significatif et marges positives, mais elle ne supprime pas le risque de cycle ou de valorisation. Pouvoir de prix: Les marges stables ou en expansion suggèrent un certain pouvoir économique, mais la cause exacte doit être validée. Gestion et secteur: qualité de gestion marquée favorable; bilan solide; marge FCF 71.9%; variation du nombre d'actions -1.7%; discipline actionnariale shareholder_friendly. thèse de marché attractive but cyclical; score de thèse 70/100; benchmark 5 ans 9.7%. Risques à surveiller: risque cycle/bulle medium. Fit portefeuille: score allocation 98.9/100, conviction 90/100, qualité CAGR high, thèse intact, coût d'opportunité clearly better than vfv. La position reçoit du capital parce que ce profil reste admissible après concentration et garde-fous. Sur l’équipe de gestion, la qualité de gestion est traitée comme favorable; le bilan est jugé solide; cash-flow: marge de free cash flow autour de 71.9%, conversion FCF/bénéfice 1.18x, dette nette/FCF 0.36x; discipline actionnariale: variation du nombre d’actions -1.7%, SBC/revenus 3.8%. L’agent ne rencontre évidemment pas les dirigeants; il évalue plutôt les traces mesurables: rentabilité, free cash flow, bilan, dilution, rachats ou émission d’actions. Ici, le cash-flow est excellent et la discipline actionnariale favorable; cela indique si la croissance peut devenir de la valeur par action plutôt qu’une simple expansion du chiffre d’affaires. Côté secteur, croissance sectorielle estimée autour de 9.7 %; benchmark sectoriel 5 ans à 9.7%; benchmark au-dessus de sa moyenne 200 jours; thèse de marché attrayante mais cyclique; confiance faible. La thèse de marché est attrayante mais cyclique et la durabilité 15-30 ans très durable. Pour ton profil, le secteur doit être assez grand et assez sain pour laisser l’entreprise réinvestir longtemps; s’il est cyclique ou sensible à une mode, le modèle limite le sizing au lieu de rejeter automatiquement. Le moat reste le point central. Le modèle voit un avantage concurrentiel cohérent avec Compounder croissance/qualité: capacité à maintenir des marges, à défendre la relation client et à réinvestir sans dépendre seulement d’un cycle favorable. La durabilité long terme est classée très durable avec un score de 95.8/100. Le moat est considéré clair par les données disponibles. L’avantage recherché est la capacité à protéger les marges, conserver les clients, monétiser mieux sans détruire la demande et réinvestir à rendement élevé. Le titre est donc choisi parce qu’il combine qualité d’entreprise, santé sectorielle, discipline de gestion, moat, valorisation non excessive et compatibilité avec ton horizon 15-30 ans. Sources utilisées: SEC EDGAR companyfacts, yfinance+official, SEC EDGAR/company filings, free recent news context, news context already checked, official data already fetched, ... (+1).</p>
+<p><strong>META (Meta Platforms, Inc.) — justification détaillée.</strong> META (Meta Platforms, Inc.) reçoit 87.50 $ (25.0 %) comme destination #2 hors VFV. Son profil est le suivant: profil Compounder croissance/qualité, secteur Communication Services, industrie Internet Content &amp; Information. Profil par défaut pour compounders de qualité et croissance. Le titre est retenu parce qu’il combine score d’allocation 87.2/100, conviction 90/100, un potentiel qualitatif élevé, une thèse intacte, un statut de vente vert et un avantage vs VFV jugé clairement meilleur que VFV. Le modèle ne le choisit donc pas pour une simple tendance de prix: il estime que le compromis qualité, croissance, valorisation et risque marginal est actuellement meilleur que VFV.TO. Le montant reflète un sizing limité lié à une opportunité de baisse de qualité encadrée, une valorisation non extrême face à la juste valeur disponible, un risque cycle/bulle faible, un niveau de fiabilité des données élevé et l’effet de concentration après achat. Par rapport à la dernière recommandation comparable: DECREASED, de 125.00 $ à 87.50 $. Allocation réduite: statut WATCH: sizing volontairement limité; stabilité mensuelle: SUPPORT_CONTINUITY. Fiche qualitative automatique de META (Meta Platforms, Inc.): niveau de preuve PARTIAL_SOURCE_BACKED, sources utilisées: profil d'activité Yahoo Finance/yfinance, SEC EDGAR companyfacts, nouvelles publiques gratuites et sources publiques de thèse de marché. META (Meta Platforms, Inc.) est classée dans Communication Services / Internet Content &amp; Information; le profil gratuit détecte surtout logiciels et plateforme. Avantage concurrentiel et rempart: Le profil d'activité gratuit fait ressortir effets de réseau et échelle et données; le modèle les traite comme indices de moat à confirmer. Protection en crise: La protection en crise est appuyée par bilan jugé solide, free cash flow positif et significatif et marges positives, mais elle ne supprime pas le risque de cycle ou de valorisation. Pouvoir de prix: Les marges stables ou en expansion suggèrent un certain pouvoir économique, mais la cause exacte doit être validée. Gestion et secteur: qualité de gestion marquée favorable; bilan solide; marge FCF 22.9%; variation du nombre d'actions -2.3%; discipline actionnariale dilution_watch. thèse de marché structural tailwind; score de thèse 74/100; benchmark 5 ans 9.7%. Risques à surveiller: risque cycle/bulle low. Fit portefeuille: score allocation 87.2/100, conviction 90/100, qualité CAGR high, thèse intact, coût d'opportunité clearly better than vfv. La position reçoit du capital parce que ce profil reste admissible après concentration et garde-fous. Sur l’équipe de gestion, la qualité de gestion est traitée comme favorable; le bilan est jugé solide; cash-flow: marge de free cash flow autour de 22.9%, conversion FCF/bénéfice 0.76x, dette nette/FCF 0.60x; discipline actionnariale: variation du nombre d’actions -1.5%, SBC/revenus 10.2%. L’agent ne rencontre évidemment pas les dirigeants; il évalue plutôt les traces mesurables: rentabilité, free cash flow, bilan, dilution, rachats ou émission d’actions. Ici, le cash-flow est solide et la discipline actionnariale à surveiller; cela indique si la croissance peut devenir de la valeur par action plutôt qu’une simple expansion du chiffre d’affaires. Côté secteur, croissance sectorielle estimée autour de 9.7 %; benchmark sectoriel 5 ans à 9.7%; benchmark au-dessus de sa moyenne 200 jours; thèse de marché portée par un vent structurel; confiance moyen. La thèse de marché est portée par un vent structurel et la durabilité 15-30 ans très durable. Pour ton profil, le secteur doit être assez grand et assez sain pour laisser l’entreprise réinvestir longtemps; s’il est cyclique ou sensible à une mode, le modèle limite le sizing au lieu de rejeter automatiquement. Le moat reste le point central. Le modèle voit un avantage concurrentiel cohérent avec Compounder croissance/qualité: capacité à maintenir des marges, à défendre la relation client et à réinvestir sans dépendre seulement d’un cycle favorable. La durabilité long terme est classée très durable avec un score de 96.1/100. Le moat est considéré clair par les données disponibles. L’avantage recherché est la capacité à protéger les marges, conserver les clients, monétiser mieux sans détruire la demande et réinvestir à rendement élevé. Le titre est donc choisi parce qu’il combine qualité d’entreprise, santé sectorielle, discipline de gestion, moat, valorisation non excessive et compatibilité avec ton horizon 15-30 ans. Sources utilisées: SEC EDGAR companyfacts, yfinance+official, SEC EDGAR/company filings, free recent news context, news context already checked, official data already fetched, ... (+1).</p>
+<p><strong>GOOGL — justification détaillée.</strong> GOOGL reçoit 7.00 $ (2.0 %) comme destination #3 hors VFV. Son profil est le suivant: profil Compounder croissance/qualité, secteur Unknown. Profil par défaut pour compounders de qualité et croissance. Le titre est retenu parce qu’il combine score d’allocation 72.0/100, conviction 90/100, un potentiel qualitatif élevé, une thèse intacte, un statut de vente vert et un avantage vs VFV jugé clairement meilleur que VFV. Le modèle ne le choisit donc pas pour une simple tendance de prix: il estime que le compromis qualité, croissance, valorisation et risque marginal est actuellement meilleur que VFV.TO. Le montant reflète un sizing normal lié à allocation réduite: entreprise de qualité possible, mais thème/cycle déjà chaud ou cyclique; le sizing limite le risque de payer une tendance, une valorisation acceptable mais déjà plus exigeante, un risque cycle/bulle élevé, un niveau de fiabilité des données élevé et l’effet de concentration après achat. Par rapport à la dernière recommandation comparable: DECREASED, de 225.00 $ à 7.00 $. Allocation réduite: capital_allocation_score baisse de -16.1; score fondamental baisse de -1.0; risque cycle/bulle HIGH: allocation plafonnée; stabilité mensuelle: REDUCE_AFTER_SCORE_DROP. Fiche qualitative automatique de GOOGL: niveau de preuve BASIC_AUTOMATED, sources utilisées: SEC EDGAR companyfacts, nouvelles publiques gratuites, sources publiques de thèse de marché et métriques financières gratuites yfinance/cache local. Alphabet est une plateforme de recherche, publicité numérique, YouTube, Android et Google Cloud. Avantage concurrentiel et rempart: Fiche interne prudente: Son rempart spécifique vient surtout de l'échelle des données, de la distribution mondiale, de l'intégration de son écosystème et des effets d'habitude autour de Search, YouTube et Android. Protection en crise: La protection en crise est appuyée par bilan jugé solide, free cash flow positif et significatif et marges positives, mais elle ne supprime pas le risque de cycle ou de valorisation. Pouvoir de prix: Fiche interne prudente: Sa monétisation dépend de la qualité du ciblage publicitaire, de l'inventaire vidéo, du cloud et de l'intégration de l'IA, pas seulement d'une hausse directe des prix. Gestion et secteur: qualité de gestion marquée favorable; bilan solide; marge FCF 18.2%; variation du nombre d'actions -1.7%; discipline actionnariale acceptable_dilution. thèse de marché mature or low growth; score de thèse 64/100; benchmark 5 ans 9.7%. Risques à surveiller: risque cycle/bulle high. Fiche interne prudente: Risques principaux: réglementation, concurrence IA/recherche et cyclicité des budgets publicitaires. Fit portefeuille: score allocation 72.0/100, conviction 90/100, qualité CAGR high, thèse intact, coût d'opportunité clearly better than vfv. La position reçoit du capital parce que ce profil reste admissible après concentration et garde-fous. Sur l’équipe de gestion, la qualité de gestion est traitée comme favorable; le bilan est jugé solide; cash-flow: marge de free cash flow autour de 18.2%, conversion FCF/bénéfice 0.55x, dette nette/FCF 0.15x; discipline actionnariale: variation du nombre d’actions -1.7%, SBC/revenus 6.2%. L’agent ne rencontre évidemment pas les dirigeants; il évalue plutôt les traces mesurables: rentabilité, free cash flow, bilan, dilution, rachats ou émission d’actions. Ici, le cash-flow est solide et la discipline actionnariale acceptable; cela indique si la croissance peut devenir de la valeur par action plutôt qu’une simple expansion du chiffre d’affaires. Côté secteur, croissance sectorielle estimée autour de 9.7 %; benchmark sectoriel 5 ans à 9.7%; benchmark au-dessus de sa moyenne 200 jours; thèse de marché mature or low growth; confiance faible. La thèse de marché est mature or low growth et la durabilité 15-30 ans durable but cyclical. Pour ton profil, le secteur doit être assez grand et assez sain pour laisser l’entreprise réinvestir longtemps; s’il est cyclique ou sensible à une mode, le modèle limite le sizing au lieu de rejeter automatiquement. Le moat reste le point central. Le modèle voit un avantage concurrentiel cohérent avec Compounder croissance/qualité: capacité à maintenir des marges, à défendre la relation client et à réinvestir sans dépendre seulement d’un cycle favorable. La durabilité long terme est classée durable but cyclical avec un score de 90.6/100. Le moat est considéré clair par les données disponibles. L’avantage recherché est la capacité à protéger les marges, conserver les clients, monétiser mieux sans détruire la demande et réinvestir à rendement élevé. Le titre est donc choisi parce qu’il combine qualité d’entreprise, santé sectorielle, discipline de gestion, moat, valorisation non excessive et compatibilité avec ton horizon 15-30 ans. Sources utilisées: SEC EDGAR companyfacts, yfinance+official, SEC EDGAR/company filings, free recent news context, news context already checked, official data already fetched, ... (+1).</p>
+<p>Cette lecture reste une recommandation mécanique et probabiliste: elle indique où le prochain dollar semble le mieux aligné avec ton profil haut CAGR 15-30 ans, avec garde-fous contre concentration, mode de marché, valorisation extrême et thèse qui se détériore.</p>
+<h3>Fiches qualitatives automatiques</h3>
+<p>Ces fiches résument les sources gratuites et locales utilisées pour personnaliser la justification. Quand une source manque, l'agent le dit au lieu d'inventer.</p>
+<table>
+<thead>
+<tr>
+<th>ticker</th>
+<th>statut</th>
+<th>niveau_sources</th>
+<th>lecture</th>
+<th>sources_manquantes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>APP</td>
+<td>RECOMMANDÉ</td>
+<td>PARTIAL_SOURCE_BACKED</td>
+<td>Fiche qualitative automatique de APP (AppLovin Corporation): niveau de preuve PARTIAL_SOURCE_BACKED, sources utilisées: profil d'activité Yahoo Finance/yfinance, SEC EDGAR companyfacts, nouvelles publiques gratuites et sources publiques de thèse de marché. APP (AppLovin Corporation) est classée dans Communication Services / Advertising Agencies; le profil...</td>
+<td>rapport local BNCD/Morningstar/annuel</td>
+</tr>
+<tr>
+<td>META</td>
+<td>RECOMMANDÉ</td>
+<td>PARTIAL_SOURCE_BACKED</td>
+<td>Fiche qualitative automatique de META (Meta Platforms, Inc.): niveau de preuve PARTIAL_SOURCE_BACKED, sources utilisées: profil d'activité Yahoo Finance/yfinance, SEC EDGAR companyfacts, nouvelles publiques gratuites et sources publiques de thèse de marché. META (Meta Platforms, Inc.) est classée dans Communication Services / Internet Content &amp; Informatio...</td>
+<td>rapport local BNCD/Morningstar/annuel</td>
+</tr>
+<tr>
+<td>GOOGL</td>
+<td>RECOMMANDÉ</td>
+<td>BASIC_AUTOMATED</td>
+<td>Fiche qualitative automatique de GOOGL: niveau de preuve BASIC_AUTOMATED, sources utilisées: SEC EDGAR companyfacts, nouvelles publiques gratuites, sources publiques de thèse de marché et métriques financières gratuites yfinance/cache local. Alphabet est une plateforme de recherche, publicité numérique, YouTube, Android et Google Cloud. Avantage concurren...</td>
+<td>rapport local BNCD/Morningstar/annuel; résumé d'activité gratuit Yahoo Finance</td>
+</tr>
+<tr>
+<td>AAPL</td>
+<td>ÉLIGIBLE_NON_RETENU</td>
+<td>FULL_SOURCE_BACKED</td>
+<td>Fiche qualitative automatique de AAPL (Apple Inc.): niveau de preuve FULL_SOURCE_BACKED, sources utilisées: rapports locaux BNCD/Morningstar/annuel: AAPL_MORNINGSTAR_STOCK_ANALYST_REPORT_04-21-2026.pdf; AAPL_MORNINGSTAR_DATA_TEAR_SHEET_04-29-2026.pdf, profil d'activité Yahoo Finance/yfinance, SEC EDGAR companyfacts et nouvelles publiques gratuites. AAPL (...</td>
+<td>N/D</td>
+</tr>
+<tr>
+<td>ANET</td>
+<td>ÉLIGIBLE_NON_RETENU</td>
+<td>FULL_SOURCE_BACKED</td>
+<td>Fiche qualitative automatique de ANET (Arista Networks, Inc.): niveau de preuve FULL_SOURCE_BACKED, sources utilisées: rapports locaux BNCD/Morningstar/annuel: ANET_MORNINGSTAR_STOCK_ANALYST_REPORT_04-14-2026.pdf; ANET_MORNINGSTAR_DATA_TEAR_SHEET_04-30-2026.pdf, profil d'activité Yahoo Finance/yfinance, SEC EDGAR companyfacts et nouvelles publiques gratui...</td>
+<td>N/D</td>
+</tr>
+<tr>
+<td>AVGO</td>
+<td>ÉLIGIBLE_NON_RETENU</td>
+<td>PARTIAL_SOURCE_BACKED</td>
+<td>Fiche qualitative automatique de AVGO (Broadcom Inc.): niveau de preuve PARTIAL_SOURCE_BACKED, sources utilisées: profil d'activité Yahoo Finance/yfinance, SEC EDGAR companyfacts, nouvelles publiques gratuites et sources publiques de thèse de marché. AVGO (Broadcom Inc.) est classée dans Semiconductors; le profil gratuit détecte surtout cloud, IA, logicie...</td>
+<td>rapport local BNCD/Morningstar/annuel</td>
+</tr>
+<tr>
+<td>BAM</td>
+<td>ÉLIGIBLE_NON_RETENU</td>
+<td>PARTIAL_SOURCE_BACKED</td>
+<td>Fiche qualitative automatique de BAM (Brookfield Asset Management Ltd.): niveau de preuve PARTIAL_SOURCE_BACKED, sources utilisées: profil d'activité Yahoo Finance/yfinance, SEC EDGAR companyfacts, nouvelles publiques gratuites et sources publiques de thèse de marché. BAM (Brookfield Asset Management Ltd.) est classée dans Alternative Asset Management; le...</td>
+<td>rapport local BNCD/Morningstar/annuel</td>
+</tr>
+<tr>
+<td>LLY</td>
+<td>ÉLIGIBLE_NON_RETENU</td>
+<td>PARTIAL_SOURCE_BACKED</td>
+<td>Fiche qualitative automatique de LLY (Eli Lilly and Company): niveau de preuve PARTIAL_SOURCE_BACKED, sources utilisées: profil d'activité Yahoo Finance/yfinance, SEC EDGAR companyfacts, nouvelles publiques gratuites et sources publiques de thèse de marché. Eli Lilly est une pharmaceutique centrée sur médicaments brevetés, innovation clinique et franchise...</td>
+<td>rapport local BNCD/Morningstar/annuel</td>
+</tr>
+</tbody>
+</table>
+<table>
+<thead>
+<tr>
+<th>ticker</th>
+<th>montant</th>
+<th>pourquoi_ce_titre</th>
+<th>pourquoi_ce_montant</th>
+<th>vs_dernière_recommandation</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>VFV.TO</td>
+<td>35.00 $ (10.0 %)</td>
+<td>VFV sert de filet de sécurité mécanique quand une partie du capital doit rester exposée au marché large au lieu d’être forcée vers un titre individuel.</td>
+<td>Allocation VFV obligatoire. Filet de sécurité S&amp;P 500 selon moyenne des scores</td>
+<td>Avant: 25.00 $; maintenant: 35.00 $; variation: 10.00 $; statut: INCREASED. Filet de sécurité S&amp;P 500 selon moyenne des scores. Référence: 2026-05-...</td>
+</tr>
+<tr>
+<td>APP</td>
+<td>220.50 $ (63.0 %)</td>
+<td>score d’allocation 98.9/100; CAGR qualitatif HIGH; vs VFV: CLEARLY_BETTER_THAN_VFV; thèse INTACT, liquidation GREEN; BUY / ADD.</td>
+<td>Optimisation mensuelle high-CAGR; sizing permis: NORMAL; risque cycle/bulle: MEDIUM; stabilité: CONTINUITY_IF_CLOSE. Quality drawdown: le titre a chuté, mais la thèse, la vente...</td>
+<td>Avant: 125.00 $; maintenant: 220.50 $; variation: 95.50 $; statut: INCREASED. Allocation augmentée: stabilité mensuelle: CONTINUITY_IF_CLOSE. Référ...</td>
+</tr>
+<tr>
+<td>META</td>
+<td>87.50 $ (25.0 %)</td>
+<td>score d’allocation 87.2/100; CAGR qualitatif HIGH; vs VFV: CLEARLY_BETTER_THAN_VFV; thèse INTACT, liquidation GREEN; BUY / ADD.</td>
+<td>Optimisation mensuelle high-CAGR; sizing permis: LIMITED; surveillance: WATCH; stabilité: SUPPORT_CONTINUITY. Quality drawdown: le titre a chuté, mais la thèse, la vente GREEN...</td>
+<td>Avant: 125.00 $; maintenant: 87.50 $; variation: -37.50 $; statut: DECREASED. Allocation réduite: statut WATCH: sizing volontairement limité; stabi...</td>
+</tr>
+<tr>
+<td>GOOGL</td>
+<td>7.00 $ (2.0 %)</td>
+<td>score d’allocation 72.0/100; CAGR qualitatif HIGH; vs VFV: CLEARLY_BETTER_THAN_VFV; thèse INTACT, liquidation GREEN; BUY / ADD.</td>
+<td>Optimisation mensuelle high-CAGR; sizing permis: NORMAL; risque cycle/bulle: HIGH; stabilité: REDUCE_AFTER_SCORE_DROP. Allocation réduite: entreprise de qualité possible, mais t...</td>
+<td>Avant: 225.00 $; maintenant: 7.00 $; variation: -218.00 $; statut: DECREASED. Allocation réduite: capital_allocation_score baisse de -16.1; score f...</td>
+</tr>
+</tbody>
+</table>
+<h2>5. Positions core à surveiller</h2>
+<table>
+<thead>
+<tr>
+<th>ticker</th>
+<th>allocation</th>
+<th>score</th>
+<th>cagr</th>
+<th>vs_vfv</th>
+<th>thèse</th>
+<th>vente</th>
+<th>surveillance</th>
+<th>drawdown</th>
+<th>raison</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>APP</td>
+<td>BUY / ADD</td>
+<td>98.87</td>
+<td>HIGH</td>
+<td>CLEARLY_BETTER_THAN_VFV</td>
+<td>INTACT</td>
+<td>GREEN</td>
+<td>NORMAL</td>
+<td>QUALITY_DRAWDOWN_OPPORTUNITY</td>
+<td>Reçoit du nouveau capital après score, thèse, admissibilité d’achat, drift et sizing.</td>
+</tr>
+<tr>
+<td>META</td>
+<td>BUY / ADD</td>
+<td>87.18</td>
+<td>HIGH</td>
+<td>CLEARLY_BETTER_THAN_VFV</td>
+<td>INTACT</td>
+<td>GREEN</td>
+<td>WATCH</td>
+<td>QUALITY_DRAWDOWN_OPPORTUNITY</td>
+<td>Reçoit du nouveau capital après score, thèse, admissibilité d’achat, drift et sizing.</td>
+</tr>
+<tr>
+<td>MA</td>
+<td>NO_NEW_ALLOCATION</td>
+<td>81.93</td>
+<td>MEDIUM</td>
+<td>SIMILAR_TO_VFV</td>
+<td>INTACT</td>
+<td>GREEN</td>
+<td>MANUAL_REVIEW</td>
+<td>QUALITY_DRAWDOWN_OPPORTUNITY</td>
+<td>Aucune allocation nouvelle après comparaison VFV, garde-fous et sizing.</td>
+</tr>
+<tr>
+<td>MSFT</td>
+<td>ELIGIBLE_BUT_NOT_SELECTED</td>
+<td>74.9</td>
+<td>MEDIUM</td>
+<td>SIMILAR_TO_VFV</td>
+<td>INTACT</td>
+<td>GREEN</td>
+<td>WATCH</td>
+<td>QUALITY_DRAWDOWN_OPPORTUNITY</td>
+<td>Petite allocation permise, mais non retenue par le sizing marginal de cette cotisation.</td>
+</tr>
+<tr>
+<td>LLY</td>
+<td>ELIGIBLE_BUT_NOT_SELECTED</td>
+<td>72.31</td>
+<td>HIGH</td>
+<td>CLEARLY_BETTER_THAN_VFV</td>
+<td>INTACT</td>
+<td>GREEN</td>
+<td>WATCH</td>
+<td>NO_DRAWDOWN_SIGNAL</td>
+<td>Petite allocation permise, mais non retenue par le sizing marginal de cette cotisation.</td>
+</tr>
+<tr>
+<td>GOOGL</td>
+<td>BUY / ADD</td>
+<td>71.98</td>
+<td>HIGH</td>
+<td>CLEARLY_BETTER_THAN_VFV</td>
+<td>INTACT</td>
+<td>GREEN</td>
+<td>NORMAL</td>
+<td>NO_DRAWDOWN_SIGNAL</td>
+<td>Reçoit du nouveau capital après score, thèse, admissibilité d’achat, drift et sizing.</td>
+</tr>
+<tr>
+<td>BAM</td>
+<td>ELIGIBLE_BUT_NOT_SELECTED</td>
+<td>68.9</td>
+<td>MEDIUM</td>
+<td>SIMILAR_TO_VFV</td>
+<td>INTACT</td>
+<td>GREEN</td>
+<td>WATCH</td>
+<td>QUALITY_DRAWDOWN_OPPORTUNITY</td>
+<td>Petite allocation permise, mais non retenue par le sizing marginal de cette cotisation.</td>
+</tr>
+<tr>
+<td>INTU</td>
+<td>NO_NEW_ALLOCATION</td>
+<td>65.65</td>
+<td>LOW</td>
+<td>WORSE_THAN_VFV</td>
+<td>INTACT</td>
+<td>GREEN</td>
+<td>WATCH</td>
+<td>QUALITY_DRAWDOWN_OPPORTUNITY</td>
+<td>Aucune allocation nouvelle après comparaison VFV, garde-fous et sizing.</td>
+</tr>
+<tr>
+<td>AVGO</td>
+<td>ELIGIBLE_BUT_NOT_SELECTED</td>
+<td>63.2</td>
+<td>HIGH</td>
+<td>CLEARLY_BETTER_THAN_VFV</td>
+<td>INTACT</td>
+<td>GREEN</td>
+<td>WATCH</td>
+<td>QUALITY_DRAWDOWN_OPPORTUNITY</td>
+<td>Petite allocation permise, mais non retenue par le sizing marginal de cette cotisation.</td>
+</tr>
+<tr>
+<td>ANET</td>
+<td>ELIGIBLE_BUT_NOT_SELECTED</td>
+<td>61.81</td>
+<td>MEDIUM</td>
+<td>SIMILAR_TO_VFV</td>
+<td>INTACT</td>
+<td>GREEN</td>
+<td>NORMAL</td>
+<td>QUALITY_DRAWDOWN_OPPORTUNITY</td>
+<td>Achat permis, mais une autre destination a un meilleur score marginal pour cette cotisation.</td>
+</tr>
+<tr>
+<td>ASML</td>
+<td>NO_NEW_ALLOCATION</td>
+<td>50.28</td>
+<td>LOW</td>
+<td>SIMILAR_TO_VFV</td>
+<td>INTACT</td>
+<td>GREEN</td>
+<td>MANUAL_REVIEW</td>
+<td>QUALITY_DRAWDOWN_OPPORTUNITY</td>
+<td>Aucune allocation nouvelle après comparaison VFV, garde-fous et sizing.</td>
+</tr>
+<tr>
+<td>SBGSY (SCHN)</td>
+<td>NO_NEW_ALLOCATION</td>
+<td>48.83</td>
+<td>LOW</td>
+<td>WORSE_THAN_VFV</td>
+<td>INTACT</td>
+<td>GREEN</td>
+<td>MANUAL_REVIEW</td>
+<td>NO_DRAWDOWN_SIGNAL</td>
+<td>Aucune allocation nouvelle après comparaison VFV, garde-fous et sizing.</td>
+</tr>
+<tr>
+<td>TSLA</td>
+<td>NO_NEW_ALLOCATION</td>
+<td>41.68</td>
+<td>LOW</td>
+<td>WORSE_THAN_VFV</td>
+<td>INTACT</td>
+<td>GREEN</td>
+<td>MANUAL_REVIEW</td>
+<td>NO_DRAWDOWN_SIGNAL</td>
+<td>Aucune allocation nouvelle après comparaison VFV, garde-fous et sizing.</td>
+</tr>
+<tr>
+<td>WSP.TO (WSP)</td>
+<td>NO_NEW_ALLOCATION</td>
+<td>11.36</td>
+<td>LOW</td>
+<td>WORSE_THAN_VFV</td>
+<td>INTACT</td>
+<td>GREEN</td>
+<td>MANUAL_REVIEW</td>
+<td>NORMAL_PULLBACK_OR_WEAK_SETUP</td>
+<td>Aucune allocation nouvelle après comparaison VFV, garde-fous et sizing.</td>
+</tr>
+<tr>
+<td>CSU.TO (CSU)</td>
+<td>DO_NOT_ADD</td>
+<td>0</td>
+<td>LOW</td>
+<td>WORSE_THAN_VFV</td>
+<td>WEAKENING</td>
+<td>YELLOW</td>
+<td>WATCH</td>
+<td>AVOID_FALLING_KNIFE</td>
+<td>Thèse non intacte.</td>
+</tr>
+<tr>
+<td>NANO.TO (NANO)*</td>
+<td>DO_NOT_ADD</td>
+<td>0</td>
+<td>UNCERTAIN</td>
+<td>WORSE_THAN_VFV</td>
+<td>UNCERTAIN</td>
+<td>YELLOW</td>
+<td>MANUAL_REVIEW</td>
+<td>AVOID_FALLING_KNIFE</td>
+<td>Thèse non intacte.</td>
+</tr>
+</tbody>
+</table>
+<h2>6. Signaux importants</h2>
+<h3>Vente</h3>
+<table>
+<thead>
+<tr>
+<th>ticker</th>
+<th>statut_vente</th>
+<th>action_recommandée</th>
+<th>raison_principale</th>
+<th>validation_manuelle_requise</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>CSU.TO (CSU)</td>
+<td>YELLOW</td>
+<td>WATCH</td>
+<td>Fondamental confirmé: moat affaibli ou absent.</td>
+<td>Non</td>
+</tr>
+<tr>
+<td>NANO.TO (NANO)*</td>
+<td>YELLOW</td>
+<td>WATCH</td>
+<td>Thèse incertaine.</td>
+<td>Non</td>
+</tr>
+<tr>
+<td>SIEGY</td>
+<td>YELLOW</td>
+<td>WATCH</td>
+<td>Thèse en affaiblissement.</td>
+<td>Non</td>
+</tr>
+<tr>
+<td>TMC*</td>
+<td>YELLOW</td>
+<td>WATCH</td>
+<td>Thèse incertaine.</td>
+<td>Non</td>
+</tr>
+</tbody>
+</table>
+<h3>Check-list avant vente</h3>
+<p>Cette table ne crée pas un nouveau signal: elle résume les preuves à vérifier avant de vendre ou réduire une position.</p>
+<table>
+<thead>
+<tr>
+<th>ticker</th>
+<th>niveau</th>
+<th>preuve_clé</th>
+<th>point_à_valider</th>
+<th>conclusion</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>CSU.TO (CSU)</td>
+<td>WATCH_ONLY_NO_SELL</td>
+<td>Confirmée (1): Fondamental confirmé: moat affaibli ou absent.</td>
+<td>rapport local disponible; nouvelles vérifiées (UNKNOWN_OR_MIXED)</td>
+<td>Surveiller et ne pas renforcer; pas de vente automatique.</td>
+</tr>
+<tr>
+<td>NANO.TO (NANO)*</td>
+<td>WATCH_ONLY_NO_SELL</td>
+<td>Aucune preuve fondamentale de vente confirmée.</td>
+<td>nouvelles vérifiées (UNKNOWN_OR_MIXED)</td>
+<td>Surveiller et ne pas renforcer; pas de vente automatique.</td>
+</tr>
+<tr>
+<td>SIEGY</td>
+<td>WATCH_ONLY_NO_SELL</td>
+<td>Aucune preuve fondamentale de vente confirmée.</td>
+<td>nouvelles vérifiées (UNKNOWN_OR_MIXED)</td>
+<td>Surveiller et ne pas renforcer; pas de vente automatique.</td>
+</tr>
+<tr>
+<td>TMC*</td>
+<td>WATCH_ONLY_NO_SELL</td>
+<td>Aucune preuve fondamentale de vente confirmée.</td>
+<td>nouvelles vérifiées (UNKNOWN_OR_MIXED)</td>
+<td>Surveiller et ne pas renforcer; pas de vente automatique.</td>
+</tr>
+</tbody>
+</table>
+<h3>Surveillance et baisses de qualité</h3>
+<table>
+<thead>
+<tr>
+<th>ticker</th>
+<th>statut_surveillance</th>
+<th>raison_principale</th>
+<th>impact_sur_achat</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>META</td>
+<td>WATCH</td>
+<td>Alerte technique: prix sous SMA 200.</td>
+<td>Peut limiter le sizing sans déclencher une vente.</td>
+</tr>
+<tr>
+<td>WSP.TO (WSP)</td>
+<td>MANUAL_REVIEW</td>
+<td>Alerte: EPS estimé positif mais sous le seuil du profil (10 %)., Alerte valorisation: PEG &gt; limite profil + 1.0 (3.0)., Alerte technique: prix sous SMA 200...</td>
+<td>Peut limiter le sizing sans déclencher une vente.</td>
+</tr>
+<tr>
+<td>TSLA</td>
+<td>MANUAL_REVIEW</td>
+<td>Alerte valorisation: PEG &gt; limite profil + 1.0 (3.0)., Validation manuelle requise: Forward P/E possiblement non acceptable, mais donnée non confirmée.</td>
+<td>Peut limiter le sizing sans déclencher une vente.</td>
+</tr>
+<tr>
+<td>TOI.V (TOI)*</td>
+<td>MANUAL_REVIEW</td>
+<td>Alerte technique: prix sous SMA 200., Alerte marché: sous-performance importante vs ETF sur 1 an (pertinence HIGH)., Validation manuelle requise: pression su...</td>
+<td>Peut limiter le sizing sans déclencher une vente.</td>
+</tr>
+<tr>
+<td>TMC*</td>
+<td>MANUAL_REVIEW</td>
+<td>Alerte technique: prix sous SMA 200., Données importantes incertaines., Validation manuelle requise: EPS estimé sous le seuil sérieux du profil (2 %), mais d...</td>
+<td>Peut limiter le sizing sans déclencher une vente.</td>
+</tr>
+<tr>
+<td>SIEGY</td>
+<td>MANUAL_REVIEW</td>
+<td>Alerte valorisation: PEG &gt; limite profil + 1.0 (3.0)., Thèse en affaiblissement., Validation manuelle requise: EPS estimé sous le seuil sérieux du profil (5...</td>
+<td>Peut limiter le sizing sans déclencher une vente.</td>
+</tr>
+<tr>
+<td>SBGSY (SCHN)</td>
+<td>MANUAL_REVIEW</td>
+<td>Alerte: EPS estimé positif mais sous le seuil du profil (10 %)., Validation manuelle requise: EPS estimé sous le seuil sérieux du profil (5 %), mais donnée n...</td>
+<td>Peut limiter le sizing sans déclencher une vente.</td>
+</tr>
+<tr>
+<td>NANO.TO (NANO)*</td>
+<td>MANUAL_REVIEW</td>
+<td>Alerte technique: prix sous SMA 200., Alerte: secteur sous le seuil du profil (8 %)., Données importantes incertaines., Validation manuelle requise: EPS esti...</td>
+<td>Peut limiter le sizing sans déclencher une vente.</td>
+</tr>
+</tbody>
+</table>
+<table>
+<thead>
+<tr>
+<th>ticker</th>
+<th>statut</th>
+<th>score</th>
+<th>contexte_nouvelles</th>
+<th>lecture</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>ANET</td>
+<td>QUALITY_DRAWDOWN_OPPORTUNITY</td>
+<td>88.63</td>
+<td>UNKNOWN_OR_MIXED</td>
+<td>Baisse de prix importante avec thèse intacte, vente GREEN, qualité/durabilité élevées et aucun signal fondamental confirmé. La faiblesse du prix devient une opportunit...</td>
+</tr>
+<tr>
+<td>APP</td>
+<td>QUALITY_DRAWDOWN_OPPORTUNITY</td>
+<td>94.48</td>
+<td>UNKNOWN_OR_MIXED</td>
+<td>Baisse de prix importante avec thèse intacte, vente GREEN, qualité/durabilité élevées et aucun signal fondamental confirmé. La faiblesse du prix devient une opportunit...</td>
+</tr>
+<tr>
+<td>ASML</td>
+<td>QUALITY_DRAWDOWN_OPPORTUNITY</td>
+<td>78.86</td>
+<td>UNKNOWN_OR_MIXED</td>
+<td>Baisse de prix importante avec thèse intacte, vente GREEN, qualité/durabilité élevées et aucun signal fondamental confirmé. La faiblesse du prix devient une opportunit...</td>
+</tr>
+<tr>
+<td>AVGO</td>
+<td>QUALITY_DRAWDOWN_OPPORTUNITY</td>
+<td>90.7</td>
+<td>UNKNOWN_OR_MIXED</td>
+<td>Baisse de prix importante avec thèse intacte, vente GREEN, qualité/durabilité élevées et aucun signal fondamental confirmé. La faiblesse du prix devient une opportunit...</td>
+</tr>
+<tr>
+<td>BAM</td>
+<td>QUALITY_DRAWDOWN_OPPORTUNITY</td>
+<td>87.45</td>
+<td>UNKNOWN_OR_MIXED</td>
+<td>Baisse de prix importante avec thèse intacte, vente GREEN, qualité/durabilité élevées et aucun signal fondamental confirmé. La faiblesse du prix devient une opportunit...</td>
+</tr>
+<tr>
+<td>CSU.TO (CSU)</td>
+<td>AVOID_FALLING_KNIFE</td>
+<td>58.39</td>
+<td>UNKNOWN_OR_MIXED</td>
+<td>Baisse de prix détectée, mais le modèle refuse de la traiter comme opportunité: thèse non intacte; signal fondamental de vente confirmé</td>
+</tr>
+<tr>
+<td>INTU</td>
+<td>QUALITY_DRAWDOWN_OPPORTUNITY</td>
+<td>84.52</td>
+<td>UNKNOWN_OR_MIXED</td>
+<td>Baisse de prix importante avec thèse intacte, vente GREEN, qualité/durabilité élevées et aucun signal fondamental confirmé. La faiblesse du prix devient une opportunit...</td>
+</tr>
+<tr>
+<td>MA</td>
+<td>QUALITY_DRAWDOWN_OPPORTUNITY</td>
+<td>85.67</td>
+<td>UNKNOWN_OR_MIXED</td>
+<td>Baisse de prix importante avec thèse intacte, vente GREEN, qualité/durabilité élevées et aucun signal fondamental confirmé. La faiblesse du prix devient une opportunit...</td>
+</tr>
+</tbody>
+</table>
+<h2>7. Risques et preuves</h2>
+<table>
+<thead>
+<tr>
+<th>risk_type</th>
+<th>risk_level</th>
+<th>description</th>
+<th>impact</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>devise</td>
+<td>MEDIUM</td>
+<td>USD: forte exposition USD</td>
+<td>Poids concerné: 86.3 %</td>
+</tr>
+</tbody>
+</table>
+<h3>Thèse de marché long terme</h3>
+<p>Cette couche regarde si le marché adressable possède un vent structurel durable. Son impact sur le sizing est volontairement limité pour éviter de transformer une mode de marché en recommandation automatique.</p>
+<table>
+<thead>
+<tr>
+<th>ticker</th>
+<th>statut</th>
+<th>score</th>
+<th>impact</th>
+<th>confiance</th>
+<th>raison</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>TSLA</td>
+<td>STRUCTURAL_TAILWIND</td>
+<td>84.5</td>
+<td>2.0</td>
+<td>HIGH</td>
+<td>croissance solide (8.3 %). benchmark 10 ans indisponible: la these de marche depend davantage des autres preuves. benchmark 5 ans: croissance excellente (8.3 %). benchmark secto...</td>
+</tr>
+<tr>
+<td>AVGO</td>
+<td>HYPE_RISK</td>
+<td>84.0</td>
+<td>-3.0</td>
+<td>HIGH</td>
+<td>croissance excellente (33.3 %). benchmark 10 ans indisponible: la these de marche depend davantage des autres preuves. benchmark 5 ans: croissance excellente (33.3 %). benchmark...</td>
+</tr>
+<tr>
+<td>MSFT</td>
+<td>STRUCTURAL_TAILWIND</td>
+<td>81.35</td>
+<td>2.0</td>
+<td>HIGH</td>
+<td>croissance correcte (5.9 %). benchmark 10 ans indisponible: la these de marche depend davantage des autres preuves. benchmark 5 ans: croissance solide (5.9 %). themes detectes:...</td>
+</tr>
+<tr>
+<td>BAM</td>
+<td>STRUCTURAL_TAILWIND</td>
+<td>81.0</td>
+<td>2.0</td>
+<td>HIGH</td>
+<td>croissance excellente (13.0 %). benchmark 10 ans indisponible: la these de marche depend davantage des autres preuves. benchmark 5 ans: croissance excellente (13.0 %). benchmark...</td>
+</tr>
+<tr>
+<td>ASML</td>
+<td>HYPE_RISK</td>
+<td>76.0</td>
+<td>-3.0</td>
+<td>HIGH</td>
+<td>croissance excellente (33.3 %). benchmark 10 ans indisponible: la these de marche depend davantage des autres preuves. benchmark 5 ans: croissance excellente (33.3 %). benchmark...</td>
+</tr>
+<tr>
+<td>META</td>
+<td>STRUCTURAL_TAILWIND</td>
+<td>73.5</td>
+<td>1.0</td>
+<td>MEDIUM</td>
+<td>croissance solide (9.7 %). benchmark 10 ans indisponible: la these de marche depend davantage des autres preuves. benchmark 5 ans: croissance excellente (9.7 %). benchmark secto...</td>
+</tr>
+<tr>
+<td>APP</td>
+<td>ATTRACTIVE_BUT_CYCLICAL</td>
+<td>69.5</td>
+<td>0.0</td>
+<td>LOW</td>
+<td>croissance solide (9.7 %). benchmark 10 ans indisponible: la these de marche depend davantage des autres preuves. benchmark 5 ans: croissance excellente (9.7 %). benchmark secto...</td>
+</tr>
+<tr>
+<td>MA</td>
+<td>STRUCTURAL_TAILWIND</td>
+<td>66.0</td>
+<td>1.0</td>
+<td>HIGH</td>
+<td>croissance negative (-7.2 %). benchmark 10 ans indisponible: la these de marche depend davantage des autres preuves. benchmark 5 ans: croissance negative (-7.2 %). themes detect...</td>
+</tr>
+</tbody>
+</table>
+<h3>Données à valider</h3>
+<table>
+<thead>
+<tr>
+<th>ticker</th>
+<th>donnée</th>
+<th>importance</th>
+<th>pourquoi</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>APP</td>
+<td>Juste valeur</td>
+<td>TRES_HAUTE</td>
+<td>Peut changer le statut de valorisation, le score d’allocation et la part VFV.</td>
+</tr>
+<tr>
+<td>META</td>
+<td>Juste valeur</td>
+<td>TRES_HAUTE</td>
+<td>Peut changer le statut de valorisation, le score d’allocation et la part VFV.</td>
+</tr>
+<tr>
+<td>APP</td>
+<td>Croissance EPS estimée 3-5 ans</td>
+<td>TRES_HAUTE</td>
+<td>Peut changer la qualité fondamentale, la thèse, la conviction et l’admissibilité à l’achat.</td>
+</tr>
+<tr>
+<td>META</td>
+<td>Croissance EPS estimée 3-5 ans</td>
+<td>TRES_HAUTE</td>
+<td>Peut changer la qualité fondamentale, la thèse, la conviction et l’admissibilité à l’achat.</td>
+</tr>
+<tr>
+<td>APP</td>
+<td>ROIC moyen 5 ans</td>
+<td>TRES_HAUTE</td>
+<td>Peut changer la qualité fondamentale, la thèse, la conviction et l’admissibilité à l’achat.</td>
+</tr>
+<tr>
+<td>META</td>
+<td>ROIC moyen 5 ans</td>
+<td>TRES_HAUTE</td>
+<td>Peut changer la qualité fondamentale, la thèse, la conviction et l’admissibilité à l’achat.</td>
+</tr>
+<tr>
+<td>GOOGL</td>
+<td>Juste valeur</td>
+<td>TRES_HAUTE</td>
+<td>Peut changer le statut de valorisation, le score d’allocation et la part VFV.</td>
+</tr>
+<tr>
+<td>APP</td>
+<td>Moat / avantage compétitif</td>
+<td>TRES_HAUTE</td>
+<td>Peut changer la qualité fondamentale, la thèse, la conviction et l’admissibilité à l’achat.</td>
+</tr>
+</tbody>
+</table>
+<h3>Calibration des proxies</h3>
+<table>
+<thead>
+<tr>
+<th>field</th>
+<th>reliability_status</th>
+<th>recommended_action</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>roic_5y_avg</td>
+<td>WAITING_FOR_EXAMPLES</td>
+<td>Remplir plusieurs exemples pour auditer ce proxy.</td>
+</tr>
+<tr>
+<td>net_margin_stable_or_expanding</td>
+<td>WAITING_FOR_EXAMPLES</td>
+<td>Remplir plusieurs exemples pour auditer ce proxy.</td>
+</tr>
+<tr>
+<td>eps_growth_5y</td>
+<td>WAITING_FOR_EXAMPLES</td>
+<td>Remplir plusieurs exemples pour auditer ce proxy.</td>
+</tr>
+</tbody>
+</table>
+<h2>8. Candidats externes</h2>
+<p>Cette section est informative: elle ne crée pas d'achat automatique hors Core Portfolio. Les promotions ci-dessous utilisent exactement le même moteur que le rapport complet.</p>
+<ul>
+<li>Promotion vers Core Portfolio: Aucune promotion fondée vers le Core Portfolio selon les filtres stricts.</li>
+<li>Surveillance Market Universe, non-promotion: À surveiller, mais pas à acheter automatiquement: ADI, NTR.TO, FTS.TO, TD.TO, AMGN.</li>
+<li>Scanner / discovery, non-promotion: Idées intéressantes hors market universe: ABNB, MNST. À ajouter seulement si tu veux les suivre de près.</li>
+</ul>
+<h3>Promotions vers Core Portfolio</h3>
+<table>
+<thead>
+<tr>
+<th>source</th>
+<th>ticker</th>
+<th>statut</th>
+<th>raison</th>
+<th>prochaine_étape</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td></td>
+<td></td>
+<td>AUCUNE_PROMOTION_FONDEE</td>
+<td>Aucun titre externe ne mérite vraiment une promotion vers le Core Portfolio selon les filtres stricts.</td>
+<td>Ne rien ajouter au portfolio pour l’instant; continuer la surveillance dans le market_universe.</td>
+</tr>
+</tbody>
+</table>
+<h3>Surveillance externe non-promotion</h3>
+<table>
+<thead>
+<tr>
+<th>source</th>
+<th>ticker</th>
+<th>status</th>
+<th>score</th>
+<th>raison</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>MARKET_UNIVERSE</td>
+<td>ADI</td>
+<td>PROMISING_BUT_INCOMPLETE</td>
+<td>7.5</td>
+<td>Profil prometteur mais incomplet: préfiltre de qualité respecté avec les données disponibles; risque cycle/bulle/tendance EXTREME: allocation potentielle à l...</td>
+</tr>
+<tr>
+<td>MARKET_UNIVERSE</td>
+<td>NTR.TO</td>
+<td>PROMISING_BUT_INCOMPLETE</td>
+<td>7.5</td>
+<td>Profil prometteur mais incomplet: préfiltre de qualité respecté avec les données disponibles</td>
+</tr>
+<tr>
+<td>MARKET_UNIVERSE</td>
+<td>FTS.TO</td>
+<td>PROMISING_BUT_INCOMPLETE</td>
+<td>7.0</td>
+<td>Profil prometteur mais incomplet: préfiltre de qualité respecté avec les données disponibles</td>
+</tr>
+<tr>
+<td>MARKET_UNIVERSE</td>
+<td>TD.TO</td>
+<td>PROMISING_BUT_INCOMPLETE</td>
+<td>7.0</td>
+<td>Profil prometteur mais incomplet: préfiltre de qualité respecté avec les données disponibles; risque cycle/bulle/tendance EXTREME: allocation potentielle à l...</td>
+</tr>
+<tr>
+<td>MARKET_UNIVERSE</td>
+<td>AMGN</td>
+<td>PROMISING_BUT_INCOMPLETE</td>
+<td>5.0</td>
+<td>Profil prometteur mais incomplet: préfiltre de qualité respecté avec les données disponibles</td>
+</tr>
+<tr>
+<td>MARKET_UNIVERSE</td>
+<td>SLF.TO</td>
+<td>PROMISING_BUT_INCOMPLETE</td>
+<td>7.0</td>
+<td>Profil prometteur mais incomplet: préfiltre de qualité respecté avec les données disponibles</td>
+</tr>
+<tr>
+<td>MARKET_UNIVERSE</td>
+<td>MOD</td>
+<td>PROMISING_BUT_INCOMPLETE</td>
+<td>7.75</td>
+<td>Profil prometteur mais incomplet: préfiltre de qualité respecté avec les données disponibles</td>
+</tr>
+<tr>
+<td>MARKET_UNIVERSE</td>
+<td>RBA.TO</td>
+<td>PROMISING_BUT_INCOMPLETE</td>
+<td>7.75</td>
+<td>Profil prometteur mais incomplet: prix sous SMA 200 avec forte sous-performance (pertinence benchmark MEDIUM)</td>
+</tr>
+</tbody>
+</table>
+<h2>9. Fiscalité et performance</h2>
+<table>
+<thead>
+<tr>
+<th>ticker</th>
+<th>account_type</th>
+<th>tax_comment</th>
+<th>warning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>AAPL</td>
+<td>TFSA1</td>
+<td>Excellent pour actifs à haut CAGR; gains et retraits non imposables. Libellé de compte: TFSA1.</td>
+<td>Dividendes américains potentiellement plus adaptés au REER selon situation.</td>
+</tr>
+<tr>
+<td>AVGO</td>
+<td>TFSA1</td>
+<td>Excellent pour actifs à haut CAGR; gains et retraits non imposables. Libellé de compte: TFSA1.</td>
+<td>Dividendes américains potentiellement plus adaptés au REER selon situation.</td>
+</tr>
+<tr>
+<td>LLY</td>
+<td>TFSA1</td>
+<td>Excellent pour actifs à haut CAGR; gains et retraits non imposables. Libellé de compte: TFSA1.</td>
+<td>Dividendes américains potentiellement plus adaptés au REER selon situation.</td>
+</tr>
+<tr>
+<td>MA</td>
+<td>TFSA1</td>
+<td>Excellent pour actifs à haut CAGR; gains et retraits non imposables. Libellé de compte: TFSA1.</td>
+<td>Dividendes américains potentiellement plus adaptés au REER selon situation.</td>
+</tr>
+<tr>
+<td>MSFT</td>
+<td>TFSA1</td>
+<td>Excellent pour actifs à haut CAGR; gains et retraits non imposables. Libellé de compte: TFSA1.</td>
+<td>Dividendes américains potentiellement plus adaptés au REER selon situation.</td>
+</tr>
+<tr>
+<td>INTU</td>
+<td>TFSA1</td>
+<td>Excellent pour actifs à haut CAGR; gains et retraits non imposables. Libellé de compte: TFSA1.</td>
+<td>Dividendes américains potentiellement plus adaptés au REER selon situation.</td>
+</tr>
+<tr>
+<td>INTU</td>
+<td>TFSA2</td>
+<td>Excellent pour actifs à haut CAGR; gains et retraits non imposables. Libellé de compte: TFSA2.</td>
+<td>Dividendes américains potentiellement plus adaptés au REER selon situation.</td>
+</tr>
+<tr>
+<td>META</td>
+<td>TFSA2</td>
+<td>Excellent pour actifs à haut CAGR; gains et retraits non imposables. Libellé de compte: TFSA2.</td>
+<td>Dividendes américains potentiellement plus adaptés au REER selon situation.</td>
+</tr>
+</tbody>
+</table>
+<h3>Comment la performance vs S&amp;P 500 est calculée</h3>
+<p>Méthode: l’agent compare chaque compte à VFV.TO, utilisé comme proxy S&amp;P 500 en CAD, depuis la première analyse locale disponible. Quand disponible, VFV est mesuré avec <code>Adj Close</code>, un proxy gratuit de rendement total approximatif qui inclut les distributions réinvesties. <code>portfolio_return_since_tracking</code> = valeur actuelle du compte / valeur du compte au début du suivi - 1. <code>sp500_return_since_tracking</code> = prix VFV actuel / prix VFV au début du suivi - 1. <code>excess_return_vs_sp500</code> est l’écart entre les deux, mais il est masqué si des flux rendent le rendement simple trompeur. Si des cotisations ou retraits sont détectés, <code>value_added_vs_sp500_cad</code> estime ce que le compte vaudrait si les mêmes flux avaient été investis dans VFV.TO, puis compare cette valeur théorique à la valeur actuelle. La mesure <code>TWR</code> neutralise les flux entre snapshots locaux et devient la lecture principale pour juger la stratégie. La mesure <code>XIRR</code> ajoute une lecture annualisée plus personnelle; si l’historique local est trop court, le rapport évite d’en tirer une conclusion.</p>
+<table>
+<thead>
+<tr>
+<th>indicateur</th>
+<th>à quoi ça sert</th>
+<th>comment l’interpréter</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>preferred_performance_summary</td>
+<td>Résumé choisi par le modèle.</td>
+<td>Lis cette phrase en premier: elle privilégie l’indicateur le plus fiable selon les flux détectés.</td>
+</tr>
+<tr>
+<td>portfolio_twr</td>
+<td>Mesure la performance de la stratégie du compte.</td>
+<td>Neutralise les cotisations/retraits détectés; c’est la meilleure lecture pour juger le mouvement réel des titres.</td>
+</tr>
+<tr>
+<td>twr_excess_vs_sp500</td>
+<td>Compare la stratégie à VFV.TO.</td>
+<td>Positif = la stratégie bat VFV sur l’historique local; négatif = elle est derrière VFV.</td>
+</tr>
+<tr>
+<td>value_added_vs_sp500_cad</td>
+<td>Montant gagné ou perdu vs un scénario VFV.</td>
+<td>Estime la différence en dollars si les mêmes flux avaient été investis dans VFV.TO.</td>
+</tr>
+<tr>
+<td>portfolio_return_since_tracking</td>
+<td>Rendement simple depuis le début du suivi.</td>
+<td>Utile seulement sans flux importants; sinon le rapport affiche N/D pour éviter de confondre cotisation et rendement.</td>
+</tr>
+<tr>
+<td>xirr_excess_vs_sp500</td>
+<td>Compare le rendement annualisé personnel à VFV.</td>
+<td>Très utile après plusieurs mois/années; si l’historique est court, le rapport évite d’en tirer une conclusion.</td>
+</tr>
+</tbody>
+</table>
+<table>
+<thead>
+<tr>
+<th>account_type</th>
+<th>preferred_performance_summary</th>
+<th>portfolio_return_since_tracking</th>
+<th>sp500_return_since_tracking</th>
+<th>excess_return_vs_sp500</th>
+<th>twr_excess_vs_sp500</th>
+<th>twr_status</th>
+<th>value_added_vs_sp500_cad</th>
+<th>value_added_vs_sp500_percent</th>
+<th>xirr_excess_vs_sp500</th>
+<th>xirr_status</th>
+<th>interpretation</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>ALL_ACCOUNTS</td>
+<td>Lecture recommandée: TWR, la stratégie du compte est devant VFV.TO d’environ 1.0 points depuis le début du suivi après neutralisation des cotisations/retraits détectés.</td>
+<td>N/D (flux détectés)</td>
+<td>2.0 %</td>
+<td>N/D (flux détectés)</td>
+<td>1.0 %</td>
+<td>TWR_FLOW_ADJUSTED_SIMILAR_TO_SP500</td>
+<td>91.66 $</td>
+<td>1.0 %</td>
+<td>N/D (historique &lt; 90 jours)</td>
+<td>XIRR_AVAILABLE_SHORT_HISTORY</td>
+<td>Comparaison approximative: le compte a probablement reçu des cotisations, achats ou ventes depuis la base. Une mesure exacte demanderait les transa...</td>
+</tr>
+<tr>
+<td>TFSA1</td>
+<td>Lecture recommandée: TWR, la stratégie du compte est devant VFV.TO d’environ 1.1 points depuis le début du suivi.</td>
+<td>3.1 %</td>
+<td>2.0 %</td>
+<td>1.1 %</td>
+<td>1.1 %</td>
+<td>TWR_NO_EXTERNAL_FLOWS_SIMILAR_TO_SP500</td>
+<td>96.90 $</td>
+<td>1.1 %</td>
+<td>N/D (historique &lt; 90 jours)</td>
+<td>XIRR_AVAILABLE_SHORT_HISTORY</td>
+<td>Le compte évolue près du proxy S&amp;P 500 depuis le début du suivi local.</td>
+</tr>
+<tr>
+<td>TFSA2</td>
+<td>Lecture recommandée: TWR, la stratégie du compte est derrière VFV.TO d’environ 2.2 points depuis le début du suivi après neutralisation des cotisations/retraits détectés.</td>
+<td>N/D (flux détectés)</td>
+<td>2.0 %</td>
+<td>N/D (flux détectés)</td>
+<td>-2.2 %</td>
+<td>TWR_FLOW_ADJUSTED_BEHIND_SP500</td>
+<td>-5.24 $</td>
+<td>-0.7 %</td>
+<td>N/D (historique &lt; 90 jours)</td>
+<td>XIRR_AVAILABLE_SHORT_HISTORY</td>
+<td>Comparaison approximative: le compte a probablement reçu des cotisations, achats ou ventes depuis la base. Une mesure exacte demanderait les transa...</td>
+</tr>
+</tbody>
+</table>
+<h2>10. Limites rapides</h2>
+<ul>
+<li>Ce rapport compact sert à décider plus vite; le rapport complet reste la source d'audit.</li>
+<li>Les nouvelles gratuites servent seulement de contexte, pas de moteur principal.</li>
+<li>Les estimations automatiques et les données yfinance/SEC/Google News peuvent être incomplètes ou erronées.</li>
+<li>Toute vente, grosse allocation ou nouvelle position doit être validée manuellement.</li>
+</ul>
+<h2>11. Bibliographie / médiagraphie</h2>
+<p>Cette section résume les sources consultées pendant cette analyse. Le rapport complet garde la version plus détaillée.</p>
+<table>
+<thead>
+<tr>
+<th>source</th>
+<th>utilisation</th>
+<th>éléments_consultés</th>
+<th>limite</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Yahoo Finance via yfinance</td>
+<td>Prix, historique, SMA 200, drawdown, rendement, PE/PEG, marges, profil d'activité, secteur/industrie et données financières disponibles gratuitement.</td>
+<td>AAPL, ABBV, ABNB, ABT, ACN, ADBE, ADI, ADP, ADSK, AEM.TO, AEP, AIQUY, AIR.PA, AJG, ALNY, AMAT, AMD, AMGN, AMT, AMZN, ANET, AON, APH, APP, ... (+232) / familles de champs: prix, historique, valorisation, marges, cash-flow, profil d'activité, secteur, industr...</td>
+<td>Données gratuites parfois incomplètes, retardées, manquantes ou différentes selon la cotation.</td>
+</tr>
+<tr>
+<td>Fichiers locaux utilisateur</td>
+<td>Portefeuille, comptes, historique automatique des changements, corrections manuelles optionnelles, univers scanner et liste de découverte configurée.</td>
+<td>data/portfolio.csv, data/portfolio_change_history.csv, data/portfolio_inferred_transactions.csv, data/account_performance_history.csv, data/portfolio_state_snapshot.csv, data/portfolio_transactions.csv, data/manual_inputs_friendly.txt, data/proxy_calibratio...</td>
+<td>La qualité dépend de ce qui est rempli et de l’exactitude des tickers.</td>
+</tr>
+<tr>
+<td>SEC EDGAR companyfacts</td>
+<td>Valider ou compléter automatiquement certains fondamentaux officiels des sociétés américaines: marges, croissance annuelle, dette, cash, ROE/ROA. En cas de conflit amb...</td>
+<td>AAPL, ABBV, ABNB, ABT, ACN, ADBE, ADI, ADP, ADSK, AEP, AJG, ALNY, AMAT, AMD, AMGN, AMT, AMZN, ANET, AON, APH, APP, ARAY, ARM, ASML, ... (+181) / champs: capital_expenditures, debt_to_equity, eps_growth_5y, eps_growth_estimated_3_5y, fcf_per_share_growth, ma...</td>
+<td>Couvre surtout les sociétés américaines déposant à la SEC; ne remplace pas une lecture complète du 10-K ou des rapports annuels.</td>
+</tr>
+<tr>
+<td>Banque du Canada Valet API</td>
+<td>Taux de change officiels vers le CAD quand le portefeuille doit convertir des positions étrangères.</td>
+<td>Séries FXUSDCAD, FXEURCAD, FXGBPCAD, FXCHFCAD ou FXJPYCAD selon les devises présentes.</td>
+<td>Le taux officiel peut être publié avec un délai; si indisponible, l’agent revient aux sources gratuites de marché puis au taux de secours.</td>
+</tr>
+<tr>
+<td>Flux gratuits de nouvelles: yfinance/Yahoo Finance + Google News RSS</td>
+<td>Titres d’articles récents utilisés seulement comme contexte pour distinguer baisse temporaire, pression sectorielle et risque fondamental possible.</td>
+<td>AAPL, ABBV, ABNB, ABT, ACN, ADBE, ADI, ADP, ADSK, AEM.TO, AEP, AIQUY, AIR.PA, AJG, ALNY, AMAT, AMD, AMGN, AMT, AMZN, ANET, AON, APH, APP, ... (+228) / canaux: yfinance/Yahoo Finance / médias affichés: 24/7 Wall St., AFP, Associated Press, Associated Press F...</td>
+<td>Ces flux gratuits sont incomplets, parfois bruyants et ne remplacent pas les communiqués officiels, rapports trimestriels ou analyses BNCD/Morningstar.</td>
+</tr>
+<tr>
+<td>Thèse de marché long terme: sources publiques gratuites</td>
+<td>Identifier si le marché adressable bénéficie d’un vent structurel durable avant d’ajuster légèrement le sizing.</td>
+<td>AAPL, ABBV, ABNB, ABT, ACN, ADBE, ADI, ADP, ADSK, AEM.TO, AEP, AIQUY, AIR.PA, AJG, ALNY, AMAT, AMD, AMGN, AMT, AMZN, ANET, AON, APH, APP, ... (+229) / références: EIA, EIA/IEA, IEA, IEA electrification outlook, IMF financial stability, IRENA, OECD digital e...</td>
+<td>Cette couche reste modérée: elle ne prédit pas la taille exacte du marché et ne remplace pas les fondamentaux de l’entreprise.</td>
+</tr>
+<tr>
+<td>Rapports locaux BNCD/Morningstar</td>
+<td>Compléter certaines données fondamentales manquantes: juste valeur, moat, risques, bilan, marges ou valorisation quand détectable.</td>
+<td>AAPL, ABBV, ABT, ACN, ADI, AEM.TO, AMAT, AMGN, ANET, BLX.TO, COST, CRWD, CSU.TO (CSU), DDOG, DELL, EA, ENB.TO, FNV.TO, FTS.TO, FTV, GFL.TO, HD, INTC, MELI, ... (+14) / fichiers: AAPL_MORNINGSTAR_DATA_TEAR_SHEET_04-29-2026.pdf, AAPL_MORNINGSTAR_STOCK_ANALYST...</td>
+<td>Extraction automatique imparfaite; les PDF doivent être validés manuellement et ne doivent pas être recopiés longuement.</td>
+</tr>
+<tr>
+<td>Fiches qualitatives automatiques multi-sources</td>
+<td>Assembler une justification spécifique par entreprise: modèle d'affaires, moat, protections en crise, pouvoir de prix, gestion, secteur, risques et fit portefeuille.</td>
+<td>Titres avec sources qualitatives ou fondamentales exploitables: AAPL, ABBV, ABNB, ABT, ACN, ADBE, ADI, ADP, ADSK, AEM.TO, AEP, AIQUY, AIR.PA, AJG, ALNY, AMAT, AMD, AMGN, AMT, AMZN, ANET, AON, APH, APP, ... (+229) / fiches retenues: reports/latest_company_do...</td>
+<td>La fiche synthétise des indices gratuits et locaux; si une source manque, elle signale la limite plutôt que de conclure avec certitude.</td>
+</tr>
+<tr>
+<td>Configuration locale de l’agent</td>
+<td>Règles de scoring, benchmarks, secteurs, expositions, alias de tickers et paramètres du scanner.</td>
+<td>config/positions.yaml, benchmarks.yaml, sectors.yaml, exposures.yaml, rules.yaml, ticker_aliases.yaml, market_scanner.yaml</td>
+<td>Ces règles sont mécaniques et ne remplacent pas une analyse professionnelle.</td>
+</tr>
+<tr>
+<td>Historique local</td>
+<td>Comparaison avec les analyses précédentes pour détecter détérioration, solidification ou développement.</td>
+<td>reports/history/*.json et reports/latest_analysis_snapshot.json</td>
+<td>La tendance dépend des analyses conservées localement; supprimer l’historique efface cette mémoire.</td>
+</tr>
+<tr>
+<td>Calculs internes Python</td>
+<td>Scores, conviction, thèse, liquidation, risque portefeuille, stress tests, fiscalité approximative et allocation.</td>
+<td>Modules src/*.py du projet local.</td>
+<td>Le système applique des règles; il ne prédit pas l’avenir.</td>
+</tr>
+</tbody>
+</table>
+</body>
+</html>

@@ -1,0 +1,11 @@
+pandas
+numpy
+yfinance
+pyyaml
+requests
+beautifulsoup4
+jinja2
+markdown
+pypdf
+PyMuPDF
+pydantic

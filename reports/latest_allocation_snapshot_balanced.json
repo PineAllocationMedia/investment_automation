@@ -1,0 +1,75 @@
+{
+  "allocations": [
+    {
+      "allocation_type": "Allocation VFV obligatoire | Redirection VFV",
+      "amount": 245.0,
+      "percentage": 0.49,
+      "reason": "Filet de s\u00e9curit\u00e9 S&P 500 selon moyenne des scores. | Solde non pla\u00e7able sans violer les plafonds de concentration ou de qualit\u00e9.",
+      "ticker": "VFV.TO"
+    },
+    {
+      "allocation_type": "Defensive ETF fallback",
+      "amount": 100.0,
+      "percentage": 0.2,
+      "reason": "R\u00e9serve d\u00e9fensive de mode: prot\u00e8ge une partie de la cotisation avant les actions individuelles. Prix gratuit indisponible; ETF d\u00e9fensif pr\u00e9-approuv\u00e9 par configuration, utilisable comme stabilisateur limit\u00e9 \u00e0 valider manuellement avant achat.",
+      "ticker": "XCNS.TO"
+    },
+    {
+      "allocation_type": "Defensive ETF fallback",
+      "amount": 125.0,
+      "percentage": 0.25,
+      "reason": "R\u00e9serve d\u00e9fensive de mode: prot\u00e8ge une partie de la cotisation avant les actions individuelles. Prix gratuit indisponible; ETF d\u00e9fensif pr\u00e9-approuv\u00e9 par configuration, utilisable comme stabilisateur limit\u00e9 \u00e0 valider manuellement avant achat.",
+      "ticker": "VCNS.TO"
+    },
+    {
+      "allocation_type": "Optimisation mensuelle",
+      "amount": 30.0,
+      "percentage": 0.06,
+      "reason": "Allocation l\u00e9g\u00e8rement amortie: le titre reste admissible, mais il ajoute \u00e0 un cluster cach\u00e9 d\u00e9j\u00e0 charg\u00e9 dans le portefeuille; le sizing \u00e9vite de renforcer trop fortement le m\u00eame pari sous-jacent.",
+      "ticker": "GOOGL"
+    }
+  ],
+  "analysis_date": "2026-06-01",
+  "analysis_mode": "balanced",
+  "average_score_ex_vfv": 8.494439103298571,
+  "created_at": "2026-06-01T10:25:45",
+  "decision_quality": {
+    "allocated_core_count": 1,
+    "core_allocation_percent": 0.51,
+    "data_quality_status": "ROBUST",
+    "decision_quality_level": "LOW",
+    "decision_quality_score": 42.0,
+    "eligible_core_count": 10,
+    "main_reasons": [
+      "La cotisation est investie dans au moins une position core admissible, pas seulement dans VFV.",
+      "10 position(s) core passent les principaux garde-fous d\u2019ajout.",
+      "Les titres recommand\u00e9s ont des donn\u00e9es suffisamment fiables pour une d\u00e9cision m\u00e9canique.",
+      "Cap de fiabilit\u00e9 appliqu\u00e9 sur: GOOGL. Le titre reste admissible, mais le mod\u00e8le \u00e9vite une trop grosse allocation avec preuves incompl\u00e8tes.",
+      "Garde-fou cluster cach\u00e9 actif sur: GOOGL (EXTREME). Il r\u00e9duit l\u00e9g\u00e8rement le sizing quand la cotisation renforcerait un pari sous-jacent d\u00e9j\u00e0 charg\u00e9.",
+      "La recommandation ne semble pas provenir d\u2019un changement historique non expliqu\u00e9."
+    ],
+    "profile_calibration": "STANDARD_RISK_ADJUSTED",
+    "risk_status": "ELEVATED",
+    "sensitivity_status": "HIGHLY_SENSITIVE",
+    "stability_status": "STABLE",
+    "summary": "Recommandation m\u00e9canique prudente: GOOGL; VFV total=49%, redirection=24%.",
+    "vfv_mandatory_percent": 0.25,
+    "vfv_redirection_percent": 0.24,
+    "vfv_total_percent": 0.49,
+    "watchpoints": [
+      "Fourchette de confiance tr\u00e8s large sur: GOOGL",
+      "Une part importante de VFV vient d\u2019une redirection, pas seulement de l\u2019allocation obligatoire.",
+      "5 alerte(s) de concentration ou facteur commun existent dans le portefeuille.",
+      "Les meilleurs candidats sont proches; la d\u00e9cision est correcte mais sensible aux scores.",
+      "L\u2019allocation est sensible aux hypoth\u00e8ses prudentes et le meilleur choix change; valider les donn\u00e9es prioritaires avant d\u2019augmenter fortement la cotisation."
+    ],
+    "why_not_high": [
+      "Il manque environ 40 point(s) pour atteindre HIGH.",
+      "VFV re\u00e7oit 24% de redirection, signe que certains titres sont limit\u00e9s par les garde-fous.",
+      "Le portefeuille contient encore des risques de concentration, devise ou facteur commun \u00e0 surveiller.",
+      "Fourchette de confiance tr\u00e8s large sur: GOOGL"
+    ]
+  },
+  "mandatory_vfv_percent": 0.25,
+  "model_rules_version": "2026-05-12-high-cagr-stability-v3"
+}

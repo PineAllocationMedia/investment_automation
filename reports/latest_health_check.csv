@@ -1,0 +1,19 @@
+check,status,severity,details,suggested_action
+dependency:pandas,PASS,LOW,Module disponible.,Aucune action.
+dependency:numpy,PASS,LOW,Module disponible.,Aucune action.
+dependency:yfinance,PASS,LOW,Module disponible.,Aucune action.
+dependency:yaml,PASS,LOW,Module disponible.,Aucune action.
+dependency:pypdf,PASS,LOW,Module disponible.,Aucune action.
+dependency:pydantic,PASS,LOW,Module disponible.,Aucune action.
+dependency:fitz,PASS,LOW,Module disponible.,Aucune action.
+dependency:pytesseract,PASS,LOW,Module disponible.,Aucune action.
+file:portfolio.csv,PASS,LOW,/Users/jordansoucy/Documents/Codex/2026-04-28/tu-es-un-d-veloppeur-python/investment_automation/data/portfolio.csv,Aucune action.
+file:market_universe.csv,PASS,LOW,/Users/jordansoucy/Documents/Codex/2026-04-28/tu-es-un-d-veloppeur-python/investment_automation/data/market_universe.csv,Aucune action.
+file:manual_inputs_friendly.txt,PASS,LOW,/Users/jordansoucy/Documents/Codex/2026-04-28/tu-es-un-d-veloppeur-python/investment_automation/data/manual_inputs_friendly.txt,Aucune action.
+file:requirements.txt,PASS,LOW,/Users/jordansoucy/Documents/Codex/2026-04-28/tu-es-un-d-veloppeur-python/investment_automation/requirements.txt,Aucune action.
+file:main.py,PASS,LOW,/Users/jordansoucy/Documents/Codex/2026-04-28/tu-es-un-d-veloppeur-python/investment_automation/main.py,Aucune action.
+csv_schema,PASS,LOW,Schémas CSV OK; aucune réparation nécessaire.,Aucune action.
+csv_validation,PASS,LOW,Fichiers CSV valides.,Aucune action.
+research_reports:readiness,PASS,LOW,60/61 fichier(s) prêt(s).,Vérifier latest_research_status.csv si plusieurs rapports ne sont pas READY.
+research_reports:text_quality,PASS,LOW,Qualité texte OK pour les rapports lisibles.,Aucune action.
+market_cache,WARN,LOW,"WARN: 305 cache(s) marché, 305 dernière(s) bonne(s) donnée(s), 1 cache(s) auxiliaire(s). 1 réparation(s)/nettoyage(s) safe.",Lire reports/latest_cache_health.csv.

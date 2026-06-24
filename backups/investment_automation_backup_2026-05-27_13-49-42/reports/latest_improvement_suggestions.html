@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rapport trimestriel d’investissement</title>
+<style>body{font-family:Arial,sans-serif;line-height:1.5;max-width:1100px;margin:32px auto;padding:0 18px;color:#1f2933}table{border-collapse:collapse;width:100%;margin:16px 0}th,td{border:1px solid #d9e2ec;padding:7px;text-align:left;font-size:14px}th{background:#f0f4f8}code{background:#f0f4f8;padding:2px 4px}img{max-width:100%;height:auto}.note{background:#fff8db;border-left:4px solid #f0b429;padding:10px 12px}</style>
+</head>
+<body>
+<h1>Audit d’amélioration du modèle</h1>
+<ul>
+<li>Date: 2026-05-25</li>
+<li>Mode audité: high-cagr</li>
+<li>Période: 12m</li>
+<li>Statut: <strong>INSUFFICIENT_HISTORY</strong></li>
+<li>Historique: 2 date(s) avec allocation; confiance PRELIMINARY</li>
+</ul>
+<blockquote>
+<p>Ceci n’est pas un conseil financier. Ce rapport applique seulement les règles mécaniques du guide fourni. Les données gratuites peuvent être incomplètes, retardées ou erronées. Toute décision finale doit être validée manuellement.</p>
+</blockquote>
+<h2>Résumé</h2>
+<ul>
+<li>Suggestions totales: 2</li>
+<li>Suggestions SAFE applicables automatiquement: 0</li>
+<li>Suggestions MODERATE: 0</li>
+<li>Suggestions RISKY: 0</li>
+<li>Attribution de sous-performance: <strong>NO_UNDERPERFORMANCE</strong></li>
+<li>Gouverneur de correction: <strong>NORMAL_SAFE_TUNING</strong></li>
+<li>Interprétation: Historique trop court: l’audit informe, mais ne doit pas ajuster le modèle.</li>
+</ul>
+<h2>Attribution de sous-performance</h2>
+<ul>
+<li>Cette couche décide si une sous-performance mérite une correction ou si elle ressemble plutôt à un retard temporaire acceptable.</li>
+<li>Elle protège contre deux erreurs opposées: corriger trop vite après une mauvaise année, ou refuser de corriger après une vraie dérive.</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>metric</th>
+<th>status</th>
+<th>value</th>
+<th>interpretation</th>
+<th>impact</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Sous-performance observée</td>
+<td>NONE</td>
+<td>1.4 %</td>
+<td>Statut réel: TWR_FLOW_ADJUSTED_SIMILAR_TO_SP500; écart préféré vs S&amp;P 500: 1.4 %.</td>
+<td>Évite de confondre une mauvaise année normale avec une erreur de modèle.</td>
+</tr>
+<tr>
+<td>Horizon de preuve</td>
+<td>TOO_SHORT</td>
+<td></td>
+<td>Historique trop court: une correction automatique serait fragile.</td>
+<td>Plus l’horizon réel est long, plus une sous-performance devient significative.</td>
+</tr>
+<tr>
+<td>Problèmes de processus</td>
+<td>CLEAN_PROCESS</td>
+<td>0</td>
+<td>Aucun problème mécanique majeur détecté.</td>
+<td>Indique si la sous-performance semble venir d’une mécanique perfectible plutôt que du marché.</td>
+</tr>
+<tr>
+<td>Diagnostic d’attribution</td>
+<td>NO_UNDERPERFORMANCE</td>
+<td></td>
+<td>Aucune sous-performance significative détectée; les corrections doivent rester basées sur la mécanique, pas sur la performance.</td>
+<td>Classe la sous-performance avant de laisser le modèle s’auto-ajuster.</td>
+</tr>
+<tr>
+<td>Gouverneur de correction</td>
+<td>NORMAL_SAFE_TUNING</td>
+<td></td>
+<td>Aucune sous-performance significative; conserver les règles normales d’amélioration.</td>
+<td>Les corrections restent limitées aux paramètres secondaires.</td>
+</tr>
+</tbody>
+</table>
+<h2>Suggestions</h2>
+<table>
+<thead>
+<tr>
+<th>suggestion_id</th>
+<th>mode</th>
+<th>parameter</th>
+<th>current_value</th>
+<th>suggested_delta</th>
+<th>suggested_value</th>
+<th>safety_level</th>
+<th>can_auto_apply</th>
+<th>status</th>
+<th>evidence</th>
+<th>reason</th>
+<th>expected_effect</th>
+<th>risk</th>
+<th>guardrail</th>
+<th>correction_governor</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>high-cagr:correction_governor:NO_UNDERPERFORMANCE</td>
+<td>high-cagr</td>
+<td>correction_governor</td>
+<td></td>
+<td>0.0</td>
+<td></td>
+<td>INFO</td>
+<td>False</td>
+<td>NO_UNDERPERFORMANCE</td>
+<td>Écart vs S&amp;P 500: 1.4 %; problèmes de processus: 0.</td>
+<td>Aucune sous-performance significative détectée; les corrections doivent rester basées sur la mécanique, pas sur la performance.</td>
+<td>Aucune sous-performance significative; conserver les règles normales d’amélioration.</td>
+<td>Ce gouverneur évite à la fois l’over-correction après une mauvaise période et l’under-correction après une vraie dérive.</td>
+<td>Règles vitales verrouillées; ajustement limité aux paramètres secondaires.</td>
+<td>NORMAL_SAFE_TUNING</td>
+</tr>
+<tr>
+<td>high-cagr:none:WAIT_FOR_MORE_HISTORY</td>
+<td>high-cagr</td>
+<td>none</td>
+<td></td>
+<td>0.0</td>
+<td></td>
+<td>INFO</td>
+<td>False</td>
+<td>WAIT_FOR_MORE_HISTORY</td>
+<td>2 date(s) avec allocation; confiance PRELIMINARY.</td>
+<td>L’audit fonctionne, mais l’historique est trop court pour ajuster les paramètres sans risque de suradaptation.</td>
+<td>Accumuler quelques analyses réelles avant de modifier le comportement du modèle.</td>
+<td>Changer trop tôt pourrait optimiser le modèle pour du bruit de marché.</td>
+<td>Règles vitales verrouillées; ajustement limité aux paramètres secondaires.</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h2>Ce que la commande peut appliquer</h2>
+<ul>
+<li><code>apply-safe-tuning</code> applique seulement les lignes <code>SAFE</code> avec <code>can_auto_apply = True</code>.</li>
+<li>Les suggestions <code>MODERATE</code>, <code>RISKY</code> ou <code>INFO</code> restent informatives.</li>
+<li>Les règles vitales restent verrouillées: thèse cassée, vente orange/rouge, comparaison VFV et promotions externes ne sont pas modifiables par tuning.</li>
+<li>Une sauvegarde est créée avant toute application via la commande CLI.</li>
+</ul>
+<h2>Commandes</h2>
+<p><code>bash
+python3 main.py improvement-audit --period 12m --mode high-cagr
+python3 main.py apply-safe-tuning --mode high-cagr</code></p>
+</body>
+</html>

@@ -1,0 +1,3 @@
+period_years,strategy,start_date,end_date,months,monthly_capital,total_contributed,final_value,total_gain,money_weighted_annual_return,vfv_final_value,excess_value_vs_vfv,max_drawdown_on_capital_multiple,avg_vfv_allocation,avg_top1_allocation,notes
+5,model-lite high-cagr,2021-06-30,2026-05-07,60,248.45,14907.0,31585.16,16678.16,0.3056,23355.35,8229.81,-0.1975,0.1276,0.245,Backtest théorique: prix historiques + scores actuels/proxys actuels; ne prouve pas la performance future.
+10,model-lite high-cagr,2016-06-30,2026-05-07,120,248.45,29814.0,135197.61,105383.61,0.2846,68754.5,66443.11,-0.3726,0.1179,0.2428,Backtest théorique: prix historiques + scores actuels/proxys actuels; ne prouve pas la performance future.
