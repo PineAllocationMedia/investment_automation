@@ -1,6 +1,12 @@
 import unittest
 
-from src.canadian_data_fetcher import canadian_ticker_metadata, parse_stockanalysis_pages
+from src.canadian_data_fetcher import (
+    SEDARPLUS_SOURCE_NAME,
+    TMX_SOURCE_NAME,
+    canadian_ticker_metadata,
+    merge_canadian_source_payloads,
+    parse_stockanalysis_pages,
+)
 from src.data_fetcher import MARKET_FIELDS, MarketDataFetcher
 
 
@@ -94,6 +100,34 @@ class CanadianDataFetcherTest(unittest.TestCase):
         self.assertIn("free_cash_flow_margin", payload["canadian_fundamental_fields"])
         self.assertIn("StockAnalysis Canadian financial pages", payload["official_data_sources"])
         self.assertIn("free_cash_flow_margin", payload["official_fundamental_fields"])
+
+    def test_canadian_source_merge_keeps_higher_priority_value_and_logs_material_conflict(self):
+        merged = merge_canadian_source_payloads(
+            [
+                {
+                    "available": True,
+                    "source": SEDARPLUS_SOURCE_NAME,
+                    "fields": ["total_revenue", "net_income"],
+                    "total_revenue": 1000,
+                    "net_income": 200,
+                },
+                {
+                    "available": True,
+                    "source": TMX_SOURCE_NAME,
+                    "fields": ["total_revenue", "market_cap"],
+                    "total_revenue": 1300,
+                    "market_cap": 5000,
+                },
+            ],
+            ticker="CSU.TO",
+        )
+
+        self.assertTrue(merged["available"])
+        self.assertEqual(merged["total_revenue"], 1000)
+        self.assertEqual(merged["market_cap"], 5000)
+        self.assertIn(SEDARPLUS_SOURCE_NAME, merged["sources"])
+        self.assertIn(TMX_SOURCE_NAME, merged["sources"])
+        self.assertTrue(any("total_revenue" in conflict for conflict in merged["source_conflicts"]))
 
 
 if __name__ == "__main__":

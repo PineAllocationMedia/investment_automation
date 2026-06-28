@@ -15,7 +15,7 @@ from src.allocation_change_engine import (
 from src.anomaly_detection_engine import detect_analysis_anomalies, update_anomaly_history
 from src.allocation_sensitivity_engine import compute_allocation_sensitivity
 from src.allocation_stability_engine import apply_allocation_stability
-from src.allocation_engine import allocate_capital
+from src.allocation_engine import allocate_capital, allocation_universe_for_mode
 from src.account_performance_engine import build_account_performance_rows
 from src.asset_type_engine import (
     etf_asset_profile,
@@ -87,6 +87,7 @@ from src.manual_inputs import (
 )
 from src.opportunity_cost_engine import compute_opportunity_cost_status
 from src.portfolio_loader import (
+    account_tax_category,
     account_locations_from_portfolio_rows,
     add_position_weights,
     create_empty_portfolio,
@@ -118,9 +119,18 @@ from src.proxy_calibration import (
     build_proxy_calibration_report,
     build_proxy_calibration_summary,
     clear_proxy_calibration_values,
+    create_proxy_calibration_history,
     create_proxy_calibration_field_guide,
     create_proxy_calibration_template,
     load_proxy_calibration_inputs,
+    update_proxy_calibration_history,
+)
+from src.proxy_bias_engine import build_proxy_bias_report
+from src.proxy_correction_engine import (
+    build_proxy_correction_audit,
+    create_proxy_correction_history,
+    create_proxy_corrections_template,
+    load_proxy_corrections,
 )
 from src.report_generator import generate_reports
 from src.research_reports import (
@@ -140,15 +150,17 @@ from src.run_logging_engine import (
     append_run_log_history,
     build_analysis_run_log,
     build_health_check_run_log,
+    build_walk_forward_run_log,
     make_run_id,
 )
 from src.scoring import compute_fundamental_score
 from src.sizing_engine import compute_capital_allocation_score, compute_winner_accelerated
 from src.stress_test_engine import compute_stress_tests
-from src.tax_location_engine import compute_tax_location_report
+from src.tax_location_engine import compute_after_tax_yield, compute_tax_location_report
 from src.thesis_engine import compute_thesis_status
 from src.ticker_resolver import (
     apply_ticker_attention_flags,
+    load_and_resolve_universe,
     load_ticker_aliases,
     resolve_account_location_rows,
     resolve_keyed_config,
@@ -157,7 +169,6 @@ from src.ticker_resolver import (
     resolve_portfolio_rows,
     resolve_portfolio_transaction_rows,
     resolve_ticker_list,
-    resolve_universe_mapping,
 )
 from src.ticker_memory_engine import (
     apply_ticker_memory_to_exposure_map,
@@ -170,6 +181,7 @@ from src.utils import CACHE_DIR, CONFIG_DIR, DATA_DIR, PROJECT_ROOT, REPORTS_DIR
 from src.validation_priority_engine import build_validation_priority_rows
 from src.validators import validate_allocation_rules, validate_capital, validate_input_files
 from src.watchlist_engine import create_watchlist_template, load_watchlist, classify_watchlist_analysis, compute_data_quality
+from src.walk_forward_backtest_engine import run_walk_forward_backtest
 from src.winner_protection_engine import apply_winner_protection
 
 
@@ -216,6 +228,8 @@ def main(argv: list[str] | None = None) -> int:
         return clear_proxy_calibration_command(args)
     if args.command == "backtest":
         return backtest_command(args)
+    if args.command == "walk-forward-backtest":
+        return walk_forward_backtest_command(args)
     if args.command == "backup":
         return backup_command(args)
     if args.command == "list-backups":
@@ -276,6 +290,29 @@ def build_parser() -> argparse.ArgumentParser:
     backtest.add_argument("--monthly-capital", type=float, default=500.0, help="Cotisation mensuelle simulée.")
     backtest.add_argument("--mode", choices=sorted(VALID_MODES), default="high-cagr")
     backtest.add_argument("--refresh-market-data", action="store_true", help="Retélécharge l'historique yfinance.")
+
+    walk_forward = subparsers.add_parser(
+        "walk-forward-backtest",
+        help="Prépare l’inventaire hors-échantillon basé sur les snapshots historiques locaux.",
+    )
+    walk_forward.add_argument("--mode", choices=sorted(VALID_MODES), default="high-cagr")
+    walk_forward.add_argument(
+        "--min-days-between-points",
+        type=int,
+        default=14,
+        help="Nombre minimal de jours entre deux snapshots pour compter une période walk-forward.",
+    )
+    walk_forward.add_argument(
+        "--recommended-min-periods",
+        type=int,
+        default=6,
+        help="Nombre minimal de périodes utilisables avant de considérer le walk-forward comme informatif.",
+    )
+    walk_forward.add_argument(
+        "--refresh-market-data",
+        action="store_true",
+        help="Retélécharge les prix historiques utilisés pour la simulation walk-forward.",
+    )
 
     backup = subparsers.add_parser(
         "backup",
@@ -371,10 +408,16 @@ def init_project() -> None:
         create_proxy_calibration_template(DATA_DIR / "proxy_calibration.csv")
     if not (DATA_DIR / "proxy_calibration_field_guide.csv").exists():
         create_proxy_calibration_field_guide(DATA_DIR / "proxy_calibration_field_guide.csv")
+    if not (DATA_DIR / "proxy_calibration_history.csv").exists():
+        create_proxy_calibration_history(DATA_DIR / "proxy_calibration_history.csv")
     if not (CONFIG_DIR / "model_tuning.yaml").exists():
         create_model_tuning_template(CONFIG_DIR / "model_tuning.yaml")
     if not (CONFIG_DIR / "market_regime.yaml").exists():
         create_market_regime_config_template(CONFIG_DIR / "market_regime.yaml")
+    if not (CONFIG_DIR / "proxy_corrections.yaml").exists():
+        create_proxy_corrections_template(CONFIG_DIR / "proxy_corrections.yaml")
+    if not (DATA_DIR / "proxy_correction_history.csv").exists():
+        create_proxy_correction_history(DATA_DIR / "proxy_correction_history.csv")
 
 
 def export_templates() -> None:
@@ -398,6 +441,7 @@ def export_templates() -> None:
     create_proxy_calibration_field_guide(DATA_DIR / "proxy_calibration_field_guide.csv")
     create_model_tuning_template(CONFIG_DIR / "model_tuning_template.yaml", overwrite=True)
     create_market_regime_config_template(CONFIG_DIR / "market_regime_template.yaml", overwrite=True)
+    create_proxy_corrections_template(CONFIG_DIR / "proxy_corrections_template.yaml", overwrite=True)
 
 
 def analyze_command(args: argparse.Namespace) -> int:
@@ -590,6 +634,47 @@ def backtest_command(args: argparse.Namespace) -> int:
     return 0
 
 
+def walk_forward_backtest_command(args: argparse.Namespace) -> int:
+    ensure_directories()
+    run_id = make_run_id("walk-forward-backtest", args.mode)
+    result = run_walk_forward_backtest(
+        REPORTS_DIR,
+        DATA_DIR,
+        mode=args.mode,
+        min_days_between_points=args.min_days_between_points,
+        recommended_min_periods=args.recommended_min_periods,
+        refresh_market_data=args.refresh_market_data,
+    )
+    coverage = result.get("coverage") or {}
+    summary = result.get("summary") or {}
+    run_log_rows = build_walk_forward_run_log(
+        run_id=run_id,
+        mode=args.mode,
+        refresh_market_data=args.refresh_market_data,
+        result=result,
+    )
+    write_csv_records(REPORTS_DIR / "latest_run_log.csv", run_log_rows, RUN_LOG_COLUMNS)
+    append_run_log_history(DATA_DIR / "run_log_history.csv", run_log_rows)
+    print(f"Backtest walk-forward préparé en mode {args.mode}.")
+    print(f"Rapport: {REPORTS_DIR / 'latest_walk_forward_report.md'}")
+    print(f"Résumé CSV: {REPORTS_DIR / 'latest_walk_forward_coverage.csv'}")
+    print(f"Inventaire CSV: {REPORTS_DIR / 'latest_walk_forward_inventory.csv'}")
+    print(f"Périodes simulées: {REPORTS_DIR / 'latest_walk_forward_periods.csv'}")
+    print(f"Journal d'exécution: {REPORTS_DIR / 'latest_run_log.csv'}")
+    print(
+        f"Statut: {coverage.get('status')} | "
+        f"périodes utilisables: {coverage.get('usable_walk_forward_periods')} | "
+        f"dates distinctes: {coverage.get('distinct_analysis_dates')}"
+    )
+    print(
+        f"Simulation: {summary.get('status')} | "
+        f"périodes simulées: {summary.get('simulated_periods')} | "
+        f"base prix: {summary.get('price_return_basis')}"
+    )
+    print(str(summary.get("interpretation") or coverage.get("interpretation") or ""))
+    return 0
+
+
 def backup_command(args: argparse.Namespace) -> int:
     ensure_directories()
     backup = create_project_backup(PROJECT_ROOT, include_cache=args.include_cache)
@@ -714,14 +799,14 @@ def build_research_needed_rows_from_current_inputs(refresh_market_data: bool = F
     )
     sectors = resolve_keyed_config(load_yaml(CONFIG_DIR / "sectors.yaml"), ticker_aliases, ticker_resolution_metadata, "config/sectors.yaml")
     exposures = resolve_keyed_config(load_yaml(CONFIG_DIR / "exposures.yaml"), ticker_aliases, ticker_resolution_metadata, "config/exposures.yaml")
-    watchlist_items = resolve_universe_mapping(
-        load_watchlist(CONFIG_DIR / "watchlist.yaml", DATA_DIR / "watchlist.csv"),
+    watchlist_items = load_and_resolve_universe(
+        lambda: load_watchlist(CONFIG_DIR / "watchlist.yaml", DATA_DIR / "watchlist.csv"),
         ticker_aliases,
         ticker_resolution_metadata,
         "watchlist",
     )
-    market_universe = resolve_universe_mapping(
-        load_market_universe(CONFIG_DIR / "market_scanner.yaml", DATA_DIR / "market_universe.csv"),
+    market_universe = load_and_resolve_universe(
+        lambda: load_market_universe(CONFIG_DIR / "market_scanner.yaml", DATA_DIR / "market_universe.csv"),
         ticker_aliases,
         ticker_resolution_metadata,
         "market_universe",
@@ -752,6 +837,7 @@ def build_research_needed_rows_from_current_inputs(refresh_market_data: bool = F
         ticker_resolution_metadata,
         "data/manual_inputs_friendly.txt",
     )
+    proxy_corrections = load_proxy_corrections(CONFIG_DIR / "proxy_corrections.yaml")
 
     owned_tickers = {row["ticker"] for row in portfolio_rows}
     core_tickers = sorted((owned_tickers | {"VFV.TO"}) if owned_tickers else (set(positions) | {"VFV.TO"}))
@@ -806,6 +892,7 @@ def build_research_needed_rows_from_current_inputs(refresh_market_data: bool = F
         portfolio_details=portfolio_details,
         ticker_resolution_metadata=ticker_resolution_metadata,
         research_inputs=research_inputs,
+        proxy_corrections=proxy_corrections,
     )
     watchlist_analyses = build_position_analyses(
         tickers=watchlist_tickers,
@@ -820,6 +907,7 @@ def build_research_needed_rows_from_current_inputs(refresh_market_data: bool = F
         current_values={},
         ticker_resolution_metadata=ticker_resolution_metadata,
         research_inputs=research_inputs,
+        proxy_corrections=proxy_corrections,
     )
     market_analyses = build_position_analyses(
         tickers=market_tickers,
@@ -834,6 +922,7 @@ def build_research_needed_rows_from_current_inputs(refresh_market_data: bool = F
         current_values={},
         ticker_resolution_metadata=ticker_resolution_metadata,
         research_inputs=research_inputs,
+        proxy_corrections=proxy_corrections,
     )
     rows = research_needed_rows_from_analysis_rows(
         {
@@ -998,6 +1087,24 @@ def run_analysis(
     refresh_market_data: bool = False,
     validation_warnings: list[str] | None = None,
 ) -> dict[str, Any]:
+    # CONTEXT ENRICHMENT ORDER — DO NOT REORDER WITHOUT REVIEWING DEPENDENCIES
+    # Each pass may read keys written by earlier passes. The order is:
+    #  1. apply_history_context              -> sets previous_* keys
+    #  2. apply_history_sell_discipline      -> reads history/trend keys
+    #  3. apply_winner_protection            -> reads thesis/liquidation history
+    #  4. apply_cycle_bubble_context         -> reads thesis, valuation and market data
+    #  5. apply_cash_flow_quality_context    -> writes cash-flow quality keys
+    #  6. apply_shareholder_discipline_context -> reads cash-flow quality keys
+    #  7. apply_long_term_durability_context -> reads quality/conviction profile
+    #  8. apply_market_growth_thesis_context -> reads sector/growth evidence
+    #  9. apply_quality_drawdown_context     -> reads thesis_status and liquidation_status
+    # 10. apply_market_regime_context        -> writes regime sizing context
+    # 11. apply_sector_euphoria_context      -> reads market regime context
+    # 12. apply_double_counting_context      -> reads overlapping quality/growth signals
+    # 13. apply_hidden_cluster_guardrails    -> reads sector/factor exposures
+    # 14. refresh_add_and_opportunity_context -> FINAL add/VFV decision refresh
+    #
+    # Changing this order can silently alter allocations. Document any change in DECISIONS.md.
     run_id = make_run_id("analyze", mode)
     cache_health_rows = run_cache_maintenance(CACHE_DIR, repair_safe=True)
     ticker_aliases = load_ticker_aliases(CONFIG_DIR / "ticker_aliases.yaml")
@@ -1012,14 +1119,14 @@ def run_analysis(
     )
     sectors = resolve_keyed_config(load_yaml(CONFIG_DIR / "sectors.yaml"), ticker_aliases, ticker_resolution_metadata, "config/sectors.yaml")
     exposures = resolve_keyed_config(load_yaml(CONFIG_DIR / "exposures.yaml"), ticker_aliases, ticker_resolution_metadata, "config/exposures.yaml")
-    watchlist_items = resolve_universe_mapping(
-        load_watchlist(CONFIG_DIR / "watchlist.yaml", DATA_DIR / "watchlist.csv"),
+    watchlist_items = load_and_resolve_universe(
+        lambda: load_watchlist(CONFIG_DIR / "watchlist.yaml", DATA_DIR / "watchlist.csv"),
         ticker_aliases,
         ticker_resolution_metadata,
         "watchlist",
     )
-    market_universe = resolve_universe_mapping(
-        load_market_universe(CONFIG_DIR / "market_scanner.yaml", DATA_DIR / "market_universe.csv"),
+    market_universe = load_and_resolve_universe(
+        lambda: load_market_universe(CONFIG_DIR / "market_scanner.yaml", DATA_DIR / "market_universe.csv"),
         ticker_aliases,
         ticker_resolution_metadata,
         "market_universe",
@@ -1062,6 +1169,7 @@ def run_analysis(
         ticker_resolution_metadata,
         "data/manual_inputs_friendly.txt",
     )
+    proxy_corrections = load_proxy_corrections(CONFIG_DIR / "proxy_corrections.yaml")
     proxy_calibration_inputs = load_proxy_calibration_inputs(DATA_DIR / "proxy_calibration.csv")
 
     owned_tickers = {row["ticker"] for row in portfolio_rows}
@@ -1075,8 +1183,8 @@ def run_analysis(
         set(core_tickers) | set(watchlist_items.keys()) | set(market_universe.keys()) | {"VFV.TO"},
         ticker_aliases,
     )
-    discovery_universe = resolve_universe_mapping(
-        load_auto_discovery_universe(
+    discovery_universe = load_and_resolve_universe(
+        lambda: load_auto_discovery_universe(
             CONFIG_DIR / "market_scanner.yaml",
             DATA_DIR / "discovery_universe_cache.csv",
             discovery_exclusions,
@@ -1175,6 +1283,7 @@ def run_analysis(
         portfolio_details=portfolio_details,
         ticker_resolution_metadata=ticker_resolution_metadata,
         research_inputs=research_inputs,
+        proxy_corrections=proxy_corrections,
     )
     watchlist_analyses = build_position_analyses(
         tickers=watchlist_tickers,
@@ -1189,6 +1298,7 @@ def run_analysis(
         current_values={},
         ticker_resolution_metadata=ticker_resolution_metadata,
         research_inputs=research_inputs,
+        proxy_corrections=proxy_corrections,
     )
     for ticker, analysis in watchlist_analyses.items():
         analysis.update(watchlist_items.get(ticker, {}))
@@ -1207,6 +1317,7 @@ def run_analysis(
         current_values={},
         ticker_resolution_metadata=ticker_resolution_metadata,
         research_inputs=research_inputs,
+        proxy_corrections=proxy_corrections,
     )
     for ticker, analysis in market_analyses.items():
         analysis.update(market_universe.get(ticker, {}))
@@ -1225,6 +1336,7 @@ def run_analysis(
         current_values={},
         ticker_resolution_metadata=ticker_resolution_metadata,
         research_inputs=research_inputs,
+        proxy_corrections=proxy_corrections,
     )
     for ticker, analysis in discovery_analyses.items():
         analysis.update(discovery_universe.get(ticker, {}))
@@ -1242,7 +1354,6 @@ def run_analysis(
     apply_history_sell_discipline(market_analyses)
     apply_history_sell_discipline(discovery_analyses)
     apply_winner_protection(analyses, previous_snapshot)
-    refresh_add_and_opportunity_context(analyses, watchlist_analyses, market_analyses, discovery_analyses)
     apply_cycle_bubble_context(analyses, watchlist_analyses, market_analyses, discovery_analyses, portfolio_risk)
     apply_cash_flow_quality_context(analyses, watchlist_analyses, market_analyses, discovery_analyses)
     apply_shareholder_discipline_context(analyses, watchlist_analyses, market_analyses, discovery_analyses)
@@ -1259,6 +1370,9 @@ def run_analysis(
     apply_sector_euphoria_context(discovery_analyses, market_regime, mode=mode, universe="DISCOVERY_IDEAS")
     apply_double_counting_context(analyses, watchlist_analyses, market_analyses, discovery_analyses, mode=mode)
     apply_hidden_cluster_guardrails(analyses, watchlist_analyses, market_analyses, discovery_analyses, portfolio_risk, mode=mode)
+    # Eligibility and VFV opportunity cost must be refreshed after every
+    # context pass, because those passes can change sizing, risk, or monitoring
+    # inputs used by the final add decision.
     refresh_add_and_opportunity_context(analyses, watchlist_analyses, market_analyses, discovery_analyses)
 
     for ticker, analysis in watchlist_analyses.items():
@@ -1284,6 +1398,9 @@ def run_analysis(
         market_analyses,
         discovery_analyses,
     )
+    # Second ETF role check is intentional: allocation_universe_for_mode() can
+    # include external/defensive ETF candidates, so this final guard prevents
+    # ETF holdings from being sized like individual stocks.
     for ticker, analysis in allocation_analyses.items():
         if ticker == "VFV.TO":
             apply_vfv_benchmark_role(analysis)
@@ -1346,6 +1463,14 @@ def run_analysis(
         proxy_calibration_inputs,
     )
     proxy_calibration_summary = build_proxy_calibration_summary(proxy_calibration_report)
+    proxy_calibration_history_rows = update_proxy_calibration_history(
+        DATA_DIR / "proxy_calibration_history.csv",
+        proxy_calibration_report,
+        run_id=run_id,
+        mode=mode,
+    )
+    proxy_bias_rows = build_proxy_bias_report(proxy_calibration_history_rows)
+    proxy_correction_audit_rows = build_proxy_correction_audit(proxy_corrections, proxy_bias_rows)
     ticker_memory_rows = update_ticker_memory(
         DATA_DIR / "ticker_memory.csv",
         build_ticker_memory_rows(
@@ -1412,6 +1537,9 @@ def run_analysis(
         discovery_maintenance_rows=discovery_maintenance_rows,
         proxy_calibration_report=proxy_calibration_report,
         proxy_calibration_summary=proxy_calibration_summary,
+        proxy_calibration_history_rows=proxy_calibration_history_rows,
+        proxy_bias_rows=proxy_bias_rows,
+        proxy_correction_audit_rows=proxy_correction_audit_rows,
         allocation_change_rows=allocation_change_rows,
         allocation_sensitivity=allocation_sensitivity,
         validation_priority_rows=validation_priority_rows,
@@ -1539,6 +1667,7 @@ def build_position_analyses(
     portfolio_details: dict[str, dict[str, Any]] | None = None,
     ticker_resolution_metadata: dict[str, dict[str, Any]] | None = None,
     research_inputs: dict[str, dict[str, Any]] | None = None,
+    proxy_corrections: dict[str, Any] | None = None,
 ) -> dict[str, dict[str, Any]]:
     analyses: dict[str, dict[str, Any]] = {}
     current_values = current_values or {}
@@ -1570,7 +1699,7 @@ def build_position_analyses(
                 benchmark_source=benchmark_source,
             )
         )
-        automated_manual = build_automated_manual_inputs(ticker, market, benchmark)
+        automated_manual = build_automated_manual_inputs(ticker, market, benchmark, proxy_corrections=proxy_corrections)
         raw_auto_proxy_values = {field: automated_manual.get(field) for field in PROXY_CALIBRATION_FIELD_NAMES}
         raw_auto_proxy_values["forward_pe_manual"] = market.get("forward_pe")
         raw_auto_proxy_values["peg_manual"] = automated_manual.get("peg_manual", market.get("peg"))
@@ -1617,16 +1746,33 @@ def build_position_analyses(
                 **reliability,
             }
         )
+        account_type = str(portfolio_details.get(ticker, {}).get("account_type") or "")
+        tax_flags = dividend_tax_flags(ticker, market, exposure)
+        gross_yield = safe_float(market.get("dividend_yield")) or 0.0
+        after_tax_yield = compute_after_tax_yield(
+            ticker,
+            gross_yield,
+            account_type,
+            tax_flags["is_canadian_eligible_dividend"],
+            tax_flags["is_us_dividend"],
+        )
+        vfv_gross_yield = safe_float((market_data.get("VFV.TO") or {}).get("dividend_yield")) or 0.0
         opportunity = apply_reliability_opportunity_cap(
             compute_opportunity_cost_status(
                 manual,
-                {**score, **expensive},
+                {**score, **expensive, **market, "ticker": ticker, "account_type": account_type},
                 conviction["conviction_score"],
                 cagr_quality["expected_cagr_quality"],
                 thesis["thesis_status"],
                 liquidation["liquidation_status"],
                 expensive["quality_but_too_expensive"],
                 add_eligibility["add_eligibility_status"],
+                gross_yield=gross_yield,
+                account_type=account_type,
+                is_canadian_eligible_dividend=tax_flags["is_canadian_eligible_dividend"],
+                is_us_dividend=tax_flags["is_us_dividend"],
+                vfv_gross_yield=vfv_gross_yield,
+                vfv_account_type=account_type,
             ),
             reliability,
             thesis["thesis_status"],
@@ -1666,15 +1812,26 @@ def build_position_analyses(
             "average_cost_currency": portfolio_details.get(ticker, {}).get("average_cost_currency"),
             "acquisition_value_currency": portfolio_details.get(ticker, {}).get("acquisition_value_currency"),
             "current_value_currency": portfolio_details.get(ticker, {}).get("current_value_currency"),
+            "account_type": account_type,
+            "account_tax_category": account_tax_category(account_type),
             "sector": sectors.get(ticker, "Unknown"),
             "region": exposure.get("region", "Unknown"),
             "currency": exposure.get("currency", "Unknown"),
+            "gross_yield": gross_yield,
+            "after_tax_yield_adjusted": after_tax_yield["after_tax_yield"],
+            "tax_adjustment_factor": after_tax_yield["tax_adjustment_factor"],
+            "tax_adjustment_note": after_tax_yield["tax_note"],
+            "is_canadian_eligible_dividend": tax_flags["is_canadian_eligible_dividend"],
+            "is_us_dividend": tax_flags["is_us_dividend"],
             "factor_exposure": exposure.get("factor_exposure", []),
             "universe": "CORE_PORTFOLIO",
             "catastrophic_flags": [field for field, value in manual.items() if field.startswith("catastrophic_") and value is True],
             "input_data_mode": manual.get("input_data_mode", "AUTO_ESTIMATED"),
             "auto_estimated_fields": manual.get("auto_estimated_fields", []),
             "auto_source_notes": manual.get("auto_source_notes", []),
+            "proxy_correction_status": manual.get("proxy_correction_status", "NONE"),
+            "proxy_correction_fields": manual.get("proxy_correction_fields", []),
+            "proxy_corrections_applied": manual.get("proxy_corrections_applied", []),
             "raw_auto_proxy_values": raw_auto_proxy_values,
             "raw_auto_proxy_source_notes": raw_auto_proxy_source_notes,
             "auto_source_quality": manual.get("auto_source_quality"),
@@ -1702,8 +1859,42 @@ def build_position_analyses(
             analysis.update(compute_winner_accelerated(analysis))
             analysis.update(compute_drift_status(analysis))
         apply_ticker_attention_flags(analysis, (ticker_resolution_metadata or {}).get(ticker, {}))
+        analysis["data_confidence_badge"] = compute_data_confidence_badge(analysis)
+        analysis["canadian_tax_advantage_active"] = compute_canadian_tax_advantage_active(analysis)
         analyses[ticker] = analysis
     return analyses
+
+
+def compute_data_confidence_badge(analysis: dict[str, Any]) -> str:
+    if is_etf_asset_analysis(analysis):
+        return "ETF_N/A"
+    evidence = str(analysis.get("automation_evidence_level") or "").upper()
+    forward_confidence = str(analysis.get("forward_eps_growth_confidence") or "").upper()
+    reliability = str(analysis.get("data_reliability_level") or "").upper()
+    fill_rate = safe_float(analysis.get("data_fill_rate")) or 0.0
+
+    if evidence == "STRONG" or forward_confidence == "HIGH" or reliability == "HIGH":
+        return "STRONG"
+    if evidence == "MODERATE" or forward_confidence == "MEDIUM" or reliability == "MEDIUM":
+        return "MODERATE"
+    if evidence == "WEAK" or forward_confidence == "LOW" or fill_rate >= 0.70:
+        return "WEAK"
+    return "PROXY_ONLY"
+
+
+def compute_canadian_tax_advantage_active(analysis: dict[str, Any]) -> bool:
+    if is_etf_asset_analysis(analysis):
+        return False
+    ticker = normalize_ticker(analysis.get("ticker"))
+    account_category = account_tax_category(analysis.get("account_type"))
+    gross_yield = safe_float(analysis.get("gross_yield") or analysis.get("dividend_yield")) or 0.0
+    active = (
+        ticker.endswith((".TO", ".V"))
+        and account_category == "NON_REGISTERED"
+        and bool(analysis.get("is_canadian_eligible_dividend"))
+        and gross_yield > 0
+    )  # approximate tax advantage detection — not tax advice
+    return active
 
 
 def apply_vfv_benchmark_role(analysis: dict[str, Any]) -> None:
@@ -2047,6 +2238,14 @@ def merge_data_gaps(market_gaps: list[dict[str, Any]], *analysis_groups: dict[st
                         "data_field": f"AUTO_ESTIMATE: {field}",
                         "importance": "MEDIUM",
                         "impact": "Donnée estimée automatiquement; à valider manuellement pour une décision importante.",
+                        "forward_eps": analysis.get("forward_eps"),
+                        "trailing_eps": analysis.get("trailing_eps"),
+                        "number_of_analyst_opinions": analysis.get("number_of_analyst_opinions"),
+                        "forward_eps_growth_direct": analysis.get("forward_eps_growth_direct"),
+                        "forward_eps_growth_confidence": analysis.get("forward_eps_growth_confidence"),
+                        "data_source_forward": analysis.get("data_source_forward"),
+                        "eps_growth_5y_proxy_sanity": analysis.get("eps_growth_5y_proxy_sanity"),
+                        "early_deterioration_signal": analysis.get("early_deterioration_signal"),
                     }
                 )
     unique: dict[tuple[str, str], dict[str, Any]] = {}
@@ -2067,21 +2266,18 @@ def tax_penalty_map(tax_report: list[dict[str, Any]]) -> dict[str, float]:
     return penalties
 
 
-def allocation_universe_for_mode(
-    mode: str,
-    core_analyses: dict[str, dict[str, Any]],
-    watchlist_analyses: dict[str, dict[str, Any]],
-    market_analyses: dict[str, dict[str, Any]],
-    discovery_analyses: dict[str, dict[str, Any]],
-) -> dict[str, dict[str, Any]]:
-    if mode == "high-cagr":
-        return core_analyses
-    merged: dict[str, dict[str, Any]] = {}
-    for group in [core_analyses, watchlist_analyses, market_analyses, discovery_analyses]:
-        for ticker, analysis in group.items():
-            if ticker not in merged:
-                merged[ticker] = analysis
-    return merged
+def dividend_tax_flags(ticker: str, market: dict[str, Any], exposure: dict[str, Any]) -> dict[str, bool]:
+    normalized = str(ticker or "").upper()
+    currency = str(market.get("currency") or exposure.get("currency") or market.get("quote_currency") or "").upper()
+    region = str(exposure.get("region") or market.get("country") or "").lower()
+    is_canadian_ticker = normalized.endswith((".TO", ".V", ".CN", ".NE"))
+    is_fund = is_etf_asset(normalized, market)
+    is_canadian_eligible = bool((is_canadian_ticker or region == "canada") and currency == "CAD" and not is_fund)
+    is_us = bool(currency == "USD" or region == "united states" or normalized == "VFV.TO")
+    return {
+        "is_canadian_eligible_dividend": is_canadian_eligible,
+        "is_us_dividend": is_us,
+    }
 
 
 def refresh_add_and_opportunity_context(*analysis_groups: dict[str, dict[str, Any]]) -> None:
@@ -2102,14 +2298,20 @@ def refresh_add_and_opportunity_context(*analysis_groups: dict[str, dict[str, An
                     safe_float(analysis.get("conviction_score")) or 0.0,
                     str(analysis.get("expected_cagr_quality") or ""),
                     str(analysis.get("thesis_status") or ""),
-                    str(analysis.get("liquidation_status") or ""),
-                    analysis.get("quality_but_too_expensive") is True,
-                    add_eligibility["add_eligibility_status"],
-                ),
-                analysis,
-                str(analysis.get("thesis_status") or ""),
                 str(analysis.get("liquidation_status") or ""),
+                analysis.get("quality_but_too_expensive") is True,
                 add_eligibility["add_eligibility_status"],
+                gross_yield=safe_float(analysis.get("dividend_yield")) or safe_float(analysis.get("gross_yield")) or 0.0,
+                account_type=str(analysis.get("account_type") or ""),
+                is_canadian_eligible_dividend=analysis.get("is_canadian_eligible_dividend") is True,
+                is_us_dividend=analysis.get("is_us_dividend") is True,
+                vfv_gross_yield=safe_float(analysis.get("vfv_gross_yield")) or 0.0,
+                vfv_account_type=str(analysis.get("account_type") or ""),
+            ),
+            analysis,
+            str(analysis.get("thesis_status") or ""),
+            str(analysis.get("liquidation_status") or ""),
+            add_eligibility["add_eligibility_status"],
             )
             analysis.update(opportunity)
             analysis.update(compute_winner_accelerated(analysis))
@@ -2161,24 +2363,24 @@ def load_known_research_tickers() -> list[str]:
         )
     )
     tickers.update(
-        resolve_universe_mapping(
-            load_watchlist(CONFIG_DIR / "watchlist.yaml", DATA_DIR / "watchlist.csv"),
+        load_and_resolve_universe(
+            lambda: load_watchlist(CONFIG_DIR / "watchlist.yaml", DATA_DIR / "watchlist.csv"),
             ticker_aliases,
             ticker_resolution_metadata,
             "watchlist",
         ).keys()
     )
     tickers.update(
-        resolve_universe_mapping(
-            load_market_universe(CONFIG_DIR / "market_scanner.yaml", DATA_DIR / "market_universe.csv"),
+        load_and_resolve_universe(
+            lambda: load_market_universe(CONFIG_DIR / "market_scanner.yaml", DATA_DIR / "market_universe.csv"),
             ticker_aliases,
             ticker_resolution_metadata,
             "market_universe",
         ).keys()
     )
     tickers.update(
-        resolve_universe_mapping(
-            load_discovery_universe(CONFIG_DIR / "market_scanner.yaml", set()),
+        load_and_resolve_universe(
+            lambda: load_discovery_universe(CONFIG_DIR / "market_scanner.yaml", set()),
             ticker_aliases,
             ticker_resolution_metadata,
             "discovery_universe",

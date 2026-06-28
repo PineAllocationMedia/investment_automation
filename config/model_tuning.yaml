@@ -56,4 +56,4 @@ modes:
     single_stock_cap_adjustment: 0.0
     target_weight_adjustment: 0.0
     quality_drawdown_score_adjustment: 0.0
-    stability_strength_adjustment: 0.0
+    stability_strength_adjustment: 0.01

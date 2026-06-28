@@ -6,6 +6,7 @@ from src.run_logging_engine import (
     append_run_log_history,
     build_analysis_run_log,
     build_health_check_run_log,
+    build_walk_forward_run_log,
     extend_report_run_log,
     run_log_summary,
 )
@@ -91,6 +92,38 @@ class RunLoggingEngineTest(unittest.TestCase):
 
             self.assertEqual({row["run_id"] for row in saved}, {"health-1"})
             self.assertTrue(any(row["level"] == "WARN" for row in saved))
+
+    def test_walk_forward_log_flags_weak_regime_without_error(self):
+        rows = build_walk_forward_run_log(
+            run_id="walk-1",
+            mode="high-cagr",
+            refresh_market_data=False,
+            result={
+                "coverage": {"status": "READY_FOR_WALK_FORWARD_SIMULATION"},
+                "summary": {
+                    "status": "READY_FOR_WALK_FORWARD_REVIEW",
+                    "usable_walk_forward_periods": 6,
+                    "simulated_periods": 6,
+                    "price_return_basis": "ADJUSTED_CLOSE_TOTAL_RETURN_PROXY",
+                    "regime_coverage_status": "HAS_WEAK_REGIME",
+                    "weak_regimes": "VFV_WEAK",
+                },
+                "regime_rows": [
+                    {
+                        "market_regime": "VFV_WEAK",
+                        "regime_status": "WEAK",
+                        "period_count": 2,
+                        "compounded_excess_return_vs_vfv": -0.08,
+                    }
+                ],
+            },
+        )
+
+        events = {row["event"] for row in rows}
+        self.assertIn("WALK_FORWARD_SUMMARY", events)
+        self.assertIn("WALK_FORWARD_REGIME_CHECK", events)
+        self.assertTrue(any(row["level"] == "WARN" for row in rows))
+        self.assertFalse(any(row["level"] == "ERROR" for row in rows))
 
 
 if __name__ == "__main__":

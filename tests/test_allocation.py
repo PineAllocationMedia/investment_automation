@@ -606,6 +606,108 @@ class AllocationTest(unittest.TestCase):
 
         self.assertGreater(avgo_total, msft_total)
 
+    def test_high_cagr_single_name_guardrail_slows_large_position_without_blocking(self):
+        concentrated = full_strong_analysis("MSFT")
+        filler = full_strong_analysis("OLD")
+        concentrated.update(
+            {
+                "score_total": 9.2,
+                "capital_allocation_score": 96,
+                "expected_cagr_quality": "VERY_HIGH",
+                "conviction_score": 95,
+                "business_quality_score": 95,
+                "current_value": 24_000,
+                "position_weight": 0.24,
+                "score_evidence_level": "MOSTLY_CONFIRMED",
+                "data_reliability_level": "HIGH",
+            }
+        )
+        filler.update(
+            {
+                "current_value": 76_000,
+                "position_weight": 0.76,
+                "thesis_status": "WEAKENING",
+                "liquidation_status": "YELLOW",
+                "add_eligibility_status": "DO_NOT_ADD",
+            }
+        )
+
+        result = allocate_capital(1000, {"MSFT": concentrated, "OLD": filler}, "high-cagr")
+        msft_rows = [row for row in result["allocations"] if row["destination"] == "MSFT"]
+        msft_total = sum(row["montant"] for row in msft_rows)
+
+        self.assertGreater(msft_total, 0)
+        self.assertLessEqual(msft_total, 400)
+        self.assertTrue(any(row.get("single_name_concentration_guardrail_applied") is True for row in msft_rows))
+
+    def test_high_cagr_single_name_guardrail_does_not_limit_under_watch_zone(self):
+        candidate = full_strong_analysis("MSFT")
+        filler = full_strong_analysis("OLD")
+        candidate.update(
+            {
+                "score_total": 9.2,
+                "capital_allocation_score": 96,
+                "expected_cagr_quality": "VERY_HIGH",
+                "conviction_score": 95,
+                "business_quality_score": 95,
+                "current_value": 17_000,
+                "position_weight": 0.17,
+                "score_evidence_level": "MOSTLY_CONFIRMED",
+                "data_reliability_level": "HIGH",
+            }
+        )
+        filler.update(
+            {
+                "current_value": 83_000,
+                "position_weight": 0.83,
+                "thesis_status": "WEAKENING",
+                "liquidation_status": "YELLOW",
+                "add_eligibility_status": "DO_NOT_ADD",
+            }
+        )
+
+        result = allocate_capital(1000, {"MSFT": candidate, "OLD": filler}, "high-cagr")
+        msft_rows = [row for row in result["allocations"] if row["destination"] == "MSFT"]
+        msft_total = sum(row["montant"] for row in msft_rows)
+
+        self.assertGreaterEqual(msft_total, 600)
+        self.assertTrue(all(row.get("single_name_concentration_status") in {None, "", "NONE"} for row in msft_rows))
+
+    def test_high_cagr_single_name_guardrail_prefers_less_concentrated_peer_when_close(self):
+        concentrated = full_strong_analysis("MSFT")
+        underweight = full_strong_analysis("AVGO")
+        filler = full_strong_analysis("OLD")
+        for candidate, current_value, weight in [(concentrated, 24_000, 0.24), (underweight, 10_000, 0.10)]:
+            candidate.update(
+                {
+                    "score_total": 9.2,
+                    "capital_allocation_score": 94,
+                    "expected_cagr_quality": "VERY_HIGH",
+                    "conviction_score": 95,
+                    "business_quality_score": 95,
+                    "current_value": current_value,
+                    "position_weight": weight,
+                    "score_evidence_level": "MOSTLY_CONFIRMED",
+                    "data_reliability_level": "HIGH",
+                }
+            )
+        filler.update(
+            {
+                "current_value": 66_000,
+                "position_weight": 0.66,
+                "thesis_status": "WEAKENING",
+                "liquidation_status": "YELLOW",
+                "add_eligibility_status": "DO_NOT_ADD",
+            }
+        )
+
+        result = allocate_capital(1000, {"MSFT": concentrated, "AVGO": underweight, "OLD": filler}, "high-cagr")
+        msft_total = sum(row["montant"] for row in result["allocations"] if row["destination"] == "MSFT")
+        avgo_total = sum(row["montant"] for row in result["allocations"] if row["destination"] == "AVGO")
+
+        self.assertGreater(avgo_total, msft_total)
+        self.assertGreater(msft_total, 0)
+
     def test_average_score_is_weighted_and_excludes_tiny_satellites(self):
         core = {"ticker": "MSFT", "score_total": 8.0, "position_weight": 0.60}
         second = {"ticker": "AVGO", "score_total": 9.0, "position_weight": 0.30}

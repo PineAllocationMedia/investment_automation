@@ -1,0 +1,37 @@
+# Hiérarchie des sources gratuites utilisées par l'agent.
+# Ce fichier documente la priorité voulue; la logique de scoring/allocation
+# reste dans les moteurs Python existants.
+
+priority_1:
+  source: yfinance
+  role: prix, rendements, historiques, dividendes, tendances de marché
+  note: source gratuite principale pour les données de marché
+
+priority_2:
+  source: Bank of Canada API
+  role: taux de change CAD gratuits
+  note: source officielle pour convertir les devises vers CAD
+
+priority_3_us_companies:
+  source: SEC EDGAR
+  role: fondamentaux officiels des sociétés américaines
+  note: utilisé comme couche de confirmation lorsque disponible
+
+priority_3_canadian_companies:
+  source: SEDAR+
+  role: fondamentaux officiels des sociétés canadiennes
+  note: utilisé sous yfinance et au-dessus des sources de secours canadiennes
+
+priority_4_canadian_companies:
+  source: TMX Money
+  role: données de marché canadiennes supplémentaires
+  note: P/E, dividende, capitalisation, 52 semaines, secteur lorsque disponible
+
+priority_5_canadian_companies:
+  source: StockAnalysis
+  role: fallback gratuit de dernier recours pour états financiers canadiens
+  note: conservé comme secours si SEDAR+ ou TMX ne retournent rien d'exploitable
+
+conflict_policy:
+  numeric_conflict_threshold: 0.15
+  action: signaler le conflit plutôt que remplacer silencieusement la donnée existante

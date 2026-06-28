@@ -1,7 +1,7 @@
 import unittest
 
 from tests.helpers import full_strong_analysis
-from src.tax_location_engine import compute_tax_location_report
+from src.tax_location_engine import compute_after_tax_yield, compute_tax_location_report
 
 
 class TaxLocationTest(unittest.TestCase):
@@ -23,6 +23,19 @@ class TaxLocationTest(unittest.TestCase):
         self.assertEqual(report[0]["account_tax_category"], "TFSA")
         self.assertEqual(report[0]["shares"], 2)
         self.assertNotIn("moins optimal", report[0]["alert"])
+
+    def test_canadian_eligible_dividend_gets_dtc_benefit_in_non_registered(self):
+        result = compute_after_tax_yield("BAM.TO", 0.04, "NON_REGISTERED", True, False)
+        ordinary_income_after_tax = 0.04 * (1 - 0.40)
+
+        self.assertGreater(result["after_tax_yield"], ordinary_income_after_tax)
+        self.assertIn("after-tax est. (approx.)", result["tax_note"])
+
+    def test_us_dividend_gets_tfsa_withholding_drag(self):
+        result = compute_after_tax_yield("MSFT", 0.02, "TFSA1", False, True)
+
+        self.assertAlmostEqual(result["after_tax_yield"], 0.017)
+        self.assertAlmostEqual(result["tax_adjustment_factor"], 0.85)
 
 
 if __name__ == "__main__":

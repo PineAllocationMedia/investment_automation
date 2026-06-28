@@ -10,7 +10,8 @@ from typing import Any
 from .market_scanner import MARKET_UNIVERSE_COLUMNS
 from .portfolio_loader import ACCOUNT_LOCATION_COLUMNS, PORTFOLIO_COLUMNS
 from .portfolio_transactions import PORTFOLIO_TRANSACTION_COLUMNS
-from .proxy_calibration import PROXY_CALIBRATION_COLUMNS
+from .proxy_calibration import PROXY_CALIBRATION_COLUMNS, PROXY_CALIBRATION_HISTORY_COLUMNS
+from .proxy_correction_engine import PROXY_CORRECTION_HISTORY_COLUMNS
 from .research_reports import RESEARCH_INDEX_COLUMNS
 from .utils import read_csv_records, write_csv_records
 from .watchlist_engine import WATCHLIST_COLUMNS
@@ -83,6 +84,8 @@ def csv_schema_specs(project_root: str | Path) -> list[CSVSchemaSpec]:
         CSVSchemaSpec(data_dir / "market_universe.csv", MARKET_UNIVERSE_COLUMNS, optional=True),
         CSVSchemaSpec(research_dir / "research_index.csv", RESEARCH_INDEX_COLUMNS, optional=True),
         CSVSchemaSpec(data_dir / "proxy_calibration.csv", PROXY_CALIBRATION_COLUMNS, optional=True),
+        CSVSchemaSpec(data_dir / "proxy_calibration_history.csv", PROXY_CALIBRATION_HISTORY_COLUMNS, optional=True),
+        CSVSchemaSpec(data_dir / "proxy_correction_history.csv", PROXY_CORRECTION_HISTORY_COLUMNS, optional=True),
     ]
     if (data_dir / "account_locations.csv").exists():
         specs.append(CSVSchemaSpec(data_dir / "account_locations.csv", ACCOUNT_LOCATION_COLUMNS, optional=True))

@@ -3,7 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any
 
-from .utils import normalize_ticker, read_csv_records, safe_bool, safe_float, write_csv_records
+from .utils import normalize_ticker, read_csv_records, safe_bool, safe_float, today_iso, write_csv_records
 
 
 PROXY_CALIBRATION_LEGACY_COLUMNS = [
@@ -79,6 +79,29 @@ PROXY_CALIBRATION_SUMMARY_COLUMNS = [
     "bias_direction",
     "reliability_status",
     "recommended_action",
+]
+
+PROXY_CALIBRATION_HISTORY_COLUMNS = [
+    "first_seen_date",
+    "last_seen_date",
+    "last_run_id",
+    "last_mode",
+    "ticker",
+    "company_name",
+    "field",
+    "proxy_value",
+    "true_value",
+    "difference",
+    "relative_difference",
+    "error_pct",
+    "comparison_status",
+    "source",
+    "source_date",
+    "confidence",
+    "observation_count",
+    "evidence_key",
+    "proxy_source",
+    "notes",
 ]
 
 PROXY_CALIBRATION_GUIDE_COLUMNS = [
@@ -265,6 +288,10 @@ def create_proxy_calibration_field_guide(path: str | Path) -> None:
     write_csv_records(path, rows, PROXY_CALIBRATION_GUIDE_COLUMNS)
 
 
+def create_proxy_calibration_history(path: str | Path) -> None:
+    write_csv_records(path, [], PROXY_CALIBRATION_HISTORY_COLUMNS)
+
+
 def load_proxy_calibration_inputs(path: str | Path) -> list[dict[str, Any]]:
     path = Path(path)
     if not path.exists():
@@ -446,6 +473,71 @@ def build_proxy_calibration_summary(report_rows: list[dict[str, Any]]) -> list[d
     return summary_rows
 
 
+def update_proxy_calibration_history(
+    path: str | Path,
+    report_rows: list[dict[str, Any]],
+    *,
+    run_id: str = "",
+    mode: str = "",
+    snapshot_date: str | None = None,
+) -> list[dict[str, Any]]:
+    """Persist usable proxy calibration evidence without duplicating repeated runs.
+
+    The user-facing calibration CSV is a work file. This history is the durable
+    evidence store that future bias detection can use. Re-running the same
+    analysis with the same true value/source updates the row instead of counting
+    it as a fresh independent example.
+    """
+
+    path = Path(path)
+    snapshot_date = (snapshot_date or today_iso())[:10]
+    existing = read_csv_records(path)
+    by_key = {str(row.get("evidence_key") or ""): dict(row) for row in existing if str(row.get("evidence_key") or "")}
+
+    for evidence in build_proxy_calibration_history_rows(
+        report_rows,
+        run_id=run_id,
+        mode=mode,
+        snapshot_date=snapshot_date,
+    ):
+        key = str(evidence.get("evidence_key") or "")
+        if not key:
+            continue
+        previous = by_key.get(key)
+        if previous:
+            evidence["first_seen_date"] = previous.get("first_seen_date") or evidence["first_seen_date"]
+            evidence["observation_count"] = int(safe_float(previous.get("observation_count")) or 1) + 1
+        by_key[key] = evidence
+
+    rows = sorted(
+        by_key.values(),
+        key=lambda row: (
+            str(row.get("field") or ""),
+            str(row.get("ticker") or ""),
+            str(row.get("source_date") or ""),
+            str(row.get("true_value") or ""),
+        ),
+    )
+    write_csv_records(path, rows, PROXY_CALIBRATION_HISTORY_COLUMNS)
+    return rows
+
+
+def build_proxy_calibration_history_rows(
+    report_rows: list[dict[str, Any]],
+    *,
+    run_id: str = "",
+    mode: str = "",
+    snapshot_date: str | None = None,
+) -> list[dict[str, Any]]:
+    snapshot_date = (snapshot_date or today_iso())[:10]
+    rows = []
+    for row in report_rows:
+        history_row = _history_row_from_report_row(row, run_id=run_id, mode=mode, snapshot_date=snapshot_date)
+        if history_row:
+            rows.append(history_row)
+    return rows
+
+
 def _missing_analysis_row(calibration: dict[str, Any]) -> dict[str, Any]:
     return {
         "ticker": calibration.get("ticker"),
@@ -463,6 +555,70 @@ def _missing_analysis_row(calibration: dict[str, Any]) -> dict[str, Any]:
         "confidence": calibration.get("confidence"),
         "notes": calibration.get("notes"),
     }
+
+
+def _history_row_from_report_row(
+    row: dict[str, Any],
+    *,
+    run_id: str,
+    mode: str,
+    snapshot_date: str,
+) -> dict[str, Any] | None:
+    status = str(row.get("comparison_status") or "").strip()
+    if status not in {"MATCH", "CLOSE", "REVIEW_PROXY"}:
+        return None
+    ticker = normalize_ticker(row.get("ticker"))
+    field = str(row.get("field") or "").strip()
+    true_value = str(row.get("true_value") or "").strip()
+    proxy_value = str(row.get("proxy_value") or "").strip()
+    if not ticker or not field or not true_value or not proxy_value:
+        return None
+    confidence = str(row.get("confidence") or "").strip().upper() or "MEDIUM"
+    source = str(row.get("source") or "").strip()
+    source_date = str(row.get("source_date") or "").strip()
+    difference = safe_float(row.get("difference"))
+    relative = safe_float(row.get("relative_difference"))
+    evidence_key = _proxy_evidence_key(ticker, field, true_value, source, source_date)
+    return {
+        "first_seen_date": snapshot_date,
+        "last_seen_date": snapshot_date,
+        "last_run_id": run_id,
+        "last_mode": mode,
+        "ticker": ticker,
+        "company_name": str(row.get("company_name") or "").strip(),
+        "field": field,
+        "proxy_value": proxy_value,
+        "true_value": true_value,
+        "difference": round(difference, 6) if difference is not None else "",
+        "relative_difference": round(relative, 6) if relative is not None else "",
+        "error_pct": round(relative * 100, 4) if relative is not None else "",
+        "comparison_status": status,
+        "source": source,
+        "source_date": source_date,
+        "confidence": confidence,
+        "observation_count": 1,
+        "evidence_key": evidence_key,
+        "proxy_source": str(row.get("proxy_source") or "").strip(),
+        "notes": str(row.get("notes") or "").strip(),
+    }
+
+
+def _proxy_evidence_key(ticker: str, field: str, true_value: str, source: str, source_date: str) -> str:
+    parts = [
+        normalize_ticker(ticker),
+        field.strip(),
+        _canonical_evidence_value(true_value),
+        source.strip().upper(),
+        source_date.strip(),
+    ]
+    return "|".join(parts)
+
+
+def _canonical_evidence_value(value: Any) -> str:
+    number = safe_float(value)
+    if number is not None:
+        return f"{number:.6f}"
+    return str(value or "").strip().upper()
 
 
 def _comparison_row(calibration: dict[str, Any], analysis: dict[str, Any]) -> dict[str, Any]:

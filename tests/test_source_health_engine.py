@@ -43,6 +43,34 @@ class SourceHealthEngineTest(unittest.TestCase):
         self.assertLess(market["health_score"], 85)
         self.assertIn(proxies["status"], {"WATCH", "DEGRADED", "CRITICAL"})
 
+    def test_canadian_authoritative_sources_are_reported_separately(self):
+        rows = build_source_health_rows(
+            {
+                "CORE_PORTFOLIO": {
+                    "CSU.TO": {
+                        "ticker": "CSU.TO",
+                        "current_price": 100,
+                        "market_data_freshness_level": "FRESH",
+                        "market_data_requires_refresh": False,
+                        "quote_currency": "CAD",
+                        "country": "Canada",
+                        "canadian_source_health": [
+                            {"source": "SEDAR+ public filings", "available": True, "latency_ms": 120.5},
+                            {"source": "TMX Money market data", "available": False, "latency_ms": 95.0},
+                        ],
+                    }
+                }
+            },
+            mode="high-cagr",
+        )
+
+        sedar = next(row for row in rows if row["source"] == "SEDAR+ public filings")
+        tmx = next(row for row in rows if row["source"] == "TMX Money market data")
+        self.assertEqual(sedar["availability_rate"], 1.0)
+        self.assertEqual(sedar["avg_latency_ms"], 120.5)
+        self.assertEqual(tmx["availability_rate"], 0.0)
+        self.assertEqual(tmx["affected_tickers"], "CSU.TO")
+
     def test_history_is_mode_and_date_aware(self):
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "source_health_history.csv"

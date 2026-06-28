@@ -3,6 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any
 
+from .canadian_data_fetcher import SEDARPLUS_SOURCE_NAME, STOCKANALYSIS_SOURCE_NAME, TMX_SOURCE_NAME, canadian_ticker_metadata
 from .source_conflict_engine import summarize_conflict_profile
 from .utils import clamp, read_csv_records, safe_float, today_iso, write_csv_records
 
@@ -13,6 +14,8 @@ SOURCE_HEALTH_COLUMNS = [
     "health_score",
     "coverage_rate",
     "freshness_rate",
+    "availability_rate",
+    "avg_latency_ms",
     "affected_ticker_count",
     "affected_tickers",
     "conflict_count",
@@ -43,6 +46,9 @@ def build_source_health_rows(
     output = [
         _market_data_health(rows),
         _official_data_health(rows),
+        _canadian_source_health(rows, SEDARPLUS_SOURCE_NAME),
+        _canadian_source_health(rows, TMX_SOURCE_NAME),
+        _canadian_source_health(rows, STOCKANALYSIS_SOURCE_NAME),
         _research_report_health(rows),
         _news_context_health(rows),
         _auto_proxy_health(rows),
@@ -225,6 +231,74 @@ def _official_data_health(rows: list[dict[str, Any]]) -> dict[str, Any]:
     )
 
 
+def _canadian_source_health(rows: list[dict[str, Any]], source_name: str) -> dict[str, Any]:
+    eligible = [row for row in rows if _looks_canadian_eligible(row)]
+    attempts: list[dict[str, Any]] = []
+    affected: list[str] = []
+    latencies: list[float] = []
+    conflicts = 0
+    for row in eligible:
+        entries = row.get("canadian_source_health") or []
+        if isinstance(entries, dict):
+            entries = [entries]
+        if not isinstance(entries, list):
+            entries = []
+        row_attempts = [entry for entry in entries if isinstance(entry, dict) and str(entry.get("source") or "") == source_name]
+        attempts.extend(row_attempts)
+        if any(not entry.get("available") for entry in row_attempts):
+            affected.append(_ticker(row))
+        for entry in row_attempts:
+            latency = safe_float(entry.get("latency_ms"))
+            if latency is not None:
+                latencies.append(latency)
+        conflict_text = " | ".join(str(item) for item in row.get("canadian_data_conflicts") or [])
+        if source_name in conflict_text:
+            conflicts += 1
+
+    if not eligible:
+        return _row(
+            source_name,
+            100,
+            1.0,
+            1.0,
+            availability_rate=1.0,
+            avg_latency_ms="",
+            action="Aucune action canadienne à vérifier.",
+            notes="Source canadienne disponible dans la hiérarchie, non sollicitée ici.",
+            ticker_count=0,
+        )
+    if not attempts:
+        return _row(
+            source_name,
+            90,
+            1.0,
+            1.0,
+            availability_rate=1.0,
+            avg_latency_ms="",
+            action="Rien à faire: yfinance semble suffisant ou la source canadienne n'a pas été nécessaire.",
+            notes="Source canadienne en réserve; elle est surtout utilisée quand les données canadiennes sont incomplètes.",
+            ticker_count=len(eligible),
+        )
+
+    available_count = sum(1 for entry in attempts if entry.get("available"))
+    availability_rate = _ratio(available_count, len(attempts))
+    avg_latency_ms = round(sum(latencies) / len(latencies), 1) if latencies else ""
+    score = max(70, 100 * availability_rate - min(15, conflicts * 3))
+    return _row(
+        source_name,
+        score,
+        availability_rate,
+        availability_rate,
+        availability_rate=availability_rate,
+        avg_latency_ms=avg_latency_ms,
+        affected=affected,
+        conflicts=conflicts,
+        action="Surveiller si plusieurs titres canadiens importants restent non couverts; StockAnalysis demeure le filet de secours.",
+        notes="Source canadienne gratuite ajoutée sous yfinance et au-dessus du fallback final lorsque disponible.",
+        ticker_count=len(eligible),
+    )
+
+
 def _research_report_health(rows: list[dict[str, Any]]) -> dict[str, Any]:
     with_report = [row for row in rows if row.get("research_report_sources")]
     stale = [
@@ -303,6 +377,8 @@ def _row(
     action: str,
     notes: str,
     ticker_count: int,
+    availability_rate: float | None = None,
+    avg_latency_ms: float | str | None = None,
 ) -> dict[str, Any]:
     affected = sorted({ticker for ticker in (affected or []) if ticker})
     health_score = round(clamp(score, 0, 100), 1)
@@ -312,6 +388,8 @@ def _row(
         "health_score": health_score,
         "coverage_rate": round(coverage_rate, 4),
         "freshness_rate": round(freshness_rate, 4),
+        "availability_rate": round(availability_rate if availability_rate is not None else coverage_rate, 4),
+        "avg_latency_ms": avg_latency_ms if avg_latency_ms is not None else "",
         "affected_ticker_count": len(affected),
         "affected_tickers": ", ".join(affected[:20]),
         "conflict_count": conflicts,
@@ -374,12 +452,23 @@ def _has_market_value(row: dict[str, Any]) -> bool:
 
 
 def _looks_sec_eligible(row: dict[str, Any]) -> bool:
+    if _looks_canadian_eligible(row):
+        return False
     ticker = _ticker(row)
     if row.get("sec_edgar_cik") or row.get("official_data_sources"):
         return True
     if "." in ticker and not ticker.endswith(".US"):
         return False
     return str(row.get("currency") or row.get("quote_currency") or "").upper() == "USD" or str(row.get("region") or "").lower() == "united states"
+
+
+def _looks_canadian_eligible(row: dict[str, Any]) -> bool:
+    ticker = _ticker(row)
+    if canadian_ticker_metadata(ticker):
+        return True
+    country = str(row.get("country") or "").strip().lower()
+    currency = str(row.get("currency") or row.get("quote_currency") or "").strip().upper()
+    return country == "canada" and currency == "CAD"
 
 
 def _has_official_evidence(row: dict[str, Any]) -> bool:

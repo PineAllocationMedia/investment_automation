@@ -7,7 +7,7 @@ from typing import Any
 from .cache_management_engine import cache_health_summary, run_cache_maintenance
 from .csv_schema_engine import repair_safe_csv_schemas, validate_csv_schemas
 from .research_reports import BNCD_MORNINGSTAR_DIR, RESEARCH_REPORTS_DIR, research_status_rows
-from .utils import DATA_DIR
+from .utils import DATA_DIR, read_csv_records, safe_float
 from .validators import validate_input_files
 
 
@@ -37,6 +37,7 @@ def run_health_check(
     rows.extend(_schema_rows(schema_rows, repair_safe=repair_safe))
     rows.extend(_validation_rows(project_root))
     rows.extend(_research_report_rows(known_tickers or []))
+    rows.extend(walk_forward_health_rows(project_root))
     cache_rows = cache_rows if cache_rows is not None else run_cache_maintenance(repair_safe=repair_safe)
     rows.extend(_cache_rows(cache_rows))
     return rows
@@ -223,6 +224,91 @@ def _cache_rows(cache_rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
             severity,
             cache_health_summary(cache_rows),
             "Lire reports/latest_cache_health.csv." if status == "WARN" else "Aucune action.",
+        )
+    ]
+
+
+def walk_forward_health_rows(project_root: str | Path) -> list[dict[str, Any]]:
+    project_root = Path(project_root)
+    reports_dir = project_root / "reports"
+    expected = [
+        "latest_walk_forward_summary.csv",
+        "latest_walk_forward_coverage.csv",
+        "latest_walk_forward_periods.csv",
+        "latest_walk_forward_report.md",
+    ]
+    existing = [name for name in expected if (reports_dir / name).exists()]
+    if not existing:
+        return [
+            _row(
+                "walk_forward",
+                "INFO",
+                "LOW",
+                "Aucun backtest walk-forward local généré pour l’instant.",
+                "Optionnel: lancer python3 main.py walk-forward-backtest --mode high-cagr après quelques analyses espacées.",
+            )
+        ]
+
+    missing = [name for name in expected if not (reports_dir / name).exists()]
+    if missing:
+        return [
+            _row(
+                "walk_forward",
+                "WARN",
+                "MEDIUM",
+                f"Sorties walk-forward partielles; fichier(s) manquant(s): {', '.join(missing)}.",
+                "Relancer python3 main.py walk-forward-backtest --mode high-cagr.",
+            )
+        ]
+
+    summary_rows = read_csv_records(reports_dir / "latest_walk_forward_summary.csv")
+    coverage_rows = read_csv_records(reports_dir / "latest_walk_forward_coverage.csv")
+    summary = summary_rows[0] if summary_rows else {}
+    coverage = coverage_rows[0] if coverage_rows else {}
+    status = str(summary.get("status") or "").upper()
+    usable = int(safe_float(summary.get("usable_walk_forward_periods") or coverage.get("usable_walk_forward_periods")) or 0)
+    simulated = int(safe_float(summary.get("simulated_periods")) or 0)
+    regime_status = str(summary.get("regime_coverage_status") or "NO_REGIME_EVIDENCE")
+    weak_regimes = str(summary.get("weak_regimes") or "").strip()
+    price_basis = str(summary.get("price_return_basis") or "")
+
+    if status in {"NO_USABLE_PERIODS", "INSUFFICIENT_HISTORY", ""}:
+        return [
+            _row(
+                "walk_forward",
+                "INFO",
+                "LOW",
+                f"Walk-forward trop jeune: {usable} période(s) utilisable(s), {simulated} simulée(s).",
+                "Aucune action; continuer à utiliser le modèle et relancer après des analyses espacées.",
+            )
+        ]
+    if status in {"NO_SIMULATED_PERIODS", "SIMULATION_ERROR"} or price_basis == "PRICE_FETCH_FAILED":
+        return [
+            _row(
+                "walk_forward",
+                "WARN",
+                "MEDIUM",
+                f"Walk-forward présent mais non simulable proprement: status={status}, base prix={price_basis}.",
+                "Relancer avec --refresh-market-data ou vérifier les prix historiques si le problème persiste.",
+            )
+        ]
+    if weak_regimes:
+        return [
+            _row(
+                "walk_forward",
+                "WARN",
+                "LOW",
+                f"Walk-forward simulé: {simulated} période(s); régime(s) faible(s): {weak_regimes}; couverture={regime_status}.",
+                "Lire latest_walk_forward_regime_summary.csv; ne pas modifier automatiquement les règles sur ce seul signal.",
+            )
+        ]
+    return [
+        _row(
+            "walk_forward",
+            "PASS",
+            "LOW",
+            f"Walk-forward disponible: {simulated} période(s) simulée(s); couverture régimes={regime_status}.",
+            "Aucune action.",
         )
     ]
 

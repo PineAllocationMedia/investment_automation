@@ -1,0 +1,22 @@
+# Python generated files
+__pycache__/
+*.pyc
+
+# Local virtual environment
+.venv/
+
+# macOS metadata
+.DS_Store
+
+# Temporary Drive transfer folders
+.tmp.drivedownload/
+.tmp.driveupload/
+
+# Generated market data cache
+data/cached_market_data/
+
+# Generated reports and charts
+reports/
+
+# Local backups
+backups/

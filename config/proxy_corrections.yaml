@@ -1,0 +1,6 @@
+version: 1
+enabled: false
+generated_date: 2026-06-25
+max_factor_change: 0.25
+notes: Corrections de proxy validées. Laisser enabled false sauf si une correction a été confirmée par l'audit et les garde-fous.
+corrections:

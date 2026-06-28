@@ -18,6 +18,8 @@ PROFILE_CAGR_CAPS = {
 }
 QUALITY_ORDER = {"UNCERTAIN": 0, "LOW": 1, "MEDIUM": 2, "HIGH": 3, "VERY_HIGH": 4}
 QUALITY_BY_RANK = {rank: quality for quality, rank in QUALITY_ORDER.items()}
+# Module-private valuation severity labels shared by the functions below. Keep
+# them stable because downstream reports display these exact strings.
 VALUATION_OK = "VALUATION_OK"
 MODERATELY_EXPENSIVE = "MODERATELY_EXPENSIVE"
 EXPENSIVE_BUT_EXCEPTIONAL = "EXPENSIVE_BUT_EXCEPTIONAL"

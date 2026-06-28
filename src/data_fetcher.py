@@ -14,6 +14,7 @@ from .asset_type_engine import is_etf_asset
 from .benchmark_relevance_engine import COMMON_BENCHMARK_TICKERS
 from .canadian_data_fetcher import (
     RATIO_OR_GROWTH_FIELDS as CANADIAN_RATIO_OR_GROWTH_FIELDS,
+    CANADIAN_AUTHORITY_TIMEOUT_SECONDS,
     CanadianDataFetcher,
     is_canadian_market_candidate,
 )
@@ -57,7 +58,7 @@ STATEMENT_DERIVED_FIELDS = {
     "peg",
 }
 
-CACHE_SCHEMA_VERSION = 10
+CACHE_SCHEMA_VERSION = 11
 DEFAULT_RETRY_ATTEMPTS = 2
 DEFAULT_RETRY_BASE_DELAY_SECONDS = 0.35
 DEFAULT_CIRCUIT_BREAKER_FAILURE_THRESHOLD = 4
@@ -96,12 +97,14 @@ SEC_CONFIRM_OR_FILL_FIELDS = {
 }
 
 CANADIAN_CONFIRM_OR_FILL_FIELDS = SEC_CONFIRM_OR_FILL_FIELDS | SEC_BALANCE_SHEET_PRIORITY_FIELDS
+CANADIAN_CONFIRM_OR_FILL_FIELDS = CANADIAN_CONFIRM_OR_FILL_FIELDS | {"total_assets", "total_liabilities", "low_12m"}
 CANADIAN_ABSOLUTE_FIELDS = CANADIAN_CONFIRM_OR_FILL_FIELDS - CANADIAN_RATIO_OR_GROWTH_FIELDS
-CANADIAN_CONFLICT_RELATIVE_THRESHOLD = 0.35
+CANADIAN_CONFLICT_RELATIVE_THRESHOLD = 0.15
 
 MARKET_FIELDS = [
     "current_price",
     "high_12m",
+    "low_12m",
     "drawdown_from_12m_high",
     "high_8m",
     "drawdown_from_8m_high",
@@ -109,6 +112,9 @@ MARKET_FIELDS = [
     "price_above_sma_200",
     "trailing_pe",
     "forward_pe",
+    "forward_eps",
+    "trailing_eps",
+    "number_of_analyst_opinions",
     "peg",
     "profit_margins",
     "stock_return_1y",
@@ -129,9 +135,13 @@ MARKET_FIELDS = [
     "net_income",
     "revenue_growth",
     "earnings_growth",
+    "revenue_quarterly_growth",
+    "earnings_quarterly_growth",
     "gross_margins",
     "operating_margins",
     "total_debt",
+    "total_assets",
+    "total_liabilities",
     "total_cash",
     "debt_to_equity",
     "operating_cash_flow",
@@ -191,6 +201,7 @@ MARKET_FIELDS = [
     "canadian_confirmed_fields",
     "canadian_data_conflicts",
     "canadian_source_policy",
+    "canadian_source_health",
     "canadian_coverage_status",
     "canadian_latest_period",
     "canadian_checked_at",
@@ -272,7 +283,7 @@ class MarketDataFetcher:
         self.last_known_good_dir = self.cache_dir / LAST_KNOWN_GOOD_DIR_NAME
         self.last_known_good_dir.mkdir(parents=True, exist_ok=True)
         self.official_data = OfficialDataFetcher(self.cache_dir)
-        self.canadian_data = CanadianDataFetcher(self.cache_dir)
+        self.canadian_data = CanadianDataFetcher(self.cache_dir, timeout_seconds=CANADIAN_AUTHORITY_TIMEOUT_SECONDS)
 
     def fetch_all(
         self, tickers: list[str], benchmark_map: dict[str, str], refresh: bool = False
@@ -661,6 +672,9 @@ class MarketDataFetcher:
             "price_above_sma_200": bool(current_price >= sma_200) if sma_200 else None,
             "trailing_pe": safe_float(info.get("trailingPE")),
             "forward_pe": safe_float(info.get("forwardPE")),
+            "forward_eps": safe_float(info.get("forwardEps")),
+            "trailing_eps": safe_float(info.get("trailingEps")),
+            "number_of_analyst_opinions": _safe_non_negative_int(info.get("numberOfAnalystOpinions")),
             "peg": safe_float(info.get("pegRatio") or info.get("trailingPegRatio")),
             "profit_margins": safe_float(info.get("profitMargins")),
             "stock_return_1y": self._return_from_offset(closes, 252),
@@ -683,7 +697,9 @@ class MarketDataFetcher:
             "return_on_equity": safe_float(info.get("returnOnEquity")),
             "return_on_assets": safe_float(info.get("returnOnAssets")),
             "revenue_growth": safe_float(info.get("revenueGrowth")),
-            "earnings_growth": safe_float(info.get("earningsGrowth") or info.get("earningsQuarterlyGrowth")),
+            "earnings_growth": safe_float(info.get("earningsGrowth")),
+            "revenue_quarterly_growth": safe_float(info.get("revenueQuarterlyGrowth")),
+            "earnings_quarterly_growth": safe_float(info.get("earningsQuarterlyGrowth")),
             "gross_margins": safe_float(info.get("grossMargins")),
             "operating_margins": safe_float(info.get("operatingMargins")),
             "total_debt": safe_float(info.get("totalDebt")),
@@ -1100,6 +1116,8 @@ class MarketDataFetcher:
             )
 
     def _fill_from_sec_edgar(self, ticker: str, payload: dict[str, Any], notes: list[str]) -> None:
+        if is_canadian_market_candidate(ticker, payload):
+            return
         official = self.official_data.fetch_sec_fundamentals(ticker)
         if not official.get("available"):
             return
@@ -1176,16 +1194,18 @@ class MarketDataFetcher:
             company_name=str(payload.get("long_name") or ""),
         )
         payload["canadian_checked_at"] = datetime.now().isoformat(timespec="seconds")
+        payload["canadian_source_health"] = canadian.get("source_health") or payload.get("canadian_source_health") or []
         if not canadian.get("available"):
             payload["canadian_coverage_status"] = canadian.get("reason") or "NO_CANADIAN_FALLBACK_AVAILABLE"
             return
 
         used_fields: list[str] = []
         confirmed_fields: list[str] = []
-        conflicts: list[str] = []
+        conflicts: list[str] = list(canadian.get("source_conflicts") or [])
         policy_notes = [
             "Source canadienne gratuite utilisée comme secours: elle remplit surtout les champs manquants et confirme les ratios comparables.",
             "Les valeurs absolues peuvent être publiées en millions; elles ne remplacent pas une bonne donnée yfinance déjà présente.",
+            "Hiérarchie canadienne: SEDAR+ puis TMX puis StockAnalysis; les conflits numériques importants sont signalés plutôt qu'écrasés.",
         ]
 
         for field in CANADIAN_CONFIRM_OR_FILL_FIELDS:
@@ -1202,20 +1222,21 @@ class MarketDataFetcher:
             elif decision == "conflict":
                 conflicts.append(_canadian_source_conflict_text(field, current, value))
 
-        if not used_fields and not confirmed_fields and not conflicts:
-            payload["canadian_coverage_status"] = "AVAILABLE_NO_FIELD_CHANGE"
-            return
-
-        source_name = str(canadian.get("source") or "StockAnalysis Canadian financial pages")
+        source_names = canadian.get("sources") or [str(canadian.get("source") or "StockAnalysis Canadian financial pages")]
+        source_names = sorted({str(source) for source in source_names if str(source or "").strip()})
         payload["canadian_coverage_status"] = str(canadian.get("coverage_status") or "USABLE")
         payload["canadian_latest_period"] = canadian.get("latest_period")
-        payload["canadian_data_sources"] = sorted(set((payload.get("canadian_data_sources") or []) + [source_name]))
+        payload["canadian_data_sources"] = sorted(set((payload.get("canadian_data_sources") or []) + source_names))
         payload["canadian_fundamental_fields"] = sorted(set((payload.get("canadian_fundamental_fields") or []) + used_fields))
         payload["canadian_confirmed_fields"] = sorted(set((payload.get("canadian_confirmed_fields") or []) + confirmed_fields))
         payload["canadian_data_conflicts"] = sorted(set((payload.get("canadian_data_conflicts") or []) + conflicts))
         payload["canadian_source_policy"] = sorted(set((payload.get("canadian_source_policy") or []) + policy_notes))
 
-        payload["official_data_sources"] = sorted(set((payload.get("official_data_sources") or []) + [source_name]))
+        if not used_fields and not confirmed_fields and not conflicts:
+            payload["canadian_coverage_status"] = "AVAILABLE_NO_FIELD_CHANGE"
+            return
+
+        payload["official_data_sources"] = sorted(set((payload.get("official_data_sources") or []) + source_names))
         payload["official_fundamental_fields"] = sorted(set((payload.get("official_fundamental_fields") or []) + used_fields))
         payload["official_confirmed_fields"] = sorted(set((payload.get("official_confirmed_fields") or []) + confirmed_fields))
         payload["official_data_conflicts"] = sorted(set((payload.get("official_data_conflicts") or []) + conflicts))
@@ -1227,6 +1248,8 @@ class MarketDataFetcher:
             notes.append(f"source canadienne gratuite confirme: {', '.join(sorted(set(confirmed_fields)))}")
         if conflicts:
             notes.append("source canadienne gratuite conflit: yfinance conservé pour certains champs comparables")
+        if source_names:
+            notes.append("sources canadiennes consultees: " + ", ".join(source_names))
 
     def _fill_from_fund_price_fallback(self, ticker: str, payload: dict[str, Any]) -> None:
         if payload.get("current_price") is not None:
@@ -1678,6 +1701,13 @@ def first_number(*values: Any) -> float | None:
         if number is not None:
             return number
     return None
+
+
+def _safe_non_negative_int(value: Any) -> int:
+    number = safe_float(value)
+    if number is None or number < 0:
+        return 0
+    return int(number)
 
 
 def set_if_missing(

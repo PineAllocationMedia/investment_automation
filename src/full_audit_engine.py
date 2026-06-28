@@ -15,6 +15,7 @@ from .ticker_source_audit_engine import (
 )
 from .underperformance_engine import UNDERPERFORMANCE_COLUMNS, build_underperformance_attribution
 from .utils import DATA_DIR, DISCLAIMER, REPORTS_DIR, markdown_to_html, money, pct, read_csv_records, safe_float, write_csv_records, write_text
+from .walk_forward_backtest_engine import run_walk_forward_backtest
 
 
 FULL_AUDIT_COLUMNS = [
@@ -73,10 +74,24 @@ def run_full_audit(
     except Exception as exc:  # pragma: no cover - exercised through CLI in real use
         backtest_error = str(exc)
 
+    walk_forward_result: dict[str, Any] = {}
+    walk_forward_error = ""
+    try:
+        walk_forward_result = run_walk_forward_backtest(
+            reports_dir=reports_dir,
+            data_dir=data_dir,
+            mode=mode,
+            refresh_market_data=refresh_market_data,
+        )
+    except Exception as exc:  # pragma: no cover - exercised through CLI in real use
+        walk_forward_error = str(exc)
+
     metrics = build_full_audit_metrics(
         model_audit=model_audit,
         backtest_result=backtest_result,
         backtest_error=backtest_error,
+        walk_forward_result=walk_forward_result,
+        walk_forward_error=walk_forward_error,
         account_performance_rows=account_performance_rows,
         contribution_estimate=contribution,
         selected_monthly_capital=selected_monthly_capital,
@@ -92,6 +107,7 @@ def run_full_audit(
         rows,
         model_audit,
         backtest_result,
+        walk_forward_result,
         account_performance_rows,
         source_health_rows,
         ticker_source_context,
@@ -102,6 +118,7 @@ def run_full_audit(
         "markdown": markdown,
         "model_audit": model_audit,
         "backtest_result": backtest_result,
+        "walk_forward_result": walk_forward_result,
         "account_performance_rows": account_performance_rows,
         "source_health_rows": source_health_rows,
         "ticker_source_context": ticker_source_context,
@@ -167,6 +184,8 @@ def build_full_audit_metrics(
     model_audit: dict[str, Any],
     backtest_result: dict[str, Any],
     backtest_error: str,
+    walk_forward_result: dict[str, Any] | None = None,
+    walk_forward_error: str = "",
     account_performance_rows: list[dict[str, Any]],
     contribution_estimate: dict[str, Any],
     selected_monthly_capital: float,
@@ -178,10 +197,14 @@ def build_full_audit_metrics(
 ) -> dict[str, Any]:
     model_metrics = model_audit.get("metrics") or {}
     backtest_summaries = backtest_result.get("summaries") or []
+    walk_forward_result = walk_forward_result or {}
+    walk_forward_summary = walk_forward_result.get("summary") or {}
+    walk_forward_periods = walk_forward_result.get("period_rows") or []
     account_summary = _account_performance_summary(account_performance_rows)
 
     model_score = safe_float(model_metrics.get("health_score")) or 0.0
     backtest_score = _backtest_score(backtest_summaries, backtest_error)
+    walk_forward_score = _walk_forward_score(walk_forward_summary, walk_forward_error)
     realized_score = _realized_performance_score(account_summary)
     source_health = source_health_audit_context(source_health_rows or [])
     ticker_source_context = ticker_source_context or build_ticker_source_audit_context()
@@ -192,6 +215,7 @@ def build_full_audit_metrics(
         contribution_estimate,
         source_health,
         ticker_source_context,
+        walk_forward_summary,
     )
     underperformance = build_underperformance_attribution(
         model_metrics=model_metrics,
@@ -200,7 +224,7 @@ def build_full_audit_metrics(
         mode=mode,
     )
     criterion7_score = round(
-        0.30 * model_score + 0.30 * backtest_score + 0.20 * realized_score + 0.20 * evidence_score,
+        0.28 * model_score + 0.25 * backtest_score + 0.12 * walk_forward_score + 0.20 * realized_score + 0.15 * evidence_score,
         1,
     )
     criterion7_status = _criterion7_status(criterion7_score, model_metrics, backtest_error)
@@ -228,6 +252,11 @@ def build_full_audit_metrics(
         "backtest_score": backtest_score,
         "backtest_error": backtest_error,
         "backtest_summaries": backtest_summaries,
+        "walk_forward_status": "UNAVAILABLE" if walk_forward_error else _walk_forward_audit_status(walk_forward_summary),
+        "walk_forward_score": walk_forward_score,
+        "walk_forward_error": walk_forward_error,
+        "walk_forward_summary": walk_forward_summary,
+        "walk_forward_periods": walk_forward_periods,
         "realized_performance_status": account_summary.get("status", "UNAVAILABLE"),
         "realized_performance_score": realized_score,
         "account_summary": account_summary,
@@ -318,6 +347,14 @@ def build_full_audit_rows(metrics: dict[str, Any]) -> list[dict[str, Any]]:
             "Teste la mécanique avec des prix historiques gratuits, sans prétendre prédire l’avenir.",
         ),
         _row(
+            "Backtest",
+            "Walk-forward hors-échantillon",
+            metrics.get("walk_forward_status", "N/D"),
+            f"{safe_float(metrics.get('walk_forward_score')) or 0:.1f}/100",
+            _walk_forward_interpretation(metrics),
+            "Teste les recommandations réellement produites dans le passé jusqu’à l’analyse suivante disponible.",
+        ),
+        _row(
             "Performance réelle",
             "Portefeuille vs S&P 500 local",
             metrics.get("realized_performance_status", "UNAVAILABLE"),
@@ -366,12 +403,15 @@ def build_full_audit_markdown(
     rows: list[dict[str, Any]],
     model_audit: dict[str, Any],
     backtest_result: dict[str, Any],
+    walk_forward_result: dict[str, Any],
     account_performance_rows: list[dict[str, Any]],
     source_health_rows: list[dict[str, Any]] | None = None,
     ticker_source_context: dict[str, Any] | None = None,
 ) -> str:
     model_metrics = model_audit.get("metrics") or {}
     backtest_summaries = backtest_result.get("summaries") or []
+    walk_forward_summary = (walk_forward_result or {}).get("summary") or metrics.get("walk_forward_summary") or {}
+    walk_forward_periods = (walk_forward_result or {}).get("period_rows") or metrics.get("walk_forward_periods") or []
     threshold = model_metrics.get("threshold_review") or {}
     underperformance = metrics.get("underperformance_attribution") or {}
     ticker_source_context = ticker_source_context or metrics.get("ticker_source_quality") or {}
@@ -391,6 +431,7 @@ def build_full_audit_markdown(
         f"- Statut critère 7: **{metrics.get('criterion7_status')}** ({metrics.get('criterion7_score'):.1f}/100)",
         f"- Santé du modèle: **{metrics.get('model_health_status')}** ({metrics.get('model_health_score'):.1f}/100)",
         f"- Backtest: **{metrics.get('backtest_status')}** ({metrics.get('backtest_score'):.1f}/100)",
+        f"- Walk-forward: **{metrics.get('walk_forward_status')}** ({metrics.get('walk_forward_score'):.1f}/100)",
         f"- Performance réelle suivie: **{metrics.get('realized_performance_status')}** ({metrics.get('realized_performance_score'):.1f}/100)",
         f"- Santé des sources: **{metrics.get('source_health_status', 'UNKNOWN')}** ({safe_float(metrics.get('source_health_score')) or 0:.1f}/100)",
         f"- Qualité tickers/sources: **{metrics.get('ticker_source_quality_status', 'UNKNOWN')}** ({safe_float(metrics.get('ticker_source_quality_score')) or 0:.1f}/100)",
@@ -430,6 +471,36 @@ def build_full_audit_markdown(
             "money_weighted_annual_return",
             "max_drawdown_on_capital_multiple",
             "avg_vfv_allocation",
+        ]),
+        "",
+        "## Backtest walk-forward",
+        "",
+        "- Cette partie utilise les anciennes recommandations réellement produites et mesure ce qui s’est passé jusqu’à l’analyse suivante disponible.",
+        "- Si l’historique est trop rapproché, elle reste neutre et ne pénalise pas le modèle.",
+        "",
+        _markdown_table(_display_walk_forward_summary(walk_forward_summary), [
+            "status",
+            "simulated_periods",
+            "usable_walk_forward_periods",
+            "regime_coverage_status",
+            "regime_count",
+            "weak_regimes",
+            "avg_excess_return_vs_vfv",
+            "win_rate_vs_vfv",
+            "compounded_excess_return_vs_vfv",
+            "price_return_basis",
+            "interpretation",
+        ]),
+        "",
+        _markdown_table(_display_walk_forward_periods(walk_forward_periods), [
+            "analysis_date",
+            "next_analysis_date",
+            "days_held",
+            "allocated_tickers",
+            "strategy_period_return",
+            "vfv_period_return",
+            "excess_return_vs_vfv",
+            "evaluation_status",
         ]),
         "",
         "## Performance réelle du portefeuille",
@@ -649,6 +720,75 @@ def _backtest_status(summaries: list[dict[str, Any]]) -> str:
     return "THEORETICAL_WEAK"
 
 
+def _walk_forward_score(summary: dict[str, Any], error: str) -> float:
+    if error:
+        return 45.0
+    status = str(summary.get("status") or "")
+    simulated = int(safe_float(summary.get("simulated_periods")) or 0)
+    if status in {"", "NO_USABLE_PERIODS", "NO_SIMULATED_PERIODS"} or simulated <= 0:
+        return 60.0
+    score = 62.0
+    excess = safe_float(summary.get("compounded_excess_return_vs_vfv"))
+    avg_excess = safe_float(summary.get("avg_excess_return_vs_vfv"))
+    win_rate = safe_float(summary.get("win_rate_vs_vfv"))
+    if excess is not None:
+        if excess >= 0.05:
+            score += 12
+        elif excess >= 0:
+            score += 6
+        elif excess <= -0.08:
+            score -= 12
+        elif excess < -0.02:
+            score -= 6
+    if avg_excess is not None:
+        score += 4 if avg_excess > 0 else -4 if avg_excess < -0.02 else 0
+    if win_rate is not None:
+        if win_rate >= 0.60:
+            score += 5
+        elif win_rate <= 0.35:
+            score -= 5
+    if status in {"EARLY_SIGNAL_ONLY", "PRELIMINARY_WALK_FORWARD"}:
+        score = 60.0 + (score - 60.0) * 0.50
+    return round(max(0.0, min(100.0, score)), 1)
+
+
+def _walk_forward_audit_status(summary: dict[str, Any]) -> str:
+    status = str(summary.get("status") or "")
+    if status in {"", "NO_USABLE_PERIODS"}:
+        return "WALK_FORWARD_NOT_READY"
+    if status == "NO_SIMULATED_PERIODS":
+        return "WALK_FORWARD_DATA_GAP"
+    if status == "EARLY_SIGNAL_ONLY":
+        return "WALK_FORWARD_EARLY"
+    if status == "PRELIMINARY_WALK_FORWARD":
+        return "WALK_FORWARD_PRELIMINARY"
+    if status == "READY_FOR_WALK_FORWARD_REVIEW":
+        score = _walk_forward_score(summary, "")
+        if score >= 72:
+            return "WALK_FORWARD_SUPPORTIVE"
+        if score >= 55:
+            return "WALK_FORWARD_MIXED"
+        return "WALK_FORWARD_WEAK"
+    return status or "WALK_FORWARD_UNKNOWN"
+
+
+def _walk_forward_interpretation(metrics: dict[str, Any]) -> str:
+    if metrics.get("walk_forward_error"):
+        return f"Walk-forward non disponible: {metrics.get('walk_forward_error')}"
+    summary = metrics.get("walk_forward_summary") or {}
+    status = str(summary.get("status") or "")
+    if status in {"", "NO_USABLE_PERIODS"}:
+        return "Pas encore assez d’analyses espacées pour tester les recommandations hors-échantillon."
+    if status == "NO_SIMULATED_PERIODS":
+        return "Des périodes existent, mais les prix historiques ne permettent pas encore un calcul propre."
+    simulated = int(safe_float(summary.get("simulated_periods")) or 0)
+    excess = safe_float(summary.get("compounded_excess_return_vs_vfv"))
+    return (
+        f"{simulated} période(s) simulée(s); excès composé vs VFV: {pct(excess, 2)}. "
+        "À lire comme preuve complémentaire, surtout si l’historique devient long."
+    )
+
+
 def _realized_performance_score(summary: dict[str, Any]) -> float:
     status = str(summary.get("status") or "")
     excess = (
@@ -681,6 +821,7 @@ def _evidence_score(
     contribution: dict[str, Any],
     source_health: dict[str, Any] | None = None,
     ticker_source_context: dict[str, Any] | None = None,
+    walk_forward_summary: dict[str, Any] | None = None,
 ) -> float:
     confidence_points = {
         "VERY_LIMITED": 30,
@@ -700,15 +841,19 @@ def _evidence_score(
         "REPRESENTATIVE": 85,
     }.get(contribution_conf, 45)
     backtest_points = 75 if backtest_summaries else 35
+    walk_forward_summary = walk_forward_summary or {}
+    walk_forward_status = str(walk_forward_summary.get("status") or "")
+    walk_forward_points = 60 if walk_forward_status in {"", "NO_USABLE_PERIODS", "NO_SIMULATED_PERIODS"} else _walk_forward_score(walk_forward_summary, "")
     real_points = 70 if account_summary.get("status") not in {"UNAVAILABLE", ""} else 35
     source_health = source_health or {}
     source_points = safe_float(source_health.get("source_health_score"))
     if source_points is None:
         source_points = 60.0
     base = (
-        0.35 * confidence_points.get(model_conf, 45)
+        0.32 * confidence_points.get(model_conf, 45)
         + 0.20 * contribution_points
-        + 0.25 * backtest_points
+        + 0.20 * backtest_points
+        + 0.08 * walk_forward_points
         + 0.20 * real_points
     )
     # Source health is deliberately capped to a small adjustment so a temporary
@@ -781,6 +926,44 @@ def _display_backtest_summaries(rows: list[dict[str, Any]]) -> list[dict[str, An
                 "money_weighted_annual_return": pct(safe_float(row.get("money_weighted_annual_return")), 2),
                 "max_drawdown_on_capital_multiple": pct(safe_float(row.get("max_drawdown_on_capital_multiple")), 1),
                 "avg_vfv_allocation": pct(safe_float(row.get("avg_vfv_allocation")), 1),
+            }
+        )
+    return output
+
+
+def _display_walk_forward_summary(row: dict[str, Any]) -> list[dict[str, Any]]:
+    if not row:
+        return [
+            {
+                "status": "NO_DATA",
+                "simulated_periods": 0,
+                "usable_walk_forward_periods": 0,
+                "avg_excess_return_vs_vfv": "N/D",
+                "win_rate_vs_vfv": "N/D",
+                "compounded_excess_return_vs_vfv": "N/D",
+                "price_return_basis": "",
+                "interpretation": "Aucun résumé walk-forward disponible.",
+            }
+        ]
+    return [
+        {
+            **row,
+            "avg_excess_return_vs_vfv": pct(safe_float(row.get("avg_excess_return_vs_vfv")), 2),
+            "win_rate_vs_vfv": pct(safe_float(row.get("win_rate_vs_vfv")), 1),
+            "compounded_excess_return_vs_vfv": pct(safe_float(row.get("compounded_excess_return_vs_vfv")), 2),
+        }
+    ]
+
+
+def _display_walk_forward_periods(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    output = []
+    for row in rows:
+        output.append(
+            {
+                **row,
+                "strategy_period_return": pct(safe_float(row.get("strategy_period_return")), 2),
+                "vfv_period_return": pct(safe_float(row.get("vfv_period_return")), 2),
+                "excess_return_vs_vfv": pct(safe_float(row.get("excess_return_vs_vfv")), 2),
             }
         )
     return output

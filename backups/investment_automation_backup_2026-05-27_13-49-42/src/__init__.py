@@ -1,1 +1,0 @@
-"""Local investment automation package."""

@@ -7,6 +7,7 @@ from typing import Any
 
 import requests
 
+from .canadian_data_fetcher import CanadianDataFetcher, canadian_ticker_metadata
 from .utils import CACHE_DIR, load_json, safe_float, save_json
 
 
@@ -140,6 +141,11 @@ class OfficialDataFetcher:
         }
 
     def fetch_sec_fundamentals(self, ticker: str, refresh: bool = False) -> dict[str, Any]:
+        if canadian_ticker_metadata(ticker):
+            return CanadianDataFetcher(
+                self.cache_dir.parent,
+                timeout_seconds=10,
+            ).fetch_fundamentals(ticker, refresh=refresh)
         if not is_sec_supported_ticker(ticker):
             return {"available": False, "reason": "Ticker non couvert par SEC EDGAR companyfacts."}
         normalized = normalize_sec_ticker(ticker)

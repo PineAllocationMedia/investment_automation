@@ -1,6 +1,10 @@
 import unittest
 
-from src.auto_fundamentals import build_automated_manual_inputs, merge_automated_with_manual_overrides
+from src.auto_fundamentals import (
+    build_automated_manual_inputs,
+    compute_forward_eps_growth,
+    merge_automated_with_manual_overrides,
+)
 
 
 class AutoFundamentalsTest(unittest.TestCase):
@@ -29,6 +33,82 @@ class AutoFundamentalsTest(unittest.TestCase):
         self.assertTrue(manual["valuation_vs_5y_avg_ok"])
         self.assertIn("fair_value", manual["auto_estimated_fields"])
 
+    def test_forward_eps_growth_uses_analyst_count_confidence(self):
+        high = compute_forward_eps_growth(6.0, 5.0, 12)
+        low = compute_forward_eps_growth(6.0, 5.0, 2)
+        none = compute_forward_eps_growth(6.0, 5.0, 0)
+
+        self.assertAlmostEqual(high["forward_eps_growth_direct"], 0.20)
+        self.assertEqual(high["forward_eps_growth_confidence"], "HIGH")
+        self.assertEqual(low["forward_eps_growth_confidence"], "LOW")
+        self.assertIsNone(none["forward_eps_growth_direct"])
+        self.assertEqual(none["forward_eps_growth_confidence"], "NONE")
+
+    def test_forward_eps_growth_blends_with_existing_proxy_without_replacing_long_term_anchor(self):
+        manual = build_automated_manual_inputs(
+            "MSFT",
+            {
+                "current_price": 100,
+                "forward_pe": 25,
+                "trailing_pe": 28,
+                "forward_eps": 6.0,
+                "trailing_eps": 5.0,
+                "number_of_analyst_opinions": 12,
+                "profit_margins": 0.22,
+                "return_on_assets": 0.15,
+                "revenue_growth": 0.10,
+                "earnings_growth": 0.12,
+                "stock_cagr_5y": 0.12,
+                "market_cap": 2_000_000_000_000,
+                "sma_200": 90,
+            },
+            {"benchmark_10y_cagr": 0.08},
+        )
+
+        self.assertEqual(manual["forward_eps_growth_confidence"], "HIGH")
+        self.assertEqual(manual["data_source_forward"], "yfinance_forward_eps")
+        self.assertGreater(manual["eps_growth_estimated_3_5y"], 10)
+        self.assertLess(manual["eps_growth_estimated_3_5y"], 20)
+
+    def test_etf_is_excluded_from_forward_eps_growth_logic(self):
+        manual = build_automated_manual_inputs(
+            "VFV.TO",
+            {
+                "quote_type": "ETF",
+                "forward_eps": 6.0,
+                "trailing_eps": 5.0,
+                "number_of_analyst_opinions": 12,
+                "stock_cagr_5y": 0.10,
+                "current_price": 100,
+                "sma_200": 95,
+            },
+            {"benchmark_10y_cagr": 0.08},
+        )
+
+        self.assertEqual(manual["forward_eps_growth_confidence"], "NONE")
+        self.assertEqual(manual["data_source_forward"], "proxy")
+
+    def test_negative_quarterly_growth_flags_early_deterioration_without_margin_pressure(self):
+        manual = build_automated_manual_inputs(
+            "MSFT",
+            {
+                "current_price": 100,
+                "forward_pe": 25,
+                "profit_margins": 0.22,
+                "return_on_assets": 0.15,
+                "revenue_growth": 0.10,
+                "earnings_growth": 0.12,
+                "earnings_quarterly_growth": -0.05,
+                "stock_cagr_5y": 0.12,
+                "market_cap": 2_000_000_000_000,
+                "sma_200": 90,
+            },
+            {"benchmark_10y_cagr": 0.08},
+        )
+
+        self.assertTrue(manual["early_deterioration_signal"])
+        self.assertFalse(manual["margin_or_profitability_under_pressure"])
+
     def test_manual_override_wins_over_automatic_estimate(self):
         automated = build_automated_manual_inputs(
             "MSFT",
@@ -54,6 +134,40 @@ class AutoFundamentalsTest(unittest.TestCase):
         self.assertFalse(merged["moat_clear"])
         self.assertIn("moat_clear", merged["manual_override_fields"])
         self.assertNotIn("moat_clear", merged["auto_estimated_fields"])
+
+    def test_manual_override_removes_proxy_correction_trace_for_confirmed_field(self):
+        automated = build_automated_manual_inputs(
+            "MSFT",
+            {
+                "current_price": 100,
+                "forward_pe": 25,
+                "profit_margins": 0.20,
+                "return_on_assets": 0.15,
+                "market_cap": 200_000_000_000,
+                "sma_200": 90,
+            },
+            {"benchmark_10y_cagr": 0.08},
+            proxy_corrections={
+                "active_corrections": {
+                    "roic_5y_avg": {
+                        "factor": 1.10,
+                        "confidence": "HIGH",
+                        "sample_count": 8,
+                    }
+                }
+            },
+        )
+        manual_override = {
+            "ticker": "MSFT",
+            "roic_5y_avg": 22,
+            "manual_override_fields": ["roic_5y_avg"],
+        }
+
+        merged = merge_automated_with_manual_overrides(automated, manual_override)
+
+        self.assertEqual(merged["roic_5y_avg"], 22)
+        self.assertNotIn("roic_5y_avg", merged["proxy_correction_fields"])
+        self.assertEqual(merged["proxy_correction_status"], "NONE")
 
     def test_sec_official_fields_support_related_automatic_proxies(self):
         manual = build_automated_manual_inputs(
@@ -100,6 +214,39 @@ class AutoFundamentalsTest(unittest.TestCase):
 
         self.assertLess(manual["roic_5y_avg"], 35)
         self.assertGreater(manual["roic_5y_avg"], 20)
+
+    def test_active_proxy_correction_is_visible_and_bounded_to_auto_field(self):
+        base_market = {
+            "current_price": 100,
+            "forward_pe": 25,
+            "profit_margins": 0.38,
+            "return_on_assets": 0.146,
+            "revenue_growth": 0.22,
+            "earnings_growth": 0.40,
+            "market_cap": 2_000_000_000_000,
+            "sma_200": 90,
+        }
+        baseline = build_automated_manual_inputs("GOOGL", base_market, {"benchmark_10y_cagr": 0.08})
+        corrected = build_automated_manual_inputs(
+            "GOOGL",
+            base_market,
+            {"benchmark_10y_cagr": 0.08},
+            proxy_corrections={
+                "active_corrections": {
+                    "roic_5y_avg": {
+                        "factor": 1.10,
+                        "confidence": "HIGH",
+                        "sample_count": 8,
+                        "last_updated": "2026-06-25",
+                    }
+                }
+            },
+        )
+
+        self.assertAlmostEqual(corrected["roic_5y_avg"], round(baseline["roic_5y_avg"] * 1.10, 3))
+        self.assertEqual(corrected["proxy_correction_status"], "ACTIVE")
+        self.assertIn("roic_5y_avg", corrected["proxy_correction_fields"])
+        self.assertTrue(any("correction proxy active" in note for note in corrected["auto_source_notes"]))
 
     def test_recalibrated_future_growth_caps_recent_earnings_spike(self):
         manual = build_automated_manual_inputs(

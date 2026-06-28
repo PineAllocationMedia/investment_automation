@@ -1,6 +1,0 @@
-metric,status,value,interpretation,impact
-Régime de marché,BUBBLE_RISK,70.2,Un thème de croissance/tech/semi semble très dominant; le modèle limite modérément la surexposition au thème chaud.,Contexte de sizing seulement; ne déclenche jamais une vente ou du cash volontaire.
-Signaux principaux,INFO,tech/IA/semi surperforme le marché large sur 6 mois (49.8 %); semi-conducteurs très forts sur 6 mois (124.1 %); semi-conducteurs très forts sur 1 an (183.2 %); VIX bas (17.0) pendant leadership de croissance,Lecture basée sur ETF/indices gratuits et données yfinance.,Aide à réduire les allocations trop concentrées dans un thème de marché extrême.
-Euphorie sectorielle,ACTIVE,96.0,"Secteurs dominants: semiconductors (96.0/100), technology (93.7/100)","Impact séparé, léger et plafonné sur les titres directement exposés seulement."
-Garde-fou anti-surcorrection,ACTIVE,impact plafonné,"Le régime ne remplace pas les fondamentaux, la thèse, la valorisation ou VFV.",Protège le profil long terme contre le market timing macro.
-Sources gratuites suivies,YFINANCE_PROXY,"FBTC, GLD, ITA, IWM, KRE, QQQ, SOXX, SPY, TLT, URA, UUP, VFV.TO, XBI, XLB, XLC, XLE, XLF, XLI, XLK, XLP, XLRE, XLU, XLV, XLY, ^TNX, ^VIX",ETF/indices utilisés comme proxys de climat de marché.,"Sources gratuites imparfaites, mais répétables et compatibles avec un agent local."

@@ -1,7 +1,0 @@
-file,status,severity,details,backup_path,action_taken
-/Users/jordansoucy/Documents/Codex/2026-04-28/tu-es-un-d-veloppeur-python/investment_automation/data/portfolio.csv,PASS,LOW,Aucune réparation nécessaire.,,Aucune action.
-/Users/jordansoucy/Documents/Codex/2026-04-28/tu-es-un-d-veloppeur-python/investment_automation/data/portfolio_transactions.csv,PASS,LOW,Aucune réparation nécessaire.,,Aucune action.
-/Users/jordansoucy/Documents/Codex/2026-04-28/tu-es-un-d-veloppeur-python/investment_automation/data/watchlist.csv,PASS,LOW,Aucune réparation nécessaire.,,Aucune action.
-/Users/jordansoucy/Documents/Codex/2026-04-28/tu-es-un-d-veloppeur-python/investment_automation/data/market_universe.csv,PASS,LOW,Aucune réparation nécessaire.,,Aucune action.
-/Users/jordansoucy/Documents/Codex/2026-04-28/tu-es-un-d-veloppeur-python/investment_automation/data/research_reports/research_index.csv,PASS,LOW,Aucune réparation nécessaire.,,Aucune action.
-/Users/jordansoucy/Documents/Codex/2026-04-28/tu-es-un-d-veloppeur-python/investment_automation/data/proxy_calibration.csv,PASS,LOW,Aucune réparation nécessaire.,,Aucune action.

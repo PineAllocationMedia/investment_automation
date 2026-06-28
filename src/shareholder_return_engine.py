@@ -6,7 +6,14 @@ from .utils import clamp, safe_float
 
 
 def compute_shareholder_return_quality(analysis: dict[str, Any]) -> dict[str, Any]:
-    dividend_yield = _yield_percent(analysis.get("dividend_yield"))
+    adjusted_yield = analysis.get("after_tax_yield_adjusted")
+    adjusted_number = safe_float(adjusted_yield)
+    gross_number = safe_float(analysis.get("dividend_yield"))
+    if adjusted_number is None or (gross_number is not None and gross_number > 0 and adjusted_number == 0):
+        adjusted_yield = analysis.get("dividend_yield")
+    dividend_yield = _yield_percent(adjusted_yield)
+    gross_dividend_yield = _yield_percent(analysis.get("dividend_yield"))
+    tax_note = str(analysis.get("tax_adjustment_note") or "").strip()
     payout_ratio = _ratio_decimal(analysis.get("payout_ratio"))
     debt_to_equity = _debt_to_equity_percent(analysis.get("debt_to_equity"))
     growth = _best_growth_percent(analysis)
@@ -88,6 +95,8 @@ def compute_shareholder_return_quality(analysis: dict[str, Any]) -> dict[str, An
     if analysis.get("quality_but_too_expensive") is True:
         adjustment = min(adjustment, 0.5)
         reason += " Valorisation exigeante: le rendement total ne justifie pas un gros bonus."
+    if tax_note and gross_dividend_yield is not None:
+        reason += f" Rendement utilisé: after-tax est. (approx.) {dividend_yield or 0:.2f}% vs brut {gross_dividend_yield:.2f}%. {tax_note}"
 
     return {
         "shareholder_return_quality_score": round(clamp(score, 0, 100), 2),

@@ -323,6 +323,7 @@ def merge_research_with_automated(
     merged["auto_estimated_fields"] = [
         field for field in merged.get("auto_estimated_fields", []) if field not in set(applied)
     ]
+    _remove_proxy_corrections_for_fields(merged, applied)
     for key in ("official_supported_manual_fields", "official_confirmed_manual_fields"):
         merged[key] = [field for field in merged.get(key, []) if field not in set(applied)]
     merged["input_data_mode"] = "AUTO_WITH_RESEARCH_REPORT" if applied else automated.get("input_data_mode", "AUTO_ESTIMATED")
@@ -330,6 +331,18 @@ def merge_research_with_automated(
         merged["manual_confidence_level"] = research.get("manual_confidence_level") or merged.get("manual_confidence_level")
         merged["notes"] = research.get("notes") or merged.get("notes", "")
     return merged
+
+
+def _remove_proxy_corrections_for_fields(payload: dict[str, Any], confirmed_fields: list[str]) -> None:
+    removed = set(confirmed_fields)
+    if not removed:
+        return
+    corrections = [
+        row for row in payload.get("proxy_corrections_applied", []) if str(row.get("field") or "") not in removed
+    ]
+    payload["proxy_corrections_applied"] = corrections
+    payload["proxy_correction_fields"] = sorted({row.get("field") for row in corrections if row.get("field")})
+    payload["proxy_correction_status"] = "ACTIVE" if corrections else "NONE"
 
 
 def research_needed_rows_from_reports(reports_dir: str | Path = REPORTS_DIR) -> list[dict[str, Any]]:

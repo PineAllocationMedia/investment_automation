@@ -148,6 +148,12 @@ class ResearchReportsTest(unittest.TestCase):
             "moat_clear": None,
             "auto_estimated_fields": ["fair_value", "moat_clear"],
             "input_data_mode": "AUTO_ESTIMATED",
+            "proxy_corrections_applied": [
+                {"field": "fair_value", "factor": 1.10},
+                {"field": "roic_5y_avg", "factor": 1.08},
+            ],
+            "proxy_correction_fields": ["fair_value", "roic_5y_avg"],
+            "proxy_correction_status": "ACTIVE",
         }
         research = {
             "ticker": "CSU.TO",
@@ -163,6 +169,8 @@ class ResearchReportsTest(unittest.TestCase):
         self.assertEqual(merged["fair_value"], 5200)
         self.assertTrue(merged["moat_clear"])
         self.assertEqual(merged["auto_estimated_fields"], [])
+        self.assertEqual(merged["proxy_correction_fields"], ["roic_5y_avg"])
+        self.assertEqual(merged["proxy_correction_status"], "ACTIVE")
         self.assertEqual(merged["input_data_mode"], "AUTO_WITH_RESEARCH_REPORT")
 
     def test_load_research_report_inputs_infers_ticker_from_filename(self):

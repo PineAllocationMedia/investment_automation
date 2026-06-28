@@ -92,10 +92,10 @@ def compute_conviction_score(
     missing_count = int(score.get("score_missing_data_count") or 0)
     if missing_count:
         add(-5 * missing_count, f"{missing_count} donnée(s) critique(s) manquante(s)")
-    if peg is not None and peg > peg_limit + 0.5:
-        add(-8, f"PEG > limite profil + 0.5 ({peg_limit + 0.5:.1f})")
     if peg is not None and peg > peg_limit + 1.0:
         add(-12, f"PEG > limite profil + 1.0 ({peg_limit + 1.0:.1f})")
+    elif peg is not None and peg > peg_limit + 0.5:
+        add(-8, f"PEG > limite profil + 0.5 ({peg_limit + 0.5:.1f})")
     if price_to_fair_value is not None and price_to_fair_value > 1.40:
         add(-8, "prix / juste valeur > 1.40")
     if market.get("price_above_sma_200") is False:

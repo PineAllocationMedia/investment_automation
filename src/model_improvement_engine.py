@@ -32,6 +32,15 @@ from .ticker_source_audit_engine import (
     build_ticker_source_audit_context,
     ticker_source_audit_rows,
 )
+from .proxy_bias_engine import actionable_proxy_bias_rows
+from .proxy_correction_engine import (
+    PROXY_CORRECTION_AUDIT_COLUMNS,
+    PROXY_CORRECTION_PARAMETER_PREFIX,
+    apply_proxy_correction_suggestion,
+    proxy_correction_audit_requires_review,
+    proxy_correction_audit_summary,
+    proxy_correction_field_from_parameter,
+)
 from .underperformance_engine import (
     UNDERPERFORMANCE_COLUMNS,
     build_underperformance_attribution,
@@ -57,6 +66,12 @@ IMPROVEMENT_COLUMNS = [
     "risk",
     "guardrail",
     "correction_governor",
+    "proxy_correction_field",
+    "proxy_correction_factor",
+    "proxy_correction_confidence",
+    "proxy_correction_sample_count",
+    "proxy_correction_mean_error_pct",
+    "proxy_correction_std_error_pct",
     *ANTI_OVERFITTING_FIELDS,
 ]
 
@@ -77,6 +92,9 @@ IMPROVEMENT_SUMMARY_COLUMNS = [
     "overfit_gate_pass_count",
     "overfit_gate_review_count",
     "overfit_gate_interpretation",
+    "walk_forward_status",
+    "walk_forward_simulated_periods",
+    "walk_forward_usable_periods",
     "source_health_status",
     "source_health_score",
     "source_health_auto_tuning_gate",
@@ -142,6 +160,8 @@ def run_improvement_audit(
     model_audit = build_model_audit(reports_dir, period=period, mode=mode)
     tuning = load_model_tuning(config_dir / "model_tuning.yaml")
     proxy_summary_rows = read_csv_records(reports_dir / "latest_proxy_calibration_summary.csv")
+    proxy_bias_rows = read_csv_records(reports_dir / "latest_proxy_bias_report.csv")
+    proxy_correction_audit_rows = read_csv_records(reports_dir / "latest_proxy_correction_audit.csv")
     source_health_rows = read_csv_records(reports_dir / "latest_source_health.csv")
     source_health_context = source_health_audit_context(source_health_rows)
     ticker_source_context = build_ticker_source_audit_context(
@@ -152,11 +172,18 @@ def run_improvement_audit(
     settings = tuning.get("safe_auto_apply") or {}
     backtest_summary_rows = read_csv_records(reports_dir / "latest_backtest_summary.csv")
     backtest_monthly_rows = read_csv_records(reports_dir / "latest_backtest_monthly.csv")
+    walk_forward_summary_rows = read_csv_records(reports_dir / "latest_walk_forward_summary.csv")
+    walk_forward_period_rows = read_csv_records(reports_dir / "latest_walk_forward_periods.csv")
     overfit_context = build_anti_overfitting_context(
         model_metrics=model_audit.get("metrics") or {},
         backtest_summary_rows=backtest_summary_rows,
         backtest_monthly_rows=backtest_monthly_rows,
-        tuning_history_rows=read_csv_records(data_dir / "model_tuning_history.csv"),
+        walk_forward_summary_rows=walk_forward_summary_rows,
+        walk_forward_period_rows=walk_forward_period_rows,
+        tuning_history_rows=[
+            *read_csv_records(data_dir / "model_tuning_history.csv"),
+            *read_csv_records(data_dir / "proxy_correction_history.csv"),
+        ],
         mode=mode,
         settings=settings,
     )
@@ -175,6 +202,8 @@ def run_improvement_audit(
         overfit_context,
         source_health_context,
         ticker_source_context,
+        proxy_bias_rows=proxy_bias_rows,
+        proxy_correction_audit_rows=proxy_correction_audit_rows,
     )
     summary = build_improvement_summary(
         model_audit,
@@ -195,6 +224,7 @@ def run_improvement_audit(
         source_health_context,
         source_health_rows,
         ticker_source_context,
+        proxy_correction_audit_rows,
     )
     write_improvement_outputs(reports_dir, summary, suggestions, markdown, underperformance)
     return {
@@ -218,6 +248,8 @@ def build_improvement_suggestions(
     anti_overfitting_context: dict[str, Any] | None = None,
     source_health_context: dict[str, Any] | None = None,
     ticker_source_context: dict[str, Any] | None = None,
+    proxy_bias_rows: list[dict[str, Any]] | None = None,
+    proxy_correction_audit_rows: list[dict[str, Any]] | None = None,
 ) -> list[dict[str, Any]]:
     metrics = model_audit.get("metrics") or {}
     targets = PROFILE_TARGETS.get(mode, PROFILE_TARGETS["high-cagr"])
@@ -410,8 +442,17 @@ def build_improvement_suggestions(
             )
         )
 
-    proxy_suggestions = _proxy_suggestions(proxy_summary_rows, mode)
+    proxy_suggestions = _proxy_suggestions(
+        proxy_summary_rows,
+        proxy_bias_rows or [],
+        mode,
+        auto_apply_enabled=auto_apply_enabled,
+        governor_allows_auto_apply=governor_allows_auto_apply,
+        source_health_allows_apply=source_health_allows_apply,
+        enough_history=enough_history,
+    )
     suggestions.extend(proxy_suggestions)
+    suggestions.extend(_proxy_correction_audit_suggestions(proxy_correction_audit_rows or [], mode, correction_governor))
 
     if not suggestions:
         suggestions.append(
@@ -483,7 +524,17 @@ def apply_safe_tuning(
         and str(row.get("overfit_gate_status") or "") in PASSING_GATE_STATUSES
         and str(row.get("parameter") or "") in TUNABLE_PARAMETER_LIMITS
     ]
-    if not applicable:
+    proxy_applicable = [
+        row
+        for row in suggestions
+        if str(row.get("mode") or "") == mode
+        and str(row.get("safety_level") or "").upper() == "SAFE"
+        and can_auto_apply_value(row.get("can_auto_apply"))
+        and str(row.get("status") or "") == "PENDING_SAFE_APPLY"
+        and str(row.get("overfit_gate_status") or "") in PASSING_GATE_STATUSES
+        and proxy_correction_field_from_parameter(row.get("parameter"))
+    ]
+    if not applicable and not proxy_applicable:
         return {"applied": [], "message": "Aucune suggestion SAFE applicable. Lance improvement-audit ou attends plus d’historique."}
 
     backup = create_project_backup(Path(config_dir).parents[0])
@@ -496,27 +547,36 @@ def apply_safe_tuning(
             "message": "Aucun ajustement appliqué: le gouverneur de sous-performance demande observation ou revue manuelle.",
         }
     applied = []
-    for row in applicable[:max(1, max_changes)]:
+    for row in [*applicable, *proxy_applicable][:max(1, max_changes)]:
         parameter = str(row.get("parameter"))
-        delta = _capped_apply_delta(parameter, safe_float(row.get("suggested_delta")) or 0.0, settings)
-        if delta == 0:
-            continue
-        applied.append(
-            apply_tuning_suggestion(
-                mode=mode,
-                parameter=parameter,
-                delta=delta,
-                suggestion_id=str(row.get("suggestion_id") or ""),
-                safety_level=str(row.get("safety_level") or "SAFE"),
-                reason=str(row.get("reason") or ""),
-                tuning_path=config_dir / "model_tuning.yaml",
-                history_path=data_dir / "model_tuning_history.csv",
+        if proxy_correction_field_from_parameter(parameter):
+            applied.append(
+                apply_proxy_correction_suggestion(
+                    mode=mode,
+                    suggestion=row,
+                    config_path=config_dir / "proxy_corrections.yaml",
+                    history_path=data_dir / "proxy_correction_history.csv",
+                )
             )
-        )
+            continue
+        delta = _capped_apply_delta(parameter, safe_float(row.get("suggested_delta")) or 0.0, settings)
+        if delta != 0:
+            applied.append(
+                apply_tuning_suggestion(
+                    mode=mode,
+                    parameter=parameter,
+                    delta=delta,
+                    suggestion_id=str(row.get("suggestion_id") or ""),
+                    safety_level=str(row.get("safety_level") or "SAFE"),
+                    reason=str(row.get("reason") or ""),
+                    tuning_path=config_dir / "model_tuning.yaml",
+                    history_path=data_dir / "model_tuning_history.csv",
+                )
+            )
     return {
         "applied": applied,
         "backup_path": backup.get("backup_path"),
-        "message": "Ajustements SAFE appliqués dans config/model_tuning.yaml.",
+        "message": "Ajustements SAFE appliqués dans la configuration du modèle.",
     }
 
 
@@ -589,6 +649,9 @@ def build_improvement_summary(
         "correction_governor": str((underperformance_attribution or {}).get("correction_governor") or "NORMAL_SAFE_TUNING"),
         "max_safe_changes_allowed": gated_max,
         **gate_summary,
+        "walk_forward_status": str((anti_overfitting_context or {}).get("walk_forward_status") or "LIMITED"),
+        "walk_forward_simulated_periods": (anti_overfitting_context or {}).get("walk_forward_simulated_periods", 0),
+        "walk_forward_usable_periods": (anti_overfitting_context or {}).get("walk_forward_usable_periods", 0),
         "source_health_status": str(source_health_context.get("source_health_status") or "UNKNOWN"),
         "source_health_score": source_health_context.get("source_health_score", ""),
         "source_health_auto_tuning_gate": str(source_health_context.get("source_health_auto_tuning_gate") or "REVIEW_ONLY"),
@@ -609,6 +672,7 @@ def build_improvement_markdown(
     source_health_context: dict[str, Any] | None = None,
     source_health_rows: list[dict[str, Any]] | None = None,
     ticker_source_context: dict[str, Any] | None = None,
+    proxy_correction_audit_rows: list[dict[str, Any]] | None = None,
 ) -> str:
     metrics = model_audit.get("metrics") or {}
     lines = [
@@ -631,6 +695,7 @@ def build_improvement_markdown(
         f"- Attribution de sous-performance: **{summary.get('underperformance_status')}**",
         f"- Gouverneur de correction: **{summary.get('correction_governor')}**",
         f"- Barrière anti-overfitting: **{summary.get('overfit_gate_status')}**",
+        f"- Walk-forward: **{summary.get('walk_forward_status', 'LIMITED')}** ({summary.get('walk_forward_simulated_periods', 0)} période(s) simulée(s))",
         f"- Santé des sources: **{summary.get('source_health_status')}** / gate **{summary.get('source_health_auto_tuning_gate')}**",
         f"- Qualité tickers/sources: **{summary.get('ticker_source_quality_status', 'UNKNOWN')}** ({summary.get('ticker_source_quality_score', 'N/D')}/100)",
         f"- Interprétation: {summary.get('interpretation')}",
@@ -646,6 +711,7 @@ def build_improvement_markdown(
         "",
         "- Cette couche ne rend pas l’analyse mensuelle plus conservatrice.",
         "- Elle vérifie seulement si un auto-ajustement de règle risque d’être trop optimisé pour le dernier cycle de marché.",
+        "- Elle inclut maintenant le walk-forward quand assez de périodes existent; si l’historique est trop jeune, ce signal reste neutre.",
         "- Les suggestions qui ne passent pas restent en revue manuelle; les règles vitales ne sont jamais modifiées automatiquement.",
         "",
         _markdown_table(anti_overfitting_context_rows(anti_overfitting_context or {}), [
@@ -669,6 +735,14 @@ def build_improvement_markdown(
         "- Elle ne déclenche aucune modification automatique de règles.",
         "",
         _markdown_table(ticker_source_audit_rows(ticker_source_context or {}), TICKER_SOURCE_AUDIT_COLUMNS),
+        "",
+        "## Corrections de proxy actives",
+        "",
+        "- Cette couche vérifie que les corrections déjà activées ne deviennent pas trop anciennes, trop proches des limites ou contredites par de nouvelles vraies données.",
+        "- Elle ne désactive pas automatiquement une correction; elle sert de frein de surcorrection et de signal de revue.",
+        f"- Résumé: {proxy_correction_audit_summary(proxy_correction_audit_rows or [])}",
+        "",
+        _markdown_table(proxy_correction_audit_rows or [], PROXY_CORRECTION_AUDIT_COLUMNS),
         "",
         "## Suggestions",
         "",
@@ -789,9 +863,74 @@ def _suggestion(
     }
 
 
-def _proxy_suggestions(rows: list[dict[str, Any]], mode: str) -> list[dict[str, Any]]:
-    if not rows:
+def _proxy_suggestions(
+    rows: list[dict[str, Any]],
+    bias_rows: list[dict[str, Any]],
+    mode: str,
+    *,
+    auto_apply_enabled: bool = False,
+    governor_allows_auto_apply: bool = False,
+    source_health_allows_apply: bool = False,
+    enough_history: bool = False,
+) -> list[dict[str, Any]]:
+    if not rows and not bias_rows:
         return []
+    actionable_bias = actionable_proxy_bias_rows(bias_rows)
+    if actionable_bias:
+        suggestions = []
+        for row in actionable_bias:
+            field = str(row.get("field") or "").strip()
+            factor = safe_float(row.get("suggested_factor"))
+            confidence = str(row.get("confidence") or "").strip().upper()
+            sample_count = int(safe_float(row.get("usable_sample_count") or row.get("sample_count")) or 0)
+            can_apply_proxy = (
+                _proxy_bias_row_can_be_auto_applied(row)
+                and auto_apply_enabled
+                and governor_allows_auto_apply
+                and source_health_allows_apply
+                and enough_history
+            )
+            if can_apply_proxy and factor is not None:
+                suggestion = _suggestion(
+                    mode=mode,
+                    parameter=f"{PROXY_CORRECTION_PARAMETER_PREFIX}{field}",
+                    current_value=1.0,
+                    delta=round(factor - 1.0, 6),
+                    safety_level="SAFE",
+                    can_auto_apply=True,
+                    status="PENDING_SAFE_APPLY",
+                    evidence=(
+                        f"{field}: biais potentiel {row.get('proxy_direction')} avec "
+                        f"n={sample_count}, erreur moyenne={row.get('mean_error_pct')} %, "
+                        f"écart-type={row.get('std_error_pct')} %."
+                    ),
+                    reason="Correction multiplicative supervisée proposée seulement parce que le biais est cohérent et diversifié.",
+                    expected_effect="Réduire un biais systématique de proxy sans réécrire la formule de base.",
+                    risk="Même une correction validée peut surcorriger si l’échantillon ne représente pas assez bien le futur; facteur borné et historique requis.",
+                )
+                suggestion["suggested_value"] = round(factor, 6)
+            else:
+                suggestion = _suggestion(
+                    mode=mode,
+                    parameter="proxy_formulas",
+                    current_value="",
+                    delta=0.0,
+                    safety_level="MODERATE",
+                    can_auto_apply=False,
+                    status="MANUAL_RECALIBRATION_REVIEW",
+                    evidence=f"{field}: signal proxy {row.get('status')} / confiance {confidence} / n={sample_count}.",
+                    reason="Le signal aide l’audit, mais il ne passe pas tous les garde-fous pour activation automatique.",
+                    expected_effect="Améliorer la justesse des estimations après validation humaine ou plus d’exemples.",
+                    risk="Recalibrer trop vite pourrait dégrader la précision générale.",
+                )
+            suggestion["proxy_correction_field"] = field
+            suggestion["proxy_correction_factor"] = round(factor, 6) if factor is not None else ""
+            suggestion["proxy_correction_confidence"] = confidence
+            suggestion["proxy_correction_sample_count"] = sample_count
+            suggestion["proxy_correction_mean_error_pct"] = row.get("mean_error_pct", "")
+            suggestion["proxy_correction_std_error_pct"] = row.get("std_error_pct", "")
+            suggestions.append(suggestion)
+        return suggestions
     text = " ".join(" ".join(str(value) for value in row.values()) for row in rows).lower()
     if "recalibr" not in text and "surestim" not in text and "sous-estim" not in text:
         return []
@@ -810,6 +949,59 @@ def _proxy_suggestions(rows: list[dict[str, Any]], mode: str) -> list[dict[str, 
             risk="Recalibrer sur trop peu d’entreprises pourrait dégrader la qualité générale du modèle.",
         )
     ]
+
+
+def _proxy_correction_audit_suggestions(
+    rows: list[dict[str, Any]],
+    mode: str,
+    correction_governor: str = "",
+) -> list[dict[str, Any]]:
+    suggestions = []
+    for row in rows:
+        if not proxy_correction_audit_requires_review(row):
+            continue
+        field = str(row.get("field") or "").strip() or "config"
+        risk_level = str(row.get("risk_level") or "MEDIUM").upper()
+        safety_level = "MODERATE" if risk_level in {"MEDIUM", "HIGH"} else "INFO"
+        suggestions.append(
+            _suggestion(
+                mode=mode,
+                parameter="proxy_correction_review",
+                current_value=row.get("factor", ""),
+                delta=0.0,
+                safety_level=safety_level,
+                can_auto_apply=False,
+                status=str(row.get("status") or "REVIEW_PROXY_CORRECTION"),
+                evidence=(
+                    f"{field}: facteur={row.get('factor', '')}, risque={row.get('risk_level', '')}, "
+                    f"signal frais={row.get('bias_status', '')}, facteur frais={row.get('current_suggested_factor', '')}."
+                ),
+                reason=str(row.get("reason") or "Correction proxy à revoir."),
+                expected_effect=str(row.get("recommended_action") or "Réduire le risque de surcorrection."),
+                risk="Ne pas réviser une correction suspecte peut laisser une estimation automatique trop optimiste ou trop pessimiste.",
+                correction_governor=correction_governor,
+            )
+        )
+        suggestions[-1]["proxy_correction_field"] = field
+        suggestions[-1]["proxy_correction_factor"] = row.get("factor", "")
+        suggestions[-1]["proxy_correction_confidence"] = row.get("confidence", "")
+        suggestions[-1]["proxy_correction_sample_count"] = row.get("sample_count", "")
+    return suggestions
+
+
+def _proxy_bias_row_can_be_auto_applied(row: dict[str, Any]) -> bool:
+    if str(row.get("status") or "") != "BIAS_CANDIDATE_SAFE_SIGNAL":
+        return False
+    factor = safe_float(row.get("suggested_factor"))
+    if factor is None or factor < 0.75 or factor > 1.25:
+        return False
+    confidence = str(row.get("confidence") or "").strip().upper()
+    sample_count = int(safe_float(row.get("usable_sample_count") or row.get("sample_count")) or 0)
+    if confidence == "HIGH" and sample_count >= 5:
+        return True
+    if confidence == "MEDIUM" and sample_count >= 8:
+        return True
+    return False
 
 
 def _summary_interpretation(status: str) -> str:

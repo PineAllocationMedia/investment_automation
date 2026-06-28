@@ -89,6 +89,9 @@ RELIABILITY_ALLOCATION_EXCEPTION_CAPS = {
     "rational-aggressive": 0.36,
     "high-cagr": 0.60,
 }
+HIGH_CAGR_SINGLE_NAME_WATCH_WEIGHT = 0.18
+HIGH_CAGR_SINGLE_NAME_THROTTLE_WEIGHT = 0.22
+HIGH_CAGR_SINGLE_NAME_STRICT_WEIGHT = 0.30
 
 
 def _defensive_reserve_pct(mode: str) -> float:
@@ -189,6 +192,23 @@ def compute_average_score_ex_vfv(analyses: dict[str, dict[str, Any]]) -> float |
     if not fallback_scores:
         return None
     return sum(fallback_scores) / len(fallback_scores)
+
+
+def allocation_universe_for_mode(
+    mode: str,
+    core_analyses: dict[str, dict[str, Any]],
+    watchlist_analyses: dict[str, dict[str, Any]],
+    market_analyses: dict[str, dict[str, Any]],
+    discovery_analyses: dict[str, dict[str, Any]],
+) -> dict[str, dict[str, Any]]:
+    if mode == "high-cagr":
+        return core_analyses
+    merged: dict[str, dict[str, Any]] = {}
+    for group in [core_analyses, watchlist_analyses, market_analyses, discovery_analyses]:
+        for ticker, analysis in group.items():
+            if ticker not in merged:
+                merged[ticker] = analysis
+    return merged
 
 
 def allocate_capital(
@@ -780,6 +800,9 @@ def _high_cagr_overflow_room(
         fraction = min(fraction, 0.18)
     if _has_poor_free_data_coverage(candidate):
         fraction = min(fraction, 0.12)
+    fraction_before_single_name = fraction
+    fraction = _apply_single_name_monthly_cap(candidate, "high-cagr", fraction)
+    _annotate_single_name_concentration_guardrail(candidate, "high-cagr", fraction_before_single_name, fraction)
     fraction_before_reliability = fraction
     fraction = min(fraction, _reliability_cap_fraction(candidate, "high-cagr"))
     _annotate_reliability_allocation_cap(candidate, "high-cagr", fraction_before_reliability, fraction, amount_basis)
@@ -850,6 +873,9 @@ def _candidate_cap(candidate: dict[str, Any], mode: str, amount_basis: float) ->
     fraction += tuning_value(mode, "single_stock_cap_adjustment", 0.0)
     max_fraction = 0.75 if mode == "high-cagr" else 0.45 if mode == "rational-aggressive" else 0.35 if mode == "family-office" else 0.18
     fraction = clamp(fraction, 0.0, max_fraction)
+    fraction_before_single_name = fraction
+    fraction = _apply_single_name_monthly_cap(candidate, mode, fraction)
+    _annotate_single_name_concentration_guardrail(candidate, mode, fraction_before_single_name, fraction)
     fraction_before_reliability = fraction
     fraction = min(fraction, _reliability_cap_fraction(candidate, mode))
     _annotate_reliability_allocation_cap(candidate, mode, fraction_before_reliability, fraction, amount_basis)
@@ -910,14 +936,14 @@ def _target_post_contribution_weight(candidate: dict[str, Any], mode: str) -> fl
             external_target = 0.0
         if candidate.get("add_eligibility_status") == "ADD_ALLOWED_SMALL":
             external_target *= 0.65
-        return min(base, external_target)
+        return _apply_single_name_target_cap(candidate, mode, min(base, external_target))
 
     if candidate.get("add_eligibility_status") == "ADD_ALLOWED_SMALL":
         if _is_quality_diversifier_candidate(candidate, mode):
-            return min(base, 0.15 if mode == "high-cagr" else 0.10)
-        return min(base, 0.12 if mode == "high-cagr" else 0.08)
+            return _apply_single_name_target_cap(candidate, mode, min(base, 0.15 if mode == "high-cagr" else 0.10))
+        return _apply_single_name_target_cap(candidate, mode, min(base, 0.12 if mode == "high-cagr" else 0.08))
     if _valuation_exception_allowed(candidate, mode):
-        return min(base, 0.12 if mode == "high-cagr" else 0.08)
+        return _apply_single_name_target_cap(candidate, mode, min(base, 0.12 if mode == "high-cagr" else 0.08))
     if candidate.get("drift_status") == "HIGH_CONVICTION_ADD_ALLOWED":
         if mode == "balanced":
             drift_cap = 0.12
@@ -929,14 +955,14 @@ def _target_post_contribution_weight(candidate: dict[str, Any], mode: str) -> fl
             drift_cap = 0.30
         else:
             drift_cap = 0.32
-        return min(max(base, safe_float(candidate.get("position_weight")) or 0.0), drift_cap)
+        return _apply_single_name_target_cap(candidate, mode, min(max(base, safe_float(candidate.get("position_weight")) or 0.0), drift_cap))
     if mode == "balanced":
-        return min(base, 0.12)
+        return _apply_single_name_target_cap(candidate, mode, min(base, 0.12))
     if mode == "family-office":
-        return min(base, 0.25)
+        return _apply_single_name_target_cap(candidate, mode, min(base, 0.25))
     if mode == "rational-aggressive":
-        return min(base, 0.30)
-    return min(base, 0.30)
+        return _apply_single_name_target_cap(candidate, mode, min(base, 0.30))
+    return _apply_single_name_target_cap(candidate, mode, min(base, 0.30))
 
 
 def _available_monthly_room(
@@ -1064,6 +1090,11 @@ def _optimizer_reason(candidate: dict[str, Any]) -> str:
             "Allocation légèrement amortie: le titre reste admissible, mais il ajoute à un cluster caché déjà chargé "
             "dans le portefeuille; le sizing évite de renforcer trop fortement le même pari sous-jacent."
         )
+    if candidate.get("single_name_concentration_guardrail_applied"):
+        return (
+            "Allocation ralentie par concentration individuelle: le titre reste admissible et la thèse n’est pas cassée, "
+            "mais son poids actuel exige un bloc plus prudent pour laisser respirer les autres excellents candidats."
+        )
     if candidate.get("reliability_cap_applied"):
         return (
             "Allocation plafonnée par fiabilité: le titre reste admissible, mais la taille du bloc est modérée "
@@ -1114,6 +1145,8 @@ def _optimizer_rule(candidate: dict[str, Any], mode: str) -> str:
         return "optimisation mensuelle + amortisseur double-counting"
     if (safe_float(candidate.get("hidden_cluster_adjustment")) or 0.0) < 0:
         return "optimisation mensuelle + garde-fou cluster caché"
+    if candidate.get("single_name_concentration_guardrail_applied"):
+        return "optimisation mensuelle high-CAGR + ralentisseur concentration individuelle"
     if candidate.get("reliability_cap_applied"):
         return "optimisation mensuelle + cap fiabilité pour grosse allocation"
     if (safe_float(candidate.get("allocation_stability_adjustment")) or 0.0) > 0:
@@ -1215,6 +1248,16 @@ def _allocation_row(
                 "reliability_cap_reason": candidate.get("reliability_cap_reason", ""),
                 "capital_allocation_confidence_range": candidate.get("capital_allocation_confidence_range", ""),
                 "capital_allocation_confidence_label": candidate.get("capital_allocation_confidence_label", ""),
+                "single_name_concentration_status": candidate.get("single_name_concentration_status", "NONE"),
+                "single_name_concentration_guardrail_applied": bool(
+                    candidate.get("single_name_concentration_guardrail_applied")
+                ),
+                "single_name_concentration_current_weight": candidate.get("single_name_concentration_current_weight", ""),
+                "single_name_concentration_monthly_cap": candidate.get("single_name_concentration_monthly_cap", ""),
+                "single_name_concentration_target_cap": candidate.get("single_name_concentration_target_cap", ""),
+                "single_name_concentration_reason": candidate.get("single_name_concentration_reason", ""),
+                "data_confidence_badge": candidate.get("data_confidence_badge", ""),
+                "canadian_tax_advantage_active": candidate.get("canadian_tax_advantage_active", ""),
             }
         )
     return row
@@ -1356,6 +1399,108 @@ def _reliability_cap_reason(candidate: dict[str, Any], status: str, mode: str, a
     prefix = "Cap appliqué" if applied else "Cap disponible"
     reason = ", ".join(reasons[:4]) or "incertitude de données"
     return f"{prefix}: maximum indicatif {cap_pct:.0%} de la cotisation en mode {mode}, car {reason}."
+
+
+def _apply_single_name_monthly_cap(candidate: dict[str, Any], mode: str, fraction: float) -> float:
+    guardrail = _single_name_concentration_guardrail(candidate, mode)
+    cap = safe_float(guardrail.get("monthly_cap"))
+    if cap is None:
+        return fraction
+    return min(fraction, cap)
+
+
+def _apply_single_name_target_cap(candidate: dict[str, Any], mode: str, target_weight: float) -> float:
+    guardrail = _single_name_concentration_guardrail(candidate, mode)
+    target_cap = safe_float(guardrail.get("target_cap"))
+    if target_cap is None:
+        return target_weight
+    capped = min(target_weight, target_cap)
+    if capped < target_weight - 0.0001:
+        candidate["single_name_concentration_guardrail_applied"] = True
+    candidate["single_name_concentration_target_cap"] = round(target_cap, 4)
+    return capped
+
+
+def _annotate_single_name_concentration_guardrail(
+    candidate: dict[str, Any],
+    mode: str,
+    base_fraction: float,
+    final_fraction: float,
+) -> None:
+    guardrail = _single_name_concentration_guardrail(candidate, mode)
+    status = str(guardrail.get("status") or "NONE")
+    applied = bool(status != "NONE" and final_fraction < base_fraction - 0.0001)
+    candidate["single_name_concentration_status"] = status
+    candidate["single_name_concentration_guardrail_applied"] = bool(
+        candidate.get("single_name_concentration_guardrail_applied") or applied
+    )
+    candidate["single_name_concentration_current_weight"] = guardrail.get("current_weight", "")
+    candidate["single_name_concentration_monthly_cap"] = guardrail.get("monthly_cap", "")
+    candidate["single_name_concentration_target_cap"] = guardrail.get("target_cap", "")
+    candidate["single_name_concentration_reason"] = guardrail.get("reason", "")
+
+
+def _single_name_concentration_guardrail(candidate: dict[str, Any], mode: str) -> dict[str, Any]:
+    if not _single_name_guardrail_applies(candidate, mode):
+        return {"status": "NONE"}
+    weight = safe_float(candidate.get("position_weight")) or 0.0
+    if weight < HIGH_CAGR_SINGLE_NAME_WATCH_WEIGHT:
+        return {"status": "NONE"}
+
+    exceptional = _exceptional_single_name_add_allowed(candidate)
+    if weight < HIGH_CAGR_SINGLE_NAME_THROTTLE_WEIGHT:
+        monthly_cap = 0.60 if exceptional else 0.50
+        target_cap = 0.30 if exceptional else 0.28
+        status = "WATCH"
+        reason = "Poids individuel entre 18 % et 22 %: ajout permis, mais les gros blocs commencent à être amortis."
+    elif weight <= HIGH_CAGR_SINGLE_NAME_STRICT_WEIGHT:
+        monthly_cap = 0.40 if exceptional else 0.25
+        target_cap = 0.30 if exceptional else max(0.24, min(0.33, weight + 0.025))
+        status = "THROTTLE"
+        reason = "Poids individuel entre 22 % et 30 %: ajout ralenti pour éviter qu’un seul titre absorbe les cotisations."
+    else:
+        monthly_cap = 0.18 if exceptional else 0.08
+        target_cap = min(0.35, weight + 0.005) if exceptional else weight
+        status = "STRICT"
+        reason = "Poids individuel au-dessus de 30 %: ajout seulement en très petit bloc si les garde-fous restent exceptionnels."
+
+    return {
+        "status": status,
+        "current_weight": round(weight, 4),
+        "monthly_cap": round(monthly_cap, 4),
+        "target_cap": round(target_cap, 4),
+        "reason": reason,
+    }
+
+
+def _single_name_guardrail_applies(candidate: dict[str, Any], mode: str) -> bool:
+    if mode != "high-cagr":
+        return False
+    if candidate.get("ticker") == "VFV.TO" or candidate.get("benchmark_role") is True:
+        return False
+    if is_external_etf_allocation_candidate(candidate):
+        return False
+    if str(candidate.get("asset_type") or "").startswith("ETF"):
+        return False
+    if _is_external_candidate(candidate):
+        return False
+    return True
+
+
+def _exceptional_single_name_add_allowed(candidate: dict[str, Any]) -> bool:
+    if not _exceptional_confirmed_candidate(candidate):
+        return False
+    if candidate.get("expected_cagr_quality") != "VERY_HIGH":
+        return False
+    if candidate.get("opportunity_cost_status") != "CLEARLY_BETTER_THAN_VFV":
+        return False
+    if candidate.get("quality_but_too_expensive") is True:
+        return False
+    if str(candidate.get("cycle_bubble_risk_level") or "").upper() == "EXTREME":
+        return False
+    if str(candidate.get("hidden_cluster_risk_level") or "").upper() == "EXTREME":
+        return False
+    return True
 
 
 def _is_starter_core_candidate(candidate: dict[str, Any]) -> bool:

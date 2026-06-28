@@ -1,2 +1,0 @@
-date,mode,period,status,suggestion_count,safe_auto_applicable_count,moderate_count,risky_count,history_status,underperformance_status,correction_governor,max_safe_changes_allowed,interpretation
-2026-05-25,high-cagr,12m,INSUFFICIENT_HISTORY,2,0,0,0,PRELIMINARY,NO_UNDERPERFORMANCE,NORMAL_SAFE_TUNING,3,"Historique trop court: l’audit informe, mais ne doit pas ajuster le modèle."

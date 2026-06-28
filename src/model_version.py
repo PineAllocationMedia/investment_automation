@@ -1,1 +1,1 @@
-MODEL_RULES_VERSION = "2026-05-12-high-cagr-stability-v3"
+MODEL_RULES_VERSION = "2026-06-25-high-cagr-single-name-throttle-v1"

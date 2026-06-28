@@ -28,6 +28,8 @@ def compute_thesis_status(
 
     missing_count = int(score.get("score_missing_data_count") or 0)
     if missing_count > 5:
+        # Immediate uncertainty: when almost the whole critical score is missing,
+        # the thesis should not rely on partial market or proxy evidence.
         return {
             "thesis_status": "UNCERTAIN",
             "fundamental_thesis_status": "UNCERTAIN",
@@ -60,22 +62,28 @@ def compute_thesis_status(
     fundamental_reasons: list[str] = []
     market_watch_reasons: list[str] = []
     valuation_watch_reasons: list[str] = []
+    manual_field_set = _field_set(manual.get("manual_override_fields"))
+    research_field_set = _field_set(manual.get("research_report_fields"))
+    auto_field_set = _field_set(manual.get("auto_estimated_fields"))
 
-    if eps_est is not None and eps_est <= 0 and _field_confirmed(manual, "eps_growth_estimated_3_5y"):
+    def field_confirmed(field: str) -> bool:
+        return _field_confirmed(manual, field, manual_field_set, research_field_set, auto_field_set)
+
+    if eps_est is not None and eps_est <= 0 and field_confirmed("eps_growth_estimated_3_5y"):
         fundamental_reasons.append("Croissance EPS estimée non positive confirmée.")
     elif eps_est is not None and 0 < eps_est < weak_growth_threshold:
         market_watch_reasons.append(f"Croissance EPS estimée positive mais sous le seuil du profil ({weak_growth_threshold:.0f} %).")
-    if manual.get("moat_clear") is False and _field_confirmed(manual, "moat_clear"):
+    if manual.get("moat_clear") is False and field_confirmed("moat_clear"):
         fundamental_reasons.append("Moat affaibli ou absent confirmé.")
-    if manual.get("margin_or_profitability_under_pressure") is True and _field_confirmed(manual, "margin_or_profitability_under_pressure"):
+    if manual.get("margin_or_profitability_under_pressure") is True and field_confirmed("margin_or_profitability_under_pressure"):
         fundamental_reasons.append("Marge ou rentabilité sous pression confirmée.")
     elif manual.get("margin_or_profitability_under_pressure") is True:
         market_watch_reasons.append("Marge ou rentabilité sous pression possible, mais non confirmée.")
-    if manual.get("balance_sheet_strong") is False and _field_confirmed(manual, "balance_sheet_strong"):
+    if manual.get("balance_sheet_strong") is False and field_confirmed("balance_sheet_strong"):
         fundamental_reasons.append("Bilan financier affaibli confirmé.")
     elif manual.get("balance_sheet_strong") is False:
         market_watch_reasons.append("Bilan financier possiblement affaibli, mais non confirmé.")
-    if manual.get("forward_pe_growth_acceptable") is False and _field_confirmed(manual, "forward_pe_growth_acceptable"):
+    if manual.get("forward_pe_growth_acceptable") is False and field_confirmed("forward_pe_growth_acceptable"):
         valuation_watch_reasons.append("Forward P/E non acceptable selon la croissance, confirmé.")
     elif manual.get("forward_pe_growth_acceptable") is False:
         valuation_watch_reasons.append("Forward P/E possiblement non acceptable, mais non confirmé.")
@@ -90,7 +98,7 @@ def compute_thesis_status(
         valuation_watch_reasons.append("Prix / juste valeur > 1.40.")
 
     if sector_cagr is not None and sector_cagr < 0:
-        if _field_confirmed(manual, "sector_cagr_estimated"):
+        if field_confirmed("sector_cagr_estimated"):
             fundamental_reasons.append("Déclin structurel du secteur confirmé.")
         else:
             market_watch_reasons.append("Proxy sectoriel négatif, à valider.")
@@ -121,11 +129,11 @@ def compute_thesis_status(
     roic_not_destroyed = manual.get("catastrophic_roic_destroyed") is not True
     margin_not_majorly_deteriorating = not (
         manual.get("margin_or_profitability_under_pressure") is True
-        and _field_confirmed(manual, "margin_or_profitability_under_pressure")
+        and field_confirmed("margin_or_profitability_under_pressure")
     )
-    moat_present = manual.get("moat_clear") is True or manual.get("moat_clear") is None or not _field_confirmed(manual, "moat_clear")
+    moat_present = manual.get("moat_clear") is True or manual.get("moat_clear") is None or not field_confirmed("moat_clear")
     sector_not_declining = not (
-        (sector_cagr is not None and sector_cagr < 0 and _field_confirmed(manual, "sector_cagr_estimated"))
+        (sector_cagr is not None and sector_cagr < 0 and field_confirmed("sector_cagr_estimated"))
     )
 
     market_watch_status = _watch_status(market_watch_reasons)
@@ -155,6 +163,9 @@ def compute_thesis_status(
         )
 
     if missing_count > 3:
+        # Softer uncertainty: with 4-5 missing fields, a thesis can still be
+        # intact if core growth/moat evidence is present above. If not, mark it
+        # uncertain instead of forcing a weakening call from sparse data.
         return {
             "thesis_status": "UNCERTAIN",
             "fundamental_thesis_status": "UNCERTAIN",
@@ -212,10 +223,16 @@ def _valuation_status(reasons: list[str]) -> str:
     return "WATCH"
 
 
-def _field_confirmed(manual: dict[str, Any], field: str) -> bool:
-    manual_fields = _field_set(manual.get("manual_override_fields"))
-    research_fields = _field_set(manual.get("research_report_fields"))
-    auto_fields = _field_set(manual.get("auto_estimated_fields"))
+def _field_confirmed(
+    manual: dict[str, Any],
+    field: str,
+    manual_fields: set[str] | None = None,
+    research_fields: set[str] | None = None,
+    auto_fields: set[str] | None = None,
+) -> bool:
+    manual_fields = manual_fields if manual_fields is not None else _field_set(manual.get("manual_override_fields"))
+    research_fields = research_fields if research_fields is not None else _field_set(manual.get("research_report_fields"))
+    auto_fields = auto_fields if auto_fields is not None else _field_set(manual.get("auto_estimated_fields"))
     if field in manual_fields:
         return True
     if field in research_fields:

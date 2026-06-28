@@ -26,6 +26,9 @@ def compute_conviction_confidence_range(
     evidence_level = str(proof_score.get("score_evidence_level") or "").upper()
     estimate_gap = safe_float(proof_score.get("score_estimate_gap")) or 0.0
 
+    # Conviction uses a slightly asymmetric band versus allocation sizing:
+    # conviction is more exposed to weak/incomplete evidence, while allocation
+    # has additional execution-risk checks in sizing_engine.
     if reliability_level == "LOW":
         band += 9.0
     elif reliability_level == "MEDIUM":

@@ -90,3 +90,13 @@ date,ticker,account_type,account_tax_category,change_type,shares_before,shares_a
 2026-06-18,FBTC.TO,TFSA2,TFSA,SHARES_INCREASED,1.9662,2.2045,0.2383,34.0505,33.5496,CAD,CAD,7.03,65.03,Nombre d'actions augmente dans portfolio.csv depuis la derniere analyse.,AUTO_FROM_PORTFOLIO_DIFF
 2026-06-18,MSFT,TFSA2,TFSA,POSITION_ADDED,0.0,0.1012,0.1012,,525.0,,USD,53.3,53.3,Nouvelle position detectee dans portfolio.csv pour ce compte.,AUTO_FROM_PORTFOLIO_DIFF
 2026-06-18,VFV.TO,TFSA2,TFSA,SHARES_INCREASED,0.9365,1.2024,0.2659,181.4522,182.9092,CAD,CAD,50.01,226.12,Nombre d'actions augmente dans portfolio.csv depuis la derniere analyse.,AUTO_FROM_PORTFOLIO_DIFF
+2026-06-24,AAPL,TFSA2,TFSA,COST_BASIS_UPDATED,0.1851,0.1851,0.0,415.6132,419.7191,USD,USD,0.0,76.66,Cout moyen ou devise du cout moyen modifie dans portfolio.csv.,AUTO_FROM_PORTFOLIO_DIFF
+2026-06-24,ANET,TFSA2,TFSA,COST_BASIS_UPDATED,0.3253,0.3253,0.0,236.4894,238.8257,USD,USD,0.0,74.35,Cout moyen ou devise du cout moyen modifie dans portfolio.csv.,AUTO_FROM_PORTFOLIO_DIFF
+2026-06-24,APP,TFSA2,TFSA,COST_BASIS_UPDATED,0.6878,0.6878,0.0,781.5644,789.2701,USD,USD,0.0,451.91,Cout moyen ou devise du cout moyen modifie dans portfolio.csv.,AUTO_FROM_PORTFOLIO_DIFF
+2026-06-24,ASML,TFSA2,TFSA,COST_BASIS_UPDATED,0.0235,0.0235,0.0,2140.0,2161.2766,USD,USD,0.0,58.54,Cout moyen ou devise du cout moyen modifie dans portfolio.csv.,AUTO_FROM_PORTFOLIO_DIFF
+2026-06-24,GOOGL,TFSA2,TFSA,COST_BASIS_UPDATED,0.5253,0.5253,0.0,542.2806,547.6109,USD,USD,0.0,256.31,Cout moyen ou devise du cout moyen modifie dans portfolio.csv.,AUTO_FROM_PORTFOLIO_DIFF
+2026-06-24,INTU,TFSA2,TFSA,COST_BASIS_UPDATED,0.1819,0.1819,0.0,553.5459,559.0434,USD,USD,0.0,67.41,Cout moyen ou devise du cout moyen modifie dans portfolio.csv.,AUTO_FROM_PORTFOLIO_DIFF
+2026-06-24,META,TFSA2,TFSA,COST_BASIS_UPDATED,0.3803,0.3803,0.0,852.9845,861.3726,USD,USD,0.0,299.69,Cout moyen ou devise du cout moyen modifie dans portfolio.csv.,AUTO_FROM_PORTFOLIO_DIFF
+2026-06-24,MSFT,TFSA2,TFSA,COST_BASIS_UPDATED,0.1012,0.1012,0.0,525.0,530.2372,USD,USD,0.0,52.26,Cout moyen ou devise du cout moyen modifie dans portfolio.csv.,AUTO_FROM_PORTFOLIO_DIFF
+2026-06-24,NANO.TO,TFSA1,TFSA,POSITION_CLOSED,107.0,0.0,-107.0,0.94,,CAD,,83.46,,Position retiree ou mise a zero dans portfolio.csv pour ce compte.,AUTO_FROM_PORTFOLIO_DIFF
+2026-06-24,TMC,TFSA1,TFSA,POSITION_CLOSED,8.0,0.0,-8.0,7.71,,CAD,,56.92,,Position retiree ou mise a zero dans portfolio.csv pour ce compte.,AUTO_FROM_PORTFOLIO_DIFF

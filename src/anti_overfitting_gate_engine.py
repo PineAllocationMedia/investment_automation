@@ -4,6 +4,7 @@ from datetime import date, datetime
 from typing import Any
 
 from .model_tuning import TUNABLE_PARAMETER_LIMITS
+from .proxy_correction_engine import PROXY_CORRECTION_PARAMETER_PREFIX
 from .utils import pct, safe_float
 
 
@@ -15,6 +16,7 @@ ANTI_OVERFITTING_FIELDS = [
     "regime_consistency_status",
     "do_no_harm_status",
     "risk_adjusted_status",
+    "walk_forward_status",
     "cooldown_status",
 ]
 
@@ -26,6 +28,8 @@ def build_anti_overfitting_context(
     model_metrics: dict[str, Any],
     backtest_summary_rows: list[dict[str, Any]] | None = None,
     backtest_monthly_rows: list[dict[str, Any]] | None = None,
+    walk_forward_summary_rows: list[dict[str, Any]] | None = None,
+    walk_forward_period_rows: list[dict[str, Any]] | None = None,
     tuning_history_rows: list[dict[str, Any]] | None = None,
     mode: str = "high-cagr",
     settings: dict[str, Any] | None = None,
@@ -37,6 +41,9 @@ def build_anti_overfitting_context(
     cooldown_days = int(safe_float(settings.get("min_days_between_same_parameter_tuning")) or 45)
     summaries = backtest_summary_rows or []
     monthly = backtest_monthly_rows or []
+    walk_forward_summary = _first_row(walk_forward_summary_rows or [])
+    walk_forward_periods = walk_forward_period_rows or []
+    walk_forward_status = _walk_forward_status(walk_forward_summary, walk_forward_periods)
     return {
         "mode": mode,
         "sample_count": sample_count,
@@ -48,9 +55,18 @@ def build_anti_overfitting_context(
         "regime_consistency_status": _regime_consistency_status(summaries),
         "do_no_harm_status": _do_no_harm_status(summaries),
         "risk_adjusted_status": _risk_adjusted_status(summaries),
+        "walk_forward_status": walk_forward_status,
+        "walk_forward_simulated_periods": int(safe_float(walk_forward_summary.get("simulated_periods")) or 0),
+        "walk_forward_usable_periods": int(safe_float(walk_forward_summary.get("usable_walk_forward_periods")) or 0),
+        "walk_forward_excess_return": safe_float(walk_forward_summary.get("compounded_excess_return_vs_vfv")),
+        "walk_forward_win_rate": safe_float(walk_forward_summary.get("win_rate_vs_vfv")),
+        "walk_forward_regime_coverage_status": str(walk_forward_summary.get("regime_coverage_status") or "NO_REGIME_EVIDENCE"),
+        "walk_forward_regime_count": int(safe_float(walk_forward_summary.get("regime_count")) or 0),
+        "walk_forward_weak_regimes": str(walk_forward_summary.get("weak_regimes") or ""),
         "tuning_history_rows": tuning_history_rows or [],
         "backtest_summary_count": len(summaries),
         "monthly_backtest_count": len(monthly),
+        "walk_forward_period_count": len(walk_forward_periods),
     }
 
 
@@ -78,7 +94,7 @@ def evaluate_anti_overfitting_gate(suggestion: dict[str, Any], context: dict[str
     parameter = str(suggestion.get("parameter") or "")
     safety = str(suggestion.get("safety_level") or "").upper()
     delta = safe_float(suggestion.get("suggested_delta")) or 0.0
-    if parameter not in TUNABLE_PARAMETER_LIMITS or safety != "SAFE":
+    if not _is_auto_adjustable_parameter(parameter) or safety != "SAFE":
         return _gate_result(
             "NOT_APPLICABLE",
             100,
@@ -109,6 +125,7 @@ def evaluate_anti_overfitting_gate(suggestion: dict[str, Any], context: dict[str
     split = str(context.get("in_sample_out_of_sample_status") or "LIMITED")
     harm = str(context.get("do_no_harm_status") or "LIMITED")
     risk_adjusted = str(context.get("risk_adjusted_status") or "LIMITED")
+    walk_forward = str(context.get("walk_forward_status") or "LIMITED")
 
     if cooldown_status == "COOLDOWN_ACTIVE":
         return _gate_result(
@@ -120,6 +137,22 @@ def evaluate_anti_overfitting_gate(suggestion: dict[str, Any], context: dict[str
         )
 
     if posture in {"MORE_AGGRESSIVE", "MORE_REACTIVE", "DRAWNDOWN_OPPORTUNITY"}:
+        if walk_forward == "FAIL":
+            return _gate_result(
+                "REVIEW_ONLY",
+                54,
+                "Le walk-forward hors-échantillon disponible échoue le test do-no-harm vs VFV; application automatique refusée.",
+                context,
+                cooldown_status,
+            )
+        if walk_forward == "WATCH":
+            return _gate_result(
+                "PASS_WITH_LIMITS",
+                70,
+                "Le walk-forward disponible est mitigé; seuls de petits ajustements SAFE restent acceptables.",
+                context,
+                cooldown_status,
+            )
         if regime == "RECENT_ONLY":
             return _gate_result(
                 "REVIEW_ONLY",
@@ -219,6 +252,12 @@ def anti_overfitting_context_rows(context: dict[str, Any]) -> list[dict[str, Any
             context.get("risk_adjusted_status", "LIMITED"),
             "",
             "Évite de favoriser une hausse de rendement théorique obtenue avec trop de drawdown.",
+        ),
+        _context_row(
+            "Walk-forward hors-échantillon",
+            context.get("walk_forward_status", "LIMITED"),
+            f"{context.get('walk_forward_simulated_periods', 0)} période(s); régimes: {context.get('walk_forward_regime_coverage_status', 'NO_REGIME_EVIDENCE')}",
+            "Vérifie les recommandations historiques réellement produites; reste neutre quand l’historique est trop court.",
         ),
         _context_row(
             "Cooldown tuning",
@@ -358,6 +397,46 @@ def _segment_excess(rows: list[dict[str, Any]]) -> float | None:
     return (portfolio_end - portfolio_start) - (vfv_end - vfv_start)
 
 
+def _walk_forward_status(summary: dict[str, Any], period_rows: list[dict[str, Any]]) -> str:
+    status = str(summary.get("status") or "").upper()
+    simulated = int(safe_float(summary.get("simulated_periods")) or 0)
+    if status in {"", "NO_USABLE_PERIODS", "NO_SIMULATED_PERIODS"} or simulated <= 0:
+        return "LIMITED"
+    if status == "EARLY_SIGNAL_ONLY":
+        return "LIMITED"
+    excess = safe_float(summary.get("compounded_excess_return_vs_vfv"))
+    avg_excess = safe_float(summary.get("avg_excess_return_vs_vfv"))
+    win_rate = safe_float(summary.get("win_rate_vs_vfv"))
+    regime_coverage = str(summary.get("regime_coverage_status") or "")
+    simulated_rows = [
+        row for row in period_rows
+        if str(row.get("evaluation_status") or "") in {"SIMULATED", "SIMULATED_WITH_PARTIAL_PRICE_DATA"}
+    ]
+    negative_rows = sum(1 for row in simulated_rows if (safe_float(row.get("excess_return_vs_vfv")) or 0.0) < 0)
+
+    # This gate is deliberately slow to fail. It should prevent obvious
+    # overfitting, not make the strategy conservative because of a few young
+    # observations.
+    enough_observations = simulated >= 4 or status == "READY_FOR_WALK_FORWARD_REVIEW"
+    if not enough_observations:
+        if excess is not None and excess < -0.08 and win_rate is not None and win_rate <= 0.25:
+            return "WATCH"
+        return "LIMITED"
+    if excess is not None and excess < -0.08 and win_rate is not None and win_rate <= 0.35:
+        return "FAIL"
+    if regime_coverage == "HAS_WEAK_REGIME":
+        return "WATCH"
+    if negative_rows >= max(2, int(len(simulated_rows) * 0.6)) and (avg_excess is not None and avg_excess < -0.02):
+        return "WATCH"
+    if excess is not None and excess >= -0.02:
+        return "PASS"
+    return "WATCH"
+
+
+def _first_row(rows: list[dict[str, Any]]) -> dict[str, Any]:
+    return rows[0] if rows else {}
+
+
 def _cooldown_status(rows: list[dict[str, Any]], *, mode: str, parameter: str, cooldown_days: int) -> str:
     if cooldown_days <= 0:
         return "PASS"
@@ -377,6 +456,8 @@ def _cooldown_status(rows: list[dict[str, Any]], *, mode: str, parameter: str, c
 
 
 def _suggestion_posture(parameter: str, delta: float) -> str:
+    if parameter.startswith(PROXY_CORRECTION_PARAMETER_PREFIX):
+        return "DATA_QUALITY"
     if parameter in {"vfv_adjustment", "defensive_reserve_adjustment"}:
         return "MORE_AGGRESSIVE" if delta < 0 else "MORE_DEFENSIVE"
     if parameter == "min_capital_score_adjustment":
@@ -388,6 +469,10 @@ def _suggestion_posture(parameter: str, delta: float) -> str:
     if parameter == "stability_strength_adjustment":
         return "STABILITY" if delta > 0 else "MORE_REACTIVE"
     return "NEUTRAL"
+
+
+def _is_auto_adjustable_parameter(parameter: str) -> bool:
+    return parameter in TUNABLE_PARAMETER_LIMITS or parameter.startswith(PROXY_CORRECTION_PARAMETER_PREFIX)
 
 
 def _parse_date(value: Any) -> date | None:
@@ -418,6 +503,7 @@ def _gate_result(
         "regime_consistency_status": context.get("regime_consistency_status", "LIMITED"),
         "do_no_harm_status": context.get("do_no_harm_status", "LIMITED"),
         "risk_adjusted_status": context.get("risk_adjusted_status", "LIMITED"),
+        "walk_forward_status": context.get("walk_forward_status", "LIMITED"),
         "cooldown_status": cooldown_status,
     }
 
@@ -434,7 +520,8 @@ def _summary_read(status: str, context: dict[str, Any]) -> str:
     return (
         "Aucun tuning automatique nécessaire. "
         f"Backtest: {context.get('regime_consistency_status', 'LIMITED')}; "
-        f"do-no-harm: {context.get('do_no_harm_status', 'LIMITED')}."
+        f"do-no-harm: {context.get('do_no_harm_status', 'LIMITED')}; "
+        f"walk-forward: {context.get('walk_forward_status', 'LIMITED')}."
     )
 
 
@@ -445,4 +532,3 @@ def _context_row(check: str, status: Any, value: Any, interpretation: str) -> di
         "value": "" if value is None else str(value),
         "interpretation": interpretation,
     }
-

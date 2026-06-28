@@ -1,8 +1,0 @@
-ticker,shares,average_cost,average_cost_currency,account_type
-MSFT,3,250,USD,TFSA1
-MSFT,2,260,USD,TFSA2
-AVGO,1,900,USD,TFSA1
-TSLA,2,250,USD,TFSA
-LLY,1,800,USD,TFSA
-INTU,0,,,
-VFV.TO,3,140,CAD,FHSA

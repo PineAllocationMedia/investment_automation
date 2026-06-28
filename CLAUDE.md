@@ -18,7 +18,8 @@ Build a long-term investment model system focused on:
 - Focus on quality businesses with durable cash flows
 - Reinvest dividends systematically
 - Seeking the best composition to fit best chosen mode
-- Become a better option than S&P 500
+- Become a better option than S&P 500 as a primary go-to saving investment
+- Making premium active Hedge-fund like investment management accessible and possible for everybody willing to take their own finance's gestion in their hands
 ---
 
 ## 📊 Allowed Strategies (Blend of these)

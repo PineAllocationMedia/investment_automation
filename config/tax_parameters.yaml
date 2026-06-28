@@ -1,0 +1,28 @@
+# Paramètres fiscaux approximatifs utilisés seulement pour comparer des rendements
+# de dividendes entre comptes et types de titres.
+# Ceci n'est pas un conseil fiscal. Les vrais taux dépendent de la situation
+# personnelle, du revenu, du type exact de distribution et de l'année fiscale.
+
+# Facteur fédéral de majoration des dividendes déterminés canadiens.
+canadian_dividend_tax_credit_gross_up: 1.38
+
+# Crédit d'impôt dividendes déterminés approximatif, fédéral + Québec,
+# exprimé comme fraction du dividende majoré.
+canadian_dividend_tax_credit_rate: 0.150198
+
+# Retenue américaine approximative sur dividendes US dans un CELI/CELIAPP,
+# généralement non récupérable.
+us_withholding_tax_tfsa: 0.15
+
+# Retenue américaine approximative sur dividendes US dans un REER,
+# traitée comme exemptée par convention fiscale.
+us_withholding_tax_rrsp: 0.0
+
+# Taux marginal effectif approximatif utilisé en compte non enregistré.
+# Sert seulement aux comparaisons relatives, pas à une déclaration fiscale.
+effective_marginal_rate_non_registered: 0.40
+
+# Traînée fiscale additionnelle approximative pour dividendes étrangers/US
+# en compte non enregistré après récupération partielle possible par crédit
+# pour impôt étranger.
+us_dividend_non_registered_extra_drag: 0.08

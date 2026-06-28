@@ -29,9 +29,18 @@ def compute_add_eligibility_status(analysis: dict[str, Any]) -> dict[str, Any]:
     reliability_level = str(analysis.get("data_reliability_level") or "MEDIUM").upper()
     confirmed_fundamental = _as_list(analysis.get("confirmed_fundamental_sell_signals"))
     technical_or_valuation = _as_list(analysis.get("technical_or_valuation_signals"))
-    monitoring_status = str(analysis.get("monitoring_status") or "NORMAL")
+    original_monitoring_status = str(analysis.get("monitoring_status") or "NORMAL")
+    monitoring_status = original_monitoring_status
     if monitoring_status == "NORMAL" and liquidation_status == "YELLOW" and technical_or_valuation and not confirmed_fundamental:
         monitoring_status = "MANUAL_REVIEW" if _has_unconfirmed_fundamental_warning(technical_or_valuation) else "WATCH"
+
+    def status_result(status: str, reason: str, size: str) -> dict[str, Any]:
+        result = _status(status, reason, size)
+        if monitoring_status != original_monitoring_status:
+            result["resolved_monitoring_status"] = monitoring_status
+            result["monitoring_status"] = monitoring_status
+        return result
+
     expected_quality = str(analysis.get("expected_cagr_quality") or "")
     conviction = safe_float(analysis.get("conviction_score")) or 0.0
     trend_status = str(analysis.get("trend_status") or "")
@@ -40,47 +49,47 @@ def compute_add_eligibility_status(analysis: dict[str, Any]) -> dict[str, Any]:
     quality_drawdown_score = safe_float(analysis.get("quality_drawdown_score")) or 0.0
 
     if thesis_status != "INTACT":
-        return _status("DO_NOT_ADD", "Thèse non intacte.", "NONE")
+        return status_result("DO_NOT_ADD", "Thèse non intacte.", "NONE")
     if liquidation_status in {"ORANGE", "RED"}:
-        return _status("DO_NOT_ADD", f"Signal de vente {liquidation_status}.", "NONE")
+        return status_result("DO_NOT_ADD", f"Signal de vente {liquidation_status}.", "NONE")
     if confirmed_fundamental:
-        return _status("DO_NOT_ADD", "Signal fondamental confirmé; ne pas renforcer.", "NONE")
+        return status_result("DO_NOT_ADD", "Signal fondamental confirmé; ne pas renforcer.", "NONE")
     if reliability_level == "LOW":
-        return _status("DO_NOT_ADD", "Fiabilité des données trop faible.", "NONE")
+        return status_result("DO_NOT_ADD", "Fiabilité des données trop faible.", "NONE")
     if trend_status == "DETERIORATING" and trend_severity >= 2:
-        return _status("DO_NOT_ADD", "Détérioration répétée dans l’historique.", "NONE")
+        return status_result("DO_NOT_ADD", "Détérioration répétée dans l’historique.", "NONE")
 
     if monitoring_status == "MANUAL_REVIEW":
-        return _status("MANUAL_REVIEW_BEFORE_ADD", "Alerte de surveillance à valider manuellement avant ajout.", "NONE")
+        return status_result("MANUAL_REVIEW_BEFORE_ADD", "Alerte de surveillance à valider manuellement avant ajout.", "NONE")
     if monitoring_status == "WATCH":
         if _has_unconfirmed_fundamental_warning(technical_or_valuation):
-            return _status("MANUAL_REVIEW_BEFORE_ADD", "Alerte fondamentale non confirmée; validation manuelle avant ajout.", "NONE")
+            return status_result("MANUAL_REVIEW_BEFORE_ADD", "Alerte fondamentale non confirmée; validation manuelle avant ajout.", "NONE")
         if (
             quality_drawdown_status == "QUALITY_DRAWDOWN_OPPORTUNITY"
             and quality_drawdown_score >= 75
             and conviction >= 80
             and expected_quality in {"MEDIUM", "HIGH", "VERY_HIGH"}
         ):
-            return _status(
+            return status_result(
                 "ADD_ALLOWED_SMALL",
                 "Quality drawdown: la baisse est traitée comme opportunité potentielle car la thèse et la qualité restent solides; achat limité seulement.",
                 "LIMITED",
             )
         if expected_quality in {"HIGH", "VERY_HIGH"} and conviction >= 75:
-            return _status(
+            return status_result(
                 "ADD_ALLOWED_SMALL",
                 "Surveillance technique/valorisation seulement: petite allocation permise si le sizing et VFV restent favorables.",
                 "LIMITED",
             )
-        return _status("DO_NOT_ADD", "Surveillance active sans qualité CAGR/conviction suffisante pour renforcer.", "NONE")
+        return status_result("DO_NOT_ADD", "Surveillance active sans qualité CAGR/conviction suffisante pour renforcer.", "NONE")
 
     if liquidation_status == "GREEN":
-        return _status("ADD_ALLOWED", "Thèse intacte, aucun signal de vente et garde-fous respectés.", "NORMAL")
+        return status_result("ADD_ALLOWED", "Thèse intacte, aucun signal de vente et garde-fous respectés.", "NORMAL")
 
     if liquidation_status == "YELLOW":
-        return _status("DO_NOT_ADD", "Signal de vente fondamental à surveiller; ne pas renforcer.", "NONE")
+        return status_result("DO_NOT_ADD", "Signal de vente fondamental à surveiller; ne pas renforcer.", "NONE")
 
-    return _status("DO_NOT_ADD", "Statut d’achat non admissible par prudence.", "NONE")
+    return status_result("DO_NOT_ADD", "Statut d’achat non admissible par prudence.", "NONE")
 
 
 def is_add_allowed(analysis: dict[str, Any]) -> bool:

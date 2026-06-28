@@ -353,6 +353,85 @@ def build_health_check_run_log(
     return rows
 
 
+def build_walk_forward_run_log(
+    *,
+    run_id: str,
+    mode: str,
+    refresh_market_data: bool,
+    result: dict[str, Any],
+) -> list[dict[str, Any]]:
+    rows: list[dict[str, Any]] = []
+    coverage = result.get("coverage") or {}
+    summary = result.get("summary") or {}
+    regime_rows = result.get("regime_rows") or []
+    status = str(summary.get("status") or "UNKNOWN")
+    simulated = int(safe_float(summary.get("simulated_periods")) or 0)
+    usable = int(safe_float(summary.get("usable_walk_forward_periods") or coverage.get("usable_walk_forward_periods")) or 0)
+    weak_regimes = str(summary.get("weak_regimes") or "").strip()
+    price_basis = str(summary.get("price_return_basis") or "")
+
+    _add(
+        rows,
+        run_id,
+        "walk-forward-backtest",
+        mode,
+        "INFO",
+        "RUN",
+        "RUN_STARTED",
+        f"Backtest walk-forward lancé en mode {mode}.",
+        details=f"refresh_market_data={bool(refresh_market_data)}",
+    )
+    level = "INFO"
+    action = "Aucune action; accumuler des analyses espacées."
+    if status in {"NO_SIMULATED_PERIODS", "SIMULATION_ERROR"} or price_basis == "PRICE_FETCH_FAILED":
+        level = "WARN"
+        action = "Relancer avec --refresh-market-data ou vérifier les prix historiques si le problème persiste."
+    elif weak_regimes:
+        level = "WARN"
+        action = "Lire latest_walk_forward_regime_summary.csv; ne pas ajuster automatiquement sur ce seul signal."
+
+    _add(
+        rows,
+        run_id,
+        "walk-forward-backtest",
+        mode,
+        level,
+        "WALK_FORWARD",
+        "WALK_FORWARD_SUMMARY",
+        f"Status={status}; {usable} période(s) utilisable(s), {simulated} simulée(s).",
+        action,
+        details=(
+            f"coverage_status={coverage.get('status')}; price_basis={price_basis}; "
+            f"regime_coverage={summary.get('regime_coverage_status')}; weak_regimes={weak_regimes}"
+        ),
+    )
+    if regime_rows:
+        _add(
+            rows,
+            run_id,
+            "walk-forward-backtest",
+            mode,
+            "WARN" if weak_regimes else "INFO",
+            "WALK_FORWARD",
+            "WALK_FORWARD_REGIME_CHECK",
+            f"{len(regime_rows)} régime(s) de marché observé(s); faiblesse: {weak_regimes or 'aucune'}.",
+            "Lire latest_walk_forward_regime_summary.csv." if weak_regimes else "Aucune action.",
+            details=_walk_forward_regime_details(regime_rows),
+        )
+    _add(
+        rows,
+        run_id,
+        "walk-forward-backtest",
+        mode,
+        "INFO",
+        "RUN",
+        "RUN_COMPLETED",
+        "Backtest walk-forward terminé.",
+        "Aucune action technique.",
+    )
+    return rows
+
+
 def append_run_log_history(path: str | Path, rows: list[dict[str, Any]], max_rows: int = 3000) -> list[dict[str, Any]]:
     path = Path(path)
     if not rows:
@@ -493,6 +572,13 @@ def _anomaly_details(rows: list[dict[str, Any]], limit: int = 8) -> str:
 def _source_details(rows: list[dict[str, Any]], limit: int = 8) -> str:
     return " | ".join(
         f"{row.get('source')}={row.get('status')} {row.get('health_score')}/100"
+        for row in rows[:limit]
+    )
+
+
+def _walk_forward_regime_details(rows: list[dict[str, Any]], limit: int = 8) -> str:
+    return " | ".join(
+        f"{row.get('market_regime')}={row.get('regime_status')} n={row.get('period_count')} excess={row.get('compounded_excess_return_vs_vfv')}"
         for row in rows[:limit]
     )
 

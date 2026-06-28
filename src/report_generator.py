@@ -10,10 +10,8 @@ from .account_charts import (
     build_account_allocation_chart_rows,
 )
 from .account_performance_engine import ACCOUNT_PERFORMANCE_COLUMNS
-from .allocation_change_engine import ALLOCATION_CHANGE_COLUMNS, write_allocation_change_csv
+from .allocation_change_engine import write_allocation_change_csv
 from .allocation_sensitivity_engine import (
-    ALLOCATION_SENSITIVITY_COLUMNS,
-    ALLOCATION_SENSITIVITY_SUMMARY_COLUMNS,
     sensitivity_rows_for_report,
     sensitivity_summary_rows_for_report,
     write_allocation_sensitivity_csv,
@@ -93,7 +91,29 @@ from .portfolio_transactions import (
     PORTFOLIO_TRANSACTION_SUMMARY_COLUMNS,
 )
 from .promotion_engine import PROMOTION_COLUMNS, build_promotion_candidate_rows
-from .proxy_calibration import PROXY_CALIBRATION_REPORT_COLUMNS, PROXY_CALIBRATION_SUMMARY_COLUMNS
+from .proxy_calibration import (
+    PROXY_CALIBRATION_HISTORY_COLUMNS,
+    PROXY_CALIBRATION_REPORT_COLUMNS,
+    PROXY_CALIBRATION_SUMMARY_COLUMNS,
+)
+from .proxy_bias_engine import PROXY_BIAS_COLUMNS
+from .proxy_correction_engine import (
+    PROXY_CORRECTION_AUDIT_COLUMNS,
+    proxy_correction_audit_summary,
+)
+from .report_formatters import (
+    as_list as _as_list,
+    compact_list as _compact_list,
+    compact_sentence as _compact_sentence,
+    escape_markdown_cell as _escape,
+    first_signal as _first_signal,
+    list_text as _list_text,
+    mapping_text as _mapping_text,
+    proxy_corrections_text as _proxy_corrections_text,
+    report_value as _report_value,
+    truthy_report_value as _truthy_report_value,
+    uses_yfinance_or_cache as _uses_yfinance_or_cache,
+)
 from .qualitative_moat_engine import (
     QUALITATIVE_MOAT_COLUMNS,
     build_qualitative_moat_rows,
@@ -109,14 +129,33 @@ from .run_logging_engine import (
     run_log_rows_for_report,
     run_log_summary,
 )
-from .utils import DATA_DIR, DISCLAIMER, markdown_to_html, money, pct, read_csv_records, safe_float, today_iso, write_csv_records, write_text
+from .utils import (
+    DATA_DIR,
+    DISCLAIMER,
+    markdown_to_html,
+    money,
+    normalize_ticker,
+    pct,
+    read_csv_records,
+    safe_float,
+    today_iso,
+    write_csv_records,
+    write_text,
+)
 from .validation_priority_engine import (
-    VALIDATION_PRIORITY_COLUMNS,
     validation_priority_rows_for_report,
     write_validation_priority_csv,
 )
 from .watchlist_engine import build_watchlist_report_rows
 from .winner_protection_engine import WINNER_PROTECTION_COLUMNS, winner_protection_rows
+
+
+def _append_columns_once(columns: list[str], additions: list[str]) -> None:
+    for column in additions:
+        if column in columns:
+            # WARNING: duplicate report column requested; keep first occurrence for CSV compatibility.
+            continue
+        columns.append(column)
 
 
 SCORES_COLUMNS = [
@@ -191,6 +230,9 @@ SCORES_COLUMNS = [
     "fcf_per_share",
     "fcf_per_share_growth",
     "dividend_yield",
+    "after_tax_yield_adjusted",
+    "tax_adjustment_factor",
+    "tax_adjustment_note",
     "payout_ratio",
     "long_term_durability_score",
     "long_term_durability_status",
@@ -345,6 +387,9 @@ SCORES_COLUMNS = [
     "market_data_last_error",
     "last_known_good_at",
     "data_source_notes",
+    "proxy_correction_status",
+    "proxy_correction_fields",
+    "proxy_corrections_applied",
     "fundamental_fallback_fields",
     "official_data_sources",
     "official_fundamental_fields",
@@ -396,7 +441,11 @@ SCORES_COLUMNS = [
     "final_position_action",
     "final_position_reason",
     "decision",
+    "forward_eps_growth_confidence",
+    "data_source_forward",
+    "eps_growth_5y_proxy_sanity",
 ]
+_append_columns_once(SCORES_COLUMNS, ["data_confidence_badge", "canadian_tax_advantage_active"])
 ALLOCATIONS_COLUMNS = [
     "ticker",
     "amount",
@@ -411,10 +460,17 @@ ALLOCATIONS_COLUMNS = [
     "reliability_cap_reason",
     "capital_allocation_confidence_range",
     "capital_allocation_confidence_label",
+    "single_name_concentration_status",
+    "single_name_concentration_guardrail_applied",
+    "single_name_concentration_current_weight",
+    "single_name_concentration_monthly_cap",
+    "single_name_concentration_target_cap",
+    "single_name_concentration_reason",
     "decision_quality",
     "decision_quality_score",
     "decision_quality_reason",
 ]
+_append_columns_once(ALLOCATIONS_COLUMNS, ["data_confidence_badge", "canadian_tax_advantage_active"])
 SELL_SIGNALS_COLUMNS = [
     "ticker",
     "ticker_display",
@@ -495,7 +551,19 @@ MARKET_CANDIDATE_COLUMNS = [
     "candidate_status",
     "reason",
 ]
-DATA_GAPS_COLUMNS = ["ticker", "data_field", "importance", "impact"]
+DATA_GAPS_BASE_COLUMNS = ["ticker", "data_field", "importance", "impact"]
+DATA_GAPS_COLUMNS = [*DATA_GAPS_BASE_COLUMNS]
+_append_columns_once(DATA_GAPS_COLUMNS, ["gap_resolvable_by"])
+AUTO_ESTIMATES_COLUMNS = DATA_GAPS_BASE_COLUMNS + [
+    "forward_eps",
+    "trailing_eps",
+    "number_of_analyst_opinions",
+    "forward_eps_growth_direct",
+    "forward_eps_growth_confidence",
+    "data_source_forward",
+    "eps_growth_5y_proxy_sanity",
+    "early_deterioration_signal",
+]
 DATA_FRESHNESS_COLUMNS = [
     "ticker",
     "universe",
@@ -565,6 +633,9 @@ def generate_reports(
     discovery_maintenance_rows: list[dict[str, Any]] | None = None,
     proxy_calibration_report: list[dict[str, Any]] | None = None,
     proxy_calibration_summary: list[dict[str, Any]] | None = None,
+    proxy_calibration_history_rows: list[dict[str, Any]] | None = None,
+    proxy_bias_rows: list[dict[str, Any]] | None = None,
+    proxy_correction_audit_rows: list[dict[str, Any]] | None = None,
     allocation_change_rows: list[dict[str, Any]] | None = None,
     allocation_sensitivity: dict[str, Any] | None = None,
     validation_priority_rows: list[dict[str, Any]] | None = None,
@@ -593,6 +664,9 @@ def generate_reports(
     discovery_maintenance_rows = discovery_maintenance_rows or []
     proxy_calibration_report = proxy_calibration_report or []
     proxy_calibration_summary = proxy_calibration_summary or []
+    proxy_calibration_history_rows = proxy_calibration_history_rows or []
+    proxy_bias_rows = proxy_bias_rows or []
+    proxy_correction_audit_rows = proxy_correction_audit_rows or []
     allocation_change_rows = allocation_change_rows or []
     allocation_sensitivity = allocation_sensitivity or {}
     validation_priority_rows = validation_priority_rows or []
@@ -663,6 +737,7 @@ def generate_reports(
         discovery_maintenance_rows,
         proxy_calibration_report,
         proxy_calibration_summary,
+        proxy_correction_audit_rows,
         allocation_change_rows,
         allocation_sensitivity,
         validation_priority_rows,
@@ -701,6 +776,7 @@ def generate_reports(
         discovery_analyses=discovery_analyses,
         discovery_universe=discovery_universe,
         proxy_calibration_summary=proxy_calibration_summary,
+        proxy_correction_audit_rows=proxy_correction_audit_rows,
         allocation_change_rows=allocation_change_rows,
         allocation_sensitivity=allocation_sensitivity,
         validation_priority_rows=validation_priority_rows,
@@ -797,6 +873,17 @@ def generate_reports(
     write_data_freshness_csv(reports_dir / "latest_data_freshness.csv", analyses, watchlist_analyses, market_analyses, discovery_analyses)
     write_proxy_calibration_csv(reports_dir / "latest_proxy_calibration.csv", proxy_calibration_report)
     write_proxy_calibration_summary_csv(reports_dir / "latest_proxy_calibration_summary.csv", proxy_calibration_summary)
+    write_csv_records(
+        reports_dir / "latest_proxy_calibration_history.csv",
+        proxy_calibration_history_rows,
+        PROXY_CALIBRATION_HISTORY_COLUMNS,
+    )
+    write_csv_records(reports_dir / "latest_proxy_bias_report.csv", proxy_bias_rows, PROXY_BIAS_COLUMNS)
+    write_csv_records(
+        reports_dir / "latest_proxy_correction_audit.csv",
+        proxy_correction_audit_rows,
+        PROXY_CORRECTION_AUDIT_COLUMNS,
+    )
     write_ticker_issues_csv(reports_dir / "latest_ticker_issues.csv", analyses, watchlist_analyses, market_analyses)
     write_validation_priority_csv(reports_dir / "latest_validation_priority.csv", validation_priority_rows)
     write_data_gaps_csv(reports_dir / "latest_data_gaps.csv", data_gaps)
@@ -873,6 +960,63 @@ def generate_reports(
     append_run_log_history(DATA_DIR / "run_log_history.csv", run_log_rows)
 
 
+def data_coverage_summary_rows(analyses: dict[str, dict[str, Any]]) -> list[dict[str, Any]]:
+    if not analyses:
+        return []
+    badges = [str(row.get("data_confidence_badge") or "").strip().upper() for row in analyses.values()]
+    badges = [badge for badge in badges if badge]
+    if not badges:
+        return []
+
+    non_etf_badges = [badge for badge in badges if badge != "ETF_N/A"]
+    non_etf_total = len(non_etf_badges)
+    labels = {
+        "STRONG": "Données solides: sources directes ou très bonne fiabilité.",
+        "MODERATE": "Données utilisables, mais avec quelques limites ou estimations.",
+        "WEAK": "Données faibles: prudence avant grosse décision.",
+        "PROXY_ONLY": "Principalement estimé: à confirmer manuellement si le titre devient important.",
+        "ETF_N/A": "ETF/FNB: exclu du score de couverture d'entreprise.",
+    }
+    rows = []
+    for badge in ["STRONG", "MODERATE", "WEAK", "PROXY_ONLY"]:
+        count = non_etf_badges.count(badge)
+        if count == 0 and badge not in set(non_etf_badges):
+            continue
+        rows.append(
+            {
+                "niveau": badge,
+                "titres": count,
+                "% hors ETF": pct(count / non_etf_total, 0) if non_etf_total else "N/D",
+                "lecture": labels[badge],
+            }
+        )
+    etf_count = badges.count("ETF_N/A")
+    if etf_count:
+        rows.append(
+            {
+                "niveau": "ETF_N/A",
+                "titres": etf_count,
+                "% hors ETF": "exclu",
+                "lecture": labels["ETF_N/A"],
+            }
+        )
+    return rows
+
+
+def data_coverage_summary_block(analyses: dict[str, dict[str, Any]]) -> list[str]:
+    rows = data_coverage_summary_rows(analyses)
+    if not rows:
+        return []
+    return [
+        "## Couverture des données",
+        "",
+        "Lecture rapide de la qualité des données utilisées pour les positions du portefeuille. Les ETF/FNB sont exclus des pourcentages parce qu’ils ne se scorent pas comme des entreprises.",
+        "",
+        _markdown_table(["niveau", "titres", "% hors ETF", "lecture"], rows),
+        "",
+    ]
+
+
 def build_compact_markdown_report(
     *,
     mode: str,
@@ -888,6 +1032,7 @@ def build_compact_markdown_report(
     discovery_analyses: dict[str, dict[str, Any]],
     discovery_universe: dict[str, dict[str, Any]],
     proxy_calibration_summary: list[dict[str, Any]],
+    proxy_correction_audit_rows: list[dict[str, Any]],
     allocation_change_rows: list[dict[str, Any]],
     allocation_sensitivity: dict[str, Any],
     validation_priority_rows: list[dict[str, Any]],
@@ -996,6 +1141,7 @@ def build_compact_markdown_report(
     portfolio_change_summary_display_rows = compact_portfolio_change_summary_for_compact_report(portfolio_change_summary_rows)
     account_allocation_display_rows = compact_account_allocation_for_compact_report(account_chart_rows)
     proxy_summary_rows = compact_proxy_summary_for_compact_report(proxy_calibration_summary_rows_for_report(proxy_calibration_summary))
+    proxy_correction_display_rows = compact_proxy_correction_audit_rows(proxy_correction_audit_rows)
     promotion_rows = build_promotion_candidate_rows(watchlist_analyses, market_analyses, analyses, portfolio_risk, market_universe)
     promotion_display_rows = compact_promotion_rows_for_compact_report(promotion_recommendation_rows(promotion_rows))
     external_rows = compact_external_candidates_for_compact_report(
@@ -1085,6 +1231,7 @@ def build_compact_markdown_report(
         "",
         f"> {DISCLAIMER}",
         "",
+        *data_coverage_summary_block(analyses),
         "## 1. Décision maintenant",
         "",
         "Cette première section est la zone d’action. Elle répond à: quoi acheter, quoi vérifier avant d’acheter, et quel est le risque principal.",
@@ -1413,6 +1560,12 @@ def build_compact_markdown_report(
                 "### Calibration des proxies",
                 "",
                 _markdown_table(["field", "reliability_status", "recommended_action"], proxy_summary_rows),
+                "",
+                "### Corrections de proxy actives",
+                "",
+                "Lecture: cette table vérifie que les corrections validées ne deviennent pas une source de surcorrection. Elle n’ajuste rien toute seule; elle signale seulement quand une correction doit être revue.",
+                "",
+                _markdown_table(["field", "status", "risk_level", "factor", "recommended_action", "reason"], proxy_correction_display_rows),
             ],
         ),
     ]
@@ -1458,6 +1611,7 @@ def build_markdown_report(
     discovery_maintenance_rows: list[dict[str, Any]],
     proxy_calibration_report: list[dict[str, Any]],
     proxy_calibration_summary: list[dict[str, Any]],
+    proxy_correction_audit_rows: list[dict[str, Any]],
     allocation_change_rows: list[dict[str, Any]] | None = None,
     allocation_sensitivity: dict[str, Any] | None = None,
     validation_priority_rows: list[dict[str, Any]] | None = None,
@@ -1570,6 +1724,7 @@ def build_markdown_report(
     data_freshness_display_rows = _display_rows(data_freshness_rows_for_report(data_freshness_rows))
     proxy_calibration_display_rows = _display_rows(proxy_calibration_rows_for_report(proxy_calibration_report))
     proxy_calibration_summary_display_rows = _display_rows(proxy_calibration_summary_rows_for_report(proxy_calibration_summary))
+    proxy_correction_display_rows = _display_rows(proxy_correction_audit_rows_for_report(proxy_correction_audit_rows))
     allocation_change_display_rows = _display_rows(allocation_change_rows_for_report(allocation_change_rows))
     allocation_justification_display_rows = _display_rows(
         allocation_justification_rows_for_report(
@@ -2357,8 +2512,23 @@ def build_markdown_report(
         [
             f"## {section_number}. Opportunity Cost vs VFV",
             "",
+            "Les colonnes `after_tax_yield_adjusted` sont des estimations fiscales approximatives pour comparaison relative seulement (`after-tax est. (approx.)`). Elles ne remplacent pas une validation avec un fiscaliste ou comptable.",
+            "",
             _markdown_table(
-                ["universe", "ticker", "opportunity_cost_status", "score_total", "conviction_score", "allocation_decision", "sell_decision", "final_position_action"],
+                [
+                    "universe",
+                    "ticker",
+                    "opportunity_cost_status",
+                    "gross_yield",
+                    "after_tax_yield_adjusted",
+                    "vfv_after_tax_yield_adjusted",
+                    "after_tax_yield_spread_vs_vfv",
+                    "score_total",
+                    "conviction_score",
+                    "allocation_decision",
+                    "sell_decision",
+                    "final_position_action",
+                ],
                 opportunity_display_rows,
             ),
             "",
@@ -2654,6 +2824,29 @@ def build_markdown_report(
                 proxy_calibration_display_rows,
             ),
             "",
+            "Audit des corrections actives:",
+            "",
+            "Cette sous-section surveille les corrections de proxy déjà activées afin d’éviter une surcorrection. Elle ne désactive rien automatiquement pendant l’analyse normale: elle rend seulement visible une correction trop ancienne, trop proche de la limite ou contredite par de nouvelles vraies données.",
+            "",
+            f"- Résumé: {proxy_correction_audit_summary(proxy_correction_audit_rows)}",
+            "",
+            _markdown_table(
+                [
+                    "field",
+                    "status",
+                    "risk_level",
+                    "factor",
+                    "confidence",
+                    "sample_count",
+                    "last_updated",
+                    "bias_status",
+                    "current_suggested_factor",
+                    "recommended_action",
+                    "reason",
+                ],
+                proxy_correction_display_rows,
+            ),
+            "",
         ]
     )
     section_number += 1
@@ -2813,10 +3006,73 @@ def promotion_recommendation_rows(rows: list[dict[str, Any]]) -> list[dict[str, 
     ]
 
 
+def _gap_field_key(data_field: Any) -> str:
+    text = str(data_field or "").replace("AUTO_ESTIMATE:", "", 1).strip().lower()
+    if ":" in text:
+        text = text.split(":", 1)[1].strip()
+    return text.replace(" ", "_").replace("-", "_")
+
+
+def _gap_resolvable_by(row: dict[str, Any]) -> str:
+    ticker = normalize_ticker(row.get("ticker"))
+    field = _gap_field_key(row.get("data_field"))
+    is_canadian = ticker.endswith((".TO", ".V"))
+    sedarplus_fields = {
+        "profit_margins",
+        "operating_margins",
+        "revenue_growth",
+        "earnings_growth",
+        "return_on_equity",
+        "return_on_assets",
+        "free_cash_flow",
+        "free_cash_flow_margin",
+        "total_debt",
+        "total_cash",
+        "net_debt_to_fcf",
+        "total_assets",
+        "total_liabilities",
+    }
+    yf_us_forward_fields = {
+        "forward_eps",
+        "trailing_eps",
+        "number_of_analyst_opinions",
+        "forward_pe",
+        "peg",
+        "earnings_growth",
+        "revenue_growth",
+    }
+    yf_profile_fields = {"sector_name", "industry", "market_cap", "dividend_yield"}
+    yf_market_fields = {"current_price", "sma_200", "stock_return_1y", "cagr_5y"}
+    if is_canadian and field in sedarplus_fields:
+        return "sedarplus"
+    if not is_canadian and field in yf_us_forward_fields:
+        return "yfinance_live"
+    if field in yf_profile_fields or field in yf_market_fields:
+        return "yfinance_live"
+    return "manual"
+
+
+def data_gap_rows_for_output(data_gaps: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    rows = []
+    for row in true_missing_data_rows(data_gaps):
+        output = dict(row)
+        output["gap_resolvable_by"] = _gap_resolvable_by(row)
+        rows.append(output)
+    return rows
+
+
 def write_data_gaps_csv(path: str | Path, data_gaps: list[dict[str, Any]]) -> None:
-    rows = true_missing_data_rows(data_gaps)
+    rows = data_gap_rows_for_output(data_gaps)
     if not rows:
-        rows = [{"ticker": "", "data_field": "", "importance": "", "impact": "Aucune donnée vraiment manquante majeure."}]
+        rows = [
+            {
+                "ticker": "",
+                "data_field": "",
+                "importance": "",
+                "impact": "Aucune donnée vraiment manquante majeure.",
+                "gap_resolvable_by": "",
+            }
+        ]
     write_csv_records(path, rows, DATA_GAPS_COLUMNS)
 
 
@@ -2824,7 +3080,7 @@ def write_auto_estimates_csv(path: str | Path, data_gaps: list[dict[str, Any]]) 
     rows = auto_estimate_rows_for_output(data_gaps)
     if not rows:
         rows = [{"ticker": "", "data_field": "", "importance": "", "impact": "Aucune estimation automatique majeure à valider."}]
-    write_csv_records(path, rows, DATA_GAPS_COLUMNS)
+    write_csv_records(path, rows, AUTO_ESTIMATES_COLUMNS)
 
 
 def write_data_freshness_csv(path: str | Path, *analysis_groups: dict[str, dict[str, Any]]) -> None:
@@ -3823,6 +4079,28 @@ def compact_proxy_summary_for_compact_report(rows: list[dict[str, Any]], limit: 
     ]
 
 
+def compact_proxy_correction_audit_rows(rows: list[dict[str, Any]], limit: int = 8) -> list[dict[str, Any]]:
+    display_rows = proxy_correction_audit_rows_for_report(rows)
+    selected = [
+        row
+        for row in display_rows
+        if str(row.get("status") or "") not in {"ACTIVE_OK", "DISABLED", "NO_ACTIVE_CORRECTIONS"}
+    ]
+    if not selected:
+        selected = display_rows[:3]
+    return [
+        {
+            "field": row.get("field"),
+            "status": row.get("status"),
+            "risk_level": row.get("risk_level"),
+            "factor": row.get("factor"),
+            "recommended_action": _compact_sentence(row.get("recommended_action"), 170),
+            "reason": _compact_sentence(row.get("reason"), 190),
+        }
+        for row in selected[:limit]
+    ]
+
+
 def compact_external_candidates_for_compact_report(
     watchlist_analyses: dict[str, dict[str, Any]],
     market_analyses: dict[str, dict[str, Any]],
@@ -4098,6 +4376,14 @@ def auto_estimate_rows_for_output(data_gaps: list[dict[str, Any]]) -> list[dict[
                 "data_field": display,
                 "importance": row.get("importance"),
                 "impact": row.get("impact"),
+                "forward_eps": row.get("forward_eps"),
+                "trailing_eps": row.get("trailing_eps"),
+                "number_of_analyst_opinions": row.get("number_of_analyst_opinions"),
+                "forward_eps_growth_direct": row.get("forward_eps_growth_direct"),
+                "forward_eps_growth_confidence": row.get("forward_eps_growth_confidence"),
+                "data_source_forward": row.get("data_source_forward"),
+                "eps_growth_5y_proxy_sanity": row.get("eps_growth_5y_proxy_sanity"),
+                "early_deterioration_signal": row.get("early_deterioration_signal"),
             }
         )
     return rows
@@ -4139,6 +4425,31 @@ def write_proxy_calibration_csv(path: str | Path, rows: list[dict[str, Any]]) ->
 
 def write_proxy_calibration_summary_csv(path: str | Path, rows: list[dict[str, Any]]) -> None:
     write_csv_records(path, proxy_calibration_summary_rows_for_report(rows), PROXY_CALIBRATION_SUMMARY_COLUMNS)
+
+
+def proxy_correction_audit_rows_for_report(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    if rows:
+        return rows
+    return [
+        {
+            "field": "",
+            "status": "NO_AUDIT_AVAILABLE",
+            "risk_level": "LOW",
+            "factor": "",
+            "confidence": "",
+            "sample_count": "",
+            "last_updated": "",
+            "days_since_update": "",
+            "bias_status": "",
+            "bias_confidence": "",
+            "bias_sample_count": "",
+            "current_suggested_factor": "",
+            "factor_gap": "",
+            "max_safe_factor_change": "",
+            "recommended_action": "Relancer une analyse complète pour générer l’audit.",
+            "reason": "Aucune ligne d’audit des corrections proxy n’a été fournie.",
+        }
+    ]
 
 
 def proxy_calibration_rows_for_report(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
@@ -4189,9 +4500,13 @@ def proxy_calibration_summary_rows_for_report(rows: list[dict[str, Any]]) -> lis
 def allocation_rows_for_csv(allocations: list[dict[str, Any]]) -> list[dict[str, Any]]:
     rows = []
     for row in allocations:
+        ticker = row.get("destination", row.get("ticker", ""))
+        data_confidence_badge = row.get("data_confidence_badge", "")
+        if not data_confidence_badge and normalize_ticker(ticker) == "VFV.TO":
+            data_confidence_badge = "ETF_N/A"
         rows.append(
             {
-                "ticker": row.get("destination", row.get("ticker", "")),
+                "ticker": ticker,
                 "amount": safe_float(row.get("montant", row.get("amount"))) or 0.0,
                 "percentage": safe_float(row.get("pourcentage", row.get("percentage"))) or 0.0,
                 "reason": row.get("raison", row.get("reason", "")),
@@ -4204,9 +4519,17 @@ def allocation_rows_for_csv(allocations: list[dict[str, Any]]) -> list[dict[str,
                 "reliability_cap_reason": row.get("reliability_cap_reason", ""),
                 "capital_allocation_confidence_range": row.get("capital_allocation_confidence_range", ""),
                 "capital_allocation_confidence_label": row.get("capital_allocation_confidence_label", ""),
+                "single_name_concentration_status": row.get("single_name_concentration_status", ""),
+                "single_name_concentration_guardrail_applied": row.get("single_name_concentration_guardrail_applied", ""),
+                "single_name_concentration_current_weight": row.get("single_name_concentration_current_weight", ""),
+                "single_name_concentration_monthly_cap": row.get("single_name_concentration_monthly_cap", ""),
+                "single_name_concentration_target_cap": row.get("single_name_concentration_target_cap", ""),
+                "single_name_concentration_reason": row.get("single_name_concentration_reason", ""),
                 "decision_quality": row.get("decision_quality", ""),
                 "decision_quality_score": row.get("decision_quality_score", ""),
                 "decision_quality_reason": row.get("decision_quality_reason", ""),
+                "data_confidence_badge": data_confidence_badge,
+                "canadian_tax_advantage_active": row.get("canadian_tax_advantage_active", False),
             }
         )
     return rows
@@ -4221,6 +4544,19 @@ def _allocation_reliability_cap_text(row: dict[str, Any]) -> str:
     prefix = "appliqué" if str(applied).lower() in {"true", "1", "yes"} or applied is True else "non appliqué"
     cap_text = pct(cap, 0) if cap is not None else "N/D"
     return f"{status} {prefix} max {cap_text}"
+
+
+def _allocation_single_name_concentration_text(row: dict[str, Any]) -> str:
+    status = str(row.get("single_name_concentration_status") or "")
+    if not status or status == "NONE":
+        return "aucun"
+    cap = safe_float(row.get("single_name_concentration_monthly_cap"))
+    weight = safe_float(row.get("single_name_concentration_current_weight"))
+    applied = row.get("single_name_concentration_guardrail_applied")
+    prefix = "appliqué" if str(applied).lower() in {"true", "1", "yes"} or applied is True else "observé"
+    cap_text = pct(cap, 0) if cap is not None else "N/D"
+    weight_text = pct(weight, 1) if weight is not None else "N/D"
+    return f"{status} {prefix}, poids {weight_text}, max mensuel {cap_text}"
 
 
 def allocation_change_rows_for_report(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
@@ -4998,6 +5334,9 @@ def _allocation_amount_reason(allocation_row: dict[str, Any], analysis: dict[str
     cap_text = _allocation_reliability_cap_text(allocation_row)
     if cap_text != "aucun":
         context.append(f"cap fiabilité: {cap_text}")
+    single_name_text = _allocation_single_name_concentration_text(allocation_row)
+    if single_name_text != "aucun":
+        context.append(f"concentration individuelle: {single_name_text}")
 
     prefix = "; ".join(context)
     if row_reason and prefix:
@@ -5834,7 +6173,7 @@ def source_rows_for_report(
         {
             "source": "Fichiers locaux utilisateur",
             "utilisation": "Portefeuille, comptes, historique automatique des changements, corrections manuelles optionnelles, univers scanner et liste de découverte configurée.",
-            "éléments consultés": "data/portfolio.csv, data/portfolio_change_history.csv, data/portfolio_inferred_transactions.csv, data/account_performance_history.csv, data/portfolio_state_snapshot.csv, data/portfolio_transactions.csv, data/manual_inputs_friendly.txt, data/proxy_calibration.csv, data/market_universe.csv, config/market_scanner.yaml",
+            "éléments consultés": "data/portfolio.csv, data/portfolio_change_history.csv, data/portfolio_inferred_transactions.csv, data/account_performance_history.csv, data/portfolio_state_snapshot.csv, data/portfolio_transactions.csv, data/manual_inputs_friendly.txt, data/proxy_calibration.csv, config/proxy_corrections.yaml, data/market_universe.csv, config/market_scanner.yaml",
             "limite": "La qualité dépend de ce qui est rempli et de l’exactitude des tickers.",
         },
     ]
@@ -6077,6 +6416,10 @@ def opportunity_cost_rows(
                     "universe": universe,
                     "ticker": row.get("ticker_display", row.get("ticker")),
                     "opportunity_cost_status": row.get("opportunity_cost_status"),
+                    "gross_yield": row.get("gross_yield"),
+                    "after_tax_yield_adjusted": row.get("after_tax_yield_adjusted"),
+                    "vfv_after_tax_yield_adjusted": row.get("vfv_after_tax_yield_adjusted"),
+                    "after_tax_yield_spread_vs_vfv": row.get("after_tax_yield_spread_vs_vfv"),
                     "score_total": row.get("score_total"),
                     "conviction_score": row.get("conviction_score"),
                     "allocation_decision": row.get(
@@ -6166,6 +6509,9 @@ def _score_row_for_csv(row: dict[str, Any]) -> dict[str, Any]:
         "fcf_per_share": row.get("fcf_per_share"),
         "fcf_per_share_growth": row.get("fcf_per_share_growth"),
         "dividend_yield": row.get("dividend_yield"),
+        "after_tax_yield_adjusted": row.get("after_tax_yield_adjusted"),
+        "tax_adjustment_factor": row.get("tax_adjustment_factor"),
+        "tax_adjustment_note": row.get("tax_adjustment_note"),
         "payout_ratio": row.get("payout_ratio"),
         "long_term_durability_score": row.get("long_term_durability_score"),
         "long_term_durability_status": row.get("long_term_durability_status"),
@@ -6303,6 +6649,9 @@ def _score_row_for_csv(row: dict[str, Any]) -> dict[str, Any]:
         "market_data_last_error": row.get("market_data_last_error"),
         "last_known_good_at": row.get("last_known_good_at"),
         "data_source_notes": _list_text(row.get("data_source_notes") or []),
+        "proxy_correction_status": row.get("proxy_correction_status"),
+        "proxy_correction_fields": _list_text(row.get("proxy_correction_fields") or []),
+        "proxy_corrections_applied": _proxy_corrections_text(row.get("proxy_corrections_applied") or []),
         "fundamental_fallback_fields": _list_text(row.get("fundamental_fallback_fields") or []),
         "official_data_sources": _list_text(row.get("official_data_sources") or []),
         "official_fundamental_fields": _list_text(row.get("official_fundamental_fields") or []),
@@ -6354,6 +6703,11 @@ def _score_row_for_csv(row: dict[str, Any]) -> dict[str, Any]:
         "final_position_action": row.get("final_position_action"),
         "final_position_reason": row.get("final_position_reason"),
         "decision": row.get("decision"),
+        "forward_eps_growth_confidence": row.get("forward_eps_growth_confidence"),
+        "data_source_forward": row.get("data_source_forward"),
+        "eps_growth_5y_proxy_sanity": row.get("eps_growth_5y_proxy_sanity"),
+        "data_confidence_badge": row.get("data_confidence_badge"),
+        "canadian_tax_advantage_active": row.get("canadian_tax_advantage_active"),
     }
 
 
@@ -6821,41 +7175,6 @@ def _dict_table(key_header: str, value_header: str, values: dict[str, float]) ->
     return _markdown_table([key_header, value_header], rows)
 
 
-def _escape(value: Any) -> str:
-    return str(value if value is not None else "Donnée pas dispo").replace("|", "/").replace("\n", " ")
-
-
-def _report_value(value: Any) -> str:
-    return "Donnée pas dispo" if value is None or value == "" else str(value)
-
-
-def _list_text(values: Any) -> str:
-    if not values:
-        return "Aucun"
-    if isinstance(values, list):
-        return ", ".join(str(value) for value in values) if values else "Aucun"
-    return str(values)
-
-
-def _mapping_text(values: Any) -> str:
-    if not values:
-        return "Aucun"
-    if isinstance(values, dict):
-        return "; ".join(f"{key}: {value}" for key, value in sorted(values.items())) or "Aucun"
-    return str(values)
-
-
-def _first_signal(values: Any) -> str:
-    if not values:
-        return ""
-    if isinstance(values, list):
-        return str(values[0]) if values else ""
-    text = str(values).strip()
-    if not text or text == "Aucun":
-        return ""
-    return text.split(";")[0].strip()
-
-
 def _winner_protection_label(row: dict[str, Any]) -> str:
     status = str(row.get("winner_protection_status") or "").strip()
     action = str(row.get("winner_protection_action") or "").strip()
@@ -6866,51 +7185,11 @@ def _winner_protection_label(row: dict[str, Any]) -> str:
     return status
 
 
-def _as_list(values: Any) -> list[Any]:
-    if values is None or values == "":
-        return []
-    if isinstance(values, list):
-        return values
-    return [values]
-
-
-def _uses_yfinance_or_cache(row: dict[str, Any]) -> bool:
-    source = str(row.get("source") or "").lower()
-    notes = " ".join(str(note).lower() for note in _as_list(row.get("data_source_notes")))
-    return "yfinance" in source or "yfinance" in notes or "cache local yfinance" in notes
-
-
-def _compact_list(values: list[str], limit: int = 24) -> str:
-    clean = [value for value in values if value]
-    if not clean:
-        return "Aucun"
-    if len(clean) <= limit:
-        return ", ".join(clean)
-    shown = ", ".join(clean[:limit])
-    return f"{shown}, ... (+{len(clean) - limit})"
-
-
-def _truthy_report_value(value: Any) -> bool:
-    if isinstance(value, bool):
-        return value
-    return str(value or "").strip().lower() in {"true", "1", "yes", "oui", "applied", "appliqué", "applique"}
-
-
 def _guardrail_ticker_text(tickers: list[str], label: str) -> str:
     clean = [ticker for ticker in tickers if ticker]
     if not clean:
         return "Aucun signal important affiché."
     return f"{label}: {_compact_list(clean, limit=6)}"
-
-
-def _compact_sentence(value: Any, limit: int = 220) -> str:
-    text = str(value or "").replace("\n", " ").strip()
-    if not text:
-        return "N/D"
-    text = " ".join(text.split())
-    if len(text) <= limit:
-        return text
-    return text[: max(0, limit - 3)].rstrip(" ,.;") + "..."
 
 
 def _validation_point_text(row: dict[str, Any]) -> str:

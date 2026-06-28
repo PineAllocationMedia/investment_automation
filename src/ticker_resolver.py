@@ -273,6 +273,16 @@ def resolve_universe_mapping(
     return resolved
 
 
+def load_and_resolve_universe(
+    loader_fn: Any,
+    aliases: dict[str, dict[str, str]],
+    metadata: dict[str, dict[str, Any]],
+    source: str,
+) -> dict[str, dict[str, Any]]:
+    """Load a ticker universe and resolve aliases in one reusable step."""
+    return resolve_universe_mapping(loader_fn(), aliases, metadata, source)
+
+
 def resolve_keyed_config(
     mapping: dict[str, Any],
     aliases: dict[str, dict[str, str]],

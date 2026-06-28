@@ -75,6 +75,17 @@ class FullAuditEngineTest(unittest.TestCase):
                 ]
             },
             backtest_error="",
+            walk_forward_result={
+                "summary": {
+                    "status": "PRELIMINARY_WALK_FORWARD",
+                    "simulated_periods": 3,
+                    "usable_walk_forward_periods": 3,
+                    "compounded_excess_return_vs_vfv": 0.04,
+                    "avg_excess_return_vs_vfv": 0.01,
+                    "win_rate_vs_vfv": 0.67,
+                },
+                "period_rows": [],
+            },
             account_performance_rows=[
                 {
                     "account_type": "ALL_ACCOUNTS",
@@ -105,6 +116,8 @@ class FullAuditEngineTest(unittest.TestCase):
         self.assertIn("Écart TWR", metrics["account_summary"]["interpretation"])
         self.assertIn("ADJUSTED_CLOSE_TOTAL_RETURN_PROXY", metrics["account_summary"]["interpretation"])
         self.assertIn("ticker_source_quality_status", metrics)
+        self.assertIn("walk_forward_status", metrics)
+        self.assertGreater(metrics["walk_forward_score"], 60)
 
     def test_full_audit_outputs_are_written(self):
         with TemporaryDirectory() as folder:
@@ -122,6 +135,8 @@ class FullAuditEngineTest(unittest.TestCase):
                 "model_health_score": 72.0,
                 "backtest_status": "THEORETICAL_ACCEPTABLE",
                 "backtest_score": 70.0,
+                "walk_forward_status": "WALK_FORWARD_NOT_READY",
+                "walk_forward_score": 60.0,
                 "realized_performance_status": "SIMILAR_TO_SP500",
                 "realized_performance_score": 62.0,
                 "contribution_estimate": {"monthly_capital": 500, "confidence": "LOW"},
@@ -146,6 +161,7 @@ class FullAuditEngineTest(unittest.TestCase):
                 rows,
                 {"metrics": {"threshold_review": {"status": "OK", "interpretation": "OK"}}},
                 {"summaries": []},
+                {"summary": {"status": "NO_USABLE_PERIODS"}, "period_rows": []},
                 [],
             )
             write_full_audit_outputs(reports, {"markdown": markdown, "rows": rows})
@@ -165,6 +181,9 @@ class FullAuditEngineTest(unittest.TestCase):
                 "model_confidence": "SOLID",
                 "backtest_status": "OK",
                 "backtest_score": 70.0,
+                "walk_forward_status": "WALK_FORWARD_NOT_READY",
+                "walk_forward_score": 60.0,
+                "walk_forward_summary": {"status": "NO_USABLE_PERIODS"},
                 "realized_performance_status": "OK",
                 "realized_performance_score": 60.0,
                 "evidence_score": 65.0,
@@ -181,6 +200,7 @@ class FullAuditEngineTest(unittest.TestCase):
         )
 
         self.assertTrue(any(row["metric"] == "Qualité tickers et contradictions" for row in rows))
+        self.assertTrue(any(row["metric"] == "Walk-forward hors-échantillon" for row in rows))
 
 
 if __name__ == "__main__":

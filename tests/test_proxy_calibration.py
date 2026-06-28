@@ -3,9 +3,11 @@ import unittest
 from src.proxy_calibration import (
     build_proxy_calibration_report,
     build_proxy_calibration_summary,
+    build_proxy_calibration_history_rows,
     clear_proxy_calibration_values,
     create_proxy_calibration_template,
     load_proxy_calibration_inputs,
+    update_proxy_calibration_history,
 )
 
 
@@ -134,6 +136,79 @@ class ProxyCalibrationTest(unittest.TestCase):
 
         self.assertEqual(roic["reliability_status"], "RECALIBRATION_CANDIDATE")
         self.assertEqual(roic["bias_direction"], "PROXY_TOO_HIGH")
+
+    def test_proxy_calibration_history_keeps_usable_numeric_evidence(self):
+        report_rows = [
+            {
+                "ticker": "AVGO",
+                "company_name": "Broadcom",
+                "field": "roic_5y_avg",
+                "true_value": "34.2",
+                "proxy_value": "28.5",
+                "difference": -5.7,
+                "relative_difference": -0.1667,
+                "comparison_status": "REVIEW_PROXY",
+                "source": "Morningstar",
+                "source_date": "2026-06-24",
+                "confidence": "HIGH",
+                "proxy_source": "roic_5y_avg: proxy ROE yfinance",
+            }
+        ]
+
+        rows = build_proxy_calibration_history_rows(
+            report_rows,
+            run_id="test-run",
+            mode="high-cagr",
+            snapshot_date="2026-06-25",
+        )
+
+        self.assertEqual(len(rows), 1)
+        self.assertEqual(rows[0]["ticker"], "AVGO")
+        self.assertEqual(rows[0]["error_pct"], -16.67)
+        self.assertEqual(rows[0]["observation_count"], 1)
+        self.assertIn("AVGO|roic_5y_avg", rows[0]["evidence_key"])
+
+    def test_proxy_calibration_history_updates_duplicate_evidence_instead_of_duplication(self):
+        import tempfile
+        from pathlib import Path
+
+        report_rows = [
+            {
+                "ticker": "MSFT",
+                "company_name": "Microsoft",
+                "field": "roic_5y_avg",
+                "true_value": "20",
+                "proxy_value": "18",
+                "difference": -2,
+                "relative_difference": -0.10,
+                "comparison_status": "CLOSE",
+                "source": "Morningstar",
+                "source_date": "2026-06-24",
+                "confidence": "HIGH",
+            }
+        ]
+
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "proxy_calibration_history.csv"
+            first = update_proxy_calibration_history(
+                path,
+                report_rows,
+                run_id="run-1",
+                mode="high-cagr",
+                snapshot_date="2026-06-25",
+            )
+            second = update_proxy_calibration_history(
+                path,
+                report_rows,
+                run_id="run-2",
+                mode="high-cagr",
+                snapshot_date="2026-06-25",
+            )
+
+        self.assertEqual(len(first), 1)
+        self.assertEqual(len(second), 1)
+        self.assertEqual(second[0]["observation_count"], 2)
+        self.assertEqual(second[0]["last_run_id"], "run-2")
 
     def test_clear_proxy_calibration_values_keeps_template_shape(self):
         import tempfile

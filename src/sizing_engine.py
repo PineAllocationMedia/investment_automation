@@ -23,6 +23,13 @@ OPPORTUNITY_COST_SCORE = {
 }
 
 
+def _get_cached(analysis: dict[str, Any], computed: dict[str, Any], key: str) -> float:
+    """Read an enriched value first, otherwise read it from a fallback compute result."""
+    if key in analysis and analysis.get(key) is not None:
+        return safe_float(analysis.get(key)) or 0.0
+    return safe_float(computed.get(key)) or 0.0
+
+
 def drawdown_opportunity_score(drawdown: float | None) -> float:
     if drawdown is None:
         return 25.0
@@ -86,7 +93,10 @@ def compute_high_cagr_potential_score(analysis: dict[str, Any]) -> float:
     opportunity_score = OPPORTUNITY_COST_SCORE.get(str(analysis.get("opportunity_cost_status")), 0)
     valuation_score = compute_valuation_score(analysis)
     market_growth_score = safe_float(analysis.get("market_growth_thesis_score"))
-    market_growth_component = market_growth_score if market_growth_score is not None else _score_percent_threshold(sector_cagr, 5, 12)
+    # Keep sector CAGR and market-growth thesis as separate signals. When the
+    # thesis score is unavailable, use a neutral component instead of counting
+    # sector_cagr twice.
+    market_growth_component = market_growth_score if market_growth_score is not None else 50.0
     return round(
         clamp(
             0.30 * _score_percent_threshold(eps_est, 8, 20)
@@ -149,15 +159,24 @@ def compute_capital_allocation_score(
     high_cagr_potential_score = compute_high_cagr_potential_score(analysis)
     quality_cagr_intersection = min(business_quality_score, high_cagr_potential_score)
     durability_score = safe_float(analysis.get("long_term_durability_score"))
-    shareholder_return = compute_shareholder_return_quality(analysis)
-    shareholder_return_score = safe_float(shareholder_return.get("shareholder_return_quality_score")) or 0.0
-    shareholder_return_adjustment = safe_float(shareholder_return.get("shareholder_return_adjustment")) or 0.0
-    cash_flow_quality = compute_cash_flow_quality(analysis)
-    cash_flow_quality_score = safe_float(cash_flow_quality.get("cash_flow_quality_score")) or 0.0
-    cash_flow_quality_adjustment = safe_float(cash_flow_quality.get("cash_flow_quality_adjustment")) or 0.0
-    shareholder_discipline = compute_shareholder_discipline({**analysis, **cash_flow_quality})
-    shareholder_discipline_score = safe_float(shareholder_discipline.get("shareholder_discipline_score")) or 0.0
-    shareholder_discipline_adjustment = safe_float(shareholder_discipline.get("shareholder_discipline_adjustment")) or 0.0
+    shareholder_return = (
+        compute_shareholder_return_quality(analysis)
+        if "shareholder_return_quality_score" not in analysis
+        else {}
+    )
+    shareholder_return_score = _get_cached(analysis, shareholder_return, "shareholder_return_quality_score")
+    shareholder_return_adjustment = _get_cached(analysis, shareholder_return, "shareholder_return_adjustment")
+
+    cash_flow_quality = compute_cash_flow_quality(analysis) if "cash_flow_quality_score" not in analysis else {}
+    cash_flow_quality_score = _get_cached(analysis, cash_flow_quality, "cash_flow_quality_score")
+    cash_flow_quality_adjustment = _get_cached(analysis, cash_flow_quality, "cash_flow_quality_adjustment")
+    shareholder_discipline = (
+        compute_shareholder_discipline({**analysis, **cash_flow_quality})
+        if "shareholder_discipline_score" not in analysis
+        else {}
+    )
+    shareholder_discipline_score = _get_cached(analysis, shareholder_discipline, "shareholder_discipline_score")
+    shareholder_discipline_adjustment = _get_cached(analysis, shareholder_discipline, "shareholder_discipline_adjustment")
     quality_drawdown_adjustment = safe_float(analysis.get("quality_drawdown_allocation_adjustment")) or 0.0
     market_growth_thesis_score = safe_float(analysis.get("market_growth_thesis_score"))
     market_growth_thesis_adjustment = safe_float(analysis.get("market_growth_thesis_adjustment")) or 0.0
@@ -305,6 +324,10 @@ def compute_capital_allocation_score(
         **shareholder_return,
         **cash_flow_quality,
         **shareholder_discipline,
+        "cash_flow_quality_score": cash_flow_quality_score,
+        "cash_flow_quality_adjustment": cash_flow_quality_adjustment,
+        "shareholder_discipline_score": shareholder_discipline_score,
+        "shareholder_discipline_adjustment": shareholder_discipline_adjustment,
     }
 
 
@@ -352,6 +375,9 @@ def _capital_allocation_confidence_range(final_score: float, analysis: dict[str,
     estimate_gap = safe_float(analysis.get("score_estimate_gap")) or 0.0
 
     band = 4.0
+    # Allocation confidence intentionally differs slightly from conviction
+    # confidence: sizing already includes execution-risk guardrails such as
+    # validation flags, large-allocation checks, and ticker issues.
     if reliability_level == "LOW":
         band += 8.0
     elif reliability_level == "MEDIUM":

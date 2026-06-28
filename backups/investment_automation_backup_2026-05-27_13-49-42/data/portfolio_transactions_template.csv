@@ -1,4 +1,0 @@
-date,ticker,account_type,transaction_type,shares,price,price_currency,fees,fees_currency,cash_amount,cash_currency,notes
-2026-05-12,MSFT,TFSA1,BUY,1,420,USD,0,CAD,,,Exemple achat.
-2026-05-12,VFV.TO,FHSA,SELL,1,145,CAD,0,CAD,,,Exemple vente.
-2026-05-12,,TFSA1,CASH_CONTRIBUTION,,,,,,500,CAD,Exemple cotisation.

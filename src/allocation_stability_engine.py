@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import Any
 
 from .add_eligibility_engine import ADD_ALLOWED_STATUSES
+from .asset_type_engine import is_etf_asset_analysis
 from .model_tuning import tuning_value
 from .utils import safe_float
 
@@ -18,7 +19,7 @@ CONTINUITY_SUPPORT = 5.5
 def apply_allocation_stability(analyses: dict[str, dict[str, Any]], mode: str = "rational-aggressive") -> None:
     base_results: dict[str, dict[str, Any]] = {}
     for analysis in analyses.values():
-        if analysis.get("ticker") == "VFV.TO" or analysis.get("benchmark_role") is True:
+        if analysis.get("ticker") == "VFV.TO" or analysis.get("benchmark_role") is True or is_etf_asset_analysis(analysis):
             continue
         result = compute_allocation_stability(analysis, mode=mode)
         analysis.update(result)
@@ -156,6 +157,7 @@ def _apply_group_switching_discipline(
         for analysis in analyses.values()
         if analysis.get("ticker") != "VFV.TO"
         and analysis.get("benchmark_role") is not True
+        and not is_etf_asset_analysis(analysis)
         and _currently_addable(analysis)
     ]
     if len(addable) < 2:

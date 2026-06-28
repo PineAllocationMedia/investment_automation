@@ -3,8 +3,20 @@ from __future__ import annotations
 from typing import Any
 
 from .manual_inputs import CATASTROPHIC_COLUMNS, MANUAL_COLUMNS, empty_manual_row, parse_manual_row
+from .proxy_correction_engine import apply_proxy_correction
 from .utils import first_present, safe_float
 
+
+FORWARD_EPS_HIGH_MEDIUM_WEIGHT = 0.60
+FORWARD_EPS_HIGH_MEDIUM_PROXY_WEIGHT = 0.40
+FORWARD_EPS_LOW_CONFIDENCE_WEIGHT = 0.30
+FORWARD_EPS_LOW_CONFIDENCE_PROXY_WEIGHT = 0.70
+FORWARD_EPS_HIGH_CONFIDENCE_ANALYSTS = 10
+FORWARD_EPS_MEDIUM_CONFIDENCE_ANALYSTS = 5
+FORWARD_EPS_MIN_ANALYSTS = 1
+FORWARD_EPS_MIN_GROWTH = -0.50
+FORWARD_EPS_MAX_GROWTH = 2.00
+EPS_SANITY_REVIEW_DIVERGENCE = 0.40
 
 CORE_AUTO_FIELDS = {
     "roic_5y_avg",
@@ -44,6 +56,7 @@ def build_automated_manual_inputs(
     ticker: str,
     market: dict[str, Any],
     benchmark: dict[str, Any],
+    proxy_corrections: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Build a conservative manual-input equivalent from free market data.
 
@@ -55,12 +68,21 @@ def build_automated_manual_inputs(
     row = empty_manual_row(ticker)
     estimated_fields: list[str] = []
     source_notes: list[str] = []
+    corrections_applied: list[dict[str, Any]] = []
 
     def set_auto(field: str, value: Any, source: str) -> None:
         if field not in MANUAL_COLUMNS:
             return
         if value is None or value == "":
             return
+        adjusted_value, correction = apply_proxy_correction(field, value, proxy_corrections)
+        if correction:
+            corrections_applied.append(correction)
+            value = adjusted_value
+            source = (
+                f"{source}; correction proxy active facteur {correction['factor']:.4f} "
+                f"({correction.get('confidence') or 'N/D'}, n={correction.get('sample_count') or 'N/D'})"
+            )
         row[field] = value
         estimated_fields.append(field)
         source_notes.append(f"{field}: {source}")
@@ -76,8 +98,18 @@ def build_automated_manual_inputs(
 
     revenue_growth = _percent_points(market.get("revenue_growth"))
     earnings_growth = _percent_points(market.get("earnings_growth"))
+    earnings_quarterly_growth = _percent_points(market.get("earnings_quarterly_growth"))
     stock_cagr_5y = _percent_points(market.get("stock_cagr_5y"))
     stock_cagr_3y = _percent_points(market.get("stock_cagr_3y"))
+    forward_eps_context = (
+        _empty_forward_eps_growth_context(market)
+        if _is_etf_or_fund_market(market)
+        else compute_forward_eps_growth(
+            market.get("forward_eps"),
+            market.get("trailing_eps"),
+            market.get("number_of_analyst_opinions"),
+        )
+    )
 
     if profit_margin is not None:
         if profit_margin < 0:
@@ -88,15 +120,29 @@ def build_automated_manual_inputs(
             set_auto("net_margin_stable_or_expanding", True, "marge positive + croissance/proxy positive")
 
     eps_hist_proxy = _estimate_historical_eps_growth_proxy(market, revenue_growth, earnings_growth, stock_cagr_5y)
+    eps_growth_5y_proxy_sanity = _eps_growth_5y_proxy_sanity(market, eps_hist_proxy, market.get("trailing_eps"), profit_margin)
     if eps_hist_proxy is not None:
         set_auto("eps_growth_5y", eps_hist_proxy, "proxy croissance benefices 5 ans conservateur")
 
     eps_est_proxy = _estimate_future_eps_growth_proxy(market, revenue_growth, earnings_growth, stock_cagr_5y, stock_cagr_3y)
-    if eps_est_proxy is not None:
+    eps_est_value, data_source_forward = _blend_forward_eps_growth_estimate(
+        market,
+        eps_est_proxy,
+        forward_eps_context,
+        revenue_growth,
+        earnings_growth,
+        stock_cagr_5y,
+    )
+    if eps_est_value is not None:
+        source = "proxy croissance future recalibre: revenus comme ancre, EPS recent plafonne"
+        if data_source_forward == "yfinance_forward_eps":
+            source = "croissance future ancree par forward EPS yfinance, melangee au proxy long terme"
+        elif data_source_forward == "yfinance_forward_eps_low_confidence":
+            source = "forward EPS yfinance faible couverture, poids reduit et melange au proxy long terme"
         set_auto(
             "eps_growth_estimated_3_5y",
-            eps_est_proxy,
-            "proxy croissance future recalibre: revenus comme ancre, EPS recent plafonne",
+            eps_est_value,
+            source,
         )
 
     benchmark_growth = _percent_points(
@@ -150,9 +196,21 @@ def build_automated_manual_inputs(
             f"proxy valorisation par {valuation_pe_source}, PEG et juste valeur estimee",
         )
 
-    margin_pressure = _estimate_margin_pressure(profit_margin, operating_margin, revenue_growth, earnings_growth)
+    margin_pressure = _estimate_margin_pressure(
+        profit_margin,
+        operating_margin,
+        revenue_growth,
+        earnings_growth,
+        earnings_quarterly_growth,
+    )
     if margin_pressure is not None:
         set_auto("margin_or_profitability_under_pressure", margin_pressure, "pression estimee par marges/croissance")
+    early_deterioration_signal = bool(
+        earnings_quarterly_growth is not None
+        and earnings_quarterly_growth < 0
+        and earnings_growth is not None
+        and earnings_growth > 0
+    )
 
     management_quality = _estimate_management_quality(market_cap, profit_margin, operating_margin, moat_estimate, stock_cagr_5y)
     if management_quality is not None:
@@ -170,6 +228,18 @@ def build_automated_manual_inputs(
     parsed = parse_manual_row(row)
     parsed["auto_estimated_fields"] = sorted(set(estimated_fields))
     parsed["auto_source_notes"] = source_notes
+    parsed["proxy_corrections_applied"] = corrections_applied
+    parsed["proxy_correction_fields"] = sorted({row["field"] for row in corrections_applied})
+    parsed["proxy_correction_status"] = "ACTIVE" if corrections_applied else "NONE"
+    parsed["forward_eps"] = safe_float(market.get("forward_eps"))
+    parsed["trailing_eps"] = safe_float(market.get("trailing_eps"))
+    parsed["number_of_analyst_opinions"] = int(safe_float(market.get("number_of_analyst_opinions")) or 0)
+    parsed["forward_eps_growth_direct"] = forward_eps_context["forward_eps_growth_direct"]
+    parsed["forward_eps_growth_confidence"] = forward_eps_context["forward_eps_growth_confidence"]
+    parsed["analyst_opinion_count"] = forward_eps_context["analyst_opinion_count"]
+    parsed["data_source_forward"] = data_source_forward
+    parsed["eps_growth_5y_proxy_sanity"] = eps_growth_5y_proxy_sanity
+    parsed["early_deterioration_signal"] = early_deterioration_signal
     parsed["auto_source_quality"] = _auto_source_quality(estimated_fields, market)
     parsed["input_data_mode"] = "AUTO_ESTIMATED"
     _attach_official_source_evidence(parsed, market)
@@ -200,6 +270,7 @@ def merge_automated_with_manual_overrides(
     merged["auto_estimated_fields"] = [
         field for field in merged.get("auto_estimated_fields", []) if field not in set(override_fields)
     ]
+    _remove_proxy_corrections_for_fields(merged, override_fields)
     _remove_confirmed_fields_from_official_support(merged, override_fields)
     merged["input_data_mode"] = "AUTO_WITH_MANUAL_OVERRIDES" if override_fields else automated.get("input_data_mode", "AUTO_ESTIMATED")
     return merged
@@ -252,6 +323,18 @@ def _remove_confirmed_fields_from_official_support(payload: dict[str, Any], conf
         payload[key] = [field for field in payload.get(key, []) if field not in removed]
 
 
+def _remove_proxy_corrections_for_fields(payload: dict[str, Any], confirmed_fields: list[str]) -> None:
+    removed = set(confirmed_fields)
+    if not removed:
+        return
+    corrections = [
+        row for row in payload.get("proxy_corrections_applied", []) if str(row.get("field") or "") not in removed
+    ]
+    payload["proxy_corrections_applied"] = corrections
+    payload["proxy_correction_fields"] = sorted({row.get("field") for row in corrections if row.get("field")})
+    payload["proxy_correction_status"] = "ACTIVE" if corrections else "NONE"
+
+
 def _field_set(value: Any) -> set[str]:
     if not value:
         return set()
@@ -279,6 +362,113 @@ def _bounded(value: float, lower: float, upper: float) -> float:
 
 def _any_positive(values: list[float | None]) -> bool:
     return any(value is not None and value > 0 for value in values)
+
+
+def compute_forward_eps_growth(
+    forward_eps: Any,
+    trailing_eps: Any,
+    number_of_analyst_opinions: Any,
+) -> dict[str, Any]:
+    """Compute direct next-year EPS growth from yfinance analyst EPS fields."""
+
+    analyst_count = int(safe_float(number_of_analyst_opinions) or 0)
+    forward = safe_float(forward_eps)
+    trailing = safe_float(trailing_eps)
+    direct = None
+    if analyst_count >= FORWARD_EPS_MIN_ANALYSTS and forward is not None and trailing not in {None, 0}:
+        direct = (forward - trailing) / abs(trailing)
+        if direct < FORWARD_EPS_MIN_GROWTH or direct > FORWARD_EPS_MAX_GROWTH:
+            direct = None
+
+    if direct is None:
+        confidence = "NONE"
+    elif analyst_count >= FORWARD_EPS_HIGH_CONFIDENCE_ANALYSTS:
+        confidence = "HIGH"
+    elif analyst_count >= FORWARD_EPS_MEDIUM_CONFIDENCE_ANALYSTS:
+        confidence = "MEDIUM"
+    else:
+        confidence = "LOW"
+    return {
+        "forward_eps_growth_direct": direct,
+        "forward_eps_growth_confidence": confidence,
+        "analyst_opinion_count": analyst_count,
+    }
+
+
+def _empty_forward_eps_growth_context(market: dict[str, Any]) -> dict[str, Any]:
+    return {
+        "forward_eps_growth_direct": None,
+        "forward_eps_growth_confidence": "NONE",
+        "analyst_opinion_count": int(safe_float(market.get("number_of_analyst_opinions")) or 0),
+    }
+
+
+def _blend_forward_eps_growth_estimate(
+    market: dict[str, Any],
+    existing_proxy_estimate: float | None,
+    forward_eps_context: dict[str, Any],
+    revenue_growth: float | None,
+    earnings_growth: float | None,
+    stock_cagr_5y: float | None,
+) -> tuple[float | None, str]:
+    confidence = str(forward_eps_context.get("forward_eps_growth_confidence") or "NONE").upper()
+    direct_raw = safe_float(forward_eps_context.get("forward_eps_growth_direct"))
+    direct_growth = direct_raw * 100 if direct_raw is not None else None
+    if confidence == "NONE" or direct_growth is None:
+        return existing_proxy_estimate, "proxy"
+
+    if existing_proxy_estimate is None:
+        blended = direct_growth
+    elif confidence in {"HIGH", "MEDIUM"}:
+        blended = (FORWARD_EPS_HIGH_MEDIUM_WEIGHT * direct_growth) + (
+            FORWARD_EPS_HIGH_MEDIUM_PROXY_WEIGHT * existing_proxy_estimate
+        )
+    else:
+        blended = (FORWARD_EPS_LOW_CONFIDENCE_WEIGHT * direct_growth) + (
+            FORWARD_EPS_LOW_CONFIDENCE_PROXY_WEIGHT * existing_proxy_estimate
+        )
+
+    cap = _future_growth_cap(market, revenue_growth, earnings_growth, stock_cagr_5y)
+    source = "yfinance_forward_eps" if confidence in {"HIGH", "MEDIUM"} else "yfinance_forward_eps_low_confidence"
+    return round(_bounded(blended, -20.0, cap), 3), source
+
+
+def _eps_growth_5y_proxy_sanity(
+    market: dict[str, Any],
+    eps_hist_proxy: float | None,
+    trailing_eps: Any,
+    profit_margin: float | None,
+) -> str:
+    if eps_hist_proxy is None:
+        return "UNVERIFIED"
+    trailing = safe_float(trailing_eps)
+    if trailing is None or trailing == 0:
+        return "UNVERIFIED"
+    if trailing < 0 and profit_margin is not None and profit_margin > 0:
+        return "UNVERIFIED"
+
+    current_price = safe_float(market.get("current_price"))
+    trailing_pe = safe_float(market.get("trailing_pe"))
+    if current_price is None or trailing_pe is None or current_price <= 0 or trailing_pe <= 0:
+        return "UNVERIFIED"
+
+    implied_eps = current_price / trailing_pe
+    divergence = abs(implied_eps - trailing) / max(abs(trailing), 1e-9)
+    return "REVIEW" if divergence > EPS_SANITY_REVIEW_DIVERGENCE else "OK"
+
+
+def _is_etf_or_fund_market(market: dict[str, Any]) -> bool:
+    quote_type = str(market.get("quote_type") or "").upper()
+    type_display = str(market.get("quote_type_display") or "").upper()
+    return any(
+        [
+            quote_type in {"ETF", "FUND", "MUTUALFUND"},
+            "ETF" in type_display,
+            "FUND" in type_display,
+            bool(market.get("fund_family")),
+            bool(market.get("fund_category")),
+        ]
+    )
 
 
 def _estimate_roic_proxy(
@@ -582,8 +772,16 @@ def _estimate_margin_pressure(
     operating_margin: float | None,
     revenue_growth: float | None,
     earnings_growth: float | None,
+    earnings_quarterly_growth: float | None = None,
 ) -> bool | None:
     if profit_margin is not None and profit_margin < 0:
+        return True
+    if (
+        earnings_quarterly_growth is not None
+        and earnings_quarterly_growth < 0
+        and earnings_growth is not None
+        and earnings_growth < 0
+    ):
         return True
     if earnings_growth is not None and earnings_growth <= -20:
         if revenue_growth is not None and revenue_growth > 5 and profit_margin is not None and profit_margin >= 0.03:
@@ -755,8 +953,18 @@ def _auto_source_quality(estimated_fields: list[str], market: dict[str, Any]) ->
     field_count = len(set(estimated_fields) & CORE_AUTO_FIELDS)
     market_confirmations = sum(
         1
-        for field in ["current_price", "forward_pe", "peg", "profit_margins", "stock_cagr_5y", "sma_200"]
-        if market.get(field) is not None
+        for field in [
+            "current_price",
+            "forward_pe",
+            "forward_eps",
+            "trailing_eps",
+            "number_of_analyst_opinions",
+            "peg",
+            "profit_margins",
+            "stock_cagr_5y",
+            "sma_200",
+        ]
+        if market.get(field) is not None and (field != "number_of_analyst_opinions" or (safe_float(market.get(field)) or 0) > 0)
     )
     if field_count >= 8 and market_confirmations >= 5:
         return "HIGH"

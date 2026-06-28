@@ -1,5 +1,0 @@
-risk_type,risk_level,description,impact
-devise,MEDIUM,USD: forte exposition USD,Poids concerné: 85.8 %
-cluster_caché,HIGH,RATES_SENSITIVE_GROWTH: cluster caché extrême,Poids concerné: 67.5 %
-cluster_caché,HIGH,MEGA_CAP_TECH_PLATFORMS: cluster caché extrême,Poids concerné: 61.0 %
-cluster_caché,MEDIUM,AI_SEMI_CLOUD_INFRA: cluster caché élevé,Poids concerné: 43.0 %

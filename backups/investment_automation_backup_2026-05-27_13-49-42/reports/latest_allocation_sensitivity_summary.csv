@@ -1,2 +1,0 @@
-robustness_status,robustness_score,top_pick_status,base_top_pick,prudent_top_pick,strict_data_top_pick,vfv_base_percent,vfv_prudent_percent,vfv_strict_data_percent,largest_sensitive_ticker,largest_change_amount,largest_change_percent,summary,interpretation
-ROBUST,100.0,STABLE,APP,APP,APP,0.1,0.1,0.1,APP,0.0,0.0,L’allocation reste assez stable sous hypothèses prudentes.,La recommandation principale reste celle de l’allocation de cotisation. Cette couche sert seulement à signaler si elle dépend trop d’hypothèses optimistes.

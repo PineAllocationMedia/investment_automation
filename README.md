@@ -376,6 +376,7 @@ L’audit maître regroupe :
 - le risque de cycle, tendance ou bulle;
 - la performance réelle suivie du portefeuille vs S&P 500;
 - un backtest théorique 5 et 10 ans;
+- le backtest walk-forward des recommandations réellement produites;
 - la santé des sources utilisées;
 - une revue des seuils à surveiller.
 
@@ -412,6 +413,95 @@ reports/latest_model_audit.md
 reports/latest_model_audit.html
 reports/latest_model_audit.csv
 ```
+
+### Backtest walk-forward local
+
+Le backtest walk-forward sert à vérifier si les recommandations historiques du modèle ont bien agi après leur publication, avec les informations disponibles à ce moment-là.
+
+Cette commande ne change jamais vos allocations. Elle sert seulement à évaluer la robustesse de la méthode.
+
+```bash
+python3 main.py walk-forward-backtest --mode high-cagr
+```
+
+Pour forcer un rafraîchissement des prix historiques utilisés dans la simulation :
+
+```bash
+python3 main.py walk-forward-backtest --mode high-cagr --refresh-market-data
+```
+
+Elle vérifie :
+
+- les anciennes analyses sauvegardées;
+- les anciennes allocations sauvegardées;
+- le mode utilisé, par exemple seulement `high-cagr`;
+- les dates distinctes d’analyse;
+- si deux analyses sont assez espacées pour être utiles;
+- si plusieurs analyses lancées la même journée doivent être dédupliquées.
+
+Elle simule ensuite, quand c’est possible :
+
+- l’allocation réellement recommandée à une date passée;
+- son rendement jusqu’à la prochaine analyse assez espacée;
+- le rendement de `VFV.TO` sur la même période;
+- l’écart entre le modèle et `VFV.TO`;
+- les périodes exclues parce que les prix manquent ou parce que l’historique est trop court.
+
+À lire :
+
+```text
+reports/latest_walk_forward_report.md
+reports/latest_walk_forward_report.html
+reports/latest_walk_forward_summary.csv
+reports/latest_walk_forward_periods.csv
+reports/latest_walk_forward_period_allocations.csv
+reports/latest_walk_forward_regime_summary.csv
+reports/latest_walk_forward_inventory.md
+reports/latest_walk_forward_inventory.html
+reports/latest_walk_forward_inventory.csv
+reports/latest_walk_forward_coverage.csv
+```
+
+Interprétation rapide :
+
+- `INSUFFICIENT_HISTORY` : pas encore assez d’historique.
+- `EARLY_SIGNAL_ONLY` : quelques données existent, mais c’est encore trop préliminaire.
+- `BUILDING_HISTORY` : l’historique devient utile, mais reste court.
+- `READY_FOR_WALK_FORWARD_SIMULATION` : assez de périodes existent pour construire une vraie simulation walk-forward informative.
+
+Interprétation des résultats de simulation :
+
+- `NO_USABLE_PERIODS` : aucune période assez espacée.
+- `NO_SIMULATED_PERIODS` : des périodes existent, mais les prix ne permettent pas encore un calcul propre.
+- `EARLY_SIGNAL_ONLY` : le résultat est seulement un indice préliminaire.
+- `PRELIMINARY_WALK_FORWARD` : utile pour observer, pas assez fort pour recalibrer.
+- `READY_FOR_WALK_FORWARD_REVIEW` : assez de périodes pour une vraie revue, mais sans correction automatique agressive.
+
+La simulation contient aussi un résumé par régime de marché :
+
+```text
+reports/latest_walk_forward_regime_summary.csv
+```
+
+Cette section classe les périodes selon le comportement de `VFV.TO`, par exemple marché faible, marché stable ou forte hausse. Elle sert à éviter de conclure que le modèle est robuste seulement parce qu’il a bien fonctionné dans un seul contexte. Si l’historique couvre trop peu de régimes, le signal reste informatif. Il ne bloque pas seul les recommandations.
+
+Important : cette commande sépare l’historique par mode. Le mode `high-cagr` n’est pas mélangé avec `balanced`, `family-office` ou `rational-aggressive`.
+
+Le walk-forward est aussi lu par `full-audit` et `improvement-audit`.
+
+- Dans `full-audit`, il devient une preuve supplémentaire pour juger si la méthode tient dans le temps.
+- Dans `improvement-audit`, il sert de garde-fou anti-overfitting avant un micro-ajustement automatique.
+- Si le walk-forward est trop jeune ou sans période utilisable, il reste neutre. Il ne pénalise pas le modèle et ne bloque pas les réglages SAFE.
+- S’il devient suffisamment fourni et montre une faiblesse nette vs `VFV.TO`, il peut forcer une revue manuelle avant `apply-safe-tuning`.
+- `health-check` vérifie maintenant aussi si les fichiers walk-forward sont présents, complets et lisibles.
+- `walk-forward-backtest` écrit aussi un journal dans `reports/latest_run_log.csv`, sans créer de nouvelle analyse mensuelle.
+
+Lecture importante :
+
+- Un walk-forward jeune sert à apprendre, pas à corriger automatiquement.
+- Un régime faible isolé est un signal à surveiller, pas une raison de changer toute la méthode.
+- Les garde-fous sont conçus pour réduire l’overfitting sans rendre `high-cagr` inutilement conservateur.
+- S’il montre une faiblesse seulement dans un régime précis, il limite plutôt l’auto-tuning agressif au lieu de tout bloquer.
 
 ## Améliorer les réglages du modèle sans Codex
 
@@ -475,6 +565,7 @@ Cette commande :
 - exige que le statut soit `READY_FOR_SAFE_TUNING`;
 - applique seulement les lignes `PENDING_SAFE_APPLY`;
 - respecte le gouverneur de sous-performance, qui peut limiter ou bloquer l’auto-ajustement;
+- respecte le garde-fou walk-forward quand il y a assez d’historique hors-échantillon;
 - limite l’ampleur de chaque micro-ajustement;
 - crée une sauvegarde avant toute modification réelle;
 - modifie seulement `config/model_tuning.yaml`;
@@ -1202,6 +1293,8 @@ Après la prochaine analyse, l’agent crée :
 ```text
 reports/latest_proxy_calibration.csv
 reports/latest_proxy_calibration_summary.csv
+reports/latest_proxy_calibration_history.csv
+reports/latest_proxy_bias_report.csv
 ```
 
 Le fichier détaillé compare :
@@ -1219,7 +1312,101 @@ Le fichier résumé indique, pour chaque donnée :
 - si le proxy semble trop haut ou trop bas;
 - si la donnée mérite une recalibration.
 
-Important : l’agent ne modifie pas automatiquement ses propres formules de proxy, parce qu’un petit échantillon pourrait créer une mauvaise correction. La recalibration des formules doit être faite seulement quand plusieurs exemples cohérents montrent le même problème. La commande `improvement-audit` peut signaler qu’une revue des proxies est nécessaire, mais `apply-safe-tuning` ne touche pas aux formules de proxy.
+Le fichier d’historique conserve les exemples fiables dans :
+
+```text
+data/proxy_calibration_history.csv
+```
+
+Il sert de mémoire durable pour les futures améliorations de proxies. Si vous relancez plusieurs fois la même analyse avec la même vraie donnée et la même source, l’agent met à jour la ligne existante au lieu de compter artificiellement le même exemple plusieurs fois.
+
+Le fichier `reports/latest_proxy_bias_report.csv` est le diagnostic anti-surcorrection.
+
+Il regarde l’historique durable et répond à une question simple :
+
+```text
+Est-ce qu’un proxy semble systématiquement trop haut ou trop bas?
+```
+
+Pour éviter une mauvaise correction, l’agent exige plusieurs preuves cohérentes :
+
+- au moins 5 exemples utilisables;
+- au moins 3 tickers différents;
+- des écarts dans la même direction;
+- un écart moyen assez important;
+- une volatilité d’erreur raisonnable;
+- aucune dépendance aux données de confiance LOW.
+
+Important : ce fichier ne change pas les formules. Il sert seulement à dire si une formule mérite une revue. Les champs qualitatifs comme `moat_clear` ou `balance_sheet_strong` ne reçoivent jamais de facteur multiplicatif automatique.
+
+Le fichier `config/proxy_corrections.yaml` est la couche de correction validée.
+
+Par défaut, il est désactivé :
+
+```yaml
+enabled: false
+corrections:
+```
+
+Même si une correction est écrite dans ce fichier, elle est ignorée si elle ne respecte pas les garde-fous :
+
+- fichier explicitement activé avec `enabled: true`;
+- champ numérique seulement;
+- `status: ACTIVE`;
+- facteur entre 0.75 et 1.25;
+- au moins 5 exemples;
+- confiance `HIGH`, ou `MEDIUM` avec au moins 8 exemples;
+- aucune correction multiplicative sur les champs vrai/faux.
+
+Quand une correction validée est active, elle est appliquée au proxy automatique avant le scoring. Le modèle laisse alors une trace dans `latest_scores.csv`, dans les colonnes `proxy_correction_status`, `proxy_correction_fields` et `proxy_corrections_applied`.
+
+Important : l’agent ne change pas une formule de proxy directement. Il peut seulement proposer une correction multiplicative très limitée, puis l’appliquer via `apply-safe-tuning` si les garde-fous passent. Le but est de corriger un biais répété sans surcorriger le modèle sur un petit échantillon.
+
+La commande `improvement-audit` peut maintenant transformer un signal très solide du fichier `latest_proxy_bias_report.csv` en suggestion de correction proxy :
+
+```text
+proxy_correction:roic_5y_avg
+```
+
+La commande `apply-safe-tuning` peut l’appliquer seulement si toutes les conditions sont respectées :
+
+- l’audit d’amélioration a été lancé aujourd’hui;
+- le mode est le même;
+- la santé des sources ne bloque pas l’auto-tuning;
+- la barrière anti-overfitting passe;
+- le walk-forward ne montre pas de faiblesse hors-échantillon nette quand il y a assez d’historique;
+- la correction est `SAFE`;
+- le facteur reste entre 0.75 et 1.25;
+- l’évidence est suffisante.
+
+Quand une correction est appliquée, l’agent :
+
+1. crée une sauvegarde avant modification;
+2. active ou met à jour `config/proxy_corrections.yaml`;
+3. inscrit l’action dans :
+
+```text
+data/proxy_correction_history.csv
+```
+
+À chaque analyse, l’agent crée aussi :
+
+```text
+reports/latest_proxy_correction_audit.csv
+```
+
+Ce fichier vérifie les corrections déjà actives :
+
+- `ACTIVE_OK` : la correction reste raisonnable;
+- `ACTIVE_NEEDS_MORE_FRESH_EVIDENCE` : elle n’est pas contredite, mais il faut plus de nouvelles preuves avant de l’élargir;
+- `REVIEW_FACTOR_NEAR_LIMIT` : le facteur est près de la limite maximale;
+- `REVIEW_STALE_CORRECTION` : la correction est ancienne;
+- `REVIEW_NO_LONGER_CONFIRMED` : les nouvelles données ne confirment plus clairement le biais;
+- `REVIEW_NOISY_EVIDENCE` ou `REVIEW_CONFLICTING_EVIDENCE` : les nouvelles données sont bruyantes ou opposées.
+
+Ces alertes ne changent pas l’allocation toutes seules. Elles servent à éviter qu’une ancienne correction devienne une source de surconfiance.
+
+Cette couche est volontairement prudente : elle corrige seulement un biais répété et cohérent, elle ne réécrit pas les formules du modèle.
 
 Après une recalibration confirmée, vous pouvez vider les vraies valeurs avec :
 
@@ -1234,6 +1421,7 @@ python main.py clear-proxy-calibration
 ```
 
 Cette commande garde la structure du fichier, mais efface `true_value`, `source`, `source_date` et `notes`.
+Elle n’efface pas `data/proxy_calibration_history.csv`.
 
 ### Ancien fichier optionnel : account_locations.csv
 
@@ -1538,6 +1726,20 @@ latest_source_conflicts.csv
 latest_ticker_memory.csv
 latest_anomaly_report.csv
 latest_cache_health.csv
+latest_proxy_calibration.csv
+latest_proxy_calibration_summary.csv
+latest_proxy_calibration_history.csv
+latest_proxy_bias_report.csv
+latest_proxy_correction_audit.csv
+latest_walk_forward_inventory.csv
+latest_walk_forward_coverage.csv
+latest_walk_forward_inventory.html
+latest_walk_forward_report.html
+latest_walk_forward_summary.csv
+latest_walk_forward_periods.csv
+latest_walk_forward_period_allocations.csv
+latest_walk_forward_regime_summary.csv
+data/proxy_correction_history.csv
 latest_run_log.csv
 latest_research_needed.csv
 latest_ticker_issues.csv

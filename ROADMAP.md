@@ -150,3 +150,5 @@ The system is successful when it can:
 - optimize after-tax returns for Canadian accounts
 - remain stable under different market regimes
 - be understood and improved by AI (Claude + Codex)
+- Propose the most efficient and optimized allocation, gestion and investment of recurrent money contribution into a saving accounts
+- Analyses, evaluates and filters out the best actual investment position options depending on chosen mode to maximize chances of being a better option than S&P 500 (Kinda like Blackrock and their Aladin computer)
