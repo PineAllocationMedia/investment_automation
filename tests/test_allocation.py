@@ -96,6 +96,27 @@ class AllocationTest(unittest.TestCase):
         result = allocate_capital(1000, {"MSFT": core, "NVDA": external}, "high-cagr")
         self.assertTrue(all(row["destination"] != "NVDA" for row in result["allocations"]))
 
+    def test_high_cagr_still_excludes_external_candidates_even_if_promotion_ready(self):
+        core = full_strong_analysis("MSFT")
+        external = full_strong_analysis("NVDA")
+        external.update(
+            {
+                "universe": "WATCHLIST",
+                "watchlist_status": "HIGH_PRIORITY_WATCH",
+                "promotion_status": "PROMOTE_TO_CORE_REVIEW",
+                "external_superiority": "COMPARABLE_TO_CORE_LEADERS",
+                "add_eligibility_status": "ADD_ALLOWED",
+                "capital_allocation_score": 99,
+                "current_value": 0,
+                "position_weight": 0,
+            }
+        )
+        core["capital_allocation_score"] = 75
+
+        result = allocate_capital(1000, {"MSFT": core, "NVDA": external}, "high-cagr")
+
+        self.assertTrue(all(row["destination"] != "NVDA" for row in result["allocations"]))
+
     def test_non_high_cagr_modes_can_allocate_to_strict_external_candidates(self):
         core = full_strong_analysis("MSFT")
         external = full_strong_analysis("NVDA")

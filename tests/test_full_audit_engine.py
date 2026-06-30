@@ -163,12 +163,27 @@ class FullAuditEngineTest(unittest.TestCase):
                 {"summaries": []},
                 {"summary": {"status": "NO_USABLE_PERIODS"}, "period_rows": []},
                 [],
+                weakest_core_audit_rows=[
+                    {
+                        "audit_status": "OBSERVE_ONLY",
+                        "current_weakest_ticker": "APP",
+                        "candidate_weakest_ticker": "TSLA",
+                        "same_result": False,
+                        "current_reason": "Logique active.",
+                        "candidate_reason": "Logique candidate.",
+                        "interpretation": "Audit seulement.",
+                    }
+                ],
             )
             write_full_audit_outputs(reports, {"markdown": markdown, "rows": rows})
 
             self.assertTrue((reports / "latest_full_audit.md").exists())
             self.assertTrue((reports / "latest_full_audit.html").exists())
             self.assertTrue((reports / "latest_full_audit_summary.csv").exists())
+            self.assertIn("Audit weakest core", markdown)
+            self.assertIn("AUDIT-ONLY — aucune recommandation modifiée", markdown)
+            self.assertIn("APP", markdown)
+            self.assertIn("TSLA", markdown)
 
     def test_full_audit_rows_include_ticker_source_quality(self):
         rows = build_full_audit_rows(

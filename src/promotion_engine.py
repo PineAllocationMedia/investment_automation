@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import Any
 
 from .add_eligibility_engine import ADD_ALLOWED_STATUSES
+from .asset_type_engine import is_fallback_benchmark
 from .portfolio_risk_engine import TECH_AI_SEMI_FACTORS
 from .sizing_engine import (
     EXPECTED_CAGR_QUALITY_SCORE,
@@ -37,6 +38,24 @@ PROMOTION_STATUSES = {
     "WAIT_FOR_BETTER_DATA_OR_PRICE",
     "DO_NOT_PROMOTE",
 }
+
+WEAKEST_CORE_AUDIT_COLUMNS = [
+    "audit_status",
+    "current_weakest_ticker",
+    "candidate_weakest_ticker",
+    "same_result",
+    "current_reason",
+    "candidate_reason",
+    "score_total_current",
+    "score_total_candidate",
+    "conviction_current",
+    "conviction_candidate",
+    "durability_current",
+    "durability_candidate",
+    "cycle_risk_current",
+    "cycle_risk_candidate",
+    "interpretation",
+]
 
 
 def build_promotion_candidate_rows(
@@ -316,6 +335,162 @@ def _weakest_core_position(core_analyses: dict[str, dict[str, Any]]) -> dict[str
             safe_float(row.get("conviction_score")) or 0.0,
         ),
     )[0]
+
+
+def build_weakest_core_audit_rows(core_analyses: dict[str, dict[str, Any]]) -> list[dict[str, Any]]:
+    """Compare the active weakest-core logic to a composite candidate without changing behavior."""
+    current = _weakest_core_position(core_analyses)
+    candidate = _weakest_core_position_composite_candidate(core_analyses)
+    if current is None and candidate is None:
+        return [
+            {
+                "audit_status": "NO_CORE_CANDIDATES",
+                "current_weakest_ticker": "",
+                "candidate_weakest_ticker": "",
+                "same_result": True,
+                "current_reason": "Aucune position core non-benchmark disponible pour la logique active.",
+                "candidate_reason": "Aucune position core non-benchmark disponible pour la logique candidate.",
+                "score_total_current": "",
+                "score_total_candidate": "",
+                "conviction_current": "",
+                "conviction_candidate": "",
+                "durability_current": "",
+                "durability_candidate": "",
+                "cycle_risk_current": "",
+                "cycle_risk_candidate": "",
+                "interpretation": "Audit neutre: aucune comparaison weakest core possible.",
+            }
+        ]
+
+    current_ticker = _analysis_ticker(current) if current else ""
+    candidate_ticker = _analysis_ticker(candidate) if candidate else ""
+    same_result = bool(current_ticker and candidate_ticker and current_ticker == candidate_ticker)
+    current_reason = _active_weakest_reason(current) if current else "Aucune position active retenue."
+    candidate_reason = _composite_weakest_reason(candidate) if candidate else "Aucune position candidate retenue."
+    missing_fields = _missing_core_audit_fields(current) + _missing_core_audit_fields(candidate)
+    if missing_fields:
+        audit_status = "LIMITED_DATA_OBSERVE_ONLY"
+        interpretation = (
+            "Audit neutre: données incomplètes dans la comparaison weakest core "
+            f"({', '.join(sorted(set(missing_fields)))}). Ne pas activer la logique candidate sur ce signal seul."
+        )
+    else:
+        audit_status = "MATCH" if same_result else "DIVERGENCE_OBSERVE_ONLY"
+        interpretation = (
+            "Les deux logiques identifient le même maillon faible; aucune raison d'activer une nouvelle logique."
+            if same_result
+            else (
+                "Observation seulement: la logique composite choisirait un autre weakest core. "
+                "La promotion active continue d'utiliser la logique actuelle jusqu'à preuve suffisante."
+            )
+        )
+
+    return [
+        {
+            "audit_status": audit_status,
+            "current_weakest_ticker": current_ticker,
+            "candidate_weakest_ticker": candidate_ticker,
+            "same_result": same_result,
+            "current_reason": current_reason,
+            "candidate_reason": candidate_reason,
+            "score_total_current": _round_or_blank(safe_float(current.get("score_total")) if current else None, 2),
+            "score_total_candidate": _round_or_blank(safe_float(candidate.get("score_total")) if candidate else None, 2),
+            "conviction_current": _round_or_blank(safe_float(current.get("conviction_score")) if current else None, 1),
+            "conviction_candidate": _round_or_blank(safe_float(candidate.get("conviction_score")) if candidate else None, 1),
+            "durability_current": _round_or_blank(safe_float(current.get("long_term_durability_score")) if current else None, 1),
+            "durability_candidate": _round_or_blank(safe_float(candidate.get("long_term_durability_score")) if candidate else None, 1),
+            "cycle_risk_current": current.get("cycle_bubble_risk_level", "") if current else "",
+            "cycle_risk_candidate": candidate.get("cycle_bubble_risk_level", "") if candidate else "",
+            "interpretation": interpretation,
+        }
+    ]
+
+
+def _weakest_core_position_composite_candidate(core_analyses: dict[str, dict[str, Any]]) -> dict[str, Any] | None:
+    candidates = [
+        row
+        for ticker, row in core_analyses.items()
+        if not is_fallback_benchmark(ticker) and not is_fallback_benchmark(row.get("ticker"))
+    ]
+    if not candidates:
+        return None
+    scored = [(_composite_weakest_key(row), row) for row in candidates]
+    return sorted(scored, key=lambda item: item[0])[0][1]
+
+
+def _composite_weakest_key(row: dict[str, Any]) -> tuple[float, float, float, float, str]:
+    score_total = safe_float(row.get("score_total"))
+    conviction = safe_float(row.get("conviction_score"))
+    durability = safe_float(row.get("long_term_durability_score"))
+    normalized_score = (score_total * 10.0) if score_total is not None else 50.0
+    conviction_score = conviction if conviction is not None else 50.0
+    durability_score = durability if durability is not None else 70.0
+    cycle_penalty = _cycle_weakness_penalty(row)
+    problem_flag = 0.0 if row.get("thesis_status") != "INTACT" or not _core_add_allowed(row) else 1.0
+    composite_strength = (
+        0.34 * normalized_score
+        + 0.30 * conviction_score
+        + 0.26 * durability_score
+        - cycle_penalty
+    )
+    return (problem_flag, composite_strength, normalized_score, conviction_score, _analysis_ticker(row))
+
+
+def _cycle_weakness_penalty(row: dict[str, Any]) -> float:
+    level = str(row.get("cycle_bubble_risk_level") or "").upper()
+    if level == "EXTREME":
+        return 12.0
+    if level == "HIGH":
+        return 6.0
+    return 0.0
+
+
+def _active_weakest_reason(row: dict[str, Any]) -> str:
+    problem = row.get("thesis_status") != "INTACT" or not _core_add_allowed(row)
+    return (
+        f"Logique active: problème thèse/add/liquidation={problem}; "
+        f"score_total={_value_text(row.get('score_total'))}; conviction={_value_text(row.get('conviction_score'))}."
+    )
+
+
+def _composite_weakest_reason(row: dict[str, Any]) -> str:
+    problem = row.get("thesis_status") != "INTACT" or not _core_add_allowed(row)
+    durability = safe_float(row.get("long_term_durability_score"))
+    durability_text = _value_text(durability) if durability is not None else "N/D neutre=70"
+    cycle_level = str(row.get("cycle_bubble_risk_level") or "LOW")
+    return (
+        f"Logique candidate audit-only: problème thèse/add/liquidation={problem}; "
+        f"score_total={_value_text(row.get('score_total'))}; conviction={_value_text(row.get('conviction_score'))}; "
+        f"durabilité={durability_text}; risque cycle={cycle_level}; pénalité cycle={_cycle_weakness_penalty(row):.1f}."
+    )
+
+
+def _analysis_ticker(row: dict[str, Any] | None) -> str:
+    return str((row or {}).get("ticker") or "").strip().upper()
+
+
+def _missing_core_audit_fields(row: dict[str, Any] | None) -> list[str]:
+    if not row:
+        return ["missing_position"]
+    missing = []
+    if safe_float(row.get("score_total")) is None:
+        missing.append(f"{_analysis_ticker(row) or 'UNKNOWN'}.score_total")
+    if safe_float(row.get("conviction_score")) is None:
+        missing.append(f"{_analysis_ticker(row) or 'UNKNOWN'}.conviction_score")
+    return missing
+
+
+def _round_or_blank(value: float | None, digits: int) -> float | str:
+    if value is None:
+        return ""
+    return round(value, digits)
+
+
+def _value_text(value: Any) -> str:
+    number = safe_float(value)
+    if number is None:
+        return "N/D"
+    return f"{number:.2f}"
 
 
 def _core_add_allowed(row: dict[str, Any]) -> bool:

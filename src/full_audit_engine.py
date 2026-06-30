@@ -27,6 +27,16 @@ FULL_AUDIT_COLUMNS = [
     "impact",
 ]
 
+WEAKEST_CORE_AUDIT_FULL_COLUMNS = [
+    "audit_status",
+    "current_weakest_ticker",
+    "candidate_weakest_ticker",
+    "same_result",
+    "current_reason",
+    "candidate_reason",
+    "interpretation",
+]
+
 DEFAULT_AUDIT_MONTHLY_CAPITAL = 500.0
 
 
@@ -54,6 +64,7 @@ def run_full_audit(
     model_audit = run_model_audit(reports_dir, period=period, mode=mode)
     account_performance_rows = read_csv_records(reports_dir / "latest_account_performance_vs_sp500.csv")
     source_health_rows = read_csv_records(reports_dir / "latest_source_health.csv")
+    weakest_core_audit_rows = read_csv_records(reports_dir / "latest_weakest_core_audit.csv")
     ticker_source_context = build_ticker_source_audit_context(
         ticker_memory_rows=read_csv_records(reports_dir / "latest_ticker_memory.csv"),
         source_conflict_rows=read_csv_records(reports_dir / "latest_source_conflicts.csv"),
@@ -111,6 +122,7 @@ def run_full_audit(
         account_performance_rows,
         source_health_rows,
         ticker_source_context,
+        weakest_core_audit_rows,
     )
     audit = {
         "metrics": metrics,
@@ -122,6 +134,7 @@ def run_full_audit(
         "account_performance_rows": account_performance_rows,
         "source_health_rows": source_health_rows,
         "ticker_source_context": ticker_source_context,
+        "weakest_core_audit_rows": weakest_core_audit_rows,
     }
     write_full_audit_outputs(reports_dir, audit)
     return audit
@@ -407,6 +420,7 @@ def build_full_audit_markdown(
     account_performance_rows: list[dict[str, Any]],
     source_health_rows: list[dict[str, Any]] | None = None,
     ticker_source_context: dict[str, Any] | None = None,
+    weakest_core_audit_rows: list[dict[str, Any]] | None = None,
 ) -> str:
     model_metrics = model_audit.get("metrics") or {}
     backtest_summaries = backtest_result.get("summaries") or []
@@ -417,6 +431,7 @@ def build_full_audit_markdown(
     threshold = model_metrics.get("threshold_review") or {}
     underperformance = metrics.get("underperformance_attribution") or {}
     ticker_source_context = ticker_source_context or metrics.get("ticker_source_quality") or {}
+    weakest_core_audit_rows = _display_weakest_core_audit_rows(weakest_core_audit_rows or [])
     lines = [
         "# Audit maître du modèle",
         "",
@@ -583,6 +598,13 @@ def build_full_audit_markdown(
         "- Elle sert à éviter une mauvaise exécution avant une grosse décision.",
         "",
         _markdown_table(ticker_source_audit_rows(ticker_source_context), TICKER_SOURCE_AUDIT_COLUMNS),
+        "",
+        "## Audit weakest core",
+        "",
+        "- **AUDIT-ONLY — aucune recommandation modifiée.** Cette section compare la logique active qui identifie le maillon faible du core avec une logique candidate composite.",
+        "- Objectif: observer les divergences avant toute activation éventuelle, surtout pour les promotions externes et les audits.",
+        "",
+        _markdown_table(weakest_core_audit_rows, WEAKEST_CORE_AUDIT_FULL_COLUMNS),
         "",
         "## Revue des seuils",
         "",
@@ -1029,6 +1051,22 @@ def _display_walk_forward_benchmark_rows(rows: list[dict[str, Any]]) -> list[dic
             }
         )
     return output
+
+
+def _display_weakest_core_audit_rows(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    if rows:
+        return rows[:5]
+    return [
+        {
+            "audit_status": "NOT_AVAILABLE",
+            "current_weakest_ticker": "",
+            "candidate_weakest_ticker": "",
+            "same_result": "",
+            "current_reason": "",
+            "candidate_reason": "",
+            "interpretation": "Lancer une analyse complète pour générer reports/latest_weakest_core_audit.csv avant cet audit.",
+        }
+    ]
 
 
 def _vfv_status(value: float) -> str:

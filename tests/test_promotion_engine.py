@@ -1,7 +1,13 @@
 import unittest
 
 from tests.helpers import full_strong_analysis
-from src.promotion_engine import build_promotion_candidate_rows, classify_promotion_candidate
+from src.promotion_engine import (
+    _weakest_core_position,
+    _weakest_core_position_composite_candidate,
+    build_promotion_candidate_rows,
+    build_weakest_core_audit_rows,
+    classify_promotion_candidate,
+)
 
 
 class PromotionEngineTest(unittest.TestCase):
@@ -147,6 +153,78 @@ class PromotionEngineTest(unittest.TestCase):
         promoted = [row for row in rows if row["promotion_status"] == "PROMOTE_TO_CORE_REVIEW"]
 
         self.assertEqual(len(promoted), 3)
+
+    def test_active_weakest_core_logic_is_unchanged(self):
+        lower_score = full_strong_analysis("AAPL")
+        higher_score = full_strong_analysis("MSFT")
+        lower_score["score_total"] = 7.2
+        lower_score["conviction_score"] = 88
+        higher_score["score_total"] = 8.5
+        higher_score["conviction_score"] = 70
+
+        result = _weakest_core_position({"AAPL": lower_score, "MSFT": higher_score, "VFV.TO": {"ticker": "VFV.TO"}})
+
+        self.assertEqual(result["ticker"], "AAPL")
+
+    def test_composite_candidate_excludes_fallback_benchmark(self):
+        vfv = full_strong_analysis("VFV.TO")
+        vfv["score_total"] = 1.0
+        vfv["conviction_score"] = 1
+        core = full_strong_analysis("MSFT")
+        core["score_total"] = 8.0
+        core["conviction_score"] = 80
+
+        result = _weakest_core_position_composite_candidate({"VFV.TO": vfv, "MSFT": core})
+
+        self.assertEqual(result["ticker"], "MSFT")
+
+    def test_composite_candidate_can_flag_fragile_position_over_durable_lower_score(self):
+        durable = full_strong_analysis("COST")
+        fragile = full_strong_analysis("APP")
+        durable.update(
+            {
+                "score_total": 7.8,
+                "conviction_score": 78,
+                "long_term_durability_score": 95,
+                "cycle_bubble_risk_level": "LOW",
+            }
+        )
+        fragile.update(
+            {
+                "score_total": 8.0,
+                "conviction_score": 80,
+                "long_term_durability_score": 55,
+                "cycle_bubble_risk_level": "EXTREME",
+            }
+        )
+
+        active = _weakest_core_position({"COST": durable, "APP": fragile})
+        candidate = _weakest_core_position_composite_candidate({"COST": durable, "APP": fragile})
+
+        self.assertEqual(active["ticker"], "COST")
+        self.assertEqual(candidate["ticker"], "APP")
+
+    def test_weakest_core_audit_reports_divergence_without_changing_active_logic(self):
+        durable = full_strong_analysis("COST")
+        fragile = full_strong_analysis("APP")
+        durable.update({"score_total": 7.8, "conviction_score": 78, "long_term_durability_score": 95, "cycle_bubble_risk_level": "LOW"})
+        fragile.update({"score_total": 8.0, "conviction_score": 80, "long_term_durability_score": 55, "cycle_bubble_risk_level": "EXTREME"})
+
+        rows = build_weakest_core_audit_rows({"COST": durable, "APP": fragile})
+
+        self.assertEqual(rows[0]["audit_status"], "DIVERGENCE_OBSERVE_ONLY")
+        self.assertEqual(rows[0]["current_weakest_ticker"], "COST")
+        self.assertEqual(rows[0]["candidate_weakest_ticker"], "APP")
+        self.assertFalse(rows[0]["same_result"])
+
+    def test_weakest_core_audit_is_neutral_when_critical_data_is_missing(self):
+        incomplete = {"ticker": "FBTC.TO", "thesis_status": "INTACT", "liquidation_status": "GREEN"}
+        complete = full_strong_analysis("MSFT")
+
+        rows = build_weakest_core_audit_rows({"FBTC.TO": incomplete, "MSFT": complete})
+
+        self.assertEqual(rows[0]["audit_status"], "LIMITED_DATA_OBSERVE_ONLY")
+        self.assertIn("score_total", rows[0]["interpretation"])
 
 
 if __name__ == "__main__":

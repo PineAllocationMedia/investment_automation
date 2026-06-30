@@ -6,6 +6,7 @@ from src.report_generator import (
     allocation_justification_rows_for_report,
     allocation_recommendation_narrative,
     auto_estimate_rows_for_output,
+    _weakest_core_compact_alert_lines,
     promotion_recommendation_rows,
     sell_recommendation_narrative_lines,
     source_rows_for_report,
@@ -114,6 +115,28 @@ class ReportGeneratorTest(unittest.TestCase):
         result = promotion_recommendation_rows([rejected, promoted])
 
         self.assertEqual(result, [promoted])
+
+    def test_compact_weakest_core_alert_only_when_audit_differs(self):
+        same = _weakest_core_compact_alert_lines(
+            [{"current_weakest_ticker": "AAPL", "candidate_weakest_ticker": "AAPL", "same_result": True}]
+        )
+        different = _weakest_core_compact_alert_lines(
+            [
+                {
+                    "audit_status": "OBSERVE_ONLY",
+                    "current_weakest_ticker": "APP",
+                    "candidate_weakest_ticker": "TSLA",
+                    "same_result": False,
+                    "interpretation": "Comparer avant activation.",
+                }
+            ]
+        )
+
+        self.assertEqual(same, [])
+        self.assertEqual(len(different), 1)
+        self.assertIn("AUDIT-ONLY — aucune recommandation modifiée", different[0])
+        self.assertIn("APP", different[0])
+        self.assertIn("TSLA", different[0])
 
     def test_allocation_justification_explains_selected_ticker_amount_and_history(self):
         rows = allocation_justification_rows_for_report(

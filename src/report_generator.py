@@ -90,7 +90,12 @@ from .portfolio_transactions import (
     PORTFOLIO_TRANSACTION_REPORT_COLUMNS,
     PORTFOLIO_TRANSACTION_SUMMARY_COLUMNS,
 )
-from .promotion_engine import PROMOTION_COLUMNS, build_promotion_candidate_rows
+from .promotion_engine import (
+    PROMOTION_COLUMNS,
+    WEAKEST_CORE_AUDIT_COLUMNS,
+    build_promotion_candidate_rows,
+    build_weakest_core_audit_rows,
+)
 from .proxy_calibration import (
     PROXY_CALIBRATION_HISTORY_COLUMNS,
     PROXY_CALIBRATION_REPORT_COLUMNS,
@@ -733,6 +738,7 @@ def generate_reports(
         allocation_rows,
     )
     company_dossier_rows = build_company_dossier_rows(allocation_lookup, allocation_rows, qualitative_moat_rows)
+    weakest_core_audit_rows = build_weakest_core_audit_rows(analyses)
 
     markdown = build_markdown_report(
         mode,
@@ -810,6 +816,7 @@ def generate_reports(
         anomaly_rows=anomaly_rows,
         cache_health_rows=cache_health_rows,
         run_log_rows=run_log_rows,
+        weakest_core_audit_rows=weakest_core_audit_rows,
     )
     write_text(reports_dir / "latest_report_compact.md", compact_markdown)
     write_text(reports_dir / "latest_report_compact.html", markdown_to_html(compact_markdown))
@@ -845,6 +852,11 @@ def generate_reports(
         analyses,
         portfolio_risk,
         market_universe,
+    )
+    write_csv_records(
+        reports_dir / "latest_weakest_core_audit.csv",
+        weakest_core_audit_rows,
+        WEAKEST_CORE_AUDIT_COLUMNS,
     )
     write_trend_csv(reports_dir / "latest_trend_report.csv", analyses, watchlist_analyses, market_analyses)
     write_csv_records(
@@ -1067,6 +1079,7 @@ def build_compact_markdown_report(
     anomaly_rows: list[dict[str, Any]] | None = None,
     cache_health_rows: list[dict[str, Any]] | None = None,
     run_log_rows: list[dict[str, Any]] | None = None,
+    weakest_core_audit_rows: list[dict[str, Any]] | None = None,
 ) -> str:
     allocation_rows = allocation_rows_for_csv(allocation_result.get("allocations", []))
     allocation_lookup = {**analyses, **watchlist_analyses, **market_analyses, **discovery_analyses}
@@ -1081,6 +1094,7 @@ def build_compact_markdown_report(
     anomaly_rows = anomaly_rows or []
     cache_health_rows = cache_health_rows or []
     run_log_rows = run_log_rows or []
+    weakest_core_audit_rows = weakest_core_audit_rows or []
     allocated_tickers = {row.get("ticker") for row in allocation_rows if row.get("ticker")}
     sorted_core = sorted(analyses.values(), key=lambda row: safe_float(row.get("capital_allocation_score")) or 0.0, reverse=True)
     sell_rows = sell_signal_rows_for_csv(analyses)
@@ -1261,6 +1275,7 @@ def build_compact_markdown_report(
         f"- Vente/surveillance: {_sell_signal_summary(sell_rows)} / {_monitoring_summary(monitoring_rows)}",
         f"- Donnée à valider en priorité: {_top_validation_priority_text(raw_validation_priority_rows)}",
         f"- Anomalies post-analyse: {anomaly_summary(anomaly_rows)}",
+        *_weakest_core_compact_alert_lines(weakest_core_audit_rows),
         f"- Cache de marché: {cache_health_summary(cache_health_rows)}",
         f"- Journal d'exécution: {run_log_summary(run_log_rows)}",
         f"- Risque principal: {portfolio_risk.get('primary_risk') or 'N/D'}",
@@ -4200,6 +4215,29 @@ def compact_promotion_rows_for_compact_report(rows: list[dict[str, Any]]) -> lis
             }
         )
     return output
+
+
+def _weakest_core_compact_alert_lines(rows: list[dict[str, Any]]) -> list[str]:
+    if not rows:
+        return []
+    row = rows[0]
+    if _csv_bool(row.get("same_result")):
+        return []
+    active = row.get("current_weakest_ticker") or "N/D"
+    candidate = row.get("candidate_weakest_ticker") or "N/D"
+    status = row.get("audit_status") or "OBSERVE_ONLY"
+    interpretation = _compact_sentence(row.get("interpretation"), 220)
+    suffix = f" {interpretation}" if interpretation else ""
+    return [
+        "- Audit weakest core: **AUDIT-ONLY — aucune recommandation modifiée.** "
+        f"Logique active: {active}; logique candidate: {candidate}; statut: {status}.{suffix}"
+    ]
+
+
+def _csv_bool(value: Any) -> bool:
+    if isinstance(value, bool):
+        return value
+    return str(value or "").strip().lower() in {"1", "true", "yes", "oui"}
 
 
 def compact_source_rows_for_compact_report(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:

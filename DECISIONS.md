@@ -15,6 +15,22 @@ This ensures long-term consistency and prevents model drift.
 
 # 📌 Decisions
 
+## [2026-06-29] Weakest core composite audit — observe before activation
+
+### Decision
+Add an audit-only comparison between the active weakest-core selection and a composite candidate selection.
+
+### Reasoning
+- The active weakest-core logic can influence external promotion decisions, so changing it directly would be too risky without evidence.
+- The composite candidate considers durability and cycle/bubble risk, but remains observational only.
+- Fallback benchmarks are excluded in the candidate logic through `is_fallback_benchmark()` instead of expanding hardcoded ticker exclusions.
+
+### Expected impact
+Better auditability of future promotion logic, with no change to scoring, allocation, buy/sell recommendations, or active external promotion behavior.
+Primary visibility is `reports/latest_weakest_core_audit.csv` and the full audit. The compact report only shows a one-line `AUDIT-ONLY` alert when the active and candidate weakest-core selections differ.
+
+---
+
 ## [2026-06-28] Alternative benchmark comparisons — audit only
 
 ### Decision
