@@ -14,6 +14,12 @@ from .benchmark_comparison_engine import (
     build_backtest_benchmark_comparisons,
     load_benchmark_definitions,
 )
+from .transaction_friction_engine import (
+    BACKTEST_FRICTION_AUDIT_COLUMNS,
+    add_friction_fields_to_backtest_summaries,
+    build_theoretical_backtest_friction_rows,
+    merge_friction_audit_rows,
+)
 from .utils import DISCLAIMER, DATA_DIR, load_json, money, pct, read_csv_records, safe_float, save_json, write_csv_records, write_text
 
 
@@ -34,6 +40,11 @@ BACKTEST_SUMMARY_COLUMNS = [
     "max_drawdown_on_capital_multiple",
     "avg_vfv_allocation",
     "avg_top1_allocation",
+    "gross_return",
+    "estimated_transaction_cost_cad",
+    "net_return_after_friction",
+    "friction_drag",
+    "friction_assumption_status",
     "notes",
 ]
 
@@ -95,6 +106,7 @@ def run_backtests_from_latest_reports(
     summaries: list[dict[str, Any]] = []
     monthly_rows: list[dict[str, Any]] = []
     allocation_rows: list[dict[str, Any]] = []
+    friction_rows: list[dict[str, Any]] = []
 
     for period in years:
         config = BacktestConfig(
@@ -107,10 +119,17 @@ def run_backtests_from_latest_reports(
         summaries.append(result["summary"])
         monthly_rows.extend(result["monthly_rows"])
         allocation_rows.extend(result["allocation_rows"])
+        friction_rows.extend(result.get("friction_rows") or [])
 
     write_csv_records(reports_dir / "latest_backtest_summary.csv", summaries, BACKTEST_SUMMARY_COLUMNS)
     write_csv_records(reports_dir / "latest_backtest_monthly.csv", monthly_rows, BACKTEST_MONTHLY_COLUMNS)
     write_csv_records(reports_dir / "latest_backtest_allocations.csv", allocation_rows, BACKTEST_ALLOCATION_COLUMNS)
+    existing_friction_rows = read_csv_records(reports_dir / "latest_backtest_friction_audit.csv")
+    write_csv_records(
+        reports_dir / "latest_backtest_friction_audit.csv",
+        merge_friction_audit_rows(existing_friction_rows, friction_rows, {"THEORETICAL_BACKTEST"}),
+        BACKTEST_FRICTION_AUDIT_COLUMNS,
+    )
     benchmark_rows = build_backtest_benchmark_comparisons(
         summaries,
         monthly_rows,
@@ -126,6 +145,7 @@ def run_backtests_from_latest_reports(
         "monthly_rows": monthly_rows,
         "allocation_rows": allocation_rows,
         "benchmark_rows": benchmark_rows,
+        "friction_rows": friction_rows,
     }
 
 
@@ -295,7 +315,9 @@ def simulate_monthly_model_backtest(
         "avg_top1_allocation": round(sum(top_allocations) / len(top_allocations), 4) if top_allocations else 0.0,
         "notes": "Backtest théorique: prix historiques avec Adj Close quand disponible + scores/proxys actuels; ne prouve pas la performance future.",
     }
-    return {"summary": summary, "monthly_rows": monthly_rows, "allocation_rows": allocation_rows}
+    friction_rows = build_theoretical_backtest_friction_rows([summary], allocation_rows, analyses)
+    summary = add_friction_fields_to_backtest_summaries([summary], friction_rows)[0]
+    return {"summary": summary, "monthly_rows": monthly_rows, "allocation_rows": allocation_rows, "friction_rows": friction_rows}
 
 
 def build_backtest_report(summaries: list[dict[str, Any]], benchmark_rows: list[dict[str, Any]] | None = None) -> str:
@@ -329,6 +351,11 @@ def build_backtest_report(summaries: list[dict[str, Any]], benchmark_rows: list[
                 "money_weighted_annual_return",
                 "max_drawdown_on_capital_multiple",
                 "avg_vfv_allocation",
+                "gross_return",
+                "estimated_transaction_cost_cad",
+                "net_return_after_friction",
+                "friction_drag",
+                "friction_assumption_status",
             ],
             [_display_summary(row) for row in summaries],
         ),
@@ -597,6 +624,11 @@ def _display_summary(row: dict[str, Any]) -> dict[str, Any]:
         "money_weighted_annual_return": pct(safe_float(row.get("money_weighted_annual_return")), 2),
         "max_drawdown_on_capital_multiple": pct(safe_float(row.get("max_drawdown_on_capital_multiple")), 1),
         "avg_vfv_allocation": pct(safe_float(row.get("avg_vfv_allocation")), 1),
+        "gross_return": pct(safe_float(row.get("gross_return")), 2),
+        "estimated_transaction_cost_cad": money(safe_float(row.get("estimated_transaction_cost_cad"))),
+        "net_return_after_friction": pct(safe_float(row.get("net_return_after_friction")), 2),
+        "friction_drag": pct(safe_float(row.get("friction_drag")), 2),
+        "friction_assumption_status": row.get("friction_assumption_status"),
     }
 
 

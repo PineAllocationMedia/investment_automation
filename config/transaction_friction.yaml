@@ -1,0 +1,31 @@
+# Audit-only transaction friction assumptions.
+# These values are approximations for backtest diagnostics, not tax, trading,
+# or broker advice. They do not change scoring, allocation, buy/sell decisions,
+# or DCA rules.
+
+enabled: true
+
+# Commission assumed per buy trade in CAD. Wealthsimple stock/ETF commissions
+# can be 0 $, so the default keeps this at 0 and lets spread/FX carry the audit.
+commission_cad_per_trade: 0.0
+
+# Default half-spread/slippage estimate in basis points on trade value.
+spread_bps_default: 8
+
+# Wider assumption for illiquid or very small trades.
+spread_bps_illiquid: 25
+
+# Approximate CAD/USD FX conversion drag in basis points when buying non-CAD
+# tickers without an explicit CAD quote. This is only an audit estimate.
+fx_fee_bps: 150
+
+# Trades below this value are flagged as small-trade estimates and use the
+# illiquid spread assumption. They are not blocked.
+minimum_trade_value_cad: 25
+
+# Notional used only when a walk-forward snapshot has percentages but no
+# dollar amounts. Real recommendations with amounts do not use this fallback.
+walk_forward_default_notional_cad: 1000
+
+# Optional manual overrides for thinly traded tickers.
+illiquid_tickers: []

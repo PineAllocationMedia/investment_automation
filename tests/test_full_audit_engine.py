@@ -174,6 +174,19 @@ class FullAuditEngineTest(unittest.TestCase):
                         "interpretation": "Audit seulement.",
                     }
                 ],
+                backtest_friction_rows=[
+                    {
+                        "audit_scope": "THEORETICAL_BACKTEST",
+                        "mode": "model-lite high-cagr",
+                        "period_years": 5,
+                        "gross_return": 0.42,
+                        "estimated_transaction_cost_cad": 37.5,
+                        "net_return_after_friction": 0.415,
+                        "friction_drag": 0.005,
+                        "friction_assumption_status": "APPROXIMATE_STANDARD",
+                        "interpretation": "Audit-only.",
+                    }
+                ],
             )
             write_full_audit_outputs(reports, {"markdown": markdown, "rows": rows})
 
@@ -184,6 +197,8 @@ class FullAuditEngineTest(unittest.TestCase):
             self.assertIn("AUDIT-ONLY — aucune recommandation modifiée", markdown)
             self.assertIn("APP", markdown)
             self.assertIn("TSLA", markdown)
+            self.assertIn("Frictions de transaction des backtests", markdown)
+            self.assertIn("APPROXIMATE_STANDARD", markdown)
 
     def test_full_audit_rows_include_ticker_source_quality(self):
         rows = build_full_audit_rows(

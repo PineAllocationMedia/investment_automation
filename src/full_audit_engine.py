@@ -13,6 +13,7 @@ from .ticker_source_audit_engine import (
     build_ticker_source_audit_context,
     ticker_source_audit_rows,
 )
+from .transaction_friction_engine import BACKTEST_FRICTION_AUDIT_COLUMNS
 from .underperformance_engine import UNDERPERFORMANCE_COLUMNS, build_underperformance_attribution
 from .utils import DATA_DIR, DISCLAIMER, REPORTS_DIR, markdown_to_html, money, pct, read_csv_records, safe_float, write_csv_records, write_text
 from .walk_forward_backtest_engine import run_walk_forward_backtest
@@ -34,6 +35,20 @@ WEAKEST_CORE_AUDIT_FULL_COLUMNS = [
     "same_result",
     "current_reason",
     "candidate_reason",
+    "interpretation",
+]
+
+BACKTEST_FRICTION_FULL_COLUMNS = [
+    "audit_scope",
+    "mode",
+    "period_years",
+    "analysis_date",
+    "next_analysis_date",
+    "gross_return",
+    "estimated_transaction_cost_cad",
+    "net_return_after_friction",
+    "friction_drag",
+    "friction_assumption_status",
     "interpretation",
 ]
 
@@ -97,6 +112,12 @@ def run_full_audit(
     except Exception as exc:  # pragma: no cover - exercised through CLI in real use
         walk_forward_error = str(exc)
 
+    backtest_friction_rows = [
+        *(backtest_result.get("friction_rows") or []),
+        *(walk_forward_result.get("friction_rows") or []),
+    ]
+    write_csv_records(reports_dir / "latest_backtest_friction_audit.csv", backtest_friction_rows, BACKTEST_FRICTION_AUDIT_COLUMNS)
+
     metrics = build_full_audit_metrics(
         model_audit=model_audit,
         backtest_result=backtest_result,
@@ -123,6 +144,7 @@ def run_full_audit(
         source_health_rows,
         ticker_source_context,
         weakest_core_audit_rows,
+        backtest_friction_rows,
     )
     audit = {
         "metrics": metrics,
@@ -135,6 +157,7 @@ def run_full_audit(
         "source_health_rows": source_health_rows,
         "ticker_source_context": ticker_source_context,
         "weakest_core_audit_rows": weakest_core_audit_rows,
+        "backtest_friction_rows": backtest_friction_rows,
     }
     write_full_audit_outputs(reports_dir, audit)
     return audit
@@ -421,6 +444,7 @@ def build_full_audit_markdown(
     source_health_rows: list[dict[str, Any]] | None = None,
     ticker_source_context: dict[str, Any] | None = None,
     weakest_core_audit_rows: list[dict[str, Any]] | None = None,
+    backtest_friction_rows: list[dict[str, Any]] | None = None,
 ) -> str:
     model_metrics = model_audit.get("metrics") or {}
     backtest_summaries = backtest_result.get("summaries") or []
@@ -432,6 +456,7 @@ def build_full_audit_markdown(
     underperformance = metrics.get("underperformance_attribution") or {}
     ticker_source_context = ticker_source_context or metrics.get("ticker_source_quality") or {}
     weakest_core_audit_rows = _display_weakest_core_audit_rows(weakest_core_audit_rows or [])
+    backtest_friction_rows = _display_backtest_friction_rows(backtest_friction_rows or [])
     lines = [
         "# Audit maître du modèle",
         "",
@@ -550,6 +575,13 @@ def build_full_audit_markdown(
             "win_loss_vs_benchmark",
             "unavailable_reason",
         ]),
+        "",
+        "## Frictions de transaction des backtests",
+        "",
+        "- **AUDIT-ONLY — aucune recommandation modifiée.** Cette section estime l’effet des commissions, spreads et frais FX sur les backtests.",
+        "- Les rendements bruts restent conservés; la version nette sert seulement à voir si le backtest surestime la réalité d’exécution.",
+        "",
+        _markdown_table(backtest_friction_rows, BACKTEST_FRICTION_FULL_COLUMNS),
         "",
         "## Performance réelle du portefeuille",
         "",
@@ -1067,6 +1099,34 @@ def _display_weakest_core_audit_rows(rows: list[dict[str, Any]]) -> list[dict[st
             "interpretation": "Lancer une analyse complète pour générer reports/latest_weakest_core_audit.csv avant cet audit.",
         }
     ]
+
+
+def _display_backtest_friction_rows(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    if not rows:
+        return [
+            {
+                "audit_scope": "NOT_AVAILABLE",
+                "mode": "",
+                "period_years": "",
+                "analysis_date": "",
+                "next_analysis_date": "",
+                "gross_return": "",
+                "estimated_transaction_cost_cad": "",
+                "net_return_after_friction": "",
+                "friction_drag": "",
+                "friction_assumption_status": "",
+                "interpretation": "Aucun audit de friction disponible. Lancer backtest ou full-audit pour le générer.",
+            }
+        ]
+    display = []
+    for row in rows[:40]:
+        item = dict(row)
+        item["gross_return"] = pct(safe_float(item.get("gross_return")), 2)
+        item["estimated_transaction_cost_cad"] = money(safe_float(item.get("estimated_transaction_cost_cad")))
+        item["net_return_after_friction"] = pct(safe_float(item.get("net_return_after_friction")), 2)
+        item["friction_drag"] = pct(safe_float(item.get("friction_drag")), 2)
+        display.append(item)
+    return display
 
 
 def _vfv_status(value: float) -> str:

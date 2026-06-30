@@ -15,6 +15,21 @@ This ensures long-term consistency and prevents model drift.
 
 # 📌 Decisions
 
+## [2026-06-29] Backtest transaction friction audit — diagnostic only
+
+### Decision
+Add an audit-only transaction friction layer to theoretical and walk-forward backtests.
+
+### Reasoning
+- Gross backtests can overstate real execution if spreads, FX conversion drag or small illiquid trades are ignored.
+- The model is used in a Canadian/Quebec context where commissions may be low, but CAD/USD FX and spreads can still matter.
+- The friction layer should expose this execution drag without changing the fundamental scoring system or monthly allocation.
+
+### Expected impact
+Backtests now keep their gross results and add estimated net-after-friction fields plus `reports/latest_backtest_friction_audit.csv`. The change does not modify scoring, sizing, buy/sell recommendations, DCA rules, or promotion logic. The model remains a fundamental scoring + constrained greedy allocation system, not a mean-variance optimizer.
+
+---
+
 ## [2026-06-29] Weakest core composite audit — observe before activation
 
 ### Decision

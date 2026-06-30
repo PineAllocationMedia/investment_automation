@@ -51,6 +51,10 @@ class BacktestEngineTest(unittest.TestCase):
         self.assertGreater(result["summary"]["final_value"], 0)
         self.assertGreater(result["summary"]["vfv_final_value"], 0)
         self.assertEqual(result["summary"]["price_return_basis"], "ADJUSTED_CLOSE_TOTAL_RETURN_PROXY")
+        self.assertIn("gross_return", result["summary"])
+        self.assertIn("net_return_after_friction", result["summary"])
+        self.assertIn("friction_rows", result)
+        self.assertGreaterEqual(result["summary"]["gross_return"], result["summary"]["net_return_after_friction"])
 
     def test_simulation_falls_back_to_vfv_when_no_candidate_is_eligible(self):
         dates = pd.date_range("2018-01-01", periods=260 * 3, freq="B")

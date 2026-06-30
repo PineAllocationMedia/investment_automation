@@ -14,7 +14,14 @@ from .benchmark_comparison_engine import (
     build_walk_forward_benchmark_comparisons,
     load_benchmark_definitions,
 )
-from .utils import DATA_DIR, DISCLAIMER, load_json, markdown_to_html, pct, safe_float, write_csv_records, write_text
+from .transaction_friction_engine import (
+    BACKTEST_FRICTION_AUDIT_COLUMNS,
+    add_friction_fields_to_walk_forward_periods,
+    add_friction_fields_to_walk_forward_summary,
+    build_walk_forward_friction_rows,
+    merge_friction_audit_rows,
+)
+from .utils import DATA_DIR, DISCLAIMER, load_json, markdown_to_html, pct, read_csv_records, safe_float, write_csv_records, write_text
 
 
 WALK_FORWARD_INVENTORY_COLUMNS = [
@@ -63,6 +70,11 @@ WALK_FORWARD_SUMMARY_COLUMNS = [
     "compounded_strategy_return",
     "compounded_vfv_return",
     "compounded_excess_return_vs_vfv",
+    "gross_return",
+    "estimated_transaction_cost_cad",
+    "net_return_after_friction",
+    "friction_drag",
+    "friction_assumption_status",
     "regime_coverage_status",
     "regime_count",
     "weak_regimes",
@@ -84,6 +96,10 @@ WALK_FORWARD_PERIOD_COLUMNS = [
     "excess_return_vs_vfv",
     "strategy_annualized_return",
     "vfv_annualized_return",
+    "estimated_transaction_cost_cad",
+    "net_strategy_period_return_after_friction",
+    "friction_drag",
+    "friction_assumption_status",
     "market_regime",
     "regime_note",
     "missing_price_tickers",
@@ -102,6 +118,7 @@ WALK_FORWARD_ALLOCATION_RETURN_COLUMNS = [
     "end_price",
     "period_return",
     "weighted_return_contribution",
+    "trade_value_cad",
     "price_status",
 ]
 
@@ -192,6 +209,9 @@ def run_walk_forward_backtest(
             price_basis = "PRICE_FETCH_FAILED"
 
     summary_row = build_walk_forward_simulation_summary(period_rows, coverage_row, config, price_basis, regime_rows)
+    friction_rows = build_walk_forward_friction_rows(summary_row, period_rows, allocation_return_rows)
+    period_rows = add_friction_fields_to_walk_forward_periods(period_rows, friction_rows)
+    summary_row = add_friction_fields_to_walk_forward_summary(summary_row, friction_rows)
     report = build_walk_forward_backtest_report(coverage_row, inventory_rows, summary_row, period_rows, regime_rows, config, benchmark_rows)
 
     write_csv_records(reports_dir / "latest_walk_forward_inventory.csv", inventory_rows, WALK_FORWARD_INVENTORY_COLUMNS)
@@ -205,6 +225,12 @@ def run_walk_forward_backtest(
     )
     write_csv_records(reports_dir / "latest_walk_forward_regime_summary.csv", regime_rows, WALK_FORWARD_REGIME_COLUMNS)
     write_csv_records(reports_dir / "latest_walk_forward_benchmark_comparison.csv", benchmark_rows, WALK_FORWARD_BENCHMARK_COLUMNS)
+    existing_friction_rows = read_csv_records(reports_dir / "latest_backtest_friction_audit.csv")
+    write_csv_records(
+        reports_dir / "latest_backtest_friction_audit.csv",
+        merge_friction_audit_rows(existing_friction_rows, friction_rows, {"WALK_FORWARD_SUMMARY", "WALK_FORWARD_PERIOD"}),
+        BACKTEST_FRICTION_AUDIT_COLUMNS,
+    )
     write_text(reports_dir / "latest_walk_forward_report.md", report)
     write_text(reports_dir / "latest_walk_forward_report.html", markdown_to_html(report))
     write_text(reports_dir / "latest_walk_forward_inventory.md", build_walk_forward_inventory_report(coverage_row, inventory_rows, config))
@@ -220,6 +246,7 @@ def run_walk_forward_backtest(
         "allocation_return_rows": allocation_return_rows,
         "regime_rows": regime_rows,
         "benchmark_rows": benchmark_rows,
+        "friction_rows": friction_rows,
         "markdown": report,
     }
 
@@ -327,7 +354,9 @@ def simulate_walk_forward_periods(
         period = _simulate_single_walk_forward_period(row, prices, config)
         period_rows.append(period["period_row"])
         allocation_return_rows.extend(period["allocation_return_rows"])
-    return {"period_rows": period_rows, "allocation_return_rows": allocation_return_rows}
+    friction_rows = build_walk_forward_friction_rows({}, period_rows, allocation_return_rows)
+    period_rows = add_friction_fields_to_walk_forward_periods(period_rows, friction_rows)
+    return {"period_rows": period_rows, "allocation_return_rows": allocation_return_rows, "friction_rows": friction_rows}
 
 
 def build_walk_forward_simulation_summary(
@@ -444,6 +473,7 @@ def build_walk_forward_backtest_report(
         "- Il utilise seulement les snapshots locaux déjà sauvegardés pour le mode choisi.",
         "- Il compare la recommandation complète de la cotisation à une allocation 100 % `VFV.TO` sur la même période.",
         "- Il ajoute aussi des comparaisons passives/mécaniques alternatives, uniquement comme audit.",
+        "- Les frictions de transaction estimées sont affichées en audit-only: elles ne changent ni le scoring, ni les recommandations.",
         "- Si l’historique est trop court, trop rapproché ou si les prix manquent, le rapport reste un diagnostic préliminaire.",
         "- Si un benchmark alternatif manque parce que le cache local ne contient pas encore ses prix, relancer avec `--refresh-market-data` peut le rendre disponible.",
         "- Les rendements annualisés de périodes courtes peuvent être trompeurs; la ligne la plus utile est l’excès de rendement par période vs VFV.",
@@ -467,6 +497,8 @@ def build_walk_forward_backtest_report(
             "strategy_period_return",
             "vfv_period_return",
             "excess_return_vs_vfv",
+            "net_strategy_period_return_after_friction",
+            "friction_drag",
             "evaluation_status",
             "notes",
         ]),
@@ -750,6 +782,7 @@ def _simulate_single_walk_forward_period(
     allocation_payload = load_json(row.get("allocation_snapshot_path") or "")
     allocation_rows = allocation_payload.get("allocations") if isinstance(allocation_payload.get("allocations"), list) else []
     weights = _allocation_weights(allocation_rows)
+    trade_values = _allocation_trade_values(allocation_rows, weights)
     allocation_return_rows: list[dict[str, Any]] = []
 
     if not weights:
@@ -777,7 +810,7 @@ def _simulate_single_walk_forward_period(
             missing_tickers.append(ticker)
             missing_weight += weight
             allocation_return_rows.append(
-                _allocation_return_row(config, row, ticker, weight, "", "", "", 0.0, "MISSING_PRICE")
+                _allocation_return_row(config, row, ticker, weight, "", "", "", 0.0, "MISSING_PRICE", trade_values.get(ticker))
             )
             continue
         contribution = weight * ticker_result["return"]
@@ -795,6 +828,7 @@ def _simulate_single_walk_forward_period(
                 ticker_result["return"],
                 contribution,
                 "OK",
+                trade_values.get(ticker),
             )
         )
 
@@ -860,6 +894,16 @@ def _allocation_weights(rows: list[dict[str, Any]]) -> dict[str, float]:
     return {ticker: value / total for ticker, value in totals.items() if value > 0}
 
 
+def _allocation_trade_values(rows: list[dict[str, Any]], weights: dict[str, float]) -> dict[str, float]:
+    values: dict[str, float] = {}
+    for row in rows:
+        ticker = str(row.get("ticker") or row.get("destination") or "").strip().upper()
+        amount = safe_float(row.get("amount", row.get("montant")))
+        if ticker and amount is not None and amount > 0:
+            values[ticker] = values.get(ticker, 0.0) + amount
+    return values
+
+
 def _ticker_period_return(prices: pd.DataFrame, ticker: str, start_date: str, end_date: str) -> dict[str, Any] | None:
     if ticker not in prices.columns:
         return None
@@ -920,6 +964,7 @@ def _allocation_return_row(
     period_return: Any,
     contribution: float,
     price_status: str,
+    trade_value_cad: Any = "",
 ) -> dict[str, Any]:
     return {
         "mode": config.mode,
@@ -931,6 +976,7 @@ def _allocation_return_row(
         "end_price": round(end_price, 4) if isinstance(end_price, (int, float)) else "",
         "period_return": round(period_return, 4) if isinstance(period_return, (int, float)) else "",
         "weighted_return_contribution": round(contribution, 4),
+        "trade_value_cad": round(trade_value_cad, 2) if isinstance(trade_value_cad, (int, float)) else "",
         "price_status": price_status,
     }
 
@@ -1095,17 +1141,30 @@ def _display_simulation_summary(row: dict[str, Any]) -> dict[str, Any]:
         "compounded_strategy_return",
         "compounded_vfv_return",
         "compounded_excess_return_vs_vfv",
+        "gross_return",
+        "net_return_after_friction",
+        "friction_drag",
     }
     display = dict(row)
     for field in percent_fields:
         display[field] = pct(safe_float(row.get(field)), 2)
+    if safe_float(row.get("estimated_transaction_cost_cad")) is not None:
+        display["estimated_transaction_cost_cad"] = f"{safe_float(row.get('estimated_transaction_cost_cad')):.2f} $"
     return display
 
 
 def _display_period_row(row: dict[str, Any]) -> dict[str, Any]:
     display = dict(row)
-    for field in ["strategy_period_return", "vfv_period_return", "excess_return_vs_vfv"]:
+    for field in [
+        "strategy_period_return",
+        "vfv_period_return",
+        "excess_return_vs_vfv",
+        "net_strategy_period_return_after_friction",
+        "friction_drag",
+    ]:
         display[field] = pct(safe_float(row.get(field)), 2)
+    if safe_float(row.get("estimated_transaction_cost_cad")) is not None:
+        display["estimated_transaction_cost_cad"] = f"{safe_float(row.get('estimated_transaction_cost_cad')):.2f} $"
     return display
 
 

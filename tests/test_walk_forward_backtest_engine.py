@@ -183,6 +183,9 @@ class WalkForwardBacktestEngineTest(unittest.TestCase):
         self.assertAlmostEqual(period["strategy_period_return"], 0.06)
         self.assertAlmostEqual(period["vfv_period_return"], 0.02)
         self.assertAlmostEqual(period["excess_return_vs_vfv"], 0.04)
+        self.assertIn("net_strategy_period_return_after_friction", period)
+        self.assertIn("friction_drag", period)
+        self.assertLessEqual(period["net_strategy_period_return_after_friction"], period["strategy_period_return"])
         self.assertEqual(period["market_regime"], "VFV_POSITIVE")
         self.assertEqual(len(result["allocation_return_rows"]), 2)
 
