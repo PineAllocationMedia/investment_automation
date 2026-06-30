@@ -8,6 +8,12 @@ from typing import Any
 import pandas as pd
 
 from .backtest_engine import fetch_price_history_cad
+from .benchmark_comparison_engine import (
+    WALK_FORWARD_BENCHMARK_COLUMNS,
+    benchmark_price_tickers,
+    build_walk_forward_benchmark_comparisons,
+    load_benchmark_definitions,
+)
 from .utils import DATA_DIR, DISCLAIMER, load_json, markdown_to_html, pct, safe_float, write_csv_records, write_text
 
 
@@ -167,9 +173,11 @@ def run_walk_forward_backtest(
     period_rows: list[dict[str, Any]] = []
     allocation_return_rows: list[dict[str, Any]] = []
     regime_rows: list[dict[str, Any]] = []
+    benchmark_rows: list[dict[str, Any]] = []
     price_basis = "NOT_RUN_NO_USABLE_PERIODS"
+    benchmark_definitions = load_benchmark_definitions()
     if usable_rows:
-        tickers = _walk_forward_price_tickers(usable_rows)
+        tickers = sorted(set(_walk_forward_price_tickers(usable_rows)) | set(benchmark_price_tickers(benchmark_definitions)))
         years = _walk_forward_price_years(usable_rows)
         try:
             prices = fetch_price_history_cad(tickers, data_dir, years=years, refresh=refresh_market_data)
@@ -177,13 +185,14 @@ def run_walk_forward_backtest(
             simulation = simulate_walk_forward_periods(usable_rows, prices, config)
             period_rows = simulation["period_rows"]
             allocation_return_rows = simulation["allocation_return_rows"]
+            benchmark_rows = build_walk_forward_benchmark_comparisons(period_rows, prices, benchmark_definitions)
             regime_rows = build_walk_forward_regime_summary(period_rows, config)
         except Exception as exc:
             period_rows = [_simulation_error_row(config, str(exc))]
             price_basis = "PRICE_FETCH_FAILED"
 
     summary_row = build_walk_forward_simulation_summary(period_rows, coverage_row, config, price_basis, regime_rows)
-    report = build_walk_forward_backtest_report(coverage_row, inventory_rows, summary_row, period_rows, regime_rows, config)
+    report = build_walk_forward_backtest_report(coverage_row, inventory_rows, summary_row, period_rows, regime_rows, config, benchmark_rows)
 
     write_csv_records(reports_dir / "latest_walk_forward_inventory.csv", inventory_rows, WALK_FORWARD_INVENTORY_COLUMNS)
     write_csv_records(reports_dir / "latest_walk_forward_coverage.csv", [coverage_row], WALK_FORWARD_COVERAGE_COLUMNS)
@@ -195,6 +204,7 @@ def run_walk_forward_backtest(
         WALK_FORWARD_ALLOCATION_RETURN_COLUMNS,
     )
     write_csv_records(reports_dir / "latest_walk_forward_regime_summary.csv", regime_rows, WALK_FORWARD_REGIME_COLUMNS)
+    write_csv_records(reports_dir / "latest_walk_forward_benchmark_comparison.csv", benchmark_rows, WALK_FORWARD_BENCHMARK_COLUMNS)
     write_text(reports_dir / "latest_walk_forward_report.md", report)
     write_text(reports_dir / "latest_walk_forward_report.html", markdown_to_html(report))
     write_text(reports_dir / "latest_walk_forward_inventory.md", build_walk_forward_inventory_report(coverage_row, inventory_rows, config))
@@ -209,6 +219,7 @@ def run_walk_forward_backtest(
         "period_rows": period_rows,
         "allocation_return_rows": allocation_return_rows,
         "regime_rows": regime_rows,
+        "benchmark_rows": benchmark_rows,
         "markdown": report,
     }
 
@@ -415,10 +426,13 @@ def build_walk_forward_backtest_report(
     period_rows: list[dict[str, Any]],
     regime_rows: list[dict[str, Any]],
     config: WalkForwardInventoryConfig,
+    benchmark_rows: list[dict[str, Any]] | None = None,
 ) -> str:
+    benchmark_rows = benchmark_rows or []
     display_summary = _display_simulation_summary(summary_row)
     display_periods = [_display_period_row(row) for row in period_rows]
     display_regimes = [_display_regime_row(row) for row in regime_rows]
+    display_benchmarks = [_display_walk_forward_benchmark_row(row) for row in benchmark_rows]
     lines = [
         "# Backtest walk-forward",
         "",
@@ -429,7 +443,9 @@ def build_walk_forward_backtest_report(
         "- Bloc 2: le rapport mesure les recommandations historiques réelles jusqu’à l’analyse suivante disponible.",
         "- Il utilise seulement les snapshots locaux déjà sauvegardés pour le mode choisi.",
         "- Il compare la recommandation complète de la cotisation à une allocation 100 % `VFV.TO` sur la même période.",
+        "- Il ajoute aussi des comparaisons passives/mécaniques alternatives, uniquement comme audit.",
         "- Si l’historique est trop court, trop rapproché ou si les prix manquent, le rapport reste un diagnostic préliminaire.",
+        "- Si un benchmark alternatif manque parce que le cache local ne contient pas encore ses prix, relancer avec `--refresh-market-data` peut le rendre disponible.",
         "- Les rendements annualisés de périodes courtes peuvent être trompeurs; la ligne la plus utile est l’excès de rendement par période vs VFV.",
         "",
         "## Résumé de couverture",
@@ -461,6 +477,23 @@ def build_walk_forward_backtest_report(
         "- Si l’historique est trop court ou concentré dans un seul régime, elle reste informative et ne déclenche aucun tuning automatique agressif.",
         "",
         _markdown_table(display_regimes, WALK_FORWARD_REGIME_COLUMNS),
+        "",
+        "## Comparaisons benchmarks alternatifs",
+        "",
+        "- Cette section compare les mêmes périodes contre des benchmarks simples; elle n’influence aucune allocation.",
+        "- `SIMPLE_MOMENTUM` sélectionne seulement avec l’historique disponible avant la date de décision.",
+        "",
+        _markdown_table(display_benchmarks, [
+            "analysis_date",
+            "next_analysis_date",
+            "benchmark_id",
+            "data_coverage_status",
+            "strategy_period_return",
+            "benchmark_period_return",
+            "model_excess_return_vs_benchmark",
+            "win_loss_vs_benchmark",
+            "unavailable_reason",
+        ]),
         "",
         "## Inventaire récent",
         "",
@@ -1085,6 +1118,13 @@ def _display_regime_row(row: dict[str, Any]) -> dict[str, Any]:
         "win_rate_vs_vfv",
         "compounded_excess_return_vs_vfv",
     ]:
+        display[field] = pct(safe_float(row.get(field)), 2)
+    return display
+
+
+def _display_walk_forward_benchmark_row(row: dict[str, Any]) -> dict[str, Any]:
+    display = dict(row)
+    for field in ["strategy_period_return", "benchmark_period_return", "model_excess_return_vs_benchmark"]:
         display[field] = pct(safe_float(row.get(field)), 2)
     return display
 

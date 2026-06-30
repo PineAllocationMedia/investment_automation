@@ -623,6 +623,7 @@ def backtest_command(args: argparse.Namespace) -> int:
     print(f"Backtest terminé en mode {args.mode}.")
     print(f"Rapport: {REPORTS_DIR / 'latest_backtest_report.md'}")
     print(f"Résumé CSV: {REPORTS_DIR / 'latest_backtest_summary.csv'}")
+    print(f"Benchmarks CSV: {REPORTS_DIR / 'latest_benchmark_comparison.csv'}")
     for row in result.get("summaries", []):
         annual = safe_float(row.get("money_weighted_annual_return"))
         annual_text = f"{annual:.2%}" if annual is not None else "N/D"
@@ -660,6 +661,7 @@ def walk_forward_backtest_command(args: argparse.Namespace) -> int:
     print(f"Résumé CSV: {REPORTS_DIR / 'latest_walk_forward_coverage.csv'}")
     print(f"Inventaire CSV: {REPORTS_DIR / 'latest_walk_forward_inventory.csv'}")
     print(f"Périodes simulées: {REPORTS_DIR / 'latest_walk_forward_periods.csv'}")
+    print(f"Benchmarks CSV: {REPORTS_DIR / 'latest_walk_forward_benchmark_comparison.csv'}")
     print(f"Journal d'exécution: {REPORTS_DIR / 'latest_run_log.csv'}")
     print(
         f"Statut: {coverage.get('status')} | "

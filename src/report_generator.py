@@ -585,6 +585,21 @@ DATA_FRESHNESS_COLUMNS = [
     "reason",
 ]
 RISK_COLUMNS = ["risk_type", "risk_level", "description", "impact"]
+STRESS_TEST_COLUMNS = [
+    "scenario",
+    "scenario_type",
+    "scenario_quality",
+    "estimated_loss_dollars",
+    "estimated_loss_percent",
+    "max_drawdown_percent",
+    "worst_phase_name",
+    "worst_phase_return",
+    "top_contributors",
+    "amplifying_tickers",
+    "resilient_tickers",
+    "diagnostic_only",
+    "primary_risk",
+]
 TAX_COLUMNS = ["ticker", "account_type", "account_tax_category", "shares", "current_value", "tax_comment", "warning"]
 CYCLE_COLUMNS = [
     "universe",
@@ -888,6 +903,7 @@ def generate_reports(
     write_validation_priority_csv(reports_dir / "latest_validation_priority.csv", validation_priority_rows)
     write_data_gaps_csv(reports_dir / "latest_data_gaps.csv", data_gaps)
     write_risk_csv(reports_dir / "latest_risk_report.csv", portfolio_risk)
+    write_csv_records(reports_dir / "latest_stress_tests.csv", stress_rows_for_csv(stress_tests), STRESS_TEST_COLUMNS)
     write_tax_csv(reports_dir / "latest_tax_location_report.csv", tax_report)
     write_csv_records(reports_dir / "latest_portfolio_changes.csv", portfolio_change_rows, PORTFOLIO_CHANGE_COLUMNS)
     write_csv_records(
@@ -2653,6 +2669,28 @@ def build_markdown_report(
             f"{item['ticker']} ({money(item['estimated_loss'])})"
             for item in scenario.get("top_contributors", [])
         )
+        if scenario.get("scenario_type") == "sequential_stylized":
+            amplifiers = _stress_ticker_summary(scenario.get("amplifying_tickers", []), "scenario_return")
+            resilient = _stress_ticker_summary(scenario.get("resilient_tickers", []), "scenario_return")
+            sector_theme = _stress_sector_theme_summary(scenario.get("contribution_by_sector_theme", []))
+            lines.extend(
+                [
+                    f"### {scenario.get('scenario')}",
+                    "",
+                    "- Type: scénario séquentiel stylisé déterministe, diagnostic seulement.",
+                    f"- Qualité du diagnostic: {scenario.get('scenario_quality', 'LOW')} ({pct(safe_float(scenario.get('data_completeness')), 0)} des métadonnées clés disponibles).",
+                    f"- Perte finale estimée: {money(scenario.get('estimated_loss_dollars'))} ({pct(scenario.get('estimated_loss_percent'), 1)})",
+                    f"- Drawdown maximal simulé: {pct(scenario.get('max_drawdown_percent'), 1)}",
+                    f"- Pire phase simulée: {scenario.get('worst_phase_name') or 'Donnée pas dispo'} ({pct(scenario.get('worst_phase_return'), 1)})",
+                    f"- Positions qui contribuent le plus: {contributors or 'Aucune'}",
+                    f"- Titres qui amplifient le plus le scénario: {amplifiers or 'Donnée pas dispo'}",
+                    f"- Titres les plus résilients dans ce scénario: {resilient or 'Donnée pas dispo'}",
+                    f"- Contribution par secteur/thème: {sector_theme or 'Donnée pas dispo'}",
+                    f"- Interprétation: {scenario.get('interpretation') or scenario.get('primary_risk')}",
+                    "",
+                ]
+            )
+            continue
         lines.extend(
             [
                 f"### {scenario.get('scenario')}",
@@ -4387,6 +4425,58 @@ def auto_estimate_rows_for_output(data_gaps: list[dict[str, Any]]) -> list[dict[
             }
         )
     return rows
+
+
+def stress_rows_for_csv(stress_tests: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    rows = []
+    for scenario in stress_tests:
+        rows.append(
+            {
+                "scenario": scenario.get("scenario"),
+                "scenario_type": scenario.get("scenario_type", "static_single_shock"),
+                "scenario_quality": scenario.get("scenario_quality", ""),
+                "estimated_loss_dollars": scenario.get("estimated_loss_dollars"),
+                "estimated_loss_percent": scenario.get("estimated_loss_percent"),
+                "max_drawdown_percent": scenario.get("max_drawdown_percent", ""),
+                "worst_phase_name": scenario.get("worst_phase_name", ""),
+                "worst_phase_return": scenario.get("worst_phase_return", ""),
+                "top_contributors": _stress_ticker_summary(scenario.get("top_contributors", []), "estimated_loss"),
+                "amplifying_tickers": _stress_ticker_summary(scenario.get("amplifying_tickers", []), "scenario_return"),
+                "resilient_tickers": _stress_ticker_summary(scenario.get("resilient_tickers", []), "scenario_return"),
+                "diagnostic_only": scenario.get("diagnostic_only", False),
+                "primary_risk": scenario.get("primary_risk"),
+            }
+        )
+    return rows
+
+
+def _stress_ticker_summary(rows: list[dict[str, Any]], metric: str) -> str:
+    rows = rows or []
+    parts = []
+    for row in rows[:3]:
+        ticker = row.get("ticker")
+        if not ticker:
+            continue
+        value = safe_float(row.get(metric))
+        if metric == "estimated_loss":
+            display = money(value)
+        elif value is None:
+            display = "Donnée pas dispo"
+        else:
+            display = pct(value, 1)
+        parts.append(f"{ticker} ({display})")
+    return ", ".join(parts)
+
+
+def _stress_sector_theme_summary(rows: list[dict[str, Any]]) -> str:
+    rows = rows or []
+    parts = []
+    for row in rows[:3]:
+        label = row.get("sector_theme")
+        if not label:
+            continue
+        parts.append(f"{label} ({money(row.get('estimated_loss'))})")
+    return ", ".join(parts)
 
 
 def write_risk_csv(path: str | Path, portfolio_risk: dict[str, Any]) -> None:

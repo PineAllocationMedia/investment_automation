@@ -410,8 +410,10 @@ def build_full_audit_markdown(
 ) -> str:
     model_metrics = model_audit.get("metrics") or {}
     backtest_summaries = backtest_result.get("summaries") or []
+    backtest_benchmark_rows = backtest_result.get("benchmark_rows") or []
     walk_forward_summary = (walk_forward_result or {}).get("summary") or metrics.get("walk_forward_summary") or {}
     walk_forward_periods = (walk_forward_result or {}).get("period_rows") or metrics.get("walk_forward_periods") or []
+    walk_forward_benchmark_rows = (walk_forward_result or {}).get("benchmark_rows") or []
     threshold = model_metrics.get("threshold_review") or {}
     underperformance = metrics.get("underperformance_attribution") or {}
     ticker_source_context = ticker_source_context or metrics.get("ticker_source_quality") or {}
@@ -473,6 +475,21 @@ def build_full_audit_markdown(
             "avg_vfv_allocation",
         ]),
         "",
+        "### Benchmarks alternatifs du backtest",
+        "",
+        "- Comparaisons d’audit seulement: elles ne changent pas le score, le sizing ou les recommandations.",
+        "",
+        _markdown_table(_display_backtest_benchmark_rows(backtest_benchmark_rows), [
+            "period_years",
+            "benchmark_id",
+            "data_coverage_status",
+            "benchmark_final_value",
+            "benchmark_return",
+            "excess_value_vs_benchmark",
+            "model_return_minus_benchmark_return",
+            "unavailable_reason",
+        ]),
+        "",
         "## Backtest walk-forward",
         "",
         "- Cette partie utilise les anciennes recommandations réellement produites et mesure ce qui s’est passé jusqu’à l’analyse suivante disponible.",
@@ -501,6 +518,22 @@ def build_full_audit_markdown(
             "vfv_period_return",
             "excess_return_vs_vfv",
             "evaluation_status",
+        ]),
+        "",
+        "### Benchmarks alternatifs walk-forward",
+        "",
+        "- Chaque période utilisable est comparée aux mêmes alternatives passives/mécaniques.",
+        "",
+        _markdown_table(_display_walk_forward_benchmark_rows(walk_forward_benchmark_rows), [
+            "analysis_date",
+            "next_analysis_date",
+            "benchmark_id",
+            "data_coverage_status",
+            "strategy_period_return",
+            "benchmark_period_return",
+            "model_excess_return_vs_benchmark",
+            "win_loss_vs_benchmark",
+            "unavailable_reason",
         ]),
         "",
         "## Performance réelle du portefeuille",
@@ -931,6 +964,21 @@ def _display_backtest_summaries(rows: list[dict[str, Any]]) -> list[dict[str, An
     return output
 
 
+def _display_backtest_benchmark_rows(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    output = []
+    for row in rows:
+        output.append(
+            {
+                **row,
+                "benchmark_final_value": money(safe_float(row.get("benchmark_final_value"))),
+                "benchmark_return": pct(safe_float(row.get("benchmark_return")), 2),
+                "excess_value_vs_benchmark": money(safe_float(row.get("excess_value_vs_benchmark"))),
+                "model_return_minus_benchmark_return": pct(safe_float(row.get("model_return_minus_benchmark_return")), 2),
+            }
+        )
+    return output
+
+
 def _display_walk_forward_summary(row: dict[str, Any]) -> list[dict[str, Any]]:
     if not row:
         return [
@@ -964,6 +1012,20 @@ def _display_walk_forward_periods(rows: list[dict[str, Any]]) -> list[dict[str, 
                 "strategy_period_return": pct(safe_float(row.get("strategy_period_return")), 2),
                 "vfv_period_return": pct(safe_float(row.get("vfv_period_return")), 2),
                 "excess_return_vs_vfv": pct(safe_float(row.get("excess_return_vs_vfv")), 2),
+            }
+        )
+    return output
+
+
+def _display_walk_forward_benchmark_rows(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    output = []
+    for row in rows:
+        output.append(
+            {
+                **row,
+                "strategy_period_return": pct(safe_float(row.get("strategy_period_return")), 2),
+                "benchmark_period_return": pct(safe_float(row.get("benchmark_period_return")), 2),
+                "model_excess_return_vs_benchmark": pct(safe_float(row.get("model_excess_return_vs_benchmark")), 2),
             }
         )
     return output

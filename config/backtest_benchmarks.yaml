@@ -1,0 +1,35 @@
+# Audit-only benchmark definitions for theoretical backtests and walk-forward validation.
+# These benchmarks never affect scoring, sizing, allocation, selling, cash, or eligibility.
+
+benchmarks:
+  VFV_100:
+    name: "100 % VFV.TO"
+    type: STATIC_WEIGHTS
+    primary: true
+    components:
+      VFV.TO: 1.0
+
+  XEQT_100:
+    name: "100 % XEQT.TO"
+    type: STATIC_WEIGHTS
+    components:
+      XEQT.TO: 1.0
+
+  CANADIAN_60_40:
+    name: "Canadian 60/40"
+    type: STATIC_WEIGHTS
+    components:
+      XEQT.TO: 0.60
+      ZAG.TO: 0.40
+
+  SIMPLE_MOMENTUM:
+    name: "Simple ETF momentum"
+    type: SIMPLE_MOMENTUM
+    universe:
+      - VFV.TO
+      - XEQT.TO
+      - XQQ.TO
+      - XIC.TO
+      - ZAG.TO
+    lookback_months: 6
+    top_n: 1

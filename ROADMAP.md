@@ -122,6 +122,38 @@ The system must be:
 
 ---
 
+# Planned Refactors — Do Not Implement Until Triggered
+
+### REFACTOR-01 — utils decomposition
+- Trigger: feature addition pace slows down
+- Goal: split utils.py into focused submodules by responsibility
+- Risk: high if done mid-development — coordinate with Claude first
+- Status: deferred
+
+### REFACTOR-02 — report_generator decoupling
+- Trigger: before any API, dashboard, or external output work begins
+- Goal: engines emit structured data objects, single output layer handles formatting
+- Risk: architectural — requires full design before any Codex implementation
+- Status: deferred
+
+---
+
+# Future Enhancements — Trigger-Based
+
+### ENHANCEMENT-01 — RMT covariance denoising
+- What: use Random Matrix Theory (Marchenko-Pastur) to clean the 
+  correlation matrix before any statistical risk calculation
+- Trigger: only if a statistical correlation engine is added to 
+  portfolio_risk_engine, or if allocation_engine adopts mean-variance 
+  optimization alongside the current scoring system
+- Why not now: model does not use covariance matrices — technique 
+  has no surface to operate on in current architecture
+- Risk: low implementation risk when triggered, but adds complexity 
+  to the risk layer
+- Status: deferred — revisit after REFACTOR-02
+
+---
+
 # 🧠 Global System Principles
 
 These rules MUST always be respected:

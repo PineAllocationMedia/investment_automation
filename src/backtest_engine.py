@@ -8,6 +8,12 @@ import math
 
 import pandas as pd
 
+from .benchmark_comparison_engine import (
+    BACKTEST_BENCHMARK_COLUMNS,
+    benchmark_price_tickers,
+    build_backtest_benchmark_comparisons,
+    load_benchmark_definitions,
+)
 from .utils import DISCLAIMER, DATA_DIR, load_json, money, pct, read_csv_records, safe_float, save_json, write_csv_records, write_text
 
 
@@ -82,7 +88,8 @@ def run_backtests_from_latest_reports(
 
     min_vfv = _latest_mandatory_vfv_percent(reports_dir)
     max_years = max(years)
-    tickers = _backtest_tickers(analyses)
+    benchmark_definitions = load_benchmark_definitions()
+    tickers = sorted(set(_backtest_tickers(analyses)) | set(benchmark_price_tickers(benchmark_definitions)))
     price_data = fetch_price_history_cad(tickers, data_dir, years=max_years, refresh=refresh_market_data)
 
     summaries: list[dict[str, Any]] = []
@@ -104,8 +111,22 @@ def run_backtests_from_latest_reports(
     write_csv_records(reports_dir / "latest_backtest_summary.csv", summaries, BACKTEST_SUMMARY_COLUMNS)
     write_csv_records(reports_dir / "latest_backtest_monthly.csv", monthly_rows, BACKTEST_MONTHLY_COLUMNS)
     write_csv_records(reports_dir / "latest_backtest_allocations.csv", allocation_rows, BACKTEST_ALLOCATION_COLUMNS)
-    write_text(reports_dir / "latest_backtest_report.md", build_backtest_report(summaries))
-    return {"summaries": summaries, "monthly_rows": monthly_rows, "allocation_rows": allocation_rows}
+    benchmark_rows = build_backtest_benchmark_comparisons(
+        summaries,
+        monthly_rows,
+        _actual_month_end_prices(price_data),
+        monthly_capital,
+        benchmark_definitions,
+        price_return_basis=str(price_data.attrs.get("price_return_basis", "UNKNOWN_PRICE_BASIS")),
+    )
+    write_csv_records(reports_dir / "latest_benchmark_comparison.csv", benchmark_rows, BACKTEST_BENCHMARK_COLUMNS)
+    write_text(reports_dir / "latest_backtest_report.md", build_backtest_report(summaries, benchmark_rows))
+    return {
+        "summaries": summaries,
+        "monthly_rows": monthly_rows,
+        "allocation_rows": allocation_rows,
+        "benchmark_rows": benchmark_rows,
+    }
 
 
 def fetch_price_history_cad(
@@ -277,7 +298,8 @@ def simulate_monthly_model_backtest(
     return {"summary": summary, "monthly_rows": monthly_rows, "allocation_rows": allocation_rows}
 
 
-def build_backtest_report(summaries: list[dict[str, Any]]) -> str:
+def build_backtest_report(summaries: list[dict[str, Any]], benchmark_rows: list[dict[str, Any]] | None = None) -> str:
+    benchmark_rows = benchmark_rows or []
     lines = [
         "# Backtest théorique du modèle",
         "",
@@ -289,6 +311,7 @@ def build_backtest_report(summaries: list[dict[str, Any]]) -> str:
         "- Les prix historiques viennent de yfinance quand disponibles.",
         "- Quand disponible, le backtest utilise `Adj Close`, un proxy gratuit de rendement total approximatif qui inclut les dividendes/distributions réinvestis; sinon il revient à `Close`.",
         "- Les fondamentaux historiques complets ne sont pas reconstruits gratuitement; les scores actuels du modèle servent d’ancrage.",
+        "- Si un benchmark alternatif manque parce que le cache local ne contient pas encore ses prix, relancer avec `--refresh-market-data` peut le rendre disponible.",
         "- Le résultat peut surestimer ou sous-estimer la réalité à cause du biais de survie, des tickers récents, des taxes, des frais et du change.",
         "",
         "## Résumé",
@@ -308,6 +331,25 @@ def build_backtest_report(summaries: list[dict[str, Any]]) -> str:
                 "avg_vfv_allocation",
             ],
             [_display_summary(row) for row in summaries],
+        ),
+        "",
+        "## Comparaisons benchmarks alternatifs",
+        "",
+        "- Ces benchmarks sont des points de comparaison d’audit seulement; ils ne changent jamais la recommandation du modèle.",
+        "- `SIMPLE_MOMENTUM` est mécanique et n’utilise que les prix disponibles avant chaque date simulée.",
+        "",
+        _markdown_table(
+            [
+                "period_years",
+                "benchmark_id",
+                "data_coverage_status",
+                "benchmark_final_value",
+                "benchmark_return",
+                "excess_value_vs_benchmark",
+                "model_return_minus_benchmark_return",
+                "unavailable_reason",
+            ],
+            [_display_benchmark_row(row) for row in benchmark_rows],
         ),
         "",
         "## Interprétation",
@@ -555,6 +597,16 @@ def _display_summary(row: dict[str, Any]) -> dict[str, Any]:
         "money_weighted_annual_return": pct(safe_float(row.get("money_weighted_annual_return")), 2),
         "max_drawdown_on_capital_multiple": pct(safe_float(row.get("max_drawdown_on_capital_multiple")), 1),
         "avg_vfv_allocation": pct(safe_float(row.get("avg_vfv_allocation")), 1),
+    }
+
+
+def _display_benchmark_row(row: dict[str, Any]) -> dict[str, Any]:
+    return {
+        **row,
+        "benchmark_final_value": money(safe_float(row.get("benchmark_final_value"))),
+        "benchmark_return": pct(safe_float(row.get("benchmark_return")), 2),
+        "excess_value_vs_benchmark": money(safe_float(row.get("excess_value_vs_benchmark"))),
+        "model_return_minus_benchmark_return": pct(safe_float(row.get("model_return_minus_benchmark_return")), 2),
     }
 
 

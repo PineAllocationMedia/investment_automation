@@ -15,6 +15,60 @@ This ensures long-term consistency and prevents model drift.
 
 # 📌 Decisions
 
+## [2026-06-28] Alternative benchmark comparisons — audit only
+
+### Decision
+Add configurable passive and mechanical benchmark comparisons to the theoretical backtest and walk-forward validation.
+
+### Reasoning
+- VFV.TO remains the primary benchmark, but VFV-only validation is incomplete.
+- XEQT, a Canadian 60/40 benchmark and a simple ETF momentum benchmark provide broader audit context.
+- The momentum benchmark uses only price history available before each simulated decision date.
+
+### Expected impact
+Better validation of model behavior against simple alternatives, with no change to scoring, sizing, allocation, selling, cash levels or recommendation eligibility.
+
+---
+
+## [2026-06-28] Sequential crisis diagnostics — stress tests remain diagnostic only
+
+### Decision
+Add stylized multi-phase crisis scenarios to `src/stress_test_engine.py`.
+
+### Reasoning
+- Static one-shot shocks do not show the path risk of a crisis unfolding over several months.
+- Sequential diagnostics help identify max drawdown, worst phase, resilient tickers and main loss contributors.
+- The model should understand crisis trajectory risk without becoming a statistical optimizer.
+
+### Expected impact
+Better portfolio risk interpretation during crisis-style diagnostics, with no automatic sell signal, cash raise, allocation override or change to fundamental scoring.
+
+---
+
+## [2026-06-28] Architectural hubs — intentional deferral
+
+### Decision
+Keep src/utils.py and src/report_generator.py as central hubs for now.
+
+### Reasoning
+- Project is still in active feature development
+- Refactoring hubs mid-development risks cascading bugs across 40+ modules
+- The pattern is acceptable at current scale
+
+### Constraints imposed immediately
+- New engines must NOT add new functions to utils.py — only import from it
+- New engines must follow the existing report_generator call pattern — 
+  no new direct dependencies
+
+### Planned resolution
+- Phase 2 (stability): decompose utils into focused submodules 
+  (utils_math, utils_dates, utils_formatting, utils_io)
+- Phase 3 (productionize): decouple report_generator using an event 
+  or facade pattern so engines emit data objects instead of calling 
+  report_generator directly
+
+---
+
 ## 2026-06-24 — Adopt long-term DCA as core strategy
 
 ### Decision
