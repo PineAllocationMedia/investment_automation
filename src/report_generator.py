@@ -155,6 +155,34 @@ from .watchlist_engine import build_watchlist_report_rows
 from .winner_protection_engine import WINNER_PROTECTION_COLUMNS, winner_protection_rows
 
 
+THESIS_REVERSAL_COLUMNS = [
+    "ticker",
+    "ticker_display",
+    "universe",
+    "previous_thesis_status",
+    "current_thesis_status",
+    "thesis_reversal_status",
+    "thesis_reversal_severity",
+    "manual_review_priority",
+    "conclusion_basis",
+    "data_quality_driven",
+    "score_contradiction_flag",
+    "suggested_human_action",
+    "allocation_impact",
+    "reason_fr",
+    "score_total_change",
+    "conviction_score_change",
+    "capital_allocation_score_change",
+    "proof_score_status",
+    "sell_validation_level",
+    "data_reliability_level",
+    "score_evidence_level",
+    "source_conflict_profile",
+    "history_reference_count",
+    "history_reference_dates",
+]
+
+
 def _append_columns_once(columns: list[str], additions: list[str]) -> None:
     for column in additions:
         if column in columns:
@@ -668,6 +696,7 @@ def generate_reports(
     account_performance_rows: list[dict[str, Any]] | None = None,
     defensive_etf_candidates: list[dict[str, Any]] | None = None,
     market_regime: dict[str, Any] | None = None,
+    thesis_reversal_rows: list[dict[str, Any]] | None = None,
     ticker_memory_rows: list[dict[str, Any]] | None = None,
     anomaly_rows: list[dict[str, Any]] | None = None,
     anomaly_history_rows: list[dict[str, Any]] | None = None,
@@ -699,6 +728,7 @@ def generate_reports(
     account_performance_rows = account_performance_rows or []
     defensive_etf_candidates = defensive_etf_candidates or []
     market_regime = market_regime or {}
+    thesis_reversal_rows = thesis_reversal_rows or []
     ticker_memory_rows = ticker_memory_rows or []
     anomaly_rows = anomaly_rows or []
     anomaly_history_rows = anomaly_history_rows or []
@@ -774,6 +804,7 @@ def generate_reports(
         company_dossier_rows,
         defensive_etf_candidates,
         market_regime,
+        thesis_reversal_rows,
         source_health_rows,
         source_conflict_rows,
         ticker_memory_rows,
@@ -810,6 +841,7 @@ def generate_reports(
         company_dossier_rows=company_dossier_rows,
         defensive_etf_candidates=defensive_etf_candidates,
         market_regime=market_regime,
+        thesis_reversal_rows=thesis_reversal_rows,
         source_health_rows=source_health_rows,
         source_conflict_rows=source_conflict_rows,
         ticker_memory_rows=ticker_memory_rows,
@@ -877,6 +909,7 @@ def generate_reports(
         ("MARKET_SCANNER", market_analyses),
         ("DISCOVERY_IDEAS", discovery_analyses),
     )
+    write_csv_records(reports_dir / "latest_thesis_reversal_audit.csv", thesis_reversal_rows, THESIS_REVERSAL_COLUMNS)
     write_csv_records(
         reports_dir / "latest_long_term_durability_report.csv",
         durability_rows_for_csv(analyses, watchlist_analyses, market_analyses, discovery_analyses),
@@ -1073,6 +1106,7 @@ def build_compact_markdown_report(
     company_dossier_rows: list[dict[str, Any]] | None = None,
     defensive_etf_candidates: list[dict[str, Any]] | None = None,
     market_regime: dict[str, Any] | None = None,
+    thesis_reversal_rows: list[dict[str, Any]] | None = None,
     source_health_rows: list[dict[str, Any]] | None = None,
     source_conflict_rows: list[dict[str, Any]] | None = None,
     ticker_memory_rows: list[dict[str, Any]] | None = None,
@@ -1088,6 +1122,7 @@ def build_compact_markdown_report(
     qualitative_moat_rows = qualitative_moat_rows or []
     company_dossier_rows = company_dossier_rows or build_company_dossier_rows(allocation_lookup, allocation_rows, qualitative_moat_rows)
     market_regime = market_regime or {}
+    thesis_reversal_rows = thesis_reversal_rows or []
     source_health_rows = source_health_rows or []
     source_conflict_rows = source_conflict_rows or []
     ticker_memory_rows = ticker_memory_rows or []
@@ -1273,6 +1308,7 @@ def build_compact_markdown_report(
         f"- Robustesse: {_sensitivity_summary_text(sensitivity_summary_rows)}",
         f"- Changement principal: {_allocation_change_summary(allocation_change_display_rows)}",
         f"- Vente/surveillance: {_sell_signal_summary(sell_rows)} / {_monitoring_summary(monitoring_rows)}",
+        f"- {_thesis_reversal_compact_summary(thesis_reversal_rows)}",
         f"- Donnée à valider en priorité: {_top_validation_priority_text(raw_validation_priority_rows)}",
         f"- Anomalies post-analyse: {anomaly_summary(anomaly_rows)}",
         *_weakest_core_compact_alert_lines(weakest_core_audit_rows),
@@ -1658,6 +1694,7 @@ def build_markdown_report(
     company_dossier_rows: list[dict[str, Any]] | None = None,
     defensive_etf_candidates: list[dict[str, Any]] | None = None,
     market_regime: dict[str, Any] | None = None,
+    thesis_reversal_rows: list[dict[str, Any]] | None = None,
     source_health_rows: list[dict[str, Any]] | None = None,
     source_conflict_rows: list[dict[str, Any]] | None = None,
     ticker_memory_rows: list[dict[str, Any]] | None = None,
@@ -1702,6 +1739,7 @@ def build_markdown_report(
     company_dossier_rows = company_dossier_rows or build_company_dossier_rows(allocation_lookup, allocation_rows, qualitative_moat_rows)
     defensive_etf_candidates = defensive_etf_candidates or []
     market_regime = market_regime or {}
+    thesis_reversal_rows = thesis_reversal_rows or []
     source_health_rows = source_health_rows or []
     source_conflict_rows = source_conflict_rows or []
     ticker_memory_rows = ticker_memory_rows or []
@@ -1795,6 +1833,7 @@ def build_markdown_report(
     allocated_tickers = {row.get("ticker") for row in allocation_rows if row.get("ticker")}
     sell_report_rows = compact_sell_rows(sell_rows_for_report(sell_display_rows))
     sell_validation_display_rows = compact_sell_validation_rows_for_full_report(sell_validation_rows)
+    thesis_reversal_display_rows = compact_thesis_reversal_rows_for_full_report(thesis_reversal_rows)
     sell_recommendation_text_lines = sell_recommendation_narrative_lines(analyses, company_dossier_rows)
     monitoring_display_rows = compact_monitoring_rows(monitoring_display_rows, allocated_tickers)
     winner_display_rows = compact_winner_rows(winner_display_rows, allocated_tickers)
@@ -1857,6 +1896,7 @@ def build_markdown_report(
         f"- Positions exclues de cette moyenne, mais toujours considérées pour les cotisations: {_satellite_exclusion_summary(sorted_core)}",
         f"- Signaux de vente: {_sell_signal_summary(sell_display_rows)}",
         f"- Alertes de surveillance non liées à une vente: {_monitoring_summary(monitoring_display_rows)}",
+        f"- {_thesis_reversal_compact_summary(thesis_reversal_rows)}",
         f"- Opportunités quality drawdown: {_quality_drawdown_summary(quality_drawdown_display_rows)}",
         f"- Protection des winners: {_winner_protection_summary(winner_display_rows)}",
         *(
@@ -2136,6 +2176,26 @@ def build_markdown_report(
                     "checklist_summary",
                 ],
                 sell_validation_display_rows,
+            ),
+            "",
+            "### Renversement de thèse (audit-only)",
+            "",
+            "Cette couche compare la thèse actuelle à l’historique local et indique si la détérioration semble fondamentale ou surtout liée à la qualité des données. Elle ne modifie jamais l’allocation, le sizing ou une recommandation de vente.",
+            "",
+            _markdown_table(
+                [
+                    "ticker",
+                    "previous_thesis_status",
+                    "current_thesis_status",
+                    "thesis_reversal_status",
+                    "thesis_reversal_severity",
+                    "manual_review_priority",
+                    "conclusion_basis",
+                    "data_quality_driven",
+                    "score_contradiction_flag",
+                    "reason_fr",
+                ],
+                thesis_reversal_display_rows,
             ),
             "",
             *sell_recommendation_text_lines,
@@ -4238,6 +4298,64 @@ def _csv_bool(value: Any) -> bool:
     if isinstance(value, bool):
         return value
     return str(value or "").strip().lower() in {"1", "true", "yes", "oui"}
+
+
+def _thesis_reversal_compact_summary(rows: list[dict[str, Any]], limit: int = 5) -> str:
+    alerts = [
+        row
+        for row in rows
+        if str(row.get("thesis_reversal_status") or "") in {"WATCH", "REVIEW", "BROKEN"}
+    ]
+    if not alerts:
+        return "Thesis reversal: aucun renversement majeur détecté."
+    shown = alerts[:limit]
+    summary = ", ".join(f"{row.get('ticker')}={row.get('thesis_reversal_status')}" for row in shown)
+    suffix = f" (+{len(alerts) - limit})" if len(alerts) > limit else ""
+    return (
+        f"Thesis reversal: {summary}{suffix}. Audit-only: aucune vente automatique; "
+        "revue manuelle avant nouvel ajout si REVIEW/HIGH."
+    )
+
+
+def compact_thesis_reversal_rows_for_full_report(rows: list[dict[str, Any]], limit: int = 24) -> list[dict[str, Any]]:
+    alerts = [
+        row
+        for row in rows
+        if str(row.get("thesis_reversal_status") or "") in {"WATCH", "REVIEW", "BROKEN"}
+    ]
+    selected = alerts or rows[:1]
+    if not selected:
+        selected = [
+            {
+                "ticker": "",
+                "previous_thesis_status": "",
+                "current_thesis_status": "",
+                "thesis_reversal_status": "NONE",
+                "thesis_reversal_severity": 0,
+                "manual_review_priority": "LOW",
+                "conclusion_basis": "NO_ALERT",
+                "data_quality_driven": False,
+                "score_contradiction_flag": False,
+                "reason_fr": "Aucun renversement de thèse disponible dans cette analyse.",
+            }
+        ]
+    output = []
+    for row in selected[:limit]:
+        output.append(
+            {
+                "ticker": row.get("ticker_display") or row.get("ticker"),
+                "previous_thesis_status": row.get("previous_thesis_status"),
+                "current_thesis_status": row.get("current_thesis_status"),
+                "thesis_reversal_status": row.get("thesis_reversal_status"),
+                "thesis_reversal_severity": row.get("thesis_reversal_severity"),
+                "manual_review_priority": row.get("manual_review_priority"),
+                "conclusion_basis": row.get("conclusion_basis"),
+                "data_quality_driven": row.get("data_quality_driven"),
+                "score_contradiction_flag": row.get("score_contradiction_flag"),
+                "reason_fr": _compact_sentence(row.get("reason_fr"), 260),
+            }
+        )
+    return output
 
 
 def compact_source_rows_for_compact_report(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:

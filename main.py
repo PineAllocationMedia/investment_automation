@@ -114,6 +114,7 @@ from src.proof_score_engine import compute_proof_score
 from src.promotion_engine import external_core_fit_status, promotion_profile_alignment_status
 from src.quality_drawdown_engine import apply_quality_drawdown_context
 from src.shareholder_discipline_engine import compute_shareholder_discipline
+from src.sell_validation_checklist_engine import sell_validation_checklist_rows
 from src.proxy_calibration import (
     PROXY_CALIBRATION_FIELD_NAMES,
     build_proxy_calibration_report,
@@ -158,6 +159,7 @@ from src.sizing_engine import compute_capital_allocation_score, compute_winner_a
 from src.stress_test_engine import compute_stress_tests
 from src.tax_location_engine import compute_after_tax_yield, compute_tax_location_report
 from src.thesis_engine import compute_thesis_status
+from src.thesis_reversal_engine import build_thesis_reversal_audit_rows
 from src.ticker_resolver import (
     apply_ticker_attention_flags,
     load_and_resolve_universe,
@@ -1419,6 +1421,15 @@ def run_analysis(
     apply_final_decisions(allocation_analyses, allocation_result.get("allocations", []))
     allocation_sensitivity = compute_allocation_sensitivity(capital, mode, allocation_analyses, allocation_result)
     tax_report = compute_tax_location_report(account_locations, weighted_portfolio, analyses, core_exposures)
+    thesis_reversal_rows = build_thesis_reversal_audit_rows(
+        {
+            "CORE_PORTFOLIO": analyses,
+            "WATCHLIST": watchlist_analyses,
+            "MARKET_SCANNER": market_analyses,
+            "DISCOVERY_IDEAS": discovery_analyses,
+        },
+        sell_validation_checklist_rows(analyses, tax_report, active_only=False),
+    )
     account_performance_rows = build_account_performance_rows(
         portfolio_lot_rows,
         market_data,
@@ -1554,6 +1565,7 @@ def run_analysis(
         account_performance_rows=account_performance_rows,
         defensive_etf_candidates=defensive_etf_candidates,
         market_regime=market_regime,
+        thesis_reversal_rows=thesis_reversal_rows,
         ticker_memory_rows=ticker_memory_rows,
         anomaly_rows=anomaly_rows,
         anomaly_history_rows=anomaly_history_rows,

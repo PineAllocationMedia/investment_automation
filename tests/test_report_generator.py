@@ -7,6 +7,7 @@ from src.report_generator import (
     allocation_recommendation_narrative,
     auto_estimate_rows_for_output,
     _weakest_core_compact_alert_lines,
+    _thesis_reversal_compact_summary,
     promotion_recommendation_rows,
     sell_recommendation_narrative_lines,
     source_rows_for_report,
@@ -137,6 +138,18 @@ class ReportGeneratorTest(unittest.TestCase):
         self.assertIn("AUDIT-ONLY — aucune recommandation modifiée", different[0])
         self.assertIn("APP", different[0])
         self.assertIn("TSLA", different[0])
+
+    def test_compact_thesis_reversal_summary_is_short_and_audit_only(self):
+        neutral = _thesis_reversal_compact_summary(
+            [{"ticker": "MSFT", "thesis_reversal_status": "NONE"}]
+        )
+        alert = _thesis_reversal_compact_summary(
+            [{"ticker": "META", "thesis_reversal_status": "REVIEW"}]
+        )
+
+        self.assertIn("aucun renversement majeur", neutral)
+        self.assertIn("META=REVIEW", alert)
+        self.assertIn("Audit-only", alert)
 
     def test_allocation_justification_explains_selected_ticker_amount_and_history(self):
         rows = allocation_justification_rows_for_report(

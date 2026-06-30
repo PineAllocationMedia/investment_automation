@@ -15,6 +15,21 @@ This ensures long-term consistency and prevents model drift.
 
 # 📌 Decisions
 
+## [2026-06-29] Thesis reversal audit — diagnostic only
+
+### Decision
+Add an audit-only `thesis_reversal_engine.py` layer to detect possible investment thesis deterioration or reversal across analyses.
+
+### Reasoning
+- `thesis_engine.py` gives the current thesis status, but the model also needs to know whether a change versus local history looks like a real deterioration.
+- The layer uses only data already available in the pipeline: local history, thesis/proof/sell-validation fields, source reliability, source conflicts, parsed local research, official/company data already merged into analyses, yfinance/Yahoo fields and existing news context.
+- It must explicitly separate fundamental conclusions from deterioration mainly caused by weak, stale or conflicting data.
+
+### Expected impact
+The reports now include `reports/latest_thesis_reversal_audit.csv`, a detailed audit-only table in the full report and a one-line compact signal. The change does not modify scoring, allocation, sizing, buy/sell recommendations, cash rules, or promotion gates.
+
+---
+
 ## [2026-06-29] Backtest transaction friction audit — diagnostic only
 
 ### Decision
