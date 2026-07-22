@@ -10,6 +10,7 @@ from .account_charts import (
     build_account_allocation_chart_rows,
 )
 from .account_performance_engine import ACCOUNT_PERFORMANCE_COLUMNS
+from .audit_snapshot_engine import save_audit_snapshot
 from .allocation_change_engine import write_allocation_change_csv
 from .allocation_sensitivity_engine import (
     sensitivity_rows_for_report,
@@ -107,7 +108,17 @@ from .proxy_correction_engine import (
     proxy_correction_audit_summary,
 )
 from .report_formatters import (
+    align_full_report_navigation,
     as_list as _as_list,
+    build_compact_data_reliability_section,
+    build_compact_decision_section,
+    build_compact_model_health_section,
+    build_compact_portfolio_section,
+    build_decision_quality_compact_lines,
+    build_instrument_profile_section,
+    build_ranking_section,
+    build_score_stability_signal_lines,
+    build_triage_header,
     compact_list as _compact_list,
     compact_sentence as _compact_sentence,
     escape_markdown_cell as _escape,
@@ -138,9 +149,9 @@ from .utils import (
     DATA_DIR,
     DISCLAIMER,
     markdown_to_html,
-    money,
+    money as _money,
     normalize_ticker,
-    pct,
+    pct as _pct,
     read_csv_records,
     safe_float,
     today_iso,
@@ -153,6 +164,24 @@ from .validation_priority_engine import (
 )
 from .watchlist_engine import build_watchlist_report_rows
 from .winner_protection_engine import WINNER_PROTECTION_COLUMNS, winner_protection_rows
+
+
+def money(value: Any) -> str:
+    number = safe_float(value)
+    if number is None:
+        if isinstance(value, str) and value.strip():
+            return value.strip()
+        return _money(None)
+    return _money(number)
+
+
+def pct(value: Any, digits: int = 1) -> str:
+    number = safe_float(value)
+    if number is None:
+        if isinstance(value, str) and value.strip():
+            return value.strip()
+        return _pct(None, digits)
+    return _pct(number, digits)
 
 
 THESIS_REVERSAL_COLUMNS = [
@@ -212,6 +241,9 @@ SCORES_COLUMNS = [
     "score_with_estimates",
     "score_confirmed_only",
     "score_estimate_gap",
+    "score_data_gap_haircut",
+    "score_data_gap_flag",
+    "score_data_gap_label",
     "score_confidence_range",
     "score_confidence_low",
     "score_confidence_high",
@@ -661,6 +693,24 @@ DURABILITY_COLUMNS = [
     "data_reliability_level",
 ]
 
+INSTRUMENT_PROFILE_REPORT_COLUMNS = [
+    "ticker",
+    "name",
+    "instrument_type",
+    "business_description",
+    "sector_or_category",
+    "industry",
+    "revenue_model_or_activity",
+    "portfolio_role",
+    "key_watch_items",
+    "top_holdings",
+    "source",
+    "source_confidence",
+    "last_updated",
+    "missing_fields",
+    "profile_status",
+]
+
 
 def generate_reports(
     reports_dir: str | Path,
@@ -702,6 +752,11 @@ def generate_reports(
     anomaly_history_rows: list[dict[str, Any]] | None = None,
     cache_health_rows: list[dict[str, Any]] | None = None,
     run_log_rows: list[dict[str, Any]] | None = None,
+    walk_forward_signal: dict[str, str] | None = None,
+    full_audit_signal: dict[str, str] | None = None,
+    model_audit_signal: dict[str, str] | None = None,
+    score_stability: dict[str, Any] | None = None,
+    instrument_profile_rows: list[dict[str, Any]] | None = None,
 ) -> None:
     reports_dir = Path(reports_dir)
     reports_dir.mkdir(parents=True, exist_ok=True)
@@ -734,6 +789,11 @@ def generate_reports(
     anomaly_history_rows = anomaly_history_rows or []
     cache_health_rows = cache_health_rows or []
     run_log_rows = run_log_rows or []
+    walk_forward_signal = walk_forward_signal or {}
+    full_audit_signal = full_audit_signal or {}
+    model_audit_signal = model_audit_signal or {}
+    score_stability = score_stability or {}
+    instrument_profile_rows = instrument_profile_rows or []
     allocation_lookup = {**analyses, **watchlist_analyses, **market_analyses, **discovery_analyses}
     source_conflict_rows = build_source_conflict_rows(
         {
@@ -811,6 +871,7 @@ def generate_reports(
         anomaly_rows,
         cache_health_rows,
         run_log_rows,
+        instrument_profile_rows,
     )
     write_text(reports_dir / "latest_report.md", markdown)
     write_text(reports_dir / "latest_report.html", markdown_to_html(markdown))
@@ -849,6 +910,11 @@ def generate_reports(
         cache_health_rows=cache_health_rows,
         run_log_rows=run_log_rows,
         weakest_core_audit_rows=weakest_core_audit_rows,
+        walk_forward_signal=walk_forward_signal,
+        full_audit_signal=full_audit_signal,
+        model_audit_signal=model_audit_signal,
+        score_stability=score_stability,
+        instrument_profile_rows=instrument_profile_rows,
     )
     write_text(reports_dir / "latest_report_compact.md", compact_markdown)
     write_text(reports_dir / "latest_report_compact.html", markdown_to_html(compact_markdown))
@@ -997,6 +1063,11 @@ def generate_reports(
         COMPANY_DOSSIER_COLUMNS,
     )
     write_csv_records(
+        reports_dir / "latest_instrument_profiles.csv",
+        instrument_profile_rows,
+        INSTRUMENT_PROFILE_REPORT_COLUMNS,
+    )
+    write_csv_records(
         reports_dir / "latest_defensive_etf_fallback.csv",
         defensive_etf_rows_for_csv(defensive_etf_candidates),
         DEFENSIVE_ETF_COLUMNS,
@@ -1019,6 +1090,92 @@ def generate_reports(
     write_csv_records(reports_dir / "latest_cache_health.csv", cache_health_rows, CACHE_HEALTH_COLUMNS)
     write_csv_records(reports_dir / "latest_run_log.csv", run_log_rows, RUN_LOG_COLUMNS)
     append_run_log_history(DATA_DIR / "run_log_history.csv", run_log_rows)
+    snapshot_allocation_result = {
+        **allocation_result,
+        "monthly_contribution": capital,
+        "portfolio_total_value_cad": portfolio_risk.get("total_portfolio_value"),
+        "decision_quality_score": (allocation_result.get("decision_quality") or {}).get("decision_quality_score"),
+        "decision_quality_label": (allocation_result.get("decision_quality") or {}).get("decision_quality_level"),
+        "robustness_score": (allocation_sensitivity.get("summary") or {}).get("robustness_score"),
+        "robustness_label": (allocation_sensitivity.get("summary") or {}).get("robustness_status"),
+    }
+    save_audit_snapshot(
+        reports_dir=reports_dir,
+        analysis_mode=mode,
+        allocation_result=snapshot_allocation_result,
+        anomaly_rows=anomaly_rows,
+        validation_priority_rows=validation_priority_rows,
+        run_log_rows=run_log_rows,
+    )
+    _mirror_mode_specific_report_outputs(reports_dir, mode)
+
+
+def _report_mode_slug(mode: str | None) -> str:
+    return {
+        "balanced": "balanced",
+        "family-office": "family_office",
+        "rational-aggressive": "rational_aggressive",
+        "high-cagr": "high_cagr",
+    }.get(str(mode or "").strip(), str(mode or "").strip().replace("-", "_"))
+
+
+def _mode_report_path(path: Path, mode: str | None) -> Path:
+    slug = _report_mode_slug(mode)
+    if not slug:
+        return path
+    return path.with_name(f"{path.stem}_{slug}{path.suffix}")
+
+
+def _mirror_mode_specific_report_outputs(reports_dir: Path, mode: str | None) -> None:
+    for filename in _MODE_SCOPED_REPORT_OUTPUTS:
+        source = reports_dir / filename
+        if not source.exists():
+            continue
+        target = _mode_report_path(source, mode)
+        target.write_bytes(source.read_bytes())
+
+
+_MODE_SCOPED_REPORT_OUTPUTS = [
+    "latest_report.md",
+    "latest_report.html",
+    "latest_report_compact.md",
+    "latest_report_compact.html",
+    "latest_scores.csv",
+    "latest_allocations.csv",
+    "latest_allocation_changes.csv",
+    "latest_allocation_sensitivity.csv",
+    "latest_allocation_sensitivity_summary.csv",
+    "latest_decision_quality.csv",
+    "latest_sell_signals.csv",
+    "latest_sell_validation_checklist.csv",
+    "latest_quality_drawdown_report.csv",
+    "latest_watchlist_report.csv",
+    "latest_market_candidates.csv",
+    "latest_discovery_ideas.csv",
+    "latest_promotion_candidates.csv",
+    "latest_weakest_core_audit.csv",
+    "latest_trend_report.csv",
+    "latest_winner_protection_report.csv",
+    "latest_cycle_bubble_report.csv",
+    "latest_thesis_reversal_audit.csv",
+    "latest_long_term_durability_report.csv",
+    "latest_market_growth_thesis_report.csv",
+    "latest_cash_flow_quality_report.csv",
+    "latest_shareholder_discipline_report.csv",
+    "latest_data_freshness.csv",
+    "latest_data_gaps.csv",
+    "latest_risk_report.csv",
+    "latest_stress_tests.csv",
+    "latest_tax_location_report.csv",
+    "latest_account_performance_vs_sp500.csv",
+    "latest_qualitative_moat_report.csv",
+    "latest_company_dossiers.csv",
+    "latest_instrument_profiles.csv",
+    "latest_defensive_etf_fallback.csv",
+    "latest_external_etf_candidates.csv",
+    "latest_anomaly_report.csv",
+    "latest_validation_priority.csv",
+]
 
 
 def data_coverage_summary_rows(analyses: dict[str, dict[str, Any]]) -> list[dict[str, Any]]:
@@ -1114,6 +1271,11 @@ def build_compact_markdown_report(
     cache_health_rows: list[dict[str, Any]] | None = None,
     run_log_rows: list[dict[str, Any]] | None = None,
     weakest_core_audit_rows: list[dict[str, Any]] | None = None,
+    walk_forward_signal: dict[str, str] | None = None,
+    full_audit_signal: dict[str, str] | None = None,
+    model_audit_signal: dict[str, str] | None = None,
+    score_stability: dict[str, Any] | None = None,
+    instrument_profile_rows: list[dict[str, Any]] | None = None,
 ) -> str:
     allocation_rows = allocation_rows_for_csv(allocation_result.get("allocations", []))
     allocation_lookup = {**analyses, **watchlist_analyses, **market_analyses, **discovery_analyses}
@@ -1130,9 +1292,27 @@ def build_compact_markdown_report(
     cache_health_rows = cache_health_rows or []
     run_log_rows = run_log_rows or []
     weakest_core_audit_rows = weakest_core_audit_rows or []
+    walk_forward_signal = walk_forward_signal or {}
+    full_audit_signal = full_audit_signal or {}
+    model_audit_signal = model_audit_signal or {}
+    score_stability = score_stability or {}
+    instrument_profile_rows = instrument_profile_rows or []
     allocated_tickers = {row.get("ticker") for row in allocation_rows if row.get("ticker")}
     sorted_core = sorted(analyses.values(), key=lambda row: safe_float(row.get("capital_allocation_score")) or 0.0, reverse=True)
     sell_rows = sell_signal_rows_for_csv(analyses)
+    triage_block = build_triage_header(
+        mode=mode,
+        allocation_result=allocation_result,
+        sell_rows=sell_rows,
+        validation_priority_rows=validation_priority_rows,
+        anomaly_rows=anomaly_rows,
+        analyses=analyses,
+        watchlist_analyses=watchlist_analyses,
+        market_analyses=market_analyses,
+        discovery_analyses=discovery_analyses,
+        score_stability=score_stability,
+        walk_forward_status=walk_forward_signal,
+    )
     sell_report_rows = compact_sell_rows(sell_rows_for_report(_display_rows(sell_rows)), limit=8)
     sell_validation_rows = compact_sell_validation_rows_for_compact_report(
         sell_validation_checklist_rows(analyses, tax_report),
@@ -1176,6 +1356,36 @@ def build_compact_markdown_report(
         sensitivity_summary_rows_for_report(allocation_sensitivity or {})
     )
     decision_quality = allocation_result.get("decision_quality", {}) or {}
+    raw_data_freshness_rows = data_freshness_rows_for_report(
+        data_freshness_rows_for_csv(analyses, watchlist_analyses, market_analyses, discovery_analyses)
+    )
+    compact_decision_section = build_compact_decision_section(
+        allocation_result=allocation_result,
+        allocation_change_rows=allocation_change_rows,
+        analyses=analyses,
+        watchlist_analyses=watchlist_analyses,
+        market_analyses=market_analyses,
+        discovery_analyses=discovery_analyses,
+        instrument_profiles=instrument_profile_rows,
+        decision_quality=decision_quality,
+    )
+    compact_model_health_section = build_compact_model_health_section(
+        score_stability=score_stability,
+        walk_forward_status=walk_forward_signal,
+        full_audit_status=full_audit_signal,
+        model_audit_status=model_audit_signal,
+        decision_quality=decision_quality,
+        allocation_result=allocation_result,
+        data_freshness_rows=raw_data_freshness_rows,
+    )
+    compact_data_reliability_section = build_compact_data_reliability_section(
+        analyses=analyses,
+        watchlist_analyses=watchlist_analyses,
+        source_health_rows=source_health_rows,
+        source_conflict_rows=source_conflict_rows,
+        data_freshness_rows=raw_data_freshness_rows,
+        validation_priority_rows=validation_priority_rows,
+    )
     raw_validation_priority_rows = validation_priority_rows_for_report(validation_priority_rows)
     validation_priority_display_rows = compact_validation_priority_for_compact_report(raw_validation_priority_rows)
     risk_display_rows = compact_risk_for_compact_report(portfolio_risk)
@@ -1218,6 +1428,13 @@ def build_compact_markdown_report(
         analyses,
         portfolio_risk,
     )
+    blocked_external_validation_rows, blocked_external_validation_extra_count = (
+        _blocked_external_validation_rows_for_compact_report(
+            watchlist_analyses,
+            market_analyses,
+            discovery_analyses,
+        )
+    )
     source_display_rows = compact_source_rows_for_compact_report(
         source_rows_for_report(analyses, watchlist_analyses, market_analyses, discovery_analyses)
     )
@@ -1228,7 +1445,7 @@ def build_compact_markdown_report(
     cache_health_display_rows = compact_cache_health_rows(cache_health_rows, limit=8)
     run_log_display_rows = run_log_rows_for_report(run_log_rows, limit=8)
     data_freshness_display_rows = compact_data_freshness_rows(
-        _display_rows(data_freshness_rows_for_report(data_freshness_rows_for_csv(analyses, watchlist_analyses, market_analyses, discovery_analyses))),
+        _display_rows(raw_data_freshness_rows),
         allocated_tickers,
         limit=8,
     )
@@ -1263,17 +1480,6 @@ def build_compact_markdown_report(
         hidden_cluster_display_rows,
     )
 
-    allocation_table_rows = [
-        {
-            "ticker": row.get("ticker"),
-            "amount": money(row.get("amount")),
-            "percentage": pct(row.get("percentage"), 1),
-            "reason": _compact_sentence(row.get("reason"), 160),
-            "confidence": row.get("confidence"),
-            "cap_fiabilité": _allocation_reliability_cap_text(row),
-        }
-        for row in allocation_rows
-    ]
     short_justification_rows = [
         {
             "ticker": row.get("ticker"),
@@ -1284,237 +1490,164 @@ def build_compact_markdown_report(
         }
         for row in allocation_justification_rows
     ]
+    allocation_summary_paragraph = allocation_recommendation_text.split("\n\n", 1)[0]
+    ranking_section = build_ranking_section(
+        analyses,
+        watchlist_analyses,
+        market_analyses,
+        discovery_analyses,
+        top_n=15,
+    )
+    action_required_rows = []
+    for row in sell_report_rows:
+        status = str(row.get("statut_vente") or "").upper()
+        action = str(row.get("action_recommandée") or "").upper()
+        manual_review = str(row.get("validation_manuelle_requise") or "").strip().lower() == "oui"
+        if (
+            status in {"SELL", "ORANGE", "RED", "MANUAL_REVIEW"}
+            or action in {"SELL", "TRIM_25", "TRIM_50", "REVIEW_TRIM_25", "REVIEW_TRIM_50", "LIQUIDATE_PROGRESSIVELY", "LIQUIDATE_URGENT_REVIEW"}
+            or "LIQUIDATE" in action
+            or "TRIM" in action
+            or manual_review
+        ):
+            action_required_rows.append(
+                {
+                    "ticker": row.get("ticker"),
+                    "statut": row.get("statut_vente"),
+                    "raison_principale": row.get("raison_principale"),
+                    "validation_manuelle_requise": row.get("validation_manuelle_requise"),
+                }
+            )
+    for row in thesis_reversal_rows:
+        if str(row.get("thesis_reversal_status") or "").upper() == "REVIEW":
+            action_required_rows.append(
+                {
+                    "ticker": row.get("ticker_display") or row.get("ticker"),
+                    "statut": "THESIS_REVERSAL_REVIEW",
+                    "raison_principale": _compact_sentence(row.get("reason_fr"), 180),
+                    "validation_manuelle_requise": "Oui",
+                }
+            )
+    action_required_tickers = {str(row.get("ticker") or "") for row in action_required_rows if row.get("ticker")}
+    sell_validation_action_rows = [
+        row
+        for row in sell_validation_rows
+        if str(row.get("niveau") or "").upper() != "NO_SELL_SIGNAL"
+        and str(row.get("ticker") or "") in action_required_tickers
+    ]
+    monitoring_active_rows = [
+        row for row in monitoring_rows if str(row.get("statut_surveillance") or "").upper() not in {"", "NORMAL"}
+    ]
+    quality_drawdown_opportunity_rows = [
+        row for row in quality_drawdown_rows if str(row.get("statut") or "").upper() == "QUALITY_DRAWDOWN_OPPORTUNITY"
+    ]
+    factor_exposure_over_20_rows = []
+    for row in factor_exposure_rows:
+        weight = safe_float(str(row.get("poids") or "").replace("%", "").replace(" ", "").replace(",", ".")) or 0.0
+        if weight > 20.0:
+            factor_exposure_over_20_rows.append(row)
+    defensive_active_rows = [
+        row for row in defensive_display_rows if str(row.get("statut") or "").upper() not in {"", "DESACTIVE"}
+    ]
+    portfolio_change_action_rows = [
+        row
+        for row in portfolio_change_display_rows
+        if str(row.get("changement") or "").upper() not in {"", "AUCUN_CHANGEMENT_DETECTE", "COST_BASIS_UPDATED"}
+    ]
+    portfolio_change_summary_active_rows = [
+        row for row in portfolio_change_summary_display_rows if abs(safe_float(row.get("variation_nette")) or 0.0) > 0
+    ]
+    account_performance_sorted_rows = sorted(
+        account_performance_display_rows,
+        key=lambda row: (0 if str(row.get("account_type") or "").upper() == "ALL_ACCOUNTS" else 1, str(row.get("account_type") or "")),
+    )
+    account_performance_raw_sorted_rows = sorted(
+        account_performance_rows or [],
+        key=lambda row: (0 if str(row.get("account_type") or "").upper() == "ALL_ACCOUNTS" else 1, str(row.get("account_type") or "")),
+    )
+    compact_account_chart_lines = [
+        line for line in compact_account_charts_markdown(account_chart_rows) if str(line).strip().startswith("![")
+    ]
+    compact_portfolio_section = build_compact_portfolio_section(
+        account_performance_rows=account_performance_raw_sorted_rows,
+        portfolio_change_rows=portfolio_change_action_rows or portfolio_change_display_rows,
+        risk_rows=risk_display_rows,
+        hidden_cluster_rows=hidden_cluster_display_rows,
+        market_regime=market_regime,
+        account_charts=compact_account_chart_lines,
+        account_summary_rows=account_allocation_display_rows,
+    )
+    data_coverage_display_rows = data_coverage_summary_rows(analyses)
+    priority_validation_rows = [
+        row
+        for row in validation_priority_display_rows
+        if str(row.get("importance") or "").upper() in {"TRES_HAUTE", "TRÈS_HAUTE", "HAUTE", "HIGH", "CRITICAL"}
+    ]
+    critical_source_conflict_rows = [
+        row for row in source_conflict_display_rows if str(row.get("severity") or "").upper() == "HIGH_REVIEW"
+    ]
+    run_log_warn_rows = [
+        row for row in run_log_display_rows if str(row.get("niveau") or "").upper() in {"WARN", "ERROR"}
+    ]
+    ticker_memory_review_rows = [
+        row for row in ticker_memory_display_rows if str(row.get("ticker_memory_status") or "").upper() == "NEEDS_TICKER_REVIEW"
+    ]
+    cache_problem_rows = [
+        row for row in cache_health_display_rows if str(row.get("status") or "").upper() in {"WARN", "FAIL"}
+    ]
+    freshness_problem_rows = [
+        row
+        for row in data_freshness_display_rows
+        if str(row.get("overall_data_freshness_level") or "").upper() not in {"", "OK", "LIVE_SUCCESS", "FRESH"}
+        or "FALLBACK" in str(row.get("market_data_fetch_status") or "").upper()
+    ]
+    validation_warning_rows = [{"warning": item} for item in validation_warnings[:8]]
 
-    lines = [
-        "# Rapport compact d'investissement",
+    def _compact_details_block(summary: str, content: list[str]) -> list[str]:
+        return ["<details>", f"<summary>{summary}</summary>", "", *content, "", "</details>", ""]
+
+    sell_section_lines = [
+        "## Vente & surveillance",
         "",
-        f"- Date: {today_iso()}",
-        f"- Mode utilisé: {mode}",
-        f"- Capital analysé: {money(capital)}",
-        f"- Valeur totale du portefeuille: {money(portfolio_risk.get('total_portfolio_value'))}",
-        f"- Rapport complet: `reports/latest_report.html`",
+        "### Action requise",
         "",
-        f"> {DISCLAIMER}",
-        "",
-        *data_coverage_summary_block(analyses),
-        "## 1. Décision maintenant",
-        "",
-        "Cette première section est la zone d’action. Elle répond à: quoi acheter, quoi vérifier avant d’acheter, et quel est le risque principal.",
-        "",
-        f"- Allocation recommandée: {_allocation_summary(allocation_rows)}",
-        f"- VFV: {pct(allocation_result.get('mandatory_vfv_percent'), 0)} obligatoire avant redirections.",
-        f"- Qualité de décision: {decision_quality.get('decision_quality_level', 'N/D')} "
-        f"({decision_quality.get('decision_quality_score', 'N/D')}/100). {_compact_sentence(decision_quality.get('summary'))}",
-        f"- Robustesse: {_sensitivity_summary_text(sensitivity_summary_rows)}",
-        f"- Changement principal: {_allocation_change_summary(allocation_change_display_rows)}",
-        f"- Vente/surveillance: {_sell_signal_summary(sell_rows)} / {_monitoring_summary(monitoring_rows)}",
-        f"- {_thesis_reversal_compact_summary(thesis_reversal_rows)}",
-        f"- Donnée à valider en priorité: {_top_validation_priority_text(raw_validation_priority_rows)}",
-        f"- Anomalies post-analyse: {anomaly_summary(anomaly_rows)}",
-        *_weakest_core_compact_alert_lines(weakest_core_audit_rows),
-        f"- Cache de marché: {cache_health_summary(cache_health_rows)}",
-        f"- Journal d'exécution: {run_log_summary(run_log_rows)}",
-        f"- Risque principal: {portfolio_risk.get('primary_risk') or 'N/D'}",
-        "",
-        _markdown_table(["ticker", "amount", "percentage", "reason", "confidence", "cap_fiabilité"], allocation_table_rows),
-        "",
-        "## 2. Pourquoi cette allocation",
-        "",
-        "Cette section explique les montants sans changer la recommandation. Le tableau donne la lecture rapide; les détails longs restent disponibles juste en dessous.",
-        "",
-        _markdown_table(
-            ["ticker", "montant", "pourquoi_ce_titre", "pourquoi_ce_montant", "vs_dernière_recommandation"],
-            short_justification_rows,
-        ),
-        "",
-        *_details_block(
-            "Voir la justification longue de la recommandation",
+        *(["🟢 Aucune action requise.", ""] if not action_required_rows else []),
+        *(
             [
-                "### Synthèse longue de la recommandation",
+                _markdown_table(
+                    ["ticker", "statut", "raison_principale", "validation_manuelle_requise"],
+                    action_required_rows,
+                ),
                 "",
-                allocation_recommendation_text,
-                "",
-                "### Fiches qualitatives automatiques",
-                "",
-                "Ces fiches résument les sources gratuites et locales utilisées pour personnaliser la justification. Quand une source manque, l'agent le dit au lieu d'inventer.",
-                "",
-                _markdown_table(["ticker", "statut", "niveau_sources", "lecture", "sources_manquantes"], company_dossier_display_rows),
-            ],
+            ]
+            if action_required_rows
+            else []
         ),
-        "## 3. Avant d'exécuter",
-        "",
-        "Cette section regroupe les alertes qui peuvent changer l’exécution immédiate: vente, surveillance, données critiques, contradictions de sources ou ticker à valider.",
-        "",
-        "### Signaux de vente",
-        "",
-        _markdown_table(
-            ["ticker", "statut_vente", "action_recommandée", "raison_principale", "validation_manuelle_requise"],
-            sell_report_rows,
-        ),
-        "",
-        "### Check-list avant vente",
-        "",
-        "Cette table ne crée pas un nouveau signal: elle résume les preuves à vérifier avant de vendre ou réduire une position.",
-        "",
-        _markdown_table(["ticker", "niveau", "preuve_clé", "point_à_valider", "conclusion"], sell_validation_rows),
-        "",
-        *sell_recommendation_text_lines,
-        "### Surveillance et baisses de qualité",
-        "",
-        _markdown_table(["ticker", "statut_surveillance", "raison_principale", "impact_sur_achat"], monitoring_rows),
-        "",
-        _markdown_table(["ticker", "statut", "score", "contexte_nouvelles", "lecture"], quality_drawdown_rows),
-        "",
-        "### Positions core à surveiller",
-        "",
-        _markdown_table(
+        *(
             [
-                "ticker",
-                "allocation",
-                "score",
-                "cagr",
-                "vs_vfv",
-                "thèse",
-                "vente",
-                "surveillance",
-                "drawdown",
-                "raison",
-            ],
-            core_rows,
+                "#### Check-list avant vente",
+                "",
+                _markdown_table(["ticker", "niveau", "preuve_clé", "point_à_valider", "conclusion"], sell_validation_action_rows),
+                "",
+                *sell_recommendation_text_lines,
+            ]
+            if sell_validation_action_rows
+            else []
         ),
+        "### À surveiller",
         "",
-        "### Données et sources à vérifier avant grosse décision",
-        "",
-        _markdown_table(["ticker", "donnée", "importance", "pourquoi"], validation_priority_display_rows),
-        "",
-        _markdown_table(
-            ["ticker", "universe", "severity", "conflict_count", "conflict_profile", "recommended_action"],
-            source_conflict_display_rows,
-        ),
-        "",
-        "### Anomalies post-analyse",
-        "",
-        "Cette couche surveille les changements inhabituels apres chaque analyse. Elle n'ajuste pas l'allocation; elle signale seulement quand une validation ou un audit devient utile.",
-        "",
-        _markdown_table(["scope", "ticker", "niveau", "signal", "metrique", "variation", "lecture", "action"], anomaly_display_rows),
-        "",
-        "### Journal d'exécution",
-        "",
-        "Cette table résume les événements techniques utiles de l'analyse: cache, sources, données fragiles, anomalies et règles d'allocation. Elle sert à comprendre pourquoi une analyse mérite plus de prudence sans changer automatiquement la recommandation.",
-        "",
-        _markdown_table(["niveau", "composant", "événement", "message", "action"], run_log_display_rows),
-        "",
-        _markdown_table(["ticker", "ticker_memory_status", "sector", "region", "currency", "ticker_memory_action"], ticker_memory_display_rows),
-        "",
-        "## 4. Risque du portefeuille",
-        "",
-        "Cette section montre les concentrations réelles et le contexte de marché. Secteur = industrie principale; région = exposition géographique; facteurs communs = moteurs qui peuvent faire bouger plusieurs titres ensemble même s’ils semblent différents.",
-        "",
-        f"- ETF défensifs: {defensive_summary}",
-        f"- Régime de marché: {market_regime.get('market_regime_status', 'N/D')} "
-        f"({market_regime.get('market_regime_score', 'N/D')}/100). {_compact_sentence(market_regime.get('market_regime_interpretation'))}",
-        f"- Euphorie sectorielle: {sector_euphoria.get('sector_euphoria_status', 'INACTIVE')} "
-        f"({sector_euphoria.get('sector_euphoria_score', 0)}/100). {_compact_sentence(sector_euphoria.get('sector_euphoria_reason'))}",
-        "",
-        "### Concentration par secteur",
-        "",
-        _markdown_table(["secteur", "poids", "lecture"], sector_concentration_rows),
-        "",
-        "### Concentration par région",
-        "",
-        _markdown_table(["région", "poids", "lecture"], region_concentration_rows),
-        "",
-        "### Facteurs communs",
-        "",
-        _markdown_table(["facteur", "poids", "lecture"], factor_exposure_rows),
-        "",
-        "### Alertes principales",
-        "",
-        _markdown_table(["risk_type", "risk_level", "description", "impact"], risk_display_rows),
-        "",
-        *_details_block(
-            "Voir le contexte de marché détaillé",
+        *(["🟢 Aucune surveillance active.", ""] if not monitoring_active_rows else []),
+        *(
             [
-                "### ETF défensifs possibles",
+                _markdown_table(["ticker", "statut_surveillance", "raison_principale", "impact_sur_achat"], monitoring_active_rows),
                 "",
-                "Cette couche sert de stabilisateur dans les modes prudents. Elle est désactivée en `high-cagr` et ne remplace pas la recherche de compounders de qualité.",
-                "",
-                _markdown_table(["ticker", "statut", "score", "rôle", "raison"], defensive_display_rows),
-                "",
-                "### Régime de marché",
-                "",
-                "Cette couche sert de contexte léger de sizing. Elle ne vend rien, ne garde pas de cash volontairement et ne remplace pas les fondamentaux.",
-                "",
-                _markdown_table(MARKET_REGIME_COLUMNS, market_regime_display_rows),
-                "",
-                _markdown_table(MARKET_REGIME_ANALYSIS_COLUMNS, market_regime_analysis_display_rows),
-                "",
-                "### Euphorie sectorielle",
-                "",
-                "Cette sous-couche compare plusieurs ETF sectoriels au marché large. Elle ne pénalise que les titres exposés au secteur euphorique détecté, avec un impact léger et plafonné.",
-                "",
-                _markdown_table(SECTOR_EUPHORIA_COLUMNS, sector_euphoria_display_rows),
-                "",
-                _markdown_table(SECTOR_EUPHORIA_ANALYSIS_COLUMNS, sector_euphoria_analysis_display_rows),
-            ],
+            ]
+            if monitoring_active_rows
+            else []
         ),
-        "## 5. Suivi du portefeuille",
-        "",
-        "Cette section sert à suivre l’évolution de tes comptes. Elle ne décide pas l’allocation à elle seule.",
-        "",
-        f"- Dernier changement portefeuille: {_portfolio_change_summary_text(portfolio_change_rows, portfolio_change_history_rows)}",
-        f"- Répartition par compte: {_account_allocation_summary_text(account_chart_rows)}",
-        "",
-        "### Changements automatiques récents",
-        "",
-        _markdown_table(
-            ["date", "ticker", "compte", "changement", "variation", "valeur_estimée", "lecture"],
-            portfolio_change_display_rows,
-        ),
-        "",
-        "### Résumé cumulatif des changements",
-        "",
-        _markdown_table(
-            ["compte", "ticker", "achats/ajouts", "ventes/réductions", "variation_nette", "valeur_nette_estimée", "dernière_date"],
-            portfolio_change_summary_display_rows,
-        ),
-        "",
-        "### Répartition actuelle par compte",
-        "",
-        *compact_account_charts_markdown(account_chart_rows),
-        _markdown_table(["compte", "valeur_totale", "positions", "principales_positions", "note"], account_allocation_display_rows),
-        "",
-        "### Fiscalité approximative",
-        "",
-        _markdown_table(["ticker", "account_type", "tax_comment", "warning"], tax_alert_rows),
-        "",
-        "### Performance vs S&P 500",
-        "",
-        _account_performance_method_text(compact=True),
-        "",
-        _markdown_table(
-            ["indicateur", "à quoi ça sert", "comment l’interpréter"],
-            account_performance_indicator_legend_rows(compact=True),
-        ),
-        "",
-        _markdown_table(
-            [
-                "account_type",
-                "preferred_performance_summary",
-                "portfolio_return_since_tracking",
-                "sp500_return_since_tracking",
-                "excess_return_vs_sp500",
-                "twr_excess_vs_sp500",
-                "twr_status",
-                "value_added_vs_sp500_cad",
-                "value_added_vs_sp500_percent",
-                "xirr_excess_vs_sp500",
-                "xirr_status",
-                "interpretation",
-            ],
-            account_performance_display_rows,
-        ),
-        "",
+    ]
+
+    external_section_lines = [
         "## 6. Surveillance externe",
         "",
         external_policy_note,
@@ -1524,6 +1657,18 @@ def build_compact_markdown_report(
         f"- Surveillance Market Universe, non-promotion: {_market_universe_summary_text(market_analyses, market_universe)}",
         f"- Scanner / discovery, non-promotion: {_discovery_summary_text(discovery_analyses, discovery_universe)}",
         "",
+        "### Candidats externes bloqués — validation personnelle requise",
+        "",
+        _markdown_table(
+            ["ticker", "provenance", "score", "fourchette_confiance", "pdf_suggéré", "action"],
+            blocked_external_validation_rows,
+        ),
+        "",
+        *(
+            [f"+ {blocked_external_validation_extra_count} autre(s) candidat(s) bloqué(s) — voir latest_scores.csv.", ""]
+            if blocked_external_validation_extra_count > 0
+            else []
+        ),
         "### Promotions vers Core Portfolio",
         "",
         _markdown_table(["source", "ticker", "statut", "raison", "prochaine_étape"], promotion_display_rows),
@@ -1538,10 +1683,112 @@ def build_compact_markdown_report(
         "",
         _markdown_table(["ticker", "statut", "score", "fit_mode", "raison"], external_etf_display_rows),
         "",
-        "## 7. Annexes techniques",
+        *(
+            [
+                "### ETF défensifs",
+                "",
+                _markdown_table(["ticker", "statut", "score", "rôle", "raison"], defensive_active_rows),
+                "",
+            ]
+            if mode != "high-cagr" and defensive_active_rows
+            else []
+        ),
+    ]
+
+    annex_a_lines = [
+        "Lecture rapide de la qualité des données utilisées pour les positions du portefeuille. Les ETF/FNB sont exclus des pourcentages parce qu’ils ne se scorent pas comme des entreprises.",
         "",
-        "Ces sections gardent les preuves et contrôles sans encombrer la décision. Elles ne changent pas la philosophie high-CAGR: elles réduisent surtout le risque de mauvaise exécution.",
-        "",
+        _markdown_table(["niveau", "titres", "% hors ETF", "lecture"], data_coverage_display_rows),
+    ]
+    annex_b_lines = [
+        *(["🟢 Aucune donnée prioritaire ni conflit critique.", ""] if not priority_validation_rows and not critical_source_conflict_rows else []),
+        *(
+            [
+                "#### Données à vérifier",
+                "",
+                _markdown_table(["ticker", "donnée", "importance", "pourquoi"], priority_validation_rows),
+                "",
+            ]
+            if priority_validation_rows
+            else []
+        ),
+        *(
+            [
+                "#### Conflits de sources",
+                "",
+                _markdown_table(
+                    ["ticker", "universe", "severity", "conflict_count", "conflict_profile", "recommended_action"],
+                    critical_source_conflict_rows,
+                ),
+            ]
+            if critical_source_conflict_rows
+            else []
+        ),
+    ]
+    annex_c_lines = [
+        *(["🟢 Aucune anomalie détectée.", ""] if not anomaly_display_rows else []),
+        *(
+            [
+                _markdown_table(["scope", "ticker", "niveau", "signal", "metrique", "variation", "lecture", "action"], anomaly_display_rows),
+            ]
+            if anomaly_display_rows
+            else []
+        ),
+    ]
+    annex_d_lines = [
+        *(["🟢 Journal propre — aucun avertissement.", ""] if not run_log_warn_rows else []),
+        *(
+            [
+                _markdown_table(["niveau", "composant", "événement", "message", "action"], run_log_warn_rows),
+                "",
+            ]
+            if run_log_warn_rows
+            else []
+        ),
+        *(
+            [
+                "#### Mémoire ticker à revoir",
+                "",
+                _markdown_table(["ticker", "ticker_memory_status", "sector", "region", "currency", "ticker_memory_action"], ticker_memory_review_rows),
+            ]
+            if ticker_memory_review_rows
+            else []
+        ),
+    ]
+    annex_e_lines = [
+        *(["🟢 Cache: OK — Fraîcheur: OK.", ""] if not cache_problem_rows and not freshness_problem_rows else []),
+        *(
+            [
+                "#### Cache local de marché",
+                "",
+                _markdown_table(["category", "status", "count", "cleaned_count", "details", "suggested_action"], cache_problem_rows),
+                "",
+            ]
+            if cache_problem_rows
+            else []
+        ),
+        *(
+            [
+                "#### Fraîcheur et fallback des données de marché",
+                "",
+                _markdown_table(
+                    [
+                        "ticker",
+                        "overall_data_freshness_level",
+                        "market_data_freshness_level",
+                        "market_data_fetch_status",
+                        "market_data_fallback_level",
+                        "market_data_warning_flags",
+                        "data_freshness_action",
+                    ],
+                    freshness_problem_rows,
+                ),
+            ]
+            if freshness_problem_rows
+            else []
+        ),
+    ]
+    annex_f_lines = [
         *_details_block(
             "Garde-fous récents",
             [
@@ -1586,43 +1833,16 @@ def build_compact_markdown_report(
                 _markdown_table(["ticker", "statut", "score", "impact", "confiance", "raison"], market_growth_rows),
             ],
         ),
+    ]
+    annex_g_lines = [
         *_details_block(
-            "Santé des sources, mémoire ticker et calibration",
+            "Santé des sources et calibration",
             [
                 "### Santé des sources",
                 "",
                 "Cette table surveille si les sources gratuites ou locales deviennent moins fiables. Elle n’achète ni ne vend rien: elle indique surtout quand il faut rafraîchir, valider ou ajouter un rapport.",
                 "",
                 _markdown_table(["source", "statut", "score", "tendance", "action"], source_health_display_rows),
-                "",
-                "### Cache local de marché",
-                "",
-                "Lecture: le cache accélère l'analyse et sert de filet de secours si une source gratuite tombe. Le nettoyage automatique reste prudent: il supprime surtout les fichiers temporaires, les caches inutilisables anciens et crée des copies `last-known-good` quand une donnée live est saine.",
-                "",
-                _markdown_table(["category", "status", "count", "cleaned_count", "details", "suggested_action"], cache_health_display_rows),
-                "",
-                "### Fraîcheur et fallback des données de marché",
-                "",
-                "Lecture: `LIVE_SUCCESS` veut dire donnée fraîche obtenue; `FALLBACK_STALE_CACHE` ou `FALLBACK_LAST_KNOWN_GOOD` veut dire que l’agent a protégé l’analyse avec une donnée locale au lieu de planter. Dans ce cas, la recommandation reste utilisable mais la validation est plus importante avant une grosse décision.",
-                "",
-                _markdown_table(
-                    [
-                        "ticker",
-                        "overall_data_freshness_level",
-                        "market_data_freshness_level",
-                        "market_data_fetch_status",
-                        "market_data_fallback_level",
-                        "market_data_warning_flags",
-                        "data_freshness_action",
-                    ],
-                    data_freshness_display_rows,
-                ),
-                "",
-                "### Mémoire ticker",
-                "",
-                "Cette mémoire locale aide l’agent à mieux classer les tickers nouveaux, canadiens, internationaux ou mal couverts. Elle sert seulement de secours si les données fraîches ne donnent pas déjà secteur, région ou devise.",
-                "",
-                _markdown_table(["ticker", "ticker_memory_status", "sector", "region", "currency", "ticker_memory_action"], ticker_memory_display_rows),
                 "",
                 "### Calibration des proxies",
                 "",
@@ -1635,28 +1855,63 @@ def build_compact_markdown_report(
                 _markdown_table(["field", "status", "risk_level", "factor", "recommended_action", "reason"], proxy_correction_display_rows),
             ],
         ),
+        *(
+            [
+                "### Avertissements de validation",
+                "",
+                _markdown_table(["warning"], validation_warning_rows),
+            ]
+            if validation_warning_rows
+            else []
+        ),
     ]
-    next_section = 8
-    if validation_warnings:
-        lines.extend([f"## {next_section}. Avertissements de validation", "", _markdown_table(["warning"], [{"warning": item} for item in validation_warnings[:8]]), ""])
-        next_section += 1
-    lines.extend(
-        [
-            f"## {next_section}. Limites rapides",
-            "",
-            "- Ce rapport compact sert à décider plus vite; le rapport complet reste la source d'audit.",
-            "- Les nouvelles gratuites servent seulement de contexte, pas de moteur principal.",
-            "- Les estimations automatiques et les données yfinance/SEC/StockAnalysis/Google News peuvent être incomplètes ou erronées.",
-            "- Toute vente, grosse allocation ou nouvelle position doit être validée manuellement.",
-            "",
-            f"## {next_section + 1}. Bibliographie / médiagraphie",
-            "",
-            "Cette section résume les sources consultées pendant cette analyse. Le rapport complet garde la version plus détaillée.",
-            "",
-            _markdown_table(["source", "utilisation", "éléments_consultés", "limite"], source_display_rows),
-            "",
-        ]
-    )
+    annex_h_lines = [
+        "Cette section résume les sources consultées pendant cette analyse. Le rapport complet garde la version plus détaillée.",
+        "",
+        _markdown_table(["source", "utilisation", "éléments_consultés", "limite"], source_display_rows),
+    ]
+
+    lines = [
+        "# Rapport compact d'investissement",
+        "",
+        triage_block,
+        "",
+        "## 1. Décision & positions",
+        "",
+        compact_decision_section,
+        "",
+        *sell_section_lines,
+        "",
+        "## 2. Santé du modèle",
+        "",
+        compact_model_health_section,
+        "",
+        "## 3. Titres qui se démarquent",
+        "",
+        ranking_section,
+        "",
+        "## 4. Portefeuille & risques",
+        "",
+        compact_portfolio_section,
+        "",
+        "## 5. Fiabilité des données",
+        "",
+        compact_data_reliability_section,
+        "",
+        *external_section_lines,
+        "## 7. Annexes techniques",
+        "",
+        "Ces annexes gardent les preuves et contrôles sans encombrer la décision principale. Quand tout est propre, elles se condensent automatiquement.",
+        "",
+        *_compact_details_block("A — Couverture des données", annex_a_lines),
+        *_compact_details_block("B — Données prioritaires & conflits", annex_b_lines),
+        *_compact_details_block("C — Anomalies post-analyse", annex_c_lines),
+        *_compact_details_block("D — Journal d'exécution", annex_d_lines),
+        *_compact_details_block("E — Cache & fraîcheur", annex_e_lines),
+        *_compact_details_block("F — Garde-fous & preuves", annex_f_lines),
+        *_compact_details_block("G — Santé des sources & calibration", annex_g_lines),
+        *_compact_details_block("H — Bibliographie complète", annex_h_lines),
+    ]
     return "\n".join(lines)
 
 
@@ -1701,6 +1956,7 @@ def build_markdown_report(
     anomaly_rows: list[dict[str, Any]] | None = None,
     cache_health_rows: list[dict[str, Any]] | None = None,
     run_log_rows: list[dict[str, Any]] | None = None,
+    instrument_profile_rows: list[dict[str, Any]] | None = None,
 ) -> str:
     allocations = allocation_result.get("allocations", [])
     allocation_rows = allocation_rows_for_csv(allocations)
@@ -1746,6 +2002,7 @@ def build_markdown_report(
     anomaly_rows = anomaly_rows or []
     cache_health_rows = cache_health_rows or []
     run_log_rows = run_log_rows or []
+    instrument_profile_rows = instrument_profile_rows or []
     top_watch = [row for row in watchlist_rows if row.get("watchlist_status") == "HIGH_PRIORITY_WATCH"]
     top_market = [row for row in market_rows if row.get("candidate_status") == "MANUAL_REVIEW_TOP_CANDIDATE"]
     top_discovery = actionable_discovery_rows(discovery_rows)
@@ -1863,7 +2120,28 @@ def build_markdown_report(
     ticker_memory_display_rows = compact_ticker_memory_rows(ticker_memory_rows, limit=12)
     anomaly_display_rows = anomaly_rows_for_report(anomaly_rows, limit=12)
     cache_health_display_rows = compact_cache_health_rows(cache_health_rows, limit=10)
+    cache_all_pass = bool(cache_health_rows) and not [
+        row for row in cache_health_rows if str(row.get("status") or "").upper() in {"WARN", "FAIL"}
+    ]
+    cache_summary_row = next((row for row in cache_health_rows if str(row.get("category") or "") == "summary"), {})
+    cache_total_count = int(safe_float(cache_summary_row.get("count")) or 0)
+    if cache_total_count <= 0:
+        cache_total_count = int(
+            sum(
+                safe_float(row.get("count")) or 0.0
+                for row in cache_health_rows
+                if str(row.get("category") or "") != "summary"
+            )
+        )
+    cache_lkg_count = int(
+        sum(
+            safe_float(row.get("count")) or 0.0
+            for row in cache_health_rows
+            if str(row.get("category") or "") == "last_known_good"
+        )
+    )
     run_log_display_rows = run_log_rows_for_report(run_log_rows, limit=12)
+    instrument_profile_section = build_instrument_profile_section(instrument_profile_rows, compact=False)
 
     lines = [
         "# Rapport trimestriel d’investissement",
@@ -2008,6 +2286,7 @@ def build_markdown_report(
             ],
         ),
         "",
+        *([instrument_profile_section, ""] if instrument_profile_section else []),
         "### Defensive ETF Fallback",
         "",
         "Cette couche sert seulement de stabilisateur dans les modes plus prudents. Elle est désactivée en `high-cagr`; en `rational-aggressive`, elle reste volontairement très plafonnée.",
@@ -2857,8 +3136,17 @@ def build_markdown_report(
             "",
             "Cette table résume le nettoyage prudent du cache: fichiers temporaires, caches illisibles, caches indisponibles, anciens fallbacks et copies last-known-good. Le cache utile est conservé; l’agent ne supprime pas agressivement les données pouvant encore servir de filet de secours.",
             "",
-            _markdown_table(["category", "status", "count", "cleaned_count", "details", "suggested_action"], cache_health_display_rows),
-            "",
+            *(
+                [f"✅ Cache: OK ({cache_total_count} entrées — {cache_lkg_count} last-known-good)", ""]
+                if cache_all_pass
+                else [
+                    _markdown_table(
+                        ["category", "status", "count", "cleaned_count", "details", "suggested_action"],
+                        cache_health_rows or cache_health_display_rows,
+                    ),
+                    "",
+                ]
+            ),
             "### Journal d'exécution",
             "",
             "Cette table résume les événements techniques utiles de l'analyse: cache, sources, données fragiles, anomalies et règles d'allocation. Elle sert à expliquer une recommandation surprenante sans rendre le modèle plus conservateur.",
@@ -2997,6 +3285,7 @@ def build_markdown_report(
     if validation_warnings:
         lines.extend(["", "### Avertissements de validation", ""])
         lines.extend([f"- {warning}" for warning in validation_warnings])
+    lines = align_full_report_navigation(lines)
     return "\n".join(lines) + "\n"
 
 
@@ -4260,6 +4549,51 @@ def compact_external_candidates_for_compact_report(
             }
         ]
     return rows[:limit]
+
+
+def _blocked_external_validation_rows_for_compact_report(
+    watchlist_analyses: dict[str, dict[str, Any]],
+    market_analyses: dict[str, dict[str, Any]],
+    discovery_analyses: dict[str, dict[str, Any]],
+    limit: int = 5,
+) -> tuple[list[dict[str, Any]], int]:
+    rows: list[dict[str, Any]] = []
+    for provenance, universe in [
+        ("Watchlist", watchlist_analyses or {}),
+        ("Market", market_analyses or {}),
+        ("Discovery", discovery_analyses or {}),
+    ]:
+        for ticker, analysis in universe.items():
+            if str(analysis.get("external_validation_status") or "") != "BLOCKED_PENDING_PERSONAL_VALIDATION":
+                continue
+            display_ticker = analysis.get("ticker_display") or analysis.get("ticker") or ticker
+            score = safe_float(analysis.get("capital_allocation_score"))
+            rows.append(
+                {
+                    "ticker": display_ticker,
+                    "provenance": provenance,
+                    "score": round(score, 2) if score is not None else "N/D",
+                    "fourchette_confiance": analysis.get("score_confidence_label") or "N/D",
+                    "pdf_suggéré": f"{display_ticker}_{today_iso()}_BNCD_Morningstar.pdf",
+                    "action": "Déposer le PDF dans le dossier BNCD/Morningstar puis relancer l'analyse.",
+                }
+            )
+    if not rows:
+        return (
+            [
+                {
+                    "ticker": "AUCUN_CANDIDAT_BLOQUE",
+                    "provenance": "",
+                    "score": "",
+                    "fourchette_confiance": "",
+                    "pdf_suggéré": "",
+                    "action": "Tous les candidats externes évalués disposent d'au moins une donnée validée personnellement.",
+                }
+            ],
+            0,
+        )
+    rows = sorted(rows, key=lambda row: safe_float(row.get("score")) or 0.0, reverse=True)
+    return rows[:limit], max(0, len(rows) - limit)
 
 
 def compact_promotion_rows_for_compact_report(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
@@ -6704,6 +7038,9 @@ def _score_row_for_csv(row: dict[str, Any]) -> dict[str, Any]:
         "score_with_estimates": row.get("score_with_estimates"),
         "score_confirmed_only": row.get("score_confirmed_only"),
         "score_estimate_gap": row.get("score_estimate_gap"),
+        "score_data_gap_haircut": row.get("score_data_gap_haircut", 0.0),
+        "score_data_gap_flag": row.get("score_data_gap_flag", False),
+        "score_data_gap_label": row.get("score_data_gap_label", "COMPLET"),
         "score_confidence_range": row.get("score_confidence_range"),
         "score_confidence_low": row.get("score_confidence_low"),
         "score_confidence_high": row.get("score_confidence_high"),
@@ -7696,8 +8033,15 @@ def _quality_drawdown_summary(rows: list[dict[str, Any]]) -> str:
 def _external_allocation_policy_note(mode: str) -> str:
     if mode == "high-cagr":
         return (
-            "Cette section est informative en mode `high-cagr`: les titres externes doivent encore être promus "
-            "manuellement vers le Core Portfolio avant de pouvoir recevoir une allocation."
+            "En mode `high-cagr`, les titres externes (WATCHLIST, MARKET_SCANNER, DISCOVERY_IDEAS) "
+            "peuvent recevoir une allocation directe sans promotion manuelle vers le Core Portfolio, "
+            "si et seulement s'ils franchissent les filtres stricts de qualité, thèse, données et "
+            "avantage face à VFV définis dans l'allocation engine. "
+            "Les candidats Discovery scorés uniquement sur données gratuites sans rapport BNCD/Morningstar "
+            # Garder 70 synchronisé avec DISCOVERY_VALIDATION_PRIORITY_MIN_SCORE dans main.py.
+            "apparaissent dans latest_validation_priority.csv si leur score dépasse 70 et leur statut "
+            "d'allocation est éligible. "
+            "[DECISION 2026-06-30 Proposition 8 — DECISION 2026-07-04]"
         )
     return (
         f"En mode `{mode}`, les titres externes peuvent entrer directement dans l'allocation seulement s'ils "
@@ -7708,7 +8052,7 @@ def _external_allocation_policy_note(mode: str) -> str:
 
 def _external_candidates_title(mode: str) -> str:
     if mode == "high-cagr":
-        return "### Surveillance externe non-promotion"
+        return "### Surveillance externe et allocations directes possibles"
     return "### Surveillance externe et allocations possibles"
 
 
@@ -7721,7 +8065,7 @@ def _external_promotion_summary_text(
 ) -> str:
     promoted = _promotion_ticker_list(promotion_rows, limit=3)
     if promoted != "Aucune":
-        return f"promotion à revue manuelle: {promoted}; allocation directe seulement hors `high-cagr` si les filtres du mode passent."
+        return f"promotion à revue manuelle possible: {promoted}; en `high-cagr`, une allocation directe reste possible seulement si les filtres stricts passent."
     market = _market_universe_ticker_list(market_analyses, market_universe, limit=2)
     discovery = _discovery_ticker_list(discovery_analyses, discovery_universe, limit=2)
     return f"aucune promotion fondée; market universe à surveiller: {market}; scanner/discovery: {discovery}."
@@ -7730,7 +8074,7 @@ def _external_promotion_summary_text(
 def _promotion_only_summary_text(promotion_rows: list[dict[str, Any]]) -> str:
     promoted = _promotion_ticker_list(promotion_rows, limit=5)
     if promoted != "Aucune":
-        return f"{promoted} mérite une revue manuelle avant ajout au portfolio avec shares=0; hors `high-cagr`, le moteur peut aussi limiter une allocation directe si le mode l'autorise."
+        return f"{promoted} mérite une revue manuelle avant ajout éventuel au portfolio avec shares=0; en `high-cagr`, le moteur peut aussi limiter une allocation directe si les filtres stricts passent."
     return "Aucune promotion fondée vers le Core Portfolio selon les filtres stricts."
 
 
@@ -7741,7 +8085,7 @@ def _market_universe_summary_text(
     tickers = _market_universe_ticker_list(market_analyses, market_universe, limit=5)
     if tickers == "Aucune":
         return "Aucun titre du market universe ne ressort comme candidat externe prioritaire."
-    return f"À surveiller; allocation directe possible seulement dans les modes non-`high-cagr` si les filtres stricts passent: {tickers}."
+    return f"À surveiller; allocation directe possible en `high-cagr` ou dans les autres modes qui l'autorisent, seulement si les filtres stricts passent: {tickers}."
 
 
 def _discovery_summary_text(
