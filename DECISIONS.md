@@ -15,6 +15,79 @@ This ensures long-term consistency and prevents model drift.
 
 # 📌 Decisions
 
+## [2026-07-22] Artefacts research_needed et validation_priority mode-scoped (Niveau 2, Approuvé)
+
+**Constat.** La décision [2026-07-01] impose que les artefacts `latest_*` produits
+par `analyze` aient un miroir suffixé par mode. Deux artefacts y échappaient :
+`latest_research_needed.csv` et `latest_validation_priority.csv`. Aucun fichier
+suffixé n'existait sur disque, alors que ~38 autres artefacts avaient le leur.
+
+Conséquence : la décision [2026-07-22] désignait
+`latest_research_needed_high_cagr.csv` comme fichier de référence opérationnel
+pour décider quels rapports BNCD déposer. Ce fichier n'existait pas.
+
+**Décision.** Les deux artefacts reçoivent leur miroir mode-scoped. Traitements
+différents car ils sont écrits à des moments différents du cycle :
+
+- `latest_validation_priority.csv` est écrit à l'intérieur de `generate_reports()`,
+  donc avant le passage du miroir. Inscription dans `_MODE_SCOPED_REPORT_OUTPUTS`
+  (`report_generator.py`).
+- `latest_research_needed.csv` est écrit dans `main.py` APRÈS l'appel à
+  `generate_reports()`, donc après le passage du miroir. L'inscription dans la
+  liste aurait échoué en silence (`if not source.exists(): continue`). Écriture
+  de la paire via `write_csv_records_mode_pair()` de `mode_artifacts.py`.
+
+**Infrastructure canonique.** Un premier correctif importait `_report_mode_slug`
+depuis `report_generator.py`. Diagnostic ultérieur : `src/mode_artifacts.py`
+(créé le 2026-07-01) est l'infrastructure canonique — 72 sites d'appel, 7 moteurs
+consommateurs (backtest, walk-forward, full-audit, model-audit,
+improvement-audit, audit-signal, walk-forward-signal), 4 tests dédiés. Elle
+expose `write_csv_records_mode_pair()`, conçue exactement pour ce cas. L'import
+parasite a été retiré ; il était le seul usage externe de l'infrastructure privée
+de `report_generator.py`.
+
+**Vérification empirique de [2026-07-01].** Premier test de non-contamination
+cross-mode jamais exécuté depuis l'adoption de cette décision. Un run complet
+`analyze --mode balanced` a été lancé après un run `high-cagr`, puis
+`latest_scores_high_cagr.csv` a été comparé à sa référence en excluant les
+colonnes d'horodatage réécrites à chaque run (`market_data_age_hours`,
+`market_data_fetch_attempted_at`, `canadian_checked_at`). Résultat : identique.
+Les artefacts `high_cagr` survivent à un run d'un autre mode. La décision
+[2026-07-01] est vérifiée, pas seulement documentée.
+
+**Dette identifiée, non corrigée.**
+- Dette-01 : trois conventions de slug coexistent. `mode_artifacts.py` et
+  `report_generator.py` produisent `high_cagr` ; les `_mode_slug()` locaux de
+  `audit_snapshot_engine.py`, `history_engine.py`, `allocation_change_engine.py`
+  et `model_audit_engine.py` conservent les tirets (`high-cagr`). Visible sur
+  disque : `latest_scores_high_cagr.csv` vs `latest_audit_snapshot_high-cagr.json`.
+  Aucune casse aujourd'hui, chaque module étant cohérent avec lui-même. Risque :
+  un module qui lirait avec la mauvaise convention.
+- Dette-02 : `report_generator.py` maintient `_report_mode_slug`,
+  `_mode_report_path` et `_mirror_mode_specific_report_outputs` en parallèle de
+  `mode_artifacts.py`. Après ce correctif, cette infrastructure n'a plus aucun
+  consommateur externe. La faire déléguer serait un Niveau 2 propre.
+
+Les deux dettes sont différées en fin de Phase 2, avec le garde-fou de
+vraisemblance juste-valeur. Aucune ne bloque la Phase 2.
+
+**Changements.**
+- `src/report_generator.py` : `"latest_validation_priority.csv"` ajouté à
+  `_MODE_SCOPED_REPORT_OUTPUTS`.
+- `main.py` : import de `write_csv_records_mode_pair` depuis `mode_artifacts`,
+  import de `RESEARCH_NEEDED_COLUMNS`, calcul des lignes factorisé en une seule
+  fois, écriture de la paire générique + suffixée.
+- `research_needed_command()` inchangée : la commande CLI reste sur le chemin
+  dégradé assumé de [2026-07-22] et n'écrit que le fichier générique. Lui
+  ajouter un miroir suffixé propagerait un classement dégradé dans un artefact
+  mode-scoped.
+
+**Vérifié.** 577 tests, SCORE_STABILITY STABLE avant et après. Miroirs identiques
+aux génériques (diff vide). Aucune régression de contenu. Aucun fichier parasite
+`latest_*_.csv`. Non-contamination cross-mode confirmée.
+
+---
+
 ## [2026-07-22] Chemin CLI `research-needed` — classement dégradé assumé (Niveau 2, Approuvé)
 
 **Constat.** `ticker_validation_value_score()` lit `allocation_decision`,
@@ -87,10 +160,40 @@ réelle : 558 tests) et SCORE_STABILITY, vérifiés avant et après.
 5. Correction des suffixes .NE et .DE dans l'inférence de ticker.
 
 ### Phase 2 — Priorisation
-6. Le classement de research_needed dérive du score de potentiel de validation_priority (agrégé au
-   niveau titre), pour que les deux listes soient cohérentes et classées par potentiel d'investissement.
-7. Déclencheur : toute position proposée à l'allocation et non détenue génère une recommandation de
-   rapport BNCD, indépendamment de la sévérité des trous de données.
+6. Le classement de research_needed dérive du score de valeur de validation
+   (agrégé au niveau titre), pour que les deux listes soient cohérentes.
+   6a. Extraction de la fonction titre dans validation_priority_engine.py
+   (composantes univers, allocation, evidence, dependency, ticker_validation,
+   thesis). La borne max(0.0, ...) reste dans _priority_score() : la fonction
+   titre peut retourner une valeur négative.
+   6b. Tri appliqué dans research_needed_rows_from_analysis_rows() :
+   -ticker_potential_score primaire, priorité en départage. Import LOCAL de
+   validation_priority_engine (ce module importe research_reports en tête).
+   Colonne ticker_potential_score ajoutée en fin de RESEARCH_NEEDED_COLUMNS.
+   6c. Même tri appliqué dans main.py::merge_research_needed_rows().
+   6c-fix. Retrait d'un bloc auto-référentiel non demandé introduit hors
+   périmètre en 6c (lecture de latest_research_needed.csv pour récupérer des
+   scores antérieurs : écrasait des scores frais, lisait l'artefact générique
+   non suffixé par mode en violation de [2026-07-01], parsing CSV fragile).
+   Ce retrait a exposé une divergence réelle préexistante entre analyze et le
+   CLI research-needed, tracée dans [2026-07-22].
+   6d. Renommage ticker_investment_potential_score() →
+   ticker_validation_value_score() (Niveau 1). Le nom d'origine suggérait un
+   « potentiel d'investissement » alors que la fonction mesure la valeur
+   d'une validation : 26 de ses points proviennent de la FAIBLESSE des
+   données (evidence ESTIMATE_HEAVY +16, dependency HIGH +10). Un titre mal
+   documenté score haut non parce qu'il est prometteur, mais parce que le
+   valider a de la valeur. La colonne CSV ticker_potential_score reste
+   inchangée pour ne pas casser les consommateurs. Docstring réécrite pour
+   documenter cette sémantique et le fait que la fonction peut retourner une
+   valeur négative.
+   6e. Avertissement console sur la commande research-needed signalant le
+   classement dégradé (voir [2026-07-22]).
+7. Déclencheur : toute position proposée à l'allocation et non détenue génère une
+   recommandation de rapport BNCD, indépendamment de la sévérité des trous de
+   données. Définition arbitrée de « non détenue » : hors CORE_PORTFOLIO +
+   proposé à l'allocation. PAS la définition stricte « 0 action dans
+   portfolio.csv ».
 
 ### Règle de résolution multi-rapports (par catégorie de champ)
 - Valorisation et estimations (fair_value, forward_pe_manual, peg_manual, valuation_vs_5y_avg_ok,
