@@ -64,13 +64,14 @@ def compute_data_reliability(manual: dict[str, Any], score: dict[str, Any]) -> d
             reasons.append(str(freshness.get("research_report_freshness_reason")))
         if text_quality_reason:
             reasons.append(text_quality_reason)
+        confirmed_critical = sorted((manual_fields | research_fields | official_evidence_fields) & CORE_RELIABILITY_FIELDS)
         return {
             "data_reliability_score": reliability,
             "data_reliability_level": level,
             "auto_estimate_dependency": "LOW",
             "automation_evidence_level": "CONFIRMED",
             "auto_critical_fields": [],
-            "confirmed_critical_fields": sorted((manual_fields | research_fields | official_evidence_fields) & CORE_RELIABILITY_FIELDS),
+            "confirmed_critical_fields": confirmed_critical,
             "official_supported_fields": sorted(official_supported_fields),
             "official_confirmed_fields": sorted(official_confirmed_fields),
             "official_data_conflict_count": len(official_conflicts),
@@ -86,6 +87,14 @@ def compute_data_reliability(manual: dict[str, Any], score: dict[str, Any]) -> d
             ),
             "data_reliability_reasons": reasons,
             "requires_manual_validation_for_large_allocation": level != "HIGH" or freshness_requires_validation or text_quality_requires_validation,
+            **_data_quality_audit_metrics(
+                confirmed_critical=confirmed_critical,
+                official_evidence_fields=official_evidence_fields,
+                auto_critical=[],
+                auto_quality_gates=[],
+                missing_count=missing_count,
+                official_conflict_profile=official_conflict_profile,
+            ),
             **_freshness_public_fields(freshness),
         }
 
@@ -202,6 +211,14 @@ def compute_data_reliability(manual: dict[str, Any], score: dict[str, Any]) -> d
         "data_reliability_reasons": reasons,
         "requires_manual_validation_for_large_allocation": (
             level != "HIGH" or dependency == "HIGH" or freshness_requires_validation or text_quality_requires_validation
+        ),
+        **_data_quality_audit_metrics(
+            confirmed_critical=confirmed_critical,
+            official_evidence_fields=official_evidence_fields,
+            auto_critical=auto_critical,
+            auto_quality_gates=auto_quality_gates,
+            missing_count=missing_count,
+            official_conflict_profile=official_conflict_profile,
         ),
         **_freshness_public_fields(freshness),
     }
@@ -470,6 +487,63 @@ def _freshness_public_fields(freshness: dict[str, Any]) -> dict[str, Any]:
         "research_report_age_days": freshness.get("research_report_age_days"),
         "research_report_requires_fresh_validation": freshness.get("research_report_requires_fresh_validation"),
         "research_report_freshness_reason": freshness.get("research_report_freshness_reason"),
+    }
+
+
+def _data_quality_audit_metrics(
+    *,
+    confirmed_critical: list[str],
+    official_evidence_fields: set[str],
+    auto_critical: list[str],
+    auto_quality_gates: list[str],
+    missing_count: int,
+    official_conflict_profile: dict[str, Any],
+) -> dict[str, Any]:
+    total_critical = len(CORE_RELIABILITY_FIELDS)
+    total_quality = len(QUALITY_GATE_FIELDS)
+    confirmed_set = set(confirmed_critical) & CORE_RELIABILITY_FIELDS
+    official_set = set(official_evidence_fields) & CORE_RELIABILITY_FIELDS
+    auto_set = set(auto_critical) & CORE_RELIABILITY_FIELDS
+    auto_quality_set = set(auto_quality_gates) & QUALITY_GATE_FIELDS
+    confirmed_rate = round(len(confirmed_set) / total_critical, 4) if total_critical else 0.0
+    official_rate = round(len(official_set) / total_critical, 4) if total_critical else 0.0
+    auto_rate = round(len(auto_set) / total_critical, 4) if total_critical else 0.0
+    quality_auto_rate = round(len(auto_quality_set) / total_quality, 4) if total_quality else 0.0
+    weighted_conflicts = float(official_conflict_profile.get("weighted_conflict_score") or 0.0)
+    directional_conflicts = int(official_conflict_profile.get("directional_conflict_count") or 0)
+
+    if confirmed_rate >= 0.65 and missing_count == 0 and directional_conflicts == 0:
+        coverage_status = "STRONG_CONFIRMED_COVERAGE"
+    elif confirmed_rate >= 0.35 or official_rate >= 0.25:
+        coverage_status = "PARTIAL_COVERAGE"
+    elif auto_rate >= 0.50:
+        coverage_status = "AUTO_PROXY_HEAVY_COVERAGE"
+    else:
+        coverage_status = "THIN_COVERAGE"
+
+    partial_flag = coverage_status in {"PARTIAL_COVERAGE", "AUTO_PROXY_HEAVY_COVERAGE", "THIN_COVERAGE"}
+    note_parts = [
+        f"champs critiques confirmés={len(confirmed_set)}/{total_critical}",
+        f"preuves officielles={len(official_set)}/{total_critical}",
+        f"proxys critiques={len(auto_set)}/{total_critical}",
+    ]
+    if missing_count:
+        note_parts.append(f"données manquantes={missing_count}")
+    if weighted_conflicts:
+        note_parts.append(f"conflits pondérés={weighted_conflicts:.2f}")
+
+    return {
+        "critical_data_confirmed_field_rate": confirmed_rate,
+        "critical_data_official_field_rate": official_rate,
+        "critical_data_auto_proxy_field_rate": auto_rate,
+        "critical_quality_auto_proxy_field_rate": quality_auto_rate,
+        "critical_data_confirmed_field_count": len(confirmed_set),
+        "critical_data_total_field_count": total_critical,
+        "critical_data_auto_proxy_field_count": len(auto_set),
+        "critical_data_missing_field_count": missing_count,
+        "data_quality_partial_coverage_status": coverage_status,
+        "data_quality_partial_coverage_flag": partial_flag,
+        "data_quality_audit_note": "; ".join(note_parts),
     }
 
 

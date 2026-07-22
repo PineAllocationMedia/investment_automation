@@ -6,6 +6,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
+from .data_fetcher import DEFAULT_CIRCUIT_BREAKER_COOLDOWN_SECONDS
 from .utils import CACHE_DIR, safe_float, save_json
 
 
@@ -26,6 +27,65 @@ CORRUPT_JSON_QUARANTINE_AGE_HOURS = 24
 UNAVAILABLE_CACHE_MAX_AGE_HOURS = 168
 OLD_DIRECT_CACHE_WARN_HOURS = 720
 STALE_LAST_KNOWN_GOOD_WARN_HOURS = 24 * 180
+
+
+def reset_expired_market_circuit_breakers(
+    cache_dir: str | Path = CACHE_DIR,
+    *,
+    cooldown_seconds: int = DEFAULT_CIRCUIT_BREAKER_COOLDOWN_SECONDS,
+) -> dict[str, Any]:
+    """Reset expired persisted market circuit-breaker flags without deleting price cache."""
+    cache_dir = Path(cache_dir)
+    if not cache_dir.exists():
+        return _row(
+            "market_circuit_breaker_reset",
+            "INFO",
+            "LOW",
+            0,
+            0,
+            "Cache marché absent; aucun circuit breaker persistant à remettre à zéro.",
+            "Aucune action.",
+        )
+
+    now = datetime.now()
+    candidates = 0
+    reset_count = 0
+    still_cooling_down = 0
+    missing_timestamp = 0
+    for path in sorted(cache_dir.glob("*.json")):
+        if not path.is_file() or path.name.endswith(".meta.json"):
+            continue
+        payload = _load_json_payload(path)
+        if payload is None or not _has_open_circuit_marker(payload):
+            continue
+        candidates += 1
+        last_failure_at = _parse_iso_datetime(
+            payload.get("market_data_fetch_attempted_at") or payload.get("fetched_at")
+        )
+        if last_failure_at is None:
+            missing_timestamp += 1
+            continue
+        age_seconds = max(0.0, (now - last_failure_at).total_seconds())
+        if age_seconds < cooldown_seconds:
+            still_cooling_down += 1
+            continue
+        _reset_circuit_breaker_payload(payload, now)
+        save_json(path, payload)
+        reset_count += 1
+
+    details = (
+        f"{reset_count} circuit(s) Yahoo Finance expiré(s) remis à zéro; "
+        f"{still_cooling_down} encore en cooldown; {missing_timestamp} sans timestamp exploitable."
+    )
+    return _row(
+        "market_circuit_breaker_reset",
+        "PASS" if reset_count else "INFO",
+        "LOW",
+        candidates,
+        reset_count,
+        details,
+        "Aucune action." if not still_cooling_down else "Relancer plus tard si des circuits sont encore en cooldown.",
+    )
 
 
 def run_cache_maintenance(cache_dir: str | Path = CACHE_DIR, *, repair_safe: bool = False) -> list[dict[str, Any]]:
@@ -265,6 +325,33 @@ def _load_json_payload(path: Path) -> dict[str, Any] | None:
     except Exception:
         return None
     return loaded if isinstance(loaded, dict) else None
+
+
+def _has_open_circuit_marker(payload: dict[str, Any]) -> bool:
+    flags = {str(flag) for flag in (payload.get("market_data_warning_flags") or [])}
+    return bool(payload.get("market_data_circuit_breaker_open")) or "CIRCUIT_OPEN" in flags
+
+
+def _reset_circuit_breaker_payload(payload: dict[str, Any], now: datetime) -> None:
+    payload["market_data_circuit_breaker_open"] = False
+    payload["market_data_warning_flags"] = [
+        flag for flag in (payload.get("market_data_warning_flags") or []) if str(flag) != "CIRCUIT_OPEN"
+    ]
+    payload["failure_count"] = 0
+    payload["market_data_failure_count"] = 0
+    payload["market_data_circuit_breaker_reset_at"] = now.isoformat(timespec="seconds")
+    last_error = str(payload.get("market_data_last_error") or "")
+    if "Coupe-circuit" in last_error or "circuit" in last_error.lower():
+        payload["market_data_last_error"] = ""
+
+
+def _parse_iso_datetime(value: Any) -> datetime | None:
+    if not value:
+        return None
+    try:
+        return datetime.fromisoformat(str(value).replace("Z", "+00:00")).replace(tzinfo=None)
+    except ValueError:
+        return None
 
 
 def _is_direct_usable(payload: dict[str, Any]) -> bool:

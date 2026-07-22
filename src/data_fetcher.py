@@ -63,6 +63,7 @@ DEFAULT_RETRY_ATTEMPTS = 2
 DEFAULT_RETRY_BASE_DELAY_SECONDS = 0.35
 DEFAULT_CIRCUIT_BREAKER_FAILURE_THRESHOLD = 4
 DEFAULT_CIRCUIT_BREAKER_COOLDOWN_SECONDS = 180
+REFRESH_INTER_TICKER_DELAY_SECONDS = 0.5
 LAST_KNOWN_GOOD_DIR_NAME = "last_known_good"
 
 SEC_RECENT_MAX_AGE_DAYS = 548
@@ -196,11 +197,13 @@ MARKET_FIELDS = [
     "official_confirmed_fields",
     "official_data_conflicts",
     "official_source_policy",
+    "official_resolution_summary",
     "canadian_data_sources",
     "canadian_fundamental_fields",
     "canadian_confirmed_fields",
     "canadian_data_conflicts",
     "canadian_source_policy",
+    "canadian_resolution_summary",
     "canadian_source_health",
     "canadian_coverage_status",
     "canadian_latest_period",
@@ -284,13 +287,34 @@ class MarketDataFetcher:
         self.last_known_good_dir.mkdir(parents=True, exist_ok=True)
         self.official_data = OfficialDataFetcher(self.cache_dir)
         self.canadian_data = CanadianDataFetcher(self.cache_dir, timeout_seconds=CANADIAN_AUTHORITY_TIMEOUT_SECONDS)
+        self.last_fetch_all_delay_info: dict[str, Any] = {}
 
     def fetch_all(
         self, tickers: list[str], benchmark_map: dict[str, str], refresh: bool = False
     ) -> tuple[dict[str, dict[str, Any]], dict[str, dict[str, Any]], list[dict[str, Any]]]:
         all_benchmarks = sorted({value for value in benchmark_map.values() if value} | COMMON_BENCHMARK_TICKERS)
-        market_data = {ticker: self.fetch_ticker(ticker, refresh=refresh) for ticker in sorted(set(tickers))}
-        benchmark_data = {ticker: self.fetch_ticker(ticker, refresh=refresh) for ticker in all_benchmarks}
+        market_tickers = sorted(set(tickers))
+        delay_seconds = REFRESH_INTER_TICKER_DELAY_SECONDS if refresh else 0.0
+        fetch_count = len(market_tickers) + len(all_benchmarks)
+        self.last_fetch_all_delay_info = {}
+        if refresh and delay_seconds > 0 and fetch_count > 1:
+            self.last_fetch_all_delay_info = {
+                "delay_seconds": delay_seconds,
+                "fetch_count": fetch_count,
+                "message": f"Délai inter-tickers actif lors du refresh : {delay_seconds:g}s entre chaque appel.",
+            }
+
+        fetch_index = 0
+
+        def _fetch_with_optional_refresh_delay(ticker: str) -> dict[str, Any]:
+            nonlocal fetch_index
+            if refresh and delay_seconds > 0 and fetch_index > 0:
+                time.sleep(delay_seconds)
+            fetch_index += 1
+            return self.fetch_ticker(ticker, refresh=refresh)
+
+        market_data = {ticker: _fetch_with_optional_refresh_delay(ticker) for ticker in market_tickers}
+        benchmark_data = {ticker: _fetch_with_optional_refresh_delay(ticker) for ticker in all_benchmarks}
         data_gaps = []
         for ticker, payload in {**market_data, **benchmark_data}.items():
             for field in self.required_fields_for_gap_report(ticker, payload):
@@ -492,11 +516,13 @@ class MarketDataFetcher:
         payload["official_confirmed_fields"] = payload.get("official_confirmed_fields") or []
         payload["official_data_conflicts"] = payload.get("official_data_conflicts") or []
         payload["official_source_policy"] = payload.get("official_source_policy") or []
+        payload["official_resolution_summary"] = payload.get("official_resolution_summary")
         payload["canadian_data_sources"] = payload.get("canadian_data_sources") or []
         payload["canadian_fundamental_fields"] = payload.get("canadian_fundamental_fields") or []
         payload["canadian_confirmed_fields"] = payload.get("canadian_confirmed_fields") or []
         payload["canadian_data_conflicts"] = payload.get("canadian_data_conflicts") or []
         payload["canadian_source_policy"] = payload.get("canadian_source_policy") or []
+        payload["canadian_resolution_summary"] = payload.get("canadian_resolution_summary")
         payload["data_fill_rate"] = payload.get("data_fill_rate") or data_fill_rate(payload)
         self._apply_fetch_metadata(
             payload,
@@ -1172,6 +1198,10 @@ class MarketDataFetcher:
         payload["official_confirmed_fields"] = sorted(set((payload.get("official_confirmed_fields") or []) + confirmed_fields))
         payload["official_data_conflicts"] = sorted(set((payload.get("official_data_conflicts") or []) + conflicts))
         payload["official_source_policy"] = sorted(set((payload.get("official_source_policy") or []) + policy_notes))
+        payload["official_resolution_summary"] = (
+            f"SEC used={len(set(official_fields))}; confirmed={len(set(confirmed_fields))}; "
+            f"conflicts={len(set(conflicts))}; recent={bool(sec_is_recent)}"
+        )
         payload["sec_edgar_cik"] = official.get("sec_edgar_cik")
         payload["sec_edgar_company_name"] = official.get("sec_edgar_company_name")
         payload["sec_edgar_latest_filing_date"] = official.get("sec_edgar_latest_filing_date")
@@ -1234,7 +1264,15 @@ class MarketDataFetcher:
 
         if not used_fields and not confirmed_fields and not conflicts:
             payload["canadian_coverage_status"] = "AVAILABLE_NO_FIELD_CHANGE"
+            payload["canadian_resolution_summary"] = (
+                "Canadian used=0; confirmed=0; conflicts=0; status=AVAILABLE_NO_FIELD_CHANGE"
+            )
             return
+
+        payload["canadian_resolution_summary"] = (
+            f"Canadian used={len(set(used_fields))}; confirmed={len(set(confirmed_fields))}; "
+            f"conflicts={len(set(conflicts))}; status={payload.get('canadian_coverage_status')}"
+        )
 
         payload["official_data_sources"] = sorted(set((payload.get("official_data_sources") or []) + source_names))
         payload["official_fundamental_fields"] = sorted(set((payload.get("official_fundamental_fields") or []) + used_fields))
@@ -1287,11 +1325,13 @@ class MarketDataFetcher:
             "official_confirmed_fields",
             "official_data_conflicts",
             "official_source_policy",
+            "official_resolution_summary",
             "canadian_data_sources",
             "canadian_fundamental_fields",
             "canadian_confirmed_fields",
             "canadian_data_conflicts",
             "canadian_source_policy",
+            "canadian_resolution_summary",
         ]:
             payload[field] = sorted(set(payload.get(field) or []))
         if payload.get("official_fundamental_fields") or payload.get("official_confirmed_fields"):

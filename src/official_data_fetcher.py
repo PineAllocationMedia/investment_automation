@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import re
+import time
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Any
@@ -83,10 +84,18 @@ SEC_DILUTED_EPS_TAGS = ["EarningsPerShareDiluted"]
 class OfficialDataFetcher:
     """Small wrapper for free official sources used as a reliability layer."""
 
-    def __init__(self, cache_dir: str | Path = CACHE_DIR, timeout_seconds: int = 8) -> None:
+    def __init__(
+        self,
+        cache_dir: str | Path = CACHE_DIR,
+        timeout_seconds: int = 8,
+        retry_attempts: int = 2,
+        retry_base_delay_seconds: float = 0.35,
+    ) -> None:
         self.cache_dir = Path(cache_dir) / "official_sources"
         self.cache_dir.mkdir(parents=True, exist_ok=True)
         self.timeout_seconds = timeout_seconds
+        self.retry_attempts = max(1, int(retry_attempts))
+        self.retry_base_delay_seconds = max(0.0, float(retry_base_delay_seconds))
         self._sec_ticker_map_memory: dict[str, dict[str, Any]] | None = None
         self._sec_ticker_map_attempted = False
 
@@ -214,14 +223,22 @@ class OfficialDataFetcher:
         return parsed
 
     def _get_json(self, url: str) -> dict[str, Any]:
-        response = requests.get(
-            url,
-            headers={"User-Agent": SEC_USER_AGENT, "Accept-Encoding": "gzip, deflate"},
-            timeout=self.timeout_seconds,
-        )
-        response.raise_for_status()
-        payload = response.json()
-        return payload if isinstance(payload, dict) else {}
+        last_error: Exception | None = None
+        for attempt in range(1, self.retry_attempts + 1):
+            try:
+                response = requests.get(
+                    url,
+                    headers={"User-Agent": SEC_USER_AGENT, "Accept-Encoding": "gzip, deflate"},
+                    timeout=self.timeout_seconds,
+                )
+                response.raise_for_status()
+                payload = response.json()
+                return payload if isinstance(payload, dict) else {}
+            except Exception as exc:
+                last_error = exc
+                if attempt < self.retry_attempts and self.retry_base_delay_seconds > 0:
+                    time.sleep(self.retry_base_delay_seconds * (2 ** (attempt - 1)))
+        raise last_error or RuntimeError("Source officielle indisponible.")
 
 
 def parse_bank_of_canada_fx_payload(series: str, payload: dict[str, Any]) -> float | None:

@@ -20,6 +20,10 @@ SOURCE_HEALTH_COLUMNS = [
     "affected_tickers",
     "conflict_count",
     "critical_gap_count",
+    "confirmed_field_rate",
+    "partial_coverage_count",
+    "critical_stale_count",
+    "audit_signal",
     "ticker_count",
     "trend",
     "action",
@@ -31,6 +35,74 @@ SOURCE_HEALTH_HISTORY_COLUMNS = ["date", "mode", *SOURCE_HEALTH_COLUMNS]
 BAD_MARKET_LEVELS = {"UNAVAILABLE", "VERY_STALE", "STALE", "UNKNOWN_DATE"}
 GOOD_MARKET_LEVELS = {"FRESH", "AGING", "STALE_CACHE"}
 CORE_AUTO_TUNING_SOURCES = {"Yahoo/yfinance market data"}
+CANADIAN_SOURCE_CACHE_PREFIXES = {
+    "stockanalysis_": "stockanalysis",
+    "tmx_": "tmx",
+    "sedarplus_": "sedarplus",
+}
+CANADIAN_SOURCE_RECENT_FILE_HOURS = 168
+CANADIAN_SOURCE_HEALTHY_SUCCESS_RATE = 50.0
+CANADIAN_SOURCE_HEALTHY_SUCCESS_HOURS = 72
+
+
+def check_canadian_source_health(cache_dir: str | Path) -> dict[str, Any]:
+    source_dir = Path(cache_dir)
+    if source_dir.name != "canadian_sources":
+        source_dir = source_dir / "canadian_sources"
+    stats = {
+        key: {
+            "attempted_files": 0,
+            "available_files": 0,
+            "success_rate_percent": 0.0,
+            "latest_fetch_at": "",
+            "latest_success_fetched_at": "",
+            "latest_success_age_hours": "",
+        }
+        for key in CANADIAN_SOURCE_CACHE_PREFIXES.values()
+    }
+    try:
+        if not source_dir.exists():
+            return _canadian_source_health_result("DEAD", False, stats, str(source_dir), False)
+
+        recent_file_exists = False
+        for path in source_dir.glob("*.json"):
+            source = _canadian_source_from_cache_name(path.name)
+            if not source:
+                continue
+            payload = _read_json_silently(path)
+            fetched_at = _canadian_cache_fetched_at(payload)
+            fetched_age = _age_hours_from_iso(fetched_at)
+            if fetched_age is not None and fetched_age < CANADIAN_SOURCE_RECENT_FILE_HOURS:
+                recent_file_exists = True
+            available = _canadian_cache_available(payload)
+            row = stats[source]
+            row["attempted_files"] += 1
+            if _is_more_recent_fetch(fetched_at, str(row.get("latest_fetch_at") or "")):
+                row["latest_fetch_at"] = fetched_at
+            if available:
+                row["available_files"] += 1
+                if fetched_age is not None:
+                    current_success_age = safe_float(row.get("latest_success_age_hours"))
+                    if current_success_age is None or fetched_age < current_success_age:
+                        row["latest_success_age_hours"] = round(fetched_age, 2)
+                        row["latest_success_fetched_at"] = fetched_at
+
+        for row in stats.values():
+            attempted = int(safe_float(row.get("attempted_files")) or 0)
+            available = int(safe_float(row.get("available_files")) or 0)
+            row["success_rate_percent"] = round((available / attempted) * 100, 1) if attempted else 0.0
+
+        if not recent_file_exists:
+            return _canadian_source_health_result("DEAD", False, stats, str(source_dir), recent_file_exists)
+        healthy = any(_canadian_source_is_healthy(row) for row in stats.values())
+        if healthy:
+            return _canadian_source_health_result("HEALTHY", True, stats, str(source_dir), recent_file_exists)
+        any_recent_success = any(_canadian_source_has_recent_success(row) for row in stats.values())
+        if any_recent_success:
+            return _canadian_source_health_result("DEGRADED", True, stats, str(source_dir), recent_file_exists)
+        return _canadian_source_health_result("DEAD", False, stats, str(source_dir), recent_file_exists)
+    except Exception:
+        return _canadian_source_health_result("DEAD", False, stats, str(source_dir), False)
 
 
 def build_source_health_rows(
@@ -161,6 +233,13 @@ def source_health_audit_context(rows: list[dict[str, Any]]) -> dict[str, Any]:
         "source_health_auto_tuning_gate": gate,
         "source_health_interpretation": interpretation,
         "source_health_degraded_sources": ", ".join(str(row.get("source") or "") for row in degraded[:8]),
+        "source_health_partial_coverage_count": sum(int(safe_float(row.get("partial_coverage_count")) or 0) for row in rows),
+        "source_health_critical_stale_count": sum(int(safe_float(row.get("critical_stale_count")) or 0) for row in rows),
+        "source_health_audit_signal": "; ".join(
+            str(row.get("audit_signal") or "")
+            for row in rows
+            if str(row.get("audit_signal") or "").upper() not in {"", "OK"}
+        )[:500],
     }
 
 
@@ -191,6 +270,9 @@ def _market_data_health(rows: list[dict[str, Any]]) -> dict[str, Any]:
     coverage_rate = _ratio(total - len(bad), total)
     freshness_rate = _ratio(fresh, total)
     score = 100 * coverage_rate - 25 * _ratio(len(bad), total)
+    partial_count = _partial_coverage_count(rows)
+    critical_stale = _critical_stale_tickers(rows)
+    audit_signal = _audit_signal(partial_count=partial_count, critical_stale_count=len(critical_stale), conflicts=0)
     return _row(
         "Yahoo/yfinance market data",
         score,
@@ -200,6 +282,10 @@ def _market_data_health(rows: list[dict[str, Any]]) -> dict[str, Any]:
         action="Relancer avec --refresh-market-data si plusieurs tickers sont vieux ou indisponibles.",
         notes="Prix, historique, SMA, drawdown et métriques de marché.",
         ticker_count=total,
+        confirmed_field_rate=_average_confirmed_field_rate(rows),
+        partial_coverage_count=partial_count,
+        critical_stale_count=len(critical_stale),
+        audit_signal=audit_signal,
     )
 
 
@@ -214,6 +300,8 @@ def _official_data_health(rows: list[dict[str, Any]]) -> dict[str, Any]:
     affected = [_ticker(row) for row in eligible if not _has_official_evidence(row)]
     coverage_rate = _ratio(len(confirmed), len(eligible))
     score = 100 * coverage_rate - min(25, material_tickers * 0.75 + average_weighted_conflict * 3)
+    partial_count = _partial_coverage_count(eligible)
+    audit_signal = _audit_signal(partial_count=partial_count, critical_stale_count=0, conflicts=material_tickers)
     return _row(
         "SEC/official fundamentals",
         score,
@@ -228,6 +316,9 @@ def _official_data_health(rows: list[dict[str, Any]]) -> dict[str, Any]:
             f"score pondéré moyen={average_weighted_conflict:.2f}."
         ),
         ticker_count=len(eligible),
+        confirmed_field_rate=_average_confirmed_field_rate(eligible),
+        partial_coverage_count=partial_count,
+        audit_signal=audit_signal,
     )
 
 
@@ -284,6 +375,8 @@ def _canadian_source_health(rows: list[dict[str, Any]], source_name: str) -> dic
     availability_rate = _ratio(available_count, len(attempts))
     avg_latency_ms = round(sum(latencies) / len(latencies), 1) if latencies else ""
     score = max(70, 100 * availability_rate - min(15, conflicts * 3))
+    partial_count = _partial_coverage_count(eligible)
+    audit_signal = _audit_signal(partial_count=partial_count, critical_stale_count=0, conflicts=conflicts)
     return _row(
         source_name,
         score,
@@ -296,6 +389,9 @@ def _canadian_source_health(rows: list[dict[str, Any]], source_name: str) -> dic
         action="Surveiller si plusieurs titres canadiens importants restent non couverts; StockAnalysis demeure le filet de secours.",
         notes="Source canadienne gratuite ajoutée sous yfinance et au-dessus du fallback final lorsque disponible.",
         ticker_count=len(eligible),
+        confirmed_field_rate=_average_confirmed_field_rate(eligible),
+        partial_coverage_count=partial_count,
+        audit_signal=audit_signal,
     )
 
 
@@ -312,6 +408,8 @@ def _research_report_health(rows: list[dict[str, Any]]) -> dict[str, Any]:
     score = 85 + 15 * freshness_rate - 20 * _ratio(len(stale), max(1, len(with_report)))
     if not with_report:
         score = 82
+    partial_count = _partial_coverage_count(rows)
+    audit_signal = _audit_signal(partial_count=partial_count, critical_stale_count=len(stale), conflicts=0)
     return _row(
         "Local BNCD/Morningstar reports",
         score,
@@ -321,6 +419,10 @@ def _research_report_health(rows: list[dict[str, Any]]) -> dict[str, Any]:
         action="Chercher un rapport seulement pour les titres importants ou recommandés qui manquent de preuves.",
         notes="Source locale utile pour combler les angles morts; optionnelle pour les titres déjà bien couverts.",
         ticker_count=len(rows),
+        confirmed_field_rate=_average_confirmed_field_rate(with_report),
+        partial_coverage_count=partial_count,
+        critical_stale_count=len(stale),
+        audit_signal=audit_signal,
     )
 
 
@@ -339,6 +441,8 @@ def _news_context_health(rows: list[dict[str, Any]]) -> dict[str, Any]:
         action="Utiliser les nouvelles comme contexte seulement; valider manuellement si un mouvement de prix semble étrange.",
         notes="Aide à comprendre les grosses baisses ou risques récents, sans remplacer les fondamentaux.",
         ticker_count=len(triggered),
+        confirmed_field_rate=1.0,
+        audit_signal=_audit_signal(partial_count=0, critical_stale_count=0, conflicts=0),
     )
 
 
@@ -352,6 +456,8 @@ def _auto_proxy_health(rows: list[dict[str, Any]]) -> dict[str, Any]:
     critical_gaps = sum(int(safe_float(row.get("score_missing_data_count")) or 0) for row in rows)
     coverage_rate = _ratio(len(rows) - len(high_dependency), len(rows))
     score = 100 * coverage_rate - min(25, critical_gaps * 0.5)
+    partial_count = _partial_coverage_count(rows)
+    audit_signal = _audit_signal(partial_count=partial_count, critical_stale_count=0, conflicts=0)
     return _row(
         "Automatic proxy estimates",
         score,
@@ -362,6 +468,9 @@ def _auto_proxy_health(rows: list[dict[str, Any]]) -> dict[str, Any]:
         action="Remplir le fichier de calibration ou ajouter un rapport local pour les titres importants dépendants des proxys.",
         notes="Surveille le risque qu’un score confiant repose trop sur des estimations.",
         ticker_count=len(rows),
+        confirmed_field_rate=_average_confirmed_field_rate(rows),
+        partial_coverage_count=partial_count,
+        audit_signal=audit_signal,
     )
 
 
@@ -379,9 +488,14 @@ def _row(
     ticker_count: int,
     availability_rate: float | None = None,
     avg_latency_ms: float | str | None = None,
+    confirmed_field_rate: float | None = None,
+    partial_coverage_count: int = 0,
+    critical_stale_count: int = 0,
+    audit_signal: str = "OK",
 ) -> dict[str, Any]:
     affected = sorted({ticker for ticker in (affected or []) if ticker})
     health_score = round(clamp(score, 0, 100), 1)
+    audit_signal = audit_signal or "OK"
     return {
         "source": source,
         "status": _status(health_score),
@@ -394,9 +508,13 @@ def _row(
         "affected_tickers": ", ".join(affected[:20]),
         "conflict_count": conflicts,
         "critical_gap_count": gaps,
+        "confirmed_field_rate": round(confirmed_field_rate if confirmed_field_rate is not None else coverage_rate, 4),
+        "partial_coverage_count": partial_coverage_count,
+        "critical_stale_count": critical_stale_count,
+        "audit_signal": audit_signal,
         "ticker_count": ticker_count,
         "trend": "NEW",
-        "action": action,
+        "action": _action_with_audit(action, audit_signal),
         "notes": notes,
     }
 
@@ -431,6 +549,141 @@ def _status(score: float) -> str:
     if score >= 50:
         return "DEGRADED"
     return "CRITICAL"
+
+
+def _average_confirmed_field_rate(rows: list[dict[str, Any]]) -> float:
+    values = [
+        safe_float(row.get("critical_data_confirmed_field_rate"))
+        for row in rows
+        if safe_float(row.get("critical_data_confirmed_field_rate")) is not None
+    ]
+    if not values:
+        return 0.0
+    return round(sum(float(value) for value in values) / len(values), 4)
+
+
+def _partial_coverage_count(rows: list[dict[str, Any]]) -> int:
+    count = 0
+    for row in rows:
+        status = str(row.get("data_quality_partial_coverage_status") or "").upper()
+        partial_flag = str(row.get("data_quality_partial_coverage_flag") or "").strip().lower() in {"true", "1", "yes", "oui"}
+        fill_rate = safe_float(row.get("data_fill_rate"))
+        if partial_flag or status in {"AUTO_PROXY_HEAVY_COVERAGE", "THIN_COVERAGE"}:
+            count += 1
+        elif fill_rate is not None and fill_rate < 0.70:
+            count += 1
+    return count
+
+
+def _critical_stale_tickers(rows: list[dict[str, Any]]) -> list[str]:
+    stale_levels = {"VERY_STALE", "UNAVAILABLE", "CRITICAL_REFRESH_NEEDED"}
+    output = []
+    for row in rows:
+        critical_level = str(row.get("critical_data_freshness_level") or row.get("overall_data_freshness_level") or "").upper()
+        freshness_score = safe_float(row.get("critical_data_freshness_score"))
+        age_hours = safe_float(row.get("market_data_age_hours"))
+        if critical_level in stale_levels or (critical_level == "STALE" and age_hours is not None and age_hours > 168):
+            output.append(_ticker(row))
+        elif freshness_score is not None and freshness_score < 70:
+            output.append(_ticker(row))
+    return sorted({ticker for ticker in output if ticker})
+
+
+def _audit_signal(*, partial_count: int, critical_stale_count: int, conflicts: int) -> str:
+    parts = []
+    if partial_count:
+        parts.append(f"PARTIAL_COVERAGE:{partial_count}")
+    if critical_stale_count:
+        parts.append(f"CRITICAL_STALE:{critical_stale_count}")
+    if conflicts:
+        parts.append(f"SOURCE_CONFLICTS:{conflicts}")
+    return " | ".join(parts) if parts else "OK"
+
+
+def _action_with_audit(action: str, audit_signal: str) -> str:
+    if not audit_signal or audit_signal == "OK":
+        return action
+    return f"{action} Audit data quality: {audit_signal}."
+
+
+def _canadian_source_health_result(
+    status: str,
+    fallback_available: bool,
+    sources: dict[str, dict[str, Any]],
+    cache_dir: str,
+    recent_file_exists: bool,
+) -> dict[str, Any]:
+    return {
+        "canadian_source_health_status": status,
+        "canadian_fallback_available": bool(fallback_available),
+        "cache_dir": cache_dir,
+        "recent_file_exists": bool(recent_file_exists),
+        "sources": sources,
+    }
+
+
+def _canadian_source_from_cache_name(name: str) -> str:
+    for prefix, source in CANADIAN_SOURCE_CACHE_PREFIXES.items():
+        if name.startswith(prefix):
+            return source
+    return ""
+
+
+def _canadian_source_is_healthy(row: dict[str, Any]) -> bool:
+    success_rate = safe_float(row.get("success_rate_percent")) or 0.0
+    success_age = safe_float(row.get("latest_success_age_hours"))
+    return (
+        success_rate > CANADIAN_SOURCE_HEALTHY_SUCCESS_RATE
+        and success_age is not None
+        and success_age < CANADIAN_SOURCE_HEALTHY_SUCCESS_HOURS
+    )
+
+
+def _canadian_source_has_recent_success(row: dict[str, Any]) -> bool:
+    success_age = safe_float(row.get("latest_success_age_hours"))
+    return success_age is not None and success_age < CANADIAN_SOURCE_RECENT_FILE_HOURS
+
+
+def _read_json_silently(path: Path) -> dict[str, Any]:
+    try:
+        json = __import__("json")
+        return dict(json.loads(path.read_text(encoding="utf-8")))
+    except Exception:
+        return {}
+
+
+def _canadian_cache_fetched_at(payload: dict[str, Any]) -> str:
+    parsed = payload.get("parsed_payload") if isinstance(payload.get("parsed_payload"), dict) else {}
+    return str(payload.get("fetched_at") or parsed.get("fetched_at") or "").strip()
+
+
+def _canadian_cache_available(payload: dict[str, Any]) -> bool:
+    parsed = payload.get("parsed_payload") if isinstance(payload.get("parsed_payload"), dict) else {}
+    value = payload.get("available")
+    if value is None:
+        value = parsed.get("available")
+    return str(value).strip().lower() in {"true", "1", "yes", "oui"}
+
+
+def _age_hours_from_iso(value: str) -> float | None:
+    if not value:
+        return None
+    try:
+        datetime_module = __import__("datetime", fromlist=["datetime"])
+        datetime_cls = datetime_module.datetime
+        parsed = datetime_cls.fromisoformat(str(value).replace("Z", "+00:00"))
+        now = datetime_cls.now(parsed.tzinfo) if parsed.tzinfo else datetime_cls.now()
+        return max(0.0, (now - parsed).total_seconds() / 3600)
+    except Exception:
+        return None
+
+
+def _is_more_recent_fetch(candidate: str, current: str) -> bool:
+    candidate_age = _age_hours_from_iso(candidate)
+    if candidate_age is None:
+        return False
+    current_age = _age_hours_from_iso(current)
+    return current_age is None or candidate_age < current_age
 
 
 def _ratio(numerator: int | float, denominator: int | float) -> float:

@@ -13,13 +13,20 @@ from bs4 import BeautifulSoup
 from .utils import CACHE_DIR, load_json, safe_float, save_json
 
 
-STOCKANALYSIS_USER_AGENT = "investment-automation-local/1.0"
+STOCKANALYSIS_USER_AGENT = (
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
+    "AppleWebKit/537.36 (KHTML, like Gecko) "
+    "Chrome/126.0.0.0 Safari/537.36"
+)
 STOCKANALYSIS_SOURCE_NAME = "StockAnalysis Canadian financial pages"
 SEDARPLUS_SOURCE_NAME = "SEDAR+ public filings"
 TMX_SOURCE_NAME = "TMX Money market data"
 CANADIAN_AUTHORITY_TIMEOUT_SECONDS = 10
 CANADIAN_SOURCE_CONFLICT_THRESHOLD = 0.15
 SEDARPLUS_BASE_URL = "https://www.sedarplus.ca"
+# Désactivé le 2026-07-20 : endpoints publics protégés par captcha Radware,
+# non exploitables en automatisation gratuite. Voir scripts/diagnose_canadian_sources.py.
+SEDARPLUS_ENABLED = False
 TMX_QUOTE_URL = "https://app.tmxmoney.com/quote/{symbol}"
 TMX_GRAPHQL_URL = "https://app-money.tmx.com/graphql"
 
@@ -104,15 +111,27 @@ class CanadianDataFetcher:
         source_payloads: list[dict[str, Any]] = []
         source_health: list[dict[str, Any]] = []
 
-        sedar_payload, sedar_health = self._cached_external_source(
-            cache_name=f"sedarplus_{meta['exchange']}_{meta['symbol']}.json",
-            source_name=SEDARPLUS_SOURCE_NAME,
-            ticker=ticker,
-            fetcher=fetch_sedarplus_fundamentals,
-            refresh=refresh,
-        )
-        source_payloads.append(sedar_payload)
-        source_health.append(sedar_health)
+        if SEDARPLUS_ENABLED:
+            sedar_payload, sedar_health = self._cached_external_source(
+                cache_name=f"sedarplus_{meta['exchange']}_{meta['symbol']}.json",
+                source_name=SEDARPLUS_SOURCE_NAME,
+                ticker=ticker,
+                fetcher=fetch_sedarplus_fundamentals,
+                refresh=refresh,
+            )
+            source_payloads.append(sedar_payload)
+            source_health.append(sedar_health)
+        else:
+            source_health.append(
+                {
+                    "source": SEDARPLUS_SOURCE_NAME,
+                    "available": False,
+                    "latency_ms": "",
+                    "status": "DISABLED",
+                    "fetched_at": "",
+                    "reason": "Captcha Radware — source non exploitable",
+                }
+            )
 
         tmx_payload, tmx_health = self._cached_external_source(
             cache_name=f"tmx_{meta['exchange']}_{meta['symbol']}.json",
@@ -234,24 +253,20 @@ class CanadianDataFetcher:
                 return parsed
 
         urls = _stockanalysis_urls(str(meta["exchange"]), str(meta["symbol"]))
-        raw_pages: dict[str, str] = {}
-        errors: list[str] = []
         started = time.perf_counter()
-        for statement, url in urls.items():
-            try:
-                response = requests.get(
-                    url,
-                    timeout=self.timeout_seconds,
-                    headers={"User-Agent": STOCKANALYSIS_USER_AGENT},
-                )
-                if response.status_code >= 400:
-                    errors.append(f"{statement}: HTTP {response.status_code}")
-                    continue
-                raw_pages[statement] = response.text
-            except Exception as exc:
-                errors.append(f"{statement}: {exc}")
+        raw_pages, errors, status_codes, used_urls = _request_stockanalysis_pages(urls, timeout_seconds=self.timeout_seconds)
+        if not raw_pages and status_codes and all(status == 404 for status in status_codes.values()):
+            fallback_urls = _stockanalysis_symbol_only_urls(str(meta["symbol"]))
+            fallback_pages, fallback_errors, fallback_status_codes, fallback_used_urls = _request_stockanalysis_pages(
+                fallback_urls,
+                timeout_seconds=self.timeout_seconds,
+            )
+            raw_pages = fallback_pages
+            errors.extend(f"fallback {error}" for error in fallback_errors)
+            status_codes.update({f"fallback_{key}": value for key, value in fallback_status_codes.items()})
+            used_urls = {**used_urls, **{f"fallback_{key}": value for key, value in fallback_used_urls.items()}}
 
-        parsed = parse_stockanalysis_pages(raw_pages, ticker=ticker, company_name=company_name, urls=urls)
+        parsed = parse_stockanalysis_pages(raw_pages, ticker=ticker, company_name=company_name, urls=used_urls)
         if not parsed.get("available"):
             parsed["errors"] = errors
         latency_ms = round((time.perf_counter() - started) * 1000, 1)
@@ -319,8 +334,7 @@ def fetch_tmx_fundamentals(ticker: str) -> dict[str, Any]:
         "query": (
             "query getQuoteBySymbol($symbol:String!) { "
             "getQuoteBySymbol(symbol:$symbol) { "
-            "symbol name marketCap peRatio priceEarningsRatio dividendYield "
-            "fiftyTwoWeekHigh fiftyTwoWeekLow week52High week52Low sector industry "
+            "symbol name MarketCap "
             "} }"
         ),
         "variables": {"symbol": symbol},
@@ -717,6 +731,40 @@ def _stockanalysis_urls(exchange: str, symbol: str) -> dict[str, str]:
         "balance": f"{base}/balance-sheet/",
         "cashflow": f"{base}/cash-flow-statement/",
     }
+
+
+def _stockanalysis_symbol_only_urls(symbol: str) -> dict[str, str]:
+    base = f"https://stockanalysis.com/quote/{symbol}/financials"
+    return {
+        "income": f"{base}/",
+        "balance": f"{base}/balance-sheet/",
+        "cashflow": f"{base}/cash-flow-statement/",
+    }
+
+
+def _request_stockanalysis_pages(
+    urls: dict[str, str],
+    *,
+    timeout_seconds: int,
+) -> tuple[dict[str, str], list[str], dict[str, int], dict[str, str]]:
+    raw_pages: dict[str, str] = {}
+    errors: list[str] = []
+    status_codes: dict[str, int] = {}
+    for statement, url in urls.items():
+        try:
+            response = requests.get(
+                url,
+                timeout=timeout_seconds,
+                headers={"User-Agent": STOCKANALYSIS_USER_AGENT},
+            )
+            status_codes[statement] = response.status_code
+            if response.status_code >= 400:
+                errors.append(f"{statement}: HTTP {response.status_code}")
+                continue
+            raw_pages[statement] = response.text
+        except Exception as exc:
+            errors.append(f"{statement}: {exc}")
+    return raw_pages, errors, status_codes, dict(urls)
 
 
 def _fresh_cached_json(path: Path, max_age: timedelta, *, refresh: bool) -> dict[str, Any]:

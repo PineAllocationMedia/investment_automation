@@ -230,6 +230,7 @@ def _market_result(
     reason: str,
     stale_warning: str,
 ) -> dict[str, Any]:
+    freshness_score = round(clamp(100.0 - penalty * 4.0, 0, 100), 2)
     return {
         "market_data_source": source,
         "market_data_fetched_at": fetched_at,
@@ -240,6 +241,12 @@ def _market_result(
         "market_data_requires_refresh": requires_refresh,
         "market_data_freshness_reason": reason,
         "market_data_stale_cache_warning": stale_warning,
+        "critical_data_freshness_level": level,
+        "critical_data_freshness_score": freshness_score,
+        "critical_data_freshness_reason": (
+            "Réduit le risque de scores instables dus à des données fraîches incomplètes: "
+            + reason
+        ),
     }
 
 
