@@ -17,6 +17,7 @@ from src.allocation_sensitivity_engine import compute_allocation_sensitivity
 from src.allocation_stability_engine import apply_allocation_stability
 from src.allocation_engine import allocate_capital, allocation_universe_for_mode
 from src.account_performance_engine import build_account_performance_rows
+from src.audit_signal_engine import compute_full_audit_signal, compute_model_audit_signal
 from src.asset_type_engine import (
     etf_asset_profile,
     etf_risk_exposure,
@@ -29,7 +30,7 @@ from src.auto_fundamentals import build_automated_manual_inputs, merge_automated
 from src.backtest_engine import run_backtests_from_latest_reports
 from src.backup_engine import create_project_backup, list_project_backups
 from src.benchmark_relevance_engine import compute_benchmark_relevance, enrich_benchmark_map, infer_benchmark_from_context
-from src.cache_management_engine import CACHE_HEALTH_COLUMNS, run_cache_maintenance
+from src.cache_management_engine import CACHE_HEALTH_COLUMNS, reset_expired_market_circuit_breakers, run_cache_maintenance
 from src.cagr_quality_engine import compute_expected_cagr_quality, compute_quality_but_too_expensive
 from src.cash_flow_quality_engine import compute_cash_flow_quality
 from src.confidence_range_engine import compute_conviction_confidence_range
@@ -59,6 +60,7 @@ from src.drift_engine import compute_drift_status
 from src.history_engine import apply_history_context, load_previous_snapshot, save_current_snapshot
 from src.hidden_cluster_engine import apply_hidden_cluster_guardrails
 from src.health_check_engine import HEALTH_CHECK_COLUMNS, health_summary, run_health_check
+from src.instrument_profile_engine import build_instrument_profiles
 from src.liquidation_engine import apply_history_sell_discipline, compute_liquidation_status
 from src.long_term_durability_engine import compute_long_term_durability
 from src.full_audit_engine import run_full_audit
@@ -133,7 +135,7 @@ from src.proxy_correction_engine import (
     create_proxy_corrections_template,
     load_proxy_corrections,
 )
-from src.report_generator import generate_reports
+from src.report_generator import _report_mode_slug, generate_reports
 from src.research_reports import (
     BNCD_MORNINGSTAR_DIR,
     RESEARCH_REPORTS_DIR,
@@ -153,9 +155,11 @@ from src.run_logging_engine import (
     build_health_check_run_log,
     build_walk_forward_run_log,
     make_run_id,
+    write_universe_snapshot,
 )
 from src.scoring import compute_fundamental_score
 from src.sizing_engine import compute_capital_allocation_score, compute_winner_accelerated
+from src.score_stability_engine import SCORE_STABILITY_COLUMNS, compute_score_stability
 from src.stress_test_engine import compute_stress_tests
 from src.tax_location_engine import compute_after_tax_yield, compute_tax_location_report
 from src.thesis_engine import compute_thesis_status
@@ -184,10 +188,19 @@ from src.validation_priority_engine import build_validation_priority_rows
 from src.validators import validate_allocation_rules, validate_capital, validate_input_files
 from src.watchlist_engine import create_watchlist_template, load_watchlist, classify_watchlist_analysis, compute_data_quality
 from src.walk_forward_backtest_engine import run_walk_forward_backtest
+from src.walk_forward_signal_engine import compute_walk_forward_signal
 from src.winner_protection_engine import apply_winner_protection
 
 
 VALID_MODES = {"balanced", "rational-aggressive", "family-office", "high-cagr"}
+
+# [DECISION 2026-07-04] Seuil d'inclusion des tickers DISCOVERY_IDEAS
+# dans validation_priority_rows. Seuls les candidats ayant franchi les
+# gates d'allocation (allocation_status in ELIGIBLE_BUT_NOT_SELECTED ou
+# NO_NEW_ALLOCATION) ET un capital_allocation_score >= ce seuil génèrent
+# des demandes de rapports BNCD/Morningstar. Évite de polluer la liste
+# research-needed avec des candidats faibles parmi les 100+ tickers Discovery.
+DISCOVERY_VALIDATION_PRIORITY_MIN_SCORE = 70
 
 
 def expand_exclusions_with_alias_inputs(excluded_tickers: set[str], ticker_aliases: dict[str, dict[str, str]]) -> set[str]:
@@ -244,6 +257,8 @@ def main(argv: list[str] | None = None) -> int:
         return improvement_audit_command(args)
     if args.command == "apply-safe-tuning":
         return apply_safe_tuning_command(args)
+    if args.command == "sync-manual-inputs":
+        return sync_manual_inputs_command(args)
     if args.command == "sync-portfolio":
         return sync_portfolio_command(args)
     if args.command == "analyze":
@@ -370,6 +385,14 @@ def build_parser() -> argparse.ArgumentParser:
     )
     apply_tuning.add_argument("--mode", choices=sorted(VALID_MODES), default="high-cagr")
 
+    subparsers.add_parser(
+        "sync-manual-inputs",
+        help=(
+            "Traduit proxy_calibration_input.csv en manual_inputs_friendly.txt. "
+            "A relancer apres chaque mise a jour du fichier de calibration."
+        ),
+    )
+
     sync_portfolio = subparsers.add_parser(
         "sync-portfolio",
         help="Met à jour l'historique du portefeuille sans créer une nouvelle recommandation.",
@@ -475,6 +498,178 @@ def analyze_command(args: argparse.Namespace) -> int:
         print("Allocation recommandée:")
         for row in result["allocations"]:
             print(f"- {row['destination']}: {row['montant']:.2f} $ ({row['bloc']})")
+    return 0
+
+
+def sync_manual_inputs_command(args: argparse.Namespace) -> int:
+    """Translate proxy_calibration.csv -> manual_inputs_friendly.txt.
+    Category A fields always override. Category B fields only override
+    when source_date is within 90 days. Writes a sync log for alerts.
+    """
+    del args
+    import configparser
+    import csv as _csv
+    import json as _json
+    from datetime import date as _date, datetime as _datetime
+
+    MISSING = {"", "x", "X", "N/A", "NA", "N/D", "ND", "LOW-MEDIUM"}
+
+    CAT_A = {
+        "roic_5y_avg_true": "roic_5y_avg",
+        "net_margin_stable_or_expanding_true": "net_margin_stable_or_expanding",
+        "eps_growth_5y_true": "eps_growth_5y",
+        "moat_clear_true": "moat_clear",
+        "management_quality_good_true": "management_quality_good",
+        "balance_sheet_strong_true": "balance_sheet_strong",
+        "margin_or_profitability_under_pressure_true": "margin_or_profitability_under_pressure",
+        "confidence": "manual_confidence_level",
+        "notes": "notes",
+    }
+
+    CAT_B = {
+        "fair_value_true": "fair_value",
+        "forward_pe_true": "forward_pe_manual",
+        "peg_true": "peg_manual",
+        "eps_growth_estimated_3_5y_true": "eps_growth_estimated_3_5y",
+        "valuation_vs_5y_avg_ok_true": "valuation_vs_5y_avg_ok",
+        "forward_pe_growth_acceptable_true": "forward_pe_growth_acceptable",
+    }
+
+    WARN_DAYS = 75
+    STALE_DAYS = 90
+
+    proxy_path = DATA_DIR / "proxy_calibration.csv"
+    friendly_path = DATA_DIR / "manual_inputs_friendly.txt"
+    log_path = DATA_DIR / "proxy_calibration_sync_log.json"
+
+    if not proxy_path.exists():
+        print(f"Fichier source introuvable: {proxy_path}")
+        return 1
+
+    try:
+        with open(proxy_path, newline="", encoding="utf-8") as handle:
+            rows = list(_csv.DictReader(handle))
+    except Exception as exc:
+        print(f"Erreur lecture {proxy_path}: {exc}")
+        return 1
+
+    today = _date.today()
+
+    def parse_source_date(raw: str):
+        raw = str(raw or "").strip()
+        if not raw or raw in MISSING or len(raw) == 4:
+            return None
+        try:
+            return _datetime.strptime(raw[:10], "%Y-%m-%d").date()
+        except Exception:
+            return None
+
+    config = configparser.ConfigParser(interpolation=None)
+    config.optionxform = str
+
+    sections_written = 0
+    skipped_no_data = 0
+    stale_tickers = []
+    warning_tickers = []
+    no_date_tickers = []
+
+    for row in rows:
+        ticker = str(row.get("ticker", "") or "").strip().upper()
+        if not ticker:
+            continue
+
+        src_date = parse_source_date(row.get("source_date", ""))
+        days_old = (today - src_date).days if src_date else None
+
+        if days_old is None:
+            cat_b_eligible = False
+            no_date_tickers.append(ticker)
+        elif days_old > STALE_DAYS:
+            cat_b_eligible = False
+            stale_tickers.append(ticker)
+        elif days_old > WARN_DAYS:
+            cat_b_eligible = True
+            warning_tickers.append(ticker)
+        else:
+            cat_b_eligible = True
+
+        fields: dict[str, str] = {}
+
+        for csv_col, ini_key in CAT_A.items():
+            raw = str(row.get(csv_col, "") or "").strip()
+            if raw in MISSING:
+                continue
+            fields[ini_key] = raw
+
+        if cat_b_eligible:
+            for csv_col, ini_key in CAT_B.items():
+                raw = str(row.get(csv_col, "") or "").strip()
+                if raw in MISSING:
+                    continue
+                fields[ini_key] = raw
+
+        if not fields:
+            skipped_no_data += 1
+            continue
+
+        config[ticker] = fields
+        sections_written += 1
+
+    header = "\n".join(
+        [
+            "# Genere automatiquement par: python3 main.py sync-manual-inputs",
+            "# Source: data/proxy_calibration.csv",
+            "# Ne pas modifier directement.",
+            "# Categorie A: toujours appliquee (donnees lentes).",
+            "# Categorie B: appliquee seulement si source_date < 90 jours.",
+            "",
+        ]
+    )
+
+    try:
+        with open(friendly_path, "w", encoding="utf-8") as handle:
+            handle.write(header + "\n")
+            config.write(handle)
+    except Exception as exc:
+        print(f"Erreur ecriture {friendly_path}: {exc}")
+        return 1
+
+    sync_log = {
+        "sync_date": today.isoformat(),
+        "sections_written": sections_written,
+        "skipped_no_data": skipped_no_data,
+        "stale_tickers": sorted(set(stale_tickers)),
+        "warning_tickers": sorted(set(warning_tickers)),
+        "no_date_tickers": sorted(set(no_date_tickers)),
+        "warn_threshold_days": WARN_DAYS,
+        "stale_threshold_days": STALE_DAYS,
+    }
+    try:
+        with open(log_path, "w", encoding="utf-8") as handle:
+            _json.dump(sync_log, handle, indent=2, ensure_ascii=False)
+    except Exception:
+        pass
+
+    print("sync-manual-inputs termine.")
+    print(f"  Sections ecrites       : {sections_written}")
+    print(f"  Tickers sans donnees   : {skipped_no_data}")
+    if stale_tickers:
+        print(f"  PÉRIMÉS (>{STALE_DAYS}j) — Cat.B ignoree : {', '.join(sorted(set(stale_tickers)))}")
+        print("    -> Mettre a jour proxy_calibration.csv puis relancer.")
+    if warning_tickers:
+        print(
+            f"  ATTENTION ({WARN_DAYS}-{STALE_DAYS}j) — Cat.B ecrite mais proche expiry : "
+            f"{', '.join(sorted(set(warning_tickers)))}"
+        )
+    if no_date_tickers:
+        print(f"  Sans source_date — Cat.B ignoree : {', '.join(sorted(set(no_date_tickers)))}")
+        print("    -> Ajouter source_date dans proxy_calibration.csv.")
+    print(f"  Fichier de sortie      : {friendly_path}")
+    print(f"  Journal de sync        : {log_path}")
+    if sections_written > 0:
+        print()
+        print("Relancer analyze pour que les overrides prennent effet.")
+
     return 0
 
 
@@ -601,6 +796,12 @@ def research_needed_command(args: argparse.Namespace) -> int:
             f"- {row['ticker_display']} [{row['priority']} / {row.get('need_type', 'DATA')}]: {row['reason']} "
             f"-> fichier suggéré: {row['suggested_file_name']}"
         )
+    print("")
+    print("ATTENTION: classement dégradé.")
+    print("Cette commande n'exécute pas le moteur d'allocation. Le score de potentiel")
+    print("(ticker_potential_score) est donc sous-évalué et l'ordre diffère de celui")
+    print("produit par `analyze`.")
+    print("Pour le classement de référence, utiliser le fichier produit par `analyze`.")
     return 0
 
 
@@ -954,13 +1155,17 @@ def merge_research_needed_rows(
             continue
         existing = merged.get(ticker)
         if not existing:
-            merged[ticker] = dict(row)
+            inserted = dict(row)
+            inserted["ticker_potential_score"] = 0.0
+            merged[ticker] = inserted
             continue
         existing_types = {part for part in str(existing.get("need_type") or "").split("+") if part}
         row_types = {part for part in str(row.get("need_type") or "").split("+") if part}
         if existing_types == {"QUALITATIVE"} and row_types == {"QUALITATIVE"}:
             if priority_rank.get(str(row.get("priority") or ""), 0) >= priority_rank.get(str(existing.get("priority") or ""), 0):
-                merged[ticker] = dict(row)
+                replacement = dict(row)
+                replacement["ticker_potential_score"] = safe_float(existing.get("ticker_potential_score")) or 0.0
+                merged[ticker] = replacement
             continue
         combined_types = sorted(existing_types | row_types)
         existing["need_type"] = "+".join(combined_types)
@@ -974,6 +1179,7 @@ def merge_research_needed_rows(
     return sorted(
         merged.values(),
         key=lambda row: (
+            -(safe_float(row.get("ticker_potential_score")) or 0.0),
             rank_for_sort.get(str(row.get("priority") or ""), 9),
             0 if str(row.get("universe")) == "CORE_PORTFOLIO" else 1,
             -(safe_float(row.get("missing_critical_count")) or 0.0),
@@ -1110,498 +1316,618 @@ def run_analysis(
     #
     # Changing this order can silently alter allocations. Document any change in DECISIONS.md.
     run_id = make_run_id("analyze", mode)
-    cache_health_rows = run_cache_maintenance(CACHE_DIR, repair_safe=True)
-    ticker_aliases = load_ticker_aliases(CONFIG_DIR / "ticker_aliases.yaml")
-    ticker_resolution_metadata: dict[str, dict[str, Any]] = {}
+    try:
+        cache_health_rows = run_cache_maintenance(CACHE_DIR, repair_safe=True)
+        circuit_breaker_reset_row = None
+        if refresh_market_data:
+            circuit_breaker_reset_row = reset_expired_market_circuit_breakers(CACHE_DIR)
+            cache_health_rows.append(circuit_breaker_reset_row)
+        ticker_aliases = load_ticker_aliases(CONFIG_DIR / "ticker_aliases.yaml")
+        ticker_resolution_metadata: dict[str, dict[str, Any]] = {}
 
-    positions = resolve_ticker_list(load_positions(), ticker_aliases, ticker_resolution_metadata, "config/positions.yaml")
-    configured_benchmark_map = resolve_keyed_config(
-        load_yaml(CONFIG_DIR / "benchmarks.yaml"),
-        ticker_aliases,
-        ticker_resolution_metadata,
-        "config/benchmarks.yaml",
-    )
-    sectors = resolve_keyed_config(load_yaml(CONFIG_DIR / "sectors.yaml"), ticker_aliases, ticker_resolution_metadata, "config/sectors.yaml")
-    exposures = resolve_keyed_config(load_yaml(CONFIG_DIR / "exposures.yaml"), ticker_aliases, ticker_resolution_metadata, "config/exposures.yaml")
-    watchlist_items = load_and_resolve_universe(
-        lambda: load_watchlist(CONFIG_DIR / "watchlist.yaml", DATA_DIR / "watchlist.csv"),
-        ticker_aliases,
-        ticker_resolution_metadata,
-        "watchlist",
-    )
-    market_universe = load_and_resolve_universe(
-        lambda: load_market_universe(CONFIG_DIR / "market_scanner.yaml", DATA_DIR / "market_universe.csv"),
-        ticker_aliases,
-        ticker_resolution_metadata,
-        "market_universe",
-    )
-    defensive_etf_config = load_defensive_etf_config(CONFIG_DIR / "defensive_etfs.yaml")
-    defensive_etf_tickers = defensive_etf_tickers_for_mode(defensive_etf_config, mode)
-    market_regime_config = load_market_regime_config(CONFIG_DIR / "market_regime.yaml")
-
-    raw_portfolio_rows = load_portfolio(DATA_DIR / "portfolio.csv")
-    raw_portfolio_transaction_rows = load_portfolio_transactions(DATA_DIR / "portfolio_transactions.csv")
-    portfolio_rows = resolve_portfolio_rows(
-        raw_portfolio_rows,
-        ticker_aliases,
-        ticker_resolution_metadata,
-        "data/portfolio.csv",
-    )
-    portfolio_lot_rows = resolve_portfolio_lot_rows(
-        raw_portfolio_rows,
-        ticker_aliases,
-        ticker_resolution_metadata,
-        "data/portfolio.csv",
-    )
-    portfolio_transaction_rows = resolve_portfolio_transaction_rows(
-        raw_portfolio_transaction_rows,
-        ticker_aliases,
-        ticker_resolution_metadata,
-        "data/portfolio_transactions.csv",
-    )
-    legacy_account_locations = []
-    if (DATA_DIR / "account_locations.csv").exists():
-        legacy_account_locations = resolve_account_location_rows(
-            load_account_locations(DATA_DIR / "account_locations.csv"),
+        positions = resolve_ticker_list(load_positions(), ticker_aliases, ticker_resolution_metadata, "config/positions.yaml")
+        configured_benchmark_map = resolve_keyed_config(
+            load_yaml(CONFIG_DIR / "benchmarks.yaml"),
             ticker_aliases,
             ticker_resolution_metadata,
-            "data/account_locations.csv",
+            "config/benchmarks.yaml",
         )
-    manual_inputs = resolve_manual_inputs(
-        load_friendly_manual_inputs(DATA_DIR / "manual_inputs_friendly.txt"),
-        ticker_aliases,
-        ticker_resolution_metadata,
-        "data/manual_inputs_friendly.txt",
-    )
-    proxy_corrections = load_proxy_corrections(CONFIG_DIR / "proxy_corrections.yaml")
-    proxy_calibration_inputs = load_proxy_calibration_inputs(DATA_DIR / "proxy_calibration.csv")
+        sectors = resolve_keyed_config(load_yaml(CONFIG_DIR / "sectors.yaml"), ticker_aliases, ticker_resolution_metadata, "config/sectors.yaml")
+        exposures = resolve_keyed_config(load_yaml(CONFIG_DIR / "exposures.yaml"), ticker_aliases, ticker_resolution_metadata, "config/exposures.yaml")
+        watchlist_items = load_and_resolve_universe(
+            lambda: load_watchlist(CONFIG_DIR / "watchlist.yaml", DATA_DIR / "watchlist.csv"),
+            ticker_aliases,
+            ticker_resolution_metadata,
+            "watchlist",
+        )
+        market_universe = load_and_resolve_universe(
+            lambda: load_market_universe(CONFIG_DIR / "market_scanner.yaml", DATA_DIR / "market_universe.csv"),
+            ticker_aliases,
+            ticker_resolution_metadata,
+            "market_universe",
+        )
+        defensive_etf_config = load_defensive_etf_config(CONFIG_DIR / "defensive_etfs.yaml")
+        defensive_etf_tickers = defensive_etf_tickers_for_mode(defensive_etf_config, mode)
+        market_regime_config = load_market_regime_config(CONFIG_DIR / "market_regime.yaml")
 
-    owned_tickers = {row["ticker"] for row in portfolio_rows}
-    core_tickers = sorted((owned_tickers | {"VFV.TO"}) if owned_tickers else (set(positions) | {"VFV.TO"}))
-    configured_unowned_tickers = set(positions) - set(core_tickers)
-    watchlist_tickers = sorted(
-        (set(watchlist_items.keys()) | configured_unowned_tickers) - set(core_tickers) - set(market_universe.keys()) - {"VFV.TO"}
-    )
-    market_tickers = sorted(set(market_universe.keys()) - set(core_tickers) - {"VFV.TO"})
-    discovery_exclusions = expand_exclusions_with_alias_inputs(
-        set(core_tickers) | set(watchlist_items.keys()) | set(market_universe.keys()) | {"VFV.TO"},
-        ticker_aliases,
-    )
-    discovery_universe = load_and_resolve_universe(
-        lambda: load_auto_discovery_universe(
-            CONFIG_DIR / "market_scanner.yaml",
-            DATA_DIR / "discovery_universe_cache.csv",
-            discovery_exclusions,
-            refresh=refresh_market_data,
-        ),
-        ticker_aliases,
-        ticker_resolution_metadata,
-        "discovery_universe",
-    )
-    discovery_universe = {ticker: row for ticker, row in discovery_universe.items() if ticker not in discovery_exclusions}
-    discovery_tickers = sorted(set(discovery_universe.keys()) - set(core_tickers) - set(watchlist_items.keys()) - set(market_universe.keys()) - {"VFV.TO"})
-    all_tickers = sorted(
-        set(core_tickers)
-        | set(watchlist_tickers)
-        | set(market_tickers)
-        | set(discovery_tickers)
-        | set(defensive_etf_tickers)
-    )
-    ticker_memory = load_ticker_memory(DATA_DIR / "ticker_memory.csv")
-    research_inputs = load_research_report_inputs(
-        BNCD_MORNINGSTAR_DIR,
-        RESEARCH_REPORTS_DIR / "research_index.csv",
-        known_tickers=all_tickers,
-    )
-    external_sectors, external_exposures = metadata_to_sector_exposure({**market_universe, **discovery_universe})
-    combined_sectors = {**external_sectors, **sectors}
-    combined_exposures = {**external_exposures, **exposures}
-    benchmark_map, benchmark_sources = enrich_benchmark_map(configured_benchmark_map, all_tickers)
+        raw_portfolio_rows = load_portfolio(DATA_DIR / "portfolio.csv")
+        raw_portfolio_transaction_rows = load_portfolio_transactions(DATA_DIR / "portfolio_transactions.csv")
+        portfolio_rows = resolve_portfolio_rows(
+            raw_portfolio_rows,
+            ticker_aliases,
+            ticker_resolution_metadata,
+            "data/portfolio.csv",
+        )
+        portfolio_lot_rows = resolve_portfolio_lot_rows(
+            raw_portfolio_rows,
+            ticker_aliases,
+            ticker_resolution_metadata,
+            "data/portfolio.csv",
+        )
+        portfolio_transaction_rows = resolve_portfolio_transaction_rows(
+            raw_portfolio_transaction_rows,
+            ticker_aliases,
+            ticker_resolution_metadata,
+            "data/portfolio_transactions.csv",
+        )
+        legacy_account_locations = []
+        if (DATA_DIR / "account_locations.csv").exists():
+            legacy_account_locations = resolve_account_location_rows(
+                load_account_locations(DATA_DIR / "account_locations.csv"),
+                ticker_aliases,
+                ticker_resolution_metadata,
+                "data/account_locations.csv",
+            )
+        manual_inputs = resolve_manual_inputs(
+            load_friendly_manual_inputs(DATA_DIR / "manual_inputs_friendly.txt"),
+            ticker_aliases,
+            ticker_resolution_metadata,
+            "data/manual_inputs_friendly.txt",
+        )
+        proxy_corrections = load_proxy_corrections(CONFIG_DIR / "proxy_corrections.yaml")
+        proxy_calibration_inputs = load_proxy_calibration_inputs(DATA_DIR / "proxy_calibration.csv")
 
-    fetcher = MarketDataFetcher()
-    market_data, benchmark_data, market_gaps = fetcher.fetch_all(all_tickers, benchmark_map, refresh=refresh_market_data)
-    market_regime_data = fetch_market_regime_data(fetcher, market_regime_config, refresh=refresh_market_data)
-    market_regime = compute_market_regime(market_regime_data, market_regime_config)
+        owned_tickers = {row["ticker"] for row in portfolio_rows}
+        core_tickers = sorted((owned_tickers | {"VFV.TO"}) if owned_tickers else (set(positions) | {"VFV.TO"}))
+        configured_unowned_tickers = set(positions) - set(core_tickers)
+        watchlist_tickers = sorted(
+            (set(watchlist_items.keys()) | configured_unowned_tickers) - set(core_tickers) - set(market_universe.keys()) - {"VFV.TO"}
+        )
+        market_tickers = sorted(set(market_universe.keys()) - set(core_tickers) - {"VFV.TO"})
+        discovery_exclusions = expand_exclusions_with_alias_inputs(
+            set(core_tickers) | set(watchlist_items.keys()) | set(market_universe.keys()) | {"VFV.TO"},
+            ticker_aliases,
+        )
+        discovery_universe = load_and_resolve_universe(
+            lambda: load_auto_discovery_universe(
+                CONFIG_DIR / "market_scanner.yaml",
+                DATA_DIR / "discovery_universe_cache.csv",
+                discovery_exclusions,
+                refresh=refresh_market_data,
+            ),
+            ticker_aliases,
+            ticker_resolution_metadata,
+            "discovery_universe",
+        )
+        discovery_universe = {ticker: row for ticker, row in discovery_universe.items() if ticker not in discovery_exclusions}
+        discovery_tickers = sorted(set(discovery_universe.keys()) - set(core_tickers) - set(watchlist_items.keys()) - set(market_universe.keys()) - {"VFV.TO"})
+        all_tickers = sorted(
+            set(core_tickers)
+            | set(watchlist_tickers)
+            | set(market_tickers)
+            | set(discovery_tickers)
+            | set(defensive_etf_tickers)
+        )
+        ticker_memory = load_ticker_memory(DATA_DIR / "ticker_memory.csv")
+        research_inputs = load_research_report_inputs(
+            BNCD_MORNINGSTAR_DIR,
+            RESEARCH_REPORTS_DIR / "research_index.csv",
+            known_tickers=all_tickers,
+        )
+        external_sectors, external_exposures = metadata_to_sector_exposure({**market_universe, **discovery_universe})
+        combined_sectors = {**external_sectors, **sectors}
+        combined_exposures = {**external_exposures, **exposures}
+        benchmark_map, benchmark_sources = enrich_benchmark_map(configured_benchmark_map, all_tickers)
 
-    portfolio_currencies = [infer_quote_currency(row["ticker"], market_data.get(row["ticker"], {}).get("currency")) for row in portfolio_rows]
-    portfolio_currencies.extend(
-        str(row.get("average_cost_currency") or row.get("acquisition_value_currency") or "").upper()
-        for row in [*portfolio_rows, *portfolio_lot_rows]
-        if row.get("average_cost_currency") or row.get("acquisition_value_currency")
-    )
-    portfolio_currencies.extend(portfolio_transaction_currencies(portfolio_transaction_rows))
-    fx_rates_to_cad = fetcher.fetch_fx_rates_to_cad(portfolio_currencies, refresh=refresh_market_data)
-    portfolio_rows = enrich_portfolio_with_market_data(portfolio_rows, market_data, fx_rates_to_cad)
-    portfolio_lot_rows = enrich_portfolio_with_market_data(portfolio_lot_rows, market_data, fx_rates_to_cad)
-    portfolio_change_rows, portfolio_change_history_rows, portfolio_change_summary_rows = update_portfolio_change_history(
-        portfolio_lot_rows,
-        DATA_DIR / "portfolio_state_snapshot.csv",
-        DATA_DIR / "portfolio_change_history.csv",
-    )
-    vfv_payload = market_data.get("VFV.TO") or {}
-    sp500_proxy_return_price = safe_float(
-        vfv_payload.get("total_return_price")
-        or vfv_payload.get("adjusted_current_price")
-        or vfv_payload.get("current_price")
-    )
-    portfolio_inferred_transaction_rows = update_inferred_transactions_from_changes(
-        portfolio_change_history_rows,
-        DATA_DIR / "portfolio_inferred_transactions.csv",
-        sp500_proxy_price=sp500_proxy_return_price,
-        sp500_proxy_price_basis=str(vfv_payload.get("total_return_basis") or "PRICE_CLOSE"),
-    )
-    portfolio_transaction_report_rows = build_portfolio_transaction_report_rows(portfolio_transaction_rows, fx_rates_to_cad)
-    portfolio_transaction_summary_rows = summarize_portfolio_transactions(portfolio_transaction_report_rows)
-    weighted_portfolio, _ = add_position_weights(portfolio_rows)
-    account_locations = account_locations_from_portfolio_rows(portfolio_lot_rows, legacy_account_locations)
-    weights = position_weight_map(weighted_portfolio)
-    current_values = {row["ticker"]: safe_float(row.get("current_value")) or 0.0 for row in weighted_portfolio}
-    portfolio_details = {row["ticker"]: row for row in weighted_portfolio}
+        fetcher = MarketDataFetcher()
+        market_data, benchmark_data, market_gaps = fetcher.fetch_all(all_tickers, benchmark_map, refresh=refresh_market_data)
+        refresh_delay_info = getattr(fetcher, "last_fetch_all_delay_info", {}) or {}
+        market_regime_data = fetch_market_regime_data(fetcher, market_regime_config, refresh=refresh_market_data)
+        market_regime = compute_market_regime(market_regime_data, market_regime_config)
 
-    core_sectors = enrich_sector_map(sectors, market_data, core_tickers)
-    core_exposures = enrich_exposure_map(exposures, market_data, core_tickers)
-    combined_sectors = enrich_sector_map(combined_sectors, market_data, all_tickers)
-    combined_exposures = enrich_exposure_map(combined_exposures, market_data, all_tickers)
-    core_sectors = apply_ticker_memory_to_sector_map(core_sectors, core_tickers, ticker_memory)
-    core_exposures = apply_ticker_memory_to_exposure_map(core_exposures, core_tickers, ticker_memory)
-    combined_sectors = apply_ticker_memory_to_sector_map(combined_sectors, all_tickers, ticker_memory)
-    combined_exposures = apply_ticker_memory_to_exposure_map(combined_exposures, all_tickers, ticker_memory)
-    previous_snapshot = load_previous_snapshot(
-        REPORTS_DIR,
-        current_model_rules_version=MODEL_RULES_VERSION,
-        analysis_mode=mode,
-    )
+        portfolio_currencies = [infer_quote_currency(row["ticker"], market_data.get(row["ticker"], {}).get("currency")) for row in portfolio_rows]
+        portfolio_currencies.extend(
+            str(row.get("average_cost_currency") or row.get("acquisition_value_currency") or "").upper()
+            for row in [*portfolio_rows, *portfolio_lot_rows]
+            if row.get("average_cost_currency") or row.get("acquisition_value_currency")
+        )
+        portfolio_currencies.extend(portfolio_transaction_currencies(portfolio_transaction_rows))
+        fx_rates_to_cad = fetcher.fetch_fx_rates_to_cad(portfolio_currencies, refresh=refresh_market_data)
+        portfolio_rows = enrich_portfolio_with_market_data(portfolio_rows, market_data, fx_rates_to_cad)
+        portfolio_lot_rows = enrich_portfolio_with_market_data(portfolio_lot_rows, market_data, fx_rates_to_cad)
+        portfolio_change_rows, portfolio_change_history_rows, portfolio_change_summary_rows = update_portfolio_change_history(
+            portfolio_lot_rows,
+            DATA_DIR / "portfolio_state_snapshot.csv",
+            DATA_DIR / "portfolio_change_history.csv",
+        )
+        vfv_payload = market_data.get("VFV.TO") or {}
+        sp500_proxy_return_price = safe_float(
+            vfv_payload.get("total_return_price")
+            or vfv_payload.get("adjusted_current_price")
+            or vfv_payload.get("current_price")
+        )
+        portfolio_inferred_transaction_rows = update_inferred_transactions_from_changes(
+            portfolio_change_history_rows,
+            DATA_DIR / "portfolio_inferred_transactions.csv",
+            sp500_proxy_price=sp500_proxy_return_price,
+            sp500_proxy_price_basis=str(vfv_payload.get("total_return_basis") or "PRICE_CLOSE"),
+        )
+        portfolio_transaction_report_rows = build_portfolio_transaction_report_rows(portfolio_transaction_rows, fx_rates_to_cad)
+        portfolio_transaction_summary_rows = summarize_portfolio_transactions(portfolio_transaction_report_rows)
+        weighted_portfolio, _ = add_position_weights(portfolio_rows)
+        account_locations = account_locations_from_portfolio_rows(portfolio_lot_rows, legacy_account_locations)
+        weights = position_weight_map(weighted_portfolio)
+        current_values = {row["ticker"]: safe_float(row.get("current_value")) or 0.0 for row in weighted_portfolio}
+        portfolio_details = {row["ticker"]: row for row in weighted_portfolio}
 
-    portfolio_risk = compute_portfolio_risk(weighted_portfolio, core_sectors, core_exposures)
-    analyses = build_position_analyses(
-        tickers=core_tickers,
-        manual_inputs=manual_inputs,
-        market_data=market_data,
-        benchmark_data=benchmark_data,
-        benchmark_map=benchmark_map,
-        benchmark_sources=benchmark_sources,
-        sectors=core_sectors,
-        exposures=core_exposures,
-        weights=weights,
-        current_values=current_values,
-        portfolio_details=portfolio_details,
-        ticker_resolution_metadata=ticker_resolution_metadata,
-        research_inputs=research_inputs,
-        proxy_corrections=proxy_corrections,
-    )
-    watchlist_analyses = build_position_analyses(
-        tickers=watchlist_tickers,
-        manual_inputs=manual_inputs,
-        market_data=market_data,
-        benchmark_data=benchmark_data,
-        benchmark_map=benchmark_map,
-        benchmark_sources=benchmark_sources,
-        sectors=combined_sectors,
-        exposures=combined_exposures,
-        weights={},
-        current_values={},
-        ticker_resolution_metadata=ticker_resolution_metadata,
-        research_inputs=research_inputs,
-        proxy_corrections=proxy_corrections,
-    )
-    for ticker, analysis in watchlist_analyses.items():
-        analysis.update(watchlist_items.get(ticker, {}))
-        analysis["universe"] = "WATCHLIST"
-
-    market_analyses = build_position_analyses(
-        tickers=market_tickers,
-        manual_inputs=manual_inputs,
-        market_data=market_data,
-        benchmark_data=benchmark_data,
-        benchmark_map=benchmark_map,
-        benchmark_sources=benchmark_sources,
-        sectors=combined_sectors,
-        exposures=combined_exposures,
-        weights={},
-        current_values={},
-        ticker_resolution_metadata=ticker_resolution_metadata,
-        research_inputs=research_inputs,
-        proxy_corrections=proxy_corrections,
-    )
-    for ticker, analysis in market_analyses.items():
-        analysis.update(market_universe.get(ticker, {}))
-        analysis["universe"] = "MARKET_SCANNER"
-
-    discovery_analyses = build_position_analyses(
-        tickers=discovery_tickers,
-        manual_inputs=manual_inputs,
-        market_data=market_data,
-        benchmark_data=benchmark_data,
-        benchmark_map=benchmark_map,
-        benchmark_sources=benchmark_sources,
-        sectors=combined_sectors,
-        exposures=combined_exposures,
-        weights={},
-        current_values={},
-        ticker_resolution_metadata=ticker_resolution_metadata,
-        research_inputs=research_inputs,
-        proxy_corrections=proxy_corrections,
-    )
-    for ticker, analysis in discovery_analyses.items():
-        analysis.update(discovery_universe.get(ticker, {}))
-        analysis["universe"] = "DISCOVERY_IDEAS"
-
-    defensive_etf_candidates = build_defensive_etf_candidates(defensive_etf_config, mode, market_data)
-    defensive_validation_analyses = defensive_etf_analysis_map(defensive_etf_candidates)
-
-    apply_history_context(analyses, previous_snapshot)
-    apply_history_context(watchlist_analyses, previous_snapshot)
-    apply_history_context(market_analyses, previous_snapshot)
-    apply_history_context(discovery_analyses, previous_snapshot)
-    apply_history_sell_discipline(analyses)
-    apply_history_sell_discipline(watchlist_analyses)
-    apply_history_sell_discipline(market_analyses)
-    apply_history_sell_discipline(discovery_analyses)
-    apply_winner_protection(analyses, previous_snapshot)
-    apply_cycle_bubble_context(analyses, watchlist_analyses, market_analyses, discovery_analyses, portfolio_risk)
-    apply_cash_flow_quality_context(analyses, watchlist_analyses, market_analyses, discovery_analyses)
-    apply_shareholder_discipline_context(analyses, watchlist_analyses, market_analyses, discovery_analyses)
-    apply_long_term_durability_context(analyses, watchlist_analyses, market_analyses, discovery_analyses)
-    apply_market_growth_thesis_context(analyses, watchlist_analyses, market_analyses, discovery_analyses)
-    apply_quality_drawdown_context(analyses, watchlist_analyses, market_analyses, discovery_analyses)
-    apply_market_regime_context(analyses, market_regime, mode=mode, universe="CORE_PORTFOLIO")
-    apply_market_regime_context(watchlist_analyses, market_regime, mode=mode, universe="WATCHLIST")
-    apply_market_regime_context(market_analyses, market_regime, mode=mode, universe="MARKET_SCANNER")
-    apply_market_regime_context(discovery_analyses, market_regime, mode=mode, universe="DISCOVERY_IDEAS")
-    apply_sector_euphoria_context(analyses, market_regime, mode=mode, universe="CORE_PORTFOLIO")
-    apply_sector_euphoria_context(watchlist_analyses, market_regime, mode=mode, universe="WATCHLIST")
-    apply_sector_euphoria_context(market_analyses, market_regime, mode=mode, universe="MARKET_SCANNER")
-    apply_sector_euphoria_context(discovery_analyses, market_regime, mode=mode, universe="DISCOVERY_IDEAS")
-    apply_double_counting_context(analyses, watchlist_analyses, market_analyses, discovery_analyses, mode=mode)
-    apply_hidden_cluster_guardrails(analyses, watchlist_analyses, market_analyses, discovery_analyses, portfolio_risk, mode=mode)
-    # Eligibility and VFV opportunity cost must be refreshed after every
-    # context pass, because those passes can change sizing, risk, or monitoring
-    # inputs used by the final add decision.
-    refresh_add_and_opportunity_context(analyses, watchlist_analyses, market_analyses, discovery_analyses)
-
-    for ticker, analysis in watchlist_analyses.items():
-        analysis.update(classify_watchlist_analysis(analysis))
-        apply_external_superiority_gate(analysis, analyses)
-
-    for ticker, analysis in market_analyses.items():
-        analysis.update(classify_market_candidate(analysis))
-        apply_external_superiority_gate(analysis, analyses)
-
-    for ticker, analysis in discovery_analyses.items():
-        analysis.update(classify_discovery_idea(analysis))
-        apply_external_superiority_gate(analysis, analyses)
-    apply_external_etf_candidate_context(mode, portfolio_risk, watchlist_analyses, market_analyses, discovery_analyses)
-    discovery_maintenance_rows = build_discovery_maintenance_rows(discovery_analyses, discovery_universe)
-
-    tax_report_initial = compute_tax_location_report(account_locations, weighted_portfolio, analyses, core_exposures)
-    tax_penalties = tax_penalty_map(tax_report_initial)
-    allocation_analyses = allocation_universe_for_mode(
-        mode,
-        analyses,
-        watchlist_analyses,
-        market_analyses,
-        discovery_analyses,
-    )
-    # Second ETF role check is intentional: allocation_universe_for_mode() can
-    # include external/defensive ETF candidates, so this final guard prevents
-    # ETF holdings from being sized like individual stocks.
-    for ticker, analysis in allocation_analyses.items():
-        if ticker == "VFV.TO":
-            apply_vfv_benchmark_role(analysis)
-            continue
-        if is_etf_asset_analysis(analysis):
-            if not is_external_etf_allocation_candidate(analysis):
-                apply_etf_asset_role(analysis)
-            continue
-        tax_penalty = tax_penalties.get(ticker, 0.0) if analysis.get("universe") == "CORE_PORTFOLIO" else 0.0
-        analysis.update(compute_capital_allocation_score(analysis, portfolio_risk, tax_penalty))
-    apply_allocation_stability(allocation_analyses, mode=mode)
-
-    allocation_result = allocate_capital(capital, allocation_analyses, mode, defensive_etf_candidates=defensive_etf_candidates)
-    apply_final_decisions(allocation_analyses, allocation_result.get("allocations", []))
-    allocation_sensitivity = compute_allocation_sensitivity(capital, mode, allocation_analyses, allocation_result)
-    tax_report = compute_tax_location_report(account_locations, weighted_portfolio, analyses, core_exposures)
-    thesis_reversal_rows = build_thesis_reversal_audit_rows(
-        {
-            "CORE_PORTFOLIO": analyses,
-            "WATCHLIST": watchlist_analyses,
-            "MARKET_SCANNER": market_analyses,
-            "DISCOVERY_IDEAS": discovery_analyses,
-        },
-        sell_validation_checklist_rows(analyses, tax_report, active_only=False),
-    )
-    account_performance_rows = build_account_performance_rows(
-        portfolio_lot_rows,
-        market_data,
-        DATA_DIR / "account_performance_history.csv",
-        cash_flow_rows=portfolio_inferred_transaction_rows,
-        transaction_rows=portfolio_transaction_report_rows,
-    )
-    stress_tests = compute_stress_tests(weighted_portfolio, core_exposures, core_sectors)
-    reportable_market_gaps = [row for row in market_gaps if row.get("ticker") not in set(discovery_tickers)]
-    data_gaps = merge_data_gaps(reportable_market_gaps, analyses, watchlist_analyses, market_analyses)
-    validation_priority_rows = build_validation_priority_rows(
-        {
-            "CORE_PORTFOLIO": analyses,
-            "WATCHLIST": watchlist_analyses,
-            "MARKET_SCANNER": market_analyses,
-        },
-        existing_reports=research_inputs,
-    )
-    allocation_warnings = validate_allocation_rules(
-        allocation_result.get("allocations", []),
-        {**allocation_analyses, **defensive_validation_analyses},
-    )
-    decision_quality = compute_decision_quality(
-        allocation_analyses,
-        allocation_result,
-        portfolio_risk,
-        (validation_warnings or []) + allocation_warnings,
-        mode=mode,
-        allocation_sensitivity=allocation_sensitivity,
-    )
-    allocation_result["decision_quality"] = decision_quality
-    annotate_allocations_with_decision_quality(allocation_result)
-    allocation_change_rows = build_allocation_change_rows(
-        allocation_result.get("allocations", []),
-        allocation_analyses,
-        load_previous_allocation_baseline(
+        core_sectors = enrich_sector_map(sectors, market_data, core_tickers)
+        core_exposures = enrich_exposure_map(exposures, market_data, core_tickers)
+        combined_sectors = enrich_sector_map(combined_sectors, market_data, all_tickers)
+        combined_exposures = enrich_exposure_map(combined_exposures, market_data, all_tickers)
+        core_sectors = apply_ticker_memory_to_sector_map(core_sectors, core_tickers, ticker_memory)
+        core_exposures = apply_ticker_memory_to_exposure_map(core_exposures, core_tickers, ticker_memory)
+        combined_sectors = apply_ticker_memory_to_sector_map(combined_sectors, all_tickers, ticker_memory)
+        combined_exposures = apply_ticker_memory_to_exposure_map(combined_exposures, all_tickers, ticker_memory)
+        previous_snapshot = load_previous_snapshot(
             REPORTS_DIR,
             current_model_rules_version=MODEL_RULES_VERSION,
             analysis_mode=mode,
-        ),
-    )
-    proxy_calibration_report = build_proxy_calibration_report(
-        [analyses, watchlist_analyses, market_analyses, discovery_analyses],
-        proxy_calibration_inputs,
-    )
-    proxy_calibration_summary = build_proxy_calibration_summary(proxy_calibration_report)
-    proxy_calibration_history_rows = update_proxy_calibration_history(
-        DATA_DIR / "proxy_calibration_history.csv",
-        proxy_calibration_report,
-        run_id=run_id,
-        mode=mode,
-    )
-    proxy_bias_rows = build_proxy_bias_report(proxy_calibration_history_rows)
-    proxy_correction_audit_rows = build_proxy_correction_audit(proxy_corrections, proxy_bias_rows)
-    ticker_memory_rows = update_ticker_memory(
-        DATA_DIR / "ticker_memory.csv",
-        build_ticker_memory_rows(
+        )
+
+        portfolio_risk = compute_portfolio_risk(weighted_portfolio, core_sectors, core_exposures)
+        analyses = build_position_analyses(
+            tickers=core_tickers,
+            manual_inputs=manual_inputs,
+            market_data=market_data,
+            benchmark_data=benchmark_data,
+            benchmark_map=benchmark_map,
+            benchmark_sources=benchmark_sources,
+            sectors=core_sectors,
+            exposures=core_exposures,
+            weights=weights,
+            current_values=current_values,
+            portfolio_details=portfolio_details,
+            ticker_resolution_metadata=ticker_resolution_metadata,
+            research_inputs=research_inputs,
+            proxy_corrections=proxy_corrections,
+        )
+        watchlist_analyses = build_position_analyses(
+            tickers=watchlist_tickers,
+            manual_inputs=manual_inputs,
+            market_data=market_data,
+            benchmark_data=benchmark_data,
+            benchmark_map=benchmark_map,
+            benchmark_sources=benchmark_sources,
+            sectors=combined_sectors,
+            exposures=combined_exposures,
+            weights={},
+            current_values={},
+            ticker_resolution_metadata=ticker_resolution_metadata,
+            research_inputs=research_inputs,
+            proxy_corrections=proxy_corrections,
+        )
+        for ticker, analysis in watchlist_analyses.items():
+            analysis.update(watchlist_items.get(ticker, {}))
+            analysis["universe"] = "WATCHLIST"
+
+        market_analyses = build_position_analyses(
+            tickers=market_tickers,
+            manual_inputs=manual_inputs,
+            market_data=market_data,
+            benchmark_data=benchmark_data,
+            benchmark_map=benchmark_map,
+            benchmark_sources=benchmark_sources,
+            sectors=combined_sectors,
+            exposures=combined_exposures,
+            weights={},
+            current_values={},
+            ticker_resolution_metadata=ticker_resolution_metadata,
+            research_inputs=research_inputs,
+            proxy_corrections=proxy_corrections,
+        )
+        for ticker, analysis in market_analyses.items():
+            analysis.update(market_universe.get(ticker, {}))
+            analysis["universe"] = "MARKET_SCANNER"
+
+        discovery_analyses = build_position_analyses(
+            tickers=discovery_tickers,
+            manual_inputs=manual_inputs,
+            market_data=market_data,
+            benchmark_data=benchmark_data,
+            benchmark_map=benchmark_map,
+            benchmark_sources=benchmark_sources,
+            sectors=combined_sectors,
+            exposures=combined_exposures,
+            weights={},
+            current_values={},
+            ticker_resolution_metadata=ticker_resolution_metadata,
+            research_inputs=research_inputs,
+            proxy_corrections=proxy_corrections,
+        )
+        for ticker, analysis in discovery_analyses.items():
+            analysis.update(discovery_universe.get(ticker, {}))
+            analysis["universe"] = "DISCOVERY_IDEAS"
+
+        defensive_etf_candidates = build_defensive_etf_candidates(defensive_etf_config, mode, market_data)
+        defensive_validation_analyses = defensive_etf_analysis_map(defensive_etf_candidates)
+
+        apply_history_context(analyses, previous_snapshot)
+        apply_history_context(watchlist_analyses, previous_snapshot)
+        apply_history_context(market_analyses, previous_snapshot)
+        apply_history_context(discovery_analyses, previous_snapshot)
+        apply_history_sell_discipline(analyses)
+        apply_history_sell_discipline(watchlist_analyses)
+        apply_history_sell_discipline(market_analyses)
+        apply_history_sell_discipline(discovery_analyses)
+        apply_winner_protection(analyses, previous_snapshot)
+        apply_cycle_bubble_context(analyses, watchlist_analyses, market_analyses, discovery_analyses, portfolio_risk)
+        apply_cash_flow_quality_context(analyses, watchlist_analyses, market_analyses, discovery_analyses)
+        apply_shareholder_discipline_context(analyses, watchlist_analyses, market_analyses, discovery_analyses)
+        apply_long_term_durability_context(analyses, watchlist_analyses, market_analyses, discovery_analyses)
+        apply_market_growth_thesis_context(analyses, watchlist_analyses, market_analyses, discovery_analyses)
+        apply_quality_drawdown_context(analyses, watchlist_analyses, market_analyses, discovery_analyses)
+        apply_market_regime_context(analyses, market_regime, mode=mode, universe="CORE_PORTFOLIO")
+        apply_market_regime_context(watchlist_analyses, market_regime, mode=mode, universe="WATCHLIST")
+        apply_market_regime_context(market_analyses, market_regime, mode=mode, universe="MARKET_SCANNER")
+        apply_market_regime_context(discovery_analyses, market_regime, mode=mode, universe="DISCOVERY_IDEAS")
+        apply_sector_euphoria_context(analyses, market_regime, mode=mode, universe="CORE_PORTFOLIO")
+        apply_sector_euphoria_context(watchlist_analyses, market_regime, mode=mode, universe="WATCHLIST")
+        apply_sector_euphoria_context(market_analyses, market_regime, mode=mode, universe="MARKET_SCANNER")
+        apply_sector_euphoria_context(discovery_analyses, market_regime, mode=mode, universe="DISCOVERY_IDEAS")
+        apply_double_counting_context(analyses, watchlist_analyses, market_analyses, discovery_analyses, mode=mode)
+        apply_hidden_cluster_guardrails(analyses, watchlist_analyses, market_analyses, discovery_analyses, portfolio_risk, mode=mode)
+        # Eligibility and VFV opportunity cost must be refreshed after every
+        # context pass, because those passes can change sizing, risk, or monitoring
+        # inputs used by the final add decision.
+        refresh_add_and_opportunity_context(analyses, watchlist_analyses, market_analyses, discovery_analyses)
+
+        for ticker, analysis in watchlist_analyses.items():
+            analysis.update(classify_watchlist_analysis(analysis))
+            apply_external_superiority_gate(analysis, analyses)
+
+        for ticker, analysis in market_analyses.items():
+            analysis.update(classify_market_candidate(analysis))
+            apply_external_superiority_gate(analysis, analyses)
+
+        for ticker, analysis in discovery_analyses.items():
+            analysis.update(classify_discovery_idea(analysis))
+            apply_external_superiority_gate(analysis, analyses)
+        apply_external_etf_candidate_context(mode, portfolio_risk, watchlist_analyses, market_analyses, discovery_analyses)
+        discovery_maintenance_rows = build_discovery_maintenance_rows(discovery_analyses, discovery_universe)
+
+        tax_report_initial = compute_tax_location_report(account_locations, weighted_portfolio, analyses, core_exposures)
+        tax_penalties = tax_penalty_map(tax_report_initial)
+        allocation_analyses = allocation_universe_for_mode(
+            mode,
+            analyses,
+            watchlist_analyses,
+            market_analyses,
+            discovery_analyses,
+        )
+        # Second ETF role check is intentional: allocation_universe_for_mode() can
+        # include external/defensive ETF candidates, so this final guard prevents
+        # ETF holdings from being sized like individual stocks.
+        for ticker, analysis in allocation_analyses.items():
+            if ticker == "VFV.TO":
+                apply_vfv_benchmark_role(analysis)
+                continue
+            if is_etf_asset_analysis(analysis):
+                if not is_external_etf_allocation_candidate(analysis):
+                    apply_etf_asset_role(analysis)
+                continue
+            tax_penalty = tax_penalties.get(ticker, 0.0) if analysis.get("universe") == "CORE_PORTFOLIO" else 0.0
+            analysis.update(compute_capital_allocation_score(analysis, portfolio_risk, tax_penalty))
+        apply_allocation_stability(allocation_analyses, mode=mode)
+
+        previous_baseline = load_previous_allocation_baseline(
+            REPORTS_DIR,
+            current_model_rules_version=MODEL_RULES_VERSION,
+            analysis_mode=mode,
+        )
+        allocation_result = allocate_capital(
+            capital,
+            allocation_analyses,
+            mode,
+            defensive_etf_candidates=defensive_etf_candidates,
+            previous_baseline=previous_baseline,
+        )
+        apply_final_decisions(allocation_analyses, allocation_result.get("allocations", []))
+        allocation_sensitivity = compute_allocation_sensitivity(capital, mode, allocation_analyses, allocation_result)
+        tax_report = compute_tax_location_report(account_locations, weighted_portfolio, analyses, core_exposures)
+        thesis_reversal_rows = build_thesis_reversal_audit_rows(
             {
                 "CORE_PORTFOLIO": analyses,
                 "WATCHLIST": watchlist_analyses,
                 "MARKET_SCANNER": market_analyses,
                 "DISCOVERY_IDEAS": discovery_analyses,
             },
-            existing_memory=ticker_memory,
-        ),
-    )
-    anomaly_rows = detect_analysis_anomalies(
-        mode=mode,
-        analyses=analyses,
-        watchlist_analyses=watchlist_analyses,
-        market_analyses=market_analyses,
-        discovery_analyses=discovery_analyses,
-        allocation_result=allocation_result,
-        allocation_change_rows=allocation_change_rows,
-        portfolio_risk=portfolio_risk,
-        validation_priority_rows=validation_priority_rows,
-    )
-    anomaly_history_rows = update_anomaly_history(DATA_DIR / "anomaly_history.csv", anomaly_rows, mode=mode)
-    cache_health_rows = run_cache_maintenance(CACHE_DIR, repair_safe=True)
-    run_log_rows = build_analysis_run_log(
-        run_id=run_id,
-        mode=mode,
-        capital=capital,
-        refresh_market_data=refresh_market_data,
-        universe_counts={
-            "core": len(core_tickers),
-            "watchlist": len(watchlist_tickers),
-            "market": len(market_tickers),
-            "discovery": len(discovery_tickers),
-            "defensive_etf": len(defensive_etf_tickers),
-        },
-        validation_warnings=validation_warnings or [],
-        allocation_warnings=allocation_warnings,
-        cache_health_rows=cache_health_rows,
-        data_gaps=data_gaps,
-        validation_priority_rows=validation_priority_rows,
-        anomaly_rows=anomaly_rows,
-        allocation_result=allocation_result,
-        portfolio_risk=portfolio_risk,
-    )
-
-    generate_reports(
-        reports_dir=REPORTS_DIR,
-        mode=mode,
-        capital=capital,
-        analyses=analyses,
-        allocation_result=allocation_result,
-        portfolio_risk=portfolio_risk,
-        stress_tests=stress_tests,
-        tax_report=tax_report,
-        data_gaps=data_gaps,
-        validation_warnings=(validation_warnings or []) + allocation_warnings,
-        watchlist_analyses=watchlist_analyses,
-        market_analyses=market_analyses,
-        market_universe=market_universe,
-        discovery_analyses=discovery_analyses,
-        discovery_universe=discovery_universe,
-        discovery_maintenance_rows=discovery_maintenance_rows,
-        proxy_calibration_report=proxy_calibration_report,
-        proxy_calibration_summary=proxy_calibration_summary,
-        proxy_calibration_history_rows=proxy_calibration_history_rows,
-        proxy_bias_rows=proxy_bias_rows,
-        proxy_correction_audit_rows=proxy_correction_audit_rows,
-        allocation_change_rows=allocation_change_rows,
-        allocation_sensitivity=allocation_sensitivity,
-        validation_priority_rows=validation_priority_rows,
-        portfolio_change_rows=portfolio_change_rows,
-        portfolio_change_history_rows=portfolio_change_history_rows,
-        portfolio_change_summary_rows=portfolio_change_summary_rows,
-        portfolio_transaction_rows=portfolio_transaction_report_rows,
-        portfolio_transaction_summary_rows=portfolio_transaction_summary_rows,
-        portfolio_inferred_transaction_rows=portfolio_inferred_transaction_rows,
-        account_performance_rows=account_performance_rows,
-        defensive_etf_candidates=defensive_etf_candidates,
-        market_regime=market_regime,
-        thesis_reversal_rows=thesis_reversal_rows,
-        ticker_memory_rows=ticker_memory_rows,
-        anomaly_rows=anomaly_rows,
-        anomaly_history_rows=anomaly_history_rows,
-        cache_health_rows=cache_health_rows,
-        run_log_rows=run_log_rows,
-    )
-    write_research_needed_csv(
-        REPORTS_DIR / "latest_research_needed.csv",
-        research_needed_rows_from_analysis_rows(
+            sell_validation_checklist_rows(analyses, tax_report, active_only=False),
+        )
+        account_performance_rows = build_account_performance_rows(
+            portfolio_lot_rows,
+            market_data,
+            DATA_DIR / "account_performance_history.csv",
+            cash_flow_rows=portfolio_inferred_transaction_rows,
+            transaction_rows=portfolio_transaction_report_rows,
+        )
+        stress_tests = compute_stress_tests(weighted_portfolio, core_exposures, core_sectors)
+        reportable_market_gaps = [row for row in market_gaps if row.get("ticker") not in set(discovery_tickers)]
+        data_gaps = merge_data_gaps(reportable_market_gaps, analyses, watchlist_analyses, market_analyses)
+        _DISCOVERY_ELIGIBLE_STATUSES = {
+            "ELIGIBLE_BUT_NOT_SELECTED",
+            "NO_NEW_ALLOCATION",
+        }
+        discovery_for_validation = {
+            ticker: analysis
+            for ticker, analysis in discovery_analyses.items()
+            if str(analysis.get("allocation_status") or analysis.get("allocation_decision") or "") in _DISCOVERY_ELIGIBLE_STATUSES
+            and (safe_float(analysis.get("capital_allocation_score")) or 0.0) >= DISCOVERY_VALIDATION_PRIORITY_MIN_SCORE
+        }
+        validation_priority_rows = build_validation_priority_rows(
             {
                 "CORE_PORTFOLIO": analyses,
                 "WATCHLIST": watchlist_analyses,
                 "MARKET_SCANNER": market_analyses,
+                "DISCOVERY_IDEAS": discovery_for_validation,  # [DECISION 2026-07-04]
             },
             existing_reports=research_inputs,
-        ),
-    )
-    save_current_snapshot(REPORTS_DIR, mode, analyses, watchlist_analyses, market_analyses, discovery_analyses)
-    save_allocation_snapshot(REPORTS_DIR, allocation_result, analysis_mode=mode)
-    return {
-        "allocations": allocation_result.get("allocations", []),
-        "analyses": analyses,
-        "watchlist_analyses": watchlist_analyses,
-        "market_analyses": market_analyses,
-        "discovery_analyses": discovery_analyses,
-        "decision_quality": decision_quality,
-        "proxy_calibration_report": proxy_calibration_report,
-        "proxy_calibration_summary": proxy_calibration_summary,
-        "allocation_change_rows": allocation_change_rows,
-        "defensive_etf_candidates": defensive_etf_candidates,
-        "market_regime": market_regime,
-        "anomaly_rows": anomaly_rows,
-        "cache_health_rows": cache_health_rows,
-        "run_log_rows": run_log_rows,
-    }
+        )
+        allocation_warnings = validate_allocation_rules(
+            allocation_result.get("allocations", []),
+            {**allocation_analyses, **defensive_validation_analyses},
+        )
+        decision_quality = compute_decision_quality(
+            allocation_analyses,
+            allocation_result,
+            portfolio_risk,
+            (validation_warnings or []) + allocation_warnings,
+            mode=mode,
+            allocation_sensitivity=allocation_sensitivity,
+        )
+        allocation_result["decision_quality"] = decision_quality
+        annotate_allocations_with_decision_quality(allocation_result)
+        allocation_change_rows = build_allocation_change_rows(
+            allocation_result.get("allocations", []),
+            allocation_analyses,
+            previous_baseline,
+        )
+        proxy_calibration_report = build_proxy_calibration_report(
+            [analyses, watchlist_analyses, market_analyses, discovery_analyses],
+            proxy_calibration_inputs,
+        )
+        proxy_calibration_summary = build_proxy_calibration_summary(proxy_calibration_report)
+        proxy_calibration_history_rows = update_proxy_calibration_history(
+            DATA_DIR / "proxy_calibration_history.csv",
+            proxy_calibration_report,
+            run_id=run_id,
+            mode=mode,
+        )
+        proxy_bias_rows = build_proxy_bias_report(proxy_calibration_history_rows)
+        proxy_correction_audit_rows = build_proxy_correction_audit(proxy_corrections, proxy_bias_rows)
+        ticker_memory_rows = update_ticker_memory(
+            DATA_DIR / "ticker_memory.csv",
+            build_ticker_memory_rows(
+                {
+                    "CORE_PORTFOLIO": analyses,
+                    "WATCHLIST": watchlist_analyses,
+                    "MARKET_SCANNER": market_analyses,
+                    "DISCOVERY_IDEAS": discovery_analyses,
+                },
+                existing_memory=ticker_memory,
+            ),
+        )
+        anomaly_rows = detect_analysis_anomalies(
+            mode=mode,
+            analyses=analyses,
+            watchlist_analyses=watchlist_analyses,
+            market_analyses=market_analyses,
+            discovery_analyses=discovery_analyses,
+            allocation_result=allocation_result,
+            allocation_change_rows=allocation_change_rows,
+            portfolio_risk=portfolio_risk,
+            validation_priority_rows=validation_priority_rows,
+        )
+        anomaly_history_rows = update_anomaly_history(DATA_DIR / "anomaly_history.csv", anomaly_rows, mode=mode)
+        cache_health_rows = run_cache_maintenance(CACHE_DIR, repair_safe=True)
+        if circuit_breaker_reset_row:
+            cache_health_rows.append(circuit_breaker_reset_row)
+        full_audit_signal = compute_full_audit_signal(REPORTS_DIR, mode)
+        model_audit_signal = compute_model_audit_signal(REPORTS_DIR, mode)
+        run_log_rows = build_analysis_run_log(
+            run_id=run_id,
+            mode=mode,
+            capital=capital,
+            refresh_market_data=refresh_market_data,
+            universe_counts={
+                "core": len(core_tickers),
+                "watchlist": len(watchlist_tickers),
+                "market": len(market_tickers),
+                "discovery": len(discovery_tickers),
+                "defensive_etf": len(defensive_etf_tickers),
+            },
+            validation_warnings=validation_warnings or [],
+            allocation_warnings=allocation_warnings,
+            cache_health_rows=cache_health_rows,
+            data_gaps=data_gaps,
+            validation_priority_rows=validation_priority_rows,
+            anomaly_rows=anomaly_rows,
+            allocation_result=allocation_result,
+            portfolio_risk=portfolio_risk,
+            full_audit_signal=full_audit_signal,
+            model_audit_signal=model_audit_signal,
+        )
+        if circuit_breaker_reset_row:
+            now = datetime.now()
+            run_log_rows.append(
+                {
+                    "timestamp": now.isoformat(timespec="seconds"),
+                    "date": now.date().isoformat(),
+                    "run_id": run_id,
+                    "command": "analyze",
+                    "mode": mode,
+                    "level": "INFO",
+                    "component": "CACHE",
+                    "event": "MARKET_CIRCUIT_BREAKER_RESET",
+                    "ticker": "",
+                    "message": str(circuit_breaker_reset_row.get("details") or "Circuit breakers marché vérifiés."),
+                    "suggested_action": str(circuit_breaker_reset_row.get("suggested_action") or "Aucune action."),
+                    "details": f"reset_count={circuit_breaker_reset_row.get('cleaned_count', 0)}; refresh_market_data={bool(refresh_market_data)}",
+                }
+            )
+        if refresh_delay_info:
+            now = datetime.now()
+            run_log_rows.append(
+                {
+                    "timestamp": now.isoformat(timespec="seconds"),
+                    "date": now.date().isoformat(),
+                    "run_id": run_id,
+                    "command": "analyze",
+                    "mode": mode,
+                    "level": "INFO",
+                    "component": "DATA",
+                    "event": "MARKET_REFRESH_INTER_TICKER_DELAY",
+                    "ticker": "",
+                    "message": str(refresh_delay_info.get("message") or "Délai inter-tickers actif lors du refresh."),
+                    "suggested_action": "Aucune action.",
+                    "details": (
+                        f"delay_seconds={refresh_delay_info.get('delay_seconds')}; "
+                        f"fetch_count={refresh_delay_info.get('fetch_count')}; refresh_market_data=True"
+                    ),
+                }
+            )
+        walk_forward_signal = compute_walk_forward_signal(REPORTS_DIR, mode)
+        instrument_profile_rows = build_instrument_profiles(
+            allocation_result.get("allocations", []),
+            {**analyses, **watchlist_analyses, **market_analyses, **discovery_analyses},
+            cache_dir=CACHE_DIR / "instrument_profiles",
+        )
+        save_current_snapshot(REPORTS_DIR, mode, analyses, watchlist_analyses, market_analyses, discovery_analyses)
+        score_stability = compute_score_stability(REPORTS_DIR, mode, analyses)
+        if score_stability.get("ticker_rows"):
+            write_csv_records(
+                REPORTS_DIR / "latest_score_stability.csv",
+                score_stability.get("ticker_rows", []),
+                SCORE_STABILITY_COLUMNS,
+            )
 
+        generate_reports(
+            reports_dir=REPORTS_DIR,
+            mode=mode,
+            capital=capital,
+            analyses=analyses,
+            allocation_result=allocation_result,
+            portfolio_risk=portfolio_risk,
+            stress_tests=stress_tests,
+            tax_report=tax_report,
+            data_gaps=data_gaps,
+            validation_warnings=(validation_warnings or []) + allocation_warnings,
+            watchlist_analyses=watchlist_analyses,
+            market_analyses=market_analyses,
+            market_universe=market_universe,
+            discovery_analyses=discovery_analyses,
+            discovery_universe=discovery_universe,
+            discovery_maintenance_rows=discovery_maintenance_rows,
+            proxy_calibration_report=proxy_calibration_report,
+            proxy_calibration_summary=proxy_calibration_summary,
+            proxy_calibration_history_rows=proxy_calibration_history_rows,
+            proxy_bias_rows=proxy_bias_rows,
+            proxy_correction_audit_rows=proxy_correction_audit_rows,
+            allocation_change_rows=allocation_change_rows,
+            allocation_sensitivity=allocation_sensitivity,
+            validation_priority_rows=validation_priority_rows,
+            portfolio_change_rows=portfolio_change_rows,
+            portfolio_change_history_rows=portfolio_change_history_rows,
+            portfolio_change_summary_rows=portfolio_change_summary_rows,
+            portfolio_transaction_rows=portfolio_transaction_report_rows,
+            portfolio_transaction_summary_rows=portfolio_transaction_summary_rows,
+            portfolio_inferred_transaction_rows=portfolio_inferred_transaction_rows,
+            account_performance_rows=account_performance_rows,
+            defensive_etf_candidates=defensive_etf_candidates,
+            market_regime=market_regime,
+            thesis_reversal_rows=thesis_reversal_rows,
+            ticker_memory_rows=ticker_memory_rows,
+            anomaly_rows=anomaly_rows,
+            anomaly_history_rows=anomaly_history_rows,
+            cache_health_rows=cache_health_rows,
+            run_log_rows=run_log_rows,
+            walk_forward_signal=walk_forward_signal,
+            full_audit_signal=full_audit_signal,
+            model_audit_signal=model_audit_signal,
+            score_stability=score_stability,
+            instrument_profile_rows=instrument_profile_rows,
+        )
+        _research_needed_rows = research_needed_rows_from_analysis_rows(
+            {
+                "CORE_PORTFOLIO": analyses,
+                "WATCHLIST": watchlist_analyses,
+                "MARKET_SCANNER": market_analyses,
+                "DISCOVERY_IDEAS": discovery_for_validation,
+            },
+            existing_reports=research_inputs,
+        )
+        write_research_needed_csv(REPORTS_DIR / "latest_research_needed.csv", _research_needed_rows)
+        _research_needed_mode_slug = _report_mode_slug(mode)
+        if _research_needed_mode_slug:
+            write_research_needed_csv(
+                REPORTS_DIR / f"latest_research_needed_{_research_needed_mode_slug}.csv",
+                _research_needed_rows,
+            )
+        save_allocation_snapshot(REPORTS_DIR, allocation_result, analysis_mode=mode)
+        write_universe_snapshot(
+            analyses={**analyses, **watchlist_analyses, **market_analyses, **discovery_analyses},
+            run_id=run_id,
+            mode=mode,
+            model_rules_version=MODEL_RULES_VERSION,
+            reports_dir=REPORTS_DIR,
+        )
+        return {
+            "allocations": allocation_result.get("allocations", []),
+            "analyses": analyses,
+            "watchlist_analyses": watchlist_analyses,
+            "market_analyses": market_analyses,
+            "discovery_analyses": discovery_analyses,
+            "decision_quality": decision_quality,
+            "proxy_calibration_report": proxy_calibration_report,
+            "proxy_calibration_summary": proxy_calibration_summary,
+            "allocation_change_rows": allocation_change_rows,
+            "defensive_etf_candidates": defensive_etf_candidates,
+            "market_regime": market_regime,
+            "anomaly_rows": anomaly_rows,
+            "cache_health_rows": cache_health_rows,
+            "run_log_rows": run_log_rows,
+        }
+
+
+    except Exception as _run_analysis_exc:  # noqa: BLE001
+        import traceback as _tb
+        _emergency_entry = {
+            "run_id": run_id,
+            "timestamp": datetime.now().isoformat(),
+            "mode": mode,
+            "capital": capital,
+            "status": "CRASH",
+            "error_type": type(_run_analysis_exc).__name__,
+            "error_message": str(_run_analysis_exc)[:500],
+            "traceback_tail": _tb.format_exc()[-1500:],
+        }
+        try:
+            _emergency_path = REPORTS_DIR / "latest_run_crash_log.json"
+            import json as _json
+            with open(_emergency_path, "w", encoding="utf-8") as _f:
+                _json.dump(_emergency_entry, _f, indent=2, ensure_ascii=False)
+        except Exception:
+            pass
+        raise
 
 def apply_cycle_bubble_context(
     analyses: dict[str, dict[str, Any]],
