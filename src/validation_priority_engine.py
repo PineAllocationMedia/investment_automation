@@ -179,9 +179,13 @@ def _estimated_score_fields(analysis: dict[str, Any]) -> list[str]:
     return [field for field in preferred if field in estimated]
 
 
-def _priority_score(field: str, source: str, universe: str, analysis: dict[str, Any]) -> tuple[float, list[str]]:
-    score = float(FIELD_WEIGHTS.get(field, 10))
-    reasons = [f"donnée {source.lower()}"]
+def ticker_investment_potential_score(
+    analysis: dict[str, Any],
+    universe: str,
+) -> tuple[float, list[str]]:
+    """Potentiel d'investissement au niveau titre, indépendant du champ évalué."""
+    score = 0.0
+    reasons: list[str] = []
     universe_upper = universe.upper()
     if universe_upper == "CORE_PORTFOLIO":
         score += 22
@@ -222,17 +226,26 @@ def _priority_score(field: str, source: str, universe: str, analysis: dict[str, 
         score += 5
         reasons.append("dépendance moyenne aux proxys")
 
-    if source == "MISSING":
-        score += 8
-    elif source == "SCORE_PROOF":
-        score += 5
-
     if analysis.get("ticker_validation_status") in {"NO_MARKET_DATA", "POSSIBLE_WRONG_TICKER"}:
         score += 18
         reasons.append("ticker à corriger avant interprétation")
     if analysis.get("thesis_status") not in {"INTACT", ""} and universe_upper != "CORE_PORTFOLIO":
         score -= 12
         reasons.append("moins urgent car thèse non intacte")
+    return score, reasons
+
+
+def _priority_score(field: str, source: str, universe: str, analysis: dict[str, Any]) -> tuple[float, list[str]]:
+    score = float(FIELD_WEIGHTS.get(field, 10))
+    reasons = [f"donnée {source.lower()}"]
+    ticker_score, ticker_reasons = ticker_investment_potential_score(analysis, universe)
+    score += ticker_score
+    reasons.extend(ticker_reasons)
+
+    if source == "MISSING":
+        score += 8
+    elif source == "SCORE_PROOF":
+        score += 5
     return max(0.0, score), reasons
 
 

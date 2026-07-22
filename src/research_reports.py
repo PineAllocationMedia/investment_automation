@@ -36,6 +36,7 @@ RESEARCH_NEEDED_COLUMNS = [
     "reason",
     "suggested_action",
     "suggested_file_name",
+    "ticker_potential_score",
 ]
 RESEARCH_STATUS_COLUMNS = [
     "file_name",
@@ -77,6 +78,17 @@ RESEARCH_PRIMARY_FIELDS = {
     "moat_clear",
     "valuation_vs_5y_avg_ok",
 }
+DESCRIPTIVE_RESEARCH_FIELDS = {
+    "research_report_company_description",
+    "research_report_company_description_source",
+    "research_report_company_description_date",
+    "research_report_company_description_source_rank",
+    "research_report_company_description_source_type",
+    "research_report_sector",
+    "research_report_industry",
+}
+PRIORITY_RESEARCH_FIELDS = {"fair_value", "roic_5y_avg"}
+MORNINGSTAR_RESEARCH_SOURCE_TYPES = {"MORNINGSTAR_ANALYST", "MORNINGSTAR_TEAR_SHEET"}
 COMMON_NON_TICKER_FILENAME_TOKENS = {
     "ANALYSIS",
     "ANALYSE",
@@ -152,6 +164,7 @@ def parse_research_report(path: str | Path, ticker: str, index_row: dict[str, An
     extraction_warnings: list[str] = list(extraction.get("warnings") or [])
     field_sources: dict[str, str] = {}
     field_confidence: dict[str, str] = {}
+    source_rank, source_type = _classify_research_report_source(text)
 
     def set_field(field: str, value: Any, source: str = "") -> None:
         if field not in MANUAL_COLUMNS or field == "ticker":
@@ -171,10 +184,29 @@ def parse_research_report(path: str | Path, ticker: str, index_row: dict[str, An
         extraction_warnings.extend(moat_warnings)
         extraction_warnings.extend(valuation_warnings)
 
-        set_field("fair_value", extract_first_number(text, FAIR_VALUE_PATTERNS), "fair value text pattern")
-        set_field("roic_5y_avg", extract_percent_number(text, ROIC_PATTERNS), "ROIC text pattern")
+        fair_value, fair_value_source, fair_value_warnings = _extract_fair_value_estimate(text)
+        extraction_warnings.extend(fair_value_warnings)
+        set_field("fair_value", fair_value, fair_value_source)
+        roic_value = extract_percent_number(text, ROIC_PATTERNS)
+        roic_source = "ROIC text pattern"
+        if roic_value is not None and source_type not in {"MORNINGSTAR_ANALYST", "MORNINGSTAR_TEAR_SHEET"}:
+            roic_source = "ROIC TTM courtier — définition divergente"
+            extraction_warnings.append(
+                "ROIC: source courtier non-Morningstar utilisée comme dernier recours; définition divergente du champ 5 ans."
+            )
+        set_field("roic_5y_avg", roic_value, roic_source)
         set_field("eps_growth_estimated_3_5y", extract_percent_number(text, EPS_GROWTH_PATTERNS), "EPS growth text pattern")
-        set_field("forward_pe_manual", extract_first_number(text, FORWARD_PE_PATTERNS), "forward PE text pattern")
+        forward_pe = extract_valuation_analysis_current_value(text, "Forward P/E")
+        forward_pe_source = "forward PE text pattern"
+        if forward_pe is None:
+            forward_pe = extract_nbccm_forward_pe_estimate(text)
+            if forward_pe is not None:
+                forward_pe_source = "NBCCM estimates P/E 2026E"
+        set_field(
+            "forward_pe_manual",
+            forward_pe if forward_pe is not None else extract_first_number(text, FORWARD_PE_PATTERNS),
+            forward_pe_source,
+        )
         set_field("peg_manual", extract_first_number(text, PEG_PATTERNS), "PEG text pattern")
         set_field("moat_clear", moat_value, moat_source)
         set_field("valuation_vs_5y_avg_ok", valuation_value, valuation_source)
@@ -192,6 +224,16 @@ def parse_research_report(path: str | Path, ticker: str, index_row: dict[str, An
     source_name = path.name
     provider = str(index_row.get("provider") or "BNCD/Morningstar").strip()
     report_date = str(index_row.get("report_date") or date_from_filename(path.name) or "").strip()
+    descriptive_fields = _extract_descriptive_research_fields(text) if text else {}
+    if descriptive_fields:
+        parsed_report_date = _parse_research_report_date(report_date)
+        if parsed_report_date and (date.today() - parsed_report_date).days > 730:
+            extraction_warnings.append("Description: champ informationnel ignoré, rapport de plus de 24 mois.")
+            descriptive_fields = {}
+        elif not parsed_report_date:
+            extraction_warnings.append(
+                "Description: date de rapport inconnue; plafond 24 mois non appliqué à ce champ informationnel."
+            )
     row["manual_confidence_level"] = "HIGH" if {"fair_value", "moat_clear"} <= set(extracted_fields) else "MEDIUM"
     row["notes"] = (
         f"Données extraites automatiquement du rapport local {source_name}. "
@@ -202,6 +244,8 @@ def parse_research_report(path: str | Path, ticker: str, index_row: dict[str, An
     parsed["research_report_sources"] = [source_name]
     parsed["research_report_provider"] = provider
     parsed["research_report_dates"] = [report_date] if report_date else []
+    parsed["research_report_source_rank"] = source_rank
+    parsed["research_report_source_type"] = source_type
     parsed["research_report_status"] = "FOUND_FIELDS" if extracted_fields else "NO_FIELDS_EXTRACTED"
     parsed["research_report_error"] = error
     parsed["research_report_extraction_notes"] = sorted(set(extraction_notes))
@@ -214,6 +258,10 @@ def parse_research_report(path: str | Path, ticker: str, index_row: dict[str, An
     parsed["research_report_ocr_status"] = extraction.get("ocr_status")
     parsed["research_report_text_characters"] = extraction.get("text_characters")
     parsed["research_report_extraction_messages"] = extraction.get("messages", [])
+    if descriptive_fields:
+        parsed.update(descriptive_fields)
+        parsed["research_report_company_description_source"] = source_name
+        parsed["research_report_company_description_date"] = report_date
     return parsed
 
 
@@ -236,6 +284,8 @@ def merge_research_rows(ticker: str, rows: list[dict[str, Any]]) -> dict[str, An
     for row in sorted(rows, key=lambda item: _latest_date_text(item), reverse=True):
         row_fields = set(row.get("research_report_fields") or [])
         for field in row_fields:
+            if field in PRIORITY_RESEARCH_FIELDS:
+                continue
             value = row.get(field)
             if value is not None and value != "" and merged.get(field) in {None, ""}:
                 merged[field] = value
@@ -265,8 +315,26 @@ def merge_research_rows(ticker: str, rows: list[dict[str, Any]]) -> dict[str, An
         if row.get("research_report_error"):
             errors.append(str(row.get("research_report_error")))
 
+    priority_values, priority_warnings = _merge_priority_research_fields(rows)
+    warnings.extend(priority_warnings)
+    for field, selected in priority_values.items():
+        value = selected.get("value")
+        if value is None or value == "" or merged.get(field) not in {None, ""}:
+            continue
+        merged[field] = value
+        fields.append(field)
+        source = str(selected.get("source") or "")
+        confidence = str(selected.get("confidence") or "")
+        if source:
+            field_sources[field] = source
+        if confidence:
+            field_confidence[field] = confidence
+
     merged["ticker"] = ticker
-    merged["manual_confidence_level"] = "HIGH" if len(set(fields)) >= 4 else "MEDIUM"
+    non_low_confidence_fields = {
+        field for field in set(fields) if str(field_confidence.get(field) or "MEDIUM").upper() != "LOW"
+    }
+    merged["manual_confidence_level"] = "HIGH" if len(non_low_confidence_fields) >= 4 else "MEDIUM"
     merged["notes"] = "Données enrichies par rapports BNCD/Morningstar locaux. À valider manuellement."
     parsed = parse_manual_row(merged)
     parsed["research_report_fields"] = sorted(set(fields))
@@ -284,6 +352,12 @@ def merge_research_rows(ticker: str, rows: list[dict[str, Any]]) -> dict[str, An
     parsed["research_report_ocr_status"] = _worst_ocr_status(ocr_statuses)
     parsed["research_report_text_characters"] = int(max(text_characters)) if text_characters else None
     parsed["research_report_extraction_messages"] = sorted(set(extraction_messages))
+    descriptive, descriptive_warnings = _merge_descriptive_research_fields(rows)
+    parsed.update(descriptive)
+    if descriptive_warnings:
+        parsed["research_report_extraction_warnings"] = sorted(
+            set(list(parsed.get("research_report_extraction_warnings") or []) + descriptive_warnings)
+        )
     return parsed
 
 
@@ -320,6 +394,10 @@ def merge_research_with_automated(
     merged["research_report_ocr_status"] = research.get("research_report_ocr_status", "")
     merged["research_report_text_characters"] = research.get("research_report_text_characters")
     merged["research_report_extraction_messages"] = research.get("research_report_extraction_messages", [])
+    for key in DESCRIPTIVE_RESEARCH_FIELDS:
+        value = research.get(key)
+        if value is not None and value != "":
+            merged[key] = value
     merged["auto_estimated_fields"] = [
         field for field in merged.get("auto_estimated_fields", []) if field not in set(applied)
     ]
@@ -493,6 +571,8 @@ def research_needed_rows_from_analysis_rows(
     analysis_groups_by_universe: dict[str, dict[str, dict[str, Any]]],
     existing_reports: dict[str, dict[str, Any]] | None = None,
 ) -> list[dict[str, Any]]:
+    from .validation_priority_engine import ticker_investment_potential_score
+
     existing_reports = existing_reports or {}
     rows: list[dict[str, Any]] = []
     for universe, analyses in analysis_groups_by_universe.items():
@@ -505,6 +585,7 @@ def research_needed_rows_from_analysis_rows(
             qualitative_needed = _qualitative_report_needed_from_analysis(analysis, universe, existing)
             if data_report_available and not qualitative_needed:
                 continue
+            potential, _potential_reasons = ticker_investment_potential_score(analysis, universe)
 
             manual_required = analysis.get("manual_required_criteria") or []
             auto_fields = set(analysis.get("auto_estimated_fields") or [])
@@ -574,6 +655,7 @@ def research_needed_rows_from_analysis_rows(
                     "reason": "; ".join(reasons),
                     "suggested_action": suggested_action,
                     "suggested_file_name": "" if validation_status in {"NO_MARKET_DATA", "POSSIBLE_WRONG_TICKER"} else f"{ticker}_{date.today().isoformat()}_BNCD_Morningstar.pdf",
+                    "ticker_potential_score": round(potential, 2),
                 }
             )
 
@@ -581,6 +663,7 @@ def research_needed_rows_from_analysis_rows(
     return sorted(
         rows,
         key=lambda row: (
+            -(safe_float(row.get("ticker_potential_score")) or 0.0),
             priority_rank.get(str(row.get("priority")), 9),
             0 if str(row.get("universe")) == "CORE_PORTFOLIO" else 1,
             -(safe_float(row.get("missing_critical_count")) or 0),
@@ -1035,9 +1118,19 @@ def infer_ticker_from_filename(file_name: str, known_tickers: list[str]) -> str:
     for ticker in candidates:
         if ticker and re.search(rf"(^|[^A-Z0-9]){re.escape(ticker)}([^A-Z0-9]|$)", upper):
             return ticker
-        no_suffix = ticker.replace(".TO", "").replace(".V", "")
-        if len(no_suffix) >= 2 and re.search(rf"(^|[^A-Z0-9]){re.escape(no_suffix)}([^A-Z0-9]|$)", upper):
-            return ticker
+
+    tickers_by_root: dict[str, list[str]] = {}
+    for ticker in candidates:
+        root = re.sub(r"\.[A-Z]{1,3}$", "", str(ticker or "").upper())
+        if len(root) >= 2:
+            tickers_by_root.setdefault(root, []).append(ticker)
+    for root, tickers in sorted(tickers_by_root.items(), key=lambda item: len(item[0]), reverse=True):
+        if not re.search(rf"(^|[^A-Z0-9]){re.escape(root)}([^A-Z0-9]|$)", upper):
+            continue
+        if len(set(tickers)) == 1:
+            return tickers[0]
+        return ""
+
     first_token = re.split(r"[\s_-]+", Path(file_name).stem.upper())[0]
     if first_token in COMMON_NON_TICKER_FILENAME_TOKENS:
         return ""
@@ -1060,12 +1153,573 @@ def extract_first_number(text: str, patterns: list[str]) -> float | None:
     for pattern in patterns:
         match = re.search(pattern, text, flags=re.IGNORECASE)
         if match:
-            return safe_float(match.group(1))
+            return _safe_report_number(match.group(1))
     return None
 
 
 def extract_percent_number(text: str, patterns: list[str]) -> float | None:
     return extract_first_number(text, patterns)
+
+
+def extract_valuation_analysis_current_value(text: str, label: str) -> float | None:
+    pattern = rf"^\s*{re.escape(label)}\s+{REPORT_NUMBER_CAPTURE}\*?(?:\s|$)"
+    match = re.search(pattern, text or "", flags=re.IGNORECASE | re.MULTILINE)
+    if not match:
+        return None
+    return _safe_report_number(match.group(1))
+
+
+def extract_broker_target_price(text: str) -> float | None:
+    value, _start = _extract_broker_target_price_candidate(text)
+    return value
+
+
+def extract_nbccm_forward_pe_estimate(text: str) -> float | None:
+    section_match = re.search(
+        r"\bNBCCM\s+ESTIMATES\s*&\s*VALUATION\b(?P<body>.*?)(?=\n\s*(?:Source:|All figures|Company Profile|IMPORTANT DISCLOSURES)\b|$)",
+        text or "",
+        flags=re.IGNORECASE | re.DOTALL,
+    )
+    if not section_match:
+        return None
+    section = section_match.group("body")
+    header = re.search(r"\bFiscal\s+Y/E\b(?P<header>[^\n]+(?:\n[^\n]+)?)", section, flags=re.IGNORECASE)
+    labels_text = header.group("header") if header else section[:500]
+    year_labels = re.findall(r"\b20\d{2}[AE]\b", labels_text, flags=re.IGNORECASE)
+    if not year_labels:
+        return None
+    pe_match = re.search(r"^\s*P/E\s*\(x\)\s+(?P<values>[^\n]+)$", section, flags=re.IGNORECASE | re.MULTILINE)
+    if not pe_match:
+        return None
+    values = [
+        value
+        for value in (_safe_report_number(match.group(1)) for match in re.finditer(REPORT_NUMBER_CAPTURE, pe_match.group("values")))
+        if value is not None
+    ]
+    first_estimate_index = next(
+        (index for index, label in enumerate(year_labels) if str(label).upper().endswith("E")),
+        None,
+    )
+    if first_estimate_index is None or first_estimate_index >= len(values):
+        return None
+    return values[first_estimate_index]
+
+
+def _extract_descriptive_research_fields(text: str) -> dict[str, Any]:
+    source_rank, source_type = _classify_research_report_source(text)
+    description = _extract_company_description(text, source_type)
+    sector, industry = _extract_sector_industry(text, source_type)
+    fields: dict[str, Any] = {}
+    if description:
+        fields["research_report_company_description"] = description
+    if sector:
+        fields["research_report_sector"] = sector
+    if industry:
+        fields["research_report_industry"] = industry
+    if fields:
+        fields["research_report_company_description_source_rank"] = source_rank
+        fields["research_report_company_description_source_type"] = source_type
+    return fields
+
+
+def _classify_research_report_source(text: str) -> tuple[int, str]:
+    lower = str(text or "").lower()
+    if "morningstar equity analyst report" in lower and "business description" in lower and "economic moat" in lower:
+        return 1, "MORNINGSTAR_ANALYST"
+    if "investment detail report" in lower or ("morningstar" in lower and "business description" not in lower):
+        return 2, "MORNINGSTAR_TEAR_SHEET"
+    if "company profile" in lower or "nbccm" in lower or "national bank" in lower:
+        return 3, "NATIONAL_BANK"
+    return 4, "OTHER"
+
+
+def _extract_company_description(text: str, source_type: str) -> str:
+    text = str(text or "")
+    if not text.strip():
+        return ""
+    if source_type == "MORNINGSTAR_ANALYST":
+        return _extract_morningstar_analyst_description(text)
+    if source_type == "MORNINGSTAR_TEAR_SHEET":
+        return _extract_morningstar_tear_sheet_description(text)
+    if source_type == "NATIONAL_BANK":
+        return _extract_national_bank_description(text)
+    return _extract_generic_company_description(text)
+
+
+def _extract_morningstar_analyst_description(text: str) -> str:
+    candidates: list[str] = []
+    pattern = (
+        r"\bBusiness Description\b\s*"
+        r"(?P<body>.*?)"
+        r"(?=\n\s*(?:Business Strategy|Business Strategy & Outlook|Bulls Say|Bears Say|Economic Moat|"
+        r"Fair Value|Risk and Uncertainty|Capital Allocation|Analyst Notes?|Financials|ESG Risk|Appendix)\b)"
+    )
+    for match in re.finditer(pattern, text, flags=re.IGNORECASE | re.DOTALL):
+        candidate = _clean_descriptive_text(match.group("body"))
+        if len(candidate) >= 80:
+            candidates.append(candidate)
+    return max(candidates, key=len) if candidates else ""
+
+
+def _extract_morningstar_tear_sheet_description(text: str) -> str:
+    head = _truncate_before_disclaimer(str(text or ""))[:3000]
+    if "\n" in head:
+        head = head.split("\n", 1)[1]
+    stop = re.search(
+        r"\n\s*(?:Growth Rates|Fair Value Uncertainty|Valuation|Financials|Profitability|Stock Performance)\b",
+        head,
+        flags=re.IGNORECASE,
+    )
+    if stop:
+        head = head[: stop.start()]
+    head = re.sub(r"^\s*\d{1,2}[-/][A-Za-z]{3}[-/]\d{4}\s+", "", head)
+    description = _clean_descriptive_text(head)
+    return description if len(description) >= 80 else ""
+
+
+def _extract_national_bank_description(text: str) -> str:
+    pattern = (
+        r"\bCOMPANY PROFILE\b\s*"
+        r"(?P<body>.*?)"
+        r"(?=\n\s*(?:Analyst|Associate|For required disclosures|Figure\s+\d|Source:|IMPORTANT DISCLOSURES)\b)"
+    )
+    match = re.search(pattern, text, flags=re.IGNORECASE | re.DOTALL)
+    if not match:
+        return ""
+    description = _clean_descriptive_text(match.group("body"))
+    return description if len(description) >= 60 else ""
+
+
+def _extract_generic_company_description(text: str) -> str:
+    for pattern in [
+        r"\bBusiness Description\b\s*(?P<body>.*?)(?=\n\s*[A-Z][A-Za-z &/]{4,40}\n)",
+        r"\bCompany Profile\b\s*(?P<body>.*?)(?=\n\s*[A-Z][A-Za-z &/]{4,40}\n)",
+    ]:
+        match = re.search(pattern, text, flags=re.IGNORECASE | re.DOTALL)
+        if match:
+            description = _clean_descriptive_text(match.group("body"))
+            if len(description) >= 80:
+                return description
+    return ""
+
+
+def _extract_sector_industry(text: str, source_type: str) -> tuple[str, str]:
+    sector = ""
+    industry = ""
+
+    table_match = re.search(
+        r"\bSector\s+Industry\s*\n\s*(?P<line>[^\n]+)\n\s*Business Description\b",
+        text,
+        flags=re.IGNORECASE,
+    )
+    if table_match:
+        sector, industry = _split_sector_industry_line(table_match.group("line"))
+
+    if not industry:
+        industry = _extract_labeled_industry(text)
+
+    if not sector and source_type == "MORNINGSTAR_TEAR_SHEET":
+        sector = _extract_tear_sheet_sector(text)
+
+    if not sector and source_type == "NATIONAL_BANK":
+        sector = _extract_national_bank_sector(text)
+
+    return _clean_short_label(sector), _clean_short_label(industry)
+
+
+def _split_sector_industry_line(line: str) -> tuple[str, str]:
+    clean = _clean_short_label(re.sub(r"^[a-z]\s+", "", str(line or "").strip(), flags=re.IGNORECASE))
+    for sector in sorted(KNOWN_REPORT_SECTORS, key=len, reverse=True):
+        if clean.lower().startswith(sector.lower()):
+            industry = _clean_short_label(clean[len(sector) :])
+            return sector, industry
+    return "", clean
+
+
+def _extract_labeled_industry(text: str) -> str:
+    patterns = [
+        r"\bIndustry\s*:\s*(?!Rating\b)(?P<value>[^\n|]+)",
+        r"\|\s*Industry\s*:\s*(?P<value>[^\n|]+)",
+    ]
+    for pattern in patterns:
+        match = re.search(pattern, text, flags=re.IGNORECASE)
+        if match:
+            value = _clean_short_label(match.group("value"))
+            if value and not value.lower().startswith("rating"):
+                return value
+    return ""
+
+
+def _extract_tear_sheet_sector(text: str) -> str:
+    match = re.search(
+        r"\bFair Value\s+Uncertainty\s+Economic Moat\s+Sector\s+Style[^\n]*\n(?P<line>[^\n]+)",
+        text,
+        flags=re.IGNORECASE,
+    )
+    if not match:
+        return ""
+    return _match_known_sector(match.group("line"))
+
+
+def _extract_national_bank_sector(text: str) -> str:
+    for line in str(text or "").splitlines()[:8]:
+        sector = _match_known_sector(line)
+        if sector:
+            return sector
+    return ""
+
+
+def _match_known_sector(text: str) -> str:
+    clean = _clean_short_label(text)
+    for sector in sorted(KNOWN_REPORT_SECTORS, key=len, reverse=True):
+        if re.search(rf"(^|[^A-Za-z]){re.escape(sector)}([^A-Za-z]|$)", clean, flags=re.IGNORECASE):
+            return sector
+    return ""
+
+
+def _clean_descriptive_text(value: str) -> str:
+    text = _truncate_before_disclaimer(value)
+    text = text.replace("\u00a0", " ").replace("\xad", "")
+    text = re.sub(r"-\s*\n\s*", "", text)
+    text = re.sub(r"\s*\n\s*", " ", text)
+    text = re.sub(r"\s+", " ", text).strip(" -:;")
+    text = re.sub(r"^(?:[;?\s]+)*(?:\d{1,2}[-/][A-Za-z]{3}[-/]\d{4})\s+", "", text)
+    replacements = {
+        r"\bthecompany\b": "the company",
+        r"\bourview\b": "our view",
+        r"\bwebelieve\b": "we believe",
+        r"\bweexpect\b": "we expect",
+        r"\bthebusiness\b": "the business",
+    }
+    for pattern, replacement in replacements.items():
+        text = re.sub(pattern, replacement, text, flags=re.IGNORECASE)
+    return text
+
+
+def _clean_short_label(value: str) -> str:
+    text = str(value or "").replace("\u00a0", " ")
+    text = re.sub(r"\s+", " ", text).strip(" -:;|")
+    return text
+
+
+def _truncate_before_disclaimer(text: str) -> str:
+    stops = [
+        "© Morningstar",
+        "All Rights Reserved",
+        "For required disclosures",
+        "This report may not be reproduced",
+        "Important Disclosure",
+        "IMPORTANT DISCLOSURES",
+    ]
+    cut = len(text or "")
+    for marker in stops:
+        index = str(text or "").find(marker)
+        if index >= 0:
+            cut = min(cut, index)
+    return str(text or "")[:cut]
+
+
+def _merge_descriptive_research_fields(rows: list[dict[str, Any]]) -> tuple[dict[str, Any], list[str]]:
+    candidates: list[dict[str, Any]] = []
+    warnings: list[str] = []
+    for row in rows:
+        if not any(row.get(field) for field in DESCRIPTIVE_RESEARCH_FIELDS):
+            continue
+        source = _first_research_source(row)
+        report_date = str(row.get("research_report_company_description_date") or _latest_date_text(row) or "").strip()
+        parsed_date = _parse_research_report_date(report_date)
+        if parsed_date and (date.today() - parsed_date).days > 730:
+            warnings.append(f"Description: {source or 'rapport local'} ignoré, rapport de plus de 24 mois.")
+            continue
+        if not parsed_date:
+            warnings.append(
+                f"Description: date inconnue pour {source or 'rapport local'}; plafond 24 mois non appliqué."
+            )
+        candidates.append(
+            {
+                "row": row,
+                "source": source,
+                "date": report_date,
+                "rank": int(safe_float(row.get("research_report_company_description_source_rank")) or 4),
+                "source_type": str(row.get("research_report_company_description_source_type") or "OTHER"),
+                "date_ordinal": parsed_date.toordinal() if parsed_date else 0,
+            }
+        )
+
+    if not candidates:
+        return {}, warnings
+
+    candidates.sort(key=lambda item: (int(item["rank"]), -int(item["date_ordinal"])))
+    output: dict[str, Any] = {}
+    chosen_description_candidate = None
+    for field in ["research_report_company_description", "research_report_sector", "research_report_industry"]:
+        for candidate in candidates:
+            value = candidate["row"].get(field)
+            if value is not None and value != "":
+                output[field] = value
+                if field == "research_report_company_description":
+                    chosen_description_candidate = candidate
+                break
+
+    source_candidate = chosen_description_candidate or candidates[0]
+    if output:
+        output["research_report_company_description_source"] = source_candidate["source"]
+        output["research_report_company_description_date"] = source_candidate["date"]
+        output["research_report_company_description_source_rank"] = source_candidate["rank"]
+        output["research_report_company_description_source_type"] = source_candidate["source_type"]
+    return output, warnings
+
+
+def _first_research_source(row: dict[str, Any]) -> str:
+    sources = row.get("research_report_sources") or []
+    if isinstance(sources, list) and sources:
+        return str(sources[0])
+    return str(row.get("research_report_company_description_source") or "")
+
+
+def _parse_research_report_date(value: str) -> date | None:
+    text = str(value or "").strip()
+    if not text:
+        return None
+    match = re.search(r"(20\d{2})-(\d{2})-(\d{2})", text)
+    if match:
+        try:
+            return date(int(match.group(1)), int(match.group(2)), int(match.group(3)))
+        except ValueError:
+            return None
+    return None
+
+
+def _safe_report_number(value: Any) -> float | None:
+    """Convert English-formatted report numbers without changing global safe_float()."""
+    if value is None:
+        return None
+    if isinstance(value, (int, float)):
+        return float(value)
+    text = str(value).strip()
+    if not text:
+        return None
+    text = text.replace("\u00a0", "").replace(" ", "")
+    text = re.sub(r"^(?:CAD|USD|C\$|US\$|\$)", "", text, flags=re.IGNORECASE)
+    text = re.sub(r"(?:CAD|USD)$", "", text, flags=re.IGNORECASE)
+    if not re.fullmatch(REPORT_NUMBER_PATTERN, text):
+        return None
+    try:
+        return float(text.replace(",", ""))
+    except ValueError:
+        return None
+
+
+def _extract_broker_target_price_candidate(text: str) -> tuple[float | None, int]:
+    text = str(text or "")
+    anchored_patterns = [
+        rf"\btarget\s+price\s+(?:of|to|at|is|=)?\s*(?:CAD|USD|C\$|US\$|\$)?\s*{REPORT_NUMBER_CAPTURE}",
+        rf"\bprice\s+target\s+(?:of|to|at|is|=)?\s*(?:CAD|USD|C\$|US\$|\$)?\s*{REPORT_NUMBER_CAPTURE}",
+    ]
+    for pattern in anchored_patterns:
+        match = re.search(pattern, text, flags=re.IGNORECASE)
+        if not match:
+            continue
+        value = _safe_report_number(match.group(1))
+        if value is not None:
+            return value, match.start(1)
+
+    header_match = re.search(
+        r"\bSTOCK\s+RATING\s+TARGET\s+EST\s*\.?\s*TOTAL\s+RETURN\b(?P<body>.{0,450})",
+        text,
+        flags=re.IGNORECASE | re.DOTALL,
+    )
+    if not header_match:
+        return None, -1
+    currency_matches = list(
+        re.finditer(rf"(?:CAD|USD|C\$|US\$|\$)\s*{REPORT_NUMBER_CAPTURE}", header_match.group("body"), flags=re.IGNORECASE)
+    )
+    if len(currency_matches) < 2:
+        return None, -1
+    target_match = currency_matches[1]
+    value = _safe_report_number(target_match.group(1))
+    if value is None:
+        return None, -1
+    return value, header_match.start("body") + target_match.start(1)
+
+
+def _extract_fair_value_estimate(text: str) -> tuple[float | None, str, list[str]]:
+    candidates: list[dict[str, Any]] = []
+    for pattern in FAIR_VALUE_PATTERNS:
+        for match in re.finditer(pattern, text or "", flags=re.IGNORECASE):
+            value = _safe_report_number(match.group(1))
+            if value is None:
+                continue
+            candidates.append(
+                {
+                    "value": value,
+                    "start": match.start(1),
+                    "score": _fair_value_candidate_score(text, match.start(), match.end()),
+                }
+            )
+    target_value, target_start = _extract_broker_target_price_candidate(text)
+    if target_value is not None:
+        candidates.append(
+            {
+                "value": target_value,
+                "start": target_start if target_start >= 0 else len(text or ""),
+                "score": 1.0,
+                "source": "cours cible 12 mois — courtier, définition divergente",
+            }
+        )
+    if not candidates:
+        return None, "", []
+
+    candidates.sort(key=lambda item: (-float(item["score"]), int(item["start"])))
+    best = candidates[0]
+    warnings: list[str] = []
+    source = str(best.get("source") or ("fair value header pattern" if float(best["score"]) >= 6.0 else "fair value text pattern"))
+    if _is_divergent_research_source(source):
+        warnings.append(
+            "Fair value: cours cible courtier 12 mois détecté; définition divergente de la juste valeur intrinsèque."
+        )
+    if len(candidates) > 1 and float(best["score"]) < 6.0:
+        warnings.append(
+            "Juste valeur: plusieurs candidats détectés sans en-tête Morningstar clair; premier candidat utilisé avec prudence."
+        )
+    return float(best["value"]), source, warnings
+
+
+def _merge_priority_research_fields(rows: list[dict[str, Any]]) -> tuple[dict[str, dict[str, Any]], list[str]]:
+    selected: dict[str, dict[str, Any]] = {}
+    warnings: list[str] = []
+    for field in sorted(PRIORITY_RESEARCH_FIELDS):
+        choice, field_warnings = _select_priority_research_field(field, rows)
+        warnings.extend(field_warnings)
+        if choice:
+            selected[field] = choice
+    return selected, warnings
+
+
+def _select_priority_research_field(field: str, rows: list[dict[str, Any]]) -> tuple[dict[str, Any] | None, list[str]]:
+    candidates: list[dict[str, Any]] = []
+    warnings: list[str] = []
+    for row in rows:
+        row_fields = set(row.get("research_report_fields") or [])
+        if field not in row_fields:
+            continue
+        value = row.get(field)
+        if value is None or value == "":
+            continue
+        source = str((row.get("research_report_field_sources") or {}).get(field) or "")
+        source_type = _research_source_type_from_row(row)
+        parsed_date = _parse_research_report_date(_latest_date_text(row))
+        confidence = str((row.get("research_report_field_confidence") or {}).get(field) or "")
+        divergent = _is_divergent_priority_candidate(field, source, source_type)
+        if divergent:
+            confidence = "LOW"
+        candidates.append(
+            {
+                "value": value,
+                "source": source,
+                "confidence": confidence,
+                "source_type": source_type,
+                "source_rank": _research_source_rank_from_row(row),
+                "date_text": _latest_date_text(row),
+                "date_ordinal": parsed_date.toordinal() if parsed_date else 0,
+                "divergent": divergent,
+            }
+        )
+
+    if not candidates:
+        return None, warnings
+
+    if field == "fair_value":
+        intrinsic_candidates = [candidate for candidate in candidates if not candidate["divergent"]]
+        if intrinsic_candidates:
+            chosen = sorted(
+                intrinsic_candidates,
+                key=lambda candidate: (-int(candidate["date_ordinal"]), int(candidate["source_rank"])),
+            )[0]
+            if any(candidate["divergent"] for candidate in candidates):
+                warnings.append(
+                    "Fair value: cours cible courtier détecté puis écarté au profit d'une juste valeur Morningstar/intrinsèque."
+                )
+            return chosen, warnings
+        chosen = sorted(candidates, key=lambda candidate: (-int(candidate["date_ordinal"]), int(candidate["source_rank"])))[0]
+        chosen["confidence"] = "LOW"
+        warnings.append(
+            "Fair value: cours cible courtier retenu en dernier recours faute de juste valeur Morningstar; définition divergente, confiance LOW."
+        )
+        return chosen, warnings
+
+    if field == "roic_5y_avg":
+        comparable_candidates = [candidate for candidate in candidates if not candidate["divergent"]]
+        if comparable_candidates:
+            chosen = sorted(
+                comparable_candidates,
+                key=lambda candidate: (int(candidate["source_rank"]), -int(candidate["date_ordinal"])),
+            )[0]
+            if any(candidate["divergent"] for candidate in candidates):
+                warnings.append("ROIC: source courtier écartée au profit d'une source Morningstar comparable au champ 5 ans.")
+            return chosen, warnings
+        chosen = sorted(candidates, key=lambda candidate: (int(candidate["source_rank"]), -int(candidate["date_ordinal"])))[0]
+        chosen["confidence"] = "LOW"
+        warnings.append("ROIC: source non-Morningstar retenue en dernier recours; définition divergente, confiance LOW.")
+        return chosen, warnings
+
+    return sorted(candidates, key=lambda candidate: (-int(candidate["date_ordinal"]), int(candidate["source_rank"])))[0], warnings
+
+
+def _research_source_type_from_row(row: dict[str, Any]) -> str:
+    source_type = str(row.get("research_report_source_type") or row.get("research_report_company_description_source_type") or "")
+    if source_type:
+        return source_type
+    return _classify_research_source_name(_first_research_source(row))[1]
+
+
+def _research_source_rank_from_row(row: dict[str, Any]) -> int:
+    rank = safe_float(row.get("research_report_source_rank"))
+    if rank is None:
+        rank = safe_float(row.get("research_report_company_description_source_rank"))
+    if rank is not None:
+        return int(rank)
+    return _classify_research_source_name(_first_research_source(row))[0]
+
+
+def _classify_research_source_name(source: str) -> tuple[int, str]:
+    lower = str(source or "").lower()
+    if "morningstar" in lower and "tear" in lower:
+        return 2, "MORNINGSTAR_TEAR_SHEET"
+    if "morningstar" in lower:
+        return 1, "MORNINGSTAR_ANALYST"
+    if "nbf" in lower or "national" in lower or "companyreport" in lower or "banque" in lower:
+        return 3, "NATIONAL_BANK"
+    return 4, "OTHER"
+
+
+def _is_divergent_priority_candidate(field: str, source: str, source_type: str) -> bool:
+    if _is_divergent_research_source(source):
+        return True
+    if field == "roic_5y_avg" and str(source_type or "") not in MORNINGSTAR_RESEARCH_SOURCE_TYPES:
+        return True
+    return False
+
+
+def _is_divergent_research_source(source: str) -> bool:
+    source_text = str(source or "").lower()
+    return "définition divergente" in source_text or "definition divergent" in source_text or "cours cible" in source_text
+
+
+def _fair_value_candidate_score(text: str, start: int, end: int) -> float:
+    context = str(text or "")[max(0, start - 450) : min(len(text or ""), end + 450)].lower()
+    score = 0.0
+    if start < 8000:
+        score += 2.0
+    if re.search(r"\bprice\s*/\s*fve\b|\bprice\s*/\s*fair\s+value\b|\bprice\s+to\s+fair\s+value\b", context):
+        score += 6.0
+    if re.search(r"\bfair\s+value\s+uncertainty\s+economic\s+moat\s+sector\b", context):
+        score += 6.0
+    if re.search(r"\b(?:current\s+price|last\s+price|market\s+price)\b", context):
+        score += 2.0
+    if re.search(r"\b(?:archive|archived|analyst note|we (?:raise|lower|cut|increase|decrease)|previous|prior)\b", context):
+        score -= 2.0
+    return score
 
 
 def extract_bool_from_patterns(text: str, true_patterns: list[str], false_patterns: list[str]) -> bool | None:
@@ -1082,7 +1736,9 @@ def research_field_confidence(field: str, source: str, extraction: dict[str, Any
     source_text = str(source or "").lower()
     confidence = "MEDIUM"
 
-    if field in {"regulatory_risk_high", "geopolitical_risk_high", "single_product_dependency_high"}:
+    if _is_divergent_research_source(source):
+        confidence = "LOW"
+    elif field in {"regulatory_risk_high", "geopolitical_risk_high", "single_product_dependency_high"}:
         confidence = "LOW"
     elif "morningstar economic moat" in source_text:
         confidence = "HIGH"
@@ -1175,27 +1831,28 @@ def extract_morningstar_valuation_ok(text: str) -> tuple[bool | None, str, list[
 
 def _extract_structured_morningstar_moat(text: str) -> str:
     patterns = [
-        r"\beconomic\s+moat\s*(?:tm|™)?\s*(wide|narrow|none|no\s+moat)\b",
-        r"\bmoat\s*(?:rating)?\s*[:\-]?\s*(wide|narrow|none|no\s+moat)\b",
+        r"\beconomic\s+moat\s*(?:tm|™)?\s*(?P<moat>wide|narrow|none|no\s+moat)\b",
+        r"\bmoat\s*(?:rating)?\s*[:\-]?\s*(?P<moat>wide|narrow|none|no\s+moat)\b",
+        rf"\bFair Value\s+Uncertainty\s+Economic Moat\s+Sector\s+Style[^\n\r]*\n\s*(?:CAD|USD|C\$|US\$|\$)?\s*{REPORT_NUMBER_CAPTURE}\s+\w+\s+(?P<moat>wide|narrow|none|no\s+moat)\b",
     ]
     for pattern in patterns:
         match = re.search(pattern, text, flags=re.IGNORECASE)
         if match:
-            return str(match.group(1)).strip()
+            return str(match.group("moat") if "moat" in match.groupdict() else match.group(1)).strip()
     return ""
 
 
 def _extract_price_to_fair_value(text: str) -> float | None:
     patterns = [
-        r"\bprice\s*/\s*fve\s*[:\-]?\s*([0-9]+(?:[.,][0-9]+)?)\b",
-        r"\bprice\s*/\s*fair\s+value\s*[:\-]?\s*([0-9]+(?:[.,][0-9]+)?)\b",
-        r"\bprice\s+to\s+fair\s+value\s*[:\-]?\s*([0-9]+(?:[.,][0-9]+)?)\b",
+        rf"\bprice\s*/\s*fve\s*[:\-]?\s*{REPORT_NUMBER_CAPTURE}\b",
+        rf"\bprice\s*/\s*fair\s+value\s*[:\-]?\s*{REPORT_NUMBER_CAPTURE}\b",
+        rf"\bprice\s+to\s+fair\s+value\s*[:\-]?\s*{REPORT_NUMBER_CAPTURE}\b",
     ]
     for pattern in patterns:
         match = re.search(pattern, text, flags=re.IGNORECASE)
         if not match:
             continue
-        value = safe_float(match.group(1))
+        value = _safe_report_number(match.group(1))
         if value is None:
             continue
         if 10 < value <= 300:
@@ -1276,21 +1933,41 @@ def _truthy(value: Any) -> bool:
     return str(value).strip().lower() in {"true", "1", "yes", "oui"}
 
 
+REPORT_NUMBER_PATTERN = r"[+-]?(?:\d{1,3}(?:,\d{3})+(?:\.\d+)?|\d+(?:\.\d+)?)"
+REPORT_NUMBER_CAPTURE = rf"({REPORT_NUMBER_PATTERN})"
+KNOWN_REPORT_SECTORS = [
+    "Communication Services",
+    "Consumer Discretionary",
+    "Consumer Staples",
+    "Consumer Cyclical",
+    "Consumer Defensive",
+    "Financial Services",
+    "Information Technology",
+    "Basic Materials",
+    "Real Estate",
+    "Technology",
+    "Financials",
+    "Healthcare",
+    "Industrials",
+    "Utilities",
+    "Energy",
+]
 FAIR_VALUE_PATTERNS = [
-    r"(?:fair value estimate|fair value|juste valeur|valeur intrins[eè]que)[^\n\r$]{0,80}?(?:CAD|USD|C\$|US\$|\$)?\s*([0-9]+(?:[.,][0-9]+)?)",
+    rf"(?:fair value estimate|fair value|juste valeur|valeur intrins[eè]que)[^\n\r0-9]{{0,80}}?(?:CAD|USD|C\$|US\$|\$)?\s*{REPORT_NUMBER_CAPTURE}",
+    rf"\bFair Value\s+Uncertainty\s+Economic Moat\s+Sector\s+Style[^\n\r]*\n\s*(?:CAD|USD|C\$|US\$|\$)?\s*{REPORT_NUMBER_CAPTURE}",
 ]
 ROIC_PATTERNS = [
-    r"(?:ROIC|return on invested capital|rendement du capital investi)[^\n\r%]{0,80}?([0-9]+(?:[.,][0-9]+)?)\s*%",
+    rf"(?:ROIC|return on invested capital|rendement du capital investi)[^\n\r%]{{0,80}}?{REPORT_NUMBER_CAPTURE}\s*%",
 ]
 EPS_GROWTH_PATTERNS = [
-    r"(?:EPS|earnings|b[eé]n[eé]fice)[^\n\r%]{0,80}?(?:growth|croissance)[^\n\r%]{0,80}?([0-9]+(?:[.,][0-9]+)?)\s*%",
-    r"(?:growth|croissance)[^\n\r%]{0,80}?(?:EPS|earnings|b[eé]n[eé]fice)[^\n\r%]{0,80}?([0-9]+(?:[.,][0-9]+)?)\s*%",
+    rf"(?:EPS|earnings|b[eé]n[eé]fice)[^\n\r%]{{0,80}}?(?:growth|croissance)[^\n\r%]{{0,80}}?{REPORT_NUMBER_CAPTURE}\s*%",
+    rf"(?:growth|croissance)[^\n\r%]{{0,80}}?(?:EPS|earnings|b[eé]n[eé]fice)[^\n\r%]{{0,80}}?{REPORT_NUMBER_CAPTURE}\s*%",
 ]
 FORWARD_PE_PATTERNS = [
-    r"(?:forward P/E|forward PE|P/E forward|PE forward|cours/b[eé]n[eé]fice pr[eé]visionnel)[^\n\r0-9]{0,80}?([0-9]+(?:[.,][0-9]+)?)",
+    rf"(?:forward P/E|forward PE|P/E forward|PE forward|cours/b[eé]n[eé]fice pr[eé]visionnel)[^\n\r0-9]{{0,80}}?{REPORT_NUMBER_CAPTURE}",
 ]
 PEG_PATTERNS = [
-    r"(?:PEG ratio|PEG)[^\n\r0-9]{0,80}?([0-9]+(?:[.,][0-9]+)?)",
+    rf"(?:PEG ratio|PEG)[^\n\r0-9]{{0,80}}?{REPORT_NUMBER_CAPTURE}",
 ]
 TRUE_MOAT_PATTERNS = [r"\bwide moat\b", r"\bnarrow moat\b", r"\bmoat\s*:\s*(wide|narrow)\b", r"avantage concurrentiel"]
 FALSE_MOAT_PATTERNS = [r"\bno moat\b", r"\bno economic moat\b", r"aucun avantage concurrentiel"]
