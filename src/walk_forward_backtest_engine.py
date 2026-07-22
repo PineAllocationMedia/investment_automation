@@ -14,6 +14,7 @@ from .benchmark_comparison_engine import (
     build_walk_forward_benchmark_comparisons,
     load_benchmark_definitions,
 )
+from .mode_artifacts import mode_artifact_path, write_csv_records_mode_pair, write_text_mode_pair
 from .transaction_friction_engine import (
     BACKTEST_FRICTION_AUDIT_COLUMNS,
     add_friction_fields_to_walk_forward_periods,
@@ -161,10 +162,10 @@ def run_walk_forward_inventory(
     coverage_row = build_walk_forward_coverage(inventory_rows, config)
     markdown = build_walk_forward_inventory_report(coverage_row, inventory_rows, config)
 
-    write_csv_records(reports_dir / "latest_walk_forward_inventory.csv", inventory_rows, WALK_FORWARD_INVENTORY_COLUMNS)
-    write_csv_records(reports_dir / "latest_walk_forward_coverage.csv", [coverage_row], WALK_FORWARD_COVERAGE_COLUMNS)
-    write_text(reports_dir / "latest_walk_forward_inventory.md", markdown)
-    write_text(reports_dir / "latest_walk_forward_inventory.html", markdown_to_html(markdown))
+    write_csv_records_mode_pair(reports_dir, "latest_walk_forward_inventory.csv", mode, inventory_rows, WALK_FORWARD_INVENTORY_COLUMNS)
+    write_csv_records_mode_pair(reports_dir, "latest_walk_forward_coverage.csv", mode, [coverage_row], WALK_FORWARD_COVERAGE_COLUMNS)
+    write_text_mode_pair(reports_dir, "latest_walk_forward_inventory.md", mode, markdown)
+    write_text_mode_pair(reports_dir, "latest_walk_forward_inventory.html", mode, markdown_to_html(markdown))
     return {"inventory_rows": inventory_rows, "coverage": coverage_row, "markdown": markdown}
 
 
@@ -197,7 +198,7 @@ def run_walk_forward_backtest(
         tickers = sorted(set(_walk_forward_price_tickers(usable_rows)) | set(benchmark_price_tickers(benchmark_definitions)))
         years = _walk_forward_price_years(usable_rows)
         try:
-            prices = fetch_price_history_cad(tickers, data_dir, years=years, refresh=refresh_market_data)
+            prices = fetch_price_history_cad(tickers, data_dir, years=years, refresh=refresh_market_data, mode=mode)
             price_basis = str(prices.attrs.get("price_return_basis") or "UNKNOWN_PRICE_BASIS")
             simulation = simulate_walk_forward_periods(usable_rows, prices, config)
             period_rows = simulation["period_rows"]
@@ -214,30 +215,42 @@ def run_walk_forward_backtest(
     summary_row = add_friction_fields_to_walk_forward_summary(summary_row, friction_rows)
     report = build_walk_forward_backtest_report(coverage_row, inventory_rows, summary_row, period_rows, regime_rows, config, benchmark_rows)
 
-    write_csv_records(reports_dir / "latest_walk_forward_inventory.csv", inventory_rows, WALK_FORWARD_INVENTORY_COLUMNS)
-    write_csv_records(reports_dir / "latest_walk_forward_coverage.csv", [coverage_row], WALK_FORWARD_COVERAGE_COLUMNS)
-    write_csv_records(reports_dir / "latest_walk_forward_summary.csv", [summary_row], WALK_FORWARD_SUMMARY_COLUMNS)
-    write_csv_records(reports_dir / "latest_walk_forward_periods.csv", period_rows, WALK_FORWARD_PERIOD_COLUMNS)
-    write_csv_records(
-        reports_dir / "latest_walk_forward_period_allocations.csv",
+    write_csv_records_mode_pair(reports_dir, "latest_walk_forward_inventory.csv", mode, inventory_rows, WALK_FORWARD_INVENTORY_COLUMNS)
+    write_csv_records_mode_pair(reports_dir, "latest_walk_forward_coverage.csv", mode, [coverage_row], WALK_FORWARD_COVERAGE_COLUMNS)
+    write_csv_records_mode_pair(reports_dir, "latest_walk_forward_summary.csv", mode, [summary_row], WALK_FORWARD_SUMMARY_COLUMNS)
+    write_csv_records_mode_pair(reports_dir, "latest_walk_forward_periods.csv", mode, period_rows, WALK_FORWARD_PERIOD_COLUMNS)
+    write_csv_records_mode_pair(
+        reports_dir,
+        "latest_walk_forward_period_allocations.csv",
+        mode,
         allocation_return_rows,
         WALK_FORWARD_ALLOCATION_RETURN_COLUMNS,
     )
-    write_csv_records(reports_dir / "latest_walk_forward_regime_summary.csv", regime_rows, WALK_FORWARD_REGIME_COLUMNS)
-    write_csv_records(reports_dir / "latest_walk_forward_benchmark_comparison.csv", benchmark_rows, WALK_FORWARD_BENCHMARK_COLUMNS)
+    write_csv_records_mode_pair(reports_dir, "latest_walk_forward_regime_summary.csv", mode, regime_rows, WALK_FORWARD_REGIME_COLUMNS)
+    write_csv_records_mode_pair(
+        reports_dir,
+        "latest_walk_forward_benchmark_comparison.csv",
+        mode,
+        benchmark_rows,
+        WALK_FORWARD_BENCHMARK_COLUMNS,
+    )
     existing_friction_rows = read_csv_records(reports_dir / "latest_backtest_friction_audit.csv")
+    existing_mode_friction_rows = read_csv_records(mode_artifact_path(reports_dir / "latest_backtest_friction_audit.csv", mode))
     write_csv_records(
         reports_dir / "latest_backtest_friction_audit.csv",
         merge_friction_audit_rows(existing_friction_rows, friction_rows, {"WALK_FORWARD_SUMMARY", "WALK_FORWARD_PERIOD"}),
         BACKTEST_FRICTION_AUDIT_COLUMNS,
     )
-    write_text(reports_dir / "latest_walk_forward_report.md", report)
-    write_text(reports_dir / "latest_walk_forward_report.html", markdown_to_html(report))
-    write_text(reports_dir / "latest_walk_forward_inventory.md", build_walk_forward_inventory_report(coverage_row, inventory_rows, config))
-    write_text(
-        reports_dir / "latest_walk_forward_inventory.html",
-        markdown_to_html(build_walk_forward_inventory_report(coverage_row, inventory_rows, config)),
+    write_csv_records(
+        mode_artifact_path(reports_dir / "latest_backtest_friction_audit.csv", mode),
+        merge_friction_audit_rows(existing_mode_friction_rows, friction_rows, {"WALK_FORWARD_SUMMARY", "WALK_FORWARD_PERIOD"}),
+        BACKTEST_FRICTION_AUDIT_COLUMNS,
     )
+    write_text_mode_pair(reports_dir, "latest_walk_forward_report.md", mode, report)
+    write_text_mode_pair(reports_dir, "latest_walk_forward_report.html", mode, markdown_to_html(report))
+    inventory_report = build_walk_forward_inventory_report(coverage_row, inventory_rows, config)
+    write_text_mode_pair(reports_dir, "latest_walk_forward_inventory.md", mode, inventory_report)
+    write_text_mode_pair(reports_dir, "latest_walk_forward_inventory.html", mode, markdown_to_html(inventory_report))
     return {
         "inventory_rows": inventory_rows,
         "coverage": coverage_row,

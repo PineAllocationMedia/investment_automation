@@ -5,7 +5,8 @@ from datetime import date, datetime, timedelta
 from pathlib import Path
 from typing import Any
 
-from .utils import DISCLAIMER, load_json, markdown_to_html, pct, safe_float, today_iso, write_csv_records, write_text
+from .mode_artifacts import write_csv_records_mode_pair, write_text_mode_pair
+from .utils import DISCLAIMER, load_json, markdown_to_html, pct, safe_float, today_iso
 
 
 MODEL_AUDIT_COLUMNS = [
@@ -74,9 +75,10 @@ def build_model_audit(reports_dir: str | Path, period: str = "12m", mode: str | 
 def write_model_audit_outputs(reports_dir: str | Path, audit: dict[str, Any]) -> None:
     reports_dir = Path(reports_dir)
     markdown = str(audit.get("markdown") or "")
-    write_text(reports_dir / "latest_model_audit.md", markdown)
-    write_text(reports_dir / "latest_model_audit.html", markdown_to_html(markdown))
-    write_csv_records(reports_dir / "latest_model_audit.csv", audit.get("rows") or [], MODEL_AUDIT_COLUMNS)
+    mode = str(audit.get("mode") or "")
+    write_text_mode_pair(reports_dir, "latest_model_audit.md", mode, markdown)
+    write_text_mode_pair(reports_dir, "latest_model_audit.html", mode, markdown_to_html(markdown))
+    write_csv_records_mode_pair(reports_dir, "latest_model_audit.csv", mode, audit.get("rows") or [], MODEL_AUDIT_COLUMNS)
 
 
 def _load_daily_records(

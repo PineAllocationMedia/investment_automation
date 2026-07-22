@@ -14,6 +14,13 @@ from .benchmark_comparison_engine import (
     build_backtest_benchmark_comparisons,
     load_benchmark_definitions,
 )
+from .mode_artifacts import (
+    mode_artifact_path,
+    read_mode_csv_if_exists,
+    require_mode_artifact,
+    write_csv_records_mode_pair,
+    write_text_mode_pair,
+)
 from .transaction_friction_engine import (
     BACKTEST_FRICTION_AUDIT_COLUMNS,
     add_friction_fields_to_backtest_summaries,
@@ -93,15 +100,15 @@ def run_backtests_from_latest_reports(
     reports_dir = Path(reports_dir)
     data_dir = Path(data_dir)
     years = sorted(set(years or [5, 10]))
-    analyses = _load_latest_score_rows(reports_dir)
+    analyses = _load_latest_score_rows(reports_dir, mode=mode, strict_mode=True)
     if not analyses:
-        raise RuntimeError("Aucun latest_scores.csv disponible. Lancez d'abord une analyse normale.")
+        raise RuntimeError(f"Missing mode-specific scores for {mode}. Run `python3 main.py analyze --mode {mode}` first.")
 
-    min_vfv = _latest_mandatory_vfv_percent(reports_dir)
+    min_vfv = _latest_mandatory_vfv_percent(reports_dir, mode)
     max_years = max(years)
     benchmark_definitions = load_benchmark_definitions()
     tickers = sorted(set(_backtest_tickers(analyses)) | set(benchmark_price_tickers(benchmark_definitions)))
-    price_data = fetch_price_history_cad(tickers, data_dir, years=max_years, refresh=refresh_market_data)
+    price_data = fetch_price_history_cad(tickers, data_dir, years=max_years, refresh=refresh_market_data, mode=mode)
 
     summaries: list[dict[str, Any]] = []
     monthly_rows: list[dict[str, Any]] = []
@@ -121,13 +128,19 @@ def run_backtests_from_latest_reports(
         allocation_rows.extend(result["allocation_rows"])
         friction_rows.extend(result.get("friction_rows") or [])
 
-    write_csv_records(reports_dir / "latest_backtest_summary.csv", summaries, BACKTEST_SUMMARY_COLUMNS)
-    write_csv_records(reports_dir / "latest_backtest_monthly.csv", monthly_rows, BACKTEST_MONTHLY_COLUMNS)
-    write_csv_records(reports_dir / "latest_backtest_allocations.csv", allocation_rows, BACKTEST_ALLOCATION_COLUMNS)
+    write_csv_records_mode_pair(reports_dir, "latest_backtest_summary.csv", mode, summaries, BACKTEST_SUMMARY_COLUMNS)
+    write_csv_records_mode_pair(reports_dir, "latest_backtest_monthly.csv", mode, monthly_rows, BACKTEST_MONTHLY_COLUMNS)
+    write_csv_records_mode_pair(reports_dir, "latest_backtest_allocations.csv", mode, allocation_rows, BACKTEST_ALLOCATION_COLUMNS)
     existing_friction_rows = read_csv_records(reports_dir / "latest_backtest_friction_audit.csv")
+    existing_mode_friction_rows = read_csv_records(mode_artifact_path(reports_dir / "latest_backtest_friction_audit.csv", mode))
     write_csv_records(
         reports_dir / "latest_backtest_friction_audit.csv",
         merge_friction_audit_rows(existing_friction_rows, friction_rows, {"THEORETICAL_BACKTEST"}),
+        BACKTEST_FRICTION_AUDIT_COLUMNS,
+    )
+    write_csv_records(
+        mode_artifact_path(reports_dir / "latest_backtest_friction_audit.csv", mode),
+        merge_friction_audit_rows(existing_mode_friction_rows, friction_rows, {"THEORETICAL_BACKTEST"}),
         BACKTEST_FRICTION_AUDIT_COLUMNS,
     )
     benchmark_rows = build_backtest_benchmark_comparisons(
@@ -138,8 +151,8 @@ def run_backtests_from_latest_reports(
         benchmark_definitions,
         price_return_basis=str(price_data.attrs.get("price_return_basis", "UNKNOWN_PRICE_BASIS")),
     )
-    write_csv_records(reports_dir / "latest_benchmark_comparison.csv", benchmark_rows, BACKTEST_BENCHMARK_COLUMNS)
-    write_text(reports_dir / "latest_backtest_report.md", build_backtest_report(summaries, benchmark_rows))
+    write_csv_records_mode_pair(reports_dir, "latest_benchmark_comparison.csv", mode, benchmark_rows, BACKTEST_BENCHMARK_COLUMNS)
+    write_text_mode_pair(reports_dir, "latest_backtest_report.md", mode, build_backtest_report(summaries, benchmark_rows))
     return {
         "summaries": summaries,
         "monthly_rows": monthly_rows,
@@ -154,6 +167,7 @@ def fetch_price_history_cad(
     data_dir: str | Path,
     years: int,
     refresh: bool = False,
+    mode: str | None = None,
 ) -> pd.DataFrame:
     cache_path = Path(data_dir) / "cached_market_data" / f"backtest_total_return_prices_cad_{years}y.csv"
     meta_path = cache_path.with_suffix(".meta.json")
@@ -177,7 +191,7 @@ def fetch_price_history_cad(
     if price_frame.empty:
         raise RuntimeError("Aucun historique de prix reçu de yfinance.")
 
-    scores = _load_latest_score_rows(Path(data_dir).parent / "reports")
+    scores = _load_latest_score_rows(Path(data_dir).parent / "reports", mode=mode, strict_mode=False)
     currencies = {ticker: str(row.get("quote_currency") or row.get("currency") or "CAD").upper() for ticker, row in scores.items()}
     prices = pd.DataFrame(index=price_frame.index)
     for ticker in tickers:
@@ -491,17 +505,34 @@ def _currently_eligible_for_backtest(row: dict[str, Any]) -> bool:
     return (safe_float(row.get("capital_allocation_score")) or 0.0) >= 35
 
 
-def _load_latest_score_rows(reports_dir: str | Path) -> dict[str, dict[str, Any]]:
+def _load_latest_score_rows(
+    reports_dir: str | Path,
+    *,
+    mode: str | None = None,
+    strict_mode: bool = False,
+) -> dict[str, dict[str, Any]]:
     rows = {}
-    for row in read_csv_records(Path(reports_dir) / "latest_scores.csv"):
+    reports_dir = Path(reports_dir)
+    if mode:
+        if strict_mode:
+            source_rows = read_csv_records(require_mode_artifact(reports_dir, "latest_scores.csv", mode, command_hint="analyze"))
+        else:
+            source_rows = read_mode_csv_if_exists(reports_dir, "latest_scores.csv", mode)
+            if not source_rows:
+                source_rows = read_csv_records(reports_dir / "latest_scores.csv")
+    else:
+        source_rows = read_csv_records(reports_dir / "latest_scores.csv")
+    for row in source_rows:
         ticker = str(row.get("ticker") or "").strip().upper()
         if ticker:
             rows[ticker] = row
     return rows
 
 
-def _latest_mandatory_vfv_percent(reports_dir: str | Path) -> float:
-    rows = read_csv_records(Path(reports_dir) / "latest_decision_quality.csv")
+def _latest_mandatory_vfv_percent(reports_dir: str | Path, mode: str | None = None) -> float:
+    rows = read_mode_csv_if_exists(reports_dir, "latest_decision_quality.csv", mode) if mode else []
+    if not rows and not mode:
+        rows = read_csv_records(Path(reports_dir) / "latest_decision_quality.csv")
     if rows:
         value = safe_float(rows[0].get("vfv_mandatory_percent"))
         if value is not None:

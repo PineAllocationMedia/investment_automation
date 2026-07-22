@@ -63,6 +63,7 @@ SNAPSHOT_FIELDS = [
     "valuation_severity_reason",
     "quality_expensive_reasons",
     "data_quality",
+    "data_reliability_score",
     "data_reliability_level",
     "overall_data_freshness_level",
     "market_data_freshness_level",

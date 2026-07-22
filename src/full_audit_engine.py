@@ -5,7 +5,13 @@ from datetime import date, datetime
 from pathlib import Path
 from typing import Any
 
+from .allocation_mode_contract_engine import (
+    ALLOCATION_MODE_CONTRACT_COLUMNS,
+    build_allocation_mode_contract_audit_from_reports,
+    write_allocation_mode_contract_audit_csv,
+)
 from .backtest_engine import run_backtests_from_latest_reports
+from .mode_artifacts import read_mode_csv_if_exists, write_csv_records_mode_pair, write_text_mode_pair
 from .model_audit_engine import run_model_audit
 from .source_health_engine import SOURCE_HEALTH_COLUMNS, source_health_audit_context
 from .ticker_source_audit_engine import (
@@ -77,9 +83,9 @@ def run_full_audit(
     )
 
     model_audit = run_model_audit(reports_dir, period=period, mode=mode)
-    account_performance_rows = read_csv_records(reports_dir / "latest_account_performance_vs_sp500.csv")
+    account_performance_rows = read_mode_csv_if_exists(reports_dir, "latest_account_performance_vs_sp500.csv", mode)
     source_health_rows = read_csv_records(reports_dir / "latest_source_health.csv")
-    weakest_core_audit_rows = read_csv_records(reports_dir / "latest_weakest_core_audit.csv")
+    weakest_core_audit_rows = read_mode_csv_if_exists(reports_dir, "latest_weakest_core_audit.csv", mode)
     ticker_source_context = build_ticker_source_audit_context(
         ticker_memory_rows=read_csv_records(reports_dir / "latest_ticker_memory.csv"),
         source_conflict_rows=read_csv_records(reports_dir / "latest_source_conflicts.csv"),
@@ -116,7 +122,21 @@ def run_full_audit(
         *(backtest_result.get("friction_rows") or []),
         *(walk_forward_result.get("friction_rows") or []),
     ]
-    write_csv_records(reports_dir / "latest_backtest_friction_audit.csv", backtest_friction_rows, BACKTEST_FRICTION_AUDIT_COLUMNS)
+    write_csv_records_mode_pair(
+        reports_dir,
+        "latest_backtest_friction_audit.csv",
+        mode,
+        backtest_friction_rows,
+        BACKTEST_FRICTION_AUDIT_COLUMNS,
+    )
+    allocation_mode_contract_rows = build_allocation_mode_contract_audit_from_reports(
+        reports_dir,
+        selected_monthly_capital,
+    )
+    write_allocation_mode_contract_audit_csv(
+        reports_dir / "latest_allocation_mode_contract_audit.csv",
+        allocation_mode_contract_rows,
+    )
 
     metrics = build_full_audit_metrics(
         model_audit=model_audit,
@@ -132,6 +152,7 @@ def run_full_audit(
         mode=mode,
         source_health_rows=source_health_rows,
         ticker_source_context=ticker_source_context,
+        allocation_mode_contract_rows=allocation_mode_contract_rows,
     )
     rows = build_full_audit_rows(metrics)
     markdown = build_full_audit_markdown(
@@ -145,6 +166,7 @@ def run_full_audit(
         ticker_source_context,
         weakest_core_audit_rows,
         backtest_friction_rows,
+        allocation_mode_contract_rows,
     )
     audit = {
         "metrics": metrics,
@@ -158,6 +180,7 @@ def run_full_audit(
         "ticker_source_context": ticker_source_context,
         "weakest_core_audit_rows": weakest_core_audit_rows,
         "backtest_friction_rows": backtest_friction_rows,
+        "allocation_mode_contract_rows": allocation_mode_contract_rows,
     }
     write_full_audit_outputs(reports_dir, audit)
     return audit
@@ -230,6 +253,7 @@ def build_full_audit_metrics(
     mode: str,
     source_health_rows: list[dict[str, Any]] | None = None,
     ticker_source_context: dict[str, Any] | None = None,
+    allocation_mode_contract_rows: list[dict[str, Any]] | None = None,
 ) -> dict[str, Any]:
     model_metrics = model_audit.get("metrics") or {}
     backtest_summaries = backtest_result.get("summaries") or []
@@ -244,6 +268,7 @@ def build_full_audit_metrics(
     realized_score = _realized_performance_score(account_summary)
     source_health = source_health_audit_context(source_health_rows or [])
     ticker_source_context = ticker_source_context or build_ticker_source_audit_context()
+    allocation_mode_contract = _allocation_mode_contract_summary(allocation_mode_contract_rows or [])
     evidence_score = _evidence_score(
         model_metrics,
         backtest_summaries,
@@ -307,6 +332,9 @@ def build_full_audit_metrics(
         "ticker_source_quality_status": ticker_source_context.get("ticker_source_quality_status"),
         "ticker_source_quality_score": ticker_source_context.get("ticker_source_quality_score"),
         "ticker_source_interpretation": ticker_source_context.get("ticker_source_interpretation"),
+        "allocation_mode_contract": allocation_mode_contract,
+        "allocation_mode_contract_status": allocation_mode_contract.get("status"),
+        "allocation_mode_contract_interpretation": allocation_mode_contract.get("interpretation"),
         "criterion7_score": criterion7_score,
         "criterion7_status": criterion7_status,
         "criterion7_interpretation": _criterion7_interpretation(criterion7_status),
@@ -430,6 +458,14 @@ def build_full_audit_rows(metrics: dict[str, Any]) -> list[dict[str, Any]]:
             metrics.get("ticker_source_interpretation", "N/D"),
             "Garde-fou informatif: réduit très légèrement la qualité de preuve si un ticker/source prioritaire doit être validé.",
         ),
+        _row(
+            "Cohérence",
+            "Contrat des modes d’allocation",
+            metrics.get("allocation_mode_contract_status", "UNKNOWN"),
+            metrics.get("allocation_mode_contract", {}).get("summary_value", "N/D"),
+            metrics.get("allocation_mode_contract_interpretation", "N/D"),
+            "Audit-only: vérifie que balanced, family-office, rational-aggressive et high-cagr restent alignés sur leur philosophie.",
+        ),
     ]
     return rows
 
@@ -445,6 +481,7 @@ def build_full_audit_markdown(
     ticker_source_context: dict[str, Any] | None = None,
     weakest_core_audit_rows: list[dict[str, Any]] | None = None,
     backtest_friction_rows: list[dict[str, Any]] | None = None,
+    allocation_mode_contract_rows: list[dict[str, Any]] | None = None,
 ) -> str:
     model_metrics = model_audit.get("metrics") or {}
     backtest_summaries = backtest_result.get("summaries") or []
@@ -457,6 +494,7 @@ def build_full_audit_markdown(
     ticker_source_context = ticker_source_context or metrics.get("ticker_source_quality") or {}
     weakest_core_audit_rows = _display_weakest_core_audit_rows(weakest_core_audit_rows or [])
     backtest_friction_rows = _display_backtest_friction_rows(backtest_friction_rows or [])
+    allocation_mode_contract_rows = _display_allocation_mode_contract_rows(allocation_mode_contract_rows or [])
     lines = [
         "# Audit maître du modèle",
         "",
@@ -583,6 +621,13 @@ def build_full_audit_markdown(
         "",
         _markdown_table(backtest_friction_rows, BACKTEST_FRICTION_FULL_COLUMNS),
         "",
+        "## Contrat des modes d’allocation",
+        "",
+        "- **AUDIT-ONLY — aucune recommandation modifiée.** Cette section vérifie que les quatre modes restent alignés sur leur philosophie.",
+        "- Elle compare les allocations simulées sur la même base de scores: concentration, part VFV/ETF/fallback, part externe et satellites émergents.",
+        "",
+        _markdown_table(allocation_mode_contract_rows, ALLOCATION_MODE_CONTRACT_COLUMNS),
+        "",
         "## Performance réelle du portefeuille",
         "",
         "- Cette section s’améliore avec le temps. Au début, elle sert surtout à créer une base de suivi.",
@@ -675,10 +720,17 @@ def write_full_audit_outputs(reports_dir: str | Path, audit: dict[str, Any]) -> 
     markdown = str(audit.get("markdown") or "")
     rows = audit.get("rows") or []
     underperformance_rows = ((audit.get("metrics") or {}).get("underperformance_attribution") or {}).get("rows") or []
-    write_text(reports_dir / "latest_full_audit.md", markdown)
-    write_text(reports_dir / "latest_full_audit.html", markdown_to_html(markdown))
-    write_csv_records(reports_dir / "latest_full_audit_summary.csv", rows, FULL_AUDIT_COLUMNS)
-    write_csv_records(reports_dir / "latest_underperformance_attribution.csv", underperformance_rows, UNDERPERFORMANCE_COLUMNS)
+    mode = str((audit.get("metrics") or {}).get("mode") or "")
+    write_text_mode_pair(reports_dir, "latest_full_audit.md", mode, markdown)
+    write_text_mode_pair(reports_dir, "latest_full_audit.html", mode, markdown_to_html(markdown))
+    write_csv_records_mode_pair(reports_dir, "latest_full_audit_summary.csv", mode, rows, FULL_AUDIT_COLUMNS)
+    write_csv_records_mode_pair(
+        reports_dir,
+        "latest_underperformance_attribution.csv",
+        mode,
+        underperformance_rows,
+        UNDERPERFORMANCE_COLUMNS,
+    )
 
 
 def _detected_external_flows(data_dir: Path) -> list[tuple[date, float]]:
@@ -1127,6 +1179,71 @@ def _display_backtest_friction_rows(rows: list[dict[str, Any]]) -> list[dict[str
         item["friction_drag"] = pct(safe_float(item.get("friction_drag")), 2)
         display.append(item)
     return display
+
+
+def _display_allocation_mode_contract_rows(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    if not rows:
+        return [
+            {
+                "row_type": "NO_DATA",
+                "mode": "ALL",
+                "status": "NO_DATA",
+                "capital": "",
+                "total_allocated": "",
+                "max_single_allocation_pct": "",
+                "fallback_allocation_pct": "",
+                "defensive_reserve_pct": "",
+                "ticker_count": "",
+                "external_allocation_pct": "",
+                "emerging_fragile_allocation_pct": "",
+                "defensiveness_score": "",
+                "expected_order_check": "",
+                "interpretation": "Aucun audit de contrat des modes disponible.",
+                "audit_only": "TRUE",
+            }
+        ]
+    display = []
+    for row in rows[:12]:
+        item = dict(row)
+        for key in [
+            "max_single_allocation_pct",
+            "fallback_allocation_pct",
+            "defensive_reserve_pct",
+            "external_allocation_pct",
+            "emerging_fragile_allocation_pct",
+        ]:
+            if item.get(key) != "":
+                item[key] = pct(safe_float(item.get(key)), 1)
+        if item.get("defensiveness_score") != "":
+            item["defensiveness_score"] = f"{safe_float(item.get('defensiveness_score')) or 0:.3f}"
+        if item.get("capital") != "":
+            item["capital"] = money(safe_float(item.get("capital")))
+        if item.get("total_allocated") != "":
+            item["total_allocated"] = money(safe_float(item.get("total_allocated")))
+        display.append(item)
+    return display
+
+
+def _allocation_mode_contract_summary(rows: list[dict[str, Any]]) -> dict[str, Any]:
+    if not rows:
+        return {
+            "status": "NO_DATA",
+            "summary_value": "N/D",
+            "interpretation": "Aucun audit de contrat des modes disponible.",
+        }
+    review_rows = [row for row in rows if str(row.get("status") or "").upper() == "REVIEW"]
+    mode_count = sum(1 for row in rows if str(row.get("row_type") or "") == "MODE_SUMMARY")
+    status = "REVIEW" if review_rows else "PASS"
+    interpretation = (
+        f"{len(review_rows)} point(s) à vérifier dans le contrat des modes."
+        if review_rows
+        else "Les modes respectent leur ordre attendu de concentration/défensivité dans cette simulation d’audit."
+    )
+    return {
+        "status": status,
+        "summary_value": f"{mode_count} modes / {len(review_rows)} review",
+        "interpretation": interpretation,
+    }
 
 
 def _vfv_status(value: float) -> str:

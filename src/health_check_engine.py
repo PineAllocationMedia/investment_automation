@@ -7,6 +7,7 @@ from typing import Any
 from .cache_management_engine import cache_health_summary, run_cache_maintenance
 from .csv_schema_engine import repair_safe_csv_schemas, validate_csv_schemas
 from .research_reports import BNCD_MORNINGSTAR_DIR, RESEARCH_REPORTS_DIR, research_status_rows
+from .source_health_engine import check_canadian_source_health
 from .utils import DATA_DIR, read_csv_records, safe_float
 from .validators import validate_input_files
 
@@ -40,6 +41,7 @@ def run_health_check(
     rows.extend(walk_forward_health_rows(project_root))
     cache_rows = cache_rows if cache_rows is not None else run_cache_maintenance(repair_safe=repair_safe)
     rows.extend(_cache_rows(cache_rows))
+    rows.extend(_canadian_source_rows(check_canadian_source_health(project_root / "data" / "cached_market_data")))
     return rows
 
 
@@ -224,6 +226,50 @@ def _cache_rows(cache_rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
             severity,
             cache_health_summary(cache_rows),
             "Lire reports/latest_cache_health.csv." if status == "WARN" else "Aucune action.",
+        )
+    ]
+
+
+def _canadian_source_rows(health: dict[str, Any]) -> list[dict[str, Any]]:
+    status = str(health.get("canadian_source_health_status") or "DEAD").upper()
+    fallback_available = bool(health.get("canadian_fallback_available"))
+    sources = health.get("sources") if isinstance(health.get("sources"), dict) else {}
+    source_parts = []
+    for source in ("stockanalysis", "tmx", "sedarplus"):
+        row = sources.get(source, {}) if isinstance(sources.get(source), dict) else {}
+        source_parts.append(
+            f"{source}: {row.get('available_files', 0)}/{row.get('attempted_files', 0)} "
+            f"({row.get('success_rate_percent', 0)}%), dernier succès={row.get('latest_success_age_hours', 'N/D')}h"
+        )
+    summary = "; ".join(source_parts)
+    if status == "HEALTHY":
+        return [
+            _row(
+                "canadian_sources",
+                "PASS",
+                "LOW",
+                f"status=HEALTHY | canadian_fallback_available={fallback_available} | {summary}",
+                "Aucune action.",
+            )
+        ]
+    if status == "DEGRADED":
+        return [
+            _row(
+                "canadian_sources",
+                "WARN",
+                "MEDIUM",
+                f"status=DEGRADED | canadian_fallback_available={fallback_available} | {summary}",
+                "Surveiller les titres .TO; relancer avec --refresh-market-data si une recommandation dépend fortement de données canadiennes.",
+            )
+        ]
+    return [
+        _row(
+            "canadian_sources",
+            "WARN",
+            "HIGH",
+            "status=DEAD | canadian_fallback_available=False | AVERTISSEMENT: Toutes les sources canadiennes de fallback sont inopérantes. "
+            "Les titres .TO sont scorés sur yfinance seul sans filet de sécurité fondamental.",
+            "Vérifier la connexion réseau ou ajouter/valider des rapports BNCD/Morningstar pour les titres canadiens importants.",
         )
     ]
 

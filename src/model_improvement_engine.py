@@ -13,6 +13,7 @@ from .anti_overfitting_gate_engine import (
     build_anti_overfitting_context,
 )
 from .backup_engine import create_project_backup
+from .mode_artifacts import read_mode_csv_if_exists, write_csv_records_mode_pair, write_text_mode_pair
 from .model_audit_engine import build_model_audit
 from .model_tuning import (
     TUNABLE_PARAMETER_LIMITS,
@@ -47,7 +48,7 @@ from .underperformance_engine import (
     correction_governor_allows_auto_apply,
     correction_governor_max_changes,
 )
-from .utils import DISCLAIMER, markdown_to_html, pct, read_csv_records, safe_float, write_csv_records, write_text
+from .utils import DISCLAIMER, markdown_to_html, pct, read_csv_records, safe_float
 
 
 IMPROVEMENT_COLUMNS = [
@@ -170,10 +171,10 @@ def run_improvement_audit(
         ticker_issue_rows=read_csv_records(reports_dir / "latest_ticker_issues.csv"),
     )
     settings = tuning.get("safe_auto_apply") or {}
-    backtest_summary_rows = read_csv_records(reports_dir / "latest_backtest_summary.csv")
-    backtest_monthly_rows = read_csv_records(reports_dir / "latest_backtest_monthly.csv")
-    walk_forward_summary_rows = read_csv_records(reports_dir / "latest_walk_forward_summary.csv")
-    walk_forward_period_rows = read_csv_records(reports_dir / "latest_walk_forward_periods.csv")
+    backtest_summary_rows = read_mode_csv_if_exists(reports_dir, "latest_backtest_summary.csv", mode)
+    backtest_monthly_rows = read_mode_csv_if_exists(reports_dir, "latest_backtest_monthly.csv", mode)
+    walk_forward_summary_rows = read_mode_csv_if_exists(reports_dir, "latest_walk_forward_summary.csv", mode)
+    walk_forward_period_rows = read_mode_csv_if_exists(reports_dir, "latest_walk_forward_periods.csv", mode)
     overfit_context = build_anti_overfitting_context(
         model_metrics=model_audit.get("metrics") or {},
         backtest_summary_rows=backtest_summary_rows,
@@ -497,7 +498,7 @@ def apply_safe_tuning(
     if not can_auto_apply_value(settings.get("enabled", True)):
         return {"applied": [], "message": "Auto-application désactivée dans config/model_tuning.yaml."}
 
-    summary_rows = read_csv_records(reports_dir / "latest_improvement_summary.csv")
+    summary_rows = read_mode_csv_if_exists(reports_dir, "latest_improvement_summary.csv", mode)
     summary = summary_rows[0] if summary_rows else {}
     if not _summary_allows_apply(summary, mode):
         return {
@@ -513,7 +514,7 @@ def apply_safe_tuning(
             "message": "Aucun ajustement appliqué: la santé des sources bloque temporairement l’auto-tuning.",
         }
 
-    suggestions = read_csv_records(reports_dir / "latest_improvement_suggestions.csv")
+    suggestions = read_mode_csv_if_exists(reports_dir, "latest_improvement_suggestions.csv", mode)
     applicable = [
         row
         for row in suggestions
@@ -774,12 +775,15 @@ def write_improvement_outputs(
     underperformance_attribution: dict[str, Any] | None = None,
 ) -> None:
     reports_dir = Path(reports_dir)
-    write_text(reports_dir / "latest_improvement_suggestions.md", markdown)
-    write_text(reports_dir / "latest_improvement_suggestions.html", markdown_to_html(markdown))
-    write_csv_records(reports_dir / "latest_improvement_suggestions.csv", suggestions, IMPROVEMENT_COLUMNS)
-    write_csv_records(reports_dir / "latest_improvement_summary.csv", [summary], IMPROVEMENT_SUMMARY_COLUMNS)
-    write_csv_records(
-        reports_dir / "latest_underperformance_attribution.csv",
+    mode = str(summary.get("mode") or "")
+    write_text_mode_pair(reports_dir, "latest_improvement_suggestions.md", mode, markdown)
+    write_text_mode_pair(reports_dir, "latest_improvement_suggestions.html", mode, markdown_to_html(markdown))
+    write_csv_records_mode_pair(reports_dir, "latest_improvement_suggestions.csv", mode, suggestions, IMPROVEMENT_COLUMNS)
+    write_csv_records_mode_pair(reports_dir, "latest_improvement_summary.csv", mode, [summary], IMPROVEMENT_SUMMARY_COLUMNS)
+    write_csv_records_mode_pair(
+        reports_dir,
+        "latest_underperformance_attribution.csv",
+        mode,
         (underperformance_attribution or {}).get("rows") or [],
         UNDERPERFORMANCE_COLUMNS,
     )

@@ -48,6 +48,8 @@ def build_analysis_run_log(
     anomaly_rows: list[dict[str, Any]] | None = None,
     allocation_result: dict[str, Any] | None = None,
     portfolio_risk: dict[str, Any] | None = None,
+    full_audit_signal: dict[str, Any] | None = None,
+    model_audit_signal: dict[str, Any] | None = None,
 ) -> list[dict[str, Any]]:
     rows: list[dict[str, Any]] = []
     universe_counts = universe_counts or {}
@@ -59,6 +61,8 @@ def build_analysis_run_log(
     anomaly_rows = anomaly_rows or []
     allocation_result = allocation_result or {}
     portfolio_risk = portfolio_risk or {}
+    full_audit_signal = full_audit_signal or {}
+    model_audit_signal = model_audit_signal or {}
 
     _add(
         rows,
@@ -202,6 +206,38 @@ def build_analysis_run_log(
             f"{len(actionable_anomalies)} anomalie(s) post-analyse détectée(s); niveau max {worst}.",
             "Lire reports/latest_anomaly_report.csv; lancer improvement-audit seulement si le signal persiste.",
             details=_anomaly_details(actionable_anomalies),
+        )
+
+    full_audit_status = str(full_audit_signal.get("status") or "").upper()
+    full_audit_message = str(full_audit_signal.get("message") or "").strip()
+    full_audit_command = str(full_audit_signal.get("command") or "").strip()
+    if full_audit_message:
+        _add(
+            rows,
+            run_id,
+            "analyze",
+            mode,
+            "WARN" if "ABSENT" in full_audit_status or "STALE" in full_audit_status else "INFO",
+            "AUDIT",
+            "FULL_AUDIT_SIGNAL",
+            full_audit_message,
+            f"Relancer : {full_audit_command}" if full_audit_command else "Aucune action.",
+        )
+
+    model_audit_status = str(model_audit_signal.get("status") or "").upper()
+    model_audit_message = str(model_audit_signal.get("message") or "").strip()
+    model_audit_command = str(model_audit_signal.get("command") or "").strip()
+    if model_audit_message:
+        _add(
+            rows,
+            run_id,
+            "analyze",
+            mode,
+            "WARN" if "ABSENT" in model_audit_status or "STALE" in model_audit_status else "INFO",
+            "AUDIT",
+            "MODEL_AUDIT_SIGNAL",
+            model_audit_message,
+            f"Relancer : {model_audit_command}" if model_audit_command else "Aucune action.",
         )
 
     _add(
@@ -571,7 +607,7 @@ def _anomaly_details(rows: list[dict[str, Any]], limit: int = 8) -> str:
 
 def _source_details(rows: list[dict[str, Any]], limit: int = 8) -> str:
     return " | ".join(
-        f"{row.get('source')}={row.get('status')} {row.get('health_score')}/100"
+        f"{row.get('source')}={row.get('status')} {row.get('health_score')}/100 audit={row.get('audit_signal') or 'OK'}"
         for row in rows[:limit]
     )
 
@@ -581,6 +617,71 @@ def _walk_forward_regime_details(rows: list[dict[str, Any]], limit: int = 8) -> 
         f"{row.get('market_regime')}={row.get('regime_status')} n={row.get('period_count')} excess={row.get('compounded_excess_return_vs_vfv')}"
         for row in rows[:limit]
     )
+
+
+def write_universe_snapshot(
+    analyses: dict,
+    run_id: str,
+    mode: str,
+    model_rules_version: str,
+    reports_dir,
+) -> None:
+    """
+    Write a lightweight per-run universe snapshot for walk-forward validation.
+    One JSON file per run, named by run_id, stored in a snapshots/ subfolder.
+    Captures scored tickers only — ETFs and benchmarks are excluded.
+    Never overwrites an existing snapshot for the same run_id.
+    """
+    try:
+        import json
+        from datetime import datetime
+        from pathlib import Path
+
+        snapshots_dir = Path(reports_dir) / "universe_snapshots"
+        snapshots_dir.mkdir(parents=True, exist_ok=True)
+
+        snapshot_path = snapshots_dir / f"{run_id}.json"
+        if snapshot_path.exists():
+            return  # Never overwrite — idempotent
+
+        excluded_asset_types = {"ETF", "BENCHMARK", "ETF_CORE", "ETF_DEFENSIVE"}
+        scored_tickers = {}
+        for ticker, row in (analyses or {}).items():
+            if not isinstance(row, dict):
+                continue
+            asset_type = str(row.get("asset_type") or "")
+            score_total = row.get("score_total")
+            # Skip ETFs, benchmarks, and unscored rows.
+            if any(asset_type.startswith(asset_type_prefix) for asset_type_prefix in excluded_asset_types):
+                continue
+            if score_total in (None, "", "ETF", "BENCHMARK"):
+                continue
+            scored_tickers[ticker] = {
+                "score_total": score_total,
+                "conviction_score": row.get("conviction_score"),
+                "capital_allocation_score": row.get("capital_allocation_score"),
+                "data_reliability_level": row.get("data_reliability_level"),
+                "business_profile": row.get("business_profile"),
+                "universe": row.get("universe"),
+                "add_eligibility_status": row.get("add_eligibility_status"),
+                "opportunity_cost_status": row.get("opportunity_cost_status"),
+                "long_term_durability_status": row.get("long_term_durability_status"),
+                "score_data_gap_label": row.get("score_data_gap_label"),
+            }
+
+        snapshot = {
+            "run_id": run_id,
+            "run_date": datetime.now().isoformat()[:10],
+            "mode": mode,
+            "model_rules_version": model_rules_version,
+            "ticker_count": len(scored_tickers),
+            "tickers": scored_tickers,
+        }
+
+        with open(snapshot_path, "w", encoding="utf-8") as handle:
+            json.dump(snapshot, handle, indent=2, ensure_ascii=False, default=str)
+    except Exception:
+        pass  # Snapshot failure must never crash the main run.
 
 
 def _is_priority_source_conflict(row: dict[str, Any]) -> bool:
