@@ -15,6 +15,893 @@ This ensures long-term consistency and prevents model drift.
 
 # 📌 Decisions
 
+## [2026-07-22] Chemin CLI `research-needed` — classement dégradé assumé (Niveau 2, Approuvé)
+
+**Constat.** `ticker_validation_value_score()` lit `allocation_decision`,
+`final_action`, `capital_allocation_score` et `promotion_status`. Ces champs ne
+sont écrits que par le moteur d'allocation. La commande `research-needed`
+appelle `build_position_analyses()` sans jamais lancer l'allocation : ces clés
+sont absentes, et le score se réduit aux composantes universe / evidence /
+dependency / thesis.
+
+Écarts mesurés (2026-07-22) : RHM.NE 57.0 → 43.0 ; WAB 48.0 → 34.0 ;
+ASML 52.0 → 0.0 (score titre négatif borné par `max(0.0, ...)`).
+
+Incomplétude préexistante à la Phase 2, masquée temporairement par un mécanisme
+auto-référentiel introduit hors périmètre en 6c et retiré en 6c-fix.
+
+**Décision.** `analyze` est la source de vérité unique du classement
+`research_needed`. `research-needed` est un chemin dégradé assumé : ordre
+cohérent en interne (CLI1 == CLI2 vérifié), mais non aligné sur `analyze`.
+La commande émet un avertissement explicite.
+
+**Rejeté — option A** (lancer l'allocation dans le CLI) : ajoute une seconde
+invocation du moteur d'allocation à maintenir en cohérence, alourdit un chemin
+secondaire, et n'augmente pas la confiance dans les décisions du modèle.
+Échoue au filtre de phase de maturation.
+
+**Rejeté — option C** (supprimer la commande) : perte fonctionnelle réelle
+(relancer la liste sans refaire une analyse complète).
+
+**Conséquence opérationnelle.** Le fichier de référence pour décider quels
+rapports BNCD déposer est `latest_research_needed_high_cagr.csv` produit par
+`analyze`, pas celui produit par `research-needed`.
+
+---
+
+## [2026-07-21] Refonte du sous-système des rapports de recherche BNCD
+
+Statut : Approuvé
+Niveau : 3 (architectural)
+
+### Contexte
+- Diagnostic lecture-seule du 2026-07-21 (`reports/diagnostics/bncd_report_subsystem_audit_2026-07-21.md`)
+  sur 3 rapports réels CSU.TO : analyste Morningstar (19 mai), tear sheet Morningstar (17 mai),
+  Banque Nationale (13 mai).
+- Bug critique confirmé : le parsing extrait fair_value = 3.6 au lieu de 3600 pour les nombres à
+  séparateur de milliers. Ce champ corrompu est compté comme confirmé et fait passer la fiabilité
+  de 62 à 82 (HIGH), la dépendance aux proxys à LOW, et le verdict de SIMILAR_TO_VFV à
+  CLEARLY_BETTER_THAN_VFV. Conséquence : une donnée fausse promeut le titre en conviction.
+- Couverture partielle : le tear sheet seul est jugé non exploitable (1 champ) alors qu'il contient
+  juste valeur, moat et P/E ; le format Banque Nationale ne livre que 3 champs.
+- Inférence de ticker : suffixes .NE et .DE non gérés (RHM_... infère RHM au lieu de RHM.NE).
+- Deux moteurs de priorité divergents : research_needed_rows_from_analysis_rows classe par titre et
+  par sévérité des trous de données ; build_validation_priority_rows classe par champ et par potentiel.
+- Une position proposée non détenue avec données gratuites complètes ne déclenche aucune
+  recommandation de rapport BNCD (confirmé : research_needed_triggered = false).
+- Le champ description d'entreprise du rapport compact est toujours vide, alors que les trois formats
+  de rapport contiennent une description exploitable.
+
+### Décision
+Refonte en 2 phases, prompts atomiques séparés. Chaque prompt préserve la suite de tests (baseline
+réelle : 558 tests) et SCORE_STABILITY, vérifiés avant et après.
+
+### Phase 1 — Fiabilité et couverture de l'extraction
+1. Parsing des nombres propre à l'extraction de rapports (format anglo-saxon : virgule = séparateur
+   de milliers), sans modifier safe_float() global qui gère volontairement la décimale française des
+   CSV. Capture du nombre groupé complet et ciblage de la valeur courante/en-tête plutôt que du
+   premier match (les rapports contiennent des justes valeurs historiques).
+2. Extraction de la description d'entreprise, du secteur et de l'industrie, alimentant le rapport compact.
+3. Extension des extracteurs au format tear sheet Morningstar.
+4. Extension des extracteurs au format Banque Nationale.
+5. Correction des suffixes .NE et .DE dans l'inférence de ticker.
+
+### Phase 2 — Priorisation
+6. Le classement de research_needed dérive du score de potentiel de validation_priority (agrégé au
+   niveau titre), pour que les deux listes soient cohérentes et classées par potentiel d'investissement.
+7. Déclencheur : toute position proposée à l'allocation et non détenue génère une recommandation de
+   rapport BNCD, indépendamment de la sévérité des trous de données.
+
+### Règle de résolution multi-rapports (par catégorie de champ)
+- Valorisation et estimations (fair_value, forward_pe_manual, peg_manual, valuation_vs_5y_avg_ok,
+  eps_growth_estimated_3_5y) : récence d'abord, hiérarchie de source en départage.
+- Jugements structurels (moat_clear, management_quality_good, description, secteur, industrie) :
+  hiérarchie de source d'abord (Morningstar analyste > tear sheet Morningstar > Banque Nationale),
+  récence en départage.
+- roic_5y_avg : hiérarchie d'abord. Une source non-Morningstar n'est acceptée qu'en dernier recours et
+  doit être marquée comme définition divergente (la BN publie un ROIC TTM ~23 % là où Morningstar
+  affiche 15-16 % ; le champ est censé contenir une moyenne 5 ans).
+- fair_value depuis une source non-Morningstar (cours cible de courtier) : accepté uniquement en
+  dernier recours, si aucune juste valeur Morningstar n'est disponible pour le titre. Un cours cible
+  à 12 mois n'est pas une juste valeur intrinsèque DCF : il intègre le momentum et le sentiment de
+  marché sur un horizon court, alors que le modèle raisonne sur des décennies. Le champ doit donc
+  être marqué comme définition divergente et sa confiance abaissée à LOW. Un titre dont la seule
+  juste valeur provient d'un cours cible ne doit pas atteindre une fiabilité HIGH sur cette base.
+  Justification : pour une petite entreprise sans couverture Morningstar, un cours cible tracé et
+  marqué vaut mieux qu'un proxy yfinance non validé.
+- Drapeaux de risque booléens : union prudente — si une source signale un risque, il est signalé.
+- Plafond absolu : tout champ issu d'un rapport de plus de 24 mois est ignoré, toutes catégories confondues.
+
+### Champs descriptifs
+Nouvelle catégorie de champs (description d'entreprise, secteur, industrie) extraits des rapports mais
+exclus du calcul de fiabilité, exclus de research_report_fields et sans effet sur
+research_report_has_usable_fields ni sur les plafonds de fiabilité. Usage strictement informationnel.
+
+### Contraintes
+- REFACTOR-01 : aucune fonction ajoutée à utils.py.
+- REFACTOR-02 : aucune dépendance ajoutée à report_generator.py.
+- La logique partagée entre les deux moteurs de priorité vit côté validation_priority_engine.py
+  (qui importe déjà research_reports) ou dans main.py, pour éviter un import circulaire.
+
+### Conséquences
+- Les rapports déjà déposés devront être re-parsés après la Phase 1 : les champs corrompus seront corrigés.
+- Aucune décision d'allocation ne doit s'appuyer sur un dépôt de rapport tant que la Phase 1 étape 1
+  n'est pas livrée et vérifiée.
+
+---
+
+## [2026-07-20] Réparation sources canadiennes — Niveau 2
+
+### Decision
+Réparer les sources canadiennes prouvées réparables et désactiver proprement
+SEDAR+ dans le flux principal.
+
+### Reasoning
+- Diagnostic: `scripts/diagnose_canadian_sources.py`.
+- TMX GraphQL répondait `400` parce que la requête utilisait `marketCap` alors
+  que TMX attend `MarketCap`.
+- StockAnalysis est vivant pour certains titres TSXV, mais les URLs avec segment
+  d'échange peuvent retourner `404` pour certains tickers; un repli symbole seul
+  est prudent et borné.
+- SEDAR+ retourne une page captcha Radware sur les endpoints publics testés; la
+  source n'est pas exploitable en automatisation gratuite sans contournement.
+
+### Change
+- `src/canadian_data_fetcher.py`: requête TMX GraphQL réduite aux champs validés.
+- StockAnalysis: repli d'URL sans segment d'échange après trois `404` primaires.
+- User-Agent remplacé par un User-Agent navigateur standard.
+- `SEDARPLUS_ENABLED = False`; le flux principal inscrit SEDAR+ comme
+  `DISABLED` avec raison `Captcha Radware — source non exploitable`.
+
+### Constraints
+- Aucun contournement captcha, proxy, service tiers ou source payante.
+- Aucun impact scoring, allocation, sizing, DCA ou règles de vente.
+- Le comportement 404 normal des ETF sans états financiers reste inchangé.
+
+### Expected impact
+Meilleure récupération canadienne via TMX/StockAnalysis quand disponible, et
+moins de fausse impression qu'une source officielle SEDAR+ est utilisable alors
+qu'elle est bloquée par captcha.
+
+---
+
+## [2026-07-16] GOV-EXTERNAL-VALIDATION-GATE — gouvernance externe niveau 3
+
+### Decision
+Aucun candidat d'univers externe (`WATCHLIST`, `MARKET_SCANNER`,
+`DISCOVERY_IDEAS`) ne reçoit d'allocation réelle sans au moins un champ
+validé personnellement.
+
+### Reasoning
+- Déclencheurs: TEL le 2026-07-15 et RHM.DE le 2026-07-05 ont montré qu'un
+  ticker externe pouvait devenir admissible avec 100% de données auto-estimées
+  yfinance.
+- En mode `high-cagr`, un ticker externe peut être très prometteur, mais il ne
+  doit pas recevoir de capital réel tant qu'au moins une donnée n'a pas été
+  validée par l'utilisateur via rapport BNCD/Morningstar local ou
+  `sync-manual-inputs`.
+- La règle protège contre les faux positifs de données gratuites sans rendre le
+  scoring plus conservateur pour le Core Portfolio.
+
+### Change
+- `src/allocation_engine.py`: ajout de `_has_personal_validation_evidence()`.
+- Gate externe ajouté dans `_external_candidate_allowed()` et
+  `_high_cagr_overflow_eligible()`.
+- Blocage annoté avec `external_validation_status =
+  BLOCKED_PENDING_PERSONAL_VALIDATION`.
+- Candidats externes validés annotés `VALIDATED_DATA_PRESENT`.
+- 2026-07-16 — Visibilité rapport compact: les candidats bloqués sont listés
+  en section 6 avec nom de PDF suggéré (changement d'affichage, Niveau 2).
+
+### Constraints
+- Aucun changement au scoring, aux seuils des profils A/B, aux règles DCA ou au
+  Core Portfolio.
+- Aucune nouvelle fonction dans `utils.py`.
+- Aucun changement décisionnel à `report_generator.py`; la mise à jour
+  2026-07-16 est limitée à l'affichage compact.
+
+### Expected impact
+Un titre externe peut toujours être détecté comme intéressant, mais il doit
+être validé au moins minimalement avant de recevoir une allocation réelle.
+Le capital est redirigé vers VFV ou un autre candidat admissible si le gate
+bloque un externe non validé.
+
+---
+
+## [2026-07-05] Correctifs opérationnels — session audit institutionnel
+
+### Decision
+Appliquer trois correctifs mineurs identifiés lors de l'audit institutionnel:
+défense des fonctions money()/pct() contre les chaînes non-numériques,
+export des champs data gap vers latest_scores.csv, et alias RHM.DE → RHM.NE.
+
+### Reasoning
+- money()/pct() plantaient sur "N/D" lu depuis un ancien CSV d'allocation
+  → bloquait la génération de tout rapport après un run avec cache périmé.
+- score_data_gap_haircut/flag/label étaient calculés mais non exportés
+  → données d'audit inaccessibles sans modifier le code.
+- RHM.DE (Xetra) et RHM.NE (NEO) sont la même entreprise (Rheinmetall AG)
+  → sans alias, le modèle pouvait allouer vers RHM.DE comme position séparée.
+
+### Change
+- src/report_generator.py: money() et pct() défensifs contre toute valeur
+  non-numérique; retournent la valeur brute si c'est un placeholder connu.
+- src/report_generator.py: colonnes score_data_gap_haircut, score_data_gap_flag,
+  score_data_gap_label ajoutées à SCORES_COLUMNS et _score_row_for_csv().
+- config/ticker_aliases.yaml: alias RHM.DE → RHM.NE avec raison documentée.
+
+### Constraints
+- Aucun changement au scoring, à l'allocation, aux seuils, ni aux règles DCA.
+- Aucune nouvelle fonction dans utils.py.
+- Aucune nouvelle dépendance directe dans report_generator.py.
+
+### Expected impact
+Rapport généré correctement même après un run avec données périmées.
+Champs data gap visibles dans latest_scores.csv pour chaque run.
+RHM.DE résolu vers RHM.NE dans tous les univers.
+
+---
+
+## [2026-07-05] Gestion des exceptions top-level dans run_analysis()
+
+### Decision
+Entourer le corps complet de run_analysis() d'un try/except qui écrit
+latest_run_crash_log.json avant de relancer l'exception.
+
+### Reasoning
+- Un crash non géré en milieu de run produisait silence total: aucun rapport
+  partiel, aucune trace dans le run log, aucun diagnostic.
+- En phase de maturation, chaque run doit laisser une trace auditale même
+  en cas d'échec — c'est une exigence de fiabilité opérationnelle.
+
+### Change
+- main.py: try/except autour du corps de run_analysis() après make_run_id().
+  Le bloc except écrit {run_id, timestamp, mode, capital, error_type,
+  error_message, traceback_tail} dans reports/latest_run_crash_log.json.
+  Le re-raise final préserve la visibilité du crash pour l'appelant.
+- Aucun import global ajouté — imports inline dans le bloc except uniquement.
+
+### Constraints
+- Aucune logique à l'intérieur du try n'est modifiée.
+- Aucun autre module modifié.
+
+### Expected impact
+Les runs qui plantent produisent maintenant un fichier de diagnostic
+immédiatement lisible sans avoir à fouiller les logs système.
+
+---
+
+## [2026-07-05] Haircut données manquantes + labels data gap dans scoring.py
+
+### Decision
+Appliquer un haircut modéré à score_total quand plusieurs critères sont
+MANUAL_REQUIRED, et produire un label de transparence des données.
+
+### Reasoning
+- Avant ce changement, une entreprise avec missing_count=5 et une avec
+  missing_count=0 pouvaient avoir le même score_total si les critères
+  présents étaient identiques. L'inconnu était traité comme le neutre.
+- En phase de maturation, l'inconnu doit légèrement pénaliser le score
+  pour discriminer les positions confirmées des positions estimées.
+- Le label (COMPLET/PARTIEL_MINEUR/PARTIEL_MODERE/PARTIEL_SEVERE) rend
+  la qualité des données visible sans modifier l'éligibilité.
+
+### Change
+- src/scoring.py: haircut de -0.2 par critère manquant au-delà de 2,
+  plafonné à -1.0. Appliqué à score_total uniquement.
+  score_confirmed reste non affecté par le haircut.
+- Nouveaux champs retournés: score_data_gap_haircut (float),
+  score_data_gap_flag (bool), score_data_gap_label (str).
+
+### Constraints
+- score_confirmed n'est pas affecté.
+- Aucun changement à l'allocation, aux seuils d'éligibilité, ni à la
+  logique de conviction.
+- Aucune nouvelle fonction dans utils.py.
+
+### Expected impact
+Meilleure discrimination entre positions à données confirmées et positions
+à données estimées. Visibilité accrue de la qualité des données dans
+latest_scores.csv et le rapport compact.
+
+---
+
+## [2026-07-05] Scoring magnitude continu C1/C3/C5/C6
+
+### Decision
+Remplacer le scoring binaire 0/1 sur quatre critères quantitatifs par une
+courbe continue proportionnelle au ratio valeur/seuil_profil.
+
+### Reasoning
+- Le scoring binaire était le défaut architectural le plus impactant du
+  modèle: une entreprise à 15% ROIC (seuil pile) et une à 45% ROIC
+  recevaient le même score C1. Cela compressait les scores dans une bande
+  étroite et réduisait la discrimination entre compounders exceptionnels
+  et compounders marginaux.
+- Les seuils sont exprimés en multiples du seuil profil pour que la courbe
+  soit équitable entre profiles (REIT vs compounder de qualité).
+- Les critères qualitatifs (C2, C4, C9) et hybrides (C7, C8, C10) restent
+  inchangés — la magnitude s'applique uniquement où les données le justifient.
+
+### Change
+- src/scoring.py: fonction locale _magnitude_score(value, threshold)
+  avec courbe: 0.0 sous le seuil, 0.4 à 1×, 0.7 à 1.75×, 1.0 à 2.5×.
+  Interpolation linéaire entre les points.
+  Appliquée à C1 (ROIC), C3 (EPS hist 5y), C5 (EPS est 3-5y), C6 (CAGR secteur).
+  Détails de critère affichent maintenant ratio=X.XX× pour auditabilité.
+- src/model_version.py: MODEL_RULES_VERSION =
+  "2026-07-05-continuous-magnitude-scoring-v2"
+  Cela réinitialise proprement le SCORE_STABILITY baseline et sépare
+  l'évidence walk-forward pre/post changement.
+
+### Constraints
+- C2, C4, C7, C8, C9, C10 inchangés.
+- conviction_engine.py inchangé.
+- allocation_engine.py inchangé.
+- Aucun seuil d'éligibilité ou règle DCA modifié.
+- La version modèle signale une rupture intentionnelle de version.
+
+### Expected impact
+Meilleure séparation entre compounders exceptionnels et marginaux.
+Distribution des scores plus étalée (confirmé: 5.21–9.65 vs bande étroite
+antérieure). Les décisions d'allocation reflètent mieux la qualité réelle.
+Historique walk-forward antérieur correctement étiqueté comme pre-v2.
+
+---
+
+## [2026-07-05] Universe snapshotting par run
+
+### Decision
+Écrire un snapshot JSON léger par run d'analyse dans
+reports/universe_snapshots/, capturant tous les tickers scorés avec leurs
+métriques clés au moment de la décision.
+
+### Reasoning
+- Le walk-forward backtest utilise latest_scores.csv qui est écrasé à
+  chaque run — aucune trace de l'univers et des scores au moment de
+  chaque décision passée.
+- Sans snapshots persistants, la validation walk-forward reste théorique:
+  on ne peut pas comparer ce que le modèle recommandait à une date donnée
+  avec ce qui s'est passé ensuite.
+- Chaque run sans snapshot est un point de données walk-forward perdu
+  pour toujours. L'infrastructure devait être en place maintenant.
+
+### Change
+- src/run_logging_engine.py: fonction write_universe_snapshot().
+  Snapshot JSON par run_id, idempotent (n'écrase jamais un fichier existant).
+  261 tickers capturés, ETFs/BENCHMARK exclus.
+  Champs: score_total, conviction_score, capital_allocation_score,
+  data_reliability_level, business_profile, universe, add_eligibility_status,
+  opportunity_cost_status, long_term_durability_status, score_data_gap_label.
+- main.py: appel de write_universe_snapshot() après chaque run réussi.
+
+### Constraints
+- Aucun engine existant (audit_snapshot, walk_forward, report_generator)
+  modifié.
+- Le snapshot ne peut jamais faire planter le run — I/O wrapped en try/except.
+- Aucun nouveau CLI argument.
+
+### Expected impact
+Chaque run bimensuel accumule maintenant un point de données walk-forward
+réel. Après 6+ périodes espacées, la validation out-of-sample devient
+opérationnelle. Prérequis atteint pour la phase de validation.
+
+---
+
+## [2026-07-05] Alerte staleness données marché + commande sync-manual-inputs
+
+### Decision
+Ajouter une alerte visible dans le rapport compact quand les données marché
+des positions détenues sont périmées (>48h), et créer une commande CLI
+sync-manual-inputs pour maintenir manual_inputs_friendly.txt à jour depuis
+proxy_calibration.csv avec gating de staleness par catégorie de champ.
+
+### Reasoning
+- Sans alerte de staleness, un run avec circuit-breaker yfinance actif
+  produisait un rapport complet avec des prix vieux de 65h, sans aucun
+  signal visuel. Les décisions d'achat pouvaient se baser sur des données
+  marché périmées.
+- Le fichier manual_inputs_friendly.txt n'avait jamais été rempli malgré
+  la recherche Morningstar effectuée. La commande sync-manual-inputs élimine
+  le besoin d'édition manuelle du fichier INI tout en préservant une séparation
+  propre entre données confirmées (proxy_calibration.csv) et pipeline d'analyse.
+- Le gating Catégorie A/B distingue les données lentes (ROIC, moat — toujours
+  applicables) des données marché-sensitives (fair_value, forward_pe — périmées
+  après 90j). Catégorie C (sector_cagr) exclue car le proxy auto est suffisant.
+
+### Change
+Alerte staleness:
+- src/report_formatters.py: alerte dans ACTIONS SYSTÈME REQUISES quand
+  market_data_age_hours > 48h pour position détenue. Absente sur données fraîches.
+  Affiche: nombre de positions touchées, âge maximum, cause circuit-breaker.
+
+Commande sync-manual-inputs:
+- main.py: commande CLI sync-manual-inputs.
+  Source: data/proxy_calibration.csv.
+  Destination: data/manual_inputs_friendly.txt (format INI).
+  Catégorie A (toujours): roic_5y_avg, net_margin_stable_or_expanding,
+    eps_growth_5y, moat_clear, management_quality_good, balance_sheet_strong,
+    margin_or_profitability_under_pressure, confidence → manual_confidence_level.
+  Catégorie B (seulement si source_date < 90j): fair_value, forward_pe_manual,
+    peg_manual, eps_growth_estimated_3_5y, valuation_vs_5y_avg_ok,
+    forward_pe_growth_acceptable.
+  Catégorie C (exclue): sector_cagr_estimated.
+  Alertes progressives: WARNING à 75j, STALE à 90j.
+  Journal: data/proxy_calibration_sync_log.json (lu par rapport compact).
+  Alerte rapport compact: CALIBRATION DONNÉES MARCHÉ — MISE À JOUR REQUISE
+    quand des tickers ont des champs Cat.B périmés ou sans source_date.
+
+### Constraints
+- run_analysis() n'appelle pas sync-manual-inputs — la commande est manuelle.
+- Le crash du sync ne peut jamais bloquer un run d'analyse.
+- Aucun changement au scoring, allocation, ni aux règles d'éligibilité.
+
+### Expected impact
+Données marché périmées impossibles à manquer dans le rapport.
+Données confirmées Morningstar (ROIC, moat, fair_value pour 15 tickers)
+maintenant actives dans le pipeline de scoring via manual_inputs_friendly.txt.
+Workflow annuel: mettre à jour proxy_calibration.csv + sync-manual-inputs.
+
+---
+
+## [2026-07-04] Catégorie de blocage promotion — audit-only
+
+### Decision
+Ajouter `blocking_reason_category` et `promotion_proximity_score` aux lignes
+de promotion externe, puis les exposer dans le rapport compact lorsque des
+candidats sont bloqués.
+
+### Reasoning
+- Un statut comme `WAIT_FOR_BETTER_DATA_OR_PRICE` ne dit pas si le blocage
+  vient d’un manque de données, d’un risque cycle/bulle, d’un manque de
+  supériorité face au Core Portfolio ou d’une qualité fondamentale insuffisante.
+- Ces situations appellent des actions différentes: chercher un rapport
+  BNCD/Morningstar, patienter sur un cycle, comparer au core, ou ignorer le
+  titre pour l’instant.
+- Les checks existaient déjà dans `promotion_engine`; il fallait les rendre
+  lisibles sans créer de nouvelle règle active.
+
+### Change
+- Champs audit-only ajoutés dans `src/promotion_engine.py`.
+- Ligne compacte `→ [catégorie] | proximité: X/15` ajoutée via
+  `src/report_formatters.py` lorsque la promotion est bloquée.
+- Tests ajoutés pour `DATA_INSUFFICIENT` et `CYCLE_RISK`.
+
+### Constraints
+- Aucun changement à la logique active de promotion, scoring, allocation,
+  sizing, DCA ou vente.
+- Aucune modification de `report_generator.py`.
+- Aucune nouvelle fonction dans `utils.py`.
+
+### Expected impact
+Meilleure auditabilité des candidats externes bloqués et meilleure distinction
+entre “titre potentiellement bon mais données insuffisantes” et “titre vraiment
+sous la barre”, sans rendre le modèle plus conservateur.
+
+---
+
+## [2026-07-04] Data quality audit v1 — robustesse encadrée des sources
+
+### Decision
+Ajouter une couche additive d’audit de qualité des données autour des sources,
+du cache, des fallbacks officiels et du logging, sans modifier les scores,
+allocations, seuils, sizing, DCA, promotions ou règles de vente.
+
+### Reasoning
+- Le modèle dépend de sources gratuites qui peuvent être incomplètes,
+  contradictoires ou temporairement indisponibles.
+- Les décisions haut CAGR doivent rester pilotées par les règles existantes,
+  mais l’utilisateur et les audits doivent voir plus clairement quand une
+  recommandation repose sur données confirmées, proxys, cache ou sources
+  partielles.
+- Le renforcement doit réduire le risque de mauvaise exécution sans rendre le
+  modèle mécaniquement plus conservateur.
+
+### Change
+- Métriques audit-only de couverture des champs critiques dans
+  `data_reliability_engine`.
+- Signal de fraîcheur critique dans `data_freshness_engine`.
+- Colonnes de santé des sources: taux de confirmation, couverture partielle,
+  données critiques périmées et signal d’audit.
+- Retry/backoff léger dans `official_data_fetcher` et résumés de résolution
+  SEC/Canada dans `data_fetcher`.
+- Journaux d’exécution enrichis avec les signaux d’audit des sources.
+
+### Constraints
+- Aucun changement à la logique active de scoring, allocation, sizing,
+  DCA, promotions ou ventes.
+- Aucune nouvelle fonction dans `utils.py`.
+- Aucune nouvelle dépendance directe dans `report_generator.py`.
+- Les nouveaux signaux sont diagnostics; ils informent les audits et la
+  traçabilité sans bloquer automatiquement les recommandations.
+
+### Expected impact
+Meilleure traçabilité des données, meilleure capacité à détecter une faiblesse
+de source ou de cache, et décisions plus auditables sans diminuer l’objectif
+de rendement long terme du mode `high-cagr`.
+
+---
+
+## [2026-07-03] Section informative “Ce que vous achetez” — reporting-only
+
+### Decision
+Ajouter une section informative post-allocation “Ce que vous achetez” dans
+les rapports, avec profils longs des entreprises et ETF qui reçoivent une
+allocation positive.
+
+### Reasoning
+- L’utilisateur doit comprendre ce que chaque titre recommandé représente
+  concrètement: activité, modèle économique, secteur, rôle portefeuille et
+  points simples à surveiller.
+- Les ETF doivent être expliqués comme instruments de portefeuille: objectif,
+  exposition, stratégie ou indice suivi, principales positions si disponibles.
+- L’amélioration augmente la compréhension, la confiance et l’auditabilité
+  sans ajouter une nouvelle couche décisionnelle.
+
+### Change
+- Nouveau module `src/instrument_profile_engine.py`
+- Enrichissement externe gratuit optionnel si clés API disponibles
+  (`ALPHA_VANTAGE_API_KEY`, `OPENFIGI_API_KEY`)
+- Cache local sous `data/cached_market_data/instrument_profiles/`
+- Niveau de fiabilité par profil: HIGH / MEDIUM / LOW / MISSING
+- Statut de profil: COMPLETE / PARTIAL / UNCONFIRMED
+- Nouveau CSV `reports/latest_instrument_profiles.csv`
+
+### Constraints
+- Aucun impact sur scores, allocations, seuils, sizing, DCA, drift,
+  promotions ou décisions buy/sell.
+- Les profils d’instruments ne peuvent jamais influencer une recommandation.
+- Les sources externes sont optionnelles et ne peuvent jamais faire échouer
+  `python3 main.py analyze`.
+- Si les sources sont insuffisantes, le rapport affiche un profil incomplet
+  plutôt que d’inventer une description.
+
+### Expected impact
+Meilleure lisibilité des recommandations et meilleure auditabilité qualitative,
+sans rendre le modèle plus conservateur ni modifier son objectif haut CAGR.
+
+---
+
+## [2026-07-01] Mode-scoped latest artifacts and audits
+
+### Decision
+Séparer les artefacts `latest_*`, backtests, walk-forward, audits et preuves
+d’amélioration par mode (`balanced`, `family-office`, `rational-aggressive`,
+`high-cagr`) avec suffixes stables.
+
+### Reasoning
+- Les quatre modes ont des philosophies différentes et doivent accumuler leur
+  historique séparément.
+- Un audit ou un backtest `balanced` ne doit jamais nourrir un audit,
+  un backtest, un improvement-audit ou un apply-safe-tuning `high-cagr`.
+- Les fichiers génériques `reports/latest_*` restent écrits pour compatibilité
+  utilisateur, mais les commandes mode-specific utilisent maintenant les
+  fichiers suffixés quand elles lisent une preuve historique du mode.
+
+### Change
+- Convention de suffixe: `balanced`, `family_office`,
+  `rational_aggressive`, `high_cagr`.
+- Les rapports d’analyse écrivent les artefacts génériques et leurs miroirs
+  suffixés.
+- Les backtests exigent `latest_scores_{mode}.csv` et refusent de lire un
+  `latest_scores.csv` potentiellement contaminé.
+- Walk-forward, model-audit, full-audit et improvement-audit écrivent ou lisent
+  les artefacts suffixés par mode lorsque la preuve est mode-specific.
+- `allocation_mode_contract_engine.py` reste cross-mode et audit-only.
+
+### Expected impact
+Meilleure séparation des preuves par philosophie d’investissement sans
+changement aux scores, allocations, sizing, signaux achat/vente, DCA,
+drift rule, promotions ou seuils actifs. Le modèle reste scoring
+fondamental + allocation gloutonne contrainte, non mean-variance.
+
+---
+
+## [2026-07-01] Allocation mode contract audit — diagnostic only
+
+### Decision
+Ajouter un audit de contrat des modes d’allocation qui compare `balanced`,
+`family-office`, `rational-aggressive` et `high-cagr` sur une même base
+de scores, sans modifier les recommandations actives.
+
+### Reasoning
+- Les quatre modes ont maintenant des philosophies très différentes, donc
+  leur comportement doit rester vérifiable dans le temps.
+- L’audit permet de détecter si `balanced` devient trop offensif, si
+  `high-cagr` perd son filet VFV, ou si les satellites émergents dépassent
+  leur rôle prévu.
+- Le contrôle reste diagnostic pour éviter qu’un test de cohérence ne
+  change lui-même le scoring, le sizing ou l’allocation.
+
+### Change
+- Nouveau module `src/allocation_mode_contract_engine.py`
+- Nouveau CSV `reports/latest_allocation_mode_contract_audit.csv`
+- Intégration dans `full-audit` via `src/full_audit_engine.py`
+- Tests unitaires dédiés dans `tests/test_allocation_mode_contracts.py`
+
+### Expected impact
+Meilleure auditabilité des modes sans changement aux recommandations
+d’allocation. Aucun changement de score, seuil actif, achat, vente, sizing
+ou logique DCA.
+
+---
+
+## [2026-06-30] Overflow émergents externes autorisé — audit anomalie 3
+
+### Decision
+Modifier `_high_cagr_overflow_eligible` pour autoriser les candidats
+externes VERY_DURABLE_COMPOUNDER et HIGH_GROWTH_BUT_FRAGILE à recevoir
+de l'allocation overflow en high-cagr, sous garde-fous plus stricts
+que la boucle principale.
+
+### Reasoning
+Audit post-implémentation a révélé que l'exclusion totale des candidats
+externes de l'overflow était trop restrictive pour le mode high-cagr —
+dont l'objectif est de capturer les meilleurs compoundeurs long terme
+sans biais préférentiel. Un émergent externe avec conviction 90 et CAGR
+VERY_HIGH mérite de recevoir l'overflow plutôt que VFV par défaut.
+Les seuils overflow sont plus stricts que la boucle principale pour
+compenser le risque accru de la phase d'overflow (capital résiduel
+après épuisement des candidats prioritaires).
+
+### Change
+- _high_cagr_overflow_eligible : VERY_DURABLE_COMPOUNDER externe
+  autorisé avec conviction >= 80, capital_score >= 68
+- _high_cagr_overflow_eligible : HIGH_GROWTH_BUT_FRAGILE externe
+  autorisé avec conviction >= 85 (+3 vs boucle principale),
+  capital_score >= 75 (+3 vs boucle principale), VERY_HIGH obligatoire
+- Tous les autres profils externes toujours exclus de l'overflow
+- Garde-fous communs (thesis, liquidation, drift, etc.) inchangés
+- Fichier modifié : src/allocation_engine.py
+
+---
+
+## [2026-06-30] Séparation budget run vs cible poids émergents — audit anomalie 2
+
+### Decision
+Introduire `HIGH_CAGR_EMERGING_SATELLITE_TARGET_WEIGHT = 0.15` pour
+séparer la cible de poids portefeuille du budget par run des émergents
+HIGH_GROWTH_BUT_FRAGILE en high-cagr.
+
+### Reasoning
+Audit post-implémentation a révélé que HIGH_CAGR_EMERGING_SATELLITE_BUDGET
+(0.225) était utilisée à deux fins distinctes dans _target_post_contribution_
+weight : une fois comme budget run (correct) et une fois comme cible de
+poids portefeuille (incorrect — trop élevé pour un satellite fragile).
+Un émergent HIGH_GROWTH_BUT_FRAGILE ne devrait pas viser 22.5% du
+portefeuille total — 15% est un plafond plus cohérent avec son rôle satellite.
+
+### Change
+- Nouvelle constante HIGH_CAGR_EMERGING_SATELLITE_TARGET_WEIGHT = 0.15
+- _target_post_contribution_weight utilise la nouvelle constante pour
+  les émergents HIGH_GROWTH_BUT_FRAGILE externes en high-cagr
+- _external_budget_room conserve HIGH_CAGR_EMERGING_SATELLITE_BUDGET
+  (0.225) pour le budget par run — inchangé
+- Fichier modifié : src/allocation_engine.py
+
+---
+
+## [2026-06-30] Documentation constantes mortes high-cagr — audit intégration
+
+### Decision
+Ajouter des commentaires explicatifs dans EXTERNAL_ALLOCATION_BUDGETS
+et EXTERNAL_INDIVIDUAL_CAPS pour signaler que les valeurs high-cagr
+sont ignorées par le code.
+
+### Reasoning
+Audit post-implémentation de la Proposition 8 a révélé que les valeurs
+high-cagr dans ces deux constantes ne sont jamais lues — les fonctions
+_external_allocation_budget() et _external_individual_cap_fraction()
+ont des cas spéciaux qui court-circuitent ces constantes pour high-cagr.
+Sans documentation, un futur développeur pourrait modifier ces valeurs
+en croyant changer le comportement, sans effet réel.
+
+### Change
+- Commentaires ajoutés dans EXTERNAL_ALLOCATION_BUDGETS["high-cagr"]
+  et EXTERNAL_INDIVIDUAL_CAPS["high-cagr"]
+- Aucune logique modifiée
+
+---
+
+## [2026-06-30] Ouverture high-cagr à tous les univers + budget satellite
+
+### Decision
+Ouvrir `high-cagr` à watchlist, market_scanner et discovery avec seuils
+stricts différenciés par profil de durabilité, et introduire un budget
+satellite de 22.5% par run pour les compoundeurs émergents.
+
+### Reasoning
+- La restriction à core_analyses créait un biais préférentiel non justifié :
+  les meilleurs compoundeurs émergents en watchlist/market étaient invisibles.
+- Le vrai objectif de high-cagr est de battre le S&P 500 sur plusieurs
+  décennies — cela requiert de capturer les futurs Constellation Software
+  au stade émergent, pas seulement les compoundeurs déjà établis.
+- Deux profils acceptés avec seuils distincts :
+  Profil A (VERY_DURABLE_COMPOUNDER) : seuils stricts standard
+  Profil B (HIGH_GROWTH_BUT_FRAGILE) : seuils très stricts avec
+  conviction >= 82, capital_score >= 72, CAGR VERY_HIGH obligatoire,
+  opportunité CLEARLY_BETTER_THAN_VFV, fiabilité >= MEDIUM
+- Budget satellite 22.5% par run pour les émergents : la colonne
+  vertébrale de compoundeurs prouvés reste dominante.
+
+### Change
+- `allocation_universe_for_mode` : high-cagr reçoit tous les univers
+- `_external_candidate_allowed` : deux profils autorisés avec seuils
+  distincts au lieu de False systématique
+- `HIGH_CAGR_EMERGING_SATELLITE_BUDGET = 0.225` : nouvelle constante
+- Budget satellite implémenté dans la boucle gloutonne
+- Fichier modifié : `src/allocation_engine.py`
+
+### Expected impact
+high-cagr peut maintenant identifier et allouer vers les meilleurs
+compoundeurs émergents sans biais préférentiel. La colonne vertébrale
+de VERY_DURABLE_COMPOUNDER reste dominante. Les émergents sont plafonnés
+à 22.5% du capital par run pour éviter une sur-concentration sur des
+profils dont la durabilité n'est pas encore entièrement prouvée.
+Aucun impact sur les autres modes.
+
+---
+
+## [2026-06-30] Critère d'éligibilité opportunity_cost aligné sur balanced
+
+### Decision
+Modifier `_eligible()` dans `src/allocation_engine.py` pour accepter
+`SIMILAR_TO_VFV` en plus de `CLEARLY_BETTER_THAN_VFV` comme statut
+d'opportunité valide en mode `balanced`.
+
+### Reasoning
+- Le critère `CLEARLY_BETTER_THAN_VFV` forçait balanced à traiter chaque
+  titre comme un challenger du S&P 500 — incompatible avec le vrai but du mode.
+- Le vrai but de balanced : préserver un grand patrimoine, croître au-dessus
+  de l'inflation, minimiser la volatilité. Pas battre le S&P 500.
+- Un titre stable, durable, à dividende croissant (ex: grande banque
+  canadienne) est `SIMILAR_TO_VFV` — exactement le profil voulu en balanced.
+- `EXPENSIVE_BUT_EXCEPTIONAL` reste refusé : valorisation excessive inadaptée
+  à un mode de préservation patrimoniale.
+- Tous les autres filtres de balanced restent intacts : VERY_DURABLE_COMPOUNDER,
+  conviction >= 85, business_quality >= 85, cycle != HIGH/EXTREME.
+
+### Change
+- balanced : accepte {CLEARLY_BETTER_THAN_VFV, SIMILAR_TO_VFV}
+- balanced : refuse toujours WORSE_THAN_VFV, EXPENSIVE_BUT_EXCEPTIONAL,
+  TOO_EXPENSIVE, REJECTED
+- Autres modes : inchangés
+- Fichier modifié : `src/allocation_engine.py` (_eligible())
+
+### Expected impact
+Le bassin de candidats éligibles en `balanced` s'élargit pour inclure les
+titres stables de qualité institutionnelle qui ne surpassent pas le S&P 500
+mais qui préservent le capital avec dividende et faible volatilité.
+Les garde-fous de durabilité, conviction et qualité business restent les
+plus stricts du modèle — l'élargissement ne crée pas de risque d'inclusion
+de titres de faible qualité.
+
+---
+
+## [2026-06-30] Activation complète continuité défensive — 3C-Inline
+
+### Decision
+Activer la logique de continuité de la Proposition 3C en passant
+`previous_baseline` comme paramètre optionnel à `_defensive_fallback_rows`
+via `allocate_capital` et `_optimize_monthly_contribution`.
+
+### Reasoning
+- La Proposition 3C avait codé la logique de seuil de rotation (+5 points
+  au reconduit) mais `previously_allocated_defensive` n'était jamais peuplé
+  dans `defensive_etf_engine.py` → continuité inactive.
+- Le `previous_baseline` est déjà disponible dans `main.py` via
+  `load_previous_allocation_baseline` — aucune nouvelle donnée requise.
+- L'approche inline évite de modifier `defensive_etf_engine.py` et reste
+  entièrement locale à `allocation_engine.py` et `main.py`.
+
+### Change
+- `allocate_capital` : nouveau paramètre optionnel `previous_baseline`
+- `_optimize_monthly_contribution` : nouveau paramètre optionnel
+  `previous_baseline`
+- `_defensive_fallback_rows` : `previous_defensive_tickers` construit
+  depuis le baseline au lieu du champ `previously_allocated_defensive`
+- `main.py` : passage de `previous_baseline` à `allocate_capital`
+- Fichiers modifiés : `src/allocation_engine.py`, `main.py`
+
+### Expected impact
+La logique de continuité défensive de la Proposition 3C est maintenant
+pleinement active. Les ETFs défensifs reconduits bénéficient du bonus
+de +5 points dans le tri de sélection. Aucun impact si `previous_baseline`
+est absent (premier run, baseline vide ou None).
+
+---
+
+## [2026-06-30] Seuil de rotation minimal défensif — allocation_engine
+
+### Decision
+Ajouter un seuil de rotation minimal de 5 points dans `_defensive_fallback_rows`
+pour éviter le churn dans la réserve défensive.
+
+### Reasoning
+- Les ETFs défensifs étaient triés uniquement par `defensive_score` sans mémoire
+  de l'allocation précédente.
+- Une variation de 1-3 points de score pouvait générer une rotation inutile :
+  frais de transaction réels et impact fiscal potentiel en compte taxable.
+- Le churn dans la réserve défensive est particulièrement risqué en `balanced`
+  (jusqu'à 45% du capital en réserve défensive) et `family-office` (20%).
+- La correction est entièrement locale à `_defensive_fallback_rows` sans
+  dépendance à `allocation_stability_engine` ni paramètre externe.
+
+### Change
+- Ajout de `DEFENSIVE_ROTATION_MIN_EDGE = 5.0` comme constante globale
+- Un ETF défensif reconduit reçoit un bonus de continuité de +5 points
+  dans le tri de sélection uniquement
+- Un challenger doit dépasser le reconduit d'au moins 5 points pour
+  déclencher une rotation
+- Fallback sûr : si `previously_allocated_defensive` est absent,
+  comportement identique à avant
+- Fichier modifié : `src/allocation_engine.py` (_defensive_fallback_rows)
+
+### Expected impact
+Élimination du churn défensif causé par du bruit de score.
+Les rotations défensives restent possibles mais exigent un avantage clair.
+Aucun impact sur l'éligibilité, les plafonds de concentration, ni la
+logique VFV ou des modes high-cagr et rational-aggressive.
+
+---
+
+## [2026-06-30] Chunk size différencié par mode — allocation_engine
+
+### Decision
+Modifier `_monthly_chunk_size` dans `src/allocation_engine.py` pour différencier
+le plafond de chunk par mode.
+
+### Reasoning
+- Le plafond fixe de 50$ était identique pour les 4 modes malgré des philosophies
+  d'investissement opposées.
+- Pour les gros capitaux (>2 000$), balanced et high-cagr avaient la même
+  granularité de boucle, effaçant la différence de concentration souhaitée.
+- high-cagr doit concentrer directement → chunks plus grands.
+- balanced doit fragmenter finement → plafond fixe conservé à 50$.
+
+### Change
+- high-cagr    : plafond = max(50$, capital * 2%)
+- rational-aggressive : plafond = max(50$, capital * 1.5%)
+- family-office : plafond = max(50$, capital * 1.2%)
+- balanced     : plafond fixe 50$ (inchangé)
+- Fichier modifié : `src/allocation_engine.py` (_monthly_chunk_size)
+
+### Expected impact
+La granularité de la boucle gloutonne reflète maintenant la philosophie de chaque
+mode. Aucun impact sur les montants finals pour les petits capitaux (<2 000$).
+Pour les gros capitaux, high-cagr concentre plus directement en moins d'itérations.
+Aucun changement à l'éligibilité, aux plafonds de concentration, ni à la logique VFV.
+
+---
+
+## [2026-06-30] Durability adjustment asymétrique par mode — allocation_engine
+
+### Decision
+Modifier `_marginal_monthly_score` dans `src/allocation_engine.py` pour rendre
+le signal de durabilité asymétrique en mode `high-cagr`.
+
+### Reasoning
+- Le signal `durability_adjustment` était identique pour les 4 modes malgré
+  des philosophies d'investissement très différentes.
+- En `balanced`, le filtre d'éligibilité exclut déjà les titres non durables —
+  le penalty dans le score marginal était donc redondant.
+- En `high-cagr`, pénaliser `HIGH_GROWTH_BUT_FRAGILE` à -2.0 risquait d'écarter
+  des compoundeurs prospectifs à fort potentiel CAGR au profit de titres établis
+  mais à croissance plus modérée.
+
+### Change
+- `high-cagr` : VERY_DURABLE_COMPOUNDER +4.5 (vs +3.0),
+  HIGH_GROWTH_BUT_FRAGILE -1.0 (vs -2.0), DURABLE_BUT_CYCLICAL +0.75 (vs +0.5)
+- Autres modes : table originale inchangée
+- Fichier modifié : `src/allocation_engine.py` ligne ~1008
+
+### Expected impact
+Meilleure discrimination entre candidats durables en high-cagr sans sacrifier
+le potentiel de rendement des titres à forte croissance prospective.
+Le changement n'affecte pas l'éligibilité, les plafonds, ni la logique VFV.
+
+---
+
 ## [2026-06-29] Thesis reversal audit — diagnostic only
 
 ### Decision

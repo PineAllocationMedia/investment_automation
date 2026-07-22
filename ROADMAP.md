@@ -1,186 +1,103 @@
-# Investment Automation — Master Roadmap
-
-## 🎯 Mission
-
-Build a robust, tax-aware, long-term investment automation system for a Canadian investor (Quebec), focused on compounding capital with minimal complexity and strong risk control.
-
-The system must be:
-- reproducible
-- backtestable
-- transparent
-- robust across market regimes
-- optimized for after-tax returns (Canada)
+# ROADMAP — investment_automation
+*Phase: Maturation et validation | Dernière mise à jour: 2026-07-05*
 
 ---
 
-# 🟢 Phase 1 — Core Infrastructure (FOUNDATION)
+## Principes de la phase de maturation
 
-## Objective: stabilize and structure the system
+Le projet a transitionné de l'expansion rapide vers la validation.
+L'objectif est de maximiser la fiabilité, la robustesse et la confiance
+à long terme du système existant — pas d'ajouter de nouveaux modules.
 
-### Data & Architecture
-- [ ] Standardize project structure (src/, data/, backtests/, reports/)
-- [ ] Centralize configuration (config.py or config module)
-- [ ] Define data ingestion pipeline (prices, dividends, fundamentals)
-- [ ] Ensure reproducible environment (requirements.txt / venv lock)
-
-### Backtesting Engine
-- [ ] DCA strategy baseline implementation
-- [ ] Portfolio simulation engine
-- [ ] Performance metrics (CAGR, volatility, max drawdown)
-- [ ] Transaction cost modeling (basic)
-
-### Logging & Reproducibility
-- [ ] Structured logging of all backtests
-- [ ] Save all simulation outputs in /reports
-- [ ] Version control all strategy changes
+Toute proposition doit répondre à: "Est-ce que cela augmente la confiance
+dans les décisions du modèle, ou seulement la complexité du système?"
 
 ---
 
-# 🟡 Phase 2 — Investment Intelligence Layer (double check following the current main.py and mechanisms)
+## Section 1 — Accompli (implémenté et validé)
 
-## Objective: move from simple simulation → decision system
+### Infrastructure de base
+- DCA bimensuel en mode high-cagr comme stratégie centrale
+- Scoring fondamental C1-C10 avec profils métier différenciés
+- Allocation gloutonne contrainte (VFV.TO comme filet de sécurité)
+- 4 modes: balanced, family-office, rational-aggressive, high-cagr
+- Séparation des artéfacts par mode (suffixes stables)
+- Walk-forward backtest engine (infrastructure prête)
+- Audit snapshot engine, model audit, full audit, improvement audit
+- Proxy calibration avec historique durable
 
-### Stock Scoring System
-- [ ] Quality scoring (profitability, stability, margins)
-- [ ] Dividend sustainability analysis
-- [ ] Volatility & risk scoring
-- [ ] Composite investment score
+### Corrections et robustesse (session 2026-07-05)
+- Scoring magnitude continu C1/C3/C5/C6 (version modèle v2)
+- Haircut données manquantes + labels COMPLET/PARTIEL_*/PARTIEL_SEVERE
+- Gestion exceptions top-level dans run_analysis()
+- Alerte staleness données marché dans rapport compact
+- Universe snapshotting per run (prérequis walk-forward)
+- Commande sync-manual-inputs avec gating staleness Cat.A/B/C
+- Alias RHM.DE → RHM.NE
+- Défense money()/pct() contre chaînes non-numériques
+- Export score_data_gap_* dans latest_scores.csv
 
-### Portfolio Construction
-- [ ] Multi-asset portfolio allocation
-- [ ] Sector diversification rules
-- [ ] Position sizing model
-- [ ] Risk parity or heuristic allocation
-
-### Strategy Engine
-- [ ] Compare multiple strategies (DCA, dividend growth, factor-based)
-- [ ] Multi-strategy backtesting framework
-- [ ] Benchmark comparison (e.g., VFV / S&P 500 ETF)
-
----
-
-# 🔵 Phase 3 — Canadian Tax-Aware Optimization (CRITICAL)
-
-## Objective: model real net returns for Quebec investor
-
-### Account Modeling
-- [ ] TFSA (CELI) simulation (tax-free growth)
-- [ ] RRSP simulation (tax-deferred growth)
-- [ ] Taxable account modeling
-
-### Tax Logic
-- [ ] Canadian dividend tax treatment
-- [ ] US withholding tax impact (TFSA / taxable accounts)
-- [ ] After-tax return calculation engine
-
-### Asset Location Optimization
-- [ ] Optimal placement of assets across accounts
-- [ ] Dividend vs growth allocation strategy
-- [ ] CAD vs USD exposure considerations
+### Données confirmées actives
+- proxy_calibration.csv rempli pour 15/17 tickers actifs (Morningstar/BNCD)
+- manual_inputs_friendly.txt synchronisé via sync-manual-inputs
+- Données Cat.A (ROIC, moat) actives pour tous les tickers remplis
+- Données Cat.B (fair_value, forward_pe) actives pour tickers avec source_date < 90j
 
 ---
 
-# 🟣 Phase 4 — Automation & Decision System
+## Section 2 — En observation (attente de données)
 
-## Objective: autonomous investment system
+Ces éléments sont implémentés mais nécessitent de l'évidence accumulée
+avant d'être exploitables:
 
-### Portfolio Automation
-- [ ] Automated portfolio rebalancing rules
-- [ ] Drift detection (allocation deviation)
-- [ ] Periodic contribution allocation engine
+**Walk-forward out-of-sample:**
+- Infrastructure: prête (universe_snapshots actifs depuis 2026-07-05)
+- Prérequis: 6+ périodes espacées de 14j minimum
+- Estimation: opérationnel ~octobre-novembre 2026 au rythme bimensuel
+- Action: ne rien modifier — laisser l'évidence s'accumuler
 
-### Reporting System
-- [ ] Monthly performance reports
-- [ ] Risk exposure summaries
-- [ ] Strategy performance comparison reports
+**SCORE_STABILITY:**
+- Actuel: UNSTABLE (transition de version v1 → v2 ce jour)
+- Attendu: retour à STABLE au prochain run
+- Action: aucune — comportement normal après changement de version
 
-### Alert System
-- [ ] Risk threshold alerts
-- [ ] Strategy underperformance detection
-- [ ] Dividend cuts / anomalies detection
-
----
-
-# 🔴 Phase 5 — AI Integration (Claude + Codex)
-
-## Objective: human + AI hybrid investment system
-
-### Claude Role (Analysis Layer)
-- Portfolio critique
-- Strategy validation
-- Bias detection (overfitting, survivorship bias)
-- Risk review
-
-### Codex Role (Execution Layer)
-- Code generation and refactoring
-- Backtest implementation
-- Automation scripts
-
-### AI Workflow
-- Claude proposes improvements → Codex implements → system backtests → results stored
-- Continuous improvement loop
+**Calibration proxy Cat.B:**
+- BAM.TO: source_date périmée (>90j) — mettre à jour Morningstar
+- MSFT, LLY: source_date manquante — ajouter 2026-07-05 dans proxy_calibration.csv
+- Action: mise à jour manuelle avant prochain run DCA
 
 ---
 
-# Planned Refactors — Do Not Implement Until Triggered
+## Section 3 — Explicitement différé (hors scope maturation)
 
-### REFACTOR-01 — utils decomposition
-- Trigger: feature addition pace slows down
-- Goal: split utils.py into focused submodules by responsibility
-- Risk: high if done mid-development — coordinate with Claude first
-- Status: deferred
+Ces éléments ont été évalués et différés délibérément.
+Ne pas proposer ou implémenter sans evidence walk-forward solide:
 
-### REFACTOR-02 — report_generator decoupling
-- Trigger: before any API, dashboard, or external output work begins
-- Goal: engines emit structured data objects, single output layer handles formatting
-- Risk: architectural — requires full design before any Codex implementation
-- Status: deferred
+**Refactoring architectural:**
+- Décomposition report_generator.py (385 KB) — Phase 4, après stabilisation
+- Décomposition utils.py en sous-modules — Phase 4
+- Découplage report_generator via pattern événement/facade — Phase 4
 
----
+**Nouvelles fonctionnalités:**
+- Matrice de corrélation des retours prix — non-mean-variance, hors scope
+- Attribution de drawdown par position — informatif mais non prioritaire
+- Tracking P&L par lot (cost basis réel) — avant première vente réelle
+- Proposition 4B: drift thresholds différenciés high-cagr — besoin évidence
+- Proposition 5A: conviction-tiered weight targets — besoin évidence
 
-# Future Enhancements — Trigger-Based
-
-### ENHANCEMENT-01 — RMT covariance denoising
-- What: use Random Matrix Theory (Marchenko-Pastur) to clean the 
-  correlation matrix before any statistical risk calculation
-- Trigger: only if a statistical correlation engine is added to 
-  portfolio_risk_engine, or if allocation_engine adopts mean-variance 
-  optimization alongside the current scoring system
-- Why not now: model does not use covariance matrices — technique 
-  has no surface to operate on in current architecture
-- Risk: low implementation risk when triggered, but adds complexity 
-  to the risk layer
-- Status: deferred — revisit after REFACTOR-02
+**Outils de reporting:**
+- Refonte complète rapport HTML — après stabilisation du modèle
+- Score distribution histogram dans rapport compact — faible priorité
 
 ---
 
-# 🧠 Global System Principles
+## Section 4 — Prochain run DCA
 
-These rules MUST always be respected:
+Actions concrètes avant le prochain run bimensuel:
 
-## Investment Principles
-- Long-term horizon (10–50 years)
-- Prefer robustness over optimization
-- Avoid overfitting to historical data
-- Focus on after-tax returns (Canada-specific)
-- Favor simplicity over complexity
-
-## Engineering Principles
-- Reproducible results only
-- Every strategy must be backtestable
-- No hidden assumptions in code
-- All changes must be logged and justified
-
----
-
-# 📌 Success Definition
-
-The system is successful when it can:
-
-- simulate portfolios realistically over decades
-- compare strategies objectively
-- optimize after-tax returns for Canadian accounts
-- remain stable under different market regimes
-- be understood and improved by AI (Claude + Codex)
-- Propose the most efficient and optimized allocation, gestion and investment of recurrent money contribution into a saving accounts
-- Analyses, evaluates and filters out the best actual investment position options depending on chosen mode to maximize chances of being a better option than S&P 500 (Kinda like Blackrock and their Aladin computer)
+1. Ajouter source_date = 2026-07-05 pour MSFT et LLY dans proxy_calibration.csv
+2. Mettre à jour BAM.TO dans proxy_calibration.csv (données périmées)
+3. Relancer: python3 main.py sync-manual-inputs
+4. Vérifier: SCORE_STABILITY = STABLE (après 1 run propre)
+5. Relancer: python3 main.py analyze --refresh-market-data --capital [DCA] --mode high-cagr
+6. Vérifier: aucune alerte CALIBRATION DONNÉES MARCHÉ après les updates ci-dessus

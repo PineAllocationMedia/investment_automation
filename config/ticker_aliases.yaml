@@ -9,6 +9,14 @@ aliases:
     company_name: Fidelity Advantage Bitcoin ETF
     reason: Pour le FNB Bitcoin canadien en dollars CAD, Yahoo Finance utilise FBTC.TO. Le ticker FBTC sans suffixe peut pointer vers le FNB Bitcoin americain.
 
+  RHM.DE:
+    ticker: RHM.NE
+    company_name: Rheinmetall AG
+    reason: RHM.DE (Xetra) et RHM.NE (NEO Exchange) sont la meme entreprise.
+      RHM.NE est le ticker canonical detenu en portefeuille. Alias pour eviter
+      une double exposition ou une allocation independante vers la cotation
+      allemande.
+
   CSU:
     ticker: CSU.TO
     company_name: Constellation Software Inc.

@@ -73,7 +73,7 @@ Voici la version courte.
 2. L’historique des changements se fait automatiquement: après un achat ou une vente, je mets `portfolio.csv` à jour, puis je lance `python3 main.py sync-portfolio` pour enregistrer le changement sans relancer une analyse complète.
 3. Je peux ignorer `data/account_locations.csv`: il est seulement gardé comme ancien fichier de secours.
 4. Je peux remplir `data/market_universe.csv` avec seulement le ticker et le nom des compagnies à surveiller/scanner.
-5. Optionnel : je peux remplir `data/manual_inputs_friendly.txt` seulement si je veux corriger une donnée automatiquement estimée.
+5. Optionnel : je peux mettre à jour `data/proxy_calibration.csv`, puis lancer `python3 main.py sync-manual-inputs` pour appliquer des données confirmées. Le fichier `data/manual_inputs_friendly.txt` est généré automatiquement par cette commande.
 6. Je lance mon analyse principale :
 
 ```bash
@@ -207,6 +207,18 @@ Utilisez `--refresh-market-data` avec `sync-portfolio` seulement si vous voulez 
 ```bash
 python3 main.py sync-portfolio --refresh-market-data
 ```
+
+Si vous avez mis à jour le fichier de calibration proxy, appliquez les données confirmées au scoring avec :
+
+```bash
+python3 main.py sync-manual-inputs
+```
+
+Cette commande traduit `data/proxy_calibration.csv` → `data/manual_inputs_friendly.txt`.
+À relancer après chaque mise à jour du fichier de calibration proxy
+(typiquement une fois par an après révision Morningstar/BNCD).
+Catégorie A (ROIC, moat, EPS hist...): toujours appliquée.
+Catégorie B (fair_value, forward_pe...): appliquée si source_date < 90 jours.
 
 Résumé simple :
 
@@ -1078,6 +1090,8 @@ Si une entreprise semble excellente, mais que presque tout repose sur des estima
 
 Une donnée confirmée dans `manual_inputs_friendly.txt` ou dans un rapport BNCD/Morningstar local pèse plus lourd qu’une estimation automatique.
 
+Le scoring fondamental utilise maintenant une courbe de magnitude continue pour les critères quantitatifs principaux. C1 (ROIC), C3 (EPS historique 5y), C5 (EPS estimé 3-5y) et C6 (CAGR secteur) utilisent un scoring magnitude continu: 0.0 sous le seuil, 0.4 au seuil, 0.7 à 1.75× le seuil, 1.0 à 2.5× le seuil (profil-spécifique). C2, C4, C7, C8, C9, C10 restent binaires ou partiels selon leur logique existante. Score maximum total: 10.0. Version des règles: `2026-07-05-continuous-magnitude-scoring-v2`.
+
 L’agent surveille aussi la **fraîcheur des données**.
 
 Cela veut dire qu’il regarde si :
@@ -1220,6 +1234,17 @@ Ce fichier sert à vérifier si les estimations automatiques de l’agent sont b
 Vous pouvez l’utiliser quand vous avez de vraies données fiables pour une entreprise, par exemple avec MSFT, MA et AAPL.
 
 Ce fichier n’est pas fait pour être rempli chaque mois.
+
+Le fichier source est `data/proxy_calibration.csv` (colonnes avec suffixe `_true`).
+Pour appliquer les données confirmées au pipeline de scoring:
+
+```bash
+python3 main.py sync-manual-inputs
+```
+
+Cette commande traduit le CSV vers `data/manual_inputs_friendly.txt` (format INI)
+avec gating de staleness automatique. Ne pas éditer `manual_inputs_friendly.txt`
+directement — il est écrasé à chaque sync.
 
 Il sert plutôt à faire une calibration ponctuelle :
 
@@ -1731,6 +1756,8 @@ latest_proxy_calibration_summary.csv
 latest_proxy_calibration_history.csv
 latest_proxy_bias_report.csv
 latest_proxy_correction_audit.csv
+reports/universe_snapshots/<run_id>.json
+data/proxy_calibration_sync_log.json
 latest_walk_forward_inventory.csv
 latest_walk_forward_coverage.csv
 latest_walk_forward_inventory.html
@@ -1751,6 +1778,16 @@ latest_auto_estimates.csv
 latest_proxy_calibration.csv
 latest_proxy_calibration_summary.csv
 ```
+
+`reports/universe_snapshots/<run_id>.json`
+Snapshot per-run de l'univers complet scoré (261 tickers).
+Prérequis pour la validation walk-forward out-of-sample.
+Écrit après chaque analyze réussi. Idempotent par run_id.
+
+`data/proxy_calibration_sync_log.json`
+Journal du dernier sync-manual-inputs: sections écrites, tickers périmés
+(Cat.B >90j), tickers sans source_date. Lu par le rapport compact pour
+générer l'alerte de calibration.
 
 Le plus simple à lire est :
 
