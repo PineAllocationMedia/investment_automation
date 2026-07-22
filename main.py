@@ -79,6 +79,7 @@ from src.market_scanner import (
     classify_market_candidate,
     DEFAULT_COMPANY_NAMES,
 )
+from src.mode_artifacts import write_csv_records_mode_pair
 from src.model_audit_engine import run_model_audit
 from src.model_improvement_engine import apply_safe_tuning, run_improvement_audit
 from src.model_tuning import create_model_tuning_template
@@ -135,9 +136,10 @@ from src.proxy_correction_engine import (
     create_proxy_corrections_template,
     load_proxy_corrections,
 )
-from src.report_generator import _report_mode_slug, generate_reports
+from src.report_generator import generate_reports
 from src.research_reports import (
     BNCD_MORNINGSTAR_DIR,
+    RESEARCH_NEEDED_COLUMNS,
     RESEARCH_REPORTS_DIR,
     create_research_report_scaffold,
     load_research_report_inputs,
@@ -1875,13 +1877,13 @@ def run_analysis(
             },
             existing_reports=research_inputs,
         )
-        write_research_needed_csv(REPORTS_DIR / "latest_research_needed.csv", _research_needed_rows)
-        _research_needed_mode_slug = _report_mode_slug(mode)
-        if _research_needed_mode_slug:
-            write_research_needed_csv(
-                REPORTS_DIR / f"latest_research_needed_{_research_needed_mode_slug}.csv",
-                _research_needed_rows,
-            )
+        write_csv_records_mode_pair(
+            REPORTS_DIR,
+            "latest_research_needed.csv",
+            mode,
+            _research_needed_rows,
+            RESEARCH_NEEDED_COLUMNS,
+        )
         save_allocation_snapshot(REPORTS_DIR, allocation_result, analysis_mode=mode)
         write_universe_snapshot(
             analyses={**analyses, **watchlist_analyses, **market_analyses, **discovery_analyses},
