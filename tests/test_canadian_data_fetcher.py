@@ -1,8 +1,15 @@
 import unittest
+from tempfile import TemporaryDirectory
+from unittest.mock import patch
 
 from src.canadian_data_fetcher import (
+    SEDARPLUS_ENABLED,
     SEDARPLUS_SOURCE_NAME,
     TMX_SOURCE_NAME,
+    CanadianDataFetcher,
+    _parse_tmx_payloads,
+    _stockanalysis_symbol_only_urls,
+    _stockanalysis_urls,
     canadian_ticker_metadata,
     merge_canadian_source_payloads,
     parse_stockanalysis_pages,
@@ -48,6 +55,48 @@ class CanadianDataFetcherTest(unittest.TestCase):
         self.assertEqual(canadian_ticker_metadata("CSU.TO")["exchange"], "tsx")
         self.assertEqual(canadian_ticker_metadata("TOI.V")["exchange"], "tsxv")
 
+    def test_stockanalysis_urls_include_primary_and_symbol_only_fallback(self):
+        primary = _stockanalysis_urls("neo", "RHM")
+        fallback = _stockanalysis_symbol_only_urls("RHM")
+
+        self.assertEqual(primary["income"], "https://stockanalysis.com/quote/neo/RHM/financials/")
+        self.assertEqual(fallback["income"], "https://stockanalysis.com/quote/RHM/financials/")
+        self.assertEqual(fallback["balance"], "https://stockanalysis.com/quote/RHM/financials/balance-sheet/")
+
+    def test_stockanalysis_fundamentals_retries_symbol_only_after_all_primary_404(self):
+        class Response:
+            def __init__(self, status_code, text):
+                self.status_code = status_code
+                self.text = text
+
+        calls = []
+
+        def fake_get(url, timeout=None, headers=None):
+            calls.append(url)
+            if "/quote/neo/RHM/" in url:
+                return Response(404, "")
+            if url.endswith("/financials/"):
+                return Response(200, INCOME_HTML)
+            if url.endswith("/balance-sheet/"):
+                return Response(200, BALANCE_HTML)
+            if url.endswith("/cash-flow-statement/"):
+                return Response(200, CASHFLOW_HTML)
+            return Response(404, "")
+
+        with TemporaryDirectory() as temp_dir, patch("src.canadian_data_fetcher.requests.get", side_effect=fake_get):
+            fetcher = CanadianDataFetcher(cache_dir=temp_dir)
+            payload = fetcher._fetch_stockanalysis_fundamentals(
+                "RHM.NE",
+                meta={"ticker": "RHM.NE", "exchange": "neo", "symbol": "RHM"},
+                company_name="",
+                refresh=True,
+            )
+
+        self.assertTrue(payload["available"])
+        self.assertIn("total_revenue", payload["fields"])
+        self.assertTrue(any("/quote/neo/RHM/financials/" in url for url in calls))
+        self.assertTrue(any("/quote/RHM/financials/" in url for url in calls))
+
     def test_parse_stockanalysis_pages_extracts_core_ratios(self):
         parsed = parse_stockanalysis_pages(
             {"income": INCOME_HTML, "balance": BALANCE_HTML, "cashflow": CASHFLOW_HTML},
@@ -63,6 +112,32 @@ class CanadianDataFetcherTest(unittest.TestCase):
         self.assertAlmostEqual(parsed["free_cash_flow_margin"], 250 / 1200)
         self.assertAlmostEqual(parsed["net_debt_to_fcf"], (500 - 300) / 250)
         self.assertIn("free_cash_flow_margin", parsed["fields"])
+
+    def test_parse_tmx_payload_reads_capitalized_graphql_market_cap(self):
+        parsed = _parse_tmx_payloads(
+            [{"data": {"getQuoteBySymbol": {"symbol": "TOI", "name": "Topicus", "MarketCap": 123456789}}}],
+            ticker="TOI.V",
+        )
+
+        self.assertTrue(parsed["available"])
+        self.assertEqual(parsed["market_cap"], 123456789)
+        self.assertIn("market_cap", parsed["fields"])
+
+    def test_sedarplus_disabled_is_reported_without_calling_source(self):
+        self.assertFalse(SEDARPLUS_ENABLED)
+        with TemporaryDirectory() as temp_dir, patch(
+            "src.canadian_data_fetcher.fetch_sedarplus_fundamentals",
+            side_effect=AssertionError("SEDAR+ should not be called"),
+        ), patch("src.canadian_data_fetcher.fetch_tmx_fundamentals", return_value={}), patch.object(
+            CanadianDataFetcher,
+            "_fetch_stockanalysis_fundamentals",
+            return_value={"available": False, "coverage_status": "NO_USABLE_FIELDS"},
+        ):
+            payload = CanadianDataFetcher(cache_dir=temp_dir).fetch_fundamentals("TOI.V", refresh=True)
+
+        sedar_health = next(row for row in payload["source_health"] if row["source"] == SEDARPLUS_SOURCE_NAME)
+        self.assertEqual(sedar_health["status"], "DISABLED")
+        self.assertIn("Captcha Radware", sedar_health["reason"])
 
     def test_data_fetcher_uses_canadian_fallback_without_overwriting_good_yfinance_values(self):
         fetcher = MarketDataFetcher()

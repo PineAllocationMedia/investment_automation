@@ -62,7 +62,14 @@ class RunLoggingEngineTest(unittest.TestCase):
 
         extended = extend_report_run_log(
             rows,
-            source_health_rows=[{"source": "Yahoo/yfinance market data", "status": "DEGRADED", "health_score": 55}],
+            source_health_rows=[
+                {
+                    "source": "Yahoo/yfinance market data",
+                    "status": "DEGRADED",
+                    "health_score": 55,
+                    "audit_signal": "PARTIAL_COVERAGE:2",
+                }
+            ],
             source_conflict_rows=[{"ticker": "AAPL", "universe": "CORE_PORTFOLIO", "severity": "REVIEW", "metric": "profit_margins"}],
             ticker_memory_rows=[{"ticker": "XYZ", "ticker_memory_status": "NEEDS_TICKER_REVIEW"}],
         )
@@ -71,6 +78,8 @@ class RunLoggingEngineTest(unittest.TestCase):
         self.assertIn("SOURCE_HEALTH_WARNINGS", events)
         self.assertIn("SOURCE_CONFLICTS", events)
         self.assertIn("TICKER_MEMORY_REVIEW", events)
+        source_row = next(row for row in extended if row["event"] == "SOURCE_HEALTH_WARNINGS")
+        self.assertIn("PARTIAL_COVERAGE", source_row["details"])
 
     def test_history_append_is_idempotent_by_run_id(self):
         with TemporaryDirectory() as directory:

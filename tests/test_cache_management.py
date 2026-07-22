@@ -1,9 +1,10 @@
 import os
 import unittest
+from datetime import datetime, timedelta
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
-from src.cache_management_engine import run_cache_maintenance
+from src.cache_management_engine import reset_expired_market_circuit_breakers, run_cache_maintenance
 from src.utils import load_json
 
 
@@ -67,6 +68,54 @@ class CacheManagementEngineTest(unittest.TestCase):
             self.assertTrue(unavailable.exists())
             unavailable_row = next(row for row in rows if row["category"] == "unavailable_cache")
             self.assertEqual(int(unavailable_row["cleaned_count"]), 0)
+
+    def test_reset_expired_market_circuit_breaker_preserves_price_cache(self):
+        with TemporaryDirectory() as directory:
+            cache = Path(directory)
+            old_failure = (datetime.now() - timedelta(seconds=600)).isoformat(timespec="seconds")
+            path = cache / "MSFT.json"
+            path.write_text(
+                (
+                    '{"ticker":"MSFT","source":"yfinance","current_price":100,'
+                    '"market_data_circuit_breaker_open":true,'
+                    '"market_data_warning_flags":["CIRCUIT_OPEN","FETCH_FAILED"],'
+                    f'"market_data_fetch_attempted_at":"{old_failure}",'
+                    '"market_data_last_error":"Coupe-circuit données de marché actif."}'
+                ),
+                encoding="utf-8",
+            )
+
+            row = reset_expired_market_circuit_breakers(cache, cooldown_seconds=180)
+            payload = load_json(path)
+
+            self.assertEqual(int(row["cleaned_count"]), 1)
+            self.assertEqual(payload["current_price"], 100)
+            self.assertFalse(payload["market_data_circuit_breaker_open"])
+            self.assertNotIn("CIRCUIT_OPEN", payload["market_data_warning_flags"])
+            self.assertEqual(payload["failure_count"], 0)
+
+    def test_reset_expired_market_circuit_breaker_keeps_recent_cooldown(self):
+        with TemporaryDirectory() as directory:
+            cache = Path(directory)
+            recent_failure = (datetime.now() - timedelta(seconds=30)).isoformat(timespec="seconds")
+            path = cache / "AAPL.json"
+            path.write_text(
+                (
+                    '{"ticker":"AAPL","source":"yfinance","current_price":200,'
+                    '"market_data_circuit_breaker_open":true,'
+                    '"market_data_warning_flags":["CIRCUIT_OPEN"],'
+                    f'"market_data_fetch_attempted_at":"{recent_failure}"'
+                    "}"
+                ),
+                encoding="utf-8",
+            )
+
+            row = reset_expired_market_circuit_breakers(cache, cooldown_seconds=180)
+            payload = load_json(path)
+
+            self.assertEqual(int(row["cleaned_count"]), 0)
+            self.assertTrue(payload["market_data_circuit_breaker_open"])
+            self.assertIn("CIRCUIT_OPEN", payload["market_data_warning_flags"])
 
     def _make_old(self, path: Path, *, hours: int) -> None:
         old_time = path.stat().st_mtime - hours * 3600

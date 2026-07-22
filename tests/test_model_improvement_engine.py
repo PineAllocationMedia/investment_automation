@@ -3,6 +3,7 @@ import unittest
 from datetime import date
 from pathlib import Path
 
+from src.mode_artifacts import mode_artifact_path
 from src.model_improvement_engine import apply_safe_tuning, build_improvement_summary, build_improvement_suggestions
 from src.model_tuning import create_model_tuning_template, load_model_tuning, tuning_value
 from src.utils import write_csv_records
@@ -240,7 +241,7 @@ class ModelImprovementEngineTest(unittest.TestCase):
             data.mkdir()
             create_model_tuning_template(config / "model_tuning.yaml")
             write_csv_records(
-                reports / "latest_improvement_summary.csv",
+                mode_artifact_path(reports / "latest_improvement_summary.csv", "high-cagr"),
                 [
                     {
                         "date": date.today().isoformat(),
@@ -254,7 +255,7 @@ class ModelImprovementEngineTest(unittest.TestCase):
                 ["date", "mode", "period", "status", "safe_auto_applicable_count", "max_safe_changes_allowed"],
             )
             write_csv_records(
-                reports / "latest_improvement_suggestions.csv",
+                mode_artifact_path(reports / "latest_improvement_suggestions.csv", "high-cagr"),
                 [
                     {
                         "suggestion_id": "safe",
@@ -311,7 +312,7 @@ class ModelImprovementEngineTest(unittest.TestCase):
             data.mkdir()
             create_model_tuning_template(config / "model_tuning.yaml")
             write_csv_records(
-                reports / "latest_improvement_summary.csv",
+                mode_artifact_path(reports / "latest_improvement_summary.csv", "high-cagr"),
                 [
                     {
                         "date": date.today().isoformat(),
@@ -324,7 +325,7 @@ class ModelImprovementEngineTest(unittest.TestCase):
                 ["date", "mode", "status", "safe_auto_applicable_count", "max_safe_changes_allowed"],
             )
             write_csv_records(
-                reports / "latest_improvement_suggestions.csv",
+                mode_artifact_path(reports / "latest_improvement_suggestions.csv", "high-cagr"),
                 [
                     {
                         "suggestion_id": "safe1",
@@ -377,7 +378,7 @@ class ModelImprovementEngineTest(unittest.TestCase):
             data.mkdir()
             create_model_tuning_template(config / "model_tuning.yaml")
             write_csv_records(
-                reports / "latest_improvement_summary.csv",
+                mode_artifact_path(reports / "latest_improvement_summary.csv", "high-cagr"),
                 [
                     {
                         "date": "2020-01-01",
@@ -389,7 +390,7 @@ class ModelImprovementEngineTest(unittest.TestCase):
                 ["date", "mode", "status", "safe_auto_applicable_count"],
             )
             write_csv_records(
-                reports / "latest_improvement_suggestions.csv",
+                mode_artifact_path(reports / "latest_improvement_suggestions.csv", "high-cagr"),
                 [
                     {
                         "suggestion_id": "safe",
@@ -431,7 +432,7 @@ class ModelImprovementEngineTest(unittest.TestCase):
             data.mkdir()
             create_model_tuning_template(config / "model_tuning.yaml")
             write_csv_records(
-                reports / "latest_improvement_summary.csv",
+                mode_artifact_path(reports / "latest_improvement_summary.csv", "high-cagr"),
                 [
                     {
                         "date": date.today().isoformat(),
@@ -444,7 +445,7 @@ class ModelImprovementEngineTest(unittest.TestCase):
                 ["date", "mode", "status", "safe_auto_applicable_count", "max_safe_changes_allowed"],
             )
             write_csv_records(
-                reports / "latest_improvement_suggestions.csv",
+                mode_artifact_path(reports / "latest_improvement_suggestions.csv", "high-cagr"),
                 [
                     {
                         "suggestion_id": "proxy-safe",

@@ -101,7 +101,6 @@ class SizingTest(unittest.TestCase):
         analysis["dividend_yield"] = 0.012
         analysis["payout_ratio"] = 0.25
         analysis["debt_to_equity"] = 60
-        analysis["eps_growth_estimated_3_5y"] = 13
         improved = compute_capital_allocation_score(analysis, {"concentration_by_sector": {}, "top3_weight": 0})
 
         self.assertGreater(improved["capital_allocation_score"], base["capital_allocation_score"])

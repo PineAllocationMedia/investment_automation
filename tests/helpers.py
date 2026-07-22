@@ -11,12 +11,12 @@ from src.thesis_engine import compute_thesis_status
 
 def strong_manual() -> dict:
     return {
-        "roic_5y_avg": 24,
+        "roic_5y_avg": 38,
         "net_margin_stable_or_expanding": True,
-        "eps_growth_5y": 18,
+        "eps_growth_5y": 25,
         "moat_clear": True,
-        "eps_growth_estimated_3_5y": 16,
-        "sector_cagr_estimated": 10,
+        "eps_growth_estimated_3_5y": 30,
+        "sector_cagr_estimated": 20,
         "forward_pe_manual": 28,
         "peg_manual": 1.6,
         "fair_value": 100,

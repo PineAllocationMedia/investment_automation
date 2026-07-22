@@ -3,10 +3,19 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 from unittest.mock import patch
 
+from src.data_reliability_engine import compute_data_reliability
 from src.research_reports import (
+    FAIR_VALUE_PATTERNS,
+    _safe_report_number,
     date_from_filename,
+    extract_broker_target_price,
+    extract_first_number,
+    extract_nbccm_forward_pe_estimate,
     extract_report_text_detailed,
+    extract_valuation_analysis_current_value,
+    infer_ticker_from_filename,
     load_research_report_inputs,
+    merge_research_rows,
     merge_research_with_automated,
     parse_research_report,
     research_needed_rows_from_analysis_rows,
@@ -19,6 +28,331 @@ from src.utils import write_csv_records
 
 
 class ResearchReportsTest(unittest.TestCase):
+    def test_report_number_parser_uses_english_thousand_separators(self):
+        cases = {
+            "3,600": 3600.0,
+            "3,600.00": 3600.0,
+            "1,234.56": 1234.56,
+            "15.0": 15.0,
+            "23": 23.0,
+            "not-a-number": None,
+        }
+
+        for raw, expected in cases.items():
+            with self.subTest(raw=raw):
+                self.assertEqual(_safe_report_number(raw), expected)
+
+    def test_report_number_patterns_capture_full_grouped_number(self):
+        value = extract_first_number("Fair Value Estimate 3,600.00 CAD", FAIR_VALUE_PATTERNS)
+
+        self.assertEqual(value, 3600.0)
+
+    def test_parse_report_prefers_header_fair_value_over_historical_values(self):
+        with TemporaryDirectory() as folder:
+            path = Path(folder) / "CSU.TO_2026-05-19_Morningstar_AnalystReport.txt"
+            path.write_text(
+                "Analyst note archive: we lower our fair value estimate to 5,230.00 after results. "
+                "Historical update: fair value estimate 4,170.00 after currency moves. "
+                + (" " * 600)
+                + "Market Price 2,612.34 CAD 15 May 2026 "
+                "Fair Value Estimate 3,600.00 CAD 13 Mar 2026 Price/FVE 0.73. "
+                "Economic MoatTM Narrow.",
+                encoding="utf-8",
+            )
+
+            parsed = parse_research_report(path, "CSU.TO")
+
+        self.assertEqual(parsed["fair_value"], 3600.0)
+        self.assertTrue(parsed["moat_clear"])
+
+    def test_morningstar_tear_sheet_extracts_fair_value_moat_and_forward_pe(self):
+        with TemporaryDirectory() as folder:
+            path = Path(folder) / "CSU.TO_2026-05-17_Morningstar_TearSheet.txt"
+            path.write_text(
+                "Investment Detail Report | Release date 04-03-2026 | Currency: USD | Industry: Software - Application\n"
+                "Profitability Analysis\n"
+                "Grade: C Current 5 Yr Avg Ind Mkt\n"
+                "Return on Equity % 16.1 29.0 14.9 15.5\n"
+                "Return on Assets % 3.5 5.9 8.4 5.5\n"
+                "Valuation Analysis\n"
+                "Current 5 Yr Avg Ind Mkt\n"
+                "Price/Earnings 72.7 93.1 39.1 18.8\n"
+                "Forward P/E 15.0 — — —\n"
+                "Price/Sales 3.2 6.7 6.0 —\n"
+                "Fair Value Uncertainty Economic Moat Sector Style Market Cap (Mil) Sales (Mil) Last Close\n"
+                "$3,600.00 Medium Narrow Technology Large Core 51,734 11,623 2,441.27\n",
+                encoding="utf-8",
+            )
+
+            parsed = parse_research_report(path, "CSU.TO")
+
+        self.assertEqual(parsed["fair_value"], 3600.0)
+        self.assertTrue(parsed["moat_clear"])
+        self.assertEqual(parsed["forward_pe_manual"], 15.0)
+        self.assertNotIn("roic_5y_avg", parsed["research_report_fields"])
+        self.assertTrue(research_report_has_usable_fields(parsed))
+
+    def test_valuation_analysis_uses_current_column_not_industry_or_market(self):
+        text = (
+            "Valuation Analysis\n"
+            "Current 5 Yr Avg Ind Mkt\n"
+            "Price/Earnings 72.7 93.1 39.1 18.8\n"
+            "Forward P/E 15.0 — — —\n"
+        )
+
+        self.assertEqual(extract_valuation_analysis_current_value(text, "Price/Earnings"), 72.7)
+        self.assertEqual(extract_valuation_analysis_current_value(text, "Forward P/E"), 15.0)
+
+    def test_broker_target_price_is_anchored_to_target_not_current_price(self):
+        text = (
+            "CSU (TSX) STOCK RATING TARGET EST . TOTAL RETURN\n"
+            "C$2,422.40 Sector Perform\n"
+            "(Unchanged)\n"
+            "C$3,400.00\n"
+            "(Unchanged)\n"
+            "40.5%\n"
+        )
+
+        self.assertEqual(extract_broker_target_price(text), 3400.0)
+
+    def test_nbccm_forward_pe_uses_first_estimate_year_not_actual_year(self):
+        text = (
+            "NBCCM ESTIMATES & VALUATION\n"
+            "Fiscal Y/E December 2025A 2026E 2027E\n"
+            "Revenue 10,000 11,000 12,000\n"
+            "P/E (x) 19.3 15.2 12.6\n"
+            "Source: NBF\n"
+        )
+
+        self.assertEqual(extract_nbccm_forward_pe_estimate(text), 15.2)
+
+    def test_nbf_report_extracts_target_pe_and_marks_divergent_definitions(self):
+        with TemporaryDirectory() as folder:
+            path = Path(folder) / "ONLY.TO_2026-05-13_NBF_CompanyReport.txt"
+            path.write_text(
+                "National Bank Financial Markets company report. NBCCM. "
+                "STOCK RATING TARGET EST . TOTAL RETURN\n"
+                "C$2,422.40 Sector Perform\n"
+                "(Unchanged)\n"
+                "C$3,400.00\n"
+                "(Unchanged)\n"
+                "40.5%\n"
+                "NBCCM ESTIMATES & VALUATION\n"
+                "Fiscal Y/E December 2025A 2026E 2027E\n"
+                "P/E (x) 19.3 15.2 12.6\n"
+                "ROIC 23.0%\n"
+                "Regulatory risk. Strong balance sheet.\n",
+                encoding="utf-8",
+            )
+
+            parsed = parse_research_report(path, "ONLY.TO")
+
+        self.assertEqual(parsed["fair_value"], 3400.0)
+        self.assertEqual(parsed["forward_pe_manual"], 15.2)
+        self.assertEqual(parsed["roic_5y_avg"], 23.0)
+        self.assertTrue(parsed["balance_sheet_strong"])
+        self.assertTrue(parsed["regulatory_risk_high"])
+        self.assertEqual(parsed["research_report_field_confidence"]["fair_value"], "LOW")
+        self.assertEqual(parsed["research_report_field_confidence"]["roic_5y_avg"], "LOW")
+        self.assertTrue(
+            any("définition divergente" in warning for warning in parsed.get("research_report_extraction_warnings") or [])
+        )
+
+    def test_merge_research_rows_discards_broker_target_when_morningstar_fair_value_exists(self):
+        rows = [
+            {
+                "ticker": "CSU.TO",
+                "fair_value": 3400.0,
+                "research_report_fields": ["fair_value"],
+                "research_report_sources": ["CSU.TO_2026-05-13_NBF_CompanyReport.txt"],
+                "research_report_dates": ["2026-05-13"],
+                "research_report_source_rank": 3,
+                "research_report_source_type": "NATIONAL_BANK",
+                "research_report_field_sources": {
+                    "fair_value": "cours cible 12 mois — courtier, définition divergente"
+                },
+                "research_report_field_confidence": {"fair_value": "LOW"},
+            },
+            {
+                "ticker": "CSU.TO",
+                "fair_value": 3600.0,
+                "research_report_fields": ["fair_value"],
+                "research_report_sources": ["CSU.TO_2026-05-19_Morningstar_AnalystReport.txt"],
+                "research_report_dates": ["2026-05-19"],
+                "research_report_source_rank": 1,
+                "research_report_source_type": "MORNINGSTAR_ANALYST",
+                "research_report_field_sources": {"fair_value": "fair value header pattern"},
+                "research_report_field_confidence": {"fair_value": "MEDIUM"},
+            },
+        ]
+
+        merged = merge_research_rows("CSU.TO", rows)
+
+        self.assertEqual(merged["fair_value"], 3600.0)
+        self.assertEqual(merged["research_report_field_confidence"]["fair_value"], "MEDIUM")
+        self.assertTrue(
+            any("écarté" in warning for warning in merged.get("research_report_extraction_warnings") or [])
+        )
+
+    def test_merge_research_rows_keeps_broker_target_only_when_no_morningstar(self):
+        rows = [
+            {
+                "ticker": "ONLY.TO",
+                "fair_value": 3400.0,
+                "research_report_fields": ["fair_value"],
+                "research_report_sources": ["ONLY.TO_2026-05-13_NBF_CompanyReport.txt"],
+                "research_report_dates": ["2026-05-13"],
+                "research_report_source_rank": 3,
+                "research_report_source_type": "NATIONAL_BANK",
+                "research_report_field_sources": {
+                    "fair_value": "cours cible 12 mois — courtier, définition divergente"
+                },
+                "research_report_field_confidence": {"fair_value": "LOW"},
+            }
+        ]
+
+        merged = merge_research_rows("ONLY.TO", rows)
+
+        self.assertEqual(merged["fair_value"], 3400.0)
+        self.assertEqual(merged["research_report_field_confidence"]["fair_value"], "LOW")
+        self.assertEqual(merged["manual_confidence_level"], "MEDIUM")
+        self.assertTrue(
+            any("dernier recours" in warning for warning in merged.get("research_report_extraction_warnings") or [])
+        )
+
+    def test_parse_report_extracts_descriptive_fields_without_confirming_them(self):
+        with TemporaryDirectory() as folder:
+            path = Path(folder) / "CSU.TO_2026-05-19_Morningstar_AnalystReport.txt"
+            path.write_text(
+                "Morningstar Equity Analyst Report. Economic Moat section. "
+                "Sector Industry\n"
+                "a Technology Software - Application\n"
+                "Business Description\n"
+                "Constellation Software is an acquirer, manager, and developer of vertical market software businesses globally. "
+                "Its decentralized model lets business-unit managers optimize returns on invested capital and revenue growth.\n"
+                "Business Strategy & Outlook\n"
+                "The company compounds through disciplined acquisitions.",
+                encoding="utf-8",
+            )
+
+            parsed = parse_research_report(path, "CSU.TO")
+
+        self.assertIn("vertical market software", parsed["research_report_company_description"])
+        self.assertEqual(parsed["research_report_sector"], "Technology")
+        self.assertEqual(parsed["research_report_industry"], "Software - Application")
+        self.assertEqual(parsed["research_report_fields"], [])
+        self.assertFalse(research_report_has_usable_fields(parsed))
+
+    def test_description_only_report_does_not_raise_data_reliability(self):
+        automated = {
+            "ticker": "CSU.TO",
+            "input_data_mode": "AUTO_ESTIMATED",
+            "auto_estimated_fields": ["fair_value", "moat_clear", "eps_growth_estimated_3_5y"],
+            "auto_source_quality": "MEDIUM",
+        }
+        score = {"score_missing_data_count": 2}
+        before = compute_data_reliability(automated, score)
+        research = {
+            "ticker": "CSU.TO",
+            "research_report_company_description": "Constellation Software acquires and manages vertical market software businesses.",
+            "research_report_sector": "Technology",
+            "research_report_industry": "Software - Application",
+            "research_report_fields": [],
+            "research_report_sources": ["CSU.TO_2026-05-19_Morningstar_AnalystReport.txt"],
+            "research_report_dates": ["2026-05-19"],
+            "research_report_status": "NO_FIELDS_EXTRACTED",
+        }
+
+        merged = merge_research_with_automated(automated, research)
+        after = compute_data_reliability(merged, score)
+
+        self.assertEqual(merged["research_report_fields"], [])
+        self.assertEqual(merged["input_data_mode"], "AUTO_ESTIMATED")
+        self.assertEqual(before["data_reliability_score"], after["data_reliability_score"])
+        self.assertFalse(research_report_has_usable_fields(merged))
+
+    def test_old_descriptive_report_is_ignored(self):
+        with TemporaryDirectory() as folder:
+            path = Path(folder) / "CSU.TO_2000-01-01_Morningstar_AnalystReport.txt"
+            path.write_text(
+                "Morningstar Equity Analyst Report. Economic Moat section. "
+                "Business Description\n"
+                "Constellation Software is an acquirer and developer of vertical market software businesses globally. "
+                "This old profile should not be retained for current reporting.\n"
+                "Business Strategy & Outlook\n",
+                encoding="utf-8",
+            )
+
+            parsed = parse_research_report(path, "CSU.TO")
+
+        self.assertNotIn("research_report_company_description", parsed)
+        self.assertTrue(
+            any("plus de 24 mois" in warning for warning in parsed.get("research_report_extraction_warnings") or [])
+        )
+
+    def test_descriptive_merge_prefers_source_hierarchy_before_recency(self):
+        rows = [
+            {
+                "ticker": "CSU.TO",
+                "research_report_company_description": "NBF company profile description.",
+                "research_report_sources": ["CSU.TO_2026-06-01_NBF_CompanyReport.txt"],
+                "research_report_dates": ["2026-06-01"],
+                "research_report_company_description_date": "2026-06-01",
+                "research_report_company_description_source_rank": 3,
+                "research_report_company_description_source_type": "NATIONAL_BANK",
+                "research_report_fields": [],
+            },
+            {
+                "ticker": "CSU.TO",
+                "research_report_company_description": "Morningstar analyst business description.",
+                "research_report_sources": ["CSU.TO_2026-05-01_Morningstar_AnalystReport.txt"],
+                "research_report_dates": ["2026-05-01"],
+                "research_report_company_description_date": "2026-05-01",
+                "research_report_company_description_source_rank": 1,
+                "research_report_company_description_source_type": "MORNINGSTAR_ANALYST",
+                "research_report_fields": [],
+            },
+        ]
+
+        merged = merge_research_rows("CSU.TO", rows)
+
+        self.assertEqual(merged["research_report_company_description"], "Morningstar analyst business description.")
+        self.assertEqual(merged["research_report_company_description_source"], "CSU.TO_2026-05-01_Morningstar_AnalystReport.txt")
+        self.assertEqual(merged["research_report_company_description_source_rank"], 1)
+
+    def test_non_descriptive_fields_keep_chronological_merge_rule(self):
+        rows = [
+            {
+                "ticker": "CSU.TO",
+                "fair_value": 1000,
+                "research_report_fields": ["fair_value"],
+                "research_report_sources": ["CSU.TO_2026-05-01_Morningstar_AnalystReport.txt"],
+                "research_report_dates": ["2026-05-01"],
+                "research_report_field_sources": {"fair_value": "older fair value"},
+                "research_report_field_confidence": {"fair_value": "MEDIUM"},
+                "research_report_company_description": "Better source description.",
+                "research_report_company_description_date": "2026-05-01",
+                "research_report_company_description_source_rank": 1,
+            },
+            {
+                "ticker": "CSU.TO",
+                "fair_value": 2000,
+                "research_report_fields": ["fair_value"],
+                "research_report_sources": ["CSU.TO_2026-06-01_NBF_CompanyReport.txt"],
+                "research_report_dates": ["2026-06-01"],
+                "research_report_field_sources": {"fair_value": "newer fair value"},
+                "research_report_field_confidence": {"fair_value": "MEDIUM"},
+                "research_report_company_description": "Newer but lower-ranked description.",
+                "research_report_company_description_date": "2026-06-01",
+                "research_report_company_description_source_rank": 3,
+            },
+        ]
+
+        merged = merge_research_rows("CSU.TO", rows)
+
+        self.assertEqual(merged["fair_value"], 2000)
+        self.assertEqual(merged["research_report_company_description"], "Better source description.")
+
     def test_parse_text_report_extracts_useful_fields(self):
         with TemporaryDirectory() as folder:
             path = Path(folder) / "CSU.TO_2026-04-15_BNCD_Morningstar.txt"
@@ -205,6 +539,18 @@ class ResearchReportsTest(unittest.TestCase):
 
         self.assertIn("ABNB", loaded)
         self.assertNotIn("C", loaded)
+
+    def test_ticker_inference_strips_exchange_suffixes_when_unambiguous(self):
+        self.assertEqual(infer_ticker_from_filename("RHM_2026-05-19_Morningstar.pdf", ["RHM.NE"]), "RHM.NE")
+        self.assertEqual(infer_ticker_from_filename("RHM_2026-05-19_Morningstar.pdf", ["RHM.DE"]), "RHM.DE")
+        self.assertEqual(infer_ticker_from_filename("CSU_2026-05-19_Morningstar.pdf", ["CSU.TO"]), "CSU.TO")
+        self.assertEqual(infer_ticker_from_filename("TOI.V_2026-05-19_Morningstar.pdf", ["TOI.V"]), "TOI.V")
+
+    def test_ticker_inference_returns_empty_for_ambiguous_suffixless_root(self):
+        self.assertEqual(infer_ticker_from_filename("RHM_2026-05-19_Morningstar.pdf", ["RHM.NE", "RHM.DE"]), "")
+
+    def test_ticker_inference_exact_match_wins_even_when_root_is_ambiguous(self):
+        self.assertEqual(infer_ticker_from_filename("RHM.NE_2026-05-19_Morningstar.pdf", ["RHM.NE", "RHM.DE"]), "RHM.NE")
 
     def test_date_from_filename_accepts_year_first_and_month_first(self):
         self.assertEqual(date_from_filename("CSU.TO_2026-04-15_BNCD_Morningstar.pdf"), "2026-04-15")

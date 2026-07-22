@@ -22,14 +22,19 @@ class SourceHealthEngineTest(unittest.TestCase):
                         "market_data_requires_refresh": False,
                         "quote_currency": "USD",
                         "official_supported_fields": ["revenue_growth"],
+                        "critical_data_confirmed_field_rate": 0.75,
+                        "data_quality_partial_coverage_status": "STRONG_CONFIRMED_COVERAGE",
                     },
                     "BAD": {
                         "ticker": "BAD",
                         "current_price": None,
                         "market_data_freshness_level": "UNAVAILABLE",
+                        "critical_data_freshness_level": "UNAVAILABLE",
                         "market_data_requires_refresh": True,
                         "quote_currency": "USD",
                         "auto_estimate_dependency": "HIGH",
+                        "data_quality_partial_coverage_status": "THIN_COVERAGE",
+                        "data_quality_partial_coverage_flag": True,
                     },
                 }
             },
@@ -41,6 +46,9 @@ class SourceHealthEngineTest(unittest.TestCase):
         self.assertEqual(market["affected_ticker_count"], 1)
         self.assertIn("BAD", market["affected_tickers"])
         self.assertLess(market["health_score"], 85)
+        self.assertEqual(market["partial_coverage_count"], 1)
+        self.assertEqual(market["critical_stale_count"], 1)
+        self.assertIn("PARTIAL_COVERAGE", market["audit_signal"])
         self.assertIn(proxies["status"], {"WATCH", "DEGRADED", "CRITICAL"})
 
     def test_canadian_authoritative_sources_are_reported_separately(self):
@@ -85,6 +93,10 @@ class SourceHealthEngineTest(unittest.TestCase):
                     "affected_tickers": "",
                     "conflict_count": 0,
                     "critical_gap_count": 0,
+                    "confirmed_field_rate": 1,
+                    "partial_coverage_count": 0,
+                    "critical_stale_count": 0,
+                    "audit_signal": "OK",
                     "ticker_count": 1,
                     "trend": "NEW",
                     "action": "ok",

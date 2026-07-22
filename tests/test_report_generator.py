@@ -1,6 +1,7 @@
 import unittest
 
 from src.report_generator import (
+    _blocked_external_validation_rows_for_compact_report,
     account_performance_rows_for_report,
     account_performance_indicator_legend_rows,
     allocation_justification_rows_for_report,
@@ -13,9 +14,78 @@ from src.report_generator import (
     source_rows_for_report,
     true_missing_data_rows,
 )
+from src.report_formatters import build_compact_decision_section
+from src.utils import today_iso
 
 
 class ReportGeneratorTest(unittest.TestCase):
+    def test_compact_decision_formats_raw_allocation_pourcentage(self):
+        markdown = build_compact_decision_section(
+            allocation_result={
+                "allocations": [
+                    {
+                        "destination": "VFV.TO",
+                        "montant": 137.50,
+                        "pourcentage": 0.275,
+                        "raison": "Filet de sécurité.",
+                        "niveau de confiance": "HIGH",
+                    },
+                    {
+                        "destination": "APP",
+                        "montant": 125,
+                        "raison": "Valeur manquante.",
+                        "niveau de confiance": "MEDIUM",
+                    },
+                ],
+                "decision_quality": {},
+            },
+            allocation_change_rows=[],
+            analyses={},
+            watchlist_analyses={},
+            market_analyses={},
+            discovery_analyses={},
+            instrument_profiles=None,
+            decision_quality=None,
+        )
+
+        self.assertIn("VFV.TO 137.50$ (27.5%)", markdown)
+        self.assertIn("Pourquoi ce montant : 27.5% — Filet de sécurité.", markdown)
+        self.assertIn("APP 125$ (N/D)", markdown)
+        self.assertIn("Pourquoi ce montant : N/D — Valeur manquante.", markdown)
+        self.assertNotIn("(0%)", markdown)
+
+    def test_blocked_external_validation_rows_show_pdf_suggestion(self):
+        rows, extra_count = _blocked_external_validation_rows_for_compact_report(
+            watchlist_analyses={},
+            market_analyses={},
+            discovery_analyses={
+                "TEL": {
+                    "ticker": "TEL",
+                    "external_validation_status": "BLOCKED_PENDING_PERSONAL_VALIDATION",
+                    "capital_allocation_score": 91.424,
+                    "score_confidence_label": "84-94",
+                }
+            },
+        )
+
+        self.assertEqual(extra_count, 0)
+        self.assertEqual(rows[0]["ticker"], "TEL")
+        self.assertEqual(rows[0]["provenance"], "Discovery")
+        self.assertEqual(rows[0]["score"], 91.42)
+        self.assertEqual(rows[0]["fourchette_confiance"], "84-94")
+        self.assertEqual(rows[0]["pdf_suggéré"], f"TEL_{today_iso()}_BNCD_Morningstar.pdf")
+
+    def test_blocked_external_validation_rows_show_empty_status(self):
+        rows, extra_count = _blocked_external_validation_rows_for_compact_report(
+            watchlist_analyses={},
+            market_analyses={},
+            discovery_analyses={},
+        )
+
+        self.assertEqual(extra_count, 0)
+        self.assertEqual(rows[0]["ticker"], "AUCUN_CANDIDAT_BLOQUE")
+        self.assertIn("Tous les candidats externes évalués", rows[0]["action"])
+
     def test_account_performance_indicator_legend_explains_key_metrics(self):
         rows = account_performance_indicator_legend_rows()
         indicators = {row["indicateur"] for row in rows}

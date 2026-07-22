@@ -69,6 +69,8 @@ class DataReliabilityTest(unittest.TestCase):
 
         self.assertEqual(reliability["data_reliability_level"], "LOW")
         self.assertEqual(reliability["automation_evidence_level"], "WEAK")
+        self.assertEqual(reliability["data_quality_partial_coverage_status"], "THIN_COVERAGE")
+        self.assertTrue(reliability["data_quality_partial_coverage_flag"])
         self.assertEqual(capped_conviction["conviction_score"], 55)
         self.assertEqual(capped_cagr["expected_cagr_quality"], "UNCERTAIN")
 
@@ -81,6 +83,8 @@ class DataReliabilityTest(unittest.TestCase):
 
         self.assertEqual(reliability["data_reliability_level"], "HIGH")
         self.assertEqual(reliability["auto_estimate_dependency"], "LOW")
+        self.assertGreater(reliability["critical_data_confirmed_field_rate"], 0)
+        self.assertIn("champs critiques confirmés", reliability["data_quality_audit_note"])
 
     def test_sec_support_reduces_auto_dependency_without_overreacting_to_conflicts(self):
         manual = {
@@ -121,6 +125,7 @@ class DataReliabilityTest(unittest.TestCase):
         self.assertEqual(reliability["official_data_conflict_count"], 2)
         self.assertGreaterEqual(reliability["data_reliability_score"], 90)
         self.assertIn("roic_5y_avg", reliability["confirmed_critical_fields"])
+        self.assertGreater(reliability["critical_data_official_field_rate"], 0)
 
     def test_sec_conflicts_only_are_a_light_warning_not_a_hard_block(self):
         manual = {

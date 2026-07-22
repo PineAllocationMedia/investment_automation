@@ -1,6 +1,7 @@
 import unittest
 from pathlib import Path
 from tempfile import TemporaryDirectory
+from unittest.mock import patch
 
 try:
     import pandas as pd
@@ -9,6 +10,7 @@ except ImportError:  # pragma: no cover
 
 from src.data_fetcher import (
     MARKET_FIELDS,
+    REFRESH_INTER_TICKER_DELAY_SECONDS,
     MarketDataFetcher,
     benchmark_metrics_for,
     _merge_news_context_items,
@@ -240,6 +242,36 @@ class DataFetcherFallbackTest(unittest.TestCase):
             self.assertEqual(second["market_data_fetch_status"], "UNAVAILABLE")
             self.assertTrue(second["market_data_circuit_breaker_open"])
             self.assertIn("CIRCUIT_OPEN", second["market_data_warning_flags"])
+
+    def test_fetch_all_refresh_adds_inter_ticker_delay_without_affecting_cached_runs(self):
+        class StubFetcher(MarketDataFetcher):
+            def __init__(self, cache_dir: Path) -> None:
+                super().__init__(cache_dir=cache_dir, retry_attempts=1, retry_base_delay_seconds=0)
+                self.calls: list[tuple[str, bool]] = []
+
+            def fetch_ticker(self, ticker: str, refresh: bool = False) -> dict:
+                self.calls.append((ticker, refresh))
+                return {"ticker": ticker, "current_price": 100}
+
+            def required_fields_for_gap_report(self, ticker: str, payload: dict) -> list[str]:
+                return []
+
+        with TemporaryDirectory() as tmp:
+            fetcher = StubFetcher(Path(tmp))
+            with patch("src.data_fetcher.time.sleep") as sleep_mock:
+                fetcher.fetch_all(["MSFT", "AAPL"], {"MSFT": "VFV.TO"}, refresh=True)
+
+            self.assertGreater(len(fetcher.calls), 1)
+            self.assertEqual(sleep_mock.call_count, len(fetcher.calls) - 1)
+            self.assertTrue(all(call.args == (REFRESH_INTER_TICKER_DELAY_SECONDS,) for call in sleep_mock.call_args_list))
+            self.assertEqual(fetcher.last_fetch_all_delay_info["delay_seconds"], REFRESH_INTER_TICKER_DELAY_SECONDS)
+
+            fetcher.calls = []
+            with patch("src.data_fetcher.time.sleep") as sleep_mock:
+                fetcher.fetch_all(["MSFT", "AAPL"], {"MSFT": "VFV.TO"}, refresh=False)
+
+            sleep_mock.assert_not_called()
+            self.assertEqual(fetcher.last_fetch_all_delay_info, {})
 
     def test_google_news_rss_parser_extracts_headlines_and_source(self):
         raw = """<?xml version="1.0" encoding="UTF-8"?>

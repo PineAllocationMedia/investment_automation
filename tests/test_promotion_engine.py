@@ -114,6 +114,25 @@ class PromotionEngineTest(unittest.TestCase):
         self.assertEqual(result["promotion_status"], "WAIT_FOR_BETTER_DATA_OR_PRICE")
         self.assertIn("valorisation", result["reason"])
 
+    def test_data_insufficient_blocking_category_is_reported(self):
+        external = self.promotion_ready("NVDA")
+        external["data_quality"] = "MEDIUM"
+        external["data_reliability_level"] = "MEDIUM"
+        core = full_strong_analysis("MSFT")
+        core["score_total"] = 7.5
+        core["conviction_score"] = 70
+
+        result = classify_promotion_candidate(
+            external,
+            {"MSFT": core},
+            {"concentration_by_sector": {}, "tech_ai_semi_weight": 0.20},
+            "MARKET_SCANNER",
+        )
+
+        self.assertEqual(result["promotion_status"], "WAIT_FOR_BETTER_DATA_OR_PRICE")
+        self.assertEqual(result["blocking_reason_category"], "DATA_INSUFFICIENT")
+        self.assertRegex(result["promotion_proximity_score"], r"^\d+/15$")
+
     def test_extreme_cycle_blocks_otherwise_strong_promotion(self):
         external = self.promotion_ready("NVDA")
         external["score_total"] = 9.5
@@ -133,6 +152,8 @@ class PromotionEngineTest(unittest.TestCase):
 
         self.assertEqual(result["promotion_status"], "WAIT_FOR_BETTER_DATA_OR_PRICE")
         self.assertIn("cycle", result["reason"])
+        self.assertEqual(result["blocking_reason_category"], "CYCLE_RISK")
+        self.assertEqual(result["promotion_proximity_score"], "14/15")
 
     def test_promotion_report_keeps_only_top_three_manual_promotions(self):
         weak_core = full_strong_analysis("MSFT")

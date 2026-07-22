@@ -1,7 +1,13 @@
 import unittest
 
 from tests.helpers import full_strong_analysis
-from src.allocation_engine import allocate_capital, compute_average_score_ex_vfv, mandatory_vfv_percent
+from src.allocation_engine import (
+    _external_candidate_allowed,
+    _high_cagr_overflow_eligible,
+    allocate_capital,
+    compute_average_score_ex_vfv,
+    mandatory_vfv_percent,
+)
 from src.sizing_engine import compute_capital_allocation_score
 
 
@@ -87,6 +93,60 @@ class AllocationTest(unittest.TestCase):
         result = allocate_capital(1000, {"MSFT": candidate}, "family-office")
         self.assertTrue(all(row["destination"] != "MSFT" for row in result["allocations"]))
 
+    def _high_cagr_external_profile_a_candidate(self) -> dict:
+        candidate = full_strong_analysis("TEL")
+        candidate.update(
+            {
+                "universe": "MARKET_SCANNER",
+                "long_term_durability_status": "VERY_DURABLE_COMPOUNDER",
+                "conviction_score": 85,
+                "capital_allocation_score": 91,
+                "expected_cagr_quality": "VERY_HIGH",
+                "data_reliability_level": "CAUTION",
+                "opportunity_cost_status": "SIMILAR_TO_VFV",
+                "thesis_status": "INTACT",
+                "liquidation_status": "GREEN",
+                "add_eligibility_status": "ADD_ALLOWED",
+                "quality_but_too_expensive": False,
+                "research_report_fields": [],
+                "manual_override_fields": [],
+            }
+        )
+        return candidate
+
+    def test_external_high_cagr_candidate_requires_personal_validation(self):
+        candidate = self._high_cagr_external_profile_a_candidate()
+
+        self.assertFalse(_external_candidate_allowed(candidate, "high-cagr"))
+        self.assertEqual(candidate["external_validation_status"], "BLOCKED_PENDING_PERSONAL_VALIDATION")
+
+    def test_external_high_cagr_candidate_passes_with_research_report_field(self):
+        candidate = self._high_cagr_external_profile_a_candidate()
+        candidate["research_report_fields"] = ["moat_clear"]
+
+        self.assertTrue(_external_candidate_allowed(candidate, "high-cagr"))
+        self.assertEqual(candidate["external_validation_status"], "VALIDATED_DATA_PRESENT")
+
+    def test_external_high_cagr_candidate_passes_with_manual_override_field(self):
+        candidate = self._high_cagr_external_profile_a_candidate()
+        candidate["manual_override_fields"] = ["forward_pe_manual"]
+
+        self.assertTrue(_external_candidate_allowed(candidate, "high-cagr"))
+        self.assertEqual(candidate["external_validation_status"], "VALIDATED_DATA_PRESENT")
+
+    def test_core_candidate_without_personal_validation_is_unchanged(self):
+        candidate = self._high_cagr_external_profile_a_candidate()
+        candidate["universe"] = "CORE_PORTFOLIO"
+
+        self.assertTrue(_external_candidate_allowed(candidate, "high-cagr"))
+        self.assertNotIn("external_validation_status", candidate)
+
+    def test_high_cagr_overflow_blocks_external_without_personal_validation(self):
+        candidate = self._high_cagr_external_profile_a_candidate()
+
+        self.assertFalse(_high_cagr_overflow_eligible(candidate))
+        self.assertEqual(candidate["external_validation_status"], "BLOCKED_PENDING_PERSONAL_VALIDATION")
+
     def test_high_cagr_still_excludes_external_candidates_without_promotion(self):
         core = full_strong_analysis("MSFT")
         external = full_strong_analysis("NVDA")
@@ -128,6 +188,7 @@ class AllocationTest(unittest.TestCase):
                 "data_quality": "HIGH",
                 "data_reliability_level": "HIGH",
                 "external_superiority": "COMPARABLE_TO_CORE_LEADERS",
+                "research_report_fields": ["moat_clear"],
                 "business_quality_score": 92,
                 "long_term_durability_status": "VERY_DURABLE_COMPOUNDER",
                 "capital_allocation_score": 96,
@@ -159,6 +220,7 @@ class AllocationTest(unittest.TestCase):
             "liquidation_status": "GREEN",
             "thesis_status": "ETF",
             "data_reliability_level": "ETF",
+            "manual_override_fields": ["etf_profile_confirmed"],
         }
 
         result = allocate_capital(1000, {"XBAL.TO": etf}, "balanced")

@@ -49,10 +49,26 @@ class ScoringTest(unittest.TestCase):
         score = compute_fundamental_score("TD.TO", manual, market, strong_benchmark())
 
         self.assertEqual(score["business_profile"], "BANK")
-        self.assertEqual(score["criteria"]["C1"]["points"], 1.0)
-        self.assertEqual(score["criteria"]["C5"]["points"], 1.0)
-        self.assertEqual(score["criteria"]["C6"]["points"], 1.0)
+        self.assertEqual(score["criteria"]["C1"]["points"], 0.4)
+        self.assertEqual(score["criteria"]["C5"]["points"], 0.4571)
+        self.assertEqual(score["criteria"]["C6"]["points"], 0.4)
         self.assertEqual(score["criteria"]["C8"]["points"], 1.0)
+
+    def test_quantitative_criteria_use_continuous_magnitude_scoring(self):
+        manual = strong_manual()
+        manual["roic_5y_avg"] = 15
+        manual["eps_growth_5y"] = 17.5
+        manual["eps_growth_estimated_3_5y"] = 30
+        manual["sector_cagr_estimated"] = 4
+
+        score = compute_fundamental_score("MSFT", manual, strong_market(), strong_benchmark())
+
+        self.assertEqual(score["criteria"]["C1"]["points"], 0.4)
+        self.assertEqual(score["criteria"]["C3"]["points"], 0.7)
+        self.assertEqual(score["criteria"]["C5"]["points"], 1.0)
+        self.assertEqual(score["criteria"]["C6"]["points"], 0.0)
+        self.assertIn("ratio=1.00×", score["criteria"]["C1"]["detail"])
+        self.assertIn("ratio=1.75×", score["criteria"]["C3"]["detail"])
 
 
 if __name__ == "__main__":
