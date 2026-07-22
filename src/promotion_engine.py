@@ -28,6 +28,8 @@ PROMOTION_COLUMNS = [
     "cycle_bubble_risk_level",
     "cycle_bubble_score",
     "promotion_status",
+    "blocking_reason_category",
+    "promotion_proximity_score",
     "reason",
     "next_step",
 ]
@@ -38,6 +40,24 @@ PROMOTION_STATUSES = {
     "WAIT_FOR_BETTER_DATA_OR_PRICE",
     "DO_NOT_PROMOTE",
 }
+
+PROXIMITY_CHECKS = [
+    "score_ok",
+    "conviction_ok",
+    "expected_quality_ok",
+    "thesis_ok",
+    "liquidation_ok",
+    "opportunity_ok",
+    "valuation_ok",
+    "cycle_ok",
+    "profile_ok",
+    "source_ready",
+    "proof_ok",
+    "data_quality_ok",
+    "clearly_superior",
+    "concentration_ok",
+    "fiscal_ok",
+]
 
 WEAKEST_CORE_AUDIT_COLUMNS = [
     "audit_status",
@@ -67,20 +87,23 @@ def build_promotion_candidate_rows(
 ) -> list[dict[str, Any]]:
     market_universe = market_universe or {}
     rows: list[dict[str, Any]] = []
+    analysis_refs: dict[tuple[str, str], dict[str, Any]] = {}
     for universe, analyses in [("WATCHLIST", watchlist_analyses), ("MARKET_UNIVERSE", market_analyses)]:
         for analysis in analyses.values():
             ticker = str(analysis.get("ticker") or "")
             metadata = market_universe.get(ticker, {}) if universe == "MARKET_UNIVERSE" else {}
-            rows.append(
-                classify_promotion_candidate(
-                    analysis=analysis,
-                    core_analyses=core_analyses,
-                    portfolio_risk=portfolio_risk,
-                    universe=universe,
-                    company_name=str(metadata.get("company_name") or ""),
-                )
+            row = classify_promotion_candidate(
+                analysis=analysis,
+                core_analyses=core_analyses,
+                portfolio_risk=portfolio_risk,
+                universe=universe,
+                company_name=str(metadata.get("company_name") or ""),
             )
-    return _limit_manual_promotion_slots(sorted(rows, key=_promotion_sort_key, reverse=True))
+            rows.append(row)
+            analysis_refs[(universe, ticker)] = analysis
+    limited_rows = _limit_manual_promotion_slots(sorted(rows, key=_promotion_sort_key, reverse=True))
+    _annotate_source_analyses_with_promotion_audit(limited_rows, analysis_refs)
+    return limited_rows
 
 
 def classify_promotion_candidate(
@@ -95,6 +118,8 @@ def classify_promotion_candidate(
     status = _promotion_status(checks)
     reason = _promotion_reason(status, checks)
     next_step = _promotion_next_step(status, ticker)
+    blocking_category = _blocking_reason_category(checks, status)
+    proximity_score = _promotion_proximity_score(checks)
     return {
         "universe": universe,
         "ticker": ticker,
@@ -109,6 +134,8 @@ def classify_promotion_candidate(
         "cycle_bubble_risk_level": analysis.get("cycle_bubble_risk_level"),
         "cycle_bubble_score": analysis.get("cycle_bubble_score"),
         "promotion_status": status,
+        "blocking_reason_category": blocking_category,
+        "promotion_proximity_score": proximity_score,
         "reason": reason,
         "next_step": next_step,
     }
@@ -250,6 +277,34 @@ def _promotion_next_step(status: str, ticker: str) -> str:
     if status == "WAIT_FOR_BETTER_DATA_OR_PRICE":
         return "Attendre une meilleure valorisation ou compléter les données manuelles avant promotion."
     return "Ne pas ajouter au Core Portfolio pour l’instant."
+
+
+def _blocking_reason_category(checks: dict[str, Any] | None, status: str) -> str:
+    if status == "PROMOTE_TO_CORE_REVIEW":
+        return "NONE"
+    if not isinstance(checks, dict):
+        return "UNKNOWN"
+    required = {"data_quality_ok", "proof_ok", "cycle_ok", "base_quality", "clearly_superior"}
+    if any(key not in checks for key in required):
+        return "UNKNOWN"
+
+    data_blocked = not checks.get("data_quality_ok") or not checks.get("proof_ok")
+    if data_blocked:
+        return "DATA_INSUFFICIENT"
+    if not checks.get("cycle_ok") and checks.get("base_quality"):
+        return "CYCLE_RISK"
+    if not checks.get("clearly_superior") and checks.get("base_quality"):
+        return "NOT_SUPERIOR_TO_CORE"
+    return "FUNDAMENTALS_BELOW_BAR"
+
+
+def _promotion_proximity_score(checks: dict[str, Any] | None) -> str:
+    if not isinstance(checks, dict):
+        return f"0/{len(PROXIMITY_CHECKS)}"
+    if any(key not in checks for key in PROXIMITY_CHECKS):
+        return f"0/{len(PROXIMITY_CHECKS)}"
+    passed = sum(1 for key in PROXIMITY_CHECKS if checks.get(key) is True)
+    return f"{passed}/{len(PROXIMITY_CHECKS)}"
 
 
 def external_core_fit_status(
@@ -647,8 +702,23 @@ def _limit_manual_promotion_slots(rows: list[dict[str, Any]], max_promotions: in
             "Forte candidate externe, mais moins prioritaire que les meilleures candidates de promotion "
             "de cette analyse."
         )
+        row["blocking_reason_category"] = "PROMOTION_SLOT_LIMIT"
         row["next_step"] = "Garder dans la watchlist; reconsidérer si elle reste supérieure aux prochains rapports."
     return sorted(rows, key=_promotion_sort_key, reverse=True)
+
+
+def _annotate_source_analyses_with_promotion_audit(
+    rows: list[dict[str, Any]],
+    analysis_refs: dict[tuple[str, str], dict[str, Any]],
+) -> None:
+    """Expose promotion audit fields to downstream report formatters without changing decisions."""
+    for row in rows:
+        ref = analysis_refs.get((str(row.get("universe") or ""), str(row.get("ticker") or "")))
+        if ref is None:
+            continue
+        ref["promotion_status"] = row.get("promotion_status")
+        ref["blocking_reason_category"] = row.get("blocking_reason_category")
+        ref["promotion_proximity_score"] = row.get("promotion_proximity_score")
 
 
 def _percent_points(value: Any) -> float | None:

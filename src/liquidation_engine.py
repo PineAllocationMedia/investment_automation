@@ -63,7 +63,7 @@ def compute_liquidation_status(
     confirmed_fundamental = _confirmed_fundamental_sell_signals(manual, score)
     unconfirmed_fundamental = _unconfirmed_fundamental_sell_signals(manual, score)
     technical_or_valuation = _technical_or_valuation_signals(
-        score=score,
+        score={**score, "_sell_manual_context": manual},
         thesis_status=thesis_status,
         market=market,
         benchmark=benchmark,
@@ -213,10 +213,6 @@ def _confirmed_fundamental_sell_signals(manual: dict[str, Any], score: dict[str,
         signals.append("Fondamental confirmé: marge ou rentabilité sous forte pression.")
     if manual.get("moat_clear") is False and _field_confirmed(manual, "moat_clear"):
         signals.append("Fondamental confirmé: moat affaibli ou absent.")
-    if manual.get("balance_sheet_strong") is False and _field_confirmed(manual, "balance_sheet_strong"):
-        signals.append("Fondamental confirmé: bilan financier affaibli.")
-    if manual.get("forward_pe_growth_acceptable") is False and _field_confirmed(manual, "forward_pe_growth_acceptable"):
-        signals.append("Fondamental confirmé: Forward P/E non acceptable selon la croissance.")
     if sector_cagr is not None and sector_cagr < 0 and _field_confirmed(manual, "sector_cagr_estimated"):
         signals.append("Fondamental confirmé: secteur en déclin structurel.")
     return signals
@@ -255,6 +251,7 @@ def _technical_or_valuation_signals(
     eps_est = safe_float(score.get("eps_growth_estimated_3_5y"))
     peg = safe_float(score.get("peg"))
     sector_cagr = safe_float(score.get("sector_cagr_estimated"))
+    manual = score.get("_sell_manual_context") if isinstance(score.get("_sell_manual_context"), dict) else {}
     relevance = benchmark_relevance_level(benchmark)
     weak_growth_threshold = safe_float(score.get("profile_weak_growth_threshold")) or 10.0
     sector_threshold = safe_float(score.get("profile_sector_cagr_threshold")) or 8.0
@@ -282,6 +279,14 @@ def _technical_or_valuation_signals(
         signals.append("Thèse en affaiblissement.")
     if int(score.get("score_missing_data_count") or 0) >= 3:
         signals.append("Données importantes incertaines.")
+    if manual.get("forward_pe_growth_acceptable") is False and _field_confirmed(manual, "forward_pe_growth_acceptable"):
+        signals.append("Alerte valorisation: Forward P/E non acceptable selon la croissance (confirmé).")
+    elif manual.get("forward_pe_growth_acceptable") is False:
+        signals.append("Alerte valorisation: Forward P/E possiblement non acceptable (non confirmé).")
+    if manual.get("balance_sheet_strong") is False and _field_confirmed(manual, "balance_sheet_strong"):
+        signals.append("Alerte surveillance: bilan financier affaibli (confirmé).")
+    elif manual.get("balance_sheet_strong") is False:
+        signals.append("Alerte surveillance: bilan financier possiblement affaibli (non confirmé).")
     return _dedupe(signals)
 
 

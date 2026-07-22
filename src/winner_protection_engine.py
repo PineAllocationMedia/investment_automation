@@ -140,26 +140,42 @@ def compute_winner_protection(analysis: dict[str, Any], previous: dict[str, Any]
     action = "HOLD_RUN_WINNER"
     reason = "Winner à laisser courir: gain accumulé et aucune détérioration suffisante pour vendre."
 
+    if winner_tier == "MULTIBAGGER":
+        watch_threshold = -0.35
+        protect_threshold = -0.40
+        trim25_threshold = -0.50
+        trim50_threshold = -0.60
+    elif winner_tier == "BIG_WINNER":
+        watch_threshold = -0.30
+        protect_threshold = -0.35
+        trim25_threshold = -0.40
+        trim50_threshold = -0.50
+    else:
+        watch_threshold = -0.25
+        protect_threshold = -0.30
+        trim25_threshold = -0.35
+        trim50_threshold = -0.45
+
     if analysis.get("thesis_status") == "BROKEN" or analysis.get("liquidation_status") == "RED":
         status = "LIQUIDATE_WINNER_REVIEW"
         action = "LIQUIDATE_URGENT_REVIEW" if analysis.get("mechanical_sell_signal") == "LIQUIDATE_PROGRESSIVELY" else "REVIEW_LIQUIDATE_PROGRESSIVELY"
         reason = "Ancien winner avec thèse brisée ou signal rouge; revue de liquidation nécessaire."
-    elif _le(drawdown_from_high, -0.40) and deterioration["trim_allowed"] and deterioration["score"] >= 4:
+    elif _le(drawdown_from_high, trim50_threshold) and deterioration["trim_allowed"] and deterioration["score"] >= 4:
         status = "TRIM_50_REVIEW"
         action = "REVIEW_TRIM_50"
-        reason = "Winner en drawdown sévère avec détérioration confirmée; réduction de 50 % à valider manuellement."
-    elif _le(drawdown_from_high, -0.30) and deterioration["trim_allowed"] and deterioration["score"] >= 3:
+        reason = f"Winner en drawdown sévère ({trim50_threshold:.0%}) avec détérioration confirmée; réduction de 50 % à valider manuellement."
+    elif _le(drawdown_from_high, trim25_threshold) and deterioration["trim_allowed"] and deterioration["score"] >= 3:
         status = "TRIM_25_REVIEW"
         action = "REVIEW_TRIM_25"
-        reason = "Winner en drawdown important avec détérioration confirmée; réduction de 25 % à valider manuellement."
-    elif _le(drawdown_from_high, -0.30) and deterioration["score"] >= 2:
+        reason = f"Winner en drawdown important ({trim25_threshold:.0%}) avec détérioration confirmée; réduction de 25 % à valider manuellement."
+    elif _le(drawdown_from_high, protect_threshold) and deterioration["score"] >= 2:
         status = "PROTECT_WINNER_REVIEW"
         action = "WATCH"
-        reason = "Winner en drawdown important avec signaux de détérioration, mais preuve insuffisante pour recommander un trim."
-    elif _le(drawdown_from_high, -0.25):
+        reason = f"Winner en drawdown important ({protect_threshold:.0%}) avec signaux de détérioration, mais preuve insuffisante pour recommander un trim."
+    elif _le(drawdown_from_high, watch_threshold):
         status = "WATCH_WINNER_PULLBACK"
         action = "WATCH"
-        reason = "Winner en correction importante; surveiller, mais ne pas vendre sans détérioration fondamentale."
+        reason = f"Winner en correction importante ({watch_threshold:.0%}); surveiller, mais ne pas vendre sans détérioration fondamentale."
 
     return {
         **base,

@@ -69,12 +69,16 @@ EXTERNAL_ALLOCATION_BUDGETS = {
     "balanced": 0.12,
     "family-office": 0.25,
     "rational-aggressive": 0.35,
+    # high-cagr: valeur ignorée — _external_allocation_budget() retourne
+    # capital complet pour high-cagr via cas spécial. Voir Proposition 8.
     "high-cagr": 0.0,
 }
 EXTERNAL_INDIVIDUAL_CAPS = {
     "balanced": 0.08,
     "family-office": 0.16,
     "rational-aggressive": 0.22,
+    # high-cagr: valeur ignorée — _external_individual_cap_fraction()
+    # retourne 0.50 pour high-cagr via cas spécial. Voir Proposition 8.
     "high-cagr": 0.0,
 }
 RELIABILITY_ALLOCATION_CAPS = {
@@ -92,6 +96,16 @@ RELIABILITY_ALLOCATION_EXCEPTION_CAPS = {
 HIGH_CAGR_SINGLE_NAME_WATCH_WEIGHT = 0.18
 HIGH_CAGR_SINGLE_NAME_THROTTLE_WEIGHT = 0.22
 HIGH_CAGR_SINGLE_NAME_STRICT_WEIGHT = 0.30
+DEFENSIVE_ROTATION_MIN_EDGE = 5.0
+HIGH_CAGR_EMERGING_SATELLITE_BUDGET = 0.225
+# [DECISION 2026-06-30] Séparation budget run vs cible de poids :
+# HIGH_CAGR_EMERGING_SATELLITE_BUDGET = budget cumulatif par run (22.5%
+# de la cotisation mensuelle) — contrôle le flux mensuel vers les émergents.
+# HIGH_CAGR_EMERGING_SATELLITE_TARGET_WEIGHT = cible de poids maximum dans
+# le portefeuille total (15%) — évite qu'un émergent fragile devienne
+# une position dominante au fil du temps.
+# Ref : Audit anomalie 2 — allocation_engine review session
+HIGH_CAGR_EMERGING_SATELLITE_TARGET_WEIGHT = 0.15
 
 
 def _defensive_reserve_pct(mode: str) -> float:
@@ -202,7 +216,32 @@ def allocation_universe_for_mode(
     discovery_analyses: dict[str, dict[str, Any]],
 ) -> dict[str, dict[str, Any]]:
     if mode == "high-cagr":
-        return core_analyses
+        # [DECISION 2026-06-30] high-cagr accède maintenant à tous les univers.
+        # Les seuils d'éligibilité dans _eligible() et _external_candidate_allowed()
+        # garantissent que seuls les meilleurs candidats long terme sont retenus.
+        # Aucun biais préférentiel — seulement la meilleure allocation possible.
+        # Ref : Proposition 8 — allocation_engine review session
+        return {
+            **core_analyses,
+            **{
+                ticker: analysis
+                for ticker, analysis in watchlist_analyses.items()
+                if ticker not in core_analyses
+            },
+            **{
+                ticker: analysis
+                for ticker, analysis in market_analyses.items()
+                if ticker not in core_analyses
+                and ticker not in watchlist_analyses
+            },
+            **{
+                ticker: analysis
+                for ticker, analysis in discovery_analyses.items()
+                if ticker not in core_analyses
+                and ticker not in watchlist_analyses
+                and ticker not in market_analyses
+            },
+        }
     merged: dict[str, dict[str, Any]] = {}
     for group in [core_analyses, watchlist_analyses, market_analyses, discovery_analyses]:
         for ticker, analysis in group.items():
@@ -216,6 +255,7 @@ def allocate_capital(
     analyses: dict[str, dict[str, Any]],
     mode: str,
     defensive_etf_candidates: list[dict[str, Any]] | None = None,
+    previous_baseline: dict[str, dict[str, Any]] | None = None,
 ) -> dict[str, Any]:
     capital = safe_float(capital) or 0.0
     defensive_etf_candidates = defensive_etf_candidates or []
@@ -270,6 +310,7 @@ def allocate_capital(
             mode=mode,
             defensive_etf_candidates=defensive_etf_candidates,
             reason="Réserve défensive de mode: protège une partie de la cotisation avant les actions individuelles.",
+            previous_baseline=previous_baseline,
         )
         if defensive_rows:
             allocations.extend(defensive_rows)
@@ -289,6 +330,7 @@ def allocate_capital(
             defensive_etf_candidates=defensive_etf_candidates,
             already_allocated=defensive_used_total,
             reason="Aucune action core admissible; stabilisateur défensif limité avant redirection VFV.",
+            previous_baseline=previous_baseline,
         )
         if defensive_rows:
             allocations.extend(defensive_rows)
@@ -318,6 +360,7 @@ def allocate_capital(
         mode=mode,
         defensive_etf_candidates=defensive_etf_candidates,
         defensive_already_allocated=defensive_used_total,
+        previous_baseline=previous_baseline,
     )
     allocations.extend(optimized_allocations)
     allocation_log.extend(optimizer_log)
@@ -382,7 +425,18 @@ def _eligible(analysis: dict[str, Any], mode: str) -> bool:
             return False
         if analysis.get("expected_cagr_quality") not in {"HIGH", "VERY_HIGH"}:
             return False
-        if analysis.get("opportunity_cost_status") != "CLEARLY_BETTER_THAN_VFV":
+        # [DECISION 2026-06-30] Critère d'opportunité aligné sur la préservation
+        # patrimoniale : SIMILAR_TO_VFV accepté en plus de CLEARLY_BETTER_THAN_VFV.
+        # Le mode balanced ne vise pas à battre le S&P 500 mais à préserver et
+        # faire croître un grand patrimoine au-dessus de l'inflation avec stabilité.
+        # EXPENSIVE_BUT_EXCEPTIONAL refusé : valorisation excessive inadaptée
+        # à un mode de préservation patrimoniale.
+        # Ref : Proposition 7 — allocation_engine review session
+        _balanced_opportunity_ok = analysis.get("opportunity_cost_status") in {
+            "CLEARLY_BETTER_THAN_VFV",
+            "SIMILAR_TO_VFV",
+        }
+        if not _balanced_opportunity_ok:
             return False
         if analysis.get("cycle_bubble_risk_level") in {"HIGH", "EXTREME"}:
             return False
@@ -431,9 +485,67 @@ def _eligible(analysis: dict[str, Any], mode: str) -> bool:
 
 
 def _external_candidate_allowed(analysis: dict[str, Any], mode: str) -> bool:
-    if mode == "high-cagr":
-        return False
     universe = str(analysis.get("universe") or "")
+    if universe in EXTERNAL_ALLOCATION_UNIVERSES and not _has_personal_validation_evidence(analysis):
+        analysis["external_validation_status"] = "BLOCKED_PENDING_PERSONAL_VALIDATION"
+        analysis["external_validation_reason"] = (
+            "Ticker externe sans aucune donnée validée personnellement "
+            "(aucun rapport BNCD/Morningstar local, aucun champ confirmé via "
+            "sync-manual-inputs). Allocation bloquée par gouvernance; "
+            "valider les données puis relancer l'analyse."
+        )
+        return False
+    if universe in EXTERNAL_ALLOCATION_UNIVERSES:
+        analysis["external_validation_status"] = "VALIDATED_DATA_PRESENT"
+
+    if mode == "high-cagr":
+        # [DECISION 2026-06-30] Seuils externes high-cagr différenciés par profil
+        # de durabilité. Deux profils acceptés avec seuils distincts :
+        #
+        # Profil A — VERY_DURABLE_COMPOUNDER : colonne vertébrale long terme
+        # Profil B — HIGH_GROWTH_BUT_FRAGILE : satellite de croissance émergente
+        #            avec seuils très stricts pour éviter les coups courts
+        #
+        # HIGH_GROWTH_BUT_FRAGILE autorisé uniquement avec compensations sévères :
+        # conviction >= 82, capital_score >= 72, CAGR VERY_HIGH, fiabilité >= MEDIUM,
+        # opportunité CLEARLY_BETTER_THAN_VFV, et thèse INTACT.
+        # Ref : Proposition 8 — allocation_engine review session
+
+        durability = str(analysis.get("long_term_durability_status") or "")
+        conviction = safe_float(analysis.get("conviction_score")) or 0.0
+        capital_score = safe_float(analysis.get("capital_allocation_score")) or 0.0
+        cagr_quality = str(analysis.get("expected_cagr_quality") or "")
+        opportunity = str(analysis.get("opportunity_cost_status") or "")
+        reliability = str(analysis.get("data_reliability_level") or "")
+        thesis = str(analysis.get("thesis_status") or "")
+
+        # Profil A — compoundeur prouvé
+        if durability == "VERY_DURABLE_COMPOUNDER":
+            return (
+                conviction >= 80
+                and capital_score >= 68
+                and cagr_quality in {"HIGH", "VERY_HIGH"}
+                and opportunity in {
+                    "CLEARLY_BETTER_THAN_VFV",
+                    "SIMILAR_TO_VFV",
+                }
+                and reliability not in {"LOW"}
+                and thesis == "INTACT"
+            )
+
+        # Profil B — compoundeur émergent à fort potentiel long terme
+        if durability == "HIGH_GROWTH_BUT_FRAGILE":
+            return (
+                conviction >= 82
+                and capital_score >= 72
+                and cagr_quality == "VERY_HIGH"
+                and opportunity == "CLEARLY_BETTER_THAN_VFV"
+                and reliability not in {"LOW"}
+                and thesis == "INTACT"
+            )
+
+        # Tout autre profil de durabilité refusé en high-cagr externe
+        return False
     if universe not in EXTERNAL_ALLOCATION_UNIVERSES:
         return True
     if analysis.get("ticker_validation_status") in {"NO_MARKET_DATA", "POSSIBLE_WRONG_TICKER"}:
@@ -535,6 +647,7 @@ def _optimize_monthly_contribution(
     mode: str,
     defensive_etf_candidates: list[dict[str, Any]] | None = None,
     defensive_already_allocated: float = 0.0,
+    previous_baseline: dict[str, dict[str, Any]] | None = None,
 ) -> tuple[list[dict[str, Any]], list[str]]:
     allocations_by_ticker: dict[str, float] = {}
     remaining_to_allocate = round(remaining, 2)
@@ -637,6 +750,7 @@ def _optimize_monthly_contribution(
             defensive_etf_candidates=defensive_etf_candidates or [],
             already_allocated=defensive_already_allocated,
             reason="Solde non plaçable dans les actions core sans dépasser les garde-fous; stabilisateur défensif limité.",
+            previous_baseline=previous_baseline,
         )
         if defensive_rows:
             rows.extend(defensive_rows)
@@ -675,8 +789,53 @@ def _high_cagr_overflow_candidates(
 
 
 def _high_cagr_overflow_eligible(candidate: dict[str, Any]) -> bool:
+    # [DECISION 2026-06-30] Les émergents externes HIGH_GROWTH_BUT_FRAGILE
+    # peuvent recevoir de l'overflow sous garde-fous très stricts.
+    # Les autres candidats externes restent exclus de l'overflow.
+    # Ref : Audit anomalie 3 — allocation_engine review session
+    external_overflow_allows_similar = False
     if _is_external_candidate(candidate):
-        return False
+        if not _has_personal_validation_evidence(candidate):
+            candidate["external_validation_status"] = "BLOCKED_PENDING_PERSONAL_VALIDATION"
+            return False
+        candidate["external_validation_status"] = "VALIDATED_DATA_PRESENT"
+
+        durability = str(candidate.get("long_term_durability_status") or "")
+        conviction = safe_float(candidate.get("conviction_score")) or 0.0
+        capital_score = safe_float(candidate.get("capital_allocation_score")) or 0.0
+        cagr_quality = str(candidate.get("expected_cagr_quality") or "")
+        opportunity = str(candidate.get("opportunity_cost_status") or "")
+        reliability = str(candidate.get("data_reliability_level") or "")
+
+        # Profil A — VERY_DURABLE_COMPOUNDER externe : autorisé en overflow
+        # avec seuils identiques à _external_candidate_allowed Profil A
+        if durability == "VERY_DURABLE_COMPOUNDER":
+            if not (
+                conviction >= 80
+                and capital_score >= 68
+                and cagr_quality in {"HIGH", "VERY_HIGH"}
+                and opportunity in {"CLEARLY_BETTER_THAN_VFV", "SIMILAR_TO_VFV"}
+                and reliability not in {"LOW"}
+            ):
+                return False
+            external_overflow_allows_similar = True
+
+        # Profil B — HIGH_GROWTH_BUT_FRAGILE externe : autorisé en overflow
+        # avec seuils encore plus stricts que la boucle principale
+        elif durability == "HIGH_GROWTH_BUT_FRAGILE":
+            if not (
+                conviction >= 85
+                and capital_score >= 75
+                and cagr_quality == "VERY_HIGH"
+                and opportunity == "CLEARLY_BETTER_THAN_VFV"
+                and reliability not in {"LOW"}
+            ):
+                return False
+
+        # Tout autre profil externe refusé en overflow
+        else:
+            return False
+
     if candidate.get("thesis_status") != "INTACT":
         return False
     if candidate.get("add_eligibility_status") not in ADD_ALLOWED_STATUSES:
@@ -689,7 +848,11 @@ def _high_cagr_overflow_eligible(candidate: dict[str, Any]) -> bool:
         return False
     if candidate.get("expected_cagr_quality") not in {"HIGH", "VERY_HIGH"}:
         return False
-    if candidate.get("opportunity_cost_status") != "CLEARLY_BETTER_THAN_VFV" and not _valuation_exception_allowed(candidate, "high-cagr"):
+    if (
+        candidate.get("opportunity_cost_status") != "CLEARLY_BETTER_THAN_VFV"
+        and not (external_overflow_allows_similar and candidate.get("opportunity_cost_status") == "SIMILAR_TO_VFV")
+        and not _valuation_exception_allowed(candidate, "high-cagr")
+    ):
         return False
     if candidate.get("quality_but_too_expensive") is True and not _valuation_exception_allowed(candidate, "high-cagr"):
         return False
@@ -897,8 +1060,20 @@ def _candidate_current_value(candidate: dict[str, Any], current_total: float) ->
 
 
 def _monthly_chunk_size(capital: float, mode: str) -> float:
+    # [DECISION 2026-06-30] Plafond de chunk différencié par mode :
+    # high-cagr concentre plus directement (chunks plus grands),
+    # balanced reste fin et fragmenté (plafond fixe à 50$).
+    # Le plafond dynamique = max(50$, capital * multiplicateur_mode).
+    # Ref : Proposition 2B — allocation_engine review session
     fraction = 0.05 if mode == "high-cagr" else 0.04
-    return round(max(10.0, min(50.0, capital * fraction)), 2)
+    floor = 10.0
+    ceiling = {
+        "high-cagr": max(50.0, round(capital * 0.02, 2)),
+        "rational-aggressive": max(50.0, round(capital * 0.015, 2)),
+        "family-office": max(50.0, round(capital * 0.012, 2)),
+        "balanced": 50.0,
+    }.get(mode, 50.0)
+    return round(max(floor, min(ceiling, capital * fraction)), 2)
 
 
 def _target_post_contribution_weight(candidate: dict[str, Any], mode: str) -> float:
@@ -926,13 +1101,24 @@ def _target_post_contribution_weight(candidate: dict[str, Any], mode: str) -> fl
     base += tuning_value(mode, "target_weight_adjustment", 0.0)
 
     if _is_external_candidate(candidate):
+        if mode == "high-cagr":
+            durability = str(candidate.get("long_term_durability_status") or "")
+            if durability == "VERY_DURABLE_COMPOUNDER":
+                external_target = 0.30 if capital_score >= 90 and conviction >= 85 else 0.22
+            elif durability == "HIGH_GROWTH_BUT_FRAGILE":
+                # Cible de poids dans le portefeuille total — distincte du budget
+                # par run (HIGH_CAGR_EMERGING_SATELLITE_BUDGET = 22.5%).
+                # Un émergent fragile ne devrait pas dépasser 15% du portefeuille.
+                external_target = HIGH_CAGR_EMERGING_SATELLITE_TARGET_WEIGHT
+            else:
+                external_target = 0.0
         if mode == "balanced":
             external_target = 0.07 if capital_score >= 90 and conviction >= 90 else 0.05
         elif mode == "family-office":
             external_target = 0.14 if capital_score >= 90 and conviction >= 85 else 0.10
         elif mode == "rational-aggressive":
             external_target = 0.18 if capital_score >= 90 and conviction >= 85 else 0.14
-        else:
+        elif mode != "high-cagr":
             external_target = 0.0
         if candidate.get("add_eligibility_status") == "ADD_ALLOWED_SMALL":
             external_target *= 0.65
@@ -1008,12 +1194,27 @@ def _marginal_monthly_score(
 
     quality_bonus = {"VERY_HIGH": 6.0, "HIGH": 3.0, "MEDIUM": 0.0}.get(str(candidate.get("expected_cagr_quality")), -4.0)
     opportunity_bonus = 4.0 if candidate.get("opportunity_cost_status") == "CLEARLY_BETTER_THAN_VFV" else 0.0
-    durability_adjustment = {
+    # [DECISION 2026-06-30] Durability asymétrique par mode :
+    # high-cagr amplifie le bonus durabilité (+4.5) mais réduit la pénalité fragilité
+    # (-1.0 vs -2.0) pour ne pas sacrifier les compoundeurs prospectifs à fort potentiel.
+    # Les autres modes conservent la table originale.
+    # Ref : Proposition 1A-Asymétrique — allocation_engine review session
+    _DURABILITY_BASE = {
         "VERY_DURABLE_COMPOUNDER": 3.0,
         "DURABLE_BUT_CYCLICAL": 0.5,
         "HIGH_GROWTH_BUT_FRAGILE": -2.0,
         "SPECULATIVE_OR_UNPROVEN": -8.0,
-    }.get(str(candidate.get("long_term_durability_status") or ""), 0.0)
+    }
+    _DURABILITY_HIGH_CAGR = {
+        "VERY_DURABLE_COMPOUNDER": 4.5,   # amplifié : durabilité prouvée = avantage compétitif
+        "DURABLE_BUT_CYCLICAL": 0.75,     # légèrement amplifié
+        "HIGH_GROWTH_BUT_FRAGILE": -1.0,  # réduit : ne pas punir le potentiel prospectif
+        "SPECULATIVE_OR_UNPROVEN": -8.0,  # inchangé : déjà bloqué à l'éligibilité
+    }
+    _durability_table = _DURABILITY_HIGH_CAGR if mode == "high-cagr" else _DURABILITY_BASE
+    durability_adjustment = _durability_table.get(
+        str(candidate.get("long_term_durability_status") or ""), 0.0
+    )
     under_target_bonus = max(0.0, (target_weight - post_weight) / target_weight) * 4.0 if target_weight > 0 else 0.0
     drawdown_bonus = min(abs(min(drawdown, 0.0)) * 10.0, 3.0)
     concentration_drag = max(0.0, post_weight - target_weight * 0.85) * (90.0 if mode == "high-cagr" else 120.0)
@@ -1171,6 +1372,7 @@ def _defensive_fallback_rows(
     defensive_etf_candidates: list[dict[str, Any]],
     reason: str,
     already_allocated: float = 0.0,
+    previous_baseline: dict[str, dict[str, Any]] | None = None,
 ) -> tuple[list[dict[str, Any]], float]:
     if mode == "high-cagr":
         return [], 0.0
@@ -1189,7 +1391,44 @@ def _defensive_fallback_rows(
 
     remaining = round(min(amount_to_allocate, max_total), 2)
     rows = []
-    for candidate in sorted(eligible, key=lambda row: safe_float(row.get("defensive_score")) or 0.0, reverse=True):
+    # [DECISION 2026-06-30] Seuil de rotation minimal défensif :
+    # Un ETF défensif déjà alloué le mois précédent est reconduit automatiquement
+    # sauf si un challenger le dépasse d'au moins DEFENSIVE_ROTATION_MIN_EDGE points.
+    # Évite le churn de réserve défensive causé par de petites variations de score.
+    # Ref : Proposition 3C — allocation_engine review session
+
+    # Extraire les tickers défensifs alloués le mois précédent depuis le baseline.
+    # Le baseline contient toutes les allocations précédentes par ticker.
+    # On identifie les défensifs en cherchant les tickers présents dans
+    # defensive_etf_candidates ET dans le baseline avec un montant > 0.
+    _defensive_candidate_tickers: set[str] = {
+        str(row.get("ticker") or "").strip().upper()
+        for row in defensive_etf_candidates
+    }
+    _baseline = previous_baseline or {}
+    previous_defensive_tickers: set[str] = {
+        ticker.strip().upper()
+        for ticker, data in _baseline.items()
+        if ticker.strip().upper() in _defensive_candidate_tickers
+        and (safe_float(data.get("amount")) or 0.0) > 0
+    }
+
+    challenger_scores = [
+        safe_float(row.get("defensive_score")) or 0.0
+        for row in eligible
+        if str(row.get("ticker") or "").strip().upper() not in previous_defensive_tickers
+    ]
+    best_challenger_score = max(challenger_scores) if challenger_scores else 0.0
+
+    def _defensive_sort_key(row: dict[str, Any]) -> float:
+        ticker = str(row.get("ticker") or "").strip().upper()
+        base_score = safe_float(row.get("defensive_score")) or 0.0
+        if ticker in previous_defensive_tickers:
+            incumbent_score_with_continuity = base_score + DEFENSIVE_ROTATION_MIN_EDGE
+            return incumbent_score_with_continuity
+        return base_score
+
+    for candidate in sorted(eligible, key=_defensive_sort_key, reverse=True):
         if remaining <= 0.01:
             break
         ticker = str(candidate.get("ticker") or "").strip().upper()
@@ -1603,11 +1842,15 @@ def _watch_budget_room(
 
 
 def _external_allocation_budget(capital: float, mode: str) -> float:
+    if mode == "high-cagr":
+        return round(max(0.0, capital), 2)
     fraction = EXTERNAL_ALLOCATION_BUDGETS.get(mode, 0.0)
     return round(max(0.0, capital * fraction), 2)
 
 
 def _external_individual_cap_fraction(mode: str) -> float:
+    if mode == "high-cagr":
+        return 0.50
     return EXTERNAL_INDIVIDUAL_CAPS.get(mode, 0.0)
 
 
@@ -1623,6 +1866,25 @@ def _external_allocated_total(
     return round(total, 2)
 
 
+def _high_cagr_emerging_satellite_candidate(candidate: dict[str, Any]) -> bool:
+    return (
+        _is_external_candidate(candidate)
+        and str(candidate.get("long_term_durability_status") or "") == "HIGH_GROWTH_BUT_FRAGILE"
+    )
+
+
+def _high_cagr_emerging_satellite_allocated_total(
+    allocations_by_ticker: dict[str, float],
+    candidate_lookup: dict[str, dict[str, Any]],
+) -> float:
+    total = 0.0
+    for ticker, amount in allocations_by_ticker.items():
+        candidate = candidate_lookup.get(ticker)
+        if candidate and _high_cagr_emerging_satellite_candidate(candidate):
+            total += safe_float(amount) or 0.0
+    return round(total, 2)
+
+
 def _external_budget_room(
     candidate: dict[str, Any],
     allocations_by_ticker: dict[str, float],
@@ -1633,6 +1895,16 @@ def _external_budget_room(
     if not _is_external_candidate(candidate):
         return capital
     already_allocated = allocations_by_ticker.get(candidate["ticker"], 0.0)
+    if mode == "high-cagr" and _high_cagr_emerging_satellite_candidate(candidate):
+        satellite_room = (
+            capital * HIGH_CAGR_EMERGING_SATELLITE_BUDGET
+            - _high_cagr_emerging_satellite_allocated_total(allocations_by_ticker, candidate_lookup)
+        )
+        individual_room = capital * HIGH_CAGR_EMERGING_SATELLITE_BUDGET - already_allocated
+        return round(max(0.0, min(satellite_room, individual_room)), 2)
+    if mode == "high-cagr":
+        individual_room = capital * _external_individual_cap_fraction(mode) - already_allocated
+        return round(max(0.0, individual_room), 2)
     total_room = _external_allocation_budget(capital, mode) - _external_allocated_total(allocations_by_ticker, candidate_lookup)
     individual_room = capital * _external_individual_cap_fraction(mode) - already_allocated
     return round(max(0.0, min(total_room, individual_room)), 2)
@@ -1863,6 +2135,16 @@ def _has_poor_free_data_coverage(candidate: dict[str, Any]) -> bool:
         return False
     confirmed_fields = len(candidate.get("manual_override_fields") or []) + len(candidate.get("research_report_fields") or [])
     return confirmed_fields < 3
+
+
+def _has_personal_validation_evidence(candidate: dict[str, Any]) -> bool:
+    """Preuve qu'au moins une donnée du ticker a été validée par l'utilisateur:
+    champ extrait d'un rapport BNCD/Morningstar local, ou champ confirmé via
+    sync-manual-inputs. Les tickers 100% auto-estimés retournent False.
+    """
+    research_fields = candidate.get("research_report_fields") or []
+    manual_fields = candidate.get("manual_override_fields") or []
+    return bool(list(research_fields) + list(manual_fields))
 
 
 def _cycle_allocation_multiplier(candidate: dict[str, Any]) -> float:

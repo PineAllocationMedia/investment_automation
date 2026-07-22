@@ -39,6 +39,24 @@ def compute_fundamental_score(
     market: dict[str, Any],
     benchmark: dict[str, Any],
 ) -> dict[str, Any]:
+    def _magnitude_score(value: float, threshold: float) -> float:
+        """
+        Continuous score in [0.0, 1.0] based on value/threshold ratio.
+        Returns 0.0 if value < threshold (below threshold = no credit).
+        Breakpoints: 0.4 at 1x, 0.7 at 1.75x, 1.0 at 2.5x.
+        Linear interpolation between breakpoints.
+        """
+        if threshold <= 0:
+            return 0.0
+        if value < threshold:
+            return 0.0
+        ratio = value / threshold
+        if ratio >= 2.5:
+            return 1.0
+        if ratio >= 1.75:
+            return round(0.7 + (ratio - 1.75) * (0.3 / 0.75), 4)
+        return round(0.4 + (ratio - 1.0) * (0.3 / 0.75), 4)
+
     criteria: dict[str, dict[str, Any]] = {}
     passed: list[str] = []
     failed: list[str] = []
@@ -87,12 +105,14 @@ def compute_fundamental_score(
     if roic is None:
         add_criterion("C1", profile["roic_label"], None, 1.0, "MANUAL_REQUIRED", ["roic_5y_avg"])
     else:
+        _c1_pts = _magnitude_score(roic, roic_threshold)
         add_criterion(
             "C1",
             profile["roic_label"],
-            1.0 if roic >= roic_threshold else 0.0,
+            _c1_pts,
             1.0,
-            f"Capital/proxy={roic:.1f} %, seuil profil={roic_threshold:.1f} %",
+            f"Capital/proxy={roic:.1f} %, seuil profil={roic_threshold:.1f} %, "
+            f"{f'ratio={roic/roic_threshold:.2f}×' if roic_threshold > 0 else 'ratio=N/D'}",
         )
 
     margin_stable = manual.get("net_margin_stable_or_expanding")
@@ -119,12 +139,14 @@ def compute_fundamental_score(
             ["eps_growth_5y"],
         )
     else:
+        _c3_pts = _magnitude_score(eps_5y, eps_hist_threshold)
         add_criterion(
             "C3",
             f"Croissance EPS 5 ans > {eps_hist_threshold:.0f} %",
-            1.0 if eps_5y > eps_hist_threshold else 0.0,
+            _c3_pts,
             1.0,
-            f"EPS 5 ans={eps_5y:.1f} %, seuil profil={eps_hist_threshold:.1f} %",
+            f"EPS 5 ans={eps_5y:.1f} %, seuil profil={eps_hist_threshold:.1f} %, "
+            f"{f'ratio={eps_5y/eps_hist_threshold:.2f}×' if eps_hist_threshold > 0 else 'ratio=N/D'}",
         )
 
     moat_clear = manual.get("moat_clear")
@@ -144,12 +166,14 @@ def compute_fundamental_score(
             ["eps_growth_estimated_3_5y"],
         )
     else:
+        _c5_pts = _magnitude_score(eps_est, eps_est_threshold)
         add_criterion(
             "C5",
             f"Croissance EPS estimée 3-5 ans > {eps_est_threshold:.0f} %",
-            1.0 if eps_est > eps_est_threshold else 0.0,
+            _c5_pts,
             1.0,
-            f"EPS estimé={eps_est:.1f} %, seuil profil={eps_est_threshold:.1f} %",
+            f"EPS estimé={eps_est:.1f} %, seuil profil={eps_est_threshold:.1f} %, "
+            f"{f'ratio={eps_est/eps_est_threshold:.2f}×' if eps_est_threshold > 0 else 'ratio=N/D'}",
         )
 
     sector_cagr = percent_points(manual.get("sector_cagr_estimated"))
@@ -163,12 +187,14 @@ def compute_fundamental_score(
             ["sector_cagr_estimated"],
         )
     else:
+        _c6_pts = _magnitude_score(sector_cagr, sector_cagr_threshold)
         add_criterion(
             "C6",
             f"Marché adressable en expansion > {sector_cagr_threshold:.0f} %",
-            1.0 if sector_cagr >= sector_cagr_threshold else 0.0,
+            _c6_pts,
             1.0,
-            f"Secteur={sector_cagr:.1f} %, seuil profil={sector_cagr_threshold:.1f} %",
+            f"Secteur={sector_cagr:.1f} %, seuil profil={sector_cagr_threshold:.1f} %, "
+            f"{f'ratio={sector_cagr/sector_cagr_threshold:.2f}×' if sector_cagr_threshold > 0 else 'ratio=N/D'}",
         )
 
     benchmark_usable = safe_float(benchmark.get("benchmark_usable_cagr"))
@@ -266,13 +292,45 @@ def compute_fundamental_score(
 
     missing_count = len({item.split(":")[0] + item.split(":")[-1] for item in manual_required})
     confidence_level = "HIGH" if missing_count <= 1 else "MEDIUM" if missing_count <= 3 else "LOW"
+    score_confirmed = round(score, 2)
+
+    # Data gap haircut: applied when missing_count >= 3.
+    # Calibrated to discriminate moderate vs. severe data gaps without
+    # depressing the entire universe when manual fields are absent by default.
+    # missing_count 0-2: no haircut (normal yfinance coverage gap)
+    # missing_count 3-4: -0.2 per criterion beyond 2 (mild penalty)
+    # missing_count 5+:  -0.25 per criterion beyond 2, capped at -1.0
+    _score_data_gap_haircut = 0.0
+    if missing_count >= 3:
+        if missing_count <= 4:
+            _score_data_gap_haircut = round((missing_count - 2) * 0.2, 2)
+        else:
+            _score_data_gap_haircut = round(min(1.0, (missing_count - 2) * 0.25), 2)
+        score = round(max(0.0, score - _score_data_gap_haircut), 2)
+        possible_if_missing_positive = round(
+            max(0.0, possible_if_missing_positive - _score_data_gap_haircut), 2
+        )
+
+    # Data gap flag: visible signal for reporting and auditing.
+    _score_data_gap_flag = missing_count >= 3
+    if missing_count == 0:
+        _score_data_gap_label = "COMPLET"
+    elif missing_count <= 2:
+        _score_data_gap_label = "PARTIEL_MINEUR"
+    elif missing_count <= 4:
+        _score_data_gap_label = "PARTIEL_MODERE"
+    else:
+        _score_data_gap_label = "PARTIEL_SEVERE"
 
     return {
         "ticker": ticker,
         "score_total": round(score, 2),
-        "score_confirmed": round(score, 2),
+        "score_confirmed": score_confirmed,
         "score_possible_if_missing_data_positive": round(min(10.0, possible_if_missing_positive), 2),
         "score_missing_data_count": missing_count,
+        "score_data_gap_haircut": _score_data_gap_haircut,
+        "score_data_gap_flag": _score_data_gap_flag,
+        "score_data_gap_label": _score_data_gap_label,
         "passed_criteria": passed,
         "failed_criteria": failed,
         "manual_required_criteria": manual_required,
