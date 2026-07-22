@@ -571,7 +571,7 @@ def research_needed_rows_from_analysis_rows(
     analysis_groups_by_universe: dict[str, dict[str, dict[str, Any]]],
     existing_reports: dict[str, dict[str, Any]] | None = None,
 ) -> list[dict[str, Any]]:
-    from .validation_priority_engine import ticker_investment_potential_score
+    from .validation_priority_engine import ticker_validation_value_score
 
     existing_reports = existing_reports or {}
     rows: list[dict[str, Any]] = []
@@ -585,7 +585,7 @@ def research_needed_rows_from_analysis_rows(
             qualitative_needed = _qualitative_report_needed_from_analysis(analysis, universe, existing)
             if data_report_available and not qualitative_needed:
                 continue
-            potential, _potential_reasons = ticker_investment_potential_score(analysis, universe)
+            potential, _potential_reasons = ticker_validation_value_score(analysis, universe)
 
             manual_required = analysis.get("manual_required_criteria") or []
             auto_fields = set(analysis.get("auto_estimated_fields") or [])

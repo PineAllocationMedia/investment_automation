@@ -179,11 +179,21 @@ def _estimated_score_fields(analysis: dict[str, Any]) -> list[str]:
     return [field for field in preferred if field in estimated]
 
 
-def ticker_investment_potential_score(
+def ticker_validation_value_score(
     analysis: dict[str, Any],
     universe: str,
 ) -> tuple[float, list[str]]:
-    """Potentiel d'investissement au niveau titre, indépendant du champ évalué."""
+    """Valeur d'une validation au niveau titre, indépendante du champ évalué.
+
+    Ce score mesure l'utilité de valider ce titre, PAS sa qualité
+    d'investissement. Une partie substantielle des points provient de la
+    faiblesse des données (evidence ESTIMATE_HEAVY, dependency HIGH) : un titre
+    mal documenté a une valeur de validation élevée précisément parce qu'il est
+    mal documenté.
+
+    Peut retourner une valeur négative (thèse non intacte hors CORE_PORTFOLIO) ;
+    la borne max(0.0, ...) est appliquée par l'appelant _priority_score().
+    """
     score = 0.0
     reasons: list[str] = []
     universe_upper = universe.upper()
@@ -238,7 +248,7 @@ def ticker_investment_potential_score(
 def _priority_score(field: str, source: str, universe: str, analysis: dict[str, Any]) -> tuple[float, list[str]]:
     score = float(FIELD_WEIGHTS.get(field, 10))
     reasons = [f"donnée {source.lower()}"]
-    ticker_score, ticker_reasons = ticker_investment_potential_score(analysis, universe)
+    ticker_score, ticker_reasons = ticker_validation_value_score(analysis, universe)
     score += ticker_score
     reasons.extend(ticker_reasons)
 
