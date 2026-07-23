@@ -15,6 +15,103 @@ This ensures long-term consistency and prevents model drift.
 
 # 📌 Decisions
 
+## [2026-07-22] Étape 7 — déclencheur de rapport BNCD pour position externe proposable
+
+Niveau 2 — Approuvé, implémenté, vérifié.
+
+### CONSTAT
+Une position externe proposée pour l'allocation mais non détenue ne générait
+aucune recommandation de rapport BNCD. `research_needed_rows_from_analysis_rows()`
+sortait en `continue` dès que `data_report_available` était vrai et que le besoin
+qualitatif était faux, et `_qualitative_report_needed_from_analysis()` verrouille
+ce besoin à CORE_PORTFOLIO. Un externe bien documenté produisait donc zéro ligne.
+
+Interaction avec GOV-EXTERNAL-VALIDATION-GATE [2026-07-16] : le gate bloque
+l'allocation réelle de tout externe sans champ validé personnellement. L'étape 7
+ferme la boucle — le gate dit qu'il manque un rapport, l'étape 7 dit lequel aller
+chercher. Les deux sont complémentaires, non conflictuels.
+
+### DÉFINITION ARBITRÉE DE « PROPOSÉE ET NON DÉTENUE »
+  universe ∈ {WATCHLIST, MARKET_SCANNER, DISCOVERY_IDEAS}
+  ET allocation_status == "ELIGIBLE_BUT_NOT_SELECTED"
+     (repli sur allocation_decision, comme discovery_for_validation dans main.py)
+  ET add_eligibility_status ∈ ADD_ALLOWED_STATUSES  [garde de sécurité]
+
+Définition A1 (external_validation_status == BLOCKED_PENDING_PERSONAL_VALIDATION)
+ÉCARTÉE : mesurée à 203 titres externes. Le gate ne discrimine pas la qualité,
+il constate l'absence de rapport. Un DO_NOT_ADD médiocre y est bloqué comme un
+ADD_ALLOWED excellent. Déclencher sur A1 aurait produit un statut porté par la
+moitié de l'univers — le défaut même que dénonce l'observation MANUAL_REVIEW.
+
+Condition `allocation_status ∈ {ELIGIBLE_BUT_NOT_SELECTED, NO_NEW_ALLOCATION}`
+initialement envisagée puis RESSERRÉE à ELIGIBLE_BUT_NOT_SELECTED seul :
+le croisement mesuré donne NO_NEW_ALLOCATION × {ADD_ALLOWED, ADD_ALLOWED_SMALL}
+= 0 titre. La branche NO_NEW_ALLOCATION n'apportait rien et ouvrait la porte aux
+126 MANUAL_REVIEW_BEFORE_ADD si l'autre condition venait à bouger.
+
+### DIAGNOSTIC CHIFFRÉ — source, périmètre, dénominateur
+Source : reports/diagnostics/external_trigger_scope_2026-07-22_capital.md,
+run analyze high-cagr, capital = 1000 $.
+Dénominateur : 266 titres analysés, dont 243 externes.
+
+Croisement add_eligibility_status × allocation_status, univers externes :
+  ADD_ALLOWED (22)              → 21 ELIGIBLE_BUT_NOT_SELECTED, 1 DO_NOT_ADD, 0 NO_NEW
+  ADD_ALLOWED_SMALL (23)        → 23 ELIGIBLE_BUT_NOT_SELECTED, 0 ailleurs
+  MANUAL_REVIEW_BEFORE_ADD (126)→ 126 NO_NEW_ALLOCATION, 0 ailleurs
+
+ELIGIBLE_BUT_NOT_SELECTED est le marqueur du candidat proposable : 44/44 des
+titres portant ce statut ont un add_eligibility_status permissif.
+
+Périmètre A3 : 44 titres — DISCOVERY_IDEAS 16, MARKET_SCANNER 27, WATCHLIST 1.
+Écart avec les 45 externes permissifs : 1 titre ADD_ALLOWED en DO_NOT_ADD,
+exclu à raison par la décision finale d'allocation.
+
+### CHANGEMENT
+`src/research_reports.py` uniquement :
+- Ajout de `_external_allocation_candidate_needs_report(analysis, universe)`.
+- Sortie anticipée étendue : `and not external_candidate_needed`.
+- need_type "EXTERNAL_CANDIDATE" ajouté en dernier.
+- Priorité HIGH intégrée via `_highest_priority()`, pas en dur.
+- Raison et action dédiées, déduplication existante préservée.
+- `_combined_research_suggested_action()` reçoit un paramètre optionnel
+  `external_candidate_needed=False` — l'appelant `_from_reports` est inchangé.
+
+Aucun import ajouté. Aucune dépendance vers allocation_engine.py : la contrainte
+d'import circulaire ne mordait pas, la définition retenue ne l'exigeant pas.
+RESEARCH_NEEDED_COLUMNS inchangé. Tri final inchangé (ticker_potential_score
+reste primaire, conformément à [2026-07-22]).
+`research_needed_rows_from_reports()` inchangé : cette fonction lit des CSV et
+n'a pas accès à allocation_status.
+
+### VÉRIFICATION
+577 → 582 tests OK (N = 5). SCORE_STABILITY STABLE avant et après.
+git diff : 2 fichiers (research_reports.py, test_research_reports.py).
+
+Vérification comportementale : 33 lignes EXTERNAL_CANDIDATE produites là où il y
+en avait 0. MARKET_SCANNER 27/27, WATCHLIST 1/1 — couverture complète sur les
+univers non filtrés. DISCOVERY_IDEAS 5/16.
+
+### PLAFOND STRUCTUREL DOCUMENTÉ — 33 au lieu de 44
+Source : reports/diagnostics/external_trigger_scope_2026-07-22_ecart.md.
+`main.py` transmet DISCOVERY_IDEAS via `discovery_for_validation`, qui exige
+capital_allocation_score >= DISCOVERY_VALIDATION_PRIORITY_MIN_SCORE (70).
+11 des 16 A3 DISCOVERY sont sous ce seuil :
+  WFC 69.05, XYL 67.15, WTW 66.59, TRMB 65.13, WM 64.85, TFC 63.42,
+  USB 62.45, TXT 60.92, SCHW 55.57, TROW 50.62, VLO 10.90
+Les 5 passants : TEL 88.60, TER 79.56, STE 77.64, TDY 75.95, VRTX 72.79.
+
+Ce plafond relève de la décision [2026-07-04], distincte de l'étape 7. Non
+corrigé ici : le relever serait un arbitrage séparé sur le filtre de validation
+DISCOVERY. L'étape 7 fait ce qu'elle doit sur les univers qu'elle reçoit.
+
+### OBSERVATION CONSIGNÉE — à traiter séparément
+VLO porte allocation_status ELIGIBLE_BUT_NOT_SELECTED et un add_eligibility_status
+permissif avec capital_allocation_score = 10.90. Ces signaux devraient être
+cohérents et ne le sont pas. Sans effet sur l'étape 7 (VLO est exclu par le
+filtre DISCOVERY), mais sujet de CONFIANCE à rattacher au dossier MANUAL_REVIEW.
+
+---
+
 ## [2026-07-22] Invalidation de l'Option B — le diagnostic de l'étape 7 était erroné
 
 Niveau 3 — Proposition retirée avant spécification.

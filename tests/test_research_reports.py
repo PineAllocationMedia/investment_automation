@@ -723,6 +723,133 @@ class ResearchReportsTest(unittest.TestCase):
 
         self.assertEqual(rows, [])
 
+    def test_research_needed_includes_external_candidate_with_existing_data_report(self):
+        analyses = {
+            "MARKET_SCANNER": {
+                "AMAT": {
+                    "ticker": "AMAT",
+                    "ticker_display": "AMAT",
+                    "data_quality": "HIGH",
+                    "data_reliability_level": "HIGH",
+                    "auto_estimate_dependency": "LOW",
+                    "automation_evidence_level": "STRONG",
+                    "manual_required_criteria": [],
+                    "auto_estimated_fields": [],
+                    "add_eligibility_status": "ADD_ALLOWED",
+                    "allocation_status": "ELIGIBLE_BUT_NOT_SELECTED",
+                    "capital_allocation_score": 88,
+                }
+            }
+        }
+        existing = {"AMAT": {"research_report_fields": ["fair_value"], "research_report_sources": ["AMAT.pdf"]}}
+
+        rows = research_needed_rows_from_analysis_rows(analyses, existing)
+
+        self.assertEqual(len(rows), 1)
+        self.assertEqual(rows[0]["ticker"], "AMAT")
+        self.assertEqual(rows[0]["priority"], "HIGH")
+        self.assertIn("EXTERNAL_CANDIDATE", rows[0]["need_type"])
+        self.assertIn("GOV-EXTERNAL-VALIDATION-GATE", rows[0]["reason"])
+
+    def test_research_needed_external_candidate_requires_add_allowed_status(self):
+        analyses = {
+            "DISCOVERY_IDEAS": {
+                "DELL": {
+                    "ticker": "DELL",
+                    "ticker_display": "DELL",
+                    "data_quality": "HIGH",
+                    "data_reliability_level": "HIGH",
+                    "auto_estimate_dependency": "LOW",
+                    "automation_evidence_level": "STRONG",
+                    "manual_required_criteria": [],
+                    "auto_estimated_fields": [],
+                    "add_eligibility_status": "MANUAL_REVIEW_BEFORE_ADD",
+                    "allocation_status": "ELIGIBLE_BUT_NOT_SELECTED",
+                    "capital_allocation_score": 88,
+                }
+            }
+        }
+        existing = {"DELL": {"research_report_fields": ["fair_value"], "research_report_sources": ["DELL.pdf"]}}
+
+        rows = research_needed_rows_from_analysis_rows(analyses, existing)
+
+        self.assertEqual(rows, [])
+
+    def test_research_needed_external_candidate_requires_eligible_but_not_selected(self):
+        analyses = {
+            "DISCOVERY_IDEAS": {
+                "TER": {
+                    "ticker": "TER",
+                    "ticker_display": "TER",
+                    "data_quality": "HIGH",
+                    "data_reliability_level": "HIGH",
+                    "auto_estimate_dependency": "LOW",
+                    "automation_evidence_level": "STRONG",
+                    "manual_required_criteria": [],
+                    "auto_estimated_fields": [],
+                    "add_eligibility_status": "ADD_ALLOWED",
+                    "allocation_status": "NO_NEW_ALLOCATION",
+                    "capital_allocation_score": 88,
+                }
+            }
+        }
+        existing = {"TER": {"research_report_fields": ["fair_value"], "research_report_sources": ["TER.pdf"]}}
+
+        rows = research_needed_rows_from_analysis_rows(analyses, existing)
+
+        self.assertEqual(rows, [])
+
+    def test_research_needed_external_candidate_does_not_apply_to_core(self):
+        analyses = {
+            "CORE_PORTFOLIO": {
+                "GOOGL": {
+                    "ticker": "GOOGL",
+                    "ticker_display": "GOOGL",
+                    "data_quality": "HIGH",
+                    "data_reliability_level": "HIGH",
+                    "auto_estimate_dependency": "LOW",
+                    "automation_evidence_level": "STRONG",
+                    "manual_required_criteria": [],
+                    "auto_estimated_fields": [],
+                    "add_eligibility_status": "ADD_ALLOWED",
+                    "allocation_status": "ELIGIBLE_BUT_NOT_SELECTED",
+                    "capital_allocation_score": 88,
+                }
+            }
+        }
+        existing = {"GOOGL": {"research_report_fields": ["fair_value"], "research_report_sources": ["GOOGL.pdf"]}}
+
+        rows = research_needed_rows_from_analysis_rows(analyses, existing)
+
+        self.assertEqual(rows, [])
+
+    def test_research_needed_combines_data_and_external_candidate_needs(self):
+        analyses = {
+            "MARKET_SCANNER": {
+                "ADI": {
+                    "ticker": "ADI",
+                    "ticker_display": "ADI",
+                    "data_quality": "LOW",
+                    "data_reliability_level": "LOW",
+                    "auto_estimate_dependency": "HIGH",
+                    "automation_evidence_level": "WEAK",
+                    "manual_required_criteria": ["C1: roic_5y_avg", "C4: moat_clear", "C10: fair_value"],
+                    "auto_estimated_fields": ["fair_value", "moat_clear", "roic_5y_avg"],
+                    "add_eligibility_status": "ADD_ALLOWED_SMALL",
+                    "allocation_status": "ELIGIBLE_BUT_NOT_SELECTED",
+                    "capital_allocation_score": 88,
+                }
+            }
+        }
+
+        rows = research_needed_rows_from_analysis_rows(analyses, {})
+
+        self.assertEqual(len(rows), 1)
+        self.assertEqual(rows[0]["ticker"], "ADI")
+        self.assertEqual(rows[0]["priority"], "HIGH")
+        self.assertIn("DATA", rows[0]["need_type"])
+        self.assertIn("EXTERNAL_CANDIDATE", rows[0]["need_type"])
+
     def test_research_needed_skips_etf_assets(self):
         analyses = {
             "CORE_PORTFOLIO": {

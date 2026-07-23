@@ -583,7 +583,8 @@ def research_needed_rows_from_analysis_rows(
             existing = existing_reports.get(ticker)
             data_report_available = research_report_has_usable_fields(existing)
             qualitative_needed = _qualitative_report_needed_from_analysis(analysis, universe, existing)
-            if data_report_available and not qualitative_needed:
+            external_candidate_needed = _external_allocation_candidate_needs_report(analysis, universe)
+            if data_report_available and not qualitative_needed and not external_candidate_needed:
                 continue
             potential, _potential_reasons = ticker_validation_value_score(analysis, universe)
 
@@ -613,7 +614,8 @@ def research_needed_rows_from_analysis_rows(
             if validation_status in {"NO_MARKET_DATA", "POSSIBLE_WRONG_TICKER"}:
                 data_priority = "HIGH"
             qualitative_priority = _qualitative_priority_from_analysis(analysis)
-            priority = _highest_priority(data_priority, qualitative_priority if qualitative_needed else "")
+            external_candidate_priority = "HIGH" if external_candidate_needed else ""
+            priority = _highest_priority(data_priority, qualitative_priority if qualitative_needed else "", external_candidate_priority)
             if not priority:
                 continue
 
@@ -623,6 +625,8 @@ def research_needed_rows_from_analysis_rows(
                 need_types.append("DATA")
             if qualitative_needed:
                 need_types.append("QUALITATIVE")
+            if external_candidate_needed:
+                need_types.append("EXTERNAL_CANDIDATE")
             if critical_count and data_priority:
                 reasons.append(f"{critical_count} donnée(s) critique(s) manquante(s)")
             if helpful_auto_fields and data_priority:
@@ -637,7 +641,18 @@ def research_needed_rows_from_analysis_rows(
                 reasons.append(f"dépendance aux proxys={dependency}")
             if qualitative_needed:
                 reasons.append(_qualitative_reason_from_analysis(analysis))
-            suggested_action = _combined_research_suggested_action(data_priority, qualitative_needed, validation_status, coverage_status)
+            if external_candidate_needed:
+                reasons.append(
+                    "position externe proposable non détenue — rapport requis avant allocation réelle "
+                    "(GOV-EXTERNAL-VALIDATION-GATE)"
+                )
+            suggested_action = _combined_research_suggested_action(
+                data_priority,
+                qualitative_needed,
+                validation_status,
+                coverage_status,
+                external_candidate_needed=external_candidate_needed,
+            )
 
             rows.append(
                 {
@@ -729,6 +744,18 @@ def _qualitative_report_needed_from_analysis(
     return analysis.get("add_eligibility_status") in ADD_ALLOWED_STATUSES or _looks_recommended_for_allocation(analysis)
 
 
+def _external_allocation_candidate_needs_report(
+    analysis: dict[str, Any],
+    universe: str,
+) -> bool:
+    if str(universe or "").upper() not in {"WATCHLIST", "MARKET_SCANNER", "DISCOVERY_IDEAS"}:
+        return False
+    allocation_status = str(analysis.get("allocation_status") or analysis.get("allocation_decision") or "")
+    if allocation_status != "ELIGIBLE_BUT_NOT_SELECTED":
+        return False
+    return analysis.get("add_eligibility_status") in ADD_ALLOWED_STATUSES
+
+
 def _looks_recommended_for_allocation(analysis: dict[str, Any]) -> bool:
     for field in ["allocation_decision", "final_position_action", "decision"]:
         text = str(analysis.get(field) or "").strip().upper()
@@ -799,12 +826,15 @@ def _combined_research_suggested_action(
     qualitative_needed: bool,
     validation_status: str,
     coverage_status: str,
+    external_candidate_needed: bool = False,
 ) -> str:
     actions = []
     if data_priority:
         actions.append(_research_suggested_action(validation_status, coverage_status))
     if qualitative_needed:
         actions.append("Chercher un rapport analyste ou annuel pour activer le texte qualitatif sourcé: moat, rempart, résilience en crise et pouvoir de prix.")
+    if external_candidate_needed:
+        actions.append("Chercher un rapport BNCD/Morningstar avant toute allocation réelle vers cette position externe.")
     return " ".join(dict.fromkeys(actions))
 
 
