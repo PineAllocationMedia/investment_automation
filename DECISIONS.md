@@ -15,6 +15,80 @@ This ensures long-term consistency and prevents model drift.
 
 # 📌 Decisions
 
+## [2026-07-22] Invalidation de l'Option B — le diagnostic de l'étape 7 était erroné
+
+Niveau 3 — Proposition retirée avant spécification.
+
+### CONTEXTE
+L'étape 7 (déclencher une recommandation de rapport BNCD pour toute position
+proposée à l'allocation mais non détenue) avait été abandonnée dans sa forme
+initiale. Motif invoqué : sur 266 titres, aucun candidat externe n'atteignait
+ADD_ALLOWED ; les 7 titres éligibles étaient tous CORE_PORTFOLIO ; le
+déclencheur ajouterait 0 ligne. L'Option B avait été retenue en remplacement :
+redéfinir le déclencheur vers les candidats externes bloqués UNIQUEMENT par
+la donnée.
+
+### CE QUE LE DIAGNOSTIC CHIFFRÉ RÉVÈLE
+Le croisement add_eligibility_status × universe, lu directement dans
+reports/latest_analysis_snapshot_high-cagr.json après persistance des champs
+décisionnels, donne sur 266 titres :
+
+  ADD_ALLOWED + ADD_ALLOWED_SMALL : 52 titres
+- CORE_PORTFOLIO : 7
+- externes : 45 (MARKET_SCANNER 28, DISCOVERY_IDEAS 16, WATCHLIST 1)
+
+Le chiffre 7 du diagnostic précédent était le compte des CORE, et non le
+compte des titres éligibles. Le diagnostic lisait un artefact restreint au
+CORE, ou filtrait sur l'univers sans l'expliciter.
+
+Sur les 9 candidats identifiés comme « proches », 8 portent déjà un statut
+permissif :
+  TER, AMAT : ADD_ALLOWED
+  TEL, XYL, ADI, NVDA, TSM, TXN : ADD_ALLOWED_SMALL
+  DELL : MANUAL_REVIEW_BEFORE_ADD
+
+### CONSÉQUENCES
+1. L'Option B est CADUQUE. Sa prémisse — des candidats externes bloqués par
+   la donnée — est fausse. add_eligibility_engine.py les autorise déjà. Le
+   blocage, s'il existe, est en aval de l'éligibilité.
+2. L'étape 7 dans sa FORME INITIALE redevient viable. Le déclencheur
+   porterait sur 45 positions externes proposables et non détenues, et non
+   sur 0. Elle repasse en Niveau 2 : plus aucune redéfinition n'est requise.
+3. Le motif d'abandon de l'étape 7 [voir entrée antérieure] est annulé.
+
+### CAUSE RACINE ET LEÇON
+Quatrième diagnostic successif de l'étape 7 à conclure faux en lisant un
+artefact incomplet. Les trois premiers avaient été détectés par recoupement ;
+celui-ci n'a pu être réfuté qu'après persistance des champs décisionnels dans
+le snapshot, qui a rendu la mesure directe possible.
+
+Règle retenue : tout diagnostic chiffré doit expliciter la source lue, son
+périmètre d'univers, et le dénominateur exact. Un compte sans dénominateur
+nommé n'est pas un diagnostic.
+
+### OBSERVATION CONSIGNÉE — à traiter séparément
+MANUAL_REVIEW_BEFORE_ADD compte 127 titres, soit 48 % de l'univers, avec une
+seule et unique raison distincte, identique mot pour mot pour les 127 :
+« Alerte de surveillance à valider manuellement avant ajout. »
+
+Répartition : DISCOVERY_IDEAS 65, MARKET_SCANNER 59, WATCHLIST 2,
+CORE_PORTFOLIO 1.
+
+Ce statut ne peut provenir que de la branche monitoring_status ==
+"MANUAL_REVIEW" de compute_add_eligibility_status(), atteinte via
+liquidation_status == "YELLOW" avec signaux techniques/valorisation non
+confirmés et détection de la chaîne « Validation manuelle requise » par
+_has_unconfirmed_fundamental_warning().
+
+Qu'un tel volume porte un message rigoureusement uniforme suggère un
+déclencheur systématique plutôt qu'une file de validation légitime. Si la
+moitié de l'univers porte en permanence une alerte que personne ne traite, le
+statut cesse de porter de l'information. Sujet de CONFIANCE, distinct de
+l'étape 7. Diagnostic requis dans liquidation_engine.py pour identifier
+l'origine de la chaîne. Non traité à ce stade.
+
+---
+
 ## [2026-07-22] Persistance des champs décisionnels dans le snapshot d'analyse
 
 Niveau 2 — Approuvé, implémenté, vérifié.
