@@ -15,6 +15,47 @@ This ensures long-term consistency and prevents model drift.
 
 # 📌 Decisions
 
+## [2026-07-22] Persistance des champs décisionnels dans le snapshot d'analyse
+
+Niveau 2 — Approuvé, implémenté, vérifié.
+
+Ajout de trois champs à `SNAPSHOT_FIELDS` (`src/history_engine.py`) :
+`add_eligibility_status`, `add_eligibility_reason`, `auto_estimate_dependency`.
+
+Aucun calcul nouveau. Ces champs sont déjà produits par
+`compute_add_eligibility_status()` (`src/add_eligibility_engine.py`) et par
+`src/data_reliability_engine.py` ; ils n'étaient simplement pas projetés dans
+le snapshot par `_snapshot_row()`.
+
+Motif : le système écartait des candidats à chaque run sans tracer pourquoi.
+Lacune d'auditabilité réelle. Rend Dette-03 caduque.
+
+Vérification : 577 tests OK avant et après, SCORE_STABILITY STABLE avant et
+après, 266/266 titres portent les trois champs remplis, git diff = 3 lignes
+ajoutées / 0 supprimée dans un seul fichier.
+
+Diff CSV : exonéré par double run sans changement de code. Les deltas CSV
+observés (`market_data_age_hours`, `market_data_fetched_at`, `run_id`,
+`timestamp`, `canadian_checked_at`, `avg_latency_ms`, `observation_count`) se
+reproduisent à l'identique entre deux runs consécutifs sans patch. Bruit de run,
+pas régression.
+
+Distribution obtenue sur 266 titres :
+MANUAL_REVIEW_BEFORE_ADD 127, DO_NOT_ADD 81, ADD_ALLOWED_SMALL 28,
+ADD_ALLOWED 24, ETF_HOLD_ONLY 5, BENCHMARK_FALLBACK 1.
+
+Manifestation de Dette-01 : le snapshot mode-scoped s'écrit
+`reports/latest_analysis_snapshot_high-cagr.json` (tiret, via `_mode_slug` de
+`history_engine.py`), et non `high_cagr` comme le produit `mode_artifacts.py`.
+Tout prompt futur référençant un artefact mode-scoped doit vérifier la
+convention du moteur concerné avant de nommer le fichier.
+
+Hors périmètre, à arbitrer ultérieurement : `add_eligibility_size` est produit
+par `add_eligibility_engine.py` mais reste non persisté ; la nécessité de
+propager ces champs aux trois CSV externes n'est pas tranchée.
+
+---
+
 ## [2026-07-22] Artefacts research_needed et validation_priority mode-scoped (Niveau 2, Approuvé)
 
 **Constat.** La décision [2026-07-01] impose que les artefacts `latest_*` produits
