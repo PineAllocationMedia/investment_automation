@@ -15,6 +15,88 @@ This ensures long-term consistency and prevents model drift.
 
 # 📌 Decisions
 
+## [2026-07-23] Dossier MANUAL_REVIEW_BEFORE_ADD — 1a, propagation des raisons réelles
+
+Niveau 1 — Approuvé, implémenté, vérifié.
+
+### CONSTAT
+`MANUAL_REVIEW_BEFORE_ADD` comptait 127 titres sur 266 (48 % de l'univers) avec
+une seule et unique raison distincte, identique mot pour mot pour les 127 :
+« Alerte de surveillance à valider manuellement avant ajout. »
+
+Un statut porté par la moitié de l'univers avec un message rigoureusement
+uniforme ne porte plus d'information. Le champ `add_eligibility_reason`
+n'exposait pas les `monitoring_reasons` réelles pourtant déjà calculées par
+`liquidation_engine._monitoring_fields()` et disponibles dans l'analyse.
+
+### DIAGNOSTIC CHIFFRÉ — source, périmètre, dénominateur
+Sources lues :
+  reports/diagnostics/external_trigger_scope_2026-07-22_capital.md
+  reports/diagnostics/manual_review_causes_2026-07-23.md
+  reports/diagnostics/universe_duplicate_check_2026-07-23.md
+Run analyze high-cagr, capital strictement positif.
+Dénominateur : 266 lignes d'analyse pour 265 tickers distincts.
+
+CAUSE RACINE ÉTABLIE : le statut n'est pas un jugement sur les entreprises.
+C'est la conséquence mécanique de `_field_confirmed()` qui retourne
+`field not in auto_fields` → False pour tout champ issu de
+`auto_estimated_fields`. Mesure sur les 127 titres : entre 97 et 127 titres
+ont chaque champ dans `auto_estimated_fields` selon le champ
+(`sector_cagr_estimated` : 127/127). Le statut signifie en réalité
+« ce titre n'a jamais fait l'objet d'un rapport de recherche ».
+
+Chaîne réelle vérifiée par lecture du code, différente de l'hypothèse initiale :
+`_monitoring_fields()` calcule `monitoring_status` AVANT tout branchement de
+statut et l'injecte via `**monitoring` dans les retours GREEN, YELLOW et
+fallback. MANUAL_REVIEW n'exige donc PAS un statut YELLOW.
+Mesure : 128 GREEN / 9 YELLOW sur `monitoring_status` ;
+127/127 GREEN sur MANUAL_REVIEW_BEFORE_ADD. Les YELLOW sont interceptés en
+amont par les gardes DO_NOT_ADD de `compute_add_eligibility_status()`.
+
+Boucle fermée confirmée : 126/127 absents de `research_needed`. Le seul présent
+(ARAY) y est entré par `need_type=DATA`, pas par son statut.
+
+Multi-causalité : seuls 13 titres sur 127 portent une raison unique.
+114 en portent 2 à 9. Aucune correction chirurgicale ne débloque la majorité.
+
+TSLA présent dans `watchlist_analyses` ET `discovery_analyses`, valeurs
+strictement identiques. Hors population MANUAL_REVIEW. Impact sur les
+diagnostics passés : nul (127 par lignes = 127 par tickers distincts).
+
+### CHANGEMENT
+`src/add_eligibility_engine.py` uniquement :
+- La branche `monitoring_status == "MANUAL_REVIEW"` lit désormais
+  `analysis["monitoring_reasons"]` et les joint par « | » dans
+  `add_eligibility_reason`.
+- Repli sur le message générique si `monitoring_reasons` est vide.
+- Aucun changement de statut, de seuil, de tri ou d'allocation.
+
+### VÉRIFICATION
+582 tests, SCORE_STABILITY STABLE avant et après.
+Code livré lu et validé, conforme au prompt, aucun ajout hors demande.
+V3 : 127 → 127 titres MANUAL_REVIEW_BEFORE_ADD (non-régression du périmètre).
+V4 : 1 → 82 chaînes de raison distinctes.
+V5 : 0 anomalie.
+V6 : aucune allocation modifiée.
+git diff : 1 seul fichier touché.
+
+### DETTE CONSIGNÉE — Dette-03 (nouvelle)
+Le mécanisme de détection de `_has_unconfirmed_fundamental_warning()` repose
+sur du pattern-matching de la chaîne littérale française
+« Validation manuelle requise ». Toute correction de typo dans une chaîne
+émise par `_unconfirmed_fundamental_sell_signals()` peut changer un statut
+silencieusement sur 54 titres. Cause racine de la duplication de signaux
+mesurée (bilan affaibli 54/54, Forward P/E 40/40). NE PAS déduplier en
+l'état. Différé.
+
+### SUITE
+1b : renommage du statut vers un nom reflétant la cause réelle.
+Audit read-only des références livré le 2026-07-23 : 2 occurrences
+productrices dans `add_eligibility_engine.py`, 0 dans `main.py`, 0 dans
+`report_generator.py`, 2 assertions de test. `liquidation_engine.py` porte la
+même chaîne dans le champ DISTINCT `monitoring_decision` — hors périmètre du
+renommage. Level 1 confirmé, pas Level 2.
+
 ## [2026-07-22] Étape 7 — déclencheur de rapport BNCD pour position externe proposable
 
 Niveau 2 — Approuvé, implémenté, vérifié.

@@ -60,7 +60,13 @@ def compute_add_eligibility_status(analysis: dict[str, Any]) -> dict[str, Any]:
         return status_result("DO_NOT_ADD", "Détérioration répétée dans l’historique.", "NONE")
 
     if monitoring_status == "MANUAL_REVIEW":
-        return status_result("MANUAL_REVIEW_BEFORE_ADD", "Alerte de surveillance à valider manuellement avant ajout.", "NONE")
+        monitoring_reasons = _as_list(analysis.get("monitoring_reasons"))
+        if monitoring_reasons:
+            monitoring_reason_text = " | ".join(monitoring_reasons)
+            add_reason = f"Alerte de surveillance à valider manuellement avant ajout : {monitoring_reason_text}"
+        else:
+            add_reason = "Alerte de surveillance à valider manuellement avant ajout."
+        return status_result("MANUAL_REVIEW_BEFORE_ADD", add_reason, "NONE")
     if monitoring_status == "WATCH":
         if _has_unconfirmed_fundamental_warning(technical_or_valuation):
             return status_result("MANUAL_REVIEW_BEFORE_ADD", "Alerte fondamentale non confirmée; validation manuelle avant ajout.", "NONE")

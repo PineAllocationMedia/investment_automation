@@ -20,3 +20,7 @@ reports/
 
 # Local backups
 backups/
+
+# Scripts de diagnostic ponctuels — la preuve est le rapport .md dans
+# reports/diagnostics/, pas le script. Voir DECISIONS.md [2026-07-23].
+scripts/diagnose_*.py
