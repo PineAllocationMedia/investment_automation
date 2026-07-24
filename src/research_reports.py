@@ -570,6 +570,7 @@ def research_needed_rows_from_reports(reports_dir: str | Path = REPORTS_DIR) -> 
 def research_needed_rows_from_analysis_rows(
     analysis_groups_by_universe: dict[str, dict[str, dict[str, Any]]],
     existing_reports: dict[str, dict[str, Any]] | None = None,
+    limit: int | None = None,
 ) -> list[dict[str, Any]]:
     from .validation_priority_engine import ticker_validation_value_score
 
@@ -675,7 +676,7 @@ def research_needed_rows_from_analysis_rows(
             )
 
     priority_rank = {"HIGH": 0, "MEDIUM": 1, "LOW": 2}
-    return sorted(
+    ordered = sorted(
         rows,
         key=lambda row: (
             -(safe_float(row.get("ticker_potential_score")) or 0.0),
@@ -686,6 +687,24 @@ def research_needed_rows_from_analysis_rows(
             str(row.get("ticker")),
         ),
     )
+    if limit is None:
+        return ordered
+
+    capped: list[dict[str, Any]] = []
+    external_pure_count = 0
+    for row in ordered:
+        need_type = str(row.get("need_type") or "")
+        need_tokens = {token.strip() for token in need_type.split("+") if token.strip()}
+        if need_type == "EXTERNAL_CANDIDATE":
+            if external_pure_count < limit:
+                capped.append(row)
+                external_pure_count += 1
+            continue
+        if need_tokens & {"DATA", "QUALITATIVE"}:
+            capped.append(row)
+        else:
+            capped.append(row)
+    return capped
 
 
 def research_report_has_usable_fields(research: dict[str, Any] | None) -> bool:

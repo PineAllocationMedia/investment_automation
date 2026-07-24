@@ -203,6 +203,7 @@ VALID_MODES = {"balanced", "rational-aggressive", "family-office", "high-cagr"}
 # des demandes de rapports BNCD/Morningstar. Évite de polluer la liste
 # research-needed avec des candidats faibles parmi les 100+ tickers Discovery.
 DISCOVERY_VALIDATION_PRIORITY_MIN_SCORE = 70
+EXTERNAL_CANDIDATE_REPORT_CAP = 30
 
 
 def expand_exclusions_with_alias_inputs(excluded_tickers: set[str], ticker_aliases: dict[str, dict[str, str]]) -> set[str]:
@@ -1876,6 +1877,7 @@ def run_analysis(
                 "DISCOVERY_IDEAS": discovery_for_validation,
             },
             existing_reports=research_inputs,
+            limit=EXTERNAL_CANDIDATE_REPORT_CAP,
         )
         write_csv_records_mode_pair(
             REPORTS_DIR,

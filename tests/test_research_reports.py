@@ -850,6 +850,68 @@ class ResearchReportsTest(unittest.TestCase):
         self.assertIn("DATA", rows[0]["need_type"])
         self.assertIn("EXTERNAL_CANDIDATE", rows[0]["need_type"])
 
+    def test_research_needed_limit_caps_pure_external_candidates_only(self):
+        def external_candidate(
+            ticker: str,
+            *,
+            data_quality: str = "HIGH",
+            data_reliability_level: str = "HIGH",
+            auto_estimate_dependency: str = "LOW",
+            automation_evidence_level: str = "STRONG",
+            score_evidence_level: str = "AUTOMATED_STRONG",
+            manual_required_criteria: list[str] | None = None,
+            auto_estimated_fields: list[str] | None = None,
+        ) -> dict[str, object]:
+            return {
+                "ticker": ticker,
+                "ticker_display": ticker,
+                "data_quality": data_quality,
+                "data_reliability_level": data_reliability_level,
+                "auto_estimate_dependency": auto_estimate_dependency,
+                "automation_evidence_level": automation_evidence_level,
+                "score_evidence_level": score_evidence_level,
+                "manual_required_criteria": manual_required_criteria or [],
+                "auto_estimated_fields": auto_estimated_fields or [],
+                "add_eligibility_status": "ADD_ALLOWED",
+                "allocation_status": "ELIGIBLE_BUT_NOT_SELECTED",
+                "allocation_decision": "ELIGIBLE_BUT_NOT_SELECTED",
+                "capital_allocation_score": 88,
+            }
+
+        analyses = {
+            "WATCHLIST": {
+                "WTOP": external_candidate("WTOP"),
+            },
+            "MARKET_SCANNER": {
+                "MMID": external_candidate("MMID"),
+                "MIXD": external_candidate(
+                    "MIXD",
+                    data_quality="LOW",
+                    data_reliability_level="LOW",
+                    auto_estimate_dependency="HIGH",
+                    automation_evidence_level="WEAK",
+                    score_evidence_level="ESTIMATE_HEAVY",
+                    manual_required_criteria=["C1: roic_5y_avg", "C4: moat_clear", "C10: fair_value"],
+                    auto_estimated_fields=["fair_value", "moat_clear", "roic_5y_avg"],
+                ),
+            },
+            "DISCOVERY_IDEAS": {
+                "DLOW": external_candidate("DLOW"),
+            },
+        }
+
+        capped_rows = research_needed_rows_from_analysis_rows(analyses, {}, limit=2)
+        uncapped_rows = research_needed_rows_from_analysis_rows(analyses, {})
+
+        pure_external_rows = [row for row in capped_rows if row["need_type"] == "EXTERNAL_CANDIDATE"]
+        self.assertEqual(len(pure_external_rows), 2)
+        self.assertIn("MIXD", {row["ticker"] for row in capped_rows if row["need_type"] == "DATA+EXTERNAL_CANDIDATE"})
+        self.assertEqual(len(uncapped_rows), 4)
+
+        pure_tickers = {row["ticker"] for row in pure_external_rows}
+        self.assertEqual(pure_tickers, {"WTOP", "MMID"})
+        self.assertNotIn("DLOW", pure_tickers)
+
     def test_research_needed_skips_etf_assets(self):
         analyses = {
             "CORE_PORTFOLIO": {
