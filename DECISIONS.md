@@ -15,6 +15,68 @@ This ensures long-term consistency and prevents model drift.
 
 # 📌 Decisions
 
+## [2026-07-24] Option 3 — Plafond des déclencheurs de rapport BNCD pour candidats externes purs
+
+**Niveau : 3 (architectural). Statut : Approuvé (décision CEO du 2026-07-24).**
+
+### Contexte
+
+Le déclencheur de rapport BNCD pour positions externes proposables
+(`_external_allocation_candidate_needs_report`, livré au commit `1d031e4`) émettait, sur le
+chemin pipeline autoritatif (`run_analysis`, 4 univers), une population non plafonnée de lignes
+`EXTERNAL_CANDIDATE`. Deux diagnostics read-only ont établi la population réelle :
+
+- `option3_denominateur_20260724.md` : dénominateur de la porte externe = 33 (> 30), ventilé
+  WATCHLIST 1 / MARKET_SCANNER 27 / DISCOVERY_IDEAS 5 / CORE 0 ; contrôle-croisé sonde vs
+  artefact mode-scoped 33 = 33 ; part moyenne de la Catégorie B (faiblesse des données) dans le
+  score de tri = 32,4 % ; 6 lignes basculeraient au seuil de rang 30 selon que le tri utilise
+  le score complet ou la seule Catégorie A ; intersection `EXTERNAL_CANDIDATE ∩ MANUAL_REVIEW`
+  = 0/33.
+- `option3_repartition_externe_20260724.md` : parmi les 33, **31 externe pur**
+  (`need_type == "EXTERNAL_CANDIDATE"`) et **2 mixtes** `DATA+EXTERNAL_CANDIDATE` (`WAB`,
+  `MOD`) ; contrôle-croisé 33 = 33, écart 0.
+
+### Décision
+
+1. Ajout d'un plafond sur le segment **externe-pur** des lignes émises par
+   `research_needed_rows_from_analysis_rows`, fixé à **30**, appliqué par
+   `ticker_potential_score` décroissant.
+2. Le tri utilise le **score complet** `ticker_validation_value_score` (Catégorie B —
+   faiblesse des données — incluse), décision CEO assumée : un titre mal documenté proposé à
+   l'achat mérite un rapport précisément à cause de cette faiblesse. Le score n'est pas épuré.
+3. Les lignes portant un besoin `DATA` et/ou `QUALITATIVE` (y compris les mixtes
+   `DATA+EXTERNAL_CANDIDATE`) ne sont **jamais** coupées par ce plafond. La qualité des données
+   reste prioritaire : le plafond régule la prolifération des candidats externes, pas les
+   besoins de validation de données.
+4. Implémentation par paramètre `limit: int | None = None` sur
+   `research_needed_rows_from_analysis_rows` (pattern aligné sur `build_validation_priority_rows`),
+   troncature **sélective** appliquée après le tri (les lignes préservées passent
+   inconditionnellement ; les externe-pures sont retenues jusqu'à `limit`, l'ordre d'origine
+   étant conservé). `limit=30` est passé **au seul site pipeline** (`run_analysis`) ; le site
+   CLI (`build_research_needed_rows_from_current_inputs`) reste sans plafond.
+5. Aucune assertion de test existante inversée. Un test de cap est ajouté couvrant : troncature
+   du segment externe-pur à la limite, préservation des lignes mixtes, sélection des plus hauts
+   scores, et rétrocompatibilité `limit=None`.
+
+### Effet mesuré sur la population courante
+
+Externe-pur 31 → 30 (1 externe-pure de plus bas score omise) ; 2 mixtes (`WAB`, `MOD`)
+préservées ; total `EXTERNAL_CANDIDATE` 33 → 32.
+
+### Contraintes respectées
+
+REFACTOR-01 (aucune fonction ajoutée à `utils.py`), REFACTOR-02 (aucune dépendance ajoutée à
+`report_generator.py`), isolation des modes [2026-07-01]. Aucun changement de comportement hors
+du plafond ; portes de déclenchement et calcul de score inchangés.
+
+### Vérification à l'exécution
+
+Tests : 583 ; SCORE_STABILITY :
+STABLE. Vérification comportementale pipeline `high-cagr` : externe-pur
+30, mixtes `WAB`/`MOD` présentes, total
+`EXTERNAL_CANDIDATE` 32. Fichiers touchés :
+main.py | 2 ++ ; src/research_reports.py | 21 +++++++++++++- ; tests/test_research_reports.py | 62 ++++++++++++++++++++++++++++++++++++++++++ ; 3 files changed, 84 insertions(+), 1 deletion(-). Commit : 5c3d80e.
+
 ## [2026-07-24] Renommage MANUAL_REVIEW_BEFORE_ADD → RESEARCH_REPORT_REQUIRED_BEFORE_ADD (dossier MANUAL_REVIEW 1b)
 
 Type : Level 1 (renommage d'un statut interne, aucun changement de comportement).
