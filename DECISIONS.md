@@ -15,6 +15,63 @@ This ensures long-term consistency and prevents model drift.
 
 # 📌 Decisions
 
+## [2026-07-24] Renommage MANUAL_REVIEW_BEFORE_ADD → RESEARCH_REPORT_REQUIRED_BEFORE_ADD (dossier MANUAL_REVIEW 1b)
+
+Type : Level 1 (renommage d'un statut interne, aucun changement de comportement).
+Statut : Appliqué.
+
+### Motivation
+Le statut MANUAL_REVIEW_BEFORE_ADD ne décrivait pas l'action attendue mais une
+cause. Le micro-diagnostic read-only du 2026-07-24
+(reports/diagnostics/manual_review_paths_20260724.md) a établi, contrôle croisé
+FIABLE (127 live = 127 persistés, écart 0), que les 127 titres portant ce statut
+proviennent à 100 % de la branche native (monitoring_status == "MANUAL_REVIEW",
+« A1 ») : A2 synthétisé = 0, B WATCH non confirmé = 0, non classés = 0. Le statut
+signifie en pratique « aucun rapport de recherche n'a jamais couvert ce titre ».
+Le nouveau nom, RESEARCH_REPORT_REQUIRED_BEFORE_ADD, nomme l'action attendue et
+s'aligne sur l'option 3 à venir, qui fera de ces titres des candidats
+research_needed.
+
+### Portée du renommage
+Établie par l'audit des références (2026-07-23) et confirmée par relecture
+directe des deux fichiers de tests (2026-07-24). Quatre occurrences littérales,
+trois fichiers :
+- src/add_eligibility_engine.py : 2 sites producteurs dans
+  compute_add_eligibility_status (branche monitoring_status == "MANUAL_REVIEW",
+  et branche WATCH + _has_unconfirmed_fundamental_warning).
+- tests/test_add_eligibility.py : 1 assertion
+  (test_unconfirmed_fundamental_warning_requires_manual_review).
+- tests/test_research_reports.py : 1 valeur d'entrée
+  (test_research_needed_external_candidate_requires_add_allowed_status).
+
+### Exclusion assumée
+src/liquidation_engine.py porte la même chaîne dans le champ DISTINCT
+monitoring_decision (produit par _monitoring_fields()), régi par un contrat
+séparé. Il est explicitement HORS périmètre. Un remplacement global aurait cassé
+silencieusement ce contrat.
+
+### Discontinuité des artefacts historiques
+La chaîne apparaît dans des run logs JSON et CSV de backup antérieurs. AUCUNE
+migration n'est effectuée. Le champ add_eligibility_status n'a été ajouté à
+SNAPSHOT_FIELDS que le 2026-07-22 ; l'historique exploitable a un jour. Le
+walk-forward compare des scores et des allocations, jamais des chaînes de statut.
+Réécrire des artefacts datés falsifierait des traces d'audit. La discontinuité
+est donc assumée et sans impact sur le walk-forward.
+
+### Continuité de comportement et limite de portée
+Le renommage ne modifie aucun comportement. En particulier, le test
+test_research_needed_external_candidate_requires_add_allowed_status conserve son
+assertion (rows == []) : à ce stade, le statut renommé n'est toujours pas traité
+comme candidat externe. La sémantique de ce test changera à l'option 3 (le statut
+renommé déclenchera research_needed), ce qui relèvera d'une entrée DECISIONS.md
+distincte. La présente entrée ne fige donc aucun contrat que l'option 3 viderait.
+
+### Vérification
+- Tests avant : 582 OK. Tests après : 582 OK.
+- SCORE_STABILITY après : STABLE.
+- git diff --stat : src/add_eligibility_engine.py | 4 ++--; tests/test_add_eligibility.py | 2 +-; tests/test_research_reports.py | 2 +-; 3 files changed, 4 insertions(+), 4 deletions(-).
+- Commit code+tests : ae91c04.
+
 ## [2026-07-23] Dossier MANUAL_REVIEW_BEFORE_ADD — 1a, propagation des raisons réelles
 
 Niveau 1 — Approuvé, implémenté, vérifié.
