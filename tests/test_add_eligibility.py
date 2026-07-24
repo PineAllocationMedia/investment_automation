@@ -80,7 +80,7 @@ class AddEligibilityTest(unittest.TestCase):
             }
         )
 
-        self.assertEqual(result["add_eligibility_status"], "MANUAL_REVIEW_BEFORE_ADD")
+        self.assertEqual(result["add_eligibility_status"], "RESEARCH_REPORT_REQUIRED_BEFORE_ADD")
 
 
 if __name__ == "__main__":

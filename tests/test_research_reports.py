@@ -763,7 +763,7 @@ class ResearchReportsTest(unittest.TestCase):
                     "automation_evidence_level": "STRONG",
                     "manual_required_criteria": [],
                     "auto_estimated_fields": [],
-                    "add_eligibility_status": "MANUAL_REVIEW_BEFORE_ADD",
+                    "add_eligibility_status": "RESEARCH_REPORT_REQUIRED_BEFORE_ADD",
                     "allocation_status": "ELIGIBLE_BUT_NOT_SELECTED",
                     "capital_allocation_score": 88,
                 }
