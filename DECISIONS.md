@@ -15,6 +15,109 @@ This ensures long-term consistency and prevents model drift.
 
 # 📌 Decisions
 
+## [2026-07-25] Incohérence cosmétique du signal ELIGIBLE_BUT_NOT_SELECTED — clôture Dossier 2 et clôture Phase 2 refonte BNCD
+
+**Niveau : 1 (documentation d'une non-action). Statut : Approuvé (décision CEO du 2026-07-25).**
+
+### Contexte
+
+Observation consignée dans l'entrée [2026-07-22] Étape 7 : VLO portait
+allocation_decision = ELIGIBLE_BUT_NOT_SELECTED et un add_eligibility_status
+permissif, mais capital_allocation_score = 10.90 (très bas). Ces signaux
+semblaient devoir être cohérents et ne l'étaient pas. Dernier item ouvert de la
+Phase 2 de la refonte BNCD.
+
+Diagnostic read-only reports/diagnostics/vlo_eligibility_incoherence_20260725.md,
+run high-cagr capital 1000, dénominateur 266 lignes / 265 tickers distincts.
+
+### Cause racine établie par lecture
+
+La triade ne provient pas d'une base unique réconciliée. Trois champs, trois
+chemins :
+- allocation_decision est dérivé APRÈS allocation dans
+  main.py::apply_final_decisions() : si le montant reçu est nul et que
+  add_eligibility_status ∈ {ADD_ALLOWED, ADD_ALLOWED_SMALL}, la décision devient
+  ELIGIBLE_BUT_NOT_SELECTED. capital_allocation_score n'entre PAS dans cette
+  branche.
+- add_eligibility_status (add_eligibility_engine.py) répond à « rien ne s'oppose-
+  t-il à un ajout ? » à partir de thesis_status, liquidation_status,
+  data_reliability_level, confirmed_fundamental_sell_signals, monitoring_status,
+  expected_cagr_quality, conviction_score. Il ne lit jamais
+  capital_allocation_score.
+- capital_allocation_score (sizing_engine.py) répond à « quelle priorité de
+  capital ? ». Il ne lit pas allocation_decision. Il lit en revanche
+  add_eligibility_status (ligne 227) pour appliquer une pénalité de sizing sur
+  ADD_ALLOWED_SMALL — couplage unidirectionnel, à sens inverse d'une
+  réconciliation, et non un point de réconciliation de la triade.
+
+L'incohérence est donc sémantique et voulue par l'architecture : « rien ne
+s'oppose à l'ajout » et « faible priorité de capital » sont deux questions
+distinctes qu'un même titre peut satisfaire simultanément. ELIGIBLE_BUT_NOT_
+SELECTED signifie « admissible qualitativement, non retenu par le sizing marginal
+de cette cotisation », ce que dit déjà allocation_decision_reason à ce site.
+
+### Mesure de la population
+
+6 tickers portent la triade exacte (allocation_decision ELIGIBLE_BUT_NOT_SELECTED
++ add_eligibility_status permissif + capital_allocation_score < 50), soit 12,5 %
+des 48 ELIGIBLE_BUT_NOT_SELECTED : ASML (CORE, 40.29), CS.TO (MARKET, 47.66),
+GWO.TO (MARKET, 49.60), MOD (MARKET, 49.17), WAB (MARKET, 37.54), VLO (DISCOVERY,
+10.90). Motif non propre à un univers (4 MARKET_SCANNER, 1 DISCOVERY_IDEAS,
+1 CORE_PORTFOLIO). Cinq des six scores frôlent le seuil de 50 (37–50) ; seul VLO
+à 10.90 présente un écart béant entre les deux définitions.
+
+### Impact décisionnel : nul
+
+_eligible() rejette tout titre high-cagr sous MODE_MIN_CAPITAL_SCORE["high-cagr"]
+= 50 ; _high_cagr_overflow_eligible() rejette sous 40. VLO à 10.90 échoue les
+deux. Sur le run courant, VLO reçoit 0 $ (allocations : VFV.TO 525, RHM.NE 250,
+APH 225 ; VLO absent du CSV d'allocations). L'incohérence est cosmétique /
+d'auditabilité : une étiquette mésinterprétable, jamais un défaut d'allocation.
+
+### Décision
+
+1. Aucune correction de code. Le comportement d'allocation est correct ; aucun
+   des 6 titres ne reçoit de capital indûment. La réponse proportionnée en phase
+   de maturation à « une étiquette peut se mésinterpréter » est de documenter la
+   sémantique, pas de refondre la logique qui la produit.
+2. Sémantique actée : ELIGIBLE_BUT_NOT_SELECTED = « admissible qualitativement
+   (thèse, liquidation, fiabilité), non retenu par le sizing marginal de la
+   cotisation ». Il ne signifie NI « proche d'être alloué » NI « capital_
+   allocation_score élevé ». Un capital_allocation_score bas coexiste
+   légitimement avec ce statut.
+3. Option de réconciliation (faire dépendre l'étiquette de capital_allocation_
+   score) explicitement REJETÉE : elle déplacerait une distinction réelle sans
+   augmenter la fiabilité d'une décision, et casserait des consommateurs de
+   l'étiquette (rapport compact, ticker_validation_value_score). Échoue au filtre
+   de maturation.
+
+### Dette consignée — Dette-04 (nouvelle, optionnelle, différée)
+
+Piste d'auditabilité, non prioritaire : distinguer visuellement les cas-frontière
+(cap_score frôlant le seuil) des cas à écart béant (VLO à 10.90), p. ex. via une
+étiquette dérivée ELIGIBLE_LOW_PRIORITY lorsque cap_score est nettement sous le
+seuil du mode. Niveau 2 si un jour retenu. Ne rectifie aucun comportement ; pur
+confort d'audit. Différée sans échéance.
+
+### Clôture de la Phase 2 de la refonte BNCD
+
+VLO était le dernier item ouvert de la Phase 2 (refonte du sous-système des
+rapports de recherche BNCD, entrée [2026-07-21]). Avec cette entrée, la Phase 2
+est CLOSE. Récapitulatif des livrables Phase 2 : étapes 6(a–e) priorisation,
+étape 7 déclencheur externe, Option 3 plafond candidats externes, renommage 1b,
+garde-fou de vraisemblance juste-valeur [2026-07-24], et la présente clôture VLO.
+Dettes reportées hors Phase 2 : Dette-01 (conventions de slug high_cagr vs
+high-cagr), Dette-02 (infrastructure mode-slug parallèle dans report_generator.py),
+Dette-03 (pattern-matching de chaîne française dans
+_has_unconfirmed_fundamental_warning), Dette-04 (clarification d'étiquette
+ci-dessus). Validation walk-forward toujours différée jusqu'à accumulation
+naturelle de points espacés.
+
+### Contraintes respectées
+
+REFACTOR-01, REFACTOR-02, isolation des modes [2026-07-01] : sans objet (aucun
+code modifié). Aucun changement de comportement.
+
 ## [2026-07-24] Garde-fou de vraisemblance juste-valeur — clôture Phase 2 refonte BNCD
 
 **Niveau : 2. Statut : Approuvé (décision CEO du 2026-07-24).**
