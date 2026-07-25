@@ -115,6 +115,62 @@ class ResearchReportsTest(unittest.TestCase):
 
         self.assertEqual(extract_broker_target_price(text), 3400.0)
 
+    def test_implausible_fair_value_guard_rejects_corrupted_report_value(self):
+        from main import _reject_implausible_fair_value
+
+        manual = {
+            "ticker": "CSU.TO",
+            "fair_value": 3.6,
+            "research_report_fields": ["fair_value", "moat_clear"],
+            "research_report_extraction_warnings": ["existing warning"],
+        }
+        market = {"current_price": 2780.49}
+
+        _reject_implausible_fair_value(manual, market)
+
+        self.assertNotIn("fair_value", manual)
+        self.assertEqual(manual["research_report_fields"], ["moat_clear"])
+        self.assertIn("existing warning", manual["research_report_extraction_warnings"])
+        warning = manual["research_report_extraction_warnings"][-1]
+        self.assertIn("Fair value rejetée", warning)
+        self.assertIn("CSU.TO", warning)
+        self.assertIn("champ retiré avant scoring", warning)
+
+    def test_implausible_fair_value_guard_preserves_plausible_report_value(self):
+        from main import _reject_implausible_fair_value
+
+        manual = {
+            "ticker": "CSU.TO",
+            "fair_value": 3600.0,
+            "research_report_fields": ["fair_value"],
+            "research_report_extraction_warnings": [],
+        }
+        market = {"current_price": 2780.49}
+
+        _reject_implausible_fair_value(manual, market)
+
+        self.assertEqual(manual["fair_value"], 3600.0)
+        self.assertEqual(manual["research_report_fields"], ["fair_value"])
+        self.assertEqual(manual["research_report_extraction_warnings"], [])
+
+    def test_implausible_fair_value_guard_preserves_manual_override(self):
+        from main import _reject_implausible_fair_value
+
+        manual = {
+            "ticker": "CSU.TO",
+            "fair_value": 3.6,
+            "manual_override_fields": ["fair_value"],
+            "research_report_fields": ["fair_value"],
+            "research_report_extraction_warnings": [],
+        }
+        market = {"current_price": 2780.49}
+
+        _reject_implausible_fair_value(manual, market)
+
+        self.assertEqual(manual["fair_value"], 3.6)
+        self.assertEqual(manual["research_report_fields"], ["fair_value"])
+        self.assertEqual(manual["research_report_extraction_warnings"], [])
+
     def test_nbccm_forward_pe_uses_first_estimate_year_not_actual_year(self):
         text = (
             "NBCCM ESTIMATES & VALUATION\n"

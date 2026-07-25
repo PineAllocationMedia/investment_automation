@@ -204,6 +204,7 @@ VALID_MODES = {"balanced", "rational-aggressive", "family-office", "high-cagr"}
 # research-needed avec des candidats faibles parmi les 100+ tickers Discovery.
 DISCOVERY_VALIDATION_PRIORITY_MIN_SCORE = 70
 EXTERNAL_CANDIDATE_REPORT_CAP = 30
+FAIR_VALUE_IMPLAUSIBLE_RATIO = 20.0
 
 
 def expand_exclusions_with_alias_inputs(excluded_tickers: set[str], ticker_aliases: dict[str, dict[str, str]]) -> set[str]:
@@ -213,6 +214,34 @@ def expand_exclusions_with_alias_inputs(excluded_tickers: set[str], ticker_alias
         if resolved in expanded:
             expanded.add(normalize_ticker(input_ticker))
     return expanded
+
+
+def _reject_implausible_fair_value(manual: dict[str, Any], market: dict[str, Any]) -> None:
+    fair_value = safe_float(manual.get("fair_value"))
+    if fair_value is None or fair_value <= 0:
+        return
+    if "fair_value" in set(manual.get("manual_override_fields") or []):
+        return
+    price = safe_float(market.get("current_price"))
+    if price is None or price <= 0:
+        return
+
+    ratio = fair_value / price
+    if ratio <= FAIR_VALUE_IMPLAUSIBLE_RATIO and ratio >= 1 / FAIR_VALUE_IMPLAUSIBLE_RATIO:
+        return
+
+    ticker = str(manual.get("ticker") or "").strip() or "UNKNOWN"
+    manual.pop("fair_value", None)
+    manual["research_report_fields"] = [
+        field for field in manual.get("research_report_fields", []) if field != "fair_value"
+    ]
+    warnings = list(manual.get("research_report_extraction_warnings") or [])
+    warnings.append(
+        f"Fair value rejetée: {ticker} juste valeur {fair_value} vs "
+        f"prix {price} (ratio {ratio:.1f}×) — écart implausible >20×, "
+        f"probable corruption d'extraction; champ retiré avant scoring."
+    )
+    manual["research_report_extraction_warnings"] = warnings
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -2060,6 +2089,7 @@ def build_position_analyses(
             manual["research_report_fields"] = [
                 field for field in manual.get("research_report_fields", []) if field not in set(manual.get("manual_override_fields", []))
             ]
+        _reject_implausible_fair_value(manual, market)
 
         score = compute_fundamental_score(ticker, manual, market, benchmark)
         market_freshness = compute_market_data_freshness(market)
