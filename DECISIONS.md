@@ -15,6 +15,81 @@ This ensures long-term consistency and prevents model drift.
 
 # 📌 Decisions
 
+## [2026-07-24] Garde-fou de vraisemblance juste-valeur — clôture Phase 2 refonte BNCD
+
+**Niveau : 2. Statut : Approuvé (décision CEO du 2026-07-24).**
+
+### Contexte
+
+Dette technique explicitement différée en fin de Phase 2 dans l'entrée
+[2026-07-21]. Le bug d'origine (safe_float("3,600") → 3.6 au lieu de 3600),
+corrigé en Phase 1 étape 1, corrompait silencieusement des justes valeurs et
+promouvait des titres à tort. Le parsing est corrigé, mais aucune garde de
+vraisemblance n'était câblée : une valeur aberrante réapparaissant (autre
+format, autre source) n'était détectée par rien.
+
+Diagnostic read-only reports/diagnostics/fair_value_guard_denominateur_20260724.md,
+run high-cagr capital 1000, dénominateur 266 lignes / 265 tickers distincts :
+- 47 tickers analysés portent une fair_value issue d'un rapport.
+- Ratio fair_value / current_price borné : min 0.5257 (MU), médiane 1.0913,
+  max 1.9205 (CSGP). Aucun ratio > 20× ni < 1/20×.
+- CSU.TO (ground zero du bug d'origine) : fair_value 3600.0, prix 2780.49,
+  ratio 1.29 — sain, confirmant le correctif Phase 1.
+- 4 justes valeurs proviennent de cours cibles courtier (CS.TO, GFL.TO,
+  HPS-A.TO, WSP.TO), déjà marquées LOW / définition divergente par le code.
+
+La garde est donc PRÉVENTIVE, pas urgente : elle protège contre une future
+corruption d'extraction, pas une corruption vivante.
+
+### Décision
+
+1. Point de branchement : en aval, dans main.py::build_position_analyses(),
+   après résolution des overrides manuels et avant compute_fundamental_score.
+   parse_research_report ne reçoit pas le prix ; le faire remonter aurait exigé
+   un changement de signature et de la plomberie. Le site de fusion dispose déjà
+   de market["current_price"] — rejeté au profit du branchement aval sans
+   changement de signature.
+2. Seuil : écart > 20× (ou < 1/20×) entre juste valeur et dernier prix, fixé en
+   constante FAIR_VALUE_IMPLAUSIBLE_RATIO = 20.0. La population réelle vit sous
+   2× ; 20× ne peut se déclencher que sur une corruption d'extraction (le bug
+   d'origine était un écart ~770×).
+3. Comportement au déclenchement : REJET du champ fair_value (retiré de manual
+   et de research_report_fields avant scoring), avec avertissement explicite
+   nommant ticker, valeur, prix et ratio, dans le canal existant
+   research_report_extraction_warnings. Choix assumé du rejet plutôt que d'un
+   simple abaissement en confiance : un écart > 20× n'est pas une divergence de
+   définition (traitée en LOW pour les cours cibles courtier), c'est une quasi-
+   certitude de corruption ; une valeur corrompue laissée en LOW pourrait encore
+   fausser la fiabilité et la comparaison VFV, exactement le défaut d'origine.
+   Une juste valeur confirmée manuellement (fair_value ∈ manual_override_fields)
+   n'est JAMAIS rejetée : l'humain prime.
+4. Dette-01 (conventions de slug high_cagr vs high-cagr) et Dette-02
+   (infrastructure mode-slug parallèle dans report_generator.py) confirmées
+   séparables par lecture : research_reports.py n'a aucune logique de slug et le
+   site de fusion ne dépend d'aucune convention de slug. Elles restent différées
+   comme dossier distinct, hors périmètre de cette entrée.
+
+### Effet mesuré sur la population courante
+
+Aucun des 47 tickers exposés ne déclenche le rejet (tous ratios dans
+[0.5257, 1.9205]). CSU.TO préservé (ratio 1.29). Comportement d'allocation
+inchangé.
+
+### Contraintes respectées
+
+REFACTOR-01 (aucune fonction ajoutée à utils.py), REFACTOR-02 (aucune
+dépendance ajoutée à report_generator.py), isolation des modes [2026-07-01].
+Aucun changement de comportement hors la garde ; scoring, allocation et seuils
+inchangés. research_reports.py non modifié.
+
+### Vérification à l'exécution
+
+Tests : 586 ; SCORE_STABILITY :
+STABLE. Vérification comportementale
+high-cagr : aucun message "Fair value rejetée" sur le run courant, CSU.TO
+préservé. Fichiers touchés : main.py | 30 ++++++++++++++++++++++ ; tests/test_research_reports.py | 56 ++++++++++++++++++++++++++++++++++++++++++ ; 2 files changed, 86 insertions(+). Commit :
+7b16df4.
+
 ## [2026-07-24] Option 3 — Plafond des déclencheurs de rapport BNCD pour candidats externes purs
 
 **Niveau : 3 (architectural). Statut : Approuvé (décision CEO du 2026-07-24).**
