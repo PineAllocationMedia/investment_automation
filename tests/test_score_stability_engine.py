@@ -61,6 +61,39 @@ class ScoreStabilityEngineTests(unittest.TestCase):
         self.assertEqual(rows["GOOGL"]["stability_flag"], "UNSTABLE")
         self.assertEqual(rows["MSFT"]["stability_flag"], "WATCH")
 
+    def test_data_reliability_delta_alone_does_not_trigger(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            reports = Path(tmp)
+            _write_snapshot(
+                reports,
+                "2026-07-03T09:00:00",
+                [_analysis("MSFT", score_total=8.0, conviction_score=80, capital_allocation_score=75, data_reliability_score=90.0)],
+            )
+            _write_snapshot(
+                reports,
+                "2026-07-03T10:00:00",
+                [_analysis("MSFT", score_total=8.0, conviction_score=80, capital_allocation_score=75, data_reliability_score=90.0)],
+            )
+
+            signal = compute_score_stability(
+                reports,
+                "high-cagr",
+                {
+                    "MSFT": _analysis(
+                        "MSFT",
+                        score_total=8.0,
+                        conviction_score=80,
+                        capital_allocation_score=75,
+                        data_reliability_score=95.0,
+                    )
+                },
+            )
+
+        self.assertEqual(signal["status"], "STABLE")
+        rows = {row["ticker"]: row for row in signal["ticker_rows"]}
+        self.assertEqual(rows["MSFT"]["stability_flag"], "STABLE")
+        self.assertEqual(rows["MSFT"]["data_reliability_score_delta"], 5.0)
+
     def test_ignores_vfv_and_etfs(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             reports = Path(tmp)

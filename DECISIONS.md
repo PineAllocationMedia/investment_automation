@@ -118,6 +118,109 @@ naturelle de points espacés.
 REFACTOR-01, REFACTOR-02, isolation des modes [2026-07-01] : sans objet (aucun
 code modifié). Aucun changement de comportement.
 
+## [2026-07-25] Correction du faux positif structurel de la garde SCORE_STABILITY (exclusion de data_reliability_score du déclenchement)
+
+**Niveau : 3 (architectural — la garde SCORE_STABILITY est un invariant de gouvernance conditionnant la précondition de tous les prompts).**
+**Statut : Approuvé.**
+
+### Contexte et symptôme
+
+Deux runs `analyze --mode high-cagr` consécutifs le même jour, sans changement de
+données volontaire, produisaient `SCORE_STABILITY_UNSTABLE` sur 17 tickers. Le
+CSV `latest_score_stability.csv` du 2026-07-25 montrait un `data_reliability_score_delta`
+quasi uniforme de +3.0 sur 16 tickers sur 17 (GOOGL +1.75), alors que
+`score_total_delta`, `conviction_score_delta` et `capital_allocation_score_delta`
+restaient à 0.0 pour la majorité. La variation de fiabilité, à elle seule,
+faisait basculer 16 tickers en UNSTABLE.
+
+### Cause racine (mesurée)
+
+Deux faits établis par diagnostics read-only (rapports non commités sous
+`reports/diagnostics/`, gitignorés) :
+
+1. **Mécanisme de la garde.** `src/score_stability_engine.py` calcule, pour
+   chaque ticker, `max_delta = max(|delta|)` sur `NUMERIC_FIELDS = [score_total,
+   conviction_score, capital_allocation_score, data_reliability_score]`, et
+   déclenche UNSTABLE si `max_delta >= 3.0` (WATCH si `>= 1.5`).
+   `data_reliability_score` était donc traité à égalité stricte des trois scores
+   de jugement. Or ce score encode une pénalité de **fraîcheur dépendante du
+   temps** (fonction de l'écart entre l'instant du run et le timestamp de la
+   donnée) : il ne peut par construction être identique entre deux runs à des
+   instants différents. Le message de succès de la garde (« Tous les scores sont
+   identiques entre les deux runs du jour ») décrivait ainsi un objectif que le
+   design rendait inatteignable en usage normal.
+
+2. **Réécriture du cache.** Un run `analyze` peut modifier `data/cached_market_data/`
+   sans `--refresh-market-data` (maintenance de cache inconditionnelle ;
+   sous-cache `instrument_profiles` réécrit à chaque run avec allocations
+   positives ; rafraîchissement du cache prix racine conditionnel à
+   absence/âge/schéma). L'empreinte du répertoire de cache change donc entre deux
+   runs consécutifs, ce qui fait varier la pénalité de fraîcheur et, via le point
+   1, déclenche UNSTABLE.
+
+La conjonction produisait un **faux positif structurel** : la garde confondait
+l'instabilité du *jugement* (qu'elle doit surveiller) avec la variation de la
+*fraîcheur des données* (qui n'a aucune raison d'être stable dans le temps).
+
+### Décision
+
+Retrait de `data_reliability_score` de la liste `NUMERIC_FIELDS` qui pilote le
+calcul de `max_delta` et le déclenchement du flag, dans
+`src/score_stability_engine.py`.
+
+Conséquences voulues :
+- Le déclenchement UNSTABLE/WATCH ne dépend plus que des trois scores de jugement
+  (`score_total`, `conviction_score`, `capital_allocation_score`), qui doivent
+  légitimement être stables entre deux runs sur données identiques.
+- Les colonnes `data_reliability_score_prev/curr/delta` demeurent présentes dans
+  le CSV `latest_score_stability.csv` (renseignées par la fonction `_row`,
+  indépendamment de `NUMERIC_FIELDS`) : la fiabilité reste visible pour audit,
+  seule sa capacité à déclencher le flag est retirée.
+- Un test de non-régression (`test_data_reliability_delta_alone_does_not_trigger`)
+  fige ce comportement : un delta de fiabilité seul ≥ 3.0 ne déclenche plus.
+
+Option retenue : exclusion du déclenchement avec conservation des colonnes
+d'audit (« Option A »). L'alternative — neutraliser seulement la part de
+fraîcheur en conservant une détection de dégradation de source — a été écartée :
+elle exigerait de modifier le moteur de calcul de `data_reliability_score`
+lui-même, ajoutant une complexité non justifiée en phase de maturation.
+
+### Risque accepté et proposition future
+
+En retirant `data_reliability_score` du déclenchement, la garde SCORE_STABILITY
+ne signale plus une chute de fiabilité, y compris une vraie dégradation de source
+(source morte, effondrement de couverture). Ce risque est **accepté** : la
+détection d'une dégradation de données n'est pas le rôle d'une garde de
+*stabilité inter-run du jugement*. Confondre les deux était la cause du faux
+positif corrigé ici.
+
+Proposition future (non engagée par cette décision) : ajouter une **alerte
+distincte fondée sur le niveau absolu** de `data_reliability_score` (et non sur
+son delta inter-run), afin de détecter une dégradation réelle de source sans
+polluer la garde de stabilité. À évaluer séparément selon le filtre de maturation
+(« confiance vs complexité »).
+
+### Vérification
+
+- Suite de tests complète : Ran 587 tests — OK.
+- SCORE_STABILITY après correction, via deux runs `analyze --mode high-cagr
+  --capital 1000` consécutifs sans `--refresh-market-data` :
+  UNSTABLE — 6 tickers subsistent, déclenchés par `conviction_score_delta` et/ou
+  `capital_allocation_score_delta` (GOOGL, MA, INTU, LLY, META, MSFT). Les deltas
+  `data_reliability_score` restent visibles dans le CSV mais ne déclenchent plus
+  seuls ; plusieurs lignes demeurent STABLE malgré `data_reliability_score_delta = 3.0`.
+- `git diff --stat` : `src/score_stability_engine.py | 7 +++++--; tests/test_score_stability_engine.py | 33 +++++++++++++++++++++++++++++++++; 2 files changed, 38 insertions(+), 2 deletions(-)`.
+
+### Portée des fichiers
+
+- `src/score_stability_engine.py` (modification de `NUMERIC_FIELDS`).
+- `tests/test_score_stability_engine.py` (ajout d'un test de non-régression).
+- Aucun autre fichier de code. `report_generator.py`, `utils.py`, et le moteur de
+  calcul de `data_reliability_score` ne sont PAS touchés.
+
+Commit : même commit que cette entrée ; hash final rapporté dans le rapport Codex
+(auto-référence impossible dans le contenu du commit sans changer ce hash).
+
 ## [2026-07-24] Garde-fou de vraisemblance juste-valeur — clôture Phase 2 refonte BNCD
 
 **Niveau : 2. Statut : Approuvé (décision CEO du 2026-07-24).**

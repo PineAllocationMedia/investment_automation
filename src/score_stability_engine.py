@@ -29,6 +29,9 @@ NUMERIC_FIELDS = [
     "score_total",
     "conviction_score",
     "capital_allocation_score",
+]
+AUDIT_NUMERIC_FIELDS = [
+    *NUMERIC_FIELDS,
     "data_reliability_score",
 ]
 WATCH_THRESHOLD = 1.5
@@ -143,9 +146,9 @@ def _comparison_rows(
             continue
         deltas = {
             field: _delta(previous.get(field), current.get(field))
-            for field in NUMERIC_FIELDS
+            for field in AUDIT_NUMERIC_FIELDS
         }
-        comparable_deltas = [abs(delta) for delta in deltas.values() if delta is not None]
+        comparable_deltas = [abs(deltas[field]) for field in NUMERIC_FIELDS if deltas.get(field) is not None]
         if not comparable_deltas:
             continue
         max_delta = max(comparable_deltas)
