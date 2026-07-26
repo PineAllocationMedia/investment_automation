@@ -94,6 +94,63 @@ class ScoreStabilityEngineTests(unittest.TestCase):
         self.assertEqual(rows["MSFT"]["stability_flag"], "STABLE")
         self.assertEqual(rows["MSFT"]["data_reliability_score_delta"], 5.0)
 
+    def test_market_freshness_gate_only_blocks_non_comparable_runs(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            reports = Path(tmp)
+            _write_snapshot(
+                reports,
+                "2026-07-03T09:00:00",
+                [
+                    _analysis("MSFT", market_data_freshness_level="STALE_CACHE"),
+                    _analysis("GOOGL", market_data_freshness_level="STALE_CACHE"),
+                ],
+            )
+            _write_snapshot(
+                reports,
+                "2026-07-03T10:00:00",
+                [
+                    _analysis("MSFT", market_data_freshness_level="FRESH"),
+                    _analysis("GOOGL", market_data_freshness_level="FRESH"),
+                ],
+            )
+
+            signal = compute_score_stability(
+                reports,
+                "high-cagr",
+                {
+                    "MSFT": _analysis("MSFT", score_total=4.0, market_data_freshness_level="FRESH"),
+                    "GOOGL": _analysis("GOOGL", score_total=4.0, market_data_freshness_level="FRESH"),
+                },
+            )
+
+        self.assertEqual(signal["status"], "SCORE_STABILITY_BASELINE")
+        self.assertEqual(signal["ticker_rows"], [])
+        self.assertEqual(signal["market_data_comparability"]["n_intersection"], 2)
+        self.assertEqual(signal["market_data_comparability"]["n_mismatch"], 2)
+        self.assertEqual(signal["market_data_comparability"]["fraction"], 1.0)
+
+        with tempfile.TemporaryDirectory() as tmp:
+            reports = Path(tmp)
+            _write_snapshot(
+                reports,
+                "2026-07-03T09:00:00",
+                [_analysis("MSFT", score_total=8.0, market_data_freshness_level="FRESH")],
+            )
+            _write_snapshot(
+                reports,
+                "2026-07-03T10:00:00",
+                [_analysis("MSFT", score_total=8.0, market_data_freshness_level="FRESH")],
+            )
+
+            signal = compute_score_stability(
+                reports,
+                "high-cagr",
+                {"MSFT": _analysis("MSFT", score_total=4.0, market_data_freshness_level="FRESH")},
+            )
+
+        self.assertEqual(signal["status"], "UNSTABLE")
+        self.assertEqual(signal["market_data_comparability"]["n_mismatch"], 0)
+
     def test_ignores_vfv_and_etfs(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             reports = Path(tmp)
@@ -145,6 +202,7 @@ def _analysis(
     capital_allocation_score: float = 75.0,
     data_reliability_score: float = 90.0,
     asset_type: str = "",
+    market_data_freshness_level: str = "FRESH",
 ) -> dict[str, object]:
     return {
         "ticker": ticker,
@@ -153,6 +211,7 @@ def _analysis(
         "capital_allocation_score": capital_allocation_score,
         "data_reliability_score": data_reliability_score,
         "asset_type": asset_type,
+        "market_data_freshness_level": market_data_freshness_level,
     }
 
 

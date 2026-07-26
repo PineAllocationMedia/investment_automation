@@ -15,6 +15,97 @@ This ensures long-term consistency and prevents model drift.
 
 # 📌 Decisions
 
+## [2026-07-25] Faux positif SCORE_STABILITY sur rafraîchissement du cache marché — porte de comparabilité (Option 2)
+
+**Niveau : 2 (correction du contrôle de stabilité). Statut : Approuvé (décision CEO du 2026-07-25).**
+
+### Contexte
+
+Après la correction [2026-07-25] du faux positif SCORE_STABILITY lié à
+data_reliability_score (retrait de NUMERIC_FIELDS, commit 0e9087c), deux runs
+analyze --mode high-cagr restaient UNSTABLE sur 6 tickers (GOOGL, MA, INTU, LLY,
+META, MSFT), déclenchés par conviction_score_delta / capital_allocation_score_delta.
+
+### Diagnostics read-only
+
+reports/diagnostics/conviction_reliability_cliff_20260725.md a INFIRMÉ
+l'hypothèse d'un effet de seuil du cap fiabilité→conviction : les 6 tickers
+restent data_reliability_level = HIGH aux deux snapshots, aucun ne traverse les
+frontières 80/60, aucun conviction_score_raw n'est présent (aucun cap effectif).
+
+L'analyse comparative champ à champ des deux snapshots comparés par la garde
+(analysis_high-cagr_20260725_092340.json vs _205549.json) a établi la cause
+réelle : le run de 09:23 lisait un cache marché STALE_CACHE, celui de 20:55 des
+données FRESH. 264 des 265 tickers communs ont changé de market_data_freshness_level
+(STALE_CACHE → FRESH) ET de current_price entre les deux runs. Les deltas de
+conviction et d'allocation sont la conséquence normale de prix différents (et des
+champs qui en dérivent : drawdown, unrealized_gain, expected_cagr_quality,
+opportunity_cost_status, cycle_bubble_risk_level, long_term_durability). La hausse
+de data_reliability_score (+1.75 à +3.0) est elle-même un effet de bord de la
+pénalité de fraîcheur du cache stale, non une cause.
+
+### Cause racine établie par lecture
+
+src/score_stability_engine.py::compute_score_stability compare le run courant au
+snapshot same-day le plus ancien, et son message UNSTABLE affirme « sans
+changement de données connu » — une affirmation que le code ne vérifiait jamais.
+La seule exclusion (_is_ignored_ticker) ne filtre que les ETF et VFV.TO. La garde
+comparait donc deux runs aux entrées matériellement différentes (cache stale vs
+frais) en prétendant les entrées identiques. SCORE_STABILITY étant un contrôle de
+déterminisme (mêmes entrées → mêmes scores), ce jour-là il mesurait un mouvement
+de marché, pas une non-déterminisme du code : faux positif.
+
+### Décision
+
+Option 2 retenue (parmi trois examinées) : porte de comparabilité au niveau du
+run entier. Si la fraction de tickers (intersection non-ignorée) dont
+market_data_freshness_level diffère entre les deux snapshots est ≥
+MARKET_DATA_REFRESH_FRACTION (0.50), les runs ne partagent pas les mêmes entrées
+et compute_score_stability retourne SCORE_STABILITY_BASELINE avec un message
+dédié, au lieu de flaguer WATCH/UNSTABLE. Sur les jours où les deux runs
+partagent le même cache, la comparaison complète — et donc la détection de
+déterminisme — est préservée intégralement.
+
+Option 1 (exclusion par ticker) explicitement REJETÉE : 264/265 tickers étant
+non-comparables ce jour-là, elle aurait réduit la comparaison à un échantillon
+de 1 ticker et rapporté STABLE — un signal trompeur. Option 3 (protocole de
+double run sur cache gelé / nouveau mécanisme de comparaison à prix invariant)
+REJETÉE en phase de maturation : elle résout par un mécanisme nouveau ce qu'une
+porte d'entrée résout sans changer le scoring.
+
+### Champ de gate
+
+market_data_freshness_level (couverture 100 % sur les rows de analysis_*.json).
+market_data_fetched_at, market_data_fetch_status et market_data_source sont
+ABSENTS des rows de snapshot (présents seulement dans latest_data_freshness.csv)
+et ne peuvent pas servir de clé.
+
+### Portée et contraintes
+
+Changement confiné à src/score_stability_engine.py + son fichier de tests.
+main.py inchangé (site d'appel ligne 1847 déjà suffisant). Aucun seuil
+WATCH/UNSTABLE modifié, aucun calcul de delta ni choix de snapshot modifié,
+aucune fonction ajoutée à utils.py (REFACTOR-01), aucune dépendance ajoutée à
+report_generator.py (REFACTOR-02). Aucun changement de comportement de scoring.
+
+### Vérification
+
+- Tests avant : Ran 587 / OK. Tests après : Ran 588 / OK.
+- Test de non-régression ajouté couvrant (a) porte active sur ≥ 50 % de mismatch
+  de fraîcheur → BASELINE, et (b) porte inactive sans mismatch avec delta ≥ 3.0 →
+  UNSTABLE.
+- SCORE_STABILITY final : SCORE_STABILITY_BASELINE — porte activée ;
+  n_intersection=264, n_mismatch=263, fraction=0.9962.
+- git diff --stat : src/score_stability_engine.py | 52 ++++++++++++++++++++++++++++++-; tests/test_score_stability_engine.py | 59 ++++++++++++++++++++++++++++++++++++; 2 files changed, 110 insertions(+), 1 deletion(-).
+- Commit : hash final rapporté par `git log --oneline -1` après commit ; auto-référence impossible dans le contenu du même commit sans changer ce hash.
+
+### Dette / suites
+
+Aucune dette nouvelle. Piste optionnelle non prioritaire : persister
+market_data_fetched_at dans les rows de analysis_*.json permettrait une clé de
+comparabilité plus fine (égalité exacte du timestamp de fetch) que le niveau de
+fraîcheur ; différée, non requise tant que le niveau de fraîcheur suffit.
+
 ## [2026-07-25] Incohérence cosmétique du signal ELIGIBLE_BUT_NOT_SELECTED — clôture Dossier 2 et clôture Phase 2 refonte BNCD
 
 **Niveau : 1 (documentation d'une non-action). Statut : Approuvé (décision CEO du 2026-07-25).**

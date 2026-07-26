@@ -36,6 +36,9 @@ AUDIT_NUMERIC_FIELDS = [
 ]
 WATCH_THRESHOLD = 1.5
 UNSTABLE_THRESHOLD = 3.0
+# Un refresh de cache marché touche presque tout l'univers à la fois; au-delà
+# de 50 %, les runs ne partagent plus les mêmes entrées et ne sont pas comparables.
+MARKET_DATA_REFRESH_FRACTION = 0.50
 FLAG_ORDER = {"UNSTABLE": 0, "WATCH": 1, "STABLE": 2}
 
 
@@ -54,7 +57,18 @@ def compute_score_stability(
         if not previous_rows:
             return _baseline("ℹ️ SCORE_STABILITY_BASELINE — Premier run de la journée. Relancer analyze pour comparer les scores.")
 
-        rows = _comparison_rows(previous_rows, current_analyses or {}, run_date, mode)
+        current_rows = _rows_by_ticker((current_analyses or {}).values())
+        comparable, comparability = _market_data_comparable(previous_rows, current_rows)
+        if not comparable:
+            result = _baseline(
+                "ℹ️ SCORE_STABILITY_BASELINE — Données marché rafraîchies entre les deux runs du jour "
+                "(cache→frais) : les runs ne partagent pas les mêmes entrées et ne sont pas comparables. "
+                "Relancer analyze sur cache frais pour mesurer le déterminisme."
+            )
+            result["market_data_comparability"] = comparability
+            return result
+
+        rows = _comparison_rows(previous_rows, current_rows, run_date, mode)
         if not rows:
             return _baseline(
                 "ℹ️ SCORE_STABILITY_BASELINE — Aucun titre comparable entre les runs du jour (lecture possible, comparaison vide)."
@@ -91,6 +105,7 @@ def compute_score_stability(
             "watch_count": watch_count,
             "stable_count": stable_count,
             "ticker_rows": rows,
+            "market_data_comparability": comparability,
         }
     except Exception:
         return _baseline(
@@ -161,6 +176,37 @@ def _comparison_rows(
         rows.append(_row(ticker, flag, previous, current, deltas, run_date, mode))
     rows.sort(key=lambda row: (FLAG_ORDER.get(str(row.get("stability_flag")), 9), -(safe_float(row.get("score_total_delta")) or 0.0), str(row.get("ticker"))))
     return rows
+
+
+def _market_data_comparable(previous_rows: Any, current_rows: Any) -> tuple[bool, dict[str, Any]]:
+    previous_by_ticker = _rows_by_ticker(previous_rows)
+    current_by_ticker = _rows_by_ticker(current_rows)
+    n_intersection = 0
+    n_mismatch = 0
+    examples: list[str] = []
+
+    for ticker in sorted(set(previous_by_ticker) & set(current_by_ticker)):
+        previous = previous_by_ticker[ticker]
+        current = current_by_ticker[ticker]
+        if _is_ignored_ticker(ticker, previous, current):
+            continue
+        n_intersection += 1
+        previous_freshness = _normalize_freshness_level(previous.get("market_data_freshness_level"))
+        current_freshness = _normalize_freshness_level(current.get("market_data_freshness_level"))
+        if previous_freshness != current_freshness:
+            n_mismatch += 1
+            if len(examples) < 5:
+                examples.append(f"{ticker}: {previous_freshness or 'ABSENT'}→{current_freshness or 'ABSENT'}")
+
+    fraction = round(n_mismatch / n_intersection, 4) if n_intersection else 0.0
+    diagnostics = {
+        "n_intersection": n_intersection,
+        "n_mismatch": n_mismatch,
+        "fraction": fraction,
+        "threshold": MARKET_DATA_REFRESH_FRACTION,
+        "examples": examples,
+    }
+    return fraction < MARKET_DATA_REFRESH_FRACTION, diagnostics
 
 
 def _row(
@@ -238,3 +284,7 @@ def _is_etf_row(row: dict[str, Any]) -> bool:
 
 def _normalize_mode(mode: Any) -> str:
     return str(mode or "").strip().lower().replace("_", "-")
+
+
+def _normalize_freshness_level(value: Any) -> str:
+    return str(value or "").strip().upper()
