@@ -107,11 +107,21 @@ chmod 600 ~/.config/investment_automation/telegram.env
 ```
 
 Le bot doit avoir reçu au moins un message privé avant le premier envoi. Si la
-configuration manque ou si Telegram est indisponible, l’analyse continue et
-l’incident est seulement inscrit dans le journal local. Le jeton n’est jamais
-affiché dans les journaux. Cette première phase est à sens unique : elle ne lit
-aucune commande Telegram et ne peut déclencher ni transaction ni modification
-du modèle.
+configuration manque ou si Telegram est indisponible, l’analyse directe
+continue et l’incident est seulement inscrit dans le journal local. Le jeton
+n’est jamais affiché dans les journaux.
+
+Pour demander le capital sur Telegram avant une analyse `high-cagr` :
+
+```bash
+.venv/bin/python scripts/request_telegram_analysis.py --mode high-cagr
+```
+
+Le bot attend un montant pendant 30 minutes, demande une seconde confirmation
+explicite, puis appelle le même lanceur opérationnel. Seul le chat configuré est
+accepté; les anciens messages sont ignorés. `ANNULER`, une expiration ou une
+réponse invalide ne déclenchent aucune analyse. Cette interaction ne peut
+effectuer aucune transaction chez un courtier et ne modifie pas le modèle.
 
 1. Je remplis `data/portfolio.csv` avec mes positions actuelles. J’écris le nombre d’actions, mon coût moyen, la devise du coût moyen et le type de compte.
 2. L’historique des changements se fait automatiquement: après un achat ou une vente, je mets `portfolio.csv` à jour, puis je lance `python3 main.py sync-portfolio` pour enregistrer le changement sans relancer une analyse complète.
