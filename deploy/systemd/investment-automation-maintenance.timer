@@ -1,0 +1,11 @@
+[Unit]
+Description=Investment Automation - health-check hebdomadaire le dimanche matin
+
+[Timer]
+OnCalendar=Sun *-*-* 09:00:00 America/Toronto
+Persistent=true
+AccuracySec=5min
+Unit=investment-automation-maintenance.service
+
+[Install]
+WantedBy=timers.target

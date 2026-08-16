@@ -1,0 +1,11 @@
+[Unit]
+Description=Investment Automation - maintenance hebdomadaire conditionnelle
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+WorkingDirectory=@PROJECT_ROOT@
+Environment=PYTHONUNBUFFERED=1
+ExecStart=@PROJECT_ROOT@/.venv/bin/python @PROJECT_ROOT@/scripts/run_scheduled_maintenance.py --mode high-cagr --repair-safe
+TimeoutStartSec=8h

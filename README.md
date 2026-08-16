@@ -123,6 +123,38 @@ accepté; les anciens messages sont ignorés. `ANNULER`, une expiration ou une
 réponse invalide ne déclenchent aucune analyse. Cette interaction ne peut
 effectuer aucune transaction chez un courtier et ne modifie pas le modèle.
 
+#### Planification automatique sur Linux/Crostini
+
+L'automatisation locale peut installer deux timers `systemd --user` :
+
+- les 1er et 15 de chaque mois à **16 h 45 (America/Toronto)**, Telegram demande le capital et attend une confirmation pendant 12 heures;
+- chaque dimanche à 9 h, un `health-check --repair-safe` est lancé. L'audit maître ou l'audit modèle n'est exécuté que si son signal existant est `STALE` ou `ABSENT`. Un audit maître rafraîchit déjà l'audit modèle, donc les deux ne sont jamais lancés inutilement le même jour.
+
+Prévisualisez d'abord les unités, puis installez-les sur le Chromebook :
+
+```bash
+cd ~/investment_automation
+.venv/bin/python scripts/install_systemd_automation.py --dry-run
+.venv/bin/python scripts/install_systemd_automation.py
+systemctl --user list-timers 'investment-automation-*'
+```
+
+Les timers sont `Persistent=true` : si Linux/Crostini est arrêté à l'heure prévue,
+le travail manqué est lancé au prochain démarrage de l'environnement Linux. Ils ne
+peuvent toutefois pas réveiller eux-mêmes un Chromebook complètement éteint. Les
+journaux sont consultables avec :
+
+```bash
+journalctl --user -u investment-automation-analysis.service -n 100
+journalctl --user -u investment-automation-maintenance.service -n 100
+```
+
+Pour désactiver temporairement l'automatisation sans supprimer les fichiers :
+
+```bash
+systemctl --user disable --now investment-automation-analysis.timer investment-automation-maintenance.timer
+```
+
 1. Je remplis `data/portfolio.csv` avec mes positions actuelles. J’écris le nombre d’actions, mon coût moyen, la devise du coût moyen et le type de compte.
 2. L’historique des changements se fait automatiquement: après un achat ou une vente, je mets `portfolio.csv` à jour, puis je lance `python3 main.py sync-portfolio` pour enregistrer le changement sans relancer une analyse complète.
 3. Je peux ignorer `data/account_locations.csv`: il est seulement gardé comme ancien fichier de secours.
