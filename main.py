@@ -1845,12 +1845,24 @@ def run_analysis(
         )
         save_current_snapshot(REPORTS_DIR, mode, analyses, watchlist_analyses, market_analyses, discovery_analyses)
         score_stability = compute_score_stability(REPORTS_DIR, mode, analyses)
-        if score_stability.get("ticker_rows"):
-            write_csv_records(
-                REPORTS_DIR / "latest_score_stability.csv",
-                score_stability.get("ticker_rows", []),
-                SCORE_STABILITY_COLUMNS,
-            )
+        write_csv_records_mode_pair(
+            REPORTS_DIR,
+            "latest_score_stability.csv",
+            mode,
+            score_stability.get("ticker_rows", []),
+            SCORE_STABILITY_COLUMNS,
+        )
+
+        _research_needed_rows = research_needed_rows_from_analysis_rows(
+            {
+                "CORE_PORTFOLIO": analyses,
+                "WATCHLIST": watchlist_analyses,
+                "MARKET_SCANNER": market_analyses,
+                "DISCOVERY_IDEAS": discovery_for_validation,
+            },
+            existing_reports=research_inputs,
+            limit=EXTERNAL_CANDIDATE_REPORT_CAP,
+        )
 
         generate_reports(
             reports_dir=REPORTS_DIR,
@@ -1877,6 +1889,7 @@ def run_analysis(
             allocation_change_rows=allocation_change_rows,
             allocation_sensitivity=allocation_sensitivity,
             validation_priority_rows=validation_priority_rows,
+            research_needed_rows=_research_needed_rows,
             portfolio_change_rows=portfolio_change_rows,
             portfolio_change_history_rows=portfolio_change_history_rows,
             portfolio_change_summary_rows=portfolio_change_summary_rows,
@@ -1897,16 +1910,6 @@ def run_analysis(
             model_audit_signal=model_audit_signal,
             score_stability=score_stability,
             instrument_profile_rows=instrument_profile_rows,
-        )
-        _research_needed_rows = research_needed_rows_from_analysis_rows(
-            {
-                "CORE_PORTFOLIO": analyses,
-                "WATCHLIST": watchlist_analyses,
-                "MARKET_SCANNER": market_analyses,
-                "DISCOVERY_IDEAS": discovery_for_validation,
-            },
-            existing_reports=research_inputs,
-            limit=EXTERNAL_CANDIDATE_REPORT_CAP,
         )
         write_csv_records_mode_pair(
             REPORTS_DIR,
