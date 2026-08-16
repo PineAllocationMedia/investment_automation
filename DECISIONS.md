@@ -15,6 +15,63 @@ This ensures long-term consistency and prevents model drift.
 
 # 📌 Decisions
 
+## [2026-08-16] Livraison Telegram sortante du rapport compact
+
+### Decision
+Ajouter au lanceur Linux une notification Telegram facultative pour le début,
+l’échec et la réussite d’une analyse, puis livrer le rapport compact HTML en cas
+de succès.
+
+### Reasoning
+- Telegram devient l’interface mobile de consultation sans déplacer la logique
+  d’investissement hors du modèle existant.
+- Les secrets restent dans un fichier local protégé hors Git.
+- Une panne de messagerie ne doit jamais transformer un calcul réussi en échec
+  ni modifier une recommandation.
+
+### Change
+- Nouveau client `scripts/telegram_notify.py`, sans dépendance externe.
+- Intégration best-effort dans `scripts/run_investment_analysis.sh`.
+- Configuration locale via
+  `~/.config/investment_automation/telegram.env` avec permissions `600`.
+- Communication sortante seulement dans cette phase; aucune commande Telegram
+  entrante, transaction ou modification automatique.
+
+### Expected impact
+Visibilité mobile immédiate des runs et accès direct au rapport compact HTML.
+Aucun changement au scoring, à l’allocation, au sizing, aux seuils, aux règles
+de vente ou aux recommandations.
+
+---
+
+## [2026-08-16] Lanceur opérationnel Linux pour le modèle existant
+
+### Decision
+Ajouter un lanceur hôte léger pour exécuter le modèle existant sur le Chromebook
+Debian, sans créer un second moteur ni automatiser l’exécution des transactions.
+
+### Reasoning
+- Le matériel validé dispose de peu de mémoire et doit exécuter les analyses
+  séquentiellement.
+- Un verrou explicite évite deux analyses concurrentes et la corruption possible
+  des artefacts `latest_*`.
+- La validation préalable, le contrôle du rapport produit et les journaux datés
+  rendent les échecs visibles sans modifier le calcul d’investissement.
+
+### Change
+- Nouveau lanceur `scripts/run_investment_analysis.sh`.
+- Mode `high-cagr` et capital `0` par défaut, tous deux configurables.
+- Verrou anti-double-run, `validate-inputs`, journalisation, vérification du
+  rapport compact et rétention des 20 derniers journaux.
+- Aucun `git pull`, rafraîchissement de marché ou ordre de courtage automatique.
+
+### Expected impact
+Exécution plus fiable et reproductible sur l’hôte Linux. Aucun changement au
+scoring, à l’allocation, au sizing, aux seuils, aux règles de vente ou aux
+recommandations.
+
+---
+
 ## [2026-08-16] Section compacte « Radar externe » orientée action
 
 ### Decision

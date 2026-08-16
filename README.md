@@ -69,6 +69,50 @@ Important : `VFV.TO` n’est pas une compagnie. C’est l’ETF Vanguard S&P 500
 
 Voici la version courte.
 
+### Lanceur opérationnel Linux / Chromebook
+
+Sur la machine Linux dédiée, le chemin recommandé est le lanceur sécurisé :
+
+```bash
+cd ~/investment_automation
+./scripts/run_investment_analysis.sh
+```
+
+Par défaut, il exécute une analyse `high-cagr` avec un capital de `0`. Pour une
+cotisation réelle ou un rafraîchissement volontaire :
+
+```bash
+./scripts/run_investment_analysis.sh --capital 330
+./scripts/run_investment_analysis.sh --capital 330 --refresh-market-data
+```
+
+Le lanceur refuse un deuxième run simultané, exécute `validate-inputs` avant
+l’analyse, vérifie que le rapport compact a bien été régénéré et conserve les
+20 derniers journaux dans `~/investment_automation_run_logs`. Il ne fait aucun
+`git pull`, aucun rafraîchissement forcé et aucune transaction automatiquement.
+
+#### Notifications Telegram
+
+Le lanceur peut signaler le début, l’échec ou la réussite du run et envoyer le
+rapport compact HTML sur Telegram. Créez le fichier local suivant sur la machine
+Linux; il ne doit jamais être ajouté au dépôt Git :
+
+```bash
+mkdir -p ~/.config/investment_automation
+cat > ~/.config/investment_automation/telegram.env <<'EOF'
+TELEGRAM_BOT_TOKEN=jeton_fourni_par_BotFather
+TELEGRAM_CHAT_ID=identifiant_numerique_du_chat
+EOF
+chmod 600 ~/.config/investment_automation/telegram.env
+```
+
+Le bot doit avoir reçu au moins un message privé avant le premier envoi. Si la
+configuration manque ou si Telegram est indisponible, l’analyse continue et
+l’incident est seulement inscrit dans le journal local. Le jeton n’est jamais
+affiché dans les journaux. Cette première phase est à sens unique : elle ne lit
+aucune commande Telegram et ne peut déclencher ni transaction ni modification
+du modèle.
+
 1. Je remplis `data/portfolio.csv` avec mes positions actuelles. J’écris le nombre d’actions, mon coût moyen, la devise du coût moyen et le type de compte.
 2. L’historique des changements se fait automatiquement: après un achat ou une vente, je mets `portfolio.csv` à jour, puis je lance `python3 main.py sync-portfolio` pour enregistrer le changement sans relancer une analyse complète.
 3. Je peux ignorer `data/account_locations.csv`: il est seulement gardé comme ancien fichier de secours.
