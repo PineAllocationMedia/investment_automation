@@ -4,7 +4,7 @@ import importlib.util
 from pathlib import Path
 import tempfile
 import unittest
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
@@ -110,6 +110,56 @@ class ScheduledMaintenanceTest(unittest.TestCase):
             ],
         )
         self.assertEqual(notifier.call_args.args[2], root / "reports" / "latest_model_audit.html")
+
+    def test_configured_sync_runs_before_health_check(self):
+        runner = Mock(side_effect=[_Result(0), _Result(0)])
+        notifier = Mock()
+        planner = Mock(return_value=([], {"status": "FULL_AUDIT_HEALTHY"}, {"status": "MODEL_AUDIT_HEALTHY"}))
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            (root / ".venv" / "bin").mkdir(parents=True)
+            config = root / "input_sync.env"
+            config.write_text("INVESTMENT_AUTOMATION_INPUT_SOURCE=/drive\n", encoding="utf-8")
+            status = scheduled_maintenance.run_maintenance(
+                project_root=root,
+                mode="high-cagr",
+                repair_safe=False,
+                config_path=root / "telegram.env",
+                input_sync_config_path=config,
+                command_runner=runner,
+                audit_planner=planner,
+                notifier=notifier,
+            )
+
+        self.assertEqual(status, 0)
+        self.assertIn("sync_operational_inputs.py", runner.call_args_list[0].args[0][1])
+        self.assertIn("health-check", runner.call_args_list[1].args[0])
+
+    def test_sync_failure_stops_maintenance(self):
+        runner = Mock(return_value=_Result(6))
+        notifier = Mock()
+        planner = Mock()
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            (root / ".venv" / "bin").mkdir(parents=True)
+            config = root / "input_sync.env"
+            config.write_text("INVESTMENT_AUTOMATION_INPUT_SOURCE=/drive\n", encoding="utf-8")
+            with patch.dict("os.environ", {}, clear=True):
+                status = scheduled_maintenance.run_maintenance(
+                    project_root=root,
+                    mode="high-cagr",
+                    repair_safe=True,
+                    config_path=root / "telegram.env",
+                    input_sync_config_path=config,
+                    command_runner=runner,
+                    audit_planner=planner,
+                    notifier=notifier,
+                )
+
+        self.assertEqual(status, 6)
+        self.assertEqual(runner.call_count, 1)
+        planner.assert_not_called()
+        notifier.assert_called_once()
 
 
 if __name__ == "__main__":

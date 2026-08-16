@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import os
 from pathlib import Path
 import subprocess
 import sys
@@ -30,6 +31,7 @@ from telegram_notify import (  # noqa: E402
 
 DUE_FULL_AUDIT_STATUSES = {"FULL_AUDIT_ABSENT", "FULL_AUDIT_STALE"}
 DUE_MODEL_AUDIT_STATUSES = {"MODEL_AUDIT_ABSENT", "MODEL_AUDIT_STALE"}
+DEFAULT_INPUT_SYNC_CONFIG = Path.home() / ".config" / "investment_automation" / "input_sync.env"
 
 
 def due_audit_commands(
@@ -74,12 +76,35 @@ def run_maintenance(
     mode: str,
     repair_safe: bool,
     config_path: Path,
+    input_sync_config_path: Path = DEFAULT_INPUT_SYNC_CONFIG,
     command_runner: Callable[..., subprocess.CompletedProcess[object]] = subprocess.run,
     audit_planner: Callable[..., tuple[list[list[str]], dict[str, str], dict[str, str]]] = due_audit_commands,
     notifier: Callable[[Path, str, Path | None], None] = _notify,
 ) -> int:
     python = project_root / ".venv" / "bin" / "python"
     reports_dir = project_root / "reports"
+    if os.environ.get("INVESTMENT_AUTOMATION_INPUT_SOURCE") or input_sync_config_path.is_file():
+        print("[maintenance] Synchronisation des intrants humains")
+        sync_result = command_runner(
+            [
+                str(python),
+                str(project_root / "scripts" / "sync_operational_inputs.py"),
+                "--config",
+                str(input_sync_config_path),
+                "--project-root",
+                str(project_root),
+            ],
+            cwd=project_root,
+            check=False,
+        )
+        if int(sync_result.returncode) != 0:
+            notifier(
+                config_path,
+                "Maintenance Investment Automation: synchronisation Drive échouée. Maintenance annulée.",
+                None,
+            )
+            return int(sync_result.returncode)
+
     health_command = [str(python), "main.py", "health-check", "--limit", "20"]
     if repair_safe:
         health_command.append("--repair-safe")
@@ -130,6 +155,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--mode", default="high-cagr")
     parser.add_argument("--repair-safe", action="store_true")
     parser.add_argument("--config", type=Path, default=DEFAULT_CONFIG_PATH)
+    parser.add_argument("--input-sync-config", type=Path, default=DEFAULT_INPUT_SYNC_CONFIG)
     args = parser.parse_args(argv)
     if args.mode not in {"balanced", "family-office", "rational-aggressive", "high-cagr"}:
         parser.error("mode non reconnu")
@@ -140,6 +166,7 @@ def main(argv: list[str] | None = None) -> int:
         mode=args.mode,
         repair_safe=args.repair_safe,
         config_path=args.config,
+        input_sync_config_path=args.input_sync_config,
     )
 
 
