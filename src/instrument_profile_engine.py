@@ -62,7 +62,7 @@ def build_instrument_profiles(
     cache_path = Path(cache_dir)
     cache_path.mkdir(parents=True, exist_ok=True)
     for allocation in allocation_rows or []:
-        amount = safe_float(allocation.get("amount") or allocation.get("monthly_contribution")) or 0.0
+        amount = safe_float(allocation.get("amount") or allocation.get("monthly_contribution") or allocation.get("montant")) or 0.0
         if amount <= 0:
             continue
         ticker = normalize_ticker(allocation.get("ticker") or allocation.get("destination"))
@@ -349,8 +349,17 @@ def _stock_watch_items(analysis: dict[str, Any]) -> str:
     ]:
         value = analysis.get(key)
         if value not in {None, ""}:
-            items.append(f"{label}: {value}")
+            items.append(f"{label}: {_watch_item_value(key, value)}")
     return "; ".join(items[:5]) if items else "Surveiller croissance, marges, bilan, moat et thèse fondamentale."
+
+
+def _watch_item_value(key: str, value: Any) -> str:
+    number = safe_float(value)
+    if key == "profit_margins" and number is not None:
+        return f"{number * 100:.1f} %" if abs(number) <= 1 else f"{number:.1f} %"
+    if key in {"eps_growth_estimated_3_5y", "roic_5y_avg"} and number is not None:
+        return f"{number:.1f}"
+    return str(value)
 
 
 def _etf_description(name: str, profile: dict[str, str]) -> str:

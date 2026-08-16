@@ -486,17 +486,17 @@ def _instrument_profile_description(ticker: str, profile: dict[str, Any], name: 
     category = " / ".join(part for part in [sector, industry] if part)
     first_sentence = f"{name} est une entreprise"
     if category:
-        first_sentence += f" {category}"
-    if business_description:
-        first_sentence += f" dont l'activité principale est {business_description}"
+        first_sentence += f" classée dans {category}"
     first_sentence = first_sentence.rstrip(".") + "."
     sentences = [first_sentence]
+    if business_description:
+        sentences.append(f"Activité principale : {business_description.rstrip('.')}.")
     if revenue_model:
         sentences.append(revenue_model.rstrip(".") + ".")
     if portfolio_role:
-        sentences.append(f"Son rôle dans ce portefeuille : {portfolio_role}.")
+        sentences.append(f"Son rôle dans ce portefeuille : {portfolio_role.rstrip('.')}.")
     if watch_items:
-        sentences.append(f"À surveiller : {watch_items}.")
+        sentences.append(f"À surveiller : {watch_items.rstrip('.')}.")
     return " ".join(sentences)
 
 
@@ -817,10 +817,12 @@ def _clean_signal_message(value: str, status: str = "") -> str:
 def _robustness_line(allocation_result: dict[str, Any] | None) -> str:
     if not isinstance(allocation_result, dict) or not allocation_result or not _active_allocation_rows(allocation_result):
         return "Robustesse : N/A — analyse sans capital, aucune sensibilité à tester."
+    decision_quality = allocation_result.get("decision_quality") if isinstance(allocation_result.get("decision_quality"), dict) else {}
     status = str(
         allocation_result.get("sensitivity_status")
         or allocation_result.get("robustness_status")
         or allocation_result.get("allocation_sensitivity_status")
+        or decision_quality.get("sensitivity_status")
         or "N/D"
     ).strip()
     explanation = compact_sentence(
@@ -1247,8 +1249,17 @@ def _sell_status_is_green(row: dict[str, Any]) -> bool:
 
 
 def _allocation_marker_contains_allocated(row: dict[str, Any]) -> bool:
-    for key in ("allocation_decision", "final_position_action", "watchlist_status", "candidate_status", "discovery_status"):
-        if "ALLOCATED" in str(row.get(key) or "").upper():
+    positive_actions = {"BUY / ADD", "ADD_WITH_MONITORING"}
+    for key in (
+        "allocation_decision",
+        "final_position_action",
+        "allocation_status",
+        "watchlist_status",
+        "candidate_status",
+        "discovery_status",
+    ):
+        value = str(row.get(key) or "").strip().upper()
+        if value in positive_actions or "ALLOCATED" in value:
             return True
     return False
 

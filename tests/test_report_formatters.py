@@ -150,6 +150,9 @@ class ReportFormattersTest(unittest.TestCase):
         self.assertIn("MSFT 120$ (40%)", markdown)
         self.assertIn("Confiance   : HIGH (92/100)", markdown)
         self.assertIn("#### Microsoft (MSFT)", markdown)
+        self.assertIn("Microsoft est une entreprise classée dans Technology / Software.", markdown)
+        self.assertIn("Activité principale : développer des logiciels et services cloud.", markdown)
+        self.assertNotIn("Microsoft est une entreprise Technology / Software dont l'activité principale est", markdown)
         self.assertIn("Son rôle dans ce portefeuille : compounder de qualité.", markdown)
         self.assertIn("Vs dernier run      : +20$ (INCREASED)", markdown)
 
@@ -195,6 +198,30 @@ class ReportFormattersTest(unittest.TestCase):
         self.assertIn("Walk-Forward", markdown)
         self.assertIn("Robustesse : N/A", markdown)
         self.assertIn("MSFT — CIRCUIT_OPEN", markdown)
+
+    def test_compact_model_health_section_uses_nested_decision_quality_sensitivity_status(self):
+        markdown = build_compact_model_health_section(
+            score_stability={"status": "STABLE", "message": "✅ SCORE_STABILITY_STABLE — OK"},
+            walk_forward_status={"status": "WALK_FORWARD_HEALTHY", "message": "OK."},
+            full_audit_status={"status": "FULL_AUDIT_HEALTHY", "message": "Audit récent."},
+            model_audit_status={"status": "MODEL_AUDIT_HEALTHY", "message": "Audit stabilité récent."},
+            decision_quality={
+                "decision_quality_level": "MEDIUM",
+                "decision_quality_score": 70,
+                "data_quality_status": "ROBUST",
+                "risk_status": "WATCH",
+                "stability_status": "RESPONSIVE",
+                "sensitivity_status": "ROBUST",
+            },
+            allocation_result={
+                "allocations": [{"ticker": "CLS.TO", "amount": 63}],
+                "decision_quality": {"sensitivity_status": "ROBUST"},
+            },
+            data_freshness_rows=[],
+        )
+
+        self.assertIn("Robustesse : ROBUST", markdown)
+        self.assertNotIn("Robustesse : N/D", markdown)
 
     def test_compact_data_reliability_section_flags_conflicts_and_sources(self):
         markdown = build_compact_data_reliability_section(
@@ -243,6 +270,16 @@ class ReportFormattersTest(unittest.TestCase):
                     "liquidation_status": "GREEN",
                     "quality_drawdown_label": "Baisse intéressante avec thèse intacte.",
                     "news_context_label": "MACRO_PRESSURE",
+                },
+                "RHM.NE": {
+                    "ticker": "RHM.NE",
+                    "capital_allocation_score": 84,
+                    "expected_cagr_quality": "HIGH",
+                    "opportunity_cost_status": "CLEARLY_BETTER_THAN_VFV",
+                    "thesis_status": "INTACT",
+                    "liquidation_status": "GREEN",
+                    "allocation_decision": "BUY / ADD",
+                    "final_position_action": "ADD_WITH_MONITORING",
                 }
             },
             watchlist_analyses={
@@ -280,6 +317,7 @@ class ReportFormattersTest(unittest.TestCase):
         self.assertIn("MSFT", markdown)
         self.assertIn("Meilleurs titres surveillés", markdown)
         self.assertIn("COST", markdown)
+        self.assertNotIn("RHM.NE", markdown)
         self.assertNotIn("| LOW |", markdown)
         self.assertNotIn("| DISC |", markdown)
 

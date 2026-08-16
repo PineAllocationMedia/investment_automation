@@ -9,6 +9,7 @@ from unittest.mock import Mock, patch
 
 from src.instrument_profile_engine import build_instrument_profile, build_instrument_profiles
 from src.report_formatters import build_instrument_profile_section
+from src.utils import today_iso
 
 
 class InstrumentProfileEngineTest(unittest.TestCase):
@@ -34,6 +35,24 @@ class InstrumentProfileEngineTest(unittest.TestCase):
         self.assertEqual(row["source_confidence"], "HIGH")
         self.assertIn("cloud", row["business_description"])
         self.assertIn("Bloc principal", row["portfolio_role"])
+
+    def test_stock_watch_items_format_decimal_margins_as_percent(self) -> None:
+        row = build_instrument_profile(
+            "CLS.TO",
+            {
+                "ticker": "CLS.TO",
+                "long_name": "Celestica Inc.",
+                "business_summary": "Celestica provides supply chain solutions.",
+                "sector_name": "Technology",
+                "industry": "Electronic Components",
+                "profit_margins": 0.07159,
+            },
+            {"ticker": "CLS.TO", "amount": 63},
+            cache_dir=Path(tempfile.mkdtemp()),
+        )
+
+        self.assertIn("marges: 7.2 %", row["key_watch_items"])
+        self.assertNotIn("marges: 0.07159", row["key_watch_items"])
 
     def test_stock_profile_prefers_research_report_description(self) -> None:
         row = build_instrument_profile(
@@ -149,7 +168,7 @@ class InstrumentProfileEngineTest(unittest.TestCase):
                         "key_watch_items": "Cached watch items.",
                         "source": "cache local",
                         "source_confidence": "MEDIUM",
-                        "last_updated": "2026-07-01",
+                        "last_updated": today_iso(),
                     }
                 ),
                 encoding="utf-8",
@@ -171,7 +190,7 @@ class InstrumentProfileEngineTest(unittest.TestCase):
                         "sector_or_category": "Energy",
                         "source": "cache local",
                         "source_confidence": "HIGH",
-                        "last_updated": "2026-07-01",
+                        "last_updated": today_iso(),
                     }
                 ),
                 encoding="utf-8",
@@ -205,6 +224,25 @@ class InstrumentProfileEngineTest(unittest.TestCase):
 
         self.assertEqual(allocations, before)
         self.assertEqual(rows[0]["ticker"], "MSFT")
+
+    def test_build_profiles_accepts_allocation_engine_schema(self) -> None:
+        rows = build_instrument_profiles(
+            [{"destination": "APH", "montant": 375, "raison": "Bloc principal."}],
+            {
+                "APH": {
+                    "ticker": "APH",
+                    "company_name_found": "Amphenol Corporation",
+                    "business_summary": "Amphenol designs and manufactures connectors and interconnect systems.",
+                    "sector_name": "Technology",
+                    "industry": "Electronic Components",
+                }
+            },
+            cache_dir=Path(tempfile.mkdtemp()),
+        )
+
+        self.assertEqual(len(rows), 1)
+        self.assertEqual(rows[0]["ticker"], "APH")
+        self.assertIn("connectors", rows[0]["business_description"])
 
     def test_formatter_builds_what_you_buy_section(self) -> None:
         markdown = build_instrument_profile_section(
