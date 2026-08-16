@@ -42,6 +42,23 @@ class TelegramNotifyTest(unittest.TestCase):
         self.assertIn(b"chat_id=123", request.data)
         self.assertIn(b"text=Bonjour", request.data)
 
+    @patch.object(telegram_notify.urllib.request, "urlopen")
+    def test_get_updates_sends_offset_and_returns_messages(self, urlopen):
+        response = _FakeResponse()
+        response.read = lambda: b'{"ok": true, "result": [{"update_id": 8}]}'
+        urlopen.return_value = response
+
+        updates = telegram_notify.get_updates(
+            token="secret",
+            offset=8,
+            timeout_seconds=20,
+        )
+
+        request = urlopen.call_args.args[0]
+        self.assertTrue(request.full_url.endswith("/botsecret/getUpdates"))
+        self.assertIn(b"offset=8", request.data)
+        self.assertEqual(updates, [{"update_id": 8}])
+
     @patch.object(telegram_notify.urllib.request, "urlopen", return_value=_FakeResponse())
     def test_send_document_uses_multipart_and_preserves_file(self, urlopen):
         with tempfile.TemporaryDirectory() as directory:

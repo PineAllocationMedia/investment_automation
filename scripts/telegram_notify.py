@@ -55,7 +55,7 @@ def _api_url(token: str, method: str) -> str:
     return f"{base}/bot{token}/{method}"
 
 
-def _perform_request(request: urllib.request.Request) -> None:
+def _perform_request(request: urllib.request.Request) -> dict[str, object]:
     try:
         with urllib.request.urlopen(request, timeout=REQUEST_TIMEOUT_SECONDS) as response:
             payload = json.loads(response.read().decode("utf-8"))
@@ -66,6 +66,7 @@ def _perform_request(request: urllib.request.Request) -> None:
     if not payload.get("ok"):
         description = str(payload.get("description") or "réponse refusée")[:200]
         raise TelegramNotificationError(f"Telegram a refusé l'envoi: {description}")
+    return payload
 
 
 def send_message(*, token: str, chat_id: str, message: str) -> None:
@@ -77,6 +78,31 @@ def send_message(*, token: str, chat_id: str, message: str) -> None:
         method="POST",
     )
     _perform_request(request)
+
+
+def get_updates(
+    *,
+    token: str,
+    offset: int | None = None,
+    timeout_seconds: int = 0,
+) -> list[dict[str, object]]:
+    fields: dict[str, str | int] = {
+        "timeout": max(0, timeout_seconds),
+        "allowed_updates": json.dumps(["message"]),
+    }
+    if offset is not None:
+        fields["offset"] = offset
+    request = urllib.request.Request(
+        _api_url(token, "getUpdates"),
+        data=urllib.parse.urlencode(fields).encode("utf-8"),
+        headers={"Content-Type": "application/x-www-form-urlencoded"},
+        method="POST",
+    )
+    payload = _perform_request(request)
+    result = payload.get("result")
+    if not isinstance(result, list):
+        raise TelegramNotificationError("réponse getUpdates invalide")
+    return [row for row in result if isinstance(row, dict)]
 
 
 def send_document(*, token: str, chat_id: str, path: Path, caption: str = "") -> None:
