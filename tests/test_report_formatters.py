@@ -89,7 +89,11 @@ class ReportFormattersTest(unittest.TestCase):
         self.assertIn("python3 main.py walk-forward-backtest --mode high-cagr", markdown)
         self.assertIn("Scores à surveiller", markdown)
 
-    def test_triage_header_hides_system_block_when_no_system_action(self):
+    @patch(
+        "src.report_formatters._triage_proxy_calibration_maintenance_state",
+        return_value=("🟢 Calibration des proxys : à jour.", []),
+    )
+    def test_triage_header_hides_system_block_when_no_system_action(self, _proxy_state):
         markdown = build_triage_header(
             mode="high-cagr",
             allocation_result={"allocations": []},
