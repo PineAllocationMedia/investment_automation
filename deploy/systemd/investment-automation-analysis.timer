@@ -1,0 +1,11 @@
+[Unit]
+Description=Investment Automation - analyse high-cagr les 1er et 15 a 16 h 45
+
+[Timer]
+OnCalendar=*-*-01,15 16:45:00 America/Toronto
+Persistent=true
+AccuracySec=1min
+Unit=investment-automation-analysis.service
+
+[Install]
+WantedBy=timers.target
