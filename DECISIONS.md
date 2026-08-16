@@ -15,6 +15,219 @@ This ensures long-term consistency and prevents model drift.
 
 # 📌 Decisions
 
+## [2026-08-16] Section compacte « Radar externe » orientée action
+
+### Decision
+Remplacer la section compacte « Surveillance externe » par un radar centré sur les décisions réellement utiles à l'utilisateur.
+
+### Reasoning
+- L'utilisateur consulte le rapport compact et ignorait cette section parce qu'elle mélangeait politique d'allocation, promotion vers le Core, validation personnelle, ETF externes et longues listes techniques.
+- Un candidat surveillé n'est pas nécessairement une recommandation d'achat; cette distinction doit être visible immédiatement.
+- La promotion vers le Core n'est pas une action quotidienne requise en mode `high-cagr`, puisque les candidats externes admissibles peuvent déjà recevoir une allocation directe.
+
+### Change
+- La section indique d'abord si un titre externe reçoit réellement du capital dans la recommandation courante.
+- Elle distingue explicitement les titres « sur le radar » des achats à exécuter.
+- Elle affiche le besoin éventuel d'un rapport BNCD/Morningstar et une action utilisateur unique.
+- Les trois premiers candidats restent visibles; les listes complètes, promotions, règles et ETF externes sont conservés dans un bloc repliable.
+
+### Expected impact
+Lecture quotidienne plus rapide et moins de risque de confondre une idée surveillée avec une recommandation. Aucun changement au scoring, à l'éligibilité, à l'allocation, au sizing, aux promotions ou aux règles de vente.
+
+---
+
+## [2026-08-16] Section compacte de confiance des données orientée utilisateur
+
+**Niveau : 1. Statut : Approuvé, implémenté.**
+
+### Décision
+
+Présenter la fiabilité sous forme de conséquence pratique pour le suivi
+habituel et réserver les actions utilisateur aux rappels BNCD/Morningstar et
+à la calibration des proxys déjà affichés dans le triage. Conserver les écarts
+entre sources comme points de prudence avant un achat important et replier le
+détail des sources. Exclure les ETF et benchmarks du taux de fiabilité
+fondamentale des entreprises.
+
+### Impact
+
+Le rapport ne demande plus une validation technique champ par champ hors du
+workflow réel de l'utilisateur et ne qualifie plus les ETF de données
+fondamentales fragiles. Aucun calcul de fiabilité, score, seuil, sizing,
+allocation ou signal d'achat/vente n'est modifié.
+
+---
+
+## [2026-08-16] Indicateurs secondaires dans le tableau compact des risques
+
+**Niveau : 1. Statut : Approuvé, implémenté.**
+
+### Décision
+
+Afficher dans le tableau compact toutes les expositions agrégées de clusters
+calculées par le moteur, y compris celles sous le seuil d'alerte. Marquer d'une
+étoile les risques de niveau élevé afin de préserver une lecture priorisée.
+
+### Impact
+
+Les indicateurs secondaires redeviennent visibles sans restaurer l'ancienne
+duplication des expositions par titre. Aucun calcul de risque, seuil, score,
+sizing, achat, vente ou montant d'allocation n'est modifié.
+
+---
+
+## [2026-08-16] Tableau compact des risques du portefeuille
+
+**Niveau : 1. Statut : Approuvé, implémenté.**
+
+### Décision
+
+Présenter les risques agrégés du portefeuille dans un tableau à quatre
+colonnes : risque, niveau, exposition mesurée et lecture opérationnelle. Les
+risques de régime, de clusters cachés et de devise conservent exactement les
+mêmes données et seuils d'affichage que la narration précédente.
+
+### Impact
+
+Les expositions sont comparables d'un coup d'œil et leur signification est
+explicite. Aucun risque, score, seuil, sizing, achat, vente ou montant
+d'allocation n'est recalculé ou modifié.
+
+---
+
+## [2026-08-16] Clarification des deux classements de titres du rapport compact
+
+**Niveau : 1. Statut : Approuvé, implémenté.**
+
+### Décision
+
+Expliquer dans le rapport compact que la liste `drawdown` est un signal de
+prix sur des thèses intactes, tandis que les meilleurs titres non alloués
+forment un classement général de candidats encore bloqués. Documenter que les
+deux populations peuvent se chevaucher et traduire les catégories de blocage
+dans un langage courant.
+
+### Impact
+
+Le lecteur peut distinguer une occasion de prix d'une autorisation réelle
+d'allouer. Aucun classement, score, filtre, sizing, achat, vente ou montant
+d'allocation n'est modifié.
+
+---
+
+## [2026-08-16] Simplification compacte de Vente & surveillance
+
+**Niveau : 1. Statut : Approuvé, implémenté.**
+
+### Décision
+
+Présenter d'abord la réponse opérationnelle : vente ou réduction à exécuter,
+puis au maximum trois positions sous surveillance avec une consigne simple et
+une seule raison principale. Conserver les signaux techniques complets dans un
+bloc repliable pour l'audit.
+
+### Impact
+
+La section distingue explicitement une action immédiate d'une simple
+surveillance et réduit le bruit du rapport quotidien. Aucun signal, statut,
+seuil, score, sizing, achat, vente ou allocation n'est modifié.
+
+---
+
+## [2026-08-16] Triage compact centré sur les actions de maintenance utilisateur
+
+**Niveau : 1. Statut : Approuvé, implémenté.**
+
+### Constat
+
+Le compteur compact des priorités de validation additionnait les couples
+ticker-champ de tous les univers, dont une majorité issue du Market Scanner.
+Il ne correspondait pas au workflow réel de l'utilisateur, limité au dépôt
+ponctuel de rapports BNCD/Morningstar selon `research-needed` et à la mise à
+jour occasionnelle du fichier de calibration des proxys.
+
+### Décision
+
+- Retirer du triage compact le compteur brut des champs prioritaires. Les
+  détails et l'événement de journal correspondant restent disponibles dans
+  les CSV d'audit et le rapport complet, mais sont masqués dans toute la vue
+  compacte.
+- Afficher l'état de maintenance BNCD selon la date du dernier dépôt de rapport.
+  La file `research-needed` donne le contenu du prochain lot, mais ne déclenche
+  un rappel qu'après 60 jours sans nouveau dépôt.
+- Recalculer à chaque rapport l'âge des `source_date` de
+  `data/proxy_calibration.csv`. Afficher un état vert entre les échéances, un
+  avertissement après 330 jours et une mise à jour requise après 365 jours.
+  Cette cadence annuelle reflète le caractère structurel et très occasionnel
+  de la calibration, avec une fenêtre de rappel d'environ un mois.
+- Calculer les lignes `research-needed` une seule fois avant la génération des
+  rapports, puis réutiliser exactement ces lignes pour le triage et le CSV.
+
+### Impact
+
+Le rapport compact reflète les seules maintenances que l'utilisateur peut
+effectivement réaliser. Aucun score, seuil, filtre de recherche, statut
+d'éligibilité, sizing, allocation ou signal d'achat/vente n'est modifié.
+
+---
+
+## [2026-08-16] Correction de la narration compacte des clusters de risque
+
+**Niveau : 1. Statut : Approuvé, implémenté.**
+
+### Constat
+
+Le rapport compact attribuait l'exposition maximale d'un titre à chacun de ses
+clusters cachés. Une exposition de 68,5 % au cluster
+`RATES_SENSITIVE_GROWTH` pouvait ainsi être répétée à tort pour l'IA, le
+Canada, les paiements ou l'électrification. Les lignes agrégées du rapport de
+risque contenaient déjà les expositions correctes par cluster.
+
+### Décision
+
+La narration compacte utilise les expositions agrégées de
+`portfolio_risk["alerts"]`. Les lignes par titre restent disponibles comme
+diagnostic et servent uniquement de repli lorsque les données agrégées sont
+absentes.
+
+### Impact
+
+Correction d'affichage uniquement. Aucun calcul de risque, cluster attribué,
+score, ajustement de sizing, allocation ou signal d'achat/vente n'est modifié.
+
+---
+
+## [2026-08-16] Cohérence des signaux de validation et de stabilité dans les rapports
+
+**Niveau : 1. Statut : Approuvé, implémenté.**
+
+### Constat
+
+Le moteur de priorité produit les libellés français `HAUTE` et `TRES_HAUTE`,
+mais le triage compact et le journal de run ne reconnaissaient que `HIGH` et
+`CRITICAL`. Le rapport pouvait donc afficher « aucune priorité haute » alors que
+le CSV en contenait. Par ailleurs, un run `SCORE_STABILITY_BASELINE` sans lignes
+comparables ne réécrivait pas `latest_score_stability.csv`, laissant visible un
+résultat ancien comme s'il appartenait au run courant.
+
+### Décision
+
+- Reconnaître les libellés français et anglais de priorité haute dans le triage
+  compact et le journal de run.
+- Réécrire systématiquement le CSV de stabilité, ainsi que son miroir suffixé
+  par mode. En l'absence de comparaison, le fichier contient uniquement son
+  en-tête et ne conserve aucune ligne d'un run antérieur.
+- Conserver la distinction entre `bncd_report_needed` et `research_needed` : le
+  premier porte sur un champ précis sans rapport exploitable, tandis que le
+  second peut demander une source qualitative ou une validation de gouvernance.
+
+### Impact
+
+Correction d'affichage et d'audit uniquement. Aucun score, seuil, statut
+d'éligibilité, montant d'allocation ou signal d'achat/vente n'est modifié.
+
+---
+
 ## [2026-07-25] Faux positif SCORE_STABILITY sur rafraîchissement du cache marché — porte de comparabilité (Option 2)
 
 **Niveau : 2 (correction du contrôle de stabilité). Statut : Approuvé (décision CEO du 2026-07-25).**

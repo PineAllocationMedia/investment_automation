@@ -136,6 +136,7 @@ def build_triage_header(
     discovery_analyses: dict,
     score_stability: dict | None = None,
     walk_forward_status: dict | None = None,
+    research_needed_rows: list[dict] | None = None,
 ) -> str:
     active_allocations = []
     for row in allocation_result.get("allocations", []) or []:
@@ -158,16 +159,6 @@ def build_triage_header(
     sell_icon = "🔴" if sell_count >= 2 else "🟡" if sell_count == 1 else "🟢"
     sell_text = f"{sell_count} alerte(s) vente à vérifier" if sell_count else "Aucun signal de vente actif"
 
-    validation_count = sum(
-        1 for row in validation_priority_rows or [] if str(row.get("priority") or "").strip().upper() in {"HIGH", "CRITICAL"}
-    )
-    validation_icon = "🔴" if validation_count >= 3 else "🟡" if validation_count else "🟢"
-    validation_text = (
-        f"{validation_count} donnée(s) prioritaire(s) à valider"
-        if validation_count
-        else "Données : aucune priorité haute"
-    )
-
     anomaly_count = sum(1 for row in anomaly_rows or [] if row)
     anomaly_icon = "⚠️" if anomaly_count else "🟢"
     anomaly_text = f"{anomaly_count} anomalie(s) détectée(s)" if anomaly_count else "Aucune anomalie détectée"
@@ -176,6 +167,8 @@ def build_triage_header(
         f"Core {len(analyses or {})} | Watchlist {len(watchlist_analyses or {})} | "
         f"Market {len(market_analyses or {})} | Discovery {len(discovery_analyses or {})} titres analysés"
     )
+    research_status, research_actions = _triage_research_report_maintenance_state(research_needed_rows)
+    proxy_status, proxy_actions = _triage_proxy_calibration_maintenance_state()
 
     lines = [
         "---",
@@ -183,13 +176,21 @@ def build_triage_header(
         "",
         f"{sell_icon} {sell_text}",
         "",
-        f"{validation_icon} {validation_text}",
-        "",
         f"{anomaly_icon} {anomaly_text}",
+        "",
+        research_status,
+        "",
+        proxy_status,
         "",
         f"📊 {counts_text}",
     ]
-    system_action_lines = _triage_system_action_lines(mode, score_stability, walk_forward_status, analyses)
+    system_action_lines = _triage_system_action_lines(
+        mode,
+        score_stability,
+        walk_forward_status,
+        analyses,
+        [*research_actions, *proxy_actions],
+    )
     if system_action_lines:
         lines.extend(["", "─── ACTIONS SYSTÈME REQUISES ───", "", *system_action_lines])
     lines.append("---")
@@ -201,11 +202,11 @@ def _triage_system_action_lines(
     score_stability: dict[str, Any] | None,
     walk_forward_status: dict[str, Any] | None,
     analyses: dict[str, dict[str, Any]] | None = None,
+    maintenance_action_lines: list[str] | None = None,
 ) -> list[str]:
     lines: list[str] = []
     lines.extend(_triage_stale_market_data_lines(analyses))
-    if analyses:
-        lines.extend(_triage_proxy_calibration_sync_lines())
+    lines.extend(maintenance_action_lines or [])
     walk = walk_forward_status or {}
     walk_status = str(walk.get("status") or "").strip().upper()
     walk_message = str(walk.get("message") or "").strip()
@@ -224,43 +225,145 @@ def _triage_system_action_lines(
     return lines
 
 
-def _triage_proxy_calibration_sync_lines() -> list[str]:
-    import json as _json
+def _triage_research_report_maintenance_state(
+    research_needed_rows: list[dict[str, Any]] | None,
+) -> tuple[str, list[str]]:
+    from datetime import datetime as _Datetime
     from pathlib import Path as _Path
 
-    sync_log_path = _Path(__file__).resolve().parents[1] / "data" / "proxy_calibration_sync_log.json"
-    if not sync_log_path.exists():
-        return []
+    rows = [row for row in research_needed_rows or [] if isinstance(row, dict)]
+    tickers = {
+        str(row.get("ticker") or "").strip()
+        for row in rows
+        if str(row.get("ticker") or "").strip()
+    }
+    if not tickers:
+        return "🟢 Rapports BNCD/Morningstar : aucune recherche prioritaire active.", []
 
-    stale: list[str] = []
-    warning: list[str] = []
-    sync_date = ""
+    report_dir = _Path(__file__).resolve().parents[1] / "data" / "research_reports" / "bncd_morningstar"
+    report_files = []
     try:
-        with open(sync_log_path, encoding="utf-8") as handle:
-            log = _json.load(handle)
-        stale = [str(ticker) for ticker in log.get("stale_tickers", []) if ticker]
-        warning = [str(ticker) for ticker in log.get("warning_tickers", []) if ticker]
-        sync_date = str(log.get("sync_date") or "").strip()
+        report_files = [
+            path
+            for path in report_dir.iterdir()
+            if path.is_file() and path.suffix.lower() in {".pdf", ".txt", ".md"} and path.name != "README.md"
+        ]
+    except OSError:
+        report_files = []
+
+    reminder_days = 60
+    if report_files:
+        latest_timestamp = max(path.stat().st_mtime for path in report_files)
+        latest_update = _Datetime.fromtimestamp(latest_timestamp)
+        age_days = max(0, (_Datetime.now() - latest_update).days)
+        if age_days < reminder_days:
+            remaining_days = reminder_days - age_days
+            return (
+                "🟢 Rapports BNCD/Morningstar : "
+                f"dépôt actualisé le {latest_update.date().isoformat()} ({age_days}j); "
+                f"prochain rappel dans ~{remaining_days}j.",
+                [],
+            )
+
+    high_priorities = {"HAUTE", "TRES_HAUTE", "TRÈS_HAUTE", "HIGH", "CRITICAL"}
+    high_tickers = {
+        str(row.get("ticker") or "").strip()
+        for row in rows
+        if str(row.get("ticker") or "").strip()
+        and str(row.get("priority") or "").strip().upper() in high_priorities
+    }
+    priority_note = f" ({len(high_tickers)} priorité haute)" if high_tickers else ""
+    status = "🟡 Rapports BNCD/Morningstar : mise à jour périodique recommandée."
+    actions = [
+        "⚠ RAPPORTS BNCD/MORNINGSTAR — RAFRAÎCHISSEMENT RECOMMANDÉ",
+        f"{len(tickers)} titre(s) figurent dans la file de recherche{priority_note}.",
+        "Action: lancer python3 main.py research-needed --limit 30 puis déposer les nouveaux rapports dans",
+        "  data/research_reports/bncd_morningstar/",
+    ]
+    return status, actions
+
+
+def _triage_proxy_calibration_maintenance_state() -> tuple[str, list[str]]:
+    import csv as _csv
+    from datetime import date as _Date
+    from datetime import datetime as _Datetime
+    from pathlib import Path as _Path
+
+    calibration_path = _Path(__file__).resolve().parents[1] / "data" / "proxy_calibration.csv"
+    if not calibration_path.exists():
+        return (
+            "🟡 Calibration des proxys : fichier de calibration absent.",
+            [
+                "⚠ DOCUMENT DE CALIBRATION DES PROXYS — CRÉATION REQUISE",
+                "Action: créer data/proxy_calibration.csv puis lancer python3 main.py sync-manual-inputs",
+            ],
+        )
+
+    try:
+        with open(calibration_path, encoding="utf-8", newline="") as handle:
+            rows = list(_csv.DictReader(handle))
     except Exception:
-        return []
+        return "⚪ Calibration des proxys : état indisponible.", []
+
+    dated_tickers: list[tuple[str, int]] = []
+    today = _Date.today()
+    for row in rows:
+        ticker = str(row.get("ticker") or "").strip()
+        raw_date = str(row.get("source_date") or "").strip()
+        try:
+            source_date = _Datetime.strptime(raw_date[:10], "%Y-%m-%d").date()
+        except (TypeError, ValueError):
+            continue
+        dated_tickers.append((ticker, max(0, (today - source_date).days)))
+
+    if not dated_tickers:
+        return (
+            "🟡 Calibration des proxys : aucune date source exploitable.",
+            [
+                "⚠ DOCUMENT DE CALIBRATION DES PROXYS — DATES À COMPLÉTER",
+                "Action: renseigner source_date dans data/proxy_calibration.csv puis lancer",
+                "  python3 main.py sync-manual-inputs",
+            ],
+        )
+
+    # [DECISION 2026-08-16] La calibration des proxys est une maintenance
+    # structurelle annuelle : rappel un mois avant l'echeance, puis action.
+    warn_days = 330
+    stale_days = 365
+    stale = [ticker for ticker, age in dated_tickers if age > stale_days]
+    warning = [ticker for ticker, age in dated_tickers if warn_days < age <= stale_days]
 
     if stale:
-        return [
-            "⚠ CALIBRATION DONNÉES MARCHÉ — MISE À JOUR REQUISE",
-            f"Données Catégorie B périmées (>90j) pour: {compact_list(stale, limit=12)}",
-            f"Source: proxy_calibration.csv — dernière sync: {sync_date or 'N/D'}",
-            "Action: mettre à jour les valeurs puis relancer:",
-            "  python3 main.py sync-manual-inputs",
-        ]
+        return (
+            f"🔴 Calibration des proxys : {len(stale)} donnée(s) datée(s) expirée(s).",
+            [
+                "⚠ DOCUMENT DE CALIBRATION DES PROXYS — MISE À JOUR REQUISE",
+                f"Données de calibration périmées (>{stale_days}j) pour: "
+                f"{compact_list(stale, limit=12)}",
+                "Action: mettre à jour data/proxy_calibration.csv puis lancer",
+                "  python3 main.py sync-manual-inputs",
+            ],
+        )
 
     if warning:
-        return [
-            "⚠ CALIBRATION — MISE À JOUR RECOMMANDÉE BIENTÔT",
-            f"Données Catégorie B approchant expiry (75-90j) pour: {compact_list(warning, limit=12)}",
-            "Action: python3 main.py sync-manual-inputs après mise à jour CSV",
-        ]
+        return (
+            f"🟡 Calibration des proxys : {len(warning)} donnée(s) datée(s) approchent leur échéance.",
+            [
+                "⚠ DOCUMENT DE CALIBRATION DES PROXYS — MISE À JOUR RECOMMANDÉE BIENTÔT",
+                f"Données de calibration âgées de {warn_days + 1} à {stale_days}j pour: "
+                f"{compact_list(warning, limit=12)}",
+                "Action: mettre à jour data/proxy_calibration.csv puis lancer",
+                "  python3 main.py sync-manual-inputs",
+            ],
+        )
 
-    return []
+    oldest_age = max(age for _ticker, age in dated_tickers)
+    remaining_days = max(0, warn_days + 1 - oldest_age)
+    return (
+        "🟢 Calibration des proxys : "
+        f"à jour; prochain contrôle dans ~{remaining_days}j.",
+        [],
+    )
 
 
 def _triage_stale_market_data_lines(analyses: dict[str, dict[str, Any]] | None) -> list[str]:
@@ -700,27 +803,241 @@ def build_compact_data_reliability_section(
     stale_count = len(stale_rows)
     conflict_count = len(conflict_rows)
     if stale_count == 0 and conflict_count == 0:
-        verdict = "✅ SOLIDE"
+        verdict = "✅ DONNÉES SUFFISANTES POUR LE SUIVI HABITUEL"
+        practical_reading = "Aucune prudence supplémentaire liée aux données n'est requise ce run."
     elif stale_count <= 3 and conflict_count <= 4:
-        verdict = "🟡 UTILISABLE AVEC RÉSERVES"
+        verdict = "🟡 UTILISABLE POUR LE SUIVI HABITUEL"
+        practical_reading = "Poursuis le workflow normal; vérifie seulement un titre signalé avant un achat inhabituellement important."
     else:
-        verdict = "⚠️ VALIDER AVANT GROSSE DÉCISION"
+        verdict = "⚠️ PRUDENCE AVANT UN ACHAT IMPORTANT"
+        practical_reading = "Le suivi habituel reste lisible; évite de surdimensionner un titre signalé sans rapport récent."
 
-    lines = ["### Fiabilité des données", "", verdict, ""]
+    lines = ["### Confiance dans les données", "", verdict, "", practical_reading, ""]
     coverage = _strong_data_coverage_line(analyses or {})
     if coverage:
         lines.extend([coverage, ""])
-    lines.extend(["#### Titres à valider", ""])
+    lines.extend(
+        [
+            "**Action pour toi :** aucune validation technique champ par champ. Suis uniquement les rappels "
+            "BNCD/Morningstar et calibration des proxys affichés en tête du rapport.",
+            "",
+            "#### Points de prudence avant un gros achat",
+            "",
+        ]
+    )
     validation_lines = _data_reliability_validation_lines(conflict_rows, data_freshness_rows or [], core_tickers)
-    lines.extend(validation_lines or ["Aucun titre ne requiert de validation prioritaire ce run."])
-    lines.extend(["", "#### Sources utilisées ce run", "", _active_sources_line(source_health_rows)])
+    lines.extend(validation_lines or ["Aucun point de prudence prioritaire ce run."])
     lines.extend(
         [
             "",
-            "> Note : ce rapport applique des règles mécaniques sur données gratuites. Toute décision finale doit être validée manuellement.",
+            "<details>",
+            "<summary>Détails techniques des sources</summary>",
+            "",
+            _active_sources_line(source_health_rows),
+            "",
+            "> Le modèle combine des sources gratuites et locales; les écarts restent visibles pour audit.",
+            "",
+            "</details>",
         ]
     )
     return "\n".join(lines).rstrip()
+
+
+def build_compact_external_monitoring_section(
+    *,
+    mode: str,
+    allocation_result: dict | None = None,
+    core_analyses: dict | None = None,
+    watchlist_analyses: dict | None = None,
+    market_analyses: dict | None = None,
+    discovery_analyses: dict | None = None,
+    external_candidate_rows: list[dict] | None = None,
+    blocked_validation_rows: list[dict] | None = None,
+    promotion_rows: list[dict] | None = None,
+    external_etf_rows: list[dict] | None = None,
+    policy_note: str = "",
+) -> str:
+    core_tickers = {str(ticker) for ticker in (core_analyses or {})}
+    external_tickers = {
+        str(ticker)
+        for universe in (watchlist_analyses or {}, market_analyses or {}, discovery_analyses or {})
+        for ticker in universe
+        if str(ticker) not in core_tickers
+    }
+    allocated_external = []
+    for row in _active_allocation_rows(allocation_result or {}):
+        ticker = _allocation_ticker(row)
+        universe = str(row.get("universe") or "").strip().upper()
+        if ticker not in external_tickers and universe not in {"WATCHLIST", "MARKET_SCANNER", "DISCOVERY_IDEAS"}:
+            continue
+        allocated_external.append((ticker, _allocation_amount(row)))
+
+    candidates = [
+        row
+        for row in external_candidate_rows or []
+        if str(row.get("ticker") or "").strip()
+        and str(row.get("status") or "").strip() != "AUCUNE_CANDIDATE_EXTERNE_PRIORITAIRE"
+    ]
+    blocked = [
+        row
+        for row in blocked_validation_rows or []
+        if str(row.get("ticker") or "").strip()
+        and str(row.get("ticker") or "").strip() != "AUCUN_CANDIDAT_BLOQUE"
+    ]
+
+    lines = ["## 6. Radar externe", "", "### Ce qu’il faut retenir", ""]
+    if allocated_external:
+        allocation_text = " | ".join(f"{ticker} {_format_money(amount)}" for ticker, amount in allocated_external)
+        lines.extend(
+            [
+                f"🟢 **Allocation externe active :** {allocation_text}.",
+                "Le moteur l’a déjà intégrée à la recommandation de la section 1; aucune promotion manuelle n’est requise.",
+            ]
+        )
+    else:
+        lines.append("⚪ **Aucun titre externe financé dans cette recommandation.**")
+
+    lines.append("")
+    if candidates:
+        shown = ", ".join(str(row.get("ticker")) for row in candidates[:3])
+        lines.append(f"🟡 **À garder sur le radar :** {shown}. Ce sont des titres surveillés, pas des achats à exécuter.")
+    else:
+        lines.append("✅ **Radar calme :** aucun candidat externe prioritaire ce run.")
+
+    lines.append("")
+    if blocked:
+        blocked_text = ", ".join(str(row.get("ticker")) for row in blocked[:5])
+        lines.append(f"⚠️ **Rapport requis avant allocation :** {blocked_text}.")
+    else:
+        lines.append("✅ **Validation personnelle :** aucun candidat proche d’une allocation n’est bloqué par un rapport manquant.")
+
+    lines.extend(["", _external_user_action_line(allocated_external, blocked), ""])
+    if candidates:
+        lines.extend(
+            [
+                "### Prochains candidats surveillés",
+                "",
+                "| candidat | provenance | lecture |",
+                "| --- | --- | --- |",
+            ]
+        )
+        for row in candidates[:3]:
+            lines.append(
+                "| "
+                + " | ".join(
+                    [
+                        escape_markdown_cell(row.get("ticker")),
+                        escape_markdown_cell(_external_source_label(row.get("source"))),
+                        escape_markdown_cell(_external_status_label(row.get("status"))),
+                    ]
+                )
+                + " |"
+            )
+        lines.extend(["", "Ils seront réévalués automatiquement aux prochains runs.", ""])
+
+    lines.extend(
+        [
+            "<details>",
+            "<summary>Comprendre le radar et voir les détails techniques</summary>",
+            "",
+            policy_note or f"Le mode `{mode}` applique ses filtres actifs avant toute allocation externe.",
+            "",
+            "#### Tous les candidats externes affichés",
+            "",
+            *_compact_external_detail_table(candidates),
+            "",
+            "#### Promotions vers le Core Portfolio",
+            "",
+            *_compact_promotion_detail_table(promotion_rows or []),
+            "",
+            "#### ETF externes",
+            "",
+            *_compact_external_etf_detail_table(external_etf_rows or []),
+            "",
+            "</details>",
+        ]
+    )
+    return "\n".join(lines).rstrip()
+
+
+def _external_user_action_line(allocated_external: list[tuple[str, float]], blocked: list[dict]) -> str:
+    if allocated_external and blocked:
+        return (
+            "**Action pour toi :** exécuter uniquement les montants de la section 1; actualiser un rapport "
+            "BNCD/Morningstar seulement pour un candidat bloqué que tu souhaites approfondir."
+        )
+    if allocated_external:
+        return "**Action pour toi :** exécuter uniquement les montants déjà indiqués dans la section 1."
+    if blocked:
+        return (
+            "**Action pour toi :** aucune transaction. Actualiser un rapport BNCD/Morningstar seulement si "
+            "tu souhaites approfondir l’un des candidats bloqués."
+        )
+    return "**Action pour toi :** aucune. Le modèle réévaluera automatiquement ces titres aux prochains runs."
+
+
+def _external_source_label(value: Any) -> str:
+    return {
+        "MARKET_UNIVERSE": "Market",
+        "MARKET_SCANNER": "Market",
+        "DISCOVERY": "Discovery",
+        "DISCOVERY_IDEAS": "Discovery",
+        "WATCHLIST": "Watchlist",
+    }.get(str(value or "").strip().upper(), str(value or "N/D"))
+
+
+def _external_status_label(value: Any) -> str:
+    return {
+        "PROMISING_BUT_INCOMPLETE": "Prometteur, mais pas encore retenu",
+        "MANUAL_REVIEW_TOP_CANDIDATE": "Revue prioritaire, sans achat automatique",
+        "ADD_TO_MARKET_UNIVERSE_REVIEW": "Idée à intégrer au radar Market",
+    }.get(str(value or "").strip().upper(), compact_sentence(value, 90))
+
+
+def _compact_external_detail_table(rows: list[dict]) -> list[str]:
+    if not rows:
+        return ["Aucun candidat externe prioritaire."]
+    lines = ["| provenance | ticker | statut | score | raison |", "| --- | --- | --- | --- | --- |"]
+    for row in rows:
+        lines.append(
+            "| "
+            + " | ".join(
+                escape_markdown_cell(row.get(key)) for key in ("source", "ticker", "status", "score", "raison")
+            )
+            + " |"
+        )
+    return lines
+
+
+def _compact_promotion_detail_table(rows: list[dict]) -> list[str]:
+    if not rows:
+        return ["Aucune promotion fondée vers le Core Portfolio."]
+    lines = ["| source | ticker | statut | prochaine étape |", "| --- | --- | --- | --- |"]
+    for row in rows:
+        lines.append(
+            "| "
+            + " | ".join(
+                escape_markdown_cell(row.get(key)) for key in ("source", "ticker", "statut", "prochaine_étape")
+            )
+            + " |"
+        )
+    return lines
+
+
+def _compact_external_etf_detail_table(rows: list[dict]) -> list[str]:
+    meaningful = [row for row in rows if str(row.get("ticker") or "").strip()]
+    if not meaningful:
+        return ["Aucun ETF externe admissible ou à surveiller."]
+    lines = ["| ticker | statut | score | fit mode |", "| --- | --- | --- | --- |"]
+    for row in meaningful:
+        lines.append(
+            "| "
+            + " | ".join(
+                escape_markdown_cell(row.get(key)) for key in ("ticker", "statut", "score", "fit_mode")
+            )
+            + " |"
+        )
+    return lines
 
 
 def build_compact_portfolio_section(
@@ -749,29 +1066,43 @@ def build_compact_portfolio_section(
     performance_lines = _account_performance_lines(account_performance_rows or [])
     lines.extend(performance_lines or ["Performance : historique insuffisant pour comparer."])
     lines.extend(["", "**Risques du portefeuille :**", ""])
-    risk_lines = _portfolio_human_risk_lines(risk_rows or [], hidden_cluster_rows or [], market_regime or {})
-    lines.extend(risk_lines or ["Aucun risque majeur compact à afficher ce run."])
+    portfolio_risk_rows = _portfolio_human_risk_rows(risk_rows or [], hidden_cluster_rows or [], market_regime or {})
+    if portfolio_risk_rows:
+        lines.append(_ranking_table(["risque", "niveau", "exposition", "lecture"], portfolio_risk_rows))
+        lines.extend(["", "★ Risque prioritaire à considérer; les autres indicateurs restent informatifs."])
+    else:
+        lines.append("Aucun risque majeur compact à afficher ce run.")
     return "\n".join(lines).rstrip()
 
 
-CLUSTER_LABELS = {
+CLUSTER_TABLE_DETAILS = {
     "RATES_SENSITIVE_GROWTH": (
-        "{poids}% de ton portefeuille réagira ensemble si les taux d'intérêt montent ou descendent."
+        "Sensibilité aux taux",
+        "Les positions concernées peuvent réagir ensemble aux variations de taux.",
     ),
     "MEGA_CAP_TECH_PLATFORMS": (
-        "{poids}% de ton portefeuille est exposé aux mêmes grandes plateformes technologiques."
+        "Grandes plateformes technologiques",
+        "Une même tendance technologique peut affecter plusieurs positions simultanément.",
     ),
     "AI_SEMI_CLOUD_INFRA": (
-        "{poids}% de ton portefeuille est concentré sur le thème IA / semi-conducteurs / infrastructure cloud."
+        "IA / semi-conducteurs / cloud",
+        "Le portefeuille partage une exposition importante à ce même thème de croissance.",
     ),
     "INDUSTRIAL_ELECTRIFICATION_AUTOMATION": (
-        "{poids}% de ton portefeuille est exposé au thème électrification industrielle et automatisation."
+        "Électrification et automatisation",
+        "Plusieurs positions dépendent du même cycle d'investissement industriel.",
     ),
     "PAYMENTS_FINANCIAL_NETWORKS": (
-        "{poids}% de ton portefeuille est exposé aux réseaux de paiement et services financiers."
+        "Paiements et réseaux financiers",
+        "Plusieurs positions partagent les mêmes moteurs économiques et réglementaires.",
     ),
     "CANADA_CAD_CLUSTER": (
-        "{poids}% de ton portefeuille est exposé au marché canadien et au dollar canadien."
+        "Marché canadien et dollar CAD",
+        "Une même évolution économique canadienne peut affecter plusieurs positions.",
+    ),
+    "HEALTHCARE_INNOVATION": (
+        "Innovation en santé",
+        "Plusieurs positions peuvent réagir aux mêmes cycles cliniques et réglementaires.",
     ),
 }
 
@@ -866,6 +1197,7 @@ def _is_core_freshness_row(row: dict[str, Any], core_tickers: set[str]) -> bool:
 
 def _strong_data_coverage_line(analyses: dict[str, dict[str, Any]]) -> str:
     levels = []
+    excluded_count = 0
     for row in analyses.values():
         level = (
             str(row.get("data_reliability_level") or "").strip().upper()
@@ -874,6 +1206,9 @@ def _strong_data_coverage_line(analyses: dict[str, dict[str, Any]]) -> str:
             or str((row.get("data_quality") or {}).get("reliability_level") or "").strip().upper()
             or str((row.get("reliability") or {}).get("level") or "").strip().upper()
         )
+        if level in {"ETF", "BENCHMARK", "ETF_OR_BENCHMARK", "ETF_OR_FUND", "NOT_APPLICABLE"}:
+            excluded_count += 1
+            continue
         if level and level not in {"", "NONE", "N/D", "DONNÉE PAS DISPO"}:
             if level in {"HIGH", "ROBUST", "SOLID"}:
                 level = "STRONG"
@@ -888,12 +1223,15 @@ def _strong_data_coverage_line(analyses: dict[str, dict[str, Any]]) -> str:
     moderate_count = sum(1 for level in levels if level == "MODERATE")
     weak_count = len(levels) - strong_count - moderate_count
     percent = round((strong_count / len(levels)) * 100)
-    parts = [f"{percent}% des positions ont des données solides"]
+    parts = [f"{percent}% des {len(levels)} entreprises détenues ont des données solides"]
     if moderate_count:
         parts.append(f"{moderate_count} avec limites")
     if weak_count:
         parts.append(f"{weak_count} fragile(s)")
-    return " — ".join(parts) + "."
+    result = " — ".join(parts) + "."
+    if excluded_count:
+        result += f" {excluded_count} ETF/indice(s) exclus de cette mesure fondamentale."
+    return result
 
 
 def _data_reliability_validation_lines(
@@ -901,7 +1239,7 @@ def _data_reliability_validation_lines(
     data_freshness_rows: list[dict[str, Any]],
     core_tickers: set[str],
 ) -> list[str]:
-    lines = []
+    table_rows = []
     listed_tickers: set[str] = set()
     sorted_conflicts = sorted(conflict_rows, key=lambda row: _ranking_float(row.get("conflict_count")), reverse=True)
     for row in sorted_conflicts[:5]:
@@ -909,11 +1247,13 @@ def _data_reliability_validation_lines(
         if not ticker:
             continue
         listed_tickers.add(ticker)
-        lines.append(
-            f"- {ticker} — {report_value(row.get('conflict_count'))} conflits "
-            f"({report_value(row.get('conflict_profile'))})"
+        table_rows.append(
+            {
+                "titre": ticker,
+                "signal": f"{report_value(row.get('conflict_count'))} écart(s) entre sources",
+                "quand_agir": "Seulement avant un achat important",
+            }
         )
-        lines.append(f"  → {compact_sentence(row.get('recommended_action'), 80)}")
 
     for row in data_freshness_rows:
         ticker = str(row.get("ticker") or "").strip()
@@ -923,10 +1263,23 @@ def _data_reliability_validation_lines(
         if "STALE_CACHE" not in flags and "CIRCUIT_OPEN" not in flags:
             continue
         listed_tickers.add(ticker)
-        lines.append(f"- {ticker} — données périmées → Relancer avec --refresh-market-data avant grosse allocation")
+        table_rows.append(
+            {
+                "titre": ticker,
+                "signal": "Données de marché périmées",
+                "quand_agir": "Rafraîchir avant un achat important",
+            }
+        )
         if len(listed_tickers) >= 10:
             break
-    return lines
+    if not table_rows:
+        return []
+    return [
+        _ranking_table(["titre", "signal", "quand_agir"], table_rows),
+        "",
+        "Action commune : si l'un de ces titres reçoit un montant important, actualiser son rapport "
+        "BNCD/Morningstar; sinon aucune action immédiate.",
+    ]
 
 
 def _active_sources_line(source_health_rows: list[dict[str, Any]] | None) -> str:
@@ -1006,37 +1359,56 @@ def _account_performance_lines(rows: list[dict[str, Any]]) -> list[str]:
     return output
 
 
-def _portfolio_human_risk_lines(
+def _portfolio_human_risk_rows(
     risk_rows: list[dict[str, Any]],
     hidden_cluster_rows: list[dict[str, Any]],
     market_regime: dict[str, Any],
-) -> list[str]:
-    lines = []
-    regime = _market_regime_line(market_regime)
+) -> list[dict[str, str]]:
+    rows = []
+    regime = _market_regime_risk_row(market_regime)
     if regime:
-        lines.append(regime)
-    lines.extend(_hidden_cluster_human_lines(hidden_cluster_rows))
-    lines.extend(_currency_risk_lines(risk_rows))
-    return lines
+        rows.append(regime)
+    cluster_rows = _portfolio_cluster_risk_rows(risk_rows)
+    rows.extend(cluster_rows or _hidden_cluster_human_rows(hidden_cluster_rows))
+    rows.extend(_currency_risk_rows(risk_rows))
+    return rows
 
 
-def _market_regime_line(market_regime: dict[str, Any]) -> str:
+def _market_regime_risk_row(market_regime: dict[str, Any]) -> dict[str, str]:
     if not market_regime:
-        return ""
+        return {}
     status = str(market_regime.get("market_regime_status") or market_regime.get("status") or "").strip()
     score = report_value(market_regime.get("market_regime_score") or market_regime.get("score"))
     status_upper = status.upper()
-    icon = "⚠️" if "BUBBLE_RISK" in status_upper or "HIGH_RISK" in status_upper else "🟡" if "WATCH" in status_upper or "MODERATE" in status_upper else "✅"
+    level = (
+        "⚠️ Élevé"
+        if "BUBBLE_RISK" in status_upper or "HIGH_RISK" in status_upper
+        else "🟡 À surveiller"
+        if "WATCH" in status_upper or "MODERATE" in status_upper
+        else "✅ Normal"
+    )
     implication = compact_sentence(
         market_regime.get("description")
         or market_regime.get("message")
         or market_regime.get("market_regime_interpretation"),
         80,
     )
-    return f"{icon} Régime : {status or 'N/D'} ({score}/100) — {implication}"
+    status_labels = {
+        "BUBBLE_RISK": "Risque de bulle",
+        "HIGH_RISK": "Risque de marché élevé",
+        "WATCH": "Régime à surveiller",
+        "MODERATE": "Risque de marché modéré",
+    }
+    label = status_labels.get(status_upper, status or "Régime de marché")
+    return {
+        "risque": f"★ {label}" if level == "⚠️ Élevé" else label,
+        "niveau": level,
+        "exposition": f"{score}/100",
+        "lecture": implication,
+    }
 
 
-def _hidden_cluster_human_lines(rows: list[dict[str, Any]]) -> list[str]:
+def _hidden_cluster_human_rows(rows: list[dict[str, Any]]) -> list[dict[str, str]]:
     output = []
     seen: set[str] = set()
     for row in rows:
@@ -1053,24 +1425,77 @@ def _hidden_cluster_human_lines(rows: list[dict[str, Any]]) -> list[str]:
             if not cluster or cluster in seen:
                 continue
             seen.add(cluster)
-            weight = round(exposure * 100)
-            icon = "⚠️" if weight >= 60 else "🟡" if weight >= 45 else "✅"
-            template = CLUSTER_LABELS.get(cluster, "{poids}% de ton portefeuille partage une exposition commune au cluster {nom}.")
-            output.append(f"{icon} {template.format(poids=weight, nom=cluster)}")
+            weight = exposure * 100
+            label, reading = _cluster_table_details(cluster)
+            output.append(_portfolio_risk_row(label, weight, reading))
     return output
 
 
-def _currency_risk_lines(rows: list[dict[str, Any]]) -> list[str]:
+def _portfolio_cluster_risk_rows(rows: list[dict[str, Any]]) -> list[dict[str, str]]:
+    output = []
+    seen: set[str] = set()
+    for row in rows:
+        risk_type = str(row.get("risk_type") or "").strip().lower()
+        if "cluster" not in risk_type:
+            continue
+        description = str(row.get("description") or "").strip()
+        cluster = description.split(":", 1)[0].strip()
+        if not cluster or cluster in seen:
+            continue
+        weight = _extract_percent(row.get("impact") or row.get("weight"))
+        if weight <= 0:
+            continue
+        seen.add(cluster)
+        label, reading = _cluster_table_details(cluster)
+        output.append(_portfolio_risk_row(label, weight, reading))
+    return output
+
+
+def _currency_risk_rows(rows: list[dict[str, Any]]) -> list[dict[str, str]]:
     output = []
     for row in rows:
         risk_type = str(row.get("risk_type") or "").strip().lower()
         if risk_type not in {"devise", "currency"}:
             continue
         weight = _extract_percent(row.get("impact") or row.get("poids_concerné") or row.get("weight"))
-        icon = "⚠️" if weight >= 80 else "🟡" if weight >= 50 else "✅"
         currency = _currency_label(row)
-        output.append(f"{icon} Risque devise : {round(weight)}% de ton portefeuille est en {currency}. Une variation affecte directement ta valeur en CAD.")
+        output.append(
+            _portfolio_risk_row(
+                f"Devise {currency}",
+                weight,
+                f"Une variation du {currency} affecte directement la valeur du portefeuille en CAD.",
+                high_threshold=80,
+                watch_threshold=50,
+            )
+        )
     return output
+
+
+def _cluster_table_details(cluster: str) -> tuple[str, str]:
+    return CLUSTER_TABLE_DETAILS.get(
+        cluster,
+        (
+            cluster.replace("_", " ").title(),
+            "Plusieurs positions partagent cette même exposition.",
+        ),
+    )
+
+
+def _portfolio_risk_row(
+    label: str,
+    weight: float,
+    reading: str,
+    *,
+    high_threshold: float = 60,
+    watch_threshold: float = 45,
+) -> dict[str, str]:
+    level = "⚠️ Élevé" if weight >= high_threshold else "🟡 À surveiller" if weight >= watch_threshold else "✅ Modéré"
+    return {
+        "risque": f"★ {label}" if level == "⚠️ Élevé" else label,
+        "niveau": level,
+        "exposition": _format_percentage(weight / 100),
+        "lecture": reading,
+    }
 
 
 def _cluster_names(row: dict[str, Any]) -> list[str]:
@@ -1134,6 +1559,12 @@ def build_ranking_section(
     drawdown_rows = _ranking_drawdown_opportunity_rows(merged, limit=8)
     watched_rows = _ranking_non_allocated_rows(merged, limit=min(10, top_n))
     lines = [
+        "**Comment lire ces deux listes**",
+        "",
+        "- **Drawdown** : le prix a fortement baissé, mais la thèse reste intacte. C'est un signal de prix intéressant, pas une recommandation d'achat automatique.",
+        "- **Meilleurs titres non alloués** : classement général des candidats solides que le modèle n'a pas retenus. La dernière colonne indique le blocage.",
+        "- Un même titre peut apparaître dans les deux listes : son prix peut être intéressant tout en restant bloqué par un autre garde-fou.",
+        "",
         "### Opportunités — drawdown avec thèse intacte",
         "",
     ]
@@ -1141,7 +1572,7 @@ def build_ranking_section(
         lines.extend([_ranking_table(["ticker", "provenance", "score", "contexte_nouvelles", "lecture"], drawdown_rows), ""])
     else:
         lines.extend(["Aucune opportunité de drawdown identifiée ce run.", ""])
-    lines.extend(["### Meilleurs titres surveillés (non alloués)", ""])
+    lines.extend(["### Meilleurs titres surveillés (non alloués — classement général)", ""])
     if watched_rows:
         lines.extend(
             [
@@ -1192,9 +1623,18 @@ def _ranking_drawdown_opportunity_rows(rows: list[dict[str, Any]], *, limit: int
             "ticker": row.get("ticker_display") or row.get("ticker"),
             "provenance": row.get("_provenance"),
             "score": row.get("capital_allocation_score", row.get("score_total", row.get("conviction_score", ""))),
-            "contexte_nouvelles": row.get("news_context_label") or row.get("contexte_nouvelles") or "—",
+            "contexte_nouvelles": (
+                row.get("news_context_label")
+                or row.get("news_context_status")
+                or row.get("contexte_nouvelles")
+                or "—"
+            ),
             "lecture": compact_sentence(
-                row.get("quality_drawdown_label") or row.get("drawdown_lecture") or row.get("monitoring_note") or "",
+                row.get("quality_drawdown_label")
+                or row.get("quality_drawdown_reason")
+                or row.get("drawdown_lecture")
+                or row.get("monitoring_note")
+                or "",
                 120,
             ),
         }
@@ -1274,7 +1714,15 @@ def _promotion_proximity_numerator(value: Any) -> float:
 def _ranking_not_allocated_reason(row: dict[str, Any], any_allocated: bool) -> str:
     category = str(row.get("blocking_reason_category") or "").strip()
     if category:
-        return category
+        labels = {
+            "DATA_INSUFFICIENT": "Données insuffisantes",
+            "CYCLE_RISK": "Risque cyclique trop élevé",
+            "NOT_SUPERIOR_TO_CORE": "Pas assez supérieur aux positions actuelles",
+            "FUNDAMENTALS_BELOW_BAR": "Fondamentaux sous le seuil",
+            "PROMOTION_SLOT_LIMIT": "Moins prioritaire que les meilleurs candidats",
+            "UNKNOWN": "Raison à confirmer",
+        }
+        return labels.get(category.upper(), category)
     for key in ("allocation_decision", "final_position_action", "watchlist_status", "candidate_status", "discovery_status"):
         value = str(row.get(key) or "").strip()
         if value and value.upper() != "ELIGIBLE_BUT_NOT_SELECTED":

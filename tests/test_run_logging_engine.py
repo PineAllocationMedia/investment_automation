@@ -81,6 +81,23 @@ class RunLoggingEngineTest(unittest.TestCase):
         source_row = next(row for row in extended if row["event"] == "SOURCE_HEALTH_WARNINGS")
         self.assertIn("PARTIAL_COVERAGE", source_row["details"])
 
+    def test_analysis_log_counts_french_high_validation_priorities(self):
+        rows = build_analysis_run_log(
+            run_id="run-fr-priority",
+            mode="high-cagr",
+            capital=0,
+            refresh_market_data=False,
+            validation_priority_rows=[
+                {"ticker": "RHM.NE", "priority": "TRES_HAUTE", "field": "fair_value"},
+                {"ticker": "CLS.TO", "priority": "HAUTE", "field": "fair_value"},
+                {"ticker": "AAPL", "priority": "MOYENNE", "field": "peg_manual"},
+            ],
+            allocation_result={"allocations": []},
+        )
+
+        priority_row = next(row for row in rows if row["event"] == "HIGH_PRIORITY_VALIDATION")
+        self.assertIn("2 validation(s)", priority_row["message"])
+
     def test_history_append_is_idempotent_by_run_id(self):
         with TemporaryDirectory() as directory:
             path = Path(directory) / "run_log_history.csv"

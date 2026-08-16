@@ -112,6 +112,7 @@ from .report_formatters import (
     as_list as _as_list,
     build_compact_data_reliability_section,
     build_compact_decision_section,
+    build_compact_external_monitoring_section,
     build_compact_model_health_section,
     build_compact_portfolio_section,
     build_decision_quality_compact_lines,
@@ -737,6 +738,7 @@ def generate_reports(
     allocation_change_rows: list[dict[str, Any]] | None = None,
     allocation_sensitivity: dict[str, Any] | None = None,
     validation_priority_rows: list[dict[str, Any]] | None = None,
+    research_needed_rows: list[dict[str, Any]] | None = None,
     portfolio_change_rows: list[dict[str, Any]] | None = None,
     portfolio_change_history_rows: list[dict[str, Any]] | None = None,
     portfolio_change_summary_rows: list[dict[str, Any]] | None = None,
@@ -774,6 +776,7 @@ def generate_reports(
     allocation_change_rows = allocation_change_rows or []
     allocation_sensitivity = allocation_sensitivity or {}
     validation_priority_rows = validation_priority_rows or []
+    research_needed_rows = research_needed_rows or []
     portfolio_change_rows = portfolio_change_rows or []
     portfolio_change_history_rows = portfolio_change_history_rows or []
     portfolio_change_summary_rows = portfolio_change_summary_rows or []
@@ -893,6 +896,7 @@ def generate_reports(
         allocation_change_rows=allocation_change_rows,
         allocation_sensitivity=allocation_sensitivity,
         validation_priority_rows=validation_priority_rows,
+        research_needed_rows=research_needed_rows,
         portfolio_change_rows=portfolio_change_rows,
         portfolio_change_history_rows=portfolio_change_history_rows,
         portfolio_change_summary_rows=portfolio_change_summary_rows,
@@ -1254,6 +1258,7 @@ def build_compact_markdown_report(
     allocation_change_rows: list[dict[str, Any]],
     allocation_sensitivity: dict[str, Any],
     validation_priority_rows: list[dict[str, Any]],
+    research_needed_rows: list[dict[str, Any]],
     portfolio_change_rows: list[dict[str, Any]],
     portfolio_change_history_rows: list[dict[str, Any]],
     portfolio_change_summary_rows: list[dict[str, Any]],
@@ -1280,7 +1285,6 @@ def build_compact_markdown_report(
     allocation_rows = allocation_rows_for_csv(allocation_result.get("allocations", []))
     allocation_lookup = {**analyses, **watchlist_analyses, **market_analyses, **discovery_analyses}
     external_policy_note = _external_allocation_policy_note(mode)
-    external_candidates_title = _external_candidates_title(mode)
     qualitative_moat_rows = qualitative_moat_rows or []
     company_dossier_rows = company_dossier_rows or build_company_dossier_rows(allocation_lookup, allocation_rows, qualitative_moat_rows)
     market_regime = market_regime or {}
@@ -1312,6 +1316,7 @@ def build_compact_markdown_report(
         discovery_analyses=discovery_analyses,
         score_stability=score_stability,
         walk_forward_status=walk_forward_signal,
+        research_needed_rows=research_needed_rows,
     )
     sell_report_rows = compact_sell_rows(sell_rows_for_report(_display_rows(sell_rows)), limit=8)
     sell_validation_rows = compact_sell_validation_rows_for_compact_report(
@@ -1428,7 +1433,7 @@ def build_compact_markdown_report(
         analyses,
         portfolio_risk,
     )
-    blocked_external_validation_rows, blocked_external_validation_extra_count = (
+    blocked_external_validation_rows, _ = (
         _blocked_external_validation_rows_for_compact_report(
             watchlist_analyses,
             market_analyses,
@@ -1443,14 +1448,18 @@ def build_compact_markdown_report(
     ticker_memory_display_rows = compact_ticker_memory_rows(ticker_memory_rows, limit=8)
     anomaly_display_rows = anomaly_rows_for_report(anomaly_rows, limit=8)
     cache_health_display_rows = compact_cache_health_rows(cache_health_rows, limit=8)
-    run_log_display_rows = run_log_rows_for_report(run_log_rows, limit=8)
+    run_log_display_rows = [
+        row
+        for row in run_log_rows_for_report(run_log_rows, limit=8)
+        if str(row.get("événement") or row.get("event") or "").strip().upper()
+        != "HIGH_PRIORITY_VALIDATION"
+    ]
     data_freshness_display_rows = compact_data_freshness_rows(
         _display_rows(raw_data_freshness_rows),
         allocated_tickers,
         limit=8,
     )
     defensive_summary = defensive_fallback_summary(defensive_etf_candidates or [], mode)
-    defensive_display_rows = compact_defensive_etf_rows_for_report(defensive_etf_candidates or [])
     external_etf_display_rows = compact_external_etf_rows_for_report(
         external_etf_rows_for_csv(watchlist_analyses, market_analyses, discovery_analyses)
     )
@@ -1538,6 +1547,8 @@ def build_compact_markdown_report(
     monitoring_active_rows = [
         row for row in monitoring_rows if str(row.get("statut_surveillance") or "").upper() not in {"", "NORMAL"}
     ]
+    monitoring_summary_rows = compact_monitoring_summary_rows(monitoring_active_rows, limit=3)
+    monitoring_extra_count = max(0, len(monitoring_active_rows) - len(monitoring_summary_rows))
     quality_drawdown_opportunity_rows = [
         row for row in quality_drawdown_rows if str(row.get("statut") or "").upper() == "QUALITY_DRAWDOWN_OPPORTUNITY"
     ]
@@ -1546,9 +1557,6 @@ def build_compact_markdown_report(
         weight = safe_float(str(row.get("poids") or "").replace("%", "").replace(" ", "").replace(",", ".")) or 0.0
         if weight > 20.0:
             factor_exposure_over_20_rows.append(row)
-    defensive_active_rows = [
-        row for row in defensive_display_rows if str(row.get("statut") or "").upper() not in {"", "DESACTIVE"}
-    ]
     portfolio_change_action_rows = [
         row
         for row in portfolio_change_display_rows
@@ -1609,11 +1617,11 @@ def build_compact_markdown_report(
     sell_section_lines = [
         "## Vente & surveillance",
         "",
-        "### Action requise",
-        "",
-        *(["🟢 Aucune action requise.", ""] if not action_required_rows else []),
+        *(["🟢 Rien à vendre ou réduire maintenant.", ""] if not action_required_rows else []),
         *(
             [
+                "### À faire maintenant",
+                "",
                 _markdown_table(
                     ["ticker", "statut", "raison_principale", "validation_manuelle_requise"],
                     action_required_rows,
@@ -1634,12 +1642,29 @@ def build_compact_markdown_report(
             if sell_validation_action_rows
             else []
         ),
-        "### À surveiller",
+        "### Surveillance",
         "",
         *(["🟢 Aucune surveillance active.", ""] if not monitoring_active_rows else []),
         *(
             [
-                _markdown_table(["ticker", "statut_surveillance", "raison_principale", "impact_sur_achat"], monitoring_active_rows),
+                f"🟡 {len(monitoring_active_rows)} position(s) suivie(s), sans action de vente immédiate.",
+                "",
+                _markdown_table(["ticker", "consigne_simple", "raison_principale"], monitoring_summary_rows),
+                "",
+                *(
+                    [f"+ {monitoring_extra_count} autre(s) position(s) suivie(s) dans le détail repliable.", ""]
+                    if monitoring_extra_count
+                    else []
+                ),
+                *_compact_details_block(
+                    "Voir les signaux techniques détaillés",
+                    [
+                        _markdown_table(
+                            ["ticker", "statut_surveillance", "raison_principale", "impact_sur_achat"],
+                            monitoring_active_rows,
+                        )
+                    ],
+                ),
                 "",
             ]
             if monitoring_active_rows
@@ -1647,53 +1672,19 @@ def build_compact_markdown_report(
         ),
     ]
 
-    external_section_lines = [
-        "## 6. Surveillance externe",
-        "",
-        external_policy_note,
-        "",
-        f"- Promotions externes: {_external_promotion_summary_text(promotion_rows, market_analyses, market_universe, discovery_analyses, discovery_universe)}",
-        f"- Promotion vers Core Portfolio: {_promotion_only_summary_text(promotion_rows)}",
-        f"- Surveillance Market Universe, non-promotion: {_market_universe_summary_text(market_analyses, market_universe)}",
-        f"- Scanner / discovery, non-promotion: {_discovery_summary_text(discovery_analyses, discovery_universe)}",
-        "",
-        "### Candidats externes bloqués — validation personnelle requise",
-        "",
-        _markdown_table(
-            ["ticker", "provenance", "score", "fourchette_confiance", "pdf_suggéré", "action"],
-            blocked_external_validation_rows,
-        ),
-        "",
-        *(
-            [f"+ {blocked_external_validation_extra_count} autre(s) candidat(s) bloqué(s) — voir latest_scores.csv.", ""]
-            if blocked_external_validation_extra_count > 0
-            else []
-        ),
-        "### Promotions vers Core Portfolio",
-        "",
-        _markdown_table(["source", "ticker", "statut", "raison", "prochaine_étape"], promotion_display_rows),
-        "",
-        external_candidates_title,
-        "",
-        _markdown_table(["source", "ticker", "status", "score", "raison"], external_rows),
-        "",
-        "### ETF externes possibles",
-        "",
-        "Cette couche analyse les ETF ajoutés dans les listes externes avec des critères propres aux ETF. Elle est désactivée en `high-cagr` et reste plafonnée par mode.",
-        "",
-        _markdown_table(["ticker", "statut", "score", "fit_mode", "raison"], external_etf_display_rows),
-        "",
-        *(
-            [
-                "### ETF défensifs",
-                "",
-                _markdown_table(["ticker", "statut", "score", "rôle", "raison"], defensive_active_rows),
-                "",
-            ]
-            if mode != "high-cagr" and defensive_active_rows
-            else []
-        ),
-    ]
+    compact_external_section = build_compact_external_monitoring_section(
+        mode=mode,
+        allocation_result=allocation_result,
+        core_analyses=analyses,
+        watchlist_analyses=watchlist_analyses,
+        market_analyses=market_analyses,
+        discovery_analyses=discovery_analyses,
+        external_candidate_rows=external_rows,
+        blocked_validation_rows=blocked_external_validation_rows,
+        promotion_rows=promotion_display_rows,
+        external_etf_rows=external_etf_display_rows,
+        policy_note=external_policy_note,
+    )
 
     annex_a_lines = [
         "Lecture rapide de la qualité des données utilisées pour les positions du portefeuille. Les ETF/FNB sont exclus des pourcentages parce qu’ils ne se scorent pas comme des entreprises.",
@@ -1898,7 +1889,8 @@ def build_compact_markdown_report(
         "",
         compact_data_reliability_section,
         "",
-        *external_section_lines,
+        compact_external_section,
+        "",
         "## 7. Annexes techniques",
         "",
         "Ces annexes gardent les preuves et contrôles sans encombrer la décision principale. Quand tout est propre, elles se condensent automatiquement.",
@@ -3738,6 +3730,47 @@ def compact_monitoring_rows(
     ]
 
 
+def compact_monitoring_summary_rows(
+    rows: list[dict[str, Any]],
+    limit: int = 3,
+) -> list[dict[str, Any]]:
+    output = []
+    for row in rows[:limit]:
+        status = str(row.get("statut_surveillance") or "").upper()
+        reason = _compact_sentence(row.get("raison_principale"), 120)
+        for separator in (".,", " | ", "\n"):
+            reason = reason.split(separator, 1)[0].strip()
+        for prefix, replacement in (
+            ("Alerte technique:", "Signal technique:"),
+            ("Alerte valorisation:", "Valorisation:"),
+            ("Alerte marché:", "Performance de marché:"),
+            ("Alerte surveillance:", "Surveillance:"),
+            ("Alerte:", ""),
+            ("Validation manuelle requise:", "À valider:"),
+        ):
+            if reason.startswith(prefix):
+                reason = f"{replacement}{reason[len(prefix):]}".strip()
+                break
+        reason = reason.replace(" (pertinence HIGH)", "")
+        reason = f"{reason[:1].upper()}{reason[1:]}" if reason else reason
+        if reason and reason[-1] not in ".!?":
+            reason += "."
+        if status == "MANUAL_REVIEW":
+            instruction = "Ne pas renforcer avant validation."
+        elif status == "WATCH":
+            instruction = "Conserver et surveiller."
+        else:
+            instruction = "Surveiller; aucune action immédiate."
+        output.append(
+            {
+                "ticker": row.get("ticker"),
+                "consigne_simple": instruction,
+                "raison_principale": reason or "Signal à surveiller; voir le détail.",
+            }
+        )
+    return output
+
+
 def compact_winner_rows(
     rows: list[dict[str, Any]],
     allocated_tickers: set[str],
@@ -4167,19 +4200,41 @@ def compact_validation_priority_for_compact_report(rows: list[dict[str, Any]], l
     return output or [{"ticker": "", "donnée": "", "importance": "AUCUNE_PRIORITE", "pourquoi": "Aucune donnée prioritaire."}]
 
 
-def compact_risk_for_compact_report(portfolio_risk: dict[str, Any], limit: int = 8) -> list[dict[str, Any]]:
+def compact_risk_for_compact_report(portfolio_risk: dict[str, Any], limit: int = 20) -> list[dict[str, Any]]:
     rows = [row for row in risk_rows_for_output(portfolio_risk) if str(row.get("risk_level") or "") != "INFO"]
     if not rows:
         rows = risk_rows_for_output(portfolio_risk)
-    return [
+    output = [
         {
             "risk_type": row.get("risk_type"),
             "risk_level": row.get("risk_level"),
             "description": _compact_sentence(row.get("description"), 150),
             "impact": row.get("impact"),
         }
-        for row in rows[:limit]
+        for row in rows
     ]
+    displayed_clusters = {
+        str(row.get("description") or "").split(":", 1)[0].strip()
+        for row in output
+        if "cluster" in str(row.get("risk_type") or "").lower()
+    }
+    for cluster, exposure in sorted(
+        (portfolio_risk.get("hidden_cluster_exposure") or {}).items(),
+        key=lambda item: safe_float(item[1]) or 0.0,
+        reverse=True,
+    ):
+        weight = safe_float(exposure) or 0.0
+        if not cluster or cluster in displayed_clusters or weight <= 0:
+            continue
+        output.append(
+            {
+                "risk_type": "cluster_caché",
+                "risk_level": "SECONDARY",
+                "description": f"{cluster}: exposition agrégée",
+                "impact": f"Poids concerné: {pct(weight, 1)}",
+            }
+        )
+    return output[:limit]
 
 
 def compact_portfolio_risk_weight_rows(
@@ -8048,94 +8103,6 @@ def _external_allocation_policy_note(mode: str) -> str:
         "passent les filtres stricts du mode: thèse intacte, vente GREEN, données suffisantes, valorisation non "
         "extrême, avantage clair vs VFV et plafond de nouvelle position externe."
     )
-
-
-def _external_candidates_title(mode: str) -> str:
-    if mode == "high-cagr":
-        return "### Surveillance externe et allocations directes possibles"
-    return "### Surveillance externe et allocations possibles"
-
-
-def _external_promotion_summary_text(
-    promotion_rows: list[dict[str, Any]],
-    market_analyses: dict[str, dict[str, Any]],
-    market_universe: dict[str, dict[str, Any]],
-    discovery_analyses: dict[str, dict[str, Any]],
-    discovery_universe: dict[str, dict[str, Any]],
-) -> str:
-    promoted = _promotion_ticker_list(promotion_rows, limit=3)
-    if promoted != "Aucune":
-        return f"promotion à revue manuelle possible: {promoted}; en `high-cagr`, une allocation directe reste possible seulement si les filtres stricts passent."
-    market = _market_universe_ticker_list(market_analyses, market_universe, limit=2)
-    discovery = _discovery_ticker_list(discovery_analyses, discovery_universe, limit=2)
-    return f"aucune promotion fondée; market universe à surveiller: {market}; scanner/discovery: {discovery}."
-
-
-def _promotion_only_summary_text(promotion_rows: list[dict[str, Any]]) -> str:
-    promoted = _promotion_ticker_list(promotion_rows, limit=5)
-    if promoted != "Aucune":
-        return f"{promoted} mérite une revue manuelle avant ajout éventuel au portfolio avec shares=0; en `high-cagr`, le moteur peut aussi limiter une allocation directe si les filtres stricts passent."
-    return "Aucune promotion fondée vers le Core Portfolio selon les filtres stricts."
-
-
-def _market_universe_summary_text(
-    market_analyses: dict[str, dict[str, Any]],
-    market_universe: dict[str, dict[str, Any]],
-) -> str:
-    tickers = _market_universe_ticker_list(market_analyses, market_universe, limit=5)
-    if tickers == "Aucune":
-        return "Aucun titre du market universe ne ressort comme candidat externe prioritaire."
-    return f"À surveiller; allocation directe possible en `high-cagr` ou dans les autres modes qui l'autorisent, seulement si les filtres stricts passent: {tickers}."
-
-
-def _discovery_summary_text(
-    discovery_analyses: dict[str, dict[str, Any]],
-    discovery_universe: dict[str, dict[str, Any]],
-) -> str:
-    tickers = _discovery_ticker_list(discovery_analyses, discovery_universe, limit=5)
-    if tickers == "Aucune":
-        return "Aucune nouvelle idée assez forte à ajouter au market universe."
-    return f"Idées intéressantes hors market universe: {tickers}. À ajouter seulement si tu veux les suivre de près."
-
-
-def _promotion_ticker_list(rows: list[dict[str, Any]], limit: int = 5) -> str:
-    promoted = [row for row in rows if row.get("promotion_status") == "PROMOTE_TO_CORE_REVIEW"]
-    return _external_ticker_list(promoted, limit=limit)
-
-
-def _market_universe_ticker_list(
-    market_analyses: dict[str, dict[str, Any]],
-    market_universe: dict[str, dict[str, Any]],
-    limit: int = 5,
-) -> str:
-    rows = build_market_candidate_rows(market_analyses, market_universe)
-    manual_review = [row for row in rows if row.get("candidate_status") == "MANUAL_REVIEW_TOP_CANDIDATE"]
-    if manual_review:
-        return _external_ticker_list(manual_review, limit=limit)
-    promising = [row for row in rows if row.get("candidate_status") == "PROMISING_BUT_INCOMPLETE"]
-    return _external_ticker_list(promising, limit=limit)
-
-
-def _discovery_ticker_list(
-    discovery_analyses: dict[str, dict[str, Any]],
-    discovery_universe: dict[str, dict[str, Any]],
-    limit: int = 5,
-) -> str:
-    rows = build_discovery_idea_rows(discovery_analyses, discovery_universe, report_only=True)
-    add_review = [row for row in rows if row.get("discovery_status") == "ADD_TO_MARKET_UNIVERSE_REVIEW"]
-    if add_review:
-        return _external_ticker_list(add_review, limit=limit)
-    strong_wait = [row for row in rows if row.get("discovery_status") == "STRONG_BUT_WAIT"]
-    return _external_ticker_list(strong_wait, limit=limit)
-
-
-def _external_ticker_list(rows: list[dict[str, Any]], limit: int = 5) -> str:
-    tickers = []
-    for row in rows:
-        ticker = row.get("ticker_display") or row.get("ticker")
-        if ticker:
-            tickers.append(str(ticker))
-    return ", ".join(tickers[:limit]) if tickers else "Aucune"
 
 
 def _winner_protection_summary(rows: list[dict[str, Any]]) -> str:

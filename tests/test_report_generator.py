@@ -7,6 +7,8 @@ from src.report_generator import (
     allocation_justification_rows_for_report,
     allocation_recommendation_narrative,
     auto_estimate_rows_for_output,
+    compact_monitoring_summary_rows,
+    compact_risk_for_compact_report,
     _weakest_core_compact_alert_lines,
     _thesis_reversal_compact_summary,
     promotion_recommendation_rows,
@@ -19,6 +21,63 @@ from src.utils import today_iso
 
 
 class ReportGeneratorTest(unittest.TestCase):
+    def test_compact_risk_includes_secondary_aggregate_clusters(self):
+        rows = compact_risk_for_compact_report(
+            {
+                "alerts": [
+                    {
+                        "risk_type": "cluster_caché",
+                        "name": "RATES_SENSITIVE_GROWTH",
+                        "weight": 0.685,
+                        "alert": "cluster caché extrême",
+                    }
+                ],
+                "hidden_cluster_exposure": {
+                    "RATES_SENSITIVE_GROWTH": 0.685,
+                    "AI_SEMI_CLOUD_INFRA": 0.397,
+                    "CANADA_CAD_CLUSTER": 0.075,
+                },
+            }
+        )
+
+        descriptions = [str(row.get("description") or "") for row in rows]
+        self.assertEqual(sum(text.startswith("RATES_SENSITIVE_GROWTH:") for text in descriptions), 1)
+        self.assertTrue(any(text.startswith("AI_SEMI_CLOUD_INFRA:") for text in descriptions))
+        self.assertTrue(any(text.startswith("CANADA_CAD_CLUSTER:") for text in descriptions))
+        self.assertIn("Poids concerné: 39.7 %", [row.get("impact") for row in rows])
+
+    def test_compact_monitoring_summary_translates_status_and_limits_noise(self):
+        rows = [
+            {
+                "ticker": "GOOGL",
+                "statut_surveillance": "MANUAL_REVIEW",
+                "raison_principale": "Alerte: secteur sous le seuil (pertinence HIGH)., EPS à valider.",
+            },
+            {
+                "ticker": "VRT",
+                "statut_surveillance": "WATCH",
+                "raison_principale": "Thèse en affaiblissement., Valorisation élevée.",
+            },
+            {
+                "ticker": "MSFT",
+                "statut_surveillance": "OTHER",
+                "raison_principale": "Signal secondaire.",
+            },
+            {
+                "ticker": "META",
+                "statut_surveillance": "WATCH",
+                "raison_principale": "Cette ligne doit rester masquée.",
+            },
+        ]
+
+        result = compact_monitoring_summary_rows(rows, limit=3)
+
+        self.assertEqual(len(result), 3)
+        self.assertEqual(result[0]["consigne_simple"], "Ne pas renforcer avant validation.")
+        self.assertEqual(result[0]["raison_principale"], "Secteur sous le seuil.")
+        self.assertEqual(result[1]["consigne_simple"], "Conserver et surveiller.")
+        self.assertEqual(result[2]["consigne_simple"], "Surveiller; aucune action immédiate.")
+
     def test_compact_decision_formats_raw_allocation_pourcentage(self):
         markdown = build_compact_decision_section(
             allocation_result={

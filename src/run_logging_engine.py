@@ -133,7 +133,12 @@ def build_analysis_run_log(
             details=_ticker_field_details(high_gaps),
         )
 
-    priority_rows = [row for row in validation_priority_rows if str(row.get("priority") or "").upper() == "HIGH"]
+    priority_values = {"HAUTE", "TRES_HAUTE", "TRÈS_HAUTE", "HIGH", "CRITICAL"}
+    priority_rows = [
+        row
+        for row in validation_priority_rows
+        if str(row.get("priority") or "").strip().upper() in priority_values
+    ]
     if priority_rows:
         _add(
             rows,
