@@ -8,5 +8,5 @@ Type=oneshot
 WorkingDirectory=@PROJECT_ROOT@
 Environment=PYTHONUNBUFFERED=1
 ExecStartPre=@PROJECT_ROOT@/.venv/bin/python @PROJECT_ROOT@/scripts/update_deployment_code.py --project-root @PROJECT_ROOT@
-ExecStart=@PROJECT_ROOT@/.venv/bin/python @PROJECT_ROOT@/scripts/request_telegram_analysis.py --mode high-cagr --timeout-seconds 43200
+ExecStart=@PROJECT_ROOT@/.venv/bin/python @PROJECT_ROOT@/scripts/request_telegram_analysis.py --mode high-cagr --refresh-market-data --timeout-seconds 43200
 TimeoutStartSec=13h
