@@ -7,5 +7,6 @@ Wants=network-online.target
 Type=oneshot
 WorkingDirectory=@PROJECT_ROOT@
 Environment=PYTHONUNBUFFERED=1
+ExecStartPre=@PROJECT_ROOT@/.venv/bin/python @PROJECT_ROOT@/scripts/update_deployment_code.py --project-root @PROJECT_ROOT@
 ExecStart=@PROJECT_ROOT@/.venv/bin/python @PROJECT_ROOT@/scripts/run_scheduled_maintenance.py --mode high-cagr --repair-safe
 TimeoutStartSec=8h

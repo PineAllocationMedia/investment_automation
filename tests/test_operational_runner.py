@@ -12,7 +12,7 @@ RUNNER = PROJECT_ROOT / "scripts" / "run_investment_analysis.sh"
 
 
 class OperationalRunnerTest(unittest.TestCase):
-    def _project(self, root: Path, *, validation_status: int = 0) -> dict[str, str]:
+    def _project(self, root: Path, *, validation_status: int = 0, sync_status: int = 0) -> dict[str, str]:
         (root / ".venv" / "bin").mkdir(parents=True)
         (root / "reports").mkdir()
         (root / "main.py").write_text("# test fixture\n", encoding="utf-8")
@@ -22,6 +22,9 @@ class OperationalRunnerTest(unittest.TestCase):
                 f"""\
                 #!/usr/bin/env bash
                 echo "$*" >>"$INVESTMENT_AUTOMATION_TEST_CALLS"
+                if [[ "$1" == *"sync_operational_inputs.py" ]]; then
+                    exit {sync_status}
+                fi
                 if [[ "$2" == "validate-inputs" ]]; then
                     exit {validation_status}
                 fi
@@ -106,6 +109,37 @@ class OperationalRunnerTest(unittest.TestCase):
             calls = (root / "calls.txt").read_text(encoding="utf-8").splitlines()
             self.assertEqual(calls, ["main.py validate-inputs"])
             self.assertIn("Analyse annulee", result.stdout)
+
+    def test_configured_input_sync_runs_before_validation(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            env = self._project(root)
+            config = root / "input_sync.env"
+            config.write_text("INVESTMENT_AUTOMATION_INPUT_SOURCE=/drive\n", encoding="utf-8")
+            env["INVESTMENT_AUTOMATION_INPUT_SYNC_CONFIG"] = str(config)
+
+            result = self._run(env)
+
+            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+            calls = (root / "calls.txt").read_text(encoding="utf-8").splitlines()
+            self.assertIn("sync_operational_inputs.py", calls[0])
+            self.assertEqual(calls[1], "main.py validate-inputs")
+            self.assertIn("main.py analyze", calls[2])
+
+    def test_input_sync_failure_stops_before_validation(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            env = self._project(root, sync_status=8)
+            config = root / "input_sync.env"
+            config.write_text("INVESTMENT_AUTOMATION_INPUT_SOURCE=/drive\n", encoding="utf-8")
+            env["INVESTMENT_AUTOMATION_INPUT_SYNC_CONFIG"] = str(config)
+
+            result = self._run(env)
+
+            self.assertEqual(result.returncode, 4)
+            calls = (root / "calls.txt").read_text(encoding="utf-8").splitlines()
+            self.assertEqual(len(calls), 1)
+            self.assertIn("sync_operational_inputs.py", calls[0])
 
 
 if __name__ == "__main__":

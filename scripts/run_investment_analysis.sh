@@ -16,6 +16,8 @@ PYTHON="$PROJECT_ROOT/.venv/bin/python"
 TELEGRAM_NOTIFIER="${INVESTMENT_AUTOMATION_TELEGRAM_NOTIFIER:-$SCRIPT_DIR/telegram_notify.py}"
 TELEGRAM_CONFIG="${INVESTMENT_AUTOMATION_TELEGRAM_CONFIG:-$HOME/.config/investment_automation/telegram.env}"
 TELEGRAM_PYTHON="${INVESTMENT_AUTOMATION_TELEGRAM_PYTHON:-$PYTHON}"
+INPUT_SYNC_SCRIPT="${INVESTMENT_AUTOMATION_INPUT_SYNC_SCRIPT:-$SCRIPT_DIR/sync_operational_inputs.py}"
+INPUT_SYNC_CONFIG="${INVESTMENT_AUTOMATION_INPUT_SYNC_CONFIG:-$HOME/.config/investment_automation/input_sync.env}"
 
 mode="$DEFAULT_MODE"
 capital="$DEFAULT_CAPITAL"
@@ -132,7 +134,21 @@ notify_telegram --message "Analyse $mode démarrée. Capital: ${capital} $. Rafr
 cd "$PROJECT_ROOT" || exit 66
 
 echo
-echo "[1/2] Validation des intrants"
+echo "[1/3] Synchronisation des intrants humains"
+if [[ -n "${INVESTMENT_AUTOMATION_INPUT_SOURCE:-}" || -s "$INPUT_SYNC_CONFIG" ]]; then
+    "$PYTHON" "$INPUT_SYNC_SCRIPT" --config "$INPUT_SYNC_CONFIG" --project-root "$PROJECT_ROOT" 2>&1 | tee -a "$log_file"
+    sync_status=${PIPESTATUS[0]}
+    if ((sync_status != 0)); then
+        echo "ECHEC: synchronisation des intrants impossible. Analyse annulee." | tee -a "$log_file"
+        notify_telegram --message "ÉCHEC analyse $mode: synchronisation Drive impossible. Aucun rapport produit."
+        exit 4
+    fi
+else
+    echo "Synchronisation désactivée: aucune source configurée." | tee -a "$log_file"
+fi
+
+echo
+echo "[2/3] Validation des intrants"
 "$PYTHON" main.py validate-inputs 2>&1 | tee -a "$log_file"
 validation_status=${PIPESTATUS[0]}
 if ((validation_status != 0)); then
@@ -142,7 +158,7 @@ if ((validation_status != 0)); then
 fi
 
 echo
-echo "[2/2] Analyse"
+echo "[3/3] Analyse"
 analysis_args=(main.py analyze --capital "$capital" --mode "$mode")
 if [[ "$refresh_market_data" == true ]]; then
     analysis_args+=(--refresh-market-data)

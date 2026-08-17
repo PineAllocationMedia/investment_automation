@@ -23,6 +23,8 @@ class SystemdAutomationTest(unittest.TestCase):
         self.assertIn("OnCalendar=*-*-01,15 16:45:00 America/Toronto", timer)
         self.assertIn("Persistent=true", timer)
         self.assertIn("--timeout-seconds 43200", service)
+        self.assertIn("ExecStartPre=", service)
+        self.assertIn("update_deployment_code.py", service)
         self.assertNotIn("@PROJECT_ROOT@", service)
 
     def test_maintenance_timer_is_weekly_and_persistent(self):
@@ -32,6 +34,7 @@ class SystemdAutomationTest(unittest.TestCase):
         self.assertIn("OnCalendar=Sun *-*-* 09:00:00 America/Toronto", timer)
         self.assertIn("Persistent=true", timer)
         self.assertIn("run_scheduled_maintenance.py --mode high-cagr --repair-safe", service)
+        self.assertIn("update_deployment_code.py", service)
 
     def test_install_writes_only_expected_units_and_activates_timers(self):
         runner = Mock()

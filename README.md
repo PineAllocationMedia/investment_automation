@@ -86,10 +86,11 @@ cotisation réelle ou un rafraîchissement volontaire :
 ./scripts/run_investment_analysis.sh --capital 330 --refresh-market-data
 ```
 
-Le lanceur refuse un deuxième run simultané, exécute `validate-inputs` avant
-l’analyse, vérifie que le rapport compact a bien été régénéré et conserve les
-20 derniers journaux dans `~/investment_automation_run_logs`. Il ne fait aucun
-`git pull`, aucun rafraîchissement forcé et aucune transaction automatiquement.
+Le lanceur refuse un deuxième run simultané. Lorsqu'une source d'intrants est
+configurée, il la synchronise avant `validate-inputs`, puis vérifie que le rapport
+compact a bien été régénéré et conserve les 20 derniers journaux dans
+`~/investment_automation_run_logs`. Un lancement direct ne fait aucun `git pull`,
+aucun rafraîchissement forcé et aucune transaction automatiquement.
 
 #### Notifications Telegram
 
@@ -123,12 +124,60 @@ accepté; les anciens messages sont ignorés. `ANNULER`, une expiration ou une
 réponse invalide ne déclenchent aucune analyse. Cette interaction ne peut
 effectuer aucune transaction chez un courtier et ne modifie pas le modèle.
 
+#### Synchronisation des intrants depuis Google Drive
+
+GitHub reste la source de vérité du code. Google Drive sert uniquement à faire
+circuler les intrants humains entre le Mac et le Chromebook. Dans Drive, créez
+exactement cette arborescence :
+
+```text
+Investment Automation/
+└── data/
+    ├── portfolio.csv
+    ├── proxy_calibration.csv
+    └── research_reports/
+        └── bncd_morningstar/
+            └── *.pdf
+```
+
+Partagez ce dossier avec Linux dans l'application Fichiers de ChromeOS, puis
+repérez son chemin sous `/mnt/chromeos/GoogleDrive/MyDrive/`. Configurez ensuite
+la source sur le Chromebook :
+
+```bash
+mkdir -p ~/.config/investment_automation
+cat > ~/.config/investment_automation/input_sync.env <<'EOF'
+INVESTMENT_AUTOMATION_INPUT_SOURCE=/mnt/chromeos/GoogleDrive/MyDrive/Investment Automation
+EOF
+chmod 600 ~/.config/investment_automation/input_sync.env
+```
+
+Vérifiez d'abord sans écrire, puis lancez une synchronisation réelle :
+
+```bash
+cd ~/investment_automation
+.venv/bin/python scripts/sync_operational_inputs.py --dry-run
+.venv/bin/python scripts/sync_operational_inputs.py
+```
+
+La liste blanche est limitée à `portfolio.csv`, `proxy_calibration.csv` et aux
+PDF du dossier `bncd_morningstar`. Les fichiers remplacés sont sauvegardés dans
+`~/.local/state/investment_automation/input_backups`, puis copiés atomiquement.
+Un PDF absent de Drive n'est jamais supprimé localement. Une calibration modifiée
+déclenche automatiquement `sync-manual-inputs`. Une source absente, un PDF
+invalide ou une synchronisation manuelle en échec annule le run avant l'analyse.
+
 #### Planification automatique sur Linux/Crostini
 
 L'automatisation locale peut installer deux timers `systemd --user` :
 
 - les 1er et 15 de chaque mois à **16 h 45 (America/Toronto)**, Telegram demande le capital et attend une confirmation pendant 12 heures;
 - chaque dimanche à 9 h, un `health-check --repair-safe` est lancé. L'audit maître ou l'audit modèle n'est exécuté que si son signal existant est `STALE` ou `ABSENT`. Un audit maître rafraîchit déjà l'audit modèle, donc les deux ne sont jamais lancés inutilement le même jour.
+
+Avant chaque service planifié, le déploiement exécute un `git pull --ff-only`
+sur `origin/main`. Un conflit ou une divergence annule le run et envoie une
+alerte Telegram. Le service synchronise ensuite les intrants Drive avant toute
+validation, analyse ou maintenance.
 
 Prévisualisez d'abord les unités, puis installez-les sur le Chromebook :
 
