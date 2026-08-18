@@ -24,3 +24,22 @@ backups/
 # Scripts de diagnostic ponctuels — la preuve est le rapport .md dans
 # reports/diagnostics/, pas le script. Voir DECISIONS.md [2026-07-23].
 scripts/diagnose_*.py
+
+# Operational data kept outside Git
+data/portfolio.csv
+data/proxy_calibration.csv
+data/research_reports/bncd_morningstar/*.pdf
+
+# Generated local operational state
+data/account_performance_history.csv
+data/anomaly_history.csv
+data/discovery_universe_cache.csv
+data/manual_inputs_friendly.txt
+data/portfolio_change_history.csv
+data/portfolio_inferred_transactions.csv
+data/portfolio_state_snapshot.csv
+data/proxy_calibration_history.csv
+data/run_log_history.csv
+data/source_health_history.csv
+data/ticker_memory.csv
+data/proxy_calibration_sync_log.json
