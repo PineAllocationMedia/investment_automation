@@ -64,6 +64,7 @@ class ScheduledMaintenanceTest(unittest.TestCase):
         self.assertEqual(runner.call_count, 1)
         self.assertIn("health-check", runner.call_args.args[0])
         self.assertIn("--repair-safe", runner.call_args.args[0])
+        self.assertIn("--skip-portfolio-repair", runner.call_args.args[0])
         notifier.assert_called_once()
 
     def test_healthy_maintenance_without_due_audit_only_runs_health_check(self):
@@ -112,7 +113,7 @@ class ScheduledMaintenanceTest(unittest.TestCase):
         self.assertEqual(notifier.call_args.args[2], root / "reports" / "latest_model_audit.html")
 
     def test_configured_sync_runs_before_health_check(self):
-        runner = Mock(side_effect=[_Result(0), _Result(0)])
+        runner = Mock(side_effect=[_Result(0), _Result(0), _Result(0)])
         notifier = Mock()
         planner = Mock(return_value=([], {"status": "FULL_AUDIT_HEALTHY"}, {"status": "MODEL_AUDIT_HEALTHY"}))
         with tempfile.TemporaryDirectory() as temp_dir:
@@ -132,11 +133,13 @@ class ScheduledMaintenanceTest(unittest.TestCase):
             )
 
         self.assertEqual(status, 0)
-        self.assertIn("sync_operational_inputs.py", runner.call_args_list[0].args[0][1])
-        self.assertIn("health-check", runner.call_args_list[1].args[0])
+        self.assertIn("run_automatic_portfolio_sync.py", runner.call_args_list[0].args[0][1])
+        self.assertIn("sync_operational_inputs.py", runner.call_args_list[1].args[0][1])
+        self.assertIn("--skip-portfolio", runner.call_args_list[1].args[0])
+        self.assertIn("health-check", runner.call_args_list[2].args[0])
 
     def test_sync_failure_stops_maintenance(self):
-        runner = Mock(return_value=_Result(6))
+        runner = Mock(side_effect=[_Result(0), _Result(6)])
         notifier = Mock()
         planner = Mock()
         with tempfile.TemporaryDirectory() as temp_dir:
@@ -157,7 +160,61 @@ class ScheduledMaintenanceTest(unittest.TestCase):
                 )
 
         self.assertEqual(status, 6)
+        self.assertEqual(runner.call_count, 2)
+        self.assertIn("run_automatic_portfolio_sync.py", runner.call_args_list[0].args[0][1])
+        self.assertIn("sync_operational_inputs.py", runner.call_args_list[1].args[0][1])
+        planner.assert_not_called()
+        notifier.assert_called_once()
+
+    def test_reconciliation_failure_stops_before_sync_health_and_audits(self):
+        runner = Mock(return_value=_Result(7))
+        notifier = Mock()
+        planner = Mock()
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            (root / ".venv" / "bin").mkdir(parents=True)
+            config = root / "input_sync.env"
+            config.write_text("INVESTMENT_AUTOMATION_INPUT_SOURCE=/drive\n", encoding="utf-8")
+
+            status = scheduled_maintenance.run_maintenance(
+                project_root=root,
+                mode="high-cagr",
+                repair_safe=True,
+                config_path=root / "telegram.env",
+                require_portfolio_sync=True,
+                input_sync_config_path=config,
+                command_runner=runner,
+                audit_planner=planner,
+                notifier=notifier,
+            )
+
+        self.assertEqual(status, 7)
         self.assertEqual(runner.call_count, 1)
+        self.assertIn("run_automatic_portfolio_sync.py", runner.call_args.args[0][1])
+        planner.assert_not_called()
+        notifier.assert_called_once()
+
+    def test_strict_maintenance_without_source_fails_closed(self):
+        runner = Mock()
+        notifier = Mock()
+        planner = Mock()
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            (root / ".venv" / "bin").mkdir(parents=True)
+            status = scheduled_maintenance.run_maintenance(
+                project_root=root,
+                mode="high-cagr",
+                repair_safe=True,
+                config_path=root / "telegram.env",
+                require_portfolio_sync=True,
+                input_sync_config_path=root / "missing.env",
+                command_runner=runner,
+                audit_planner=planner,
+                notifier=notifier,
+            )
+
+        self.assertEqual(status, 5)
+        runner.assert_not_called()
         planner.assert_not_called()
         notifier.assert_called_once()
 

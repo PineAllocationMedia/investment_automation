@@ -50,6 +50,46 @@ class SafeOperationsTest(unittest.TestCase):
             self.assertEqual(portfolio_row["status"], "SKIPPED")
             self.assertIn("unexpected", path.read_text(encoding="utf-8"))
 
+    def test_skip_portfolio_repair_validates_without_rewriting_it(self):
+        with TemporaryDirectory() as folder:
+            root = Path(folder)
+            data = root / "data"
+            data.mkdir()
+            portfolio = data / "portfolio.csv"
+            original = "ticker,shares\nMSFT,1\n\n"
+            portfolio.write_text(original, encoding="utf-8")
+            original_bytes = portfolio.read_bytes()
+
+            rows = repair_safe_csv_schemas(root, skip_portfolio_repair=True)
+
+            portfolio_row = next(row for row in rows if row["file"].endswith("portfolio.csv"))
+            self.assertEqual(portfolio_row["status"], "WARN")
+            self.assertEqual(portfolio.read_bytes(), original_bytes)
+            self.assertEqual(portfolio.read_text(encoding="utf-8"), original)
+            self.assertEqual(portfolio_row["backup_path"], "")
+            other_required = data / "portfolio_transactions.csv"
+            self.assertTrue(other_required.is_file())
+
+    def test_skip_portfolio_repair_reports_missing_portfolio_without_creating_it(self):
+        with TemporaryDirectory() as folder:
+            root = Path(folder)
+            data = root / "data"
+            data.mkdir()
+            portfolio = data / "portfolio.csv"
+            other_required = data / "portfolio_transactions.csv"
+            self.assertFalse(portfolio.exists())
+
+            rows = repair_safe_csv_schemas(root, skip_portfolio_repair=True)
+
+            self.assertFalse(portfolio.exists())
+            portfolio_row = next(row for row in rows if row["file"].endswith("portfolio.csv"))
+            self.assertEqual(portfolio_row["status"], "FAIL")
+            self.assertEqual(portfolio_row["details"], "Fichier absent.")
+            self.assertEqual(portfolio_row["backup_path"], "")
+            other_row = next(row for row in rows if row["file"].endswith("portfolio_transactions.csv"))
+            self.assertEqual(other_row["status"], "REPAIRED")
+            self.assertTrue(other_required.is_file())
+
 
 if __name__ == "__main__":
     unittest.main()

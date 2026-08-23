@@ -1,0 +1,13 @@
+[Unit]
+Description=Investment Automation - réconciliation automatique du portefeuille
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+WorkingDirectory=@PROJECT_ROOT@
+Environment=PYTHONUNBUFFERED=1
+ExecStartPre=/usr/bin/mkdir -p %h/.local/state/investment_automation
+ExecStart=/usr/bin/flock --exclusive --nonblock --conflict-exit-code=75 --verbose %h/.local/state/investment_automation/operations.lock @PROJECT_ROOT@/.venv/bin/python @PROJECT_ROOT@/scripts/run_automatic_portfolio_sync.py --project-root @PROJECT_ROOT@
+SuccessExitStatus=75
+TimeoutStartSec=1h

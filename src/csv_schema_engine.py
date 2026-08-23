@@ -99,10 +99,17 @@ def validate_csv_schemas(project_root: str | Path) -> list[dict[str, Any]]:
     return rows
 
 
-def repair_safe_csv_schemas(project_root: str | Path) -> list[dict[str, Any]]:
+def repair_safe_csv_schemas(
+    project_root: str | Path,
+    *,
+    skip_portfolio_repair: bool = False,
+) -> list[dict[str, Any]]:
     rows: list[dict[str, Any]] = []
     for spec in csv_schema_specs(project_root):
-        rows.append(_repair_schema(spec))
+        if skip_portfolio_repair and spec.path.name == "portfolio.csv":
+            rows.append(_validate_schema(spec))
+        else:
+            rows.append(_repair_schema(spec))
     return rows
 
 

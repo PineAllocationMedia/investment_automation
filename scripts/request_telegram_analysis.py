@@ -165,7 +165,17 @@ def request_and_run(
         if refresh_market_data:
             command.append("--refresh-market-data")
         result = command_runner(command, check=False)
-        return int(result.returncode)
+        status = int(result.returncode)
+        if status == 75:
+            message_sender(
+                token=token,
+                chat_id=chat_id,
+                message=(
+                    "Analyse non exécutée: une autre opération Investment Automation "
+                    "était active. Aucun rapport n’a été produit."
+                ),
+            )
+        return status
 
     message_sender(
         token=token,

@@ -76,6 +76,7 @@ def run_maintenance(
     mode: str,
     repair_safe: bool,
     config_path: Path,
+    require_portfolio_sync: bool = False,
     input_sync_config_path: Path = DEFAULT_INPUT_SYNC_CONFIG,
     command_runner: Callable[..., subprocess.CompletedProcess[object]] = subprocess.run,
     audit_planner: Callable[..., tuple[list[list[str]], dict[str, str], dict[str, str]]] = due_audit_commands,
@@ -83,8 +84,40 @@ def run_maintenance(
 ) -> int:
     python = project_root / ".venv" / "bin" / "python"
     reports_dir = project_root / "reports"
-    if os.environ.get("INVESTMENT_AUTOMATION_INPUT_SOURCE") or input_sync_config_path.is_file():
-        print("[maintenance] Synchronisation des intrants humains")
+    source_configured = bool(os.environ.get("INVESTMENT_AUTOMATION_INPUT_SOURCE")) or input_sync_config_path.is_file()
+
+    if require_portfolio_sync and not source_configured:
+        notifier(
+            config_path,
+            "Maintenance Investment Automation: source portefeuille requise mais non configurée. Maintenance annulée.",
+            None,
+        )
+        return 5
+
+    if require_portfolio_sync or source_configured:
+        print("[maintenance] Réconciliation du portefeuille")
+        portfolio_result = command_runner(
+            [
+                str(python),
+                str(project_root / "scripts" / "run_automatic_portfolio_sync.py"),
+                "--config",
+                str(input_sync_config_path),
+                "--project-root",
+                str(project_root),
+            ],
+            cwd=project_root,
+            check=False,
+        )
+        if int(portfolio_result.returncode) != 0:
+            notifier(
+                config_path,
+                "Maintenance Investment Automation: réconciliation du portefeuille échouée. Maintenance annulée.",
+                None,
+            )
+            return int(portfolio_result.returncode)
+
+    if source_configured:
+        print("[maintenance] Synchronisation des autres intrants humains")
         sync_result = command_runner(
             [
                 str(python),
@@ -93,6 +126,7 @@ def run_maintenance(
                 str(input_sync_config_path),
                 "--project-root",
                 str(project_root),
+                "--skip-portfolio",
             ],
             cwd=project_root,
             check=False,
@@ -108,6 +142,7 @@ def run_maintenance(
     health_command = [str(python), "main.py", "health-check", "--limit", "20"]
     if repair_safe:
         health_command.append("--repair-safe")
+        health_command.append("--skip-portfolio-repair")
 
     print("[maintenance] Health-check hebdomadaire")
     health_result = command_runner(health_command, cwd=project_root, check=False)
@@ -154,6 +189,11 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--project-root", type=Path, default=PROJECT_ROOT)
     parser.add_argument("--mode", default="high-cagr")
     parser.add_argument("--repair-safe", action="store_true")
+    parser.add_argument(
+        "--require-portfolio-sync",
+        action="store_true",
+        help="Échoue si la source portefeuille ne peut pas être réconciliée avant la maintenance.",
+    )
     parser.add_argument("--config", type=Path, default=DEFAULT_CONFIG_PATH)
     parser.add_argument("--input-sync-config", type=Path, default=DEFAULT_INPUT_SYNC_CONFIG)
     args = parser.parse_args(argv)
@@ -166,6 +206,7 @@ def main(argv: list[str] | None = None) -> int:
         mode=args.mode,
         repair_safe=args.repair_safe,
         config_path=args.config,
+        require_portfolio_sync=args.require_portfolio_sync,
         input_sync_config_path=args.input_sync_config,
     )
 

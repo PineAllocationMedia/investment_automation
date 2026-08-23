@@ -84,12 +84,14 @@ def _validate_regular_file(path: Path, *, pdf: bool = False) -> None:
                 raise InputSyncError(f"fichier .pdf invalide: {path}")
 
 
-def _source_files(source_root: Path) -> list[tuple[Path, Path]]:
+def _source_files(source_root: Path, *, skip_portfolio: bool = False) -> list[tuple[Path, Path]]:
     if not source_root.is_dir():
         raise InputSyncError(f"dossier source introuvable: {source_root}")
 
     files: list[tuple[Path, Path]] = []
     for relative_path in REQUIRED_CSV_PATHS:
+        if skip_portfolio and relative_path == Path("data/portfolio.csv"):
+            continue
         source = source_root / relative_path
         _validate_regular_file(source)
         files.append((source, relative_path))
@@ -128,10 +130,11 @@ def sync_inputs(
     project_root: Path,
     backup_root: Path,
     dry_run: bool = False,
+    skip_portfolio: bool = False,
     now: datetime | None = None,
     command_runner: Callable[..., subprocess.CompletedProcess[object]] = subprocess.run,
 ) -> SyncResult:
-    pairs = _source_files(source_root)
+    pairs = _source_files(source_root, skip_portfolio=skip_portfolio)
     changed: list[tuple[Path, Path, Path]] = []
     unchanged: list[Path] = []
     for source, relative_path in pairs:
@@ -189,6 +192,11 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--project-root", type=Path, default=PROJECT_ROOT)
     parser.add_argument("--backup-root", type=Path, default=DEFAULT_BACKUP_ROOT)
     parser.add_argument("--dry-run", action="store_true")
+    parser.add_argument(
+        "--skip-portfolio",
+        action="store_true",
+        help="Synchronise les autres intrants sans lire ni copier data/portfolio.csv.",
+    )
     args = parser.parse_args(argv)
 
     source = configured_source(explicit_source=args.source, config_path=args.config)
@@ -202,6 +210,7 @@ def main(argv: list[str] | None = None) -> int:
             project_root=args.project_root.resolve(),
             backup_root=args.backup_root.expanduser().resolve(),
             dry_run=args.dry_run,
+            skip_portfolio=args.skip_portfolio,
         )
     except (InputSyncError, OSError) as exc:
         print(f"ÉCHEC synchronisation des intrants: {exc}", file=sys.stderr)
