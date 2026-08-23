@@ -118,6 +118,15 @@ class ResearchReportsTest(unittest.TestCase):
 
         self.assertEqual(extract_broker_target_price(text), 3400.0)
 
+    def test_broker_target_prefers_structured_header_and_matching_currency(self):
+        text = (
+            "STOCK RATING TARGET EST. TOTAL RETURN\n"
+            "C$3,008.60 Outperform US$2,190.00 C$3,700.00 23.1%\n"
+            "A valuation table later contains Target Price 1.39."
+        )
+
+        self.assertEqual(extract_broker_target_price(text), 3700.0)
+
     def test_implausible_fair_value_guard_rejects_corrupted_report_value(self):
         from main import _reject_implausible_fair_value
 
@@ -725,6 +734,21 @@ class ResearchReportsTest(unittest.TestCase):
 
         self.assertEqual(parsed["roic_5y_avg"], 18.2)
         self.assertIn("roic_5y_avg", parsed["research_report_fields"])
+
+    def test_multiple_roic_periods_use_nearest_percentage_for_each_period(self):
+        with TemporaryDirectory() as folder:
+            path = Path(folder) / "ROIC_2026-08-01_Morningstar_AnalystReport.txt"
+            path.write_text(
+                "Morningstar. ROIC averaged 7.5% over the 10 years ended in 2025, "
+                "and around 10% over the five years ended on the same date.",
+                encoding="utf-8",
+            )
+            parsed = parse_research_report(path, "ROIC")
+
+        self.assertEqual(parsed["roic_5y_avg"], 10.0)
+        self.assertEqual(parsed["roic_10y_avg"], 7.5)
+        self.assertIn("roic_5y_avg", parsed["research_report_fields"])
+        self.assertIn("roic_10y_avg", parsed["research_report_advisory_fields"])
 
     def test_qualitative_reversal_does_not_create_high_risk_boolean(self):
         with TemporaryDirectory() as folder:

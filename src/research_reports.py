@@ -1754,6 +1754,34 @@ def _safe_report_number(value: Any) -> float | None:
 
 def _extract_broker_target_price_candidate(text: str) -> tuple[float | None, int]:
     text = str(text or "")
+    header_match = re.search(
+        r"\bSTOCK\s+RATING\s+TARGET\s+EST\s*\.?\s*TOTAL\s+RETURN\b(?P<body>.{0,450})",
+        text,
+        flags=re.IGNORECASE | re.DOTALL,
+    )
+    if header_match:
+        currency_matches = list(
+            re.finditer(
+                rf"(?P<currency>CAD|USD|C\$|US\$|(?<![A-Z])\$)\s*(?P<value>{REPORT_NUMBER_PATTERN})",
+                header_match.group("body"),
+                flags=re.IGNORECASE,
+            )
+        )
+        if len(currency_matches) >= 2:
+            current_currency = _normalized_report_currency(currency_matches[0].group("currency"))
+            target_match = next(
+                (
+                    match
+                    for match in currency_matches[1:]
+                    if not current_currency
+                    or _normalized_report_currency(match.group("currency")) == current_currency
+                ),
+                currency_matches[1],
+            )
+            value = _safe_report_number(target_match.group("value"))
+            if value is not None:
+                return value, header_match.start("body") + target_match.start("value")
+
     anchored_patterns = [
         rf"\btarget\s+price\s+(?:of|to|at|is|=)?\s*(?:CAD|USD|C\$|US\$|\$)?\s*{REPORT_NUMBER_CAPTURE}",
         rf"\bprice\s+target\s+(?:of|to|at|is|=)?\s*(?:CAD|USD|C\$|US\$|\$)?\s*{REPORT_NUMBER_CAPTURE}",
@@ -1765,24 +1793,16 @@ def _extract_broker_target_price_candidate(text: str) -> tuple[float | None, int
         value = _safe_report_number(match.group(1))
         if value is not None:
             return value, match.start(1)
+    return None, -1
 
-    header_match = re.search(
-        r"\bSTOCK\s+RATING\s+TARGET\s+EST\s*\.?\s*TOTAL\s+RETURN\b(?P<body>.{0,450})",
-        text,
-        flags=re.IGNORECASE | re.DOTALL,
-    )
-    if not header_match:
-        return None, -1
-    currency_matches = list(
-        re.finditer(rf"(?:CAD|USD|C\$|US\$|\$)\s*{REPORT_NUMBER_CAPTURE}", header_match.group("body"), flags=re.IGNORECASE)
-    )
-    if len(currency_matches) < 2:
-        return None, -1
-    target_match = currency_matches[1]
-    value = _safe_report_number(target_match.group(1))
-    if value is None:
-        return None, -1
-    return value, header_match.start("body") + target_match.start(1)
+
+def _normalized_report_currency(currency: str) -> str:
+    currency = str(currency or "").strip().upper()
+    if currency in {"CAD", "C$"}:
+        return "CAD"
+    if currency in {"USD", "US$"}:
+        return "USD"
+    return ""
 
 
 def _extract_fair_value_estimate(text: str) -> tuple[float | None, str, list[str]]:
@@ -2108,34 +2128,64 @@ def _extract_price_to_fair_value(text: str) -> float | None:
 def _extract_semantic_roic_values(text: str) -> dict[str, float]:
     text = str(text or "")
     values: dict[str, float] = {}
-    patterns_by_field = {
+    leading_period_patterns = {
         "roic_5y_avg": [
             rf"(?:5[- ]year|five[- ]year)\s+(?:average\s+)?(?:adjusted\s+)?ROIC[^\n\r%]{{0,60}}?{REPORT_NUMBER_CAPTURE}\s*%",
-            rf"(?:average\s+)?(?:adjusted\s+)?ROIC[^\n\r%]{{0,60}}?{REPORT_NUMBER_CAPTURE}\s*%[^\n\r]{{0,60}}?(?:over\s+)?(?:the\s+)?(?:past|trailing)?\s*(?:5|five)[- ]years?",
         ],
         "roic_10y_avg": [
             rf"(?:10[- ]year|ten[- ]year|trailing[- ]decade)\s+(?:average\s+)?(?:adjusted\s+)?ROIC[^\n\r%]{{0,60}}?{REPORT_NUMBER_CAPTURE}\s*%",
-            rf"(?:average\s+)?(?:adjusted\s+)?ROIC[^\n\r%]{{0,60}}?{REPORT_NUMBER_CAPTURE}\s*%[^\n\r]{{0,80}}?(?:over\s+)?(?:the\s+)?(?:(?:past|trailing)?\s*(?:10|ten)[- ]years?|trailing\s+decade)",
-        ],
-        "roic_current": [
-            rf"(?:current|TTM|LTM|annual)\s+(?:adjusted\s+)?ROIC[^\n\r%]{{0,60}}?{REPORT_NUMBER_CAPTURE}\s*%",
-            rf"\bROIC\s*[:=]?\s*{REPORT_NUMBER_CAPTURE}\s*%",
         ],
     }
     occupied_values: set[float] = set()
-    for field in ("roic_5y_avg", "roic_10y_avg", "roic_current"):
-        for pattern in patterns_by_field[field]:
+    for field in ("roic_5y_avg", "roic_10y_avg"):
+        for pattern in leading_period_patterns[field]:
             match = re.search(pattern, text, flags=re.IGNORECASE)
             if not match:
                 continue
             value = _safe_report_number(match.group(1))
             if value is None:
                 continue
-            if field == "roic_current" and value in occupied_values:
+            values[field] = value
+            occupied_values.add(value)
+            break
+
+    trailing_period_patterns = {
+        "roic_5y_avg": r"(?:over\s+)?(?:the\s+)?(?:past|trailing)?\s*(?:5|five)[- ]years?",
+        "roic_10y_avg": r"(?:over\s+)?(?:the\s+)?(?:(?:past|trailing)?\s*(?:10|ten)[- ]years?|trailing\s+decade)",
+    }
+    for field in ("roic_5y_avg", "roic_10y_avg"):
+        if field in values:
+            continue
+        for period_match in re.finditer(trailing_period_patterns[field], text, flags=re.IGNORECASE):
+            window_start = max(0, period_match.start() - 300)
+            window = text[window_start : period_match.start()]
+            roic_matches = list(re.finditer(r"\bROIC\b|return\s+on\s+invested\s+capital", window, flags=re.IGNORECASE))
+            if not roic_matches:
+                continue
+            roic_window = window[roic_matches[-1].start() :]
+            percent_matches = list(re.finditer(rf"{REPORT_NUMBER_CAPTURE}\s*%", roic_window))
+            if not percent_matches:
+                continue
+            value = _safe_report_number(percent_matches[-1].group(1))
+            if value is None:
                 continue
             values[field] = value
             occupied_values.add(value)
             break
+
+    current_patterns = [
+        rf"(?:current|TTM|LTM|annual)\s+(?:adjusted\s+)?ROIC[^\n\r%]{{0,60}}?{REPORT_NUMBER_CAPTURE}\s*%",
+        rf"\bROIC\s*[:=]?\s*{REPORT_NUMBER_CAPTURE}\s*%",
+    ]
+    for pattern in current_patterns:
+        match = re.search(pattern, text, flags=re.IGNORECASE)
+        if not match:
+            continue
+        value = _safe_report_number(match.group(1))
+        if value is None or value in occupied_values:
+            continue
+        values["roic_current"] = value
+        break
     return values
 
 

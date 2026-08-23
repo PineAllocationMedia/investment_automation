@@ -6,7 +6,7 @@
 
 ## B. Pull request
 
-To be populated after the branch is pushed. The pull request must remain unmerged.
+[PR #15](https://github.com/PineAllocationMedia/investment_automation/pull/15), targeting `main`. The pull request is OPEN, UNMERGED, non-draft, and has no auto-merge request.
 
 ## C. Starting state
 
@@ -61,6 +61,8 @@ No parallel provenance or reliability system was introduced.
 - `merge_research_rows`
 - `merge_research_with_automated`
 - `_extract_fair_value_estimate`
+- `_extract_broker_target_price_candidate`
+- `_normalized_report_currency`
 - `_select_priority_research_field`
 - `extract_bool_from_patterns`
 - `extract_explicit_high_risk`
@@ -107,40 +109,61 @@ Field confidence reflects extraction method and text quality. Application filter
 
 ## P. Report examples
 
-No proprietary PDFs were available in `data/research_reports/bncd_morningstar/`; the directory contained only `README.md`. No report was modified or reproduced. Stable representative cases matching the documented Morningstar analyst and NBF layouts were therefore used:
+The active read-only operational source was located at:
 
-- Morningstar: intrinsic fair value 3,600 and Narrow moat remain applied; Price/FVE 0.73 becomes advisory and no longer populates historical valuation.
-- NBF: target 3,400 remains visible as `broker_target_price_12m`; ROIC 23% remains visible as `roic_current`; neither replaces `fair_value` or `roic_5y_avg`.
-- Qualitative: "regulatory risk has declined materially" no longer creates a high-risk Boolean.
+`/Users/jordansoucy/Library/CloudStorage/GoogleDrive-jsoucy98@gmail.com/Mon disque/Investment_Automation/data/research_reports/bncd_morningstar/`
 
-Real-PDF validation remains an explicit post-review risk because the ignored operational report set was unavailable in this workspace.
+It contained 77 PDFs across 41 tickers: 34 Morningstar Stock Analyst Reports, 33 Morningstar Data Tear Sheets, and 10 NBF Company Reports. All 77 were copied unchanged into isolated `/private/tmp` validation directories and inspected. No Drive file was edited, renamed, deleted, or rewritten.
+
+All 77 extracted through `pypdf`, reported `TEXT_OK`, used no OCR, and produced at least one field. The real corpus therefore did not contain a naturally LOW-text or OCR case; LOW/OCR non-authority remains covered by deterministic regression tests and the application policy.
+
+Representative real results, without proprietary prose:
+
+- Morningstar Analyst / AEM.TO: text quality 100, no OCR; intrinsic `fair_value=125`, company-level `moat_clear=False`, `forward_pe_manual=17`, `roic_5y_avg=10` applied; `price_to_fair_value=1.63` and `roic_10y_avg=7.5` retained as advisory with explicit semantic reasons.
+- Morningstar Tear Sheet / ADBE: text quality 100, no OCR; `fair_value=380`, `moat_clear=True`, `forward_pe_manual=9.6`, and `peg_manual=0.6` applied. No historical-valuation Boolean was fabricated.
+- NBF / CSU.TO: text quality 85, no OCR; `broker_target_price_12m=3700` retained as advisory with `BROKER_TARGET_NOT_INTRINSIC_FAIR_VALUE`; `forward_pe_manual=18.8` remained applied; `fair_value` was not populated by the NBF report.
+
+Real-layout validation exposed two small general parser defects, both corrected without ticker-specific rules:
+
+- Structured NBF headers can show a trading-currency current price, a reporting-currency equivalent, and then the target. Header-first, matching-currency selection now extracts the actual target and ignores later ratio labels such as `Target Price 1.39`.
+- A sentence can contain both ten-year and five-year ROIC values. Period matching now selects the nearest percentage associated with each period, so AEM.TO correctly yields five-year 10.0 and ten-year 7.5.
+
+Grouped values were confirmed on real layouts, including CSU.TO fair value 3,500 and NBF target 3,700. The implausible-fair-value guard remains covered by regression. Structured company-level moat was retained for all 34 Analyst reports and was not displaced by incidental text.
 
 ## Q. Controlled blast radius
 
-Real local operational corpus:
+Real report corpus:
 
-- Reports inspected: 0 (none available).
-- Tickers with local research reports: 0.
+- Reports available and inspected: 77 of 77.
+- Tickers with reports: 41.
+- Report types: 34 Analyst, 33 Tear Sheet, 10 NBF.
+- Legacy extracted/applied observations: 316.
+- Corrected extracted observations: 292.
+- Corrected applied observations: 247.
+- Corrected advisory observations: 45.
+- Confidence before: LOW 29, MEDIUM 192, HIGH 95.
+- Confidence after: LOW 0, MEDIUM 197, HIGH 95.
+- NBF observations removed from `fair_value`: 10; actual model-wide canonical contaminations removed: 6.
+- Price/FVE-to-historical-valuation mappings removed: 34; model-wide C9 inputs changed: 7.
+- Legacy ROIC observations stored as five-year: 5; corrected real five-year observations: 2. Four legacy period/value mismatches were removed, while the AEM.TO five-year value was corrected from 7.5 to 10.0.
+- Qualitative risk detections removed or changed: 18 (`regulatory_risk_high` 11, `geopolitical_risk_high` 6, `single_product_dependency_high` 1).
 
-Identical-input representative corpus:
+Real same-input model-wide comparison:
 
-- Cases/tickers: 3.
-- Extracted fields: 7 before, 6 after.
-- Applied fields: 7 before, 3 after.
-- Advisory fields: 0 before, 3 after.
-- LOW-confidence fields applied before: 3; applied after: 0.
-- Changed to advisory-only semantic fields: 3.
-- Broker targets previously capable of entering `fair_value`: 1.
-- Price/FVE mappings previously affecting historical valuation: 1.
-- ROIC-period mismatches: 1.
-- Qualitative detections changed: 1.
-- Reliability changes: 3 cases.
-- Score changes: 2 cases.
-- Thesis-status changes: 0.
-- Conviction-category changes: 0.
-- Allocation/recommendation changes: not applicable without operational portfolio inputs; none were fabricated.
+- Base: `61a961fb7d303587cc9020a0db2f6855588512ba`.
+- Corrected: PR #15 implementation plus the two real-layout corrections above.
+- Frozen inputs: identical portfolio, calibration, generated friendly/manual input, discovery universe, report corpus, and an 825-file market cache. SHA-256 manifests matched before both runs.
+- Analysis path: `high-cagr`, capital 0, no independent refresh.
+- Evaluated rows: 266 = 24 core + 5 watchlist + 123 market-scanner + 114 discovery.
+- Report-bearing evaluated rows with material P1B differences: 41.
+- Reliability changes: 25.
+- Score changes: 13.
+- Capital-allocation-score changes: 28.
+- Conviction-score changes: 29.
+- Recommendation, action, thesis, or monitoring changes: 6 tickers.
+- `UNEXPECTED`: 0.
 
-Every observed difference matched an expected correction; unresolved unexpected drift: 0.
+Run timestamps, fetch-attempt timestamps, and market-data age counters differed only because the two executions occurred sequentially; they were excluded from model-semantic classification. Market payloads and starting cache manifests were identical.
 
 ## R. Score and monitoring impact
 
@@ -152,12 +175,33 @@ Every observed difference matched an expected correction; unresolved unexpected 
 
 All three retained `thesis_status=INTACT` and `conviction_category=VERY_HIGH` in the controlled fixture. No recommendation change requires explanation beyond the monitoring changes above.
 
+The three-case deterministic comparison above remains as a regression fixture. The real model-wide action changes were:
+
+| Ticker | Before -> after | Exact semantic cause |
+|---|---|---|
+| ASML | allocation/final action `NO_NEW_ALLOCATION` -> `DO_NOT_ADD` | `EXPECTED_VALUATION_SEMANTIC_FIX`: Price/FVE stopped supplying C9; C9 changed True -> False, score 9.46 -> 8.46, triggering the existing excessive-valuation guard. |
+| AVGO | allocation/final action `NO_NEW_ALLOCATION` -> `DO_NOT_ADD` | `EXPECTED_VALUATION_SEMANTIC_FIX`: Price/FVE stopped supplying C9; score 9.48 -> 8.48 and valuation watch changed NORMAL -> WATCH. |
+| DXCM | thesis `WEAKENING` -> `INTACT`; `DO_NOT_ADD/WATCH` -> `ELIGIBLE_BUT_NOT_SELECTED` | `EXPECTED_RESEARCH_CONFIDENCE_FIX` and `EXPECTED_QUALITATIVE_EXTRACTION_FIX`: ambiguous single-product language no longer became a high-risk Boolean; report margin pressure remained auditable but advisory because higher-authority current evidence was False. |
+| FNV.TO | allocation/final action `DO_NOT_ADD` -> `NO_NEW_ALLOCATION` | `EXPECTED_BROKER_TARGET_SEPARATION`: the legacy current-price-like value 235.94 stopped being fair value; NBF target 360 became advisory and automatic fair value 399.34 was restored, removing the C10 extreme-valuation failure. A regulatory keyword false positive was also removed. |
+| GILD | monitoring `WATCH/WATCH_POSITION` -> `MANUAL_REVIEW/MANUAL_REVIEW_BEFORE_ADD` | `EXPECTED_RESEARCH_CONFIDENCE_FIX`: research balance-sheet=True remained auditable but non-authoritative against official/current=False; conviction changed 72 -> 67 without a score change. |
+| WSP.TO | thesis `INTACT` -> `WEAKENING`; allocation `NO_NEW_ALLOCATION` -> `DO_NOT_ADD`; final action `NO_NEW_ALLOCATION` -> `WATCH` | `EXPECTED_BROKER_TARGET_SEPARATION`, `EXPECTED_ROIC_SEMANTIC_FIX`, and `EXPECTED_QUALITATIVE_EXTRACTION_FIX`: target 272 stopped populating fair value, generic ROIC 15 stopped populating five-year ROIC, automatic fair value 257.35 and ROIC 12.102 returned, and explicit real margin-pressure evidence remained applied. |
+
+All other changed rows affected score/reliability/conviction or audit metadata without changing recommendation/action. Every changed row was classified only with the allowed P1B labels; none required historical-return optimization.
+
+Source-conflict audit:
+
+- 31 research-field observations across 22 tickers were correctly made advisory because higher-authority official/current evidence existed.
+- Five cases had differing values: C `eps_growth_estimated_3_5y`, DXCM `margin_or_profitability_under_pressure`, GILD `balance_sheet_strong`, NEM `roic_5y_avg`, and PWR `eps_growth_estimated_3_5y`.
+- In every case the research value remained in `field_evidence_sources` with file, provider, date, confidence, `currently_authoritative=False`, status, and reason; the canonical value and official source metadata remained visible.
+- Broker targets, intrinsic fair values, ten-year ROIC, and five-year ROIC remained separate metrics and were not mislabeled as factual conflicts.
+- No new conflict engine was required.
+
 ## S. Tests
 
 - Dependency-complete starting baseline: 722 passed, 0 failed, 0 skipped, 22.022 seconds.
-- Final complete suite: 732 passed, 0 failed, 0 skipped, 21.364 seconds.
-- Focused research/reliability/source-conflict/scoring/P1 suite: 96 passed.
-- Added tests: 10.
+- Final complete suite after real-data validation: 734 passed, 0 failed, 0 skipped, 22.275 seconds.
+- Focused research/reliability/source-conflict/scoring/P1 suite: 121 passed.
+- Added tests: 12 total, including the structured multi-currency NBF header and dual-period ROIC regressions.
 - `py_compile`: passed.
 - `git diff --check`: passed.
 
@@ -187,7 +231,7 @@ Nothing was deployed or pulled onto the Chromebook.
 ## V. Remaining risks
 
 - The conservative regex policy can produce false negatives for unusual report wording; missing is preferred to semantically wrong data.
-- Real proprietary PDFs were unavailable for branch validation, so representative fixtures cannot prove every PDF layout.
+- The 77-file real corpus contained no naturally poor-text or OCR report, so that pathway remains validated by deterministic tests rather than a real OCR specimen.
 - Field-level metadata is additive and backward compatible, but external consumers that assumed every extracted observation lived in `research_report_fields` should use `research_report_extracted_fields` for audit inventory.
 
 ## W. Successor compatibility
@@ -202,10 +246,58 @@ Nothing was deployed or pulled onto the Chromebook.
 
 ## X. Confidence
 
-MEDIUM. The code paths, controlled before/after results, and 732-test suite strongly support closure of the confirmed defects. Confidence is not rated HIGH because representative real PDFs were absent from this workspace.
+HIGH. All 77 available operational PDFs were inspected, the real complete-universe comparison used identical frozen inputs and market data, every model difference was classified, `UNEXPECTED=0`, source conflicts remained auditable, and the complete 734-test suite passed. The absence of a naturally poor-text/OCR report remains a bounded residual risk covered by deterministic tests.
 
 ## Y. Merge recommendation
 
 `READY_FOR_EXTERNAL_REVIEW`
 
-Do not merge or deploy until external review includes representative real Morningstar analyst, Morningstar tear-sheet, and NBF reports.
+Do not merge or deploy until the external reviewer accepts this real-PDF and model-wide validation update.
+
+## Z. Real complete-universe classification table
+
+`-` means the field did not change. All classifications are from the acceptance list; `UNEXPECTED=0`.
+
+| Universe | Ticker | Classification(s) | Score | Reliability | Recommendation/action |
+|---|---|---|---:|---:|---|
+| CORE | ANET | `EXPECTED_VALUATION_SEMANTIC_FIX`; `EXPECTED_RESEARCH_CONFIDENCE_FIX`; `EXPECTED_RELIABILITY_FIX` | 8.28 -> 7.28 | 84.62 -> 89.62 | - |
+| CORE | APH | `EXPECTED_VALUATION_SEMANTIC_FIX` | 8.84 -> 7.84 | - | - |
+| CORE | APP | `EXPECTED_VALUATION_SEMANTIC_FIX`; `EXPECTED_RESEARCH_CONFIDENCE_FIX` | - | - | - |
+| CORE | ASML | `EXPECTED_VALUATION_SEMANTIC_FIX` | 9.46 -> 8.46 | - | `NO_NEW_ALLOCATION` -> `DO_NOT_ADD` |
+| CORE | AVGO | `EXPECTED_VALUATION_SEMANTIC_FIX`; `EXPECTED_RELIABILITY_FIX` | 9.48 -> 8.48 | 83.0 -> 88.0 | `NO_NEW_ALLOCATION` -> `DO_NOT_ADD` |
+| CORE | BAM | `EXPECTED_VALUATION_SEMANTIC_FIX`; `EXPECTED_ROIC_SEMANTIC_FIX`; `EXPECTED_RESEARCH_CONFIDENCE_FIX`; `EXPECTED_RELIABILITY_FIX` | - | 89.06 -> 94.06 | - |
+| CORE | CBOE | `EXPECTED_VALUATION_SEMANTIC_FIX`; `EXPECTED_RESEARCH_CONFIDENCE_FIX` | - | - | - |
+| WATCHLIST | CSU.TO | `EXPECTED_BROKER_TARGET_SEPARATION`; `EXPECTED_VALUATION_SEMANTIC_FIX`; `EXPECTED_QUALITATIVE_EXTRACTION_FIX` | - | - | - |
+| WATCHLIST | WSP.TO | `EXPECTED_BROKER_TARGET_SEPARATION`; `EXPECTED_ROIC_SEMANTIC_FIX`; `EXPECTED_QUALITATIVE_EXTRACTION_FIX`; `EXPECTED_RELIABILITY_FIX` | 5.33 -> 4.93 | 68.0 -> 66.0 | thesis `INTACT` -> `WEAKENING`; allocation `NO_NEW_ALLOCATION` -> `DO_NOT_ADD`; final `NO_NEW_ALLOCATION` -> `WATCH` |
+| MARKET | ADBE | `EXPECTED_VALUATION_SEMANTIC_FIX`; `EXPECTED_RESEARCH_CONFIDENCE_FIX` | - | - | - |
+| MARKET | ADI | `EXPECTED_VALUATION_SEMANTIC_FIX`; `EXPECTED_RESEARCH_CONFIDENCE_FIX`; `EXPECTED_RELIABILITY_FIX` | - | 88.0 -> 93.0 | - |
+| MARKET | AEM.TO | `EXPECTED_BROKER_TARGET_SEPARATION`; `EXPECTED_VALUATION_SEMANTIC_FIX`; `EXPECTED_ROIC_SEMANTIC_FIX`; `EXPECTED_QUALITATIVE_EXTRACTION_FIX` | 5.85 -> 7.35 | - | - |
+| MARKET | AIR.PA | `EXPECTED_VALUATION_SEMANTIC_FIX`; `EXPECTED_RELIABILITY_FIX` | - | 84.0 -> 95.0 | - |
+| MARKET | ALNY | `EXPECTED_VALUATION_SEMANTIC_FIX`; `EXPECTED_ROIC_SEMANTIC_FIX` | 7.42 -> 7.03 | - | - |
+| MARKET | AMAT | `EXPECTED_VALUATION_SEMANTIC_FIX`; `EXPECTED_QUALITATIVE_EXTRACTION_FIX`; `EXPECTED_RESEARCH_CONFIDENCE_FIX` | - | - | - |
+| MARKET | BKNG | `EXPECTED_VALUATION_SEMANTIC_FIX`; `EXPECTED_RESEARCH_CONFIDENCE_FIX` | - | - | - |
+| MARKET | BX | `EXPECTED_VALUATION_SEMANTIC_FIX`; `EXPECTED_RESEARCH_CONFIDENCE_FIX`; `EXPECTED_RELIABILITY_FIX` | - | 88.0 -> 93.0 | - |
+| MARKET | C | `EXPECTED_VALUATION_SEMANTIC_FIX`; `EXPECTED_RESEARCH_CONFIDENCE_FIX` | 8.47 -> 8.71 | - | - |
+| MARKET | CS.TO | `EXPECTED_BROKER_TARGET_SEPARATION`; `EXPECTED_QUALITATIVE_EXTRACTION_FIX`; `EXPECTED_RELIABILITY_FIX` | - | 95.0 -> 92.0 | - |
+| MARKET | CSGP | `EXPECTED_VALUATION_SEMANTIC_FIX`; `EXPECTED_RESEARCH_CONFIDENCE_FIX`; `EXPECTED_RELIABILITY_FIX` | - | 84.0 -> 89.0 | - |
+| MARKET | DDOG | `EXPECTED_VALUATION_SEMANTIC_FIX`; `EXPECTED_RELIABILITY_FIX` | - | 84.0 -> 89.0 | - |
+| MARKET | DXCM | `EXPECTED_VALUATION_SEMANTIC_FIX`; `EXPECTED_QUALITATIVE_EXTRACTION_FIX`; `EXPECTED_RESEARCH_CONFIDENCE_FIX` | - | - | thesis `WEAKENING` -> `INTACT`; `DO_NOT_ADD/WATCH` -> `ELIGIBLE_BUT_NOT_SELECTED` |
+| MARKET | FNV.TO | `EXPECTED_BROKER_TARGET_SEPARATION`; `EXPECTED_QUALITATIVE_EXTRACTION_FIX`; `EXPECTED_RELIABILITY_FIX` | 8.15 -> 9.15 | 95.0 -> 92.0 | `DO_NOT_ADD` -> `NO_NEW_ALLOCATION` |
+| MARKET | FTNT | `EXPECTED_VALUATION_SEMANTIC_FIX`; `EXPECTED_RESEARCH_CONFIDENCE_FIX`; `EXPECTED_RELIABILITY_FIX` | - | 88.88 -> 93.88 | - |
+| MARKET | FTV | `EXPECTED_RESEARCH_CONFIDENCE_FIX` | - | - | - |
+| MARKET | GFL.TO | `EXPECTED_BROKER_TARGET_SEPARATION`; `EXPECTED_QUALITATIVE_EXTRACTION_FIX`; `EXPECTED_RELIABILITY_FIX` | 3.18 -> 2.18 | 91.0 -> 88.0 | - |
+| MARKET | GILD | `EXPECTED_VALUATION_SEMANTIC_FIX`; `EXPECTED_RESEARCH_CONFIDENCE_FIX` | - | - | monitoring `WATCH` -> `MANUAL_REVIEW` |
+| MARKET | GWO.TO | `EXPECTED_BROKER_TARGET_SEPARATION`; `EXPECTED_VALUATION_SEMANTIC_FIX`; `EXPECTED_QUALITATIVE_EXTRACTION_FIX`; `EXPECTED_RELIABILITY_FIX` | 6.53 -> 7.53 | 84.0 -> 95.0 | - |
+| MARKET | HPS-A.TO | `EXPECTED_BROKER_TARGET_SEPARATION`; `EXPECTED_QUALITATIVE_EXTRACTION_FIX`; `EXPECTED_RELIABILITY_FIX` | - | 91.0 -> 88.0 | - |
+| MARKET | KLAC | `EXPECTED_VALUATION_SEMANTIC_FIX`; `EXPECTED_QUALITATIVE_EXTRACTION_FIX`; `EXPECTED_RESEARCH_CONFIDENCE_FIX`; `EXPECTED_RELIABILITY_FIX` | - | 88.0 -> 93.0 | - |
+| MARKET | MFC.TO | `EXPECTED_BROKER_TARGET_SEPARATION`; `EXPECTED_VALUATION_SEMANTIC_FIX`; `EXPECTED_QUALITATIVE_EXTRACTION_FIX`; `EXPECTED_RELIABILITY_FIX` | - | 84.0 -> 95.0 | - |
+| MARKET | MG.TO | `EXPECTED_VALUATION_SEMANTIC_FIX`; `EXPECTED_RELIABILITY_FIX` | - | 80.0 -> 91.0 | - |
+| MARKET | MRK | `EXPECTED_VALUATION_SEMANTIC_FIX`; `EXPECTED_RESEARCH_CONFIDENCE_FIX`; `EXPECTED_RELIABILITY_FIX` | - | 84.31 -> 89.31 | - |
+| MARKET | MU | `EXPECTED_VALUATION_SEMANTIC_FIX`; `EXPECTED_RESEARCH_CONFIDENCE_FIX` | - | - | - |
+| MARKET | NEM | `EXPECTED_VALUATION_SEMANTIC_FIX`; `EXPECTED_ROIC_SEMANTIC_FIX`; `EXPECTED_QUALITATIVE_EXTRACTION_FIX`; `EXPECTED_RESEARCH_CONFIDENCE_FIX`; `EXPECTED_RELIABILITY_FIX` | 6.4 -> 8.0 | 88.0 -> 93.0 | - |
+| MARKET | NTR.TO | `EXPECTED_VALUATION_SEMANTIC_FIX`; `EXPECTED_RELIABILITY_FIX` | - | 84.0 -> 95.0 | - |
+| MARKET | NVDA | `EXPECTED_VALUATION_SEMANTIC_FIX`; `EXPECTED_QUALITATIVE_EXTRACTION_FIX`; `EXPECTED_RESEARCH_CONFIDENCE_FIX`; `EXPECTED_RELIABILITY_FIX` | - | 88.69 -> 93.69 | - |
+| MARKET | PWR | `EXPECTED_VALUATION_SEMANTIC_FIX`; `EXPECTED_RESEARCH_CONFIDENCE_FIX`; `EXPECTED_RELIABILITY_FIX` | 3.08 -> 3.18 | 84.5 -> 89.5 | - |
+| MARKET | STN.TO | `EXPECTED_BROKER_TARGET_SEPARATION`; `EXPECTED_QUALITATIVE_EXTRACTION_FIX`; `EXPECTED_RELIABILITY_FIX` | - | 85.0 -> 82.0 | - |
+| MARKET | UNH | `EXPECTED_VALUATION_SEMANTIC_FIX`; `EXPECTED_QUALITATIVE_EXTRACTION_FIX`; `EXPECTED_RESEARCH_CONFIDENCE_FIX`; `EXPECTED_RELIABILITY_FIX` | - | 84.0 -> 89.0 | - |
+| DISCOVERY | SCHW | `EXPECTED_VALUATION_SEMANTIC_FIX`; `EXPECTED_RESEARCH_CONFIDENCE_FIX` | - | - | - |
