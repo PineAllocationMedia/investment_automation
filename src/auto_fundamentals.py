@@ -394,7 +394,10 @@ def _field_evidence_sources(
     calibration_payload: dict[str, Any],
     calibration_fields: set[str],
 ) -> dict[str, list[dict[str, Any]]]:
-    evidence: dict[str, list[dict[str, Any]]] = {}
+    evidence: dict[str, list[dict[str, Any]]] = {
+        str(field): list(values)
+        for field, values in (payload.get("field_evidence_sources") or {}).items()
+    }
     freshness_by_field = calibration_payload.get("calibration_field_freshness") or {}
     for field in sorted(calibration_fields):
         evidence.setdefault(field, []).append(

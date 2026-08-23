@@ -7,6 +7,7 @@ from typing import Any
 
 from .add_eligibility_engine import ADD_ALLOWED_STATUSES
 from .asset_type_engine import is_etf_asset, is_etf_asset_analysis
+from .evidence_provenance import field_freshness, research_field_freshness
 from .manual_inputs import BOOL_COLUMNS, MANUAL_COLUMNS, NUMERIC_COLUMNS, empty_manual_row, parse_manual_row
 from .utils import (
     BNCD_MORNINGSTAR_DIR,
@@ -87,6 +88,12 @@ DESCRIPTIVE_RESEARCH_FIELDS = {
     "research_report_sector",
     "research_report_industry",
 }
+INFORMATIONAL_RESEARCH_FIELDS = {
+    "broker_target_price_12m",
+    "price_to_fair_value",
+    "roic_current",
+    "roic_10y_avg",
+}
 PRIORITY_RESEARCH_FIELDS = {"fair_value", "roic_5y_avg"}
 MORNINGSTAR_RESEARCH_SOURCE_TYPES = {"MORNINGSTAR_ANALYST", "MORNINGSTAR_TEAR_SHEET"}
 COMMON_NON_TICKER_FILENAME_TOKENS = {
@@ -159,11 +166,16 @@ def parse_research_report(path: str | Path, ticker: str, index_row: dict[str, An
     text = str(extraction.get("text") or "")
     error = str(extraction.get("error") or "")
     row = empty_manual_row(ticker)
+    applied_candidate_fields: list[str] = []
     extracted_fields: list[str] = []
+    advisory_fields: list[str] = []
+    informational_values: dict[str, Any] = {}
     extraction_notes: list[str] = []
     extraction_warnings: list[str] = list(extraction.get("warnings") or [])
     field_sources: dict[str, str] = {}
     field_confidence: dict[str, str] = {}
+    field_status: dict[str, str] = {}
+    field_reasons: dict[str, str] = {}
     source_rank, source_type = _classify_research_report_source(text)
 
     def set_field(field: str, value: Any, source: str = "") -> None:
@@ -173,10 +185,30 @@ def parse_research_report(path: str | Path, ticker: str, index_row: dict[str, An
             return
         row[field] = value
         extracted_fields.append(field)
+        confidence = research_field_confidence(field, source, extraction)
+        field_confidence[field] = confidence
+        if confidence == "LOW":
+            advisory_fields.append(field)
+            field_status[field] = "ADVISORY"
+            field_reasons[field] = "LOW_CONFIDENCE"
+        else:
+            applied_candidate_fields.append(field)
+            field_status[field] = "EXTRACTED"
         if source:
             field_sources[field] = source
-            field_confidence[field] = research_field_confidence(field, source, extraction)
             extraction_notes.append(f"{field}: {source}")
+
+    def set_informational_field(field: str, value: Any, source: str, reason: str) -> None:
+        if field not in INFORMATIONAL_RESEARCH_FIELDS or value is None or value == "":
+            return
+        informational_values[field] = value
+        extracted_fields.append(field)
+        advisory_fields.append(field)
+        field_sources[field] = source
+        field_confidence[field] = research_field_confidence(field, source, extraction)
+        field_status[field] = "ADVISORY"
+        field_reasons[field] = reason
+        extraction_notes.append(f"{field}: {source}")
 
     if text:
         moat_value, moat_source, moat_warnings = extract_morningstar_moat_clear(text)
@@ -187,14 +219,32 @@ def parse_research_report(path: str | Path, ticker: str, index_row: dict[str, An
         fair_value, fair_value_source, fair_value_warnings = _extract_fair_value_estimate(text)
         extraction_warnings.extend(fair_value_warnings)
         set_field("fair_value", fair_value, fair_value_source)
-        roic_value = extract_percent_number(text, ROIC_PATTERNS)
-        roic_source = "ROIC text pattern"
-        if roic_value is not None and source_type not in {"MORNINGSTAR_ANALYST", "MORNINGSTAR_TEAR_SHEET"}:
-            roic_source = "ROIC TTM courtier — définition divergente"
-            extraction_warnings.append(
-                "ROIC: source courtier non-Morningstar utilisée comme dernier recours; définition divergente du champ 5 ans."
-            )
-        set_field("roic_5y_avg", roic_value, roic_source)
+        set_informational_field(
+            "broker_target_price_12m",
+            extract_broker_target_price(text),
+            "broker target price 12m pattern",
+            "BROKER_TARGET_NOT_INTRINSIC_FAIR_VALUE",
+        )
+        set_informational_field(
+            "price_to_fair_value",
+            _extract_price_to_fair_value(text),
+            "Morningstar Price/FVE",
+            "PRICE_FVE_NOT_HISTORICAL_5Y_VALUATION",
+        )
+        roic_values = _extract_semantic_roic_values(text)
+        set_field("roic_5y_avg", roic_values.get("roic_5y_avg"), "explicit 5-year average ROIC pattern")
+        set_informational_field(
+            "roic_10y_avg",
+            roic_values.get("roic_10y_avg"),
+            "explicit trailing-decade ROIC pattern",
+            "ROIC_PERIOD_NOT_5Y",
+        )
+        set_informational_field(
+            "roic_current",
+            roic_values.get("roic_current"),
+            "current/TTM ROIC pattern",
+            "ROIC_PERIOD_NOT_5Y",
+        )
         set_field("eps_growth_estimated_3_5y", extract_percent_number(text, EPS_GROWTH_PATTERNS), "EPS growth text pattern")
         forward_pe = extract_valuation_analysis_current_value(text, "Forward P/E")
         forward_pe_source = "forward PE text pattern"
@@ -217,9 +267,9 @@ def parse_research_report(path: str | Path, ticker: str, index_row: dict[str, An
         )
         set_field("balance_sheet_strong", extract_bool_from_patterns(text, TRUE_BALANCE_PATTERNS, FALSE_BALANCE_PATTERNS), "balance sheet text pattern")
         set_field("management_quality_good", extract_bool_from_patterns(text, TRUE_MANAGEMENT_PATTERNS, FALSE_MANAGEMENT_PATTERNS), "management text pattern")
-        set_field("regulatory_risk_high", extract_bool_from_patterns(text, TRUE_REGULATORY_PATTERNS, []), "regulatory risk text pattern")
-        set_field("geopolitical_risk_high", extract_bool_from_patterns(text, TRUE_GEOPOLITICAL_PATTERNS, []), "geopolitical risk text pattern")
-        set_field("single_product_dependency_high", extract_bool_from_patterns(text, TRUE_SINGLE_PRODUCT_PATTERNS, []), "single product text pattern")
+        set_field("regulatory_risk_high", extract_explicit_high_risk(text, TRUE_REGULATORY_PATTERNS), "explicit high regulatory risk pattern")
+        set_field("geopolitical_risk_high", extract_explicit_high_risk(text, TRUE_GEOPOLITICAL_PATTERNS), "explicit high geopolitical risk pattern")
+        set_field("single_product_dependency_high", extract_explicit_high_risk(text, TRUE_SINGLE_PRODUCT_PATTERNS), "explicit high single-product dependency pattern")
 
     source_name = path.name
     provider = str(index_row.get("provider") or "BNCD/Morningstar").strip()
@@ -234,13 +284,16 @@ def parse_research_report(path: str | Path, ticker: str, index_row: dict[str, An
             extraction_warnings.append(
                 "Description: date de rapport inconnue; plafond 24 mois non appliqué à ce champ informationnel."
             )
-    row["manual_confidence_level"] = "HIGH" if {"fair_value", "moat_clear"} <= set(extracted_fields) else "MEDIUM"
+    row["manual_confidence_level"] = "HIGH" if {"fair_value", "moat_clear"} <= set(applied_candidate_fields) else "MEDIUM"
     row["notes"] = (
         f"Données extraites automatiquement du rapport local {source_name}. "
         "À valider manuellement; ne pas republier de longs extraits du rapport."
     )
     parsed = parse_manual_row(row)
-    parsed["research_report_fields"] = sorted(set(extracted_fields))
+    parsed.update(informational_values)
+    parsed["research_report_fields"] = sorted(set(applied_candidate_fields))
+    parsed["research_report_extracted_fields"] = sorted(set(extracted_fields))
+    parsed["research_report_advisory_fields"] = sorted(set(advisory_fields))
     parsed["research_report_sources"] = [source_name]
     parsed["research_report_provider"] = provider
     parsed["research_report_dates"] = [report_date] if report_date else []
@@ -251,7 +304,40 @@ def parse_research_report(path: str | Path, ticker: str, index_row: dict[str, An
     parsed["research_report_extraction_notes"] = sorted(set(extraction_notes))
     parsed["research_report_extraction_warnings"] = sorted(set(extraction_warnings))
     parsed["research_report_field_sources"] = field_sources
+    parsed["research_report_field_files"] = {field: source_name for field in sorted(set(extracted_fields))}
+    parsed["research_report_field_providers"] = {field: provider for field in sorted(set(extracted_fields))}
+    parsed["research_report_field_source_types"] = {field: source_type for field in sorted(set(extracted_fields))}
+    parsed["research_report_field_report_dates"] = {
+        field: report_date for field in sorted(set(extracted_fields)) if report_date
+    }
+    freshness_by_field = {
+        field: field_freshness(field, report_date)
+        for field in sorted(set(extracted_fields))
+    }
+    for field in list(applied_candidate_fields):
+        freshness = freshness_by_field[field]
+        if freshness["currently_authoritative"]:
+            continue
+        applied_candidate_fields.remove(field)
+        advisory_fields.append(field)
+        field_status[field] = "ADVISORY"
+        field_reasons[field] = _research_freshness_reason(freshness)
+    parsed["research_report_fields"] = sorted(set(applied_candidate_fields))
+    parsed["research_report_advisory_fields"] = sorted(set(advisory_fields))
+    parsed["research_report_field_freshness"] = freshness_by_field
+    parsed["research_report_freshness_policy_applied"] = True
+    parsed["research_report_current_fields"] = sorted(
+        field for field, metadata in freshness_by_field.items() if metadata["status"] == "CURRENT"
+    )
+    parsed["research_report_stale_fields"] = sorted(
+        field for field, metadata in freshness_by_field.items() if metadata["status"] == "STALE"
+    )
+    parsed["research_report_unknown_date_fields"] = sorted(
+        field for field, metadata in freshness_by_field.items() if metadata["status"] == "UNKNOWN_DATE"
+    )
     parsed["research_report_field_confidence"] = field_confidence
+    parsed["research_report_field_status"] = field_status
+    parsed["research_report_field_reasons"] = field_reasons
     parsed["research_report_text_quality_status"] = extraction.get("text_quality_status")
     parsed["research_report_text_quality_score"] = extraction.get("text_quality_score")
     parsed["research_report_extraction_method"] = extraction.get("extraction_method")
@@ -268,13 +354,24 @@ def parse_research_report(path: str | Path, ticker: str, index_row: dict[str, An
 def merge_research_rows(ticker: str, rows: list[dict[str, Any]]) -> dict[str, Any]:
     merged = empty_manual_row(ticker)
     fields: list[str] = []
+    extracted_fields: list[str] = []
+    advisory_fields: list[str] = []
+    informational_values: dict[str, Any] = {}
     sources: list[str] = []
     dates: list[str] = []
     errors: list[str] = []
     notes: list[str] = []
     warnings: list[str] = []
     field_sources: dict[str, str] = {}
+    field_files: dict[str, str] = {}
+    field_providers: dict[str, str] = {}
+    field_source_types: dict[str, str] = {}
+    field_report_dates: dict[str, str] = {}
     field_confidence: dict[str, str] = {}
+    field_status: dict[str, str] = {}
+    field_reasons: dict[str, str] = {}
+    field_freshness_by_field: dict[str, dict[str, Any]] = {}
+    evidence_sources: dict[str, list[dict[str, Any]]] = {}
     text_quality_statuses: list[str] = []
     extraction_methods: list[str] = []
     ocr_statuses: list[str] = []
@@ -283,7 +380,59 @@ def merge_research_rows(ticker: str, rows: list[dict[str, Any]]) -> dict[str, An
     extraction_messages: list[str] = []
     for row in sorted(rows, key=lambda item: _latest_date_text(item), reverse=True):
         row_fields = set(row.get("research_report_fields") or [])
+        row_extracted_fields = set(row.get("research_report_extracted_fields") or row_fields)
+        row_advisory_fields = set(row.get("research_report_advisory_fields") or [])
+        row_authoritative_fields: set[str] = set()
         for field in row_fields:
+            freshness = _research_row_field_freshness(row, field)
+            confidence = str((row.get("research_report_field_confidence") or {}).get(field) or "MEDIUM").upper()
+            if confidence != "LOW" and (freshness is None or freshness.get("currently_authoritative")):
+                row_authoritative_fields.add(field)
+            else:
+                row_advisory_fields.add(field)
+        extracted_fields.extend(row_extracted_fields)
+        advisory_fields.extend(row_advisory_fields)
+        first_source = _first_research_source(row)
+        latest_date = _latest_date_text(row)
+        provider = str(row.get("research_report_provider") or "")
+        source_type = _research_source_type_from_row(row)
+        for field in sorted(row_extracted_fields):
+            file_name = str((row.get("research_report_field_files") or {}).get(field) or first_source)
+            field_provider = str((row.get("research_report_field_providers") or {}).get(field) or provider)
+            field_source_type = str((row.get("research_report_field_source_types") or {}).get(field) or source_type)
+            field_report_date = str((row.get("research_report_field_report_dates") or {}).get(field) or latest_date)
+            freshness = _research_row_field_freshness(row, field)
+            reason = str((row.get("research_report_field_reasons") or {}).get(field) or "")
+            if freshness and not freshness.get("currently_authoritative"):
+                reason = _research_freshness_reason(freshness)
+                field_reasons.setdefault(field, reason)
+            if freshness:
+                field_freshness_by_field.setdefault(field, freshness)
+            evidence_sources.setdefault(field, []).append(
+                {
+                    "provenance": "RESEARCH_REPORT",
+                    "value": row.get(field),
+                    "source": file_name,
+                    "provider": field_provider or None,
+                    "source_date": field_report_date or None,
+                    "confidence": str((row.get("research_report_field_confidence") or {}).get(field) or "MEDIUM").upper(),
+                    "freshness": freshness.get("status") if freshness else None,
+                    "age_days": freshness.get("age_days") if freshness else None,
+                    "max_age_days": freshness.get("max_age_days") if freshness else None,
+                    "currently_authoritative": field in row_authoritative_fields,
+                    "status": "CANDIDATE" if field in row_authoritative_fields else "ADVISORY",
+                    "reason": reason or None,
+                }
+            )
+            if file_name:
+                field_files.setdefault(field, file_name)
+            if field_provider:
+                field_providers.setdefault(field, field_provider)
+            if field_source_type:
+                field_source_types.setdefault(field, field_source_type)
+            if field_report_date:
+                field_report_dates.setdefault(field, field_report_date)
+        for field in row_authoritative_fields:
             if field in PRIORITY_RESEARCH_FIELDS:
                 continue
             value = row.get(field)
@@ -296,6 +445,31 @@ def merge_research_rows(ticker: str, rows: list[dict[str, Any]]) -> dict[str, An
                 confidence = (row.get("research_report_field_confidence") or {}).get(field)
                 if confidence:
                     field_confidence[field] = str(confidence)
+                _set_selected_research_metadata(
+                    field,
+                    row,
+                    field_files,
+                    field_providers,
+                    field_source_types,
+                    field_report_dates,
+                    field_freshness_by_field,
+                )
+        for field in sorted(row_extracted_fields - row_authoritative_fields):
+            value = row.get(field)
+            if value is None or value == "":
+                continue
+            if field in INFORMATIONAL_RESEARCH_FIELDS:
+                informational_values.setdefault(field, value)
+            source = (row.get("research_report_field_sources") or {}).get(field)
+            confidence = (row.get("research_report_field_confidence") or {}).get(field)
+            if source and field not in field_sources:
+                field_sources[field] = str(source)
+            if confidence and field not in field_confidence:
+                field_confidence[field] = str(confidence)
+        for key, value in (row.get("research_report_field_status") or {}).items():
+            field_status.setdefault(str(key), str(value))
+        for key, value in (row.get("research_report_field_reasons") or {}).items():
+            field_reasons.setdefault(str(key), str(value))
         sources.extend(str(source) for source in row.get("research_report_sources") or [])
         dates.extend(str(report_date) for report_date in row.get("research_report_dates") or [] if report_date)
         notes.extend(str(note) for note in row.get("research_report_extraction_notes") or [])
@@ -329,6 +503,19 @@ def merge_research_rows(ticker: str, rows: list[dict[str, Any]]) -> dict[str, An
             field_sources[field] = source
         if confidence:
             field_confidence[field] = confidence
+        selected_freshness = selected.get("freshness")
+        if isinstance(selected_freshness, dict):
+            field_freshness_by_field[field] = dict(selected_freshness)
+        for target, key in (
+            (field_files, "file"),
+            (field_providers, "provider"),
+            (field_source_types, "source_type"),
+            (field_report_dates, "report_date"),
+        ):
+            selected_value = str(selected.get(key) or "")
+            if selected_value:
+                target[field] = selected_value
+        extracted_fields.append(field)
 
     merged["ticker"] = ticker
     non_low_confidence_fields = {
@@ -337,21 +524,61 @@ def merge_research_rows(ticker: str, rows: list[dict[str, Any]]) -> dict[str, An
     merged["manual_confidence_level"] = "HIGH" if len(non_low_confidence_fields) >= 4 else "MEDIUM"
     merged["notes"] = "Données enrichies par rapports BNCD/Morningstar locaux. À valider manuellement."
     parsed = parse_manual_row(merged)
+    parsed.update(informational_values)
     parsed["research_report_fields"] = sorted(set(fields))
+    parsed["research_report_extracted_fields"] = sorted(set(extracted_fields) | set(fields))
+    parsed["research_report_advisory_fields"] = sorted(set(advisory_fields) - set(fields))
     parsed["research_report_sources"] = sorted(set(sources))
     parsed["research_report_dates"] = sorted(set(dates), reverse=True)
-    parsed["research_report_status"] = "FOUND_FIELDS" if fields else "NO_FIELDS_EXTRACTED"
+    parsed["research_report_status"] = "FOUND_FIELDS" if extracted_fields else "NO_FIELDS_EXTRACTED"
     parsed["research_report_error"] = "; ".join(sorted(set(errors)))
     parsed["research_report_extraction_notes"] = sorted(set(notes))
     parsed["research_report_extraction_warnings"] = sorted(set(warnings))
     parsed["research_report_field_sources"] = field_sources
+    parsed["research_report_field_files"] = field_files
+    parsed["research_report_field_providers"] = field_providers
+    parsed["research_report_field_source_types"] = field_source_types
+    parsed["research_report_field_report_dates"] = field_report_dates
+    parsed["research_report_field_freshness"] = field_freshness_by_field
+    parsed["research_report_freshness_policy_applied"] = True
+    parsed["research_report_current_fields"] = sorted(
+        field for field, metadata in field_freshness_by_field.items() if metadata.get("status") == "CURRENT"
+    )
+    parsed["research_report_stale_fields"] = sorted(
+        field for field, metadata in field_freshness_by_field.items() if metadata.get("status") == "STALE"
+    )
+    parsed["research_report_unknown_date_fields"] = sorted(
+        field for field, metadata in field_freshness_by_field.items() if metadata.get("status") == "UNKNOWN_DATE"
+    )
     parsed["research_report_field_confidence"] = field_confidence
+    parsed["research_report_field_status"] = {
+        field: ("EXTRACTED" if field in set(fields) else field_status.get(field, "ADVISORY"))
+        for field in sorted(set(extracted_fields) | set(fields))
+    }
+    parsed["research_report_field_reasons"] = {
+        field: reason for field, reason in field_reasons.items() if field not in set(fields)
+    }
     parsed["research_report_text_quality_status"] = _worst_text_quality_status(text_quality_statuses)
     parsed["research_report_text_quality_score"] = min(quality_scores) if quality_scores else None
     parsed["research_report_extraction_method"] = "; ".join(sorted(set(extraction_methods)))
     parsed["research_report_ocr_status"] = _worst_ocr_status(ocr_statuses)
     parsed["research_report_text_characters"] = int(max(text_characters)) if text_characters else None
     parsed["research_report_extraction_messages"] = sorted(set(extraction_messages))
+    selected_fields = set(fields)
+    for field, observations in evidence_sources.items():
+        selected_file = field_files.get(field)
+        selected_date = field_report_dates.get(field)
+        for observation in observations:
+            is_selected = (
+                field in selected_fields
+                and (not selected_file or observation.get("source") == selected_file)
+                and (not selected_date or observation.get("source_date") == selected_date)
+            )
+            observation["currently_authoritative"] = is_selected
+            observation["status"] = "SELECTED" if is_selected else "ADVISORY"
+            if not is_selected and not observation.get("reason"):
+                observation["reason"] = "LOWER_PRIORITY_RESEARCH_OBSERVATION"
+    parsed["field_evidence_sources"] = evidence_sources
     descriptive, descriptive_warnings = _merge_descriptive_research_fields(rows)
     parsed.update(descriptive)
     if descriptive_warnings:
@@ -370,16 +597,50 @@ def merge_research_with_automated(
 
     merged = dict(automated)
     fields = set(research.get("research_report_fields") or [])
+    extracted_fields = set(research.get("research_report_extracted_fields") or fields)
+    advisory_fields = set(research.get("research_report_advisory_fields") or [])
+    confidence_by_field = research.get("research_report_field_confidence") or {}
+    freshness_by_field = {
+        field: metadata
+        for field in sorted(extracted_fields)
+        if (metadata := research_field_freshness(research, field)) is not None
+    }
+    official_fields = set(merged.get("official_supported_manual_fields") or []) | set(
+        merged.get("official_confirmed_manual_fields") or []
+    )
     applied: list[str] = []
+    application_reasons: dict[str, str] = dict(research.get("research_report_field_reasons") or {})
     for field in fields:
         if field == "ticker":
             continue
         value = research.get(field)
+        confidence = str(confidence_by_field.get(field) or "MEDIUM").upper()
+        if confidence == "LOW":
+            advisory_fields.add(field)
+            application_reasons[field] = "LOW_CONFIDENCE"
+            continue
+        freshness = freshness_by_field.get(field)
+        if freshness is not None and not freshness.get("currently_authoritative"):
+            advisory_fields.add(field)
+            application_reasons[field] = _research_freshness_reason(freshness)
+            continue
+        if field in official_fields:
+            advisory_fields.add(field)
+            application_reasons[field] = "HIGHER_AUTHORITY_OFFICIAL_EVIDENCE"
+            continue
         if value is not None and value != "":
             merged[field] = value
             applied.append(field)
 
+    for field in INFORMATIONAL_RESEARCH_FIELDS:
+        value = research.get(field)
+        if value is not None and value != "":
+            merged[field] = value
+            advisory_fields.add(field)
+
     merged["research_report_fields"] = sorted(set(applied))
+    merged["research_report_extracted_fields"] = sorted(extracted_fields)
+    merged["research_report_advisory_fields"] = sorted(advisory_fields - set(applied))
     merged["research_report_sources"] = research.get("research_report_sources", [])
     merged["research_report_dates"] = research.get("research_report_dates", [])
     merged["research_report_status"] = research.get("research_report_status")
@@ -387,7 +648,31 @@ def merge_research_with_automated(
     merged["research_report_extraction_notes"] = research.get("research_report_extraction_notes", [])
     merged["research_report_extraction_warnings"] = research.get("research_report_extraction_warnings", [])
     merged["research_report_field_sources"] = research.get("research_report_field_sources", {})
+    merged["research_report_field_files"] = research.get("research_report_field_files", {})
+    merged["research_report_field_providers"] = research.get("research_report_field_providers", {})
+    merged["research_report_field_source_types"] = research.get("research_report_field_source_types", {})
+    merged["research_report_field_report_dates"] = research.get("research_report_field_report_dates", {})
+    merged["research_report_field_freshness"] = freshness_by_field
+    merged["research_report_freshness_policy_applied"] = bool(
+        research.get("research_report_freshness_policy_applied")
+        or research.get("research_report_field_freshness")
+        or research.get("research_report_field_report_dates")
+    )
+    merged["research_report_current_fields"] = sorted(
+        field for field, metadata in freshness_by_field.items() if metadata.get("status") == "CURRENT"
+    )
+    merged["research_report_stale_fields"] = sorted(
+        field for field, metadata in freshness_by_field.items() if metadata.get("status") == "STALE"
+    )
+    merged["research_report_unknown_date_fields"] = sorted(
+        field for field, metadata in freshness_by_field.items() if metadata.get("status") == "UNKNOWN_DATE"
+    )
     merged["research_report_field_confidence"] = research.get("research_report_field_confidence", {})
+    merged["research_report_field_status"] = {
+        field: ("APPLIED" if field in set(applied) else "ADVISORY")
+        for field in sorted(extracted_fields)
+    }
+    merged["research_report_field_reasons"] = application_reasons
     merged["research_report_text_quality_status"] = research.get("research_report_text_quality_status", "")
     merged["research_report_text_quality_score"] = research.get("research_report_text_quality_score")
     merged["research_report_extraction_method"] = research.get("research_report_extraction_method", "")
@@ -405,6 +690,57 @@ def merge_research_with_automated(
     for key in ("official_supported_manual_fields", "official_confirmed_manual_fields"):
         merged[key] = [field for field in merged.get(key, []) if field not in set(applied)]
     merged["input_data_mode"] = "AUTO_WITH_RESEARCH_REPORT" if applied else automated.get("input_data_mode", "AUTO_ESTIMATED")
+    provenance = dict(merged.get("field_provenance") or {})
+    for field in applied:
+        provenance[field] = "RESEARCH_REPORT"
+    merged["field_provenance"] = dict(sorted(provenance.items()))
+    evidence_sources = {
+        str(field): list(values)
+        for field, values in (merged.get("field_evidence_sources") or {}).items()
+    }
+    for field, values in (research.get("field_evidence_sources") or {}).items():
+        evidence_sources.setdefault(str(field), []).extend(dict(value) for value in values)
+    report_sources = list(research.get("research_report_sources") or [])
+    report_dates = list(research.get("research_report_dates") or [])
+    field_files = research.get("research_report_field_files") or {}
+    field_providers = research.get("research_report_field_providers") or {}
+    field_report_dates = research.get("research_report_field_report_dates") or {}
+    for field in sorted(extracted_fields):
+        existing_research_evidence = [
+            item
+            for item in evidence_sources.get(field, [])
+            if str(item.get("provenance") or "") == "RESEARCH_REPORT"
+        ]
+        freshness = freshness_by_field.get(field) or research_field_freshness(research, field)
+        for item in existing_research_evidence:
+            item_is_selected = (
+                field in set(applied)
+                and (not field_files.get(field) or item.get("source") == field_files.get(field))
+                and (not field_report_dates.get(field) or item.get("source_date") == field_report_dates.get(field))
+            )
+            item["currently_authoritative"] = item_is_selected
+            item["status"] = "APPLIED" if item_is_selected else "ADVISORY"
+            if not item_is_selected and not item.get("reason"):
+                item["reason"] = application_reasons.get(field) or "LOWER_PRIORITY_RESEARCH_OBSERVATION"
+        if existing_research_evidence:
+            continue
+        evidence_sources.setdefault(field, []).append(
+            {
+                "provenance": "RESEARCH_REPORT",
+                "value": research.get(field),
+                "source": field_files.get(field) or report_sources,
+                "provider": field_providers.get(field),
+                "source_date": field_report_dates.get(field) or (report_dates[0] if report_dates else None),
+                "confidence": str(confidence_by_field.get(field) or "MEDIUM").upper(),
+                "freshness": freshness.get("status") if freshness else None,
+                "age_days": freshness.get("age_days") if freshness else None,
+                "max_age_days": freshness.get("max_age_days") if freshness else None,
+                "currently_authoritative": field in set(applied),
+                "status": "APPLIED" if field in set(applied) else "ADVISORY",
+                "reason": application_reasons.get(field),
+            }
+        )
+    merged["field_evidence_sources"] = evidence_sources
     if applied:
         merged["manual_confidence_level"] = research.get("manual_confidence_level") or merged.get("manual_confidence_level")
         merged["notes"] = research.get("notes") or merged.get("notes", "")
@@ -910,7 +1246,7 @@ def research_status_rows(
         warnings: list[str] = list(extraction.get("warnings") or [])
         if ticker and text:
             parsed = parse_research_report(path, ticker, index_row)
-            fields = list(parsed.get("research_report_fields") or [])
+            fields = list(parsed.get("research_report_extracted_fields") or [])
             warnings.extend(str(warning) for warning in parsed.get("research_report_extraction_warnings") or [])
 
         if error:
@@ -1561,6 +1897,34 @@ def _safe_report_number(value: Any) -> float | None:
 
 def _extract_broker_target_price_candidate(text: str) -> tuple[float | None, int]:
     text = str(text or "")
+    header_match = re.search(
+        r"\bSTOCK\s+RATING\s+TARGET\s+EST\s*\.?\s*TOTAL\s+RETURN\b(?P<body>.{0,450})",
+        text,
+        flags=re.IGNORECASE | re.DOTALL,
+    )
+    if header_match:
+        currency_matches = list(
+            re.finditer(
+                rf"(?P<currency>CAD|USD|C\$|US\$|(?<![A-Z])\$)\s*(?P<value>{REPORT_NUMBER_PATTERN})",
+                header_match.group("body"),
+                flags=re.IGNORECASE,
+            )
+        )
+        if len(currency_matches) >= 2:
+            current_currency = _normalized_report_currency(currency_matches[0].group("currency"))
+            target_match = next(
+                (
+                    match
+                    for match in currency_matches[1:]
+                    if not current_currency
+                    or _normalized_report_currency(match.group("currency")) == current_currency
+                ),
+                currency_matches[1],
+            )
+            value = _safe_report_number(target_match.group("value"))
+            if value is not None:
+                return value, header_match.start("body") + target_match.start("value")
+
     anchored_patterns = [
         rf"\btarget\s+price\s+(?:of|to|at|is|=)?\s*(?:CAD|USD|C\$|US\$|\$)?\s*{REPORT_NUMBER_CAPTURE}",
         rf"\bprice\s+target\s+(?:of|to|at|is|=)?\s*(?:CAD|USD|C\$|US\$|\$)?\s*{REPORT_NUMBER_CAPTURE}",
@@ -1572,24 +1936,16 @@ def _extract_broker_target_price_candidate(text: str) -> tuple[float | None, int
         value = _safe_report_number(match.group(1))
         if value is not None:
             return value, match.start(1)
+    return None, -1
 
-    header_match = re.search(
-        r"\bSTOCK\s+RATING\s+TARGET\s+EST\s*\.?\s*TOTAL\s+RETURN\b(?P<body>.{0,450})",
-        text,
-        flags=re.IGNORECASE | re.DOTALL,
-    )
-    if not header_match:
-        return None, -1
-    currency_matches = list(
-        re.finditer(rf"(?:CAD|USD|C\$|US\$|\$)\s*{REPORT_NUMBER_CAPTURE}", header_match.group("body"), flags=re.IGNORECASE)
-    )
-    if len(currency_matches) < 2:
-        return None, -1
-    target_match = currency_matches[1]
-    value = _safe_report_number(target_match.group(1))
-    if value is None:
-        return None, -1
-    return value, header_match.start("body") + target_match.start(1)
+
+def _normalized_report_currency(currency: str) -> str:
+    currency = str(currency or "").strip().upper()
+    if currency in {"CAD", "C$"}:
+        return "CAD"
+    if currency in {"USD", "US$"}:
+        return "USD"
+    return ""
 
 
 def _extract_fair_value_estimate(text: str) -> tuple[float | None, str, list[str]]:
@@ -1606,16 +1962,6 @@ def _extract_fair_value_estimate(text: str) -> tuple[float | None, str, list[str
                     "score": _fair_value_candidate_score(text, match.start(), match.end()),
                 }
             )
-    target_value, target_start = _extract_broker_target_price_candidate(text)
-    if target_value is not None:
-        candidates.append(
-            {
-                "value": target_value,
-                "start": target_start if target_start >= 0 else len(text or ""),
-                "score": 1.0,
-                "source": "cours cible 12 mois — courtier, définition divergente",
-            }
-        )
     if not candidates:
         return None, "", []
 
@@ -1623,10 +1969,6 @@ def _extract_fair_value_estimate(text: str) -> tuple[float | None, str, list[str
     best = candidates[0]
     warnings: list[str] = []
     source = str(best.get("source") or ("fair value header pattern" if float(best["score"]) >= 6.0 else "fair value text pattern"))
-    if _is_divergent_research_source(source):
-        warnings.append(
-            "Fair value: cours cible courtier 12 mois détecté; définition divergente de la juste valeur intrinsèque."
-        )
     if len(candidates) > 1 and float(best["score"]) < 6.0:
         warnings.append(
             "Juste valeur: plusieurs candidats détectés sans en-tête Morningstar clair; premier candidat utilisé avec prudence."
@@ -1649,7 +1991,7 @@ def _select_priority_research_field(field: str, rows: list[dict[str, Any]]) -> t
     candidates: list[dict[str, Any]] = []
     warnings: list[str] = []
     for row in rows:
-        row_fields = set(row.get("research_report_fields") or [])
+        row_fields = set(row.get("research_report_extracted_fields") or row.get("research_report_fields") or [])
         if field not in row_fields:
             continue
         value = row.get(field)
@@ -1662,16 +2004,21 @@ def _select_priority_research_field(field: str, rows: list[dict[str, Any]]) -> t
         divergent = _is_divergent_priority_candidate(field, source, source_type)
         if divergent:
             confidence = "LOW"
+        freshness = _research_row_field_freshness(row, field)
         candidates.append(
             {
                 "value": value,
                 "source": source,
                 "confidence": confidence,
+                "file": str((row.get("research_report_field_files") or {}).get(field) or _first_research_source(row)),
+                "provider": str((row.get("research_report_field_providers") or {}).get(field) or row.get("research_report_provider") or ""),
                 "source_type": source_type,
                 "source_rank": _research_source_rank_from_row(row),
                 "date_text": _latest_date_text(row),
+                "report_date": str((row.get("research_report_field_report_dates") or {}).get(field) or _latest_date_text(row)),
                 "date_ordinal": parsed_date.toordinal() if parsed_date else 0,
                 "divergent": divergent,
+                "freshness": freshness,
             }
         )
 
@@ -1679,7 +2026,12 @@ def _select_priority_research_field(field: str, rows: list[dict[str, Any]]) -> t
         return None, warnings
 
     if field == "fair_value":
-        intrinsic_candidates = [candidate for candidate in candidates if not candidate["divergent"]]
+        intrinsic_candidates = [
+            candidate
+            for candidate in candidates
+            if not candidate["divergent"] and str(candidate.get("confidence") or "MEDIUM").upper() != "LOW"
+            and (candidate.get("freshness") is None or candidate["freshness"].get("currently_authoritative"))
+        ]
         if intrinsic_candidates:
             chosen = sorted(
                 intrinsic_candidates,
@@ -1690,15 +2042,18 @@ def _select_priority_research_field(field: str, rows: list[dict[str, Any]]) -> t
                     "Fair value: cours cible courtier détecté puis écarté au profit d'une juste valeur Morningstar/intrinsèque."
                 )
             return chosen, warnings
-        chosen = sorted(candidates, key=lambda candidate: (-int(candidate["date_ordinal"]), int(candidate["source_rank"])))[0]
-        chosen["confidence"] = "LOW"
         warnings.append(
-            "Fair value: cours cible courtier retenu en dernier recours faute de juste valeur Morningstar; définition divergente, confiance LOW."
+            "Fair value: aucun candidat intrinsèque suffisamment fiable; les observations LOW/divergentes restent consultables sans alimenter fair_value."
         )
-        return chosen, warnings
+        return None, warnings
 
     if field == "roic_5y_avg":
-        comparable_candidates = [candidate for candidate in candidates if not candidate["divergent"]]
+        comparable_candidates = [
+            candidate
+            for candidate in candidates
+            if not candidate["divergent"] and str(candidate.get("confidence") or "MEDIUM").upper() != "LOW"
+            and (candidate.get("freshness") is None or candidate["freshness"].get("currently_authoritative"))
+        ]
         if comparable_candidates:
             chosen = sorted(
                 comparable_candidates,
@@ -1707,12 +2062,60 @@ def _select_priority_research_field(field: str, rows: list[dict[str, Any]]) -> t
             if any(candidate["divergent"] for candidate in candidates):
                 warnings.append("ROIC: source courtier écartée au profit d'une source Morningstar comparable au champ 5 ans.")
             return chosen, warnings
-        chosen = sorted(candidates, key=lambda candidate: (int(candidate["source_rank"]), -int(candidate["date_ordinal"])))[0]
-        chosen["confidence"] = "LOW"
-        warnings.append("ROIC: source non-Morningstar retenue en dernier recours; définition divergente, confiance LOW.")
-        return chosen, warnings
+        warnings.append("ROIC: aucun candidat explicitement compatible avec une moyenne 5 ans; valeurs d'autres périodes conservées à titre informatif.")
+        return None, warnings
 
-    return sorted(candidates, key=lambda candidate: (-int(candidate["date_ordinal"]), int(candidate["source_rank"])))[0], warnings
+    current_candidates = [
+        candidate
+        for candidate in candidates
+        if str(candidate.get("confidence") or "MEDIUM").upper() != "LOW"
+        and (candidate.get("freshness") is None or candidate["freshness"].get("currently_authoritative"))
+    ]
+    if not current_candidates:
+        return None, warnings
+    return sorted(current_candidates, key=lambda candidate: (-int(candidate["date_ordinal"]), int(candidate["source_rank"])))[0], warnings
+
+
+def _research_row_field_freshness(row: dict[str, Any], field: str) -> dict[str, Any] | None:
+    freshness = research_field_freshness(row, field)
+    if freshness is not None or "research_report_dates" not in row:
+        return freshness
+    dated_row = dict(row)
+    dated_row["research_report_freshness_policy_applied"] = True
+    return research_field_freshness(dated_row, field)
+
+
+def _research_freshness_reason(freshness: dict[str, Any]) -> str:
+    return "STALE_RESEARCH_EVIDENCE" if freshness.get("status") == "STALE" else "UNKNOWN_REPORT_DATE"
+
+
+def _set_selected_research_metadata(
+    field: str,
+    row: dict[str, Any],
+    field_files: dict[str, str],
+    field_providers: dict[str, str],
+    field_source_types: dict[str, str],
+    field_report_dates: dict[str, str],
+    freshness_by_field: dict[str, dict[str, Any]],
+) -> None:
+    first_source = _first_research_source(row)
+    latest_date = _latest_date_text(row)
+    field_files[field] = str((row.get("research_report_field_files") or {}).get(field) or first_source)
+    field_providers[field] = str(
+        (row.get("research_report_field_providers") or {}).get(field)
+        or row.get("research_report_provider")
+        or ""
+    )
+    field_source_types[field] = str(
+        (row.get("research_report_field_source_types") or {}).get(field)
+        or _research_source_type_from_row(row)
+    )
+    field_report_dates[field] = str(
+        (row.get("research_report_field_report_dates") or {}).get(field) or latest_date
+    )
+    freshness = _research_row_field_freshness(row, field)
+    if freshness:
+        freshness_by_field[field] = freshness
 
 
 def _research_source_type_from_row(row: dict[str, Any]) -> str:
@@ -1772,12 +2175,23 @@ def _fair_value_candidate_score(text: str, start: int, end: int) -> float:
 
 
 def extract_bool_from_patterns(text: str, true_patterns: list[str], false_patterns: list[str]) -> bool | None:
-    for pattern in false_patterns:
-        if re.search(pattern, text, flags=re.IGNORECASE):
-            return False
-    for pattern in true_patterns:
-        if re.search(pattern, text, flags=re.IGNORECASE):
-            return True
+    for sentence in _research_sentences(text):
+        for pattern in false_patterns:
+            if re.search(pattern, sentence, flags=re.IGNORECASE):
+                return False
+        for pattern in true_patterns:
+            match = re.search(pattern, sentence, flags=re.IGNORECASE)
+            if match and not _semantic_match_is_reversed(sentence, match.start(), match.end()):
+                return True
+    return None
+
+
+def extract_explicit_high_risk(text: str, patterns: list[str]) -> bool | None:
+    for sentence in _research_sentences(text):
+        for pattern in patterns:
+            match = re.search(pattern, sentence, flags=re.IGNORECASE)
+            if match and not _semantic_match_is_reversed(sentence, match.start(), match.end()):
+                return True
     return None
 
 
@@ -1794,6 +2208,8 @@ def research_field_confidence(field: str, source: str, extraction: dict[str, Any
     elif "morningstar price/fve" in source_text:
         confidence = "HIGH"
     elif field in {"fair_value", "forward_pe_manual", "peg_manual", "roic_5y_avg", "eps_growth_estimated_3_5y"}:
+        confidence = "MEDIUM"
+    elif field in INFORMATIONAL_RESEARCH_FIELDS:
         confidence = "MEDIUM"
     elif field in {
         "moat_clear",
@@ -1859,22 +2275,17 @@ def extract_morningstar_moat_clear(text: str) -> tuple[bool | None, str, list[st
 
 
 def extract_morningstar_valuation_ok(text: str) -> tuple[bool | None, str, list[str]]:
-    """Prefer Morningstar's numeric Price/FVE ratio over generic valuation wording."""
+    """Extract only an explicit comparison with a historical five-year valuation."""
     warnings: list[str] = []
-    price_fve = _extract_price_to_fair_value(text)
-    if price_fve is not None:
-        status = price_fve <= 1.30
-        return status, f"Morningstar Price/FVE={price_fve:.2f}", warnings
-
-    true_found = _has_any_pattern(text, TRUE_VALUATION_PATTERNS)
-    false_found = _has_any_pattern(text, FALSE_VALUATION_PATTERNS)
+    true_found = _has_any_pattern(text, TRUE_HISTORICAL_5Y_VALUATION_PATTERNS)
+    false_found = _has_any_pattern(text, FALSE_HISTORICAL_5Y_VALUATION_PATTERNS)
     if true_found and false_found:
-        warnings.append("Valorisation: signaux textuels contradictoires; champ non utilisé automatiquement.")
+        warnings.append("Valorisation 5 ans: signaux textuels contradictoires; champ non utilisé automatiquement.")
         return None, "", warnings
     if true_found:
-        return True, "valuation text pattern", warnings
+        return True, "explicit historical 5-year valuation pattern", warnings
     if false_found:
-        return False, "valuation text pattern", warnings
+        return False, "explicit historical 5-year valuation pattern", warnings
     return None, "", warnings
 
 
@@ -1909,6 +2320,87 @@ def _extract_price_to_fair_value(text: str) -> float | None:
         if value > 0:
             return value
     return None
+
+
+def _extract_semantic_roic_values(text: str) -> dict[str, float]:
+    text = str(text or "")
+    values: dict[str, float] = {}
+    leading_period_patterns = {
+        "roic_5y_avg": [
+            rf"(?:5[- ]year|five[- ]year)\s+(?:average\s+)?(?:adjusted\s+)?ROIC[^\n\r%]{{0,60}}?{REPORT_NUMBER_CAPTURE}\s*%",
+        ],
+        "roic_10y_avg": [
+            rf"(?:10[- ]year|ten[- ]year|trailing[- ]decade)\s+(?:average\s+)?(?:adjusted\s+)?ROIC[^\n\r%]{{0,60}}?{REPORT_NUMBER_CAPTURE}\s*%",
+        ],
+    }
+    occupied_values: set[float] = set()
+    for field in ("roic_5y_avg", "roic_10y_avg"):
+        for pattern in leading_period_patterns[field]:
+            match = re.search(pattern, text, flags=re.IGNORECASE)
+            if not match:
+                continue
+            value = _safe_report_number(match.group(1))
+            if value is None:
+                continue
+            values[field] = value
+            occupied_values.add(value)
+            break
+
+    trailing_period_patterns = {
+        "roic_5y_avg": r"(?:over\s+)?(?:the\s+)?(?:past|trailing)?\s*(?:5|five)[- ]years?",
+        "roic_10y_avg": r"(?:over\s+)?(?:the\s+)?(?:(?:past|trailing)?\s*(?:10|ten)[- ]years?|trailing\s+decade)",
+    }
+    for field in ("roic_5y_avg", "roic_10y_avg"):
+        if field in values:
+            continue
+        for period_match in re.finditer(trailing_period_patterns[field], text, flags=re.IGNORECASE):
+            window_start = max(0, period_match.start() - 300)
+            window = text[window_start : period_match.start()]
+            roic_matches = list(re.finditer(r"\bROIC\b|return\s+on\s+invested\s+capital", window, flags=re.IGNORECASE))
+            if not roic_matches:
+                continue
+            roic_window = window[roic_matches[-1].start() :]
+            percent_matches = list(re.finditer(rf"{REPORT_NUMBER_CAPTURE}\s*%", roic_window))
+            if not percent_matches:
+                continue
+            value = _safe_report_number(percent_matches[-1].group(1))
+            if value is None:
+                continue
+            values[field] = value
+            occupied_values.add(value)
+            break
+
+    current_patterns = [
+        rf"(?:current|TTM|LTM|annual)\s+(?:adjusted\s+)?ROIC[^\n\r%]{{0,60}}?{REPORT_NUMBER_CAPTURE}\s*%",
+        rf"\bROIC\s*[:=]?\s*{REPORT_NUMBER_CAPTURE}\s*%",
+    ]
+    for pattern in current_patterns:
+        match = re.search(pattern, text, flags=re.IGNORECASE)
+        if not match:
+            continue
+        value = _safe_report_number(match.group(1))
+        if value is None or value in occupied_values:
+            continue
+        values["roic_current"] = value
+        break
+    return values
+
+
+def _research_sentences(text: str) -> list[str]:
+    return [part.strip() for part in re.split(r"(?<=[.!?;])\s+|[\n\r]+", str(text or "")) if part.strip()]
+
+
+def _semantic_match_is_reversed(sentence: str, start: int, end: int) -> bool:
+    context = sentence[max(0, start - 60) : min(len(sentence), end + 100)].lower()
+    return bool(
+        re.search(
+            r"\b(?:no|not|without|never|declin(?:e|ed|ing)|decreas(?:e|ed|ing)|reduc(?:e|ed|ing)|"
+            r"reced(?:e|ed|ing)|mitigat(?:e|ed|ing)|limited|low|manageable|improv(?:e|ed|ing)|"
+            r"aucun|sans|diminu(?:e|é|ée)|réduit|faible|maîtrisé)\b",
+            context,
+            flags=re.IGNORECASE,
+        )
+    )
 
 
 def _has_any_pattern(text: str, patterns: list[str]) -> bool:
@@ -2025,14 +2517,30 @@ COMPANY_LEVEL_FALSE_MOAT_PATTERNS = [
     r"\b(?:no moat|no economic moat)\s+rating\s+(?:to|for)\s+(?:the\s+)?(?:overall firm|company|firm)\b",
     r"\b(?:company|firm)\s+(?:has|merits|receives|is assigned)[^\n\r.]{0,140}\b(?:no moat|no economic moat)\b",
 ]
-TRUE_VALUATION_PATTERNS = [r"\bundervalued\b", r"below (?:our )?fair value", r"sous (?:sa |notre )?juste valeur", r"fairly valued"]
-FALSE_VALUATION_PATTERNS = [r"\bovervalued\b", r"above (?:our )?fair value", r"au-dessus de (?:sa |notre )?juste valeur"]
+TRUE_HISTORICAL_5Y_VALUATION_PATTERNS = [
+    r"(?:current\s+)?valuation[^.\n]{0,100}\b(?:below|at|near|no more than\s+\d+(?:\.\d+)?%?\s+above)\b[^.\n]{0,100}\b(?:historical\s+)?(?:5[- ]year|five[- ]year)\s+average\b",
+    r"(?:P/E|price/earnings|EV/EBITDA|valuation multiple)[^.\n]{0,100}\b(?:below|at|near)\b[^.\n]{0,100}\b(?:5[- ]year|five[- ]year)\s+average\b",
+]
+FALSE_HISTORICAL_5Y_VALUATION_PATTERNS = [
+    r"(?:current\s+)?valuation[^.\n]{0,100}\b(?:materially|significantly|well)?\s*above\b[^.\n]{0,100}\b(?:historical\s+)?(?:5[- ]year|five[- ]year)\s+average\b",
+    r"(?:P/E|price/earnings|EV/EBITDA|valuation multiple)[^.\n]{0,100}\b(?:materially|significantly|well)?\s*above\b[^.\n]{0,100}\b(?:5[- ]year|five[- ]year)\s+average\b",
+]
 TRUE_MARGIN_PRESSURE_PATTERNS = [r"margin pressure", r"margins? under pressure", r"pression sur les marges", r"rentabilit[eé] sous pression"]
 FALSE_MARGIN_PRESSURE_PATTERNS = [r"stable margins?", r"margins? stable", r"marges? stables?", r"margin expansion", r"marges? en expansion"]
 TRUE_BALANCE_PATTERNS = [r"strong balance sheet", r"sound balance sheet", r"bilan solide", r"low debt", r"faible endettement"]
 FALSE_BALANCE_PATTERNS = [r"weak balance sheet", r"bilan faible", r"high debt", r"endettement [eé]lev[eé]"]
 TRUE_MANAGEMENT_PATTERNS = [r"exemplary capital allocation", r"standard capital allocation", r"management quality", r"bonne qualit[eé] de gestion"]
 FALSE_MANAGEMENT_PATTERNS = [r"poor capital allocation", r"poor management", r"mauvaise gestion"]
-TRUE_REGULATORY_PATTERNS = [r"regulatory risk", r"risque r[eé]glementaire"]
-TRUE_GEOPOLITICAL_PATTERNS = [r"geopolitical risk", r"risque g[eé]opolitique"]
-TRUE_SINGLE_PRODUCT_PATTERNS = [r"single product", r"product concentration", r"d[eé]pendance.*produit"]
+TRUE_REGULATORY_PATTERNS = [
+    r"\b(?:high|elevated|significant|material|severe)\s+regulatory\s+risk\b",
+    r"\b(?:risque\s+r[eé]glementaire|exposition\s+r[eé]glementaire)\s+(?:[eé]lev[eé]e|importante|majeure)\b",
+]
+TRUE_GEOPOLITICAL_PATTERNS = [
+    r"\b(?:high|elevated|significant|material|severe)\s+geopolitical\s+risk\b",
+    r"\brisque\s+g[eé]opolitique\s+(?:[eé]lev[eé]|important|majeur)\b",
+]
+TRUE_SINGLE_PRODUCT_PATTERNS = [
+    r"\b(?:high|heavy|significant|material)\s+(?:single[- ]product\s+dependency|product\s+concentration)\b",
+    r"\bdepends?\s+(?:heavily|materially)\s+on\s+(?:a\s+)?single\s+product\b",
+    r"\bd[eé]pendance\s+(?:forte|importante|majeure)\s+[^.\n]{0,40}\bproduit\b",
+]

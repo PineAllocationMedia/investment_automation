@@ -2495,3 +2495,42 @@ uses stable fixtures when operational ignored inputs are unavailable.
 # 🧠 Rule
 
 No major change can be applied to the system without being documented here.
+
+## 2026-08-23 - Research-report semantic integrity
+
+### Problem
+Research-report extraction could promote semantically different or LOW-confidence
+analyst observations into canonical confirmed model inputs. In particular, broker
+12-month targets could become intrinsic `fair_value`, Morningstar Price/FVE could
+become a historical five-year valuation signal, non-five-year ROIC could become
+`roic_5y_avg`, and keyword presence could create qualitative false positives.
+
+### Corrections
+- Research fields now retain an auditable extracted/applied/advisory lifecycle.
+- LOW-confidence fields remain visible but cannot replace automatic/proxy values,
+  remove proxy corrections, or count as confirmed reliability evidence.
+- MEDIUM fields apply only without higher-authority official evidence; HIGH remains
+  research provenance and follows the same source hierarchy.
+- Intrinsic fair value is separated from informational `broker_target_price_12m`.
+- Report Price/FVE is retained as informational evidence and no longer populates
+  `valuation_vs_5y_avg_ok`, removing that C9/C10 semantic double count.
+- Only explicit five-year-average ROIC populates `roic_5y_avg`; current/TTM and
+  trailing-decade observations remain informational.
+- Qualitative risk extraction requires explicit high-risk semantics and ignores
+  obvious reversal/negation contexts.
+- OCR and poor-text confidence downgrades now reduce application authority through
+  the existing provenance and reliability interfaces.
+
+### Non-goals and compatibility
+No scoring weight, allocation threshold, portfolio rule, investment factor,
+historical record, workflow, deployment, NLP/ML engine, or operational input was
+changed. The P1 provenance/freshness architecture remains authoritative; research
+feeds its canonical `research_report_fields`, field provenance, source-conflict,
+and `data_reliability` interfaces. There is no parsed-research cache, so no cache
+schema migration or destructive cleanup is required; future runs parse reports
+with the corrected semantics.
+
+Because corrected canonical inputs can change valid scores and recommendations,
+`MODEL_RULES_VERSION` advances from
+`2026-08-23-provenance-freshness-confirmation-v3` to
+`2026-08-23-research-semantic-integrity-v4`.
