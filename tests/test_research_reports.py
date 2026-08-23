@@ -4,6 +4,7 @@ from tempfile import TemporaryDirectory
 from unittest.mock import patch
 
 from src.data_reliability_engine import compute_data_reliability
+from src.evidence_provenance import field_is_confirmed
 from src.research_reports import (
     FAIR_VALUE_PATTERNS,
     _safe_report_number,
@@ -24,7 +25,9 @@ from src.research_reports import (
     research_status_rows,
     write_research_needed_csv,
 )
+from src.scoring import compute_fundamental_score
 from src.utils import write_csv_records
+from tests.helpers import strong_benchmark, strong_market
 
 
 class ResearchReportsTest(unittest.TestCase):
@@ -182,7 +185,7 @@ class ResearchReportsTest(unittest.TestCase):
 
         self.assertEqual(extract_nbccm_forward_pe_estimate(text), 15.2)
 
-    def test_nbf_report_extracts_target_pe_and_marks_divergent_definitions(self):
+    def test_nbf_report_separates_target_and_current_roic_from_canonical_fields(self):
         with TemporaryDirectory() as folder:
             path = Path(folder) / "ONLY.TO_2026-05-13_NBF_CompanyReport.txt"
             path.write_text(
@@ -203,16 +206,23 @@ class ResearchReportsTest(unittest.TestCase):
 
             parsed = parse_research_report(path, "ONLY.TO")
 
-        self.assertEqual(parsed["fair_value"], 3400.0)
+        self.assertIsNone(parsed["fair_value"])
+        self.assertEqual(parsed["broker_target_price_12m"], 3400.0)
         self.assertEqual(parsed["forward_pe_manual"], 15.2)
-        self.assertEqual(parsed["roic_5y_avg"], 23.0)
+        self.assertIsNone(parsed["roic_5y_avg"])
+        self.assertEqual(parsed["roic_current"], 23.0)
         self.assertTrue(parsed["balance_sheet_strong"])
-        self.assertTrue(parsed["regulatory_risk_high"])
-        self.assertEqual(parsed["research_report_field_confidence"]["fair_value"], "LOW")
-        self.assertEqual(parsed["research_report_field_confidence"]["roic_5y_avg"], "LOW")
-        self.assertTrue(
-            any("définition divergente" in warning for warning in parsed.get("research_report_extraction_warnings") or [])
+        self.assertIsNone(parsed["regulatory_risk_high"])
+        self.assertNotIn("fair_value", parsed["research_report_fields"])
+        self.assertNotIn("roic_5y_avg", parsed["research_report_fields"])
+        self.assertIn("broker_target_price_12m", parsed["research_report_advisory_fields"])
+        self.assertIn("roic_current", parsed["research_report_advisory_fields"])
+        self.assertEqual(
+            parsed["research_report_field_files"]["broker_target_price_12m"],
+            "ONLY.TO_2026-05-13_NBF_CompanyReport.txt",
         )
+        self.assertEqual(parsed["research_report_field_source_types"]["broker_target_price_12m"], "NATIONAL_BANK")
+        self.assertEqual(parsed["research_report_field_report_dates"]["broker_target_price_12m"], "2026-05-13")
 
     def test_merge_research_rows_discards_broker_target_when_morningstar_fair_value_exists(self):
         rows = [
@@ -250,31 +260,35 @@ class ResearchReportsTest(unittest.TestCase):
             any("écarté" in warning for warning in merged.get("research_report_extraction_warnings") or [])
         )
 
-    def test_merge_research_rows_keeps_broker_target_only_when_no_morningstar(self):
+    def test_merge_research_rows_keeps_broker_target_advisory_when_no_intrinsic_value(self):
         rows = [
             {
                 "ticker": "ONLY.TO",
-                "fair_value": 3400.0,
-                "research_report_fields": ["fair_value"],
+                "broker_target_price_12m": 3400.0,
+                "research_report_fields": [],
+                "research_report_extracted_fields": ["broker_target_price_12m"],
+                "research_report_advisory_fields": ["broker_target_price_12m"],
                 "research_report_sources": ["ONLY.TO_2026-05-13_NBF_CompanyReport.txt"],
                 "research_report_dates": ["2026-05-13"],
                 "research_report_source_rank": 3,
                 "research_report_source_type": "NATIONAL_BANK",
                 "research_report_field_sources": {
-                    "fair_value": "cours cible 12 mois — courtier, définition divergente"
+                    "broker_target_price_12m": "broker target price 12m pattern"
                 },
-                "research_report_field_confidence": {"fair_value": "LOW"},
+                "research_report_field_confidence": {"broker_target_price_12m": "MEDIUM"},
+                "research_report_field_reasons": {
+                    "broker_target_price_12m": "BROKER_TARGET_NOT_INTRINSIC_FAIR_VALUE"
+                },
             }
         ]
 
         merged = merge_research_rows("ONLY.TO", rows)
 
-        self.assertEqual(merged["fair_value"], 3400.0)
-        self.assertEqual(merged["research_report_field_confidence"]["fair_value"], "LOW")
+        self.assertIsNone(merged["fair_value"])
+        self.assertEqual(merged["broker_target_price_12m"], 3400.0)
+        self.assertEqual(merged["research_report_fields"], [])
+        self.assertIn("broker_target_price_12m", merged["research_report_advisory_fields"])
         self.assertEqual(merged["manual_confidence_level"], "MEDIUM")
-        self.assertTrue(
-            any("dernier recours" in warning for warning in merged.get("research_report_extraction_warnings") or [])
-        )
 
     def test_parse_report_extracts_descriptive_fields_without_confirming_them(self):
         with TemporaryDirectory() as folder:
@@ -442,9 +456,11 @@ class ResearchReportsTest(unittest.TestCase):
             parsed = parse_research_report(path, "META")
 
         self.assertTrue(parsed["moat_clear"])
-        self.assertTrue(parsed["valuation_vs_5y_avg_ok"])
+        self.assertEqual(parsed["price_to_fair_value"], 0.79)
+        self.assertIsNone(parsed["valuation_vs_5y_avg_ok"])
         self.assertIn("moat_clear", parsed["research_report_fields"])
-        self.assertIn("valuation_vs_5y_avg_ok", parsed["research_report_fields"])
+        self.assertNotIn("valuation_vs_5y_avg_ok", parsed["research_report_fields"])
+        self.assertIn("price_to_fair_value", parsed["research_report_advisory_fields"])
         self.assertTrue(parsed["research_report_extraction_warnings"])
 
     def test_structured_morningstar_no_moat_can_flag_false(self):
@@ -455,7 +471,8 @@ class ResearchReportsTest(unittest.TestCase):
             parsed = parse_research_report(path, "XYZ")
 
         self.assertFalse(parsed["moat_clear"])
-        self.assertTrue(parsed["valuation_vs_5y_avg_ok"])
+        self.assertEqual(parsed["price_to_fair_value"], 0.90)
+        self.assertIsNone(parsed["valuation_vs_5y_avg_ok"])
 
     def test_unstructured_conflicting_moat_is_not_used_as_false(self):
         with TemporaryDirectory() as folder:
@@ -471,7 +488,7 @@ class ResearchReportsTest(unittest.TestCase):
         self.assertNotIn("moat_clear", parsed["research_report_fields"])
         self.assertTrue(parsed["research_report_extraction_warnings"])
 
-    def test_price_fve_overrides_generic_valuation_wording(self):
+    def test_price_fve_remains_informational_and_does_not_populate_historical_valuation(self):
         with TemporaryDirectory() as folder:
             path = Path(folder) / "DEF_2026-04-30_BNCD_Morningstar.txt"
             path.write_text(
@@ -481,8 +498,10 @@ class ResearchReportsTest(unittest.TestCase):
 
             parsed = parse_research_report(path, "DEF")
 
-        self.assertTrue(parsed["valuation_vs_5y_avg_ok"])
-        self.assertIn("valuation_vs_5y_avg_ok", parsed["research_report_fields"])
+        self.assertEqual(parsed["price_to_fair_value"], 0.85)
+        self.assertIsNone(parsed["valuation_vs_5y_avg_ok"])
+        self.assertNotIn("valuation_vs_5y_avg_ok", parsed["research_report_fields"])
+        self.assertIn("price_to_fair_value", parsed["research_report_advisory_fields"])
 
     def test_research_report_records_field_level_confidence(self):
         with TemporaryDirectory() as folder:
@@ -496,8 +515,8 @@ class ResearchReportsTest(unittest.TestCase):
 
         confidence = parsed["research_report_field_confidence"]
         self.assertEqual(confidence["moat_clear"], "HIGH")
-        self.assertEqual(confidence["valuation_vs_5y_avg_ok"], "HIGH")
-        self.assertEqual(confidence["regulatory_risk_high"], "LOW")
+        self.assertEqual(confidence["price_to_fair_value"], "HIGH")
+        self.assertNotIn("regulatory_risk_high", confidence)
 
     def test_pdf_text_extraction_uses_pymupdf_when_pypdf_quality_is_low(self):
         with TemporaryDirectory() as folder:
@@ -531,6 +550,29 @@ class ResearchReportsTest(unittest.TestCase):
         self.assertEqual(extraction["ocr_status"], "OCR_NEEDED")
         self.assertTrue(extraction["warnings"])
 
+    def test_ocr_quality_downgrade_keeps_ambiguous_field_advisory(self):
+        extraction = {
+            "text": "Morningstar Equity Research. Fair Value Estimate 3,600.00.",
+            "error": "",
+            "extraction_method": "OCR_TESSERACT",
+            "text_quality_status": "OCR_USED",
+            "text_quality_score": 65.0,
+            "ocr_status": "OCR_USED",
+            "text_characters": 60,
+            "warnings": [],
+            "messages": [],
+        }
+        with TemporaryDirectory() as folder:
+            path = Path(folder) / "OCR_2026-08-01_Morningstar_AnalystReport.pdf"
+            path.write_bytes(b"%PDF placeholder")
+            with patch("src.research_reports.extract_report_text_detailed", return_value=extraction):
+                parsed = parse_research_report(path, "OCR")
+
+        self.assertEqual(parsed["fair_value"], 3600.0)
+        self.assertEqual(parsed["research_report_field_confidence"]["fair_value"], "LOW")
+        self.assertNotIn("fair_value", parsed["research_report_fields"])
+        self.assertIn("fair_value", parsed["research_report_advisory_fields"])
+
     def test_research_overrides_automatic_estimates_but_keeps_metadata(self):
         automated = {
             "ticker": "CSU.TO",
@@ -562,6 +604,166 @@ class ResearchReportsTest(unittest.TestCase):
         self.assertEqual(merged["proxy_correction_fields"], ["roic_5y_avg"])
         self.assertEqual(merged["proxy_correction_status"], "ACTIVE")
         self.assertEqual(merged["input_data_mode"], "AUTO_WITH_RESEARCH_REPORT")
+
+    def test_low_confidence_research_is_retained_for_audit_without_replacing_proxy(self):
+        automated = {
+            "ticker": "LOW.TO",
+            "fair_value": 4000.0,
+            "auto_estimated_fields": ["fair_value"],
+            "input_data_mode": "AUTO_ESTIMATED",
+            "auto_source_quality": "MEDIUM",
+            "proxy_corrections_applied": [{"field": "fair_value", "factor": 1.1}],
+            "proxy_correction_fields": ["fair_value"],
+            "proxy_correction_status": "ACTIVE",
+        }
+        research = {
+            "ticker": "LOW.TO",
+            "fair_value": 5200.0,
+            "research_report_fields": ["fair_value"],
+            "research_report_extracted_fields": ["fair_value"],
+            "research_report_field_confidence": {"fair_value": "LOW"},
+            "research_report_sources": ["LOW.TO_2026-08-01_OCR.pdf"],
+            "research_report_dates": ["2026-08-01"],
+        }
+
+        merged = merge_research_with_automated(automated, research)
+        reliability = compute_data_reliability(merged, {"score_missing_data_count": 0})
+
+        self.assertEqual(merged["fair_value"], 4000.0)
+        self.assertEqual(merged["research_report_fields"], [])
+        self.assertIn("fair_value", merged["research_report_extracted_fields"])
+        self.assertIn("fair_value", merged["research_report_advisory_fields"])
+        self.assertIn("fair_value", merged["auto_estimated_fields"])
+        self.assertIn("fair_value", merged["proxy_correction_fields"])
+        self.assertFalse(field_is_confirmed(merged, "fair_value"))
+        self.assertNotIn("fair_value", reliability["confirmed_critical_fields"])
+
+    def test_medium_confidence_applies_without_higher_authority(self):
+        automated = {
+            "ticker": "MED.TO",
+            "fair_value": 4000.0,
+            "auto_estimated_fields": ["fair_value"],
+            "input_data_mode": "AUTO_ESTIMATED",
+        }
+        research = {
+            "fair_value": 5200.0,
+            "research_report_fields": ["fair_value"],
+            "research_report_field_confidence": {"fair_value": "MEDIUM"},
+        }
+
+        merged = merge_research_with_automated(automated, research)
+
+        self.assertEqual(merged["fair_value"], 5200.0)
+        self.assertEqual(merged["research_report_fields"], ["fair_value"])
+        self.assertEqual(merged["field_provenance"]["fair_value"], "RESEARCH_REPORT")
+
+    def test_medium_confidence_does_not_override_official_evidence(self):
+        automated = {
+            "ticker": "MED.TO",
+            "fair_value": 4000.0,
+            "auto_estimated_fields": ["fair_value"],
+            "official_confirmed_manual_fields": ["fair_value"],
+            "input_data_mode": "AUTO_ESTIMATED",
+        }
+        research = {
+            "fair_value": 5200.0,
+            "research_report_fields": ["fair_value"],
+            "research_report_extracted_fields": ["fair_value"],
+            "research_report_field_confidence": {"fair_value": "MEDIUM"},
+        }
+
+        merged = merge_research_with_automated(automated, research)
+
+        self.assertEqual(merged["fair_value"], 4000.0)
+        self.assertEqual(merged["research_report_fields"], [])
+        self.assertIn("fair_value", merged["research_report_advisory_fields"])
+        self.assertEqual(
+            merged["research_report_field_reasons"]["fair_value"],
+            "HIGHER_AUTHORITY_OFFICIAL_EVIDENCE",
+        )
+
+    def test_high_confidence_research_applies_with_research_provenance(self):
+        automated = {
+            "ticker": "HIGH.TO",
+            "moat_clear": None,
+            "auto_estimated_fields": ["moat_clear"],
+            "input_data_mode": "AUTO_ESTIMATED",
+        }
+        research = {
+            "moat_clear": True,
+            "research_report_fields": ["moat_clear"],
+            "research_report_extracted_fields": ["moat_clear"],
+            "research_report_field_confidence": {"moat_clear": "HIGH"},
+        }
+
+        merged = merge_research_with_automated(automated, research)
+
+        self.assertTrue(merged["moat_clear"])
+        self.assertEqual(merged["field_provenance"]["moat_clear"], "RESEARCH_REPORT")
+        self.assertNotIn("moat_clear", merged.get("manual_override_fields", []))
+        self.assertTrue(field_is_confirmed(merged, "moat_clear"))
+
+    def test_roic_periods_do_not_masquerade_as_five_year_average(self):
+        cases = {
+            "average adjusted ROIC of 10.3% over the trailing decade": ("roic_10y_avg", 10.3),
+            "ROIC 23%": ("roic_current", 23.0),
+        }
+        for text, (field, expected) in cases.items():
+            with self.subTest(text=text), TemporaryDirectory() as folder:
+                path = Path(folder) / "ROIC_2026-08-01_NBF_CompanyReport.txt"
+                path.write_text(f"National Bank Financial Markets. {text}", encoding="utf-8")
+                parsed = parse_research_report(path, "ROIC")
+            self.assertIsNone(parsed["roic_5y_avg"])
+            self.assertEqual(parsed[field], expected)
+            self.assertIn(field, parsed["research_report_advisory_fields"])
+
+    def test_explicit_five_year_roic_populates_canonical_field(self):
+        with TemporaryDirectory() as folder:
+            path = Path(folder) / "ROIC_2026-08-01_Morningstar_AnalystReport.txt"
+            path.write_text("Morningstar. Average adjusted ROIC 18.2% over the trailing 5 years.", encoding="utf-8")
+            parsed = parse_research_report(path, "ROIC")
+
+        self.assertEqual(parsed["roic_5y_avg"], 18.2)
+        self.assertIn("roic_5y_avg", parsed["research_report_fields"])
+
+    def test_qualitative_reversal_does_not_create_high_risk_boolean(self):
+        with TemporaryDirectory() as folder:
+            path = Path(folder) / "RISK_2026-08-01_Morningstar_AnalystReport.txt"
+            path.write_text("Morningstar. Regulatory risk has declined materially.", encoding="utf-8")
+            parsed = parse_research_report(path, "RISK")
+
+        self.assertIsNone(parsed["regulatory_risk_high"])
+        self.assertNotIn("regulatory_risk_high", parsed["research_report_extracted_fields"])
+
+    def test_explicit_historical_valuation_is_distinct_from_price_fve(self):
+        with TemporaryDirectory() as folder:
+            path = Path(folder) / "VALUE_2026-08-01_Morningstar_AnalystReport.txt"
+            path.write_text(
+                "Morningstar. Current valuation is below its historical 5-year average. Price/FVE 0.73.",
+                encoding="utf-8",
+            )
+            parsed = parse_research_report(path, "VALUE")
+
+        self.assertTrue(parsed["valuation_vs_5y_avg_ok"])
+        self.assertEqual(parsed["price_to_fair_value"], 0.73)
+        self.assertIn("valuation_vs_5y_avg_ok", parsed["research_report_fields"])
+        self.assertIn("price_to_fair_value", parsed["research_report_advisory_fields"])
+
+    def test_price_fve_only_does_not_double_count_c9_and_c10(self):
+        with TemporaryDirectory() as folder:
+            path = Path(folder) / "VALUE_2026-08-01_Morningstar_AnalystReport.txt"
+            path.write_text(
+                "Morningstar Equity Research. Fair Value Estimate 3,600.00. Price/FVE 0.73.",
+                encoding="utf-8",
+            )
+            parsed = parse_research_report(path, "VALUE")
+        merged = merge_research_with_automated({"ticker": "VALUE", "auto_estimated_fields": []}, parsed)
+        market = strong_market()
+        market["current_price"] = 2700.0
+        score = compute_fundamental_score("VALUE", merged, market, strong_benchmark())
+
+        self.assertIsNone(score["criteria"]["C9"]["points"])
+        self.assertIsNotNone(score["criteria"]["C10"]["points"])
 
     def test_load_research_report_inputs_infers_ticker_from_filename(self):
         with TemporaryDirectory() as folder:
