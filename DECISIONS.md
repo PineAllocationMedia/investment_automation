@@ -2439,6 +2439,59 @@ No intended change to recommendations. The model is slightly easier to maintain,
 
 ---
 
+## 2026-08-23 — Provenance-aware calibration freshness and confirmation
+
+### Problem and root cause
+`sync-manual-inputs` copied proxy-calibration observations into
+`manual_inputs_friendly.txt` without field-level origin metadata. The loader
+therefore added every populated field to `manual_override_fields`; merge logic
+gave those values manual precedence, and thesis/liquidation/durability treated
+them as confirmed. Category A fields, including `balance_sheet_strong`, had no
+expiry, so an old calibration Boolean could become a permanent fundamental fact.
+
+### Risk
+- False fundamental `WEAKENING` from stale calibration evidence.
+- Historical observations silently becoming current manual facts.
+- Stale calibration outranking current automated, research, or official data.
+- Contradictory semantics across thesis, monitoring, and sell-risk engines.
+- Contamination of later validation evidence by incorrect source authority.
+
+### Architectural principle and fix
+`PROXY_CALIBRATION_SYNC` is not `HUMAN_MANUAL`. Generated friendly inputs now
+retain source, source date, generated snapshot values, and field-level origin.
+Human edits remain supported and are preserved through later syncs. Calibration
+freshness is field-specific: valuation/forward fields use 90 days; balance sheet
+and margin pressure 120 days; margin direction 180 days; sector 365 days;
+historical ROIC/EPS 548 days; moat/management 730 days. Stale or undated
+calibration remains visible as context but cannot independently establish
+confirmation or outrank current research/official evidence. Material conflicts
+are surfaced for monitoring/manual review. Genuine manual, qualifying research,
+and current official confirmation remain authoritative.
+
+The one-time upgrade of a legacy generated friendly-input file is fail-closed.
+Before writing either the friendly file or sync log, every populated legacy field
+must be safely reconcilable and equivalent to the current calibration source.
+Any difference or legacy-only/unknown field raises a ticker/field diagnostic and
+leaves both files unchanged; the operator must reconcile it before metadata is
+generated, then reapply any intended human value to the metadata-bearing file.
+
+### Non-goals and history
+No ticker-specific exception, scoring-weight change, allocation-threshold change,
+valuation-rule change, new alpha feature, automatic trading, or broad validation
+redesign. Existing history is preserved; only future classifications use the
+corrected evidence semantics. The behaviorally meaningful correction advances
+`MODEL_RULES_VERSION` to
+`2026-08-23-provenance-freshness-confirmation-v3`.
+
+### Testing
+Focused regression coverage includes explicit human, research, official,
+automatic, fresh/stale calibration, source conflict, real deterioration,
+catastrophic protection, valuation-only, generated-file round-trip, preserved
+user edit, research precedence, and VRT-like cases. Model-wide impact analysis
+uses stable fixtures when operational ignored inputs are unavailable.
+
+---
+
 # 🧠 Rule
 
 No major change can be applied to the system without being documented here.

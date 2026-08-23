@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import Any
 
 from .benchmark_relevance_engine import benchmark_relevance_level
+from .evidence_provenance import field_is_confirmed
 from .manual_inputs import CATASTROPHIC_COLUMNS
 from .utils import safe_float
 
@@ -62,12 +63,8 @@ def compute_thesis_status(
     fundamental_reasons: list[str] = []
     market_watch_reasons: list[str] = []
     valuation_watch_reasons: list[str] = []
-    manual_field_set = _field_set(manual.get("manual_override_fields"))
-    research_field_set = _field_set(manual.get("research_report_fields"))
-    auto_field_set = _field_set(manual.get("auto_estimated_fields"))
-
     def field_confirmed(field: str) -> bool:
-        return _field_confirmed(manual, field, manual_field_set, research_field_set, auto_field_set)
+        return _field_confirmed(manual, field)
 
     if eps_est is not None and eps_est <= 0 and field_confirmed("eps_growth_estimated_3_5y"):
         fundamental_reasons.append("Croissance EPS estimée non positive confirmée.")
@@ -124,6 +121,11 @@ def compute_thesis_status(
         market_watch_reasons.append("Risque géopolitique élevé.")
     if manual.get("single_product_dependency_high") is True:
         market_watch_reasons.append("Dépendance élevée à un seul produit.")
+    if manual.get("fundamental_evidence_conflict") is True:
+        fields = ", ".join(manual.get("fundamental_evidence_conflict_fields") or [])
+        market_watch_reasons.append(
+            f"Conflit de preuves fondamentales à valider manuellement{f' ({fields})' if fields else ''}."
+        )
 
     growth_positive = (eps_est is not None and eps_est > 0) or (eps_hist is not None and eps_hist > 0)
     roic_not_destroyed = manual.get("catastrophic_roic_destroyed") is not True
@@ -230,34 +232,5 @@ def _field_confirmed(
     research_fields: set[str] | None = None,
     auto_fields: set[str] | None = None,
 ) -> bool:
-    manual_fields = manual_fields if manual_fields is not None else _field_set(manual.get("manual_override_fields"))
-    research_fields = research_fields if research_fields is not None else _field_set(manual.get("research_report_fields"))
-    auto_fields = auto_fields if auto_fields is not None else _field_set(manual.get("auto_estimated_fields"))
-    if field in manual_fields:
-        return True
-    if field in research_fields:
-        return _research_field_confidence(manual, field) != "LOW"
-    return field not in auto_fields
-
-
-def _research_field_confidence(manual: dict[str, Any], field: str) -> str:
-    values = manual.get("research_report_field_confidence") or {}
-    if isinstance(values, dict):
-        confidence = str(values.get(field) or "").strip().upper()
-        return confidence or "MEDIUM"
-    text = str(values or "")
-    for part in text.replace(",", ";").split(";"):
-        if ":" not in part:
-            continue
-        key, value = part.split(":", 1)
-        if key.strip() == field:
-            return str(value).strip().upper() or "MEDIUM"
-    return "MEDIUM"
-
-
-def _field_set(value: Any) -> set[str]:
-    if not value:
-        return set()
-    if isinstance(value, str):
-        return {part.strip() for part in value.replace(";", ",").split(",") if part.strip()}
-    return {str(part).strip() for part in value if str(part).strip()}
+    del manual_fields, research_fields, auto_fields
+    return field_is_confirmed(manual, field)

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from typing import Any
 
+from .evidence_provenance import field_is_confirmed
 from .utils import clamp, safe_float
 
 
@@ -252,18 +253,7 @@ def _durability_reasons(analysis: dict[str, Any], status: str, components: dict[
 
 
 def _field_confirmed(analysis: dict[str, Any], field: str) -> bool:
-    manual_fields = _field_set(analysis.get("manual_override_fields"))
-    research_fields = _field_set(analysis.get("research_report_fields"))
-    auto_fields = _field_set(analysis.get("auto_estimated_fields"))
-    return field in manual_fields or field in research_fields or field not in auto_fields
-
-
-def _field_set(value: Any) -> set[str]:
-    if not value:
-        return set()
-    if isinstance(value, str):
-        return {part.strip() for part in value.replace(";", ",").split(",") if part.strip()}
-    return {str(part).strip() for part in value if str(part).strip()}
+    return field_is_confirmed(analysis, field)
 
 
 def _bool_points(value: Any, true_points: float, false_points: float, missing_points: float) -> float:

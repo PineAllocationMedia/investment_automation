@@ -1,9 +1,19 @@
 from __future__ import annotations
 
 import configparser
+import json
+from datetime import date
 from pathlib import Path
 from typing import Any
 
+from .evidence_provenance import (
+    CALIBRATION_CONTEXT_FIELDS,
+    HUMAN_MANUAL,
+    PROXY_CALIBRATION_SYNC,
+    calibration_field_freshness,
+    field_set,
+    values_equivalent,
+)
 from .utils import parse_confidence, read_csv_records, safe_bool, safe_float, write_csv_records, write_text, normalize_ticker
 
 
@@ -113,14 +123,22 @@ def load_manual_inputs(path: str | Path) -> dict[str, dict[str, Any]]:
     return inputs
 
 
-def load_friendly_manual_inputs(path: str | Path) -> dict[str, dict[str, Any]]:
+def load_friendly_manual_inputs(
+    path: str | Path,
+    today: date | None = None,
+) -> dict[str, dict[str, Any]]:
     path = Path(path)
     if not path.exists():
         return {}
+    try:
+        source_text = path.read_text(encoding="utf-8")
+    except OSError:
+        return {}
+    legacy_generated_file = "# Source: data/proxy_calibration.csv" in source_text
     parser = configparser.ConfigParser(interpolation=None)
     parser.optionxform = str
     try:
-        parser.read(path, encoding="utf-8")
+        parser.read_string(source_text)
     except configparser.Error:
         return {}
     inputs: dict[str, dict[str, Any]] = {}
@@ -158,11 +176,73 @@ def load_friendly_manual_inputs(path: str | Path) -> dict[str, dict[str, Any]]:
                     "margin_or_profitability_under_pressure",
                 ]
             )
-        parsed["manual_override_fields"] = sorted(set(provided_fields))
-        parsed["manual_input_present"] = bool(provided_fields)
+        provided_field_set = set(provided_fields)
+        declared_origin = parser.get(section, "input_origin", fallback="").strip().upper()
+        calibration_fields = field_set(parser.get(section, "calibration_synced_fields", fallback=""))
+        if not calibration_fields and (declared_origin == PROXY_CALIBRATION_SYNC or legacy_generated_file):
+            calibration_fields = set(provided_field_set)
+        calibration_fields &= provided_field_set
+
+        explicit_manual_fields = field_set(parser.get(section, "manual_override_fields", fallback=""))
+        snapshot_values = _load_snapshot_values(
+            parser.get(section, "calibration_snapshot_values", fallback="")
+        )
+        changed_generated_fields = {
+            field
+            for field in calibration_fields
+            if field in snapshot_values and not values_equivalent(parsed.get(field), snapshot_values.get(field))
+        }
+        manual_fields = (provided_field_set - calibration_fields) | explicit_manual_fields | changed_generated_fields
+        manual_fields &= provided_field_set
+        calibration_fields -= manual_fields
+
+        source_date = parser.get(section, "calibration_source_date", fallback="").strip()
+        source_name = parser.get(section, "calibration_source", fallback="").strip()
+        freshness_by_field = {
+            field: calibration_field_freshness(field, source_date, today=today)
+            for field in sorted(calibration_fields)
+            if field not in CALIBRATION_CONTEXT_FIELDS
+        }
+        parsed["manual_override_fields"] = sorted(manual_fields)
+        parsed["calibration_synced_fields"] = sorted(calibration_fields)
+        parsed["calibration_current_fields"] = sorted(
+            field for field, metadata in freshness_by_field.items() if metadata["status"] == "CURRENT"
+        )
+        parsed["calibration_stale_fields"] = sorted(
+            field for field, metadata in freshness_by_field.items() if metadata["status"] == "STALE"
+        )
+        parsed["calibration_unknown_date_fields"] = sorted(
+            field for field, metadata in freshness_by_field.items() if metadata["status"] == "UNKNOWN_DATE"
+        )
+        parsed["calibration_field_freshness"] = freshness_by_field
+        parsed["calibration_field_source_dates"] = {
+            field: metadata.get("source_date") for field, metadata in freshness_by_field.items()
+        }
+        parsed["calibration_source"] = source_name
+        parsed["calibration_source_date"] = source_date or None
+        parsed["calibration_snapshot_values"] = {
+            field: snapshot_values.get(field) for field in sorted(calibration_fields) if field in snapshot_values
+        }
+        parsed["field_provenance"] = {
+            **{field: PROXY_CALIBRATION_SYNC for field in sorted(calibration_fields)},
+            **{field: HUMAN_MANUAL for field in sorted(manual_fields)},
+        }
+        parsed["manual_input_present"] = bool(manual_fields)
+        parsed["calibration_input_present"] = bool(calibration_fields)
         if parsed.get("ticker"):
             inputs[parsed["ticker"]] = parsed
     return inputs
+
+
+def _load_snapshot_values(value: str) -> dict[str, Any]:
+    text = str(value or "").strip()
+    if not text:
+        return {}
+    try:
+        loaded = json.loads(text)
+    except (TypeError, ValueError):
+        return {}
+    return loaded if isinstance(loaded, dict) else {}
 
 
 def merge_manual_inputs(
