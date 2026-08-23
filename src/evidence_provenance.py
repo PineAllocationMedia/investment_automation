@@ -35,7 +35,7 @@ CALIBRATION_FIELD_MAX_AGE_DAYS = {
 }
 
 
-def calibration_field_freshness(
+def field_freshness(
     field: str,
     source_date: Any,
     today: date | None = None,
@@ -62,6 +62,14 @@ def calibration_field_freshness(
     }
 
 
+def calibration_field_freshness(
+    field: str,
+    source_date: Any,
+    today: date | None = None,
+) -> dict[str, Any]:
+    return field_freshness(field, source_date, today=today)
+
+
 def field_is_confirmed(payload: dict[str, Any], field: str) -> bool:
     manual_fields = field_set(payload.get("manual_override_fields"))
     research_fields = field_set(payload.get("research_report_fields"))
@@ -74,7 +82,7 @@ def field_is_confirmed(payload: dict[str, Any], field: str) -> bool:
     if field in manual_fields:
         return True
     if field in research_fields:
-        return research_field_confidence(payload, field) != "LOW"
+        return research_field_is_currently_authoritative(payload, field)
     if field in official_fields:
         return True
     if field in calibration_fields or field in auto_fields:
@@ -82,6 +90,52 @@ def field_is_confirmed(payload: dict[str, Any], field: str) -> bool:
     # Preserve the established contract for direct, already-confirmed payloads
     # that predate field-level provenance metadata.
     return True
+
+
+def research_field_is_currently_authoritative(
+    payload: dict[str, Any],
+    field: str,
+    today: date | None = None,
+) -> bool:
+    if research_field_confidence(payload, field) == "LOW":
+        return False
+    freshness = research_field_freshness(payload, field, today=today)
+    # Legacy payloads without any P1B field-date/freshness metadata retain the
+    # established confirmation contract. Newly parsed P1B evidence always has
+    # this metadata and therefore fails closed on stale or unknown dates.
+    return freshness is None or bool(freshness.get("currently_authoritative"))
+
+
+def research_field_freshness(
+    payload: dict[str, Any],
+    field: str,
+    today: date | None = None,
+) -> dict[str, Any] | None:
+    values = payload.get("research_report_field_freshness")
+    if isinstance(values, dict) and field in values and isinstance(values.get(field), dict):
+        metadata = dict(values[field])
+        status = str(metadata.get("status") or "UNKNOWN_DATE").strip().upper()
+        metadata["status"] = status
+        metadata["currently_authoritative"] = status == "CURRENT" and bool(
+            metadata.get("currently_authoritative", True)
+        )
+        return metadata
+
+    field_dates = payload.get("research_report_field_report_dates")
+    has_p1b_date_metadata = bool(payload.get("research_report_freshness_policy_applied")) or (
+        isinstance(field_dates, dict) and field in field_dates
+    )
+    if not has_p1b_date_metadata:
+        return None
+    source_date = field_dates.get(field) if isinstance(field_dates, dict) else None
+    if not source_date:
+        report_dates = payload.get("research_report_dates") or []
+        if isinstance(report_dates, str):
+            report_dates = [part.strip() for part in report_dates.split(",") if part.strip()]
+        parsed_dates = [parse_source_date(value) for value in report_dates]
+        parsed_dates = [value for value in parsed_dates if value is not None]
+        source_date = max(parsed_dates).isoformat() if parsed_dates else None
+    return field_freshness(field, source_date, today=today)
 
 
 def research_field_confidence(payload: dict[str, Any], field: str) -> str:

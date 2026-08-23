@@ -27,6 +27,7 @@
 | 6. Qualitative keyword false positives | CONFIRMED | Global keyword patterns made phrases such as "regulatory risk has declined materially" produce `regulatory_risk_high=True`. |
 | 7. Text/extraction quality propagation | PARTIALLY_CONFIRMED | Text quality already downgraded field confidence and reliability had a global penalty, but LOW fields were still applied, removed proxy status, and counted as reliability evidence. |
 | 8. Preserve working extraction | NOT_CONFIRMED as a defect | Intrinsic fair value, structured moat precedence, grouped-number parsing, descriptive fields, and corruption guards already worked. Regression tests confirm they remain intact. |
+| 9. Research freshness authority | CONFIRMED at external gate #2 | `field_is_confirmed()` treated membership in `research_report_fields` plus non-LOW confidence as sufficient. `merge_research_with_automated()` likewise applied dated research without field-age authority, so stale and unknown-date observations could replace automatic evidence indefinitely. |
 
 ## E. Architecture before
 
@@ -41,6 +42,9 @@
 - LOW fields remain advisory. MEDIUM/HIGH application follows canonical authority and cannot replace official evidence.
 - Applied values remain `RESEARCH_REPORT` provenance and feed the existing reliability/scoring interfaces.
 - Advisory values do not remove automatic fields or proxy corrections and do not count as confirmed reliability evidence.
+- Every newly parsed research observation now receives field-level `CURRENT`, `STALE`, or `UNKNOWN_DATE` metadata from the existing P1 field-persistence policy. Only CURRENT, semantically compatible, adequately confident research can be applied.
+- `field_is_confirmed()` and `compute_data_reliability()` consume the same canonical current-authority rule. No downstream thesis, liquidation, durability, scoring, or allocation engine has a separate research-freshness check.
+- Multi-report selection filters semantic compatibility, confidence, and freshness before applying the existing source hierarchy, so a stale or unknown higher-ranked observation cannot suppress a valid current candidate.
 
 No parallel provenance or reliability system was introduced.
 
@@ -48,6 +52,8 @@ No parallel provenance or reliability system was introduced.
 
 - `src/research_reports.py`: semantic extraction, lifecycle metadata, confidence-aware application, contextual qualitative guards, and field-level audit metadata.
 - `src/data_reliability_engine.py`: legacy-safe exclusion of LOW research fields from confirmed reliability evidence.
+- `src/evidence_provenance.py`: expose the existing P1 field-age calculation as an internal generic helper and require current research authority in canonical confirmation.
+- `src/report_generator.py`: export additive field-level research freshness audit metadata.
 - `src/auto_fundamentals.py`: preserve research evidence entries when calibration evidence is added.
 - `main.py`: export additive research audit/informational fields in analysis rows.
 - `src/model_version.py`: advance the behavioral correctness version.
@@ -72,6 +78,12 @@ No parallel provenance or reliability system was introduced.
 - `_research_sentences`
 - `_semantic_match_is_reversed`
 - `compute_data_reliability`
+- `field_freshness`
+- `research_field_freshness`
+- `research_field_is_currently_authoritative`
+- `_research_row_field_freshness`
+- `_research_freshness_reason`
+- `_set_selected_research_metadata`
 - `_field_evidence_sources`
 - `build_position_analyses` analysis-row assembly
 
@@ -147,6 +159,8 @@ Real report corpus:
 - Price/FVE-to-historical-valuation mappings removed: 34; model-wide C9 inputs changed: 7.
 - Legacy ROIC observations stored as five-year: 5; corrected real five-year observations: 2. Four legacy period/value mismatches were removed, while the AEM.TO five-year value was corrected from 7.5 to 10.0.
 - Qualitative risk detections removed or changed: 18 (`regulatory_risk_high` 11, `geopolitical_risk_high` 6, `single_product_dependency_high` 1).
+- Final freshness inventory: 277 CURRENT, 15 STALE, 0 UNKNOWN_DATE observations (292 total).
+- Freshness-only applied-to-advisory changes: 14 observations across ADI, AEM.TO, BAM.TO, GWO.TO, MG.TO, NTR.TO, and STN.TO. One additional stale observation, STN.TO broker target, was already advisory by semantic policy.
 
 Real same-input model-wide comparison:
 
@@ -162,6 +176,17 @@ Real same-input model-wide comparison:
 - Conviction-score changes: 29.
 - Recommendation, action, thesis, or monitoring changes: 6 tickers.
 - `UNEXPECTED`: 0.
+
+Incremental comparison from prior PR head `ab1b59af378972b5d55cdf1e522bedbbd54c81ae` to the freshness-corrected head used the same isolated 266-row input and cache snapshot:
+
+- Frozen snapshot: identical portfolio, proxy calibration, generated manual input, discovery universe, 77-report corpus, and 995-file operational market cache in both runs; source/copy report manifests and before/after input trees matched.
+- Evaluated rows with any model-value change: 5 (BAM, GWO.TO, MG.TO, NTR.TO, STN.TO).
+- Reliability score/level changes: 0.
+- Score changes: 1.
+- Capital-allocation-score changes: 1.
+- Conviction-score changes: 2.
+- Thesis, recommendation, allocation, sell, or monitoring-action changes: 0.
+- Classification: `EXPECTED_RESEARCH_FRESHNESS_FIX` for every change; `UNEXPECTED=0`.
 
 Run timestamps, fetch-attempt timestamps, and market-data age counters differed only because the two executions occurred sequentially; they were excluded from model-semantic classification. Market payloads and starting cache manifests were identical.
 
@@ -188,6 +213,18 @@ The three-case deterministic comparison above remains as a regression fixture. T
 
 All other changed rows affected score/reliability/conviction or audit metadata without changing recommendation/action. Every changed row was classified only with the allowed P1B labels; none required historical-return optimization.
 
+Freshness-only incremental consequences:
+
+| Ticker | Field(s), report date, age | Authority change | Model consequence |
+|---|---|---|---|
+| BAM | `forward_pe_manual`, 2026-05-17, 98 days, MEDIUM | applied/current-confirmed -> advisory/STALE; automatic field restored | forward P/E 23.9 -> 24.089836; no score, reliability, thesis, or action change |
+| GWO.TO | `forward_pe_manual`, 2026-05-17, 98 days, MEDIUM; `peg_manual`, same date/age/confidence | both applied/current-confirmed -> advisory/STALE; automatic fields restored | forward P/E 12.2 -> 13.965873; PEG 3.0 -> 2.46; score 7.53 -> 8.03; durability 61.1 -> 62.6; no action change |
+| MG.TO | `forward_pe_manual`, 2026-05-17, 98 days, MEDIUM | applied/current-confirmed -> advisory/STALE; automatic field restored | forward P/E 8.1 -> 9.399381; conviction 65 -> 60; no score, reliability, thesis, or action change |
+| NTR.TO | `forward_pe_manual`, 2026-05-17, 98 days, MEDIUM | applied/current-confirmed -> advisory/STALE; automatic field restored | forward P/E 15.3 -> 15.24381; no score, reliability, thesis, or action change |
+| STN.TO | `forward_pe_manual`, 2025-11-14, 282 days, MEDIUM; `margin_or_profitability_under_pressure=False`, same date/age/confidence | both applied/current-confirmed -> advisory/STALE; automatic fields restored | forward P/E 28.3 -> 14.68617; capital-allocation score 73.39 -> 74.29; conviction 67 -> 72; thesis remained INTACT and no recommendation/action changed |
+
+ADI and AEM.TO each had a stale fair-value observation become advisory, while a separate current valid report continued supplying fair value. BAM.TO, GWO.TO, MG.TO, and NTR.TO likewise retained current alternate fair values. These are freshness-aware multi-report selections, not post-selection rejection.
+
 Source-conflict audit:
 
 - 31 research-field observations across 22 tickers were correctly made advisory because higher-authority official/current evidence existed.
@@ -202,6 +239,9 @@ Source-conflict audit:
 - Final complete suite after real-data validation: 734 passed, 0 failed, 0 skipped, 22.275 seconds.
 - Focused research/reliability/source-conflict/scoring/P1 suite: 121 passed.
 - Added tests: 12 total, including the structured multi-currency NBF header and dual-period ROIC regressions.
+- Final gate-#2 complete suite: 742 passed, 0 failed, 0 skipped, 21.979 seconds.
+- Final gate-#2 focused P1B/P1/reliability/scoring/source-conflict/thesis/liquidation suite: 122 passed, 0 failed, 0 skipped, 0.501 seconds.
+- Gate-#2 tests add deterministic coverage for current/stale/unknown research, exact field-age boundaries, durable HIGH evidence, proxy retention, reliability, freshness-aware multi-report selection, provenance, and stale evidence audit reasons. Existing HUMAN_MANUAL, official-current, and calibration tests remain unchanged and passing.
 - `py_compile`: passed.
 - `git diff --check`: passed.
 
@@ -210,7 +250,7 @@ An initial host-Python run lacked declared dependencies and was non-authoritativ
 ## T. Versioning
 
 - Starting `MODEL_RULES_VERSION`: `2026-08-23-provenance-freshness-confirmation-v3`.
-- Ending `MODEL_RULES_VERSION`: `2026-08-23-research-semantic-integrity-v4`.
+- Ending `MODEL_RULES_VERSION`: `2026-08-23-research-freshness-authority-v5`.
 - Changed: yes, because corrected canonical inputs can validly change scores and monitoring/recommendation behavior.
 - Parser/schema/cache version: no separate change. Research reports are parsed directly on each run; no parsed-research cache exists, so no invalidation or destructive cleanup is needed.
 - `VALIDATION_BASELINE_V1`: not declared.
@@ -232,7 +272,7 @@ Nothing was deployed or pulled onto the Chromebook.
 
 - The conservative regex policy can produce false negatives for unusual report wording; missing is preferred to semantically wrong data.
 - The 77-file real corpus contained no naturally poor-text or OCR report, so that pathway remains validated by deterministic tests rather than a real OCR specimen.
-- Field-level metadata is additive and backward compatible, but external consumers that assumed every extracted observation lived in `research_report_fields` should use `research_report_extracted_fields` for audit inventory.
+- Field-level metadata is additive and backward compatible. External consumers should use `research_report_extracted_fields` for audit inventory, `research_report_fields` for currently applied research, and `research_report_field_freshness` for age/authority detail.
 
 ## W. Successor compatibility
 
@@ -246,7 +286,7 @@ Nothing was deployed or pulled onto the Chromebook.
 
 ## X. Confidence
 
-HIGH. All 77 available operational PDFs were inspected, the real complete-universe comparison used identical frozen inputs and market data, every model difference was classified, `UNEXPECTED=0`, source conflicts remained auditable, and the complete 734-test suite passed. The absence of a naturally poor-text/OCR report remains a bounded residual risk covered by deterministic tests.
+HIGH. All 77 available operational PDFs were reinspected under field-specific P1 freshness, the 266-row incremental comparison used identical isolated inputs and cache, all five changed model rows were classified `EXPECTED_RESEARCH_FRESHNESS_FIX`, `UNEXPECTED=0`, and the complete 742-test suite passed. The absence of a naturally poor-text/OCR report remains a bounded residual risk covered by deterministic tests.
 
 ## Y. Merge recommendation
 
@@ -265,13 +305,13 @@ Do not merge or deploy until the external reviewer accepts this real-PDF and mod
 | CORE | APP | `EXPECTED_VALUATION_SEMANTIC_FIX`; `EXPECTED_RESEARCH_CONFIDENCE_FIX` | - | - | - |
 | CORE | ASML | `EXPECTED_VALUATION_SEMANTIC_FIX` | 9.46 -> 8.46 | - | `NO_NEW_ALLOCATION` -> `DO_NOT_ADD` |
 | CORE | AVGO | `EXPECTED_VALUATION_SEMANTIC_FIX`; `EXPECTED_RELIABILITY_FIX` | 9.48 -> 8.48 | 83.0 -> 88.0 | `NO_NEW_ALLOCATION` -> `DO_NOT_ADD` |
-| CORE | BAM | `EXPECTED_VALUATION_SEMANTIC_FIX`; `EXPECTED_ROIC_SEMANTIC_FIX`; `EXPECTED_RESEARCH_CONFIDENCE_FIX`; `EXPECTED_RELIABILITY_FIX` | - | 89.06 -> 94.06 | - |
+| CORE | BAM | `EXPECTED_VALUATION_SEMANTIC_FIX`; `EXPECTED_ROIC_SEMANTIC_FIX`; `EXPECTED_RESEARCH_CONFIDENCE_FIX`; `EXPECTED_RELIABILITY_FIX`; `EXPECTED_RESEARCH_FRESHNESS_FIX` | - | 89.06 -> 94.06 | - |
 | CORE | CBOE | `EXPECTED_VALUATION_SEMANTIC_FIX`; `EXPECTED_RESEARCH_CONFIDENCE_FIX` | - | - | - |
 | WATCHLIST | CSU.TO | `EXPECTED_BROKER_TARGET_SEPARATION`; `EXPECTED_VALUATION_SEMANTIC_FIX`; `EXPECTED_QUALITATIVE_EXTRACTION_FIX` | - | - | - |
 | WATCHLIST | WSP.TO | `EXPECTED_BROKER_TARGET_SEPARATION`; `EXPECTED_ROIC_SEMANTIC_FIX`; `EXPECTED_QUALITATIVE_EXTRACTION_FIX`; `EXPECTED_RELIABILITY_FIX` | 5.33 -> 4.93 | 68.0 -> 66.0 | thesis `INTACT` -> `WEAKENING`; allocation `NO_NEW_ALLOCATION` -> `DO_NOT_ADD`; final `NO_NEW_ALLOCATION` -> `WATCH` |
 | MARKET | ADBE | `EXPECTED_VALUATION_SEMANTIC_FIX`; `EXPECTED_RESEARCH_CONFIDENCE_FIX` | - | - | - |
-| MARKET | ADI | `EXPECTED_VALUATION_SEMANTIC_FIX`; `EXPECTED_RESEARCH_CONFIDENCE_FIX`; `EXPECTED_RELIABILITY_FIX` | - | 88.0 -> 93.0 | - |
-| MARKET | AEM.TO | `EXPECTED_BROKER_TARGET_SEPARATION`; `EXPECTED_VALUATION_SEMANTIC_FIX`; `EXPECTED_ROIC_SEMANTIC_FIX`; `EXPECTED_QUALITATIVE_EXTRACTION_FIX` | 5.85 -> 7.35 | - | - |
+| MARKET | ADI | `EXPECTED_VALUATION_SEMANTIC_FIX`; `EXPECTED_RESEARCH_CONFIDENCE_FIX`; `EXPECTED_RELIABILITY_FIX`; `EXPECTED_RESEARCH_FRESHNESS_FIX` | - | 88.0 -> 93.0 | - |
+| MARKET | AEM.TO | `EXPECTED_BROKER_TARGET_SEPARATION`; `EXPECTED_VALUATION_SEMANTIC_FIX`; `EXPECTED_ROIC_SEMANTIC_FIX`; `EXPECTED_QUALITATIVE_EXTRACTION_FIX`; `EXPECTED_RESEARCH_FRESHNESS_FIX` | 5.85 -> 7.35 | - | - |
 | MARKET | AIR.PA | `EXPECTED_VALUATION_SEMANTIC_FIX`; `EXPECTED_RELIABILITY_FIX` | - | 84.0 -> 95.0 | - |
 | MARKET | ALNY | `EXPECTED_VALUATION_SEMANTIC_FIX`; `EXPECTED_ROIC_SEMANTIC_FIX` | 7.42 -> 7.03 | - | - |
 | MARKET | AMAT | `EXPECTED_VALUATION_SEMANTIC_FIX`; `EXPECTED_QUALITATIVE_EXTRACTION_FIX`; `EXPECTED_RESEARCH_CONFIDENCE_FIX` | - | - | - |
@@ -287,17 +327,17 @@ Do not merge or deploy until the external reviewer accepts this real-PDF and mod
 | MARKET | FTV | `EXPECTED_RESEARCH_CONFIDENCE_FIX` | - | - | - |
 | MARKET | GFL.TO | `EXPECTED_BROKER_TARGET_SEPARATION`; `EXPECTED_QUALITATIVE_EXTRACTION_FIX`; `EXPECTED_RELIABILITY_FIX` | 3.18 -> 2.18 | 91.0 -> 88.0 | - |
 | MARKET | GILD | `EXPECTED_VALUATION_SEMANTIC_FIX`; `EXPECTED_RESEARCH_CONFIDENCE_FIX` | - | - | monitoring `WATCH` -> `MANUAL_REVIEW` |
-| MARKET | GWO.TO | `EXPECTED_BROKER_TARGET_SEPARATION`; `EXPECTED_VALUATION_SEMANTIC_FIX`; `EXPECTED_QUALITATIVE_EXTRACTION_FIX`; `EXPECTED_RELIABILITY_FIX` | 6.53 -> 7.53 | 84.0 -> 95.0 | - |
+| MARKET | GWO.TO | `EXPECTED_BROKER_TARGET_SEPARATION`; `EXPECTED_VALUATION_SEMANTIC_FIX`; `EXPECTED_QUALITATIVE_EXTRACTION_FIX`; `EXPECTED_RELIABILITY_FIX`; `EXPECTED_RESEARCH_FRESHNESS_FIX` | 6.53 -> 8.03 | 84.0 -> 95.0 | - |
 | MARKET | HPS-A.TO | `EXPECTED_BROKER_TARGET_SEPARATION`; `EXPECTED_QUALITATIVE_EXTRACTION_FIX`; `EXPECTED_RELIABILITY_FIX` | - | 91.0 -> 88.0 | - |
 | MARKET | KLAC | `EXPECTED_VALUATION_SEMANTIC_FIX`; `EXPECTED_QUALITATIVE_EXTRACTION_FIX`; `EXPECTED_RESEARCH_CONFIDENCE_FIX`; `EXPECTED_RELIABILITY_FIX` | - | 88.0 -> 93.0 | - |
 | MARKET | MFC.TO | `EXPECTED_BROKER_TARGET_SEPARATION`; `EXPECTED_VALUATION_SEMANTIC_FIX`; `EXPECTED_QUALITATIVE_EXTRACTION_FIX`; `EXPECTED_RELIABILITY_FIX` | - | 84.0 -> 95.0 | - |
-| MARKET | MG.TO | `EXPECTED_VALUATION_SEMANTIC_FIX`; `EXPECTED_RELIABILITY_FIX` | - | 80.0 -> 91.0 | - |
+| MARKET | MG.TO | `EXPECTED_VALUATION_SEMANTIC_FIX`; `EXPECTED_RELIABILITY_FIX`; `EXPECTED_RESEARCH_FRESHNESS_FIX` | - | 80.0 -> 91.0 | - |
 | MARKET | MRK | `EXPECTED_VALUATION_SEMANTIC_FIX`; `EXPECTED_RESEARCH_CONFIDENCE_FIX`; `EXPECTED_RELIABILITY_FIX` | - | 84.31 -> 89.31 | - |
 | MARKET | MU | `EXPECTED_VALUATION_SEMANTIC_FIX`; `EXPECTED_RESEARCH_CONFIDENCE_FIX` | - | - | - |
 | MARKET | NEM | `EXPECTED_VALUATION_SEMANTIC_FIX`; `EXPECTED_ROIC_SEMANTIC_FIX`; `EXPECTED_QUALITATIVE_EXTRACTION_FIX`; `EXPECTED_RESEARCH_CONFIDENCE_FIX`; `EXPECTED_RELIABILITY_FIX` | 6.4 -> 8.0 | 88.0 -> 93.0 | - |
-| MARKET | NTR.TO | `EXPECTED_VALUATION_SEMANTIC_FIX`; `EXPECTED_RELIABILITY_FIX` | - | 84.0 -> 95.0 | - |
+| MARKET | NTR.TO | `EXPECTED_VALUATION_SEMANTIC_FIX`; `EXPECTED_RELIABILITY_FIX`; `EXPECTED_RESEARCH_FRESHNESS_FIX` | - | 84.0 -> 95.0 | - |
 | MARKET | NVDA | `EXPECTED_VALUATION_SEMANTIC_FIX`; `EXPECTED_QUALITATIVE_EXTRACTION_FIX`; `EXPECTED_RESEARCH_CONFIDENCE_FIX`; `EXPECTED_RELIABILITY_FIX` | - | 88.69 -> 93.69 | - |
 | MARKET | PWR | `EXPECTED_VALUATION_SEMANTIC_FIX`; `EXPECTED_RESEARCH_CONFIDENCE_FIX`; `EXPECTED_RELIABILITY_FIX` | 3.08 -> 3.18 | 84.5 -> 89.5 | - |
-| MARKET | STN.TO | `EXPECTED_BROKER_TARGET_SEPARATION`; `EXPECTED_QUALITATIVE_EXTRACTION_FIX`; `EXPECTED_RELIABILITY_FIX` | - | 85.0 -> 82.0 | - |
+| MARKET | STN.TO | `EXPECTED_BROKER_TARGET_SEPARATION`; `EXPECTED_QUALITATIVE_EXTRACTION_FIX`; `EXPECTED_RELIABILITY_FIX`; `EXPECTED_RESEARCH_FRESHNESS_FIX` | - | 85.0 -> 82.0 | - |
 | MARKET | UNH | `EXPECTED_VALUATION_SEMANTIC_FIX`; `EXPECTED_QUALITATIVE_EXTRACTION_FIX`; `EXPECTED_RESEARCH_CONFIDENCE_FIX`; `EXPECTED_RELIABILITY_FIX` | - | 84.0 -> 89.0 | - |
 | DISCOVERY | SCHW | `EXPECTED_VALUATION_SEMANTIC_FIX`; `EXPECTED_RESEARCH_CONFIDENCE_FIX` | - | - | - |

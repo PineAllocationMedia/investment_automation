@@ -1,10 +1,11 @@
 import unittest
+from datetime import date
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from unittest.mock import patch
 
 from src.data_reliability_engine import compute_data_reliability
-from src.evidence_provenance import field_is_confirmed
+from src.evidence_provenance import calibration_field_freshness, field_freshness, field_is_confirmed
 from src.research_reports import (
     FAIR_VALUE_PATTERNS,
     _safe_report_number,
@@ -239,8 +240,8 @@ class ResearchReportsTest(unittest.TestCase):
                 "ticker": "CSU.TO",
                 "fair_value": 3400.0,
                 "research_report_fields": ["fair_value"],
-                "research_report_sources": ["CSU.TO_2026-05-13_NBF_CompanyReport.txt"],
-                "research_report_dates": ["2026-05-13"],
+                "research_report_sources": ["CSU.TO_2026-08-13_NBF_CompanyReport.txt"],
+                "research_report_dates": ["2026-08-13"],
                 "research_report_source_rank": 3,
                 "research_report_source_type": "NATIONAL_BANK",
                 "research_report_field_sources": {
@@ -252,8 +253,8 @@ class ResearchReportsTest(unittest.TestCase):
                 "ticker": "CSU.TO",
                 "fair_value": 3600.0,
                 "research_report_fields": ["fair_value"],
-                "research_report_sources": ["CSU.TO_2026-05-19_Morningstar_AnalystReport.txt"],
-                "research_report_dates": ["2026-05-19"],
+                "research_report_sources": ["CSU.TO_2026-08-19_Morningstar_AnalystReport.txt"],
+                "research_report_dates": ["2026-08-19"],
                 "research_report_source_rank": 1,
                 "research_report_source_type": "MORNINGSTAR_ANALYST",
                 "research_report_field_sources": {"fair_value": "fair value header pattern"},
@@ -434,7 +435,7 @@ class ResearchReportsTest(unittest.TestCase):
 
     def test_parse_text_report_extracts_useful_fields(self):
         with TemporaryDirectory() as folder:
-            path = Path(folder) / "CSU.TO_2026-04-15_BNCD_Morningstar.txt"
+            path = Path(folder) / "CSU.TO_2026-08-15_BNCD_Morningstar.txt"
             path.write_text(
                 "Morningstar fair value estimate CAD 5200. Wide moat. "
                 "Strong balance sheet. EPS growth 13%. Forward P/E 31. PEG 1.8. "
@@ -712,6 +713,169 @@ class ResearchReportsTest(unittest.TestCase):
         self.assertNotIn("moat_clear", merged.get("manual_override_fields", []))
         self.assertTrue(field_is_confirmed(merged, "moat_clear"))
 
+    def test_current_medium_fair_value_applies_with_field_freshness(self):
+        merged = merge_research_with_automated(
+            {"ticker": "FRESH", "fair_value": 100.0, "auto_estimated_fields": ["fair_value"]},
+            {
+                "fair_value": 125.0,
+                "research_report_fields": ["fair_value"],
+                "research_report_extracted_fields": ["fair_value"],
+                "research_report_field_confidence": {"fair_value": "MEDIUM"},
+                "research_report_field_report_dates": {"fair_value": "2026-08-01"},
+            },
+        )
+
+        self.assertEqual(merged["fair_value"], 125.0)
+        self.assertTrue(field_is_confirmed(merged, "fair_value"))
+        self.assertEqual(merged["field_provenance"]["fair_value"], "RESEARCH_REPORT")
+
+    def test_stale_medium_fair_value_is_advisory_and_keeps_proxy(self):
+        merged = merge_research_with_automated(
+            {"ticker": "STALE", "fair_value": 100.0, "auto_estimated_fields": ["fair_value"]},
+            {
+                "fair_value": 125.0,
+                "research_report_fields": ["fair_value"],
+                "research_report_extracted_fields": ["fair_value"],
+                "research_report_field_confidence": {"fair_value": "MEDIUM"},
+                "research_report_field_report_dates": {"fair_value": "2026-04-01"},
+            },
+        )
+
+        self.assertEqual(merged["fair_value"], 100.0)
+        self.assertIn("fair_value", merged["auto_estimated_fields"])
+        self.assertNotIn("fair_value", merged["research_report_fields"])
+        self.assertEqual(merged["research_report_field_reasons"]["fair_value"], "STALE_RESEARCH_EVIDENCE")
+        self.assertFalse(field_is_confirmed(merged, "fair_value"))
+
+    def test_unknown_date_medium_research_is_advisory(self):
+        merged = merge_research_with_automated(
+            {"ticker": "UNKNOWN", "fair_value": 100.0, "auto_estimated_fields": ["fair_value"]},
+            {
+                "fair_value": 125.0,
+                "research_report_fields": ["fair_value"],
+                "research_report_extracted_fields": ["fair_value"],
+                "research_report_field_confidence": {"fair_value": "MEDIUM"},
+                "research_report_field_report_dates": {},
+                "research_report_freshness_policy_applied": True,
+            },
+        )
+
+        self.assertEqual(merged["fair_value"], 100.0)
+        self.assertEqual(merged["research_report_field_reasons"]["fair_value"], "UNKNOWN_REPORT_DATE")
+        self.assertEqual(merged["research_report_field_freshness"]["fair_value"]["status"], "UNKNOWN_DATE")
+        self.assertFalse(merged["field_evidence_sources"]["fair_value"][-1]["currently_authoritative"])
+
+    def test_newly_parsed_unknown_date_research_fails_closed(self):
+        with TemporaryDirectory() as folder:
+            path = Path(folder) / "UNKNOWN_Morningstar_AnalystReport.txt"
+            path.write_text("Morningstar fair value estimate USD 125.", encoding="utf-8")
+            parsed = parse_research_report(path, "UNKNOWN")
+
+        self.assertIn("fair_value", parsed["research_report_extracted_fields"])
+        self.assertNotIn("fair_value", parsed["research_report_fields"])
+        self.assertIn("fair_value", parsed["research_report_advisory_fields"])
+        self.assertEqual(parsed["research_report_field_freshness"]["fair_value"]["status"], "UNKNOWN_DATE")
+        self.assertEqual(parsed["research_report_field_reasons"]["fair_value"], "UNKNOWN_REPORT_DATE")
+
+    def test_current_high_moat_is_confirmed_but_stale_high_moat_is_not(self):
+        base = {"ticker": "MOAT", "moat_clear": False, "auto_estimated_fields": ["moat_clear"]}
+        current = merge_research_with_automated(
+            base,
+            {
+                "moat_clear": True,
+                "research_report_fields": ["moat_clear"],
+                "research_report_extracted_fields": ["moat_clear"],
+                "research_report_field_confidence": {"moat_clear": "HIGH"},
+                "research_report_field_report_dates": {"moat_clear": "2026-08-01"},
+            },
+        )
+        stale = merge_research_with_automated(
+            base,
+            {
+                "moat_clear": True,
+                "research_report_fields": ["moat_clear"],
+                "research_report_extracted_fields": ["moat_clear"],
+                "research_report_field_confidence": {"moat_clear": "HIGH"},
+                "research_report_field_report_dates": {"moat_clear": "2024-01-01"},
+            },
+        )
+
+        self.assertTrue(field_is_confirmed(current, "moat_clear"))
+        self.assertEqual(current["field_provenance"]["moat_clear"], "RESEARCH_REPORT")
+        self.assertFalse(stale["moat_clear"])
+        self.assertFalse(field_is_confirmed(stale, "moat_clear"))
+        evidence = stale["field_evidence_sources"]["moat_clear"][-1]
+        self.assertEqual(evidence["freshness"], "STALE")
+        self.assertFalse(evidence["currently_authoritative"])
+        self.assertEqual(evidence["reason"], "STALE_RESEARCH_EVIDENCE")
+
+    def test_stale_research_does_not_increase_confirmed_critical_reliability(self):
+        merged = merge_research_with_automated(
+            {
+                "ticker": "RELIABILITY",
+                "fair_value": 100.0,
+                "auto_estimated_fields": ["fair_value"],
+                "auto_source_quality": "MEDIUM",
+                "input_data_mode": "AUTO_ESTIMATED",
+            },
+            {
+                "fair_value": 125.0,
+                "research_report_fields": ["fair_value"],
+                "research_report_extracted_fields": ["fair_value"],
+                "research_report_field_confidence": {"fair_value": "MEDIUM"},
+                "research_report_field_report_dates": {"fair_value": "2026-04-01"},
+            },
+        )
+
+        reliability = compute_data_reliability(merged, {"score_missing_data_count": 0})
+        self.assertNotIn("fair_value", reliability["confirmed_critical_fields"])
+        self.assertIn("fair_value", reliability["auto_critical_fields"])
+
+    def test_multi_report_selection_prefers_current_valid_over_stale_higher_rank(self):
+        merged = merge_research_rows(
+            "MULTI",
+            [
+                {
+                    "fair_value": 200.0,
+                    "research_report_fields": ["fair_value"],
+                    "research_report_extracted_fields": ["fair_value"],
+                    "research_report_sources": ["MULTI_2025-01-01_Morningstar_AnalystReport.pdf"],
+                    "research_report_dates": ["2025-01-01"],
+                    "research_report_source_rank": 1,
+                    "research_report_field_confidence": {"fair_value": "HIGH"},
+                },
+                {
+                    "fair_value": 150.0,
+                    "research_report_fields": ["fair_value"],
+                    "research_report_extracted_fields": ["fair_value"],
+                    "research_report_sources": ["MULTI_2026-08-01_Morningstar_TearSheet.pdf"],
+                    "research_report_dates": ["2026-08-01"],
+                    "research_report_source_rank": 2,
+                    "research_report_field_confidence": {"fair_value": "MEDIUM"},
+                },
+            ],
+        )
+
+        self.assertEqual(merged["fair_value"], 150.0)
+        self.assertEqual(merged["research_report_field_report_dates"]["fair_value"], "2026-08-01")
+        observations = merged["field_evidence_sources"]["fair_value"]
+        self.assertEqual(len(observations), 2)
+        self.assertTrue(any(item["freshness"] == "STALE" and not item["currently_authoritative"] for item in observations))
+
+    def test_research_freshness_exact_boundary_reuses_calibration_policy(self):
+        today = date(2026, 8, 23)
+        at_boundary = field_freshness("fair_value", "2026-05-25", today=today)
+        past_boundary = field_freshness("fair_value", "2026-05-24", today=today)
+
+        self.assertEqual(at_boundary["age_days"], 90)
+        self.assertEqual(at_boundary["status"], "CURRENT")
+        self.assertEqual(past_boundary["age_days"], 91)
+        self.assertEqual(past_boundary["status"], "STALE")
+        self.assertEqual(
+            calibration_field_freshness("fair_value", "2026-05-25", today=today),
+            at_boundary,
+        )
+
     def test_roic_periods_do_not_masquerade_as_five_year_average(self):
         cases = {
             "average adjusted ROIC of 10.3% over the trailing decade": ("roic_10y_avg", 10.3),
@@ -795,7 +959,7 @@ class ResearchReportsTest(unittest.TestCase):
             report_dir.mkdir()
             index_path = Path(folder) / "research_index.csv"
             write_csv_records(index_path, [], ["ticker", "provider", "report_date", "file_name", "notes"])
-            (report_dir / "WSP.TO_2026-04-15_BNCD_Morningstar.txt").write_text(
+            (report_dir / "WSP.TO_2026-08-15_BNCD_Morningstar.txt").write_text(
                 "Fair value 300. Narrow moat. Sound balance sheet.",
                 encoding="utf-8",
             )
@@ -804,7 +968,7 @@ class ResearchReportsTest(unittest.TestCase):
 
         self.assertIn("WSP.TO", loaded)
         self.assertEqual(loaded["WSP.TO"]["fair_value"], 300)
-        self.assertIn("WSP.TO_2026-04-15_BNCD_Morningstar.txt", loaded["WSP.TO"]["research_report_sources"])
+        self.assertIn("WSP.TO_2026-08-15_BNCD_Morningstar.txt", loaded["WSP.TO"]["research_report_sources"])
 
     def test_ticker_inference_does_not_match_short_ticker_inside_words(self):
         with TemporaryDirectory() as folder:

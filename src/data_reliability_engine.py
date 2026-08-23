@@ -3,7 +3,7 @@ from __future__ import annotations
 from datetime import date, datetime
 from typing import Any
 
-from .evidence_provenance import research_field_confidence
+from .evidence_provenance import field_is_confirmed
 from .source_conflict_engine import summarize_conflict_profile
 from .utils import clamp
 
@@ -47,7 +47,7 @@ def compute_data_reliability(manual: dict[str, Any], score: dict[str, Any]) -> d
     research_fields = {
         field
         for field in _field_set(manual.get("research_report_fields"))
-        if research_field_confidence(manual, field) != "LOW"
+        if field_is_confirmed(manual, field)
     }
     official_supported_fields = _field_set(manual.get("official_supported_manual_fields"))
     official_confirmed_fields = _field_set(manual.get("official_confirmed_manual_fields"))

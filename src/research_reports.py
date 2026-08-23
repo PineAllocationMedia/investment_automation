@@ -7,6 +7,7 @@ from typing import Any
 
 from .add_eligibility_engine import ADD_ALLOWED_STATUSES
 from .asset_type_engine import is_etf_asset, is_etf_asset_analysis
+from .evidence_provenance import field_freshness, research_field_freshness
 from .manual_inputs import BOOL_COLUMNS, MANUAL_COLUMNS, NUMERIC_COLUMNS, empty_manual_row, parse_manual_row
 from .utils import (
     BNCD_MORNINGSTAR_DIR,
@@ -309,6 +310,31 @@ def parse_research_report(path: str | Path, ticker: str, index_row: dict[str, An
     parsed["research_report_field_report_dates"] = {
         field: report_date for field in sorted(set(extracted_fields)) if report_date
     }
+    freshness_by_field = {
+        field: field_freshness(field, report_date)
+        for field in sorted(set(extracted_fields))
+    }
+    for field in list(applied_candidate_fields):
+        freshness = freshness_by_field[field]
+        if freshness["currently_authoritative"]:
+            continue
+        applied_candidate_fields.remove(field)
+        advisory_fields.append(field)
+        field_status[field] = "ADVISORY"
+        field_reasons[field] = _research_freshness_reason(freshness)
+    parsed["research_report_fields"] = sorted(set(applied_candidate_fields))
+    parsed["research_report_advisory_fields"] = sorted(set(advisory_fields))
+    parsed["research_report_field_freshness"] = freshness_by_field
+    parsed["research_report_freshness_policy_applied"] = True
+    parsed["research_report_current_fields"] = sorted(
+        field for field, metadata in freshness_by_field.items() if metadata["status"] == "CURRENT"
+    )
+    parsed["research_report_stale_fields"] = sorted(
+        field for field, metadata in freshness_by_field.items() if metadata["status"] == "STALE"
+    )
+    parsed["research_report_unknown_date_fields"] = sorted(
+        field for field, metadata in freshness_by_field.items() if metadata["status"] == "UNKNOWN_DATE"
+    )
     parsed["research_report_field_confidence"] = field_confidence
     parsed["research_report_field_status"] = field_status
     parsed["research_report_field_reasons"] = field_reasons
@@ -344,6 +370,8 @@ def merge_research_rows(ticker: str, rows: list[dict[str, Any]]) -> dict[str, An
     field_confidence: dict[str, str] = {}
     field_status: dict[str, str] = {}
     field_reasons: dict[str, str] = {}
+    field_freshness_by_field: dict[str, dict[str, Any]] = {}
+    evidence_sources: dict[str, list[dict[str, Any]]] = {}
     text_quality_statuses: list[str] = []
     extraction_methods: list[str] = []
     ocr_statuses: list[str] = []
@@ -354,6 +382,14 @@ def merge_research_rows(ticker: str, rows: list[dict[str, Any]]) -> dict[str, An
         row_fields = set(row.get("research_report_fields") or [])
         row_extracted_fields = set(row.get("research_report_extracted_fields") or row_fields)
         row_advisory_fields = set(row.get("research_report_advisory_fields") or [])
+        row_authoritative_fields: set[str] = set()
+        for field in row_fields:
+            freshness = _research_row_field_freshness(row, field)
+            confidence = str((row.get("research_report_field_confidence") or {}).get(field) or "MEDIUM").upper()
+            if confidence != "LOW" and (freshness is None or freshness.get("currently_authoritative")):
+                row_authoritative_fields.add(field)
+            else:
+                row_advisory_fields.add(field)
         extracted_fields.extend(row_extracted_fields)
         advisory_fields.extend(row_advisory_fields)
         first_source = _first_research_source(row)
@@ -365,6 +401,29 @@ def merge_research_rows(ticker: str, rows: list[dict[str, Any]]) -> dict[str, An
             field_provider = str((row.get("research_report_field_providers") or {}).get(field) or provider)
             field_source_type = str((row.get("research_report_field_source_types") or {}).get(field) or source_type)
             field_report_date = str((row.get("research_report_field_report_dates") or {}).get(field) or latest_date)
+            freshness = _research_row_field_freshness(row, field)
+            reason = str((row.get("research_report_field_reasons") or {}).get(field) or "")
+            if freshness and not freshness.get("currently_authoritative"):
+                reason = _research_freshness_reason(freshness)
+                field_reasons.setdefault(field, reason)
+            if freshness:
+                field_freshness_by_field.setdefault(field, freshness)
+            evidence_sources.setdefault(field, []).append(
+                {
+                    "provenance": "RESEARCH_REPORT",
+                    "value": row.get(field),
+                    "source": file_name,
+                    "provider": field_provider or None,
+                    "source_date": field_report_date or None,
+                    "confidence": str((row.get("research_report_field_confidence") or {}).get(field) or "MEDIUM").upper(),
+                    "freshness": freshness.get("status") if freshness else None,
+                    "age_days": freshness.get("age_days") if freshness else None,
+                    "max_age_days": freshness.get("max_age_days") if freshness else None,
+                    "currently_authoritative": field in row_authoritative_fields,
+                    "status": "CANDIDATE" if field in row_authoritative_fields else "ADVISORY",
+                    "reason": reason or None,
+                }
+            )
             if file_name:
                 field_files.setdefault(field, file_name)
             if field_provider:
@@ -373,7 +432,7 @@ def merge_research_rows(ticker: str, rows: list[dict[str, Any]]) -> dict[str, An
                 field_source_types.setdefault(field, field_source_type)
             if field_report_date:
                 field_report_dates.setdefault(field, field_report_date)
-        for field in row_fields:
+        for field in row_authoritative_fields:
             if field in PRIORITY_RESEARCH_FIELDS:
                 continue
             value = row.get(field)
@@ -386,14 +445,21 @@ def merge_research_rows(ticker: str, rows: list[dict[str, Any]]) -> dict[str, An
                 confidence = (row.get("research_report_field_confidence") or {}).get(field)
                 if confidence:
                     field_confidence[field] = str(confidence)
-        for field in sorted(row_extracted_fields - row_fields):
+                _set_selected_research_metadata(
+                    field,
+                    row,
+                    field_files,
+                    field_providers,
+                    field_source_types,
+                    field_report_dates,
+                    field_freshness_by_field,
+                )
+        for field in sorted(row_extracted_fields - row_authoritative_fields):
             value = row.get(field)
             if value is None or value == "":
                 continue
             if field in INFORMATIONAL_RESEARCH_FIELDS:
                 informational_values.setdefault(field, value)
-            elif field in MANUAL_COLUMNS and merged.get(field) in {None, ""}:
-                merged[field] = value
             source = (row.get("research_report_field_sources") or {}).get(field)
             confidence = (row.get("research_report_field_confidence") or {}).get(field)
             if source and field not in field_sources:
@@ -437,6 +503,9 @@ def merge_research_rows(ticker: str, rows: list[dict[str, Any]]) -> dict[str, An
             field_sources[field] = source
         if confidence:
             field_confidence[field] = confidence
+        selected_freshness = selected.get("freshness")
+        if isinstance(selected_freshness, dict):
+            field_freshness_by_field[field] = dict(selected_freshness)
         for target, key in (
             (field_files, "file"),
             (field_providers, "provider"),
@@ -470,6 +539,17 @@ def merge_research_rows(ticker: str, rows: list[dict[str, Any]]) -> dict[str, An
     parsed["research_report_field_providers"] = field_providers
     parsed["research_report_field_source_types"] = field_source_types
     parsed["research_report_field_report_dates"] = field_report_dates
+    parsed["research_report_field_freshness"] = field_freshness_by_field
+    parsed["research_report_freshness_policy_applied"] = True
+    parsed["research_report_current_fields"] = sorted(
+        field for field, metadata in field_freshness_by_field.items() if metadata.get("status") == "CURRENT"
+    )
+    parsed["research_report_stale_fields"] = sorted(
+        field for field, metadata in field_freshness_by_field.items() if metadata.get("status") == "STALE"
+    )
+    parsed["research_report_unknown_date_fields"] = sorted(
+        field for field, metadata in field_freshness_by_field.items() if metadata.get("status") == "UNKNOWN_DATE"
+    )
     parsed["research_report_field_confidence"] = field_confidence
     parsed["research_report_field_status"] = {
         field: ("EXTRACTED" if field in set(fields) else field_status.get(field, "ADVISORY"))
@@ -484,6 +564,21 @@ def merge_research_rows(ticker: str, rows: list[dict[str, Any]]) -> dict[str, An
     parsed["research_report_ocr_status"] = _worst_ocr_status(ocr_statuses)
     parsed["research_report_text_characters"] = int(max(text_characters)) if text_characters else None
     parsed["research_report_extraction_messages"] = sorted(set(extraction_messages))
+    selected_fields = set(fields)
+    for field, observations in evidence_sources.items():
+        selected_file = field_files.get(field)
+        selected_date = field_report_dates.get(field)
+        for observation in observations:
+            is_selected = (
+                field in selected_fields
+                and (not selected_file or observation.get("source") == selected_file)
+                and (not selected_date or observation.get("source_date") == selected_date)
+            )
+            observation["currently_authoritative"] = is_selected
+            observation["status"] = "SELECTED" if is_selected else "ADVISORY"
+            if not is_selected and not observation.get("reason"):
+                observation["reason"] = "LOWER_PRIORITY_RESEARCH_OBSERVATION"
+    parsed["field_evidence_sources"] = evidence_sources
     descriptive, descriptive_warnings = _merge_descriptive_research_fields(rows)
     parsed.update(descriptive)
     if descriptive_warnings:
@@ -505,6 +600,11 @@ def merge_research_with_automated(
     extracted_fields = set(research.get("research_report_extracted_fields") or fields)
     advisory_fields = set(research.get("research_report_advisory_fields") or [])
     confidence_by_field = research.get("research_report_field_confidence") or {}
+    freshness_by_field = {
+        field: metadata
+        for field in sorted(extracted_fields)
+        if (metadata := research_field_freshness(research, field)) is not None
+    }
     official_fields = set(merged.get("official_supported_manual_fields") or []) | set(
         merged.get("official_confirmed_manual_fields") or []
     )
@@ -518,6 +618,11 @@ def merge_research_with_automated(
         if confidence == "LOW":
             advisory_fields.add(field)
             application_reasons[field] = "LOW_CONFIDENCE"
+            continue
+        freshness = freshness_by_field.get(field)
+        if freshness is not None and not freshness.get("currently_authoritative"):
+            advisory_fields.add(field)
+            application_reasons[field] = _research_freshness_reason(freshness)
             continue
         if field in official_fields:
             advisory_fields.add(field)
@@ -547,6 +652,21 @@ def merge_research_with_automated(
     merged["research_report_field_providers"] = research.get("research_report_field_providers", {})
     merged["research_report_field_source_types"] = research.get("research_report_field_source_types", {})
     merged["research_report_field_report_dates"] = research.get("research_report_field_report_dates", {})
+    merged["research_report_field_freshness"] = freshness_by_field
+    merged["research_report_freshness_policy_applied"] = bool(
+        research.get("research_report_freshness_policy_applied")
+        or research.get("research_report_field_freshness")
+        or research.get("research_report_field_report_dates")
+    )
+    merged["research_report_current_fields"] = sorted(
+        field for field, metadata in freshness_by_field.items() if metadata.get("status") == "CURRENT"
+    )
+    merged["research_report_stale_fields"] = sorted(
+        field for field, metadata in freshness_by_field.items() if metadata.get("status") == "STALE"
+    )
+    merged["research_report_unknown_date_fields"] = sorted(
+        field for field, metadata in freshness_by_field.items() if metadata.get("status") == "UNKNOWN_DATE"
+    )
     merged["research_report_field_confidence"] = research.get("research_report_field_confidence", {})
     merged["research_report_field_status"] = {
         field: ("APPLIED" if field in set(applied) else "ADVISORY")
@@ -578,12 +698,32 @@ def merge_research_with_automated(
         str(field): list(values)
         for field, values in (merged.get("field_evidence_sources") or {}).items()
     }
+    for field, values in (research.get("field_evidence_sources") or {}).items():
+        evidence_sources.setdefault(str(field), []).extend(dict(value) for value in values)
     report_sources = list(research.get("research_report_sources") or [])
     report_dates = list(research.get("research_report_dates") or [])
     field_files = research.get("research_report_field_files") or {}
     field_providers = research.get("research_report_field_providers") or {}
     field_report_dates = research.get("research_report_field_report_dates") or {}
     for field in sorted(extracted_fields):
+        existing_research_evidence = [
+            item
+            for item in evidence_sources.get(field, [])
+            if str(item.get("provenance") or "") == "RESEARCH_REPORT"
+        ]
+        freshness = freshness_by_field.get(field) or research_field_freshness(research, field)
+        for item in existing_research_evidence:
+            item_is_selected = (
+                field in set(applied)
+                and (not field_files.get(field) or item.get("source") == field_files.get(field))
+                and (not field_report_dates.get(field) or item.get("source_date") == field_report_dates.get(field))
+            )
+            item["currently_authoritative"] = item_is_selected
+            item["status"] = "APPLIED" if item_is_selected else "ADVISORY"
+            if not item_is_selected and not item.get("reason"):
+                item["reason"] = application_reasons.get(field) or "LOWER_PRIORITY_RESEARCH_OBSERVATION"
+        if existing_research_evidence:
+            continue
         evidence_sources.setdefault(field, []).append(
             {
                 "provenance": "RESEARCH_REPORT",
@@ -592,6 +732,9 @@ def merge_research_with_automated(
                 "provider": field_providers.get(field),
                 "source_date": field_report_dates.get(field) or (report_dates[0] if report_dates else None),
                 "confidence": str(confidence_by_field.get(field) or "MEDIUM").upper(),
+                "freshness": freshness.get("status") if freshness else None,
+                "age_days": freshness.get("age_days") if freshness else None,
+                "max_age_days": freshness.get("max_age_days") if freshness else None,
                 "currently_authoritative": field in set(applied),
                 "status": "APPLIED" if field in set(applied) else "ADVISORY",
                 "reason": application_reasons.get(field),
@@ -1103,7 +1246,7 @@ def research_status_rows(
         warnings: list[str] = list(extraction.get("warnings") or [])
         if ticker and text:
             parsed = parse_research_report(path, ticker, index_row)
-            fields = list(parsed.get("research_report_fields") or [])
+            fields = list(parsed.get("research_report_extracted_fields") or [])
             warnings.extend(str(warning) for warning in parsed.get("research_report_extraction_warnings") or [])
 
         if error:
@@ -1848,7 +1991,7 @@ def _select_priority_research_field(field: str, rows: list[dict[str, Any]]) -> t
     candidates: list[dict[str, Any]] = []
     warnings: list[str] = []
     for row in rows:
-        row_fields = set(row.get("research_report_fields") or [])
+        row_fields = set(row.get("research_report_extracted_fields") or row.get("research_report_fields") or [])
         if field not in row_fields:
             continue
         value = row.get(field)
@@ -1861,6 +2004,7 @@ def _select_priority_research_field(field: str, rows: list[dict[str, Any]]) -> t
         divergent = _is_divergent_priority_candidate(field, source, source_type)
         if divergent:
             confidence = "LOW"
+        freshness = _research_row_field_freshness(row, field)
         candidates.append(
             {
                 "value": value,
@@ -1874,6 +2018,7 @@ def _select_priority_research_field(field: str, rows: list[dict[str, Any]]) -> t
                 "report_date": str((row.get("research_report_field_report_dates") or {}).get(field) or _latest_date_text(row)),
                 "date_ordinal": parsed_date.toordinal() if parsed_date else 0,
                 "divergent": divergent,
+                "freshness": freshness,
             }
         )
 
@@ -1885,6 +2030,7 @@ def _select_priority_research_field(field: str, rows: list[dict[str, Any]]) -> t
             candidate
             for candidate in candidates
             if not candidate["divergent"] and str(candidate.get("confidence") or "MEDIUM").upper() != "LOW"
+            and (candidate.get("freshness") is None or candidate["freshness"].get("currently_authoritative"))
         ]
         if intrinsic_candidates:
             chosen = sorted(
@@ -1906,6 +2052,7 @@ def _select_priority_research_field(field: str, rows: list[dict[str, Any]]) -> t
             candidate
             for candidate in candidates
             if not candidate["divergent"] and str(candidate.get("confidence") or "MEDIUM").upper() != "LOW"
+            and (candidate.get("freshness") is None or candidate["freshness"].get("currently_authoritative"))
         ]
         if comparable_candidates:
             chosen = sorted(
@@ -1918,7 +2065,57 @@ def _select_priority_research_field(field: str, rows: list[dict[str, Any]]) -> t
         warnings.append("ROIC: aucun candidat explicitement compatible avec une moyenne 5 ans; valeurs d'autres périodes conservées à titre informatif.")
         return None, warnings
 
-    return sorted(candidates, key=lambda candidate: (-int(candidate["date_ordinal"]), int(candidate["source_rank"])))[0], warnings
+    current_candidates = [
+        candidate
+        for candidate in candidates
+        if str(candidate.get("confidence") or "MEDIUM").upper() != "LOW"
+        and (candidate.get("freshness") is None or candidate["freshness"].get("currently_authoritative"))
+    ]
+    if not current_candidates:
+        return None, warnings
+    return sorted(current_candidates, key=lambda candidate: (-int(candidate["date_ordinal"]), int(candidate["source_rank"])))[0], warnings
+
+
+def _research_row_field_freshness(row: dict[str, Any], field: str) -> dict[str, Any] | None:
+    freshness = research_field_freshness(row, field)
+    if freshness is not None or "research_report_dates" not in row:
+        return freshness
+    dated_row = dict(row)
+    dated_row["research_report_freshness_policy_applied"] = True
+    return research_field_freshness(dated_row, field)
+
+
+def _research_freshness_reason(freshness: dict[str, Any]) -> str:
+    return "STALE_RESEARCH_EVIDENCE" if freshness.get("status") == "STALE" else "UNKNOWN_REPORT_DATE"
+
+
+def _set_selected_research_metadata(
+    field: str,
+    row: dict[str, Any],
+    field_files: dict[str, str],
+    field_providers: dict[str, str],
+    field_source_types: dict[str, str],
+    field_report_dates: dict[str, str],
+    freshness_by_field: dict[str, dict[str, Any]],
+) -> None:
+    first_source = _first_research_source(row)
+    latest_date = _latest_date_text(row)
+    field_files[field] = str((row.get("research_report_field_files") or {}).get(field) or first_source)
+    field_providers[field] = str(
+        (row.get("research_report_field_providers") or {}).get(field)
+        or row.get("research_report_provider")
+        or ""
+    )
+    field_source_types[field] = str(
+        (row.get("research_report_field_source_types") or {}).get(field)
+        or _research_source_type_from_row(row)
+    )
+    field_report_dates[field] = str(
+        (row.get("research_report_field_report_dates") or {}).get(field) or latest_date
+    )
+    freshness = _research_row_field_freshness(row, field)
+    if freshness:
+        freshness_by_field[field] = freshness
 
 
 def _research_source_type_from_row(row: dict[str, Any]) -> str:
