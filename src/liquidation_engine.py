@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import Any
 
 from .benchmark_relevance_engine import benchmark_relevance_level
+from .evidence_provenance import field_is_confirmed
 from .manual_inputs import CATASTROPHIC_COLUMNS
 from .utils import safe_float
 
@@ -287,6 +288,11 @@ def _technical_or_valuation_signals(
         signals.append("Alerte surveillance: bilan financier affaibli (confirmé).")
     elif manual.get("balance_sheet_strong") is False:
         signals.append("Alerte surveillance: bilan financier possiblement affaibli (non confirmé).")
+    if manual.get("fundamental_evidence_conflict") is True:
+        fields = ", ".join(manual.get("fundamental_evidence_conflict_fields") or [])
+        signals.append(
+            f"Validation manuelle requise: conflit de preuves fondamentales{f' ({fields})' if fields else ''}."
+        )
     return _dedupe(signals)
 
 
@@ -367,29 +373,7 @@ def _monitoring_fields(signals: list[str]) -> dict[str, Any]:
 
 
 def _field_confirmed(manual: dict[str, Any], field: str) -> bool:
-    manual_fields = _field_set(manual.get("manual_override_fields"))
-    research_fields = _field_set(manual.get("research_report_fields"))
-    auto_fields = _field_set(manual.get("auto_estimated_fields"))
-    if field in manual_fields:
-        return True
-    if field in research_fields:
-        return _research_field_confidence(manual, field) != "LOW"
-    return field not in auto_fields
-
-
-def _research_field_confidence(manual: dict[str, Any], field: str) -> str:
-    values = manual.get("research_report_field_confidence") or {}
-    if isinstance(values, dict):
-        confidence = str(values.get(field) or "").strip().upper()
-        return confidence or "MEDIUM"
-    text = str(values or "")
-    for part in text.replace(",", ";").split(";"):
-        if ":" not in part:
-            continue
-        key, value = part.split(":", 1)
-        if key.strip() == field:
-            return str(value).strip().upper() or "MEDIUM"
-    return "MEDIUM"
+    return field_is_confirmed(manual, field)
 
 
 def _sell_data_is_confirmed(reliability: dict[str, Any]) -> bool:
@@ -406,14 +390,6 @@ def _analysis_sell_data_is_confirmed(analysis: dict[str, Any]) -> bool:
     if not level:
         return True
     return level == "HIGH" and dependency != "HIGH"
-
-
-def _field_set(value: Any) -> set[str]:
-    if not value:
-        return set()
-    if isinstance(value, str):
-        return {part.strip() for part in value.replace(";", ",").split(",") if part.strip()}
-    return {str(part).strip() for part in value if str(part).strip()}
 
 
 def _append_signal(analysis: dict[str, Any], signal: str) -> None:

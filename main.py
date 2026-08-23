@@ -88,6 +88,7 @@ from src.manual_inputs import (
     create_friendly_manual_template,
     load_friendly_manual_inputs,
 )
+from src.manual_input_sync import sync_proxy_calibration_to_friendly
 from src.opportunity_cost_engine import compute_opportunity_cost_status
 from src.portfolio_loader import (
     account_tax_category,
@@ -539,42 +540,8 @@ def analyze_command(args: argparse.Namespace) -> int:
 
 
 def sync_manual_inputs_command(args: argparse.Namespace) -> int:
-    """Translate proxy_calibration.csv -> manual_inputs_friendly.txt.
-    Category A fields always override. Category B fields only override
-    when source_date is within 90 days. Writes a sync log for alerts.
-    """
+    """Translate proxy calibration into provenance-aware friendly inputs."""
     del args
-    import configparser
-    import csv as _csv
-    import json as _json
-    from datetime import date as _date, datetime as _datetime
-
-    MISSING = {"", "x", "X", "N/A", "NA", "N/D", "ND", "LOW-MEDIUM"}
-
-    CAT_A = {
-        "roic_5y_avg_true": "roic_5y_avg",
-        "net_margin_stable_or_expanding_true": "net_margin_stable_or_expanding",
-        "eps_growth_5y_true": "eps_growth_5y",
-        "moat_clear_true": "moat_clear",
-        "management_quality_good_true": "management_quality_good",
-        "balance_sheet_strong_true": "balance_sheet_strong",
-        "margin_or_profitability_under_pressure_true": "margin_or_profitability_under_pressure",
-        "confidence": "manual_confidence_level",
-        "notes": "notes",
-    }
-
-    CAT_B = {
-        "fair_value_true": "fair_value",
-        "forward_pe_true": "forward_pe_manual",
-        "peg_true": "peg_manual",
-        "eps_growth_estimated_3_5y_true": "eps_growth_estimated_3_5y",
-        "valuation_vs_5y_avg_ok_true": "valuation_vs_5y_avg_ok",
-        "forward_pe_growth_acceptable_true": "forward_pe_growth_acceptable",
-    }
-
-    WARN_DAYS = 75
-    STALE_DAYS = 90
-
     proxy_path = DATA_DIR / "proxy_calibration.csv"
     friendly_path = DATA_DIR / "manual_inputs_friendly.txt"
     log_path = DATA_DIR / "proxy_calibration_sync_log.json"
@@ -584,128 +551,27 @@ def sync_manual_inputs_command(args: argparse.Namespace) -> int:
         return 1
 
     try:
-        with open(proxy_path, newline="", encoding="utf-8") as handle:
-            rows = list(_csv.DictReader(handle))
+        sync_log = sync_proxy_calibration_to_friendly(proxy_path, friendly_path, log_path)
     except Exception as exc:
-        print(f"Erreur lecture {proxy_path}: {exc}")
+        print(f"Erreur de synchronisation {proxy_path}: {exc}")
         return 1
-
-    today = _date.today()
-
-    def parse_source_date(raw: str):
-        raw = str(raw or "").strip()
-        if not raw or raw in MISSING or len(raw) == 4:
-            return None
-        try:
-            return _datetime.strptime(raw[:10], "%Y-%m-%d").date()
-        except Exception:
-            return None
-
-    config = configparser.ConfigParser(interpolation=None)
-    config.optionxform = str
-
-    sections_written = 0
-    skipped_no_data = 0
-    stale_tickers = []
-    warning_tickers = []
-    no_date_tickers = []
-
-    for row in rows:
-        ticker = str(row.get("ticker", "") or "").strip().upper()
-        if not ticker:
-            continue
-
-        src_date = parse_source_date(row.get("source_date", ""))
-        days_old = (today - src_date).days if src_date else None
-
-        if days_old is None:
-            cat_b_eligible = False
-            no_date_tickers.append(ticker)
-        elif days_old > STALE_DAYS:
-            cat_b_eligible = False
-            stale_tickers.append(ticker)
-        elif days_old > WARN_DAYS:
-            cat_b_eligible = True
-            warning_tickers.append(ticker)
-        else:
-            cat_b_eligible = True
-
-        fields: dict[str, str] = {}
-
-        for csv_col, ini_key in CAT_A.items():
-            raw = str(row.get(csv_col, "") or "").strip()
-            if raw in MISSING:
-                continue
-            fields[ini_key] = raw
-
-        if cat_b_eligible:
-            for csv_col, ini_key in CAT_B.items():
-                raw = str(row.get(csv_col, "") or "").strip()
-                if raw in MISSING:
-                    continue
-                fields[ini_key] = raw
-
-        if not fields:
-            skipped_no_data += 1
-            continue
-
-        config[ticker] = fields
-        sections_written += 1
-
-    header = "\n".join(
-        [
-            "# Genere automatiquement par: python3 main.py sync-manual-inputs",
-            "# Source: data/proxy_calibration.csv",
-            "# Ne pas modifier directement.",
-            "# Categorie A: toujours appliquee (donnees lentes).",
-            "# Categorie B: appliquee seulement si source_date < 90 jours.",
-            "",
-        ]
-    )
-
-    try:
-        with open(friendly_path, "w", encoding="utf-8") as handle:
-            handle.write(header + "\n")
-            config.write(handle)
-    except Exception as exc:
-        print(f"Erreur ecriture {friendly_path}: {exc}")
-        return 1
-
-    sync_log = {
-        "sync_date": today.isoformat(),
-        "sections_written": sections_written,
-        "skipped_no_data": skipped_no_data,
-        "stale_tickers": sorted(set(stale_tickers)),
-        "warning_tickers": sorted(set(warning_tickers)),
-        "no_date_tickers": sorted(set(no_date_tickers)),
-        "warn_threshold_days": WARN_DAYS,
-        "stale_threshold_days": STALE_DAYS,
-    }
-    try:
-        with open(log_path, "w", encoding="utf-8") as handle:
-            _json.dump(sync_log, handle, indent=2, ensure_ascii=False)
-    except Exception:
-        pass
 
     print("sync-manual-inputs termine.")
-    print(f"  Sections ecrites       : {sections_written}")
-    print(f"  Tickers sans donnees   : {skipped_no_data}")
-    if stale_tickers:
-        print(f"  PÉRIMÉS (>{STALE_DAYS}j) — Cat.B ignoree : {', '.join(sorted(set(stale_tickers)))}")
-        print("    -> Mettre a jour proxy_calibration.csv puis relancer.")
-    if warning_tickers:
-        print(
-            f"  ATTENTION ({WARN_DAYS}-{STALE_DAYS}j) — Cat.B ecrite mais proche expiry : "
-            f"{', '.join(sorted(set(warning_tickers)))}"
-        )
-    if no_date_tickers:
-        print(f"  Sans source_date — Cat.B ignoree : {', '.join(sorted(set(no_date_tickers)))}")
-        print("    -> Ajouter source_date dans proxy_calibration.csv.")
+    print(f"  Sections ecrites       : {sync_log['sections_written']}")
+    print(f"  Tickers sans donnees   : {sync_log['skipped_no_data']}")
+    if sync_log["stale_tickers"]:
+        print(f"  Calibration perimee    : {', '.join(sync_log['stale_tickers'])}")
+        print("    -> Valeurs preservees comme contexte, mais non autoritaires.")
+    if sync_log["warning_tickers"]:
+        print(f"  Proche de l'expiration : {', '.join(sync_log['warning_tickers'])}")
+    if sync_log["no_date_tickers"]:
+        print(f"  Sans source_date       : {', '.join(sync_log['no_date_tickers'])}")
+        print("    -> Valeurs preservees comme contexte non autoritaire; ajouter source_date.")
     print(f"  Fichier de sortie      : {friendly_path}")
     print(f"  Journal de sync        : {log_path}")
-    if sections_written > 0:
+    if sync_log["sections_written"] > 0:
         print()
-        print("Relancer analyze pour que les overrides prennent effet.")
+        print("Relancer analyze pour appliquer les valeurs actuelles selon leur provenance.")
 
     return 0
 

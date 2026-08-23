@@ -349,11 +349,15 @@ Si vous avez mis à jour le fichier de calibration proxy, appliquez les données
 python3 main.py sync-manual-inputs
 ```
 
-Cette commande traduit `data/proxy_calibration.csv` → `data/manual_inputs_friendly.txt`.
-À relancer après chaque mise à jour du fichier de calibration proxy
-(typiquement une fois par an après révision Morningstar/BNCD).
-Catégorie A (ROIC, moat, EPS hist...): toujours appliquée.
-Catégorie B (fair_value, forward_pe...): appliquée si source_date < 90 jours.
+Cette commande traduit `data/proxy_calibration.csv` → `data/manual_inputs_friendly.txt`
+en conservant la provenance et la date de chaque champ. À relancer après chaque
+mise à jour du fichier de calibration proxy. Une calibration n'est pas une
+confirmation humaine: les valeurs actuelles peuvent corriger un proxy de scoring,
+mais les valeurs périmées ou sans date restent seulement contextuelles. La durée
+de validité dépend du champ (90 jours pour valorisation/estimations forward,
+120-180 jours pour bilan/marges, davantage pour ROIC/EPS historiques et
+moat/management). Les modifications explicites de l'utilisateur dans le fichier
+convivial restent des overrides `HUMAN_MANUAL` et sont préservées au prochain sync.
 
 Résumé simple :
 
@@ -1920,9 +1924,9 @@ Prérequis pour la validation walk-forward out-of-sample.
 Écrit après chaque analyze réussi. Idempotent par run_id.
 
 `data/proxy_calibration_sync_log.json`
-Journal du dernier sync-manual-inputs: sections écrites, tickers périmés
-(Cat.B >90j), tickers sans source_date. Lu par le rapport compact pour
-générer l'alerte de calibration.
+Journal du dernier sync-manual-inputs: sections écrites, champs actuels,
+périmés ou sans `source_date`, et politique de fraîcheur par champ. Lu par le
+rapport compact pour générer l'alerte de calibration.
 
 Le plus simple à lire est :
 

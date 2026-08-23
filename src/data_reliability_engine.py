@@ -41,6 +41,7 @@ CONFIDENCE_BY_RANK = {rank: confidence for confidence, rank in CONFIDENCE_ORDER.
 
 def compute_data_reliability(manual: dict[str, Any], score: dict[str, Any]) -> dict[str, Any]:
     auto_fields = _field_set(manual.get("auto_estimated_fields"))
+    calibration_applied_fields = _field_set(manual.get("calibration_applied_fields"))
     manual_fields = _field_set(manual.get("manual_override_fields"))
     research_fields = _field_set(manual.get("research_report_fields"))
     official_supported_fields = _field_set(manual.get("official_supported_manual_fields"))
@@ -98,8 +99,9 @@ def compute_data_reliability(manual: dict[str, Any], score: dict[str, Any]) -> d
             **_freshness_public_fields(freshness),
         }
 
-    raw_auto_critical = sorted((auto_fields & CORE_RELIABILITY_FIELDS) - manual_fields - research_fields)
-    raw_auto_quality_gates = sorted((auto_fields & QUALITY_GATE_FIELDS) - manual_fields - research_fields)
+    low_authority_fields = auto_fields | calibration_applied_fields
+    raw_auto_critical = sorted((low_authority_fields & CORE_RELIABILITY_FIELDS) - manual_fields - research_fields)
+    raw_auto_quality_gates = sorted((low_authority_fields & QUALITY_GATE_FIELDS) - manual_fields - research_fields)
     auto_critical = sorted(set(raw_auto_critical) - official_evidence_fields)
     confirmed_critical = sorted((manual_fields | research_fields | official_evidence_fields) & CORE_RELIABILITY_FIELDS)
     confirmed_quality_gates = sorted((manual_fields | research_fields | official_evidence_fields) & QUALITY_GATE_FIELDS)
@@ -166,6 +168,13 @@ def compute_data_reliability(manual: dict[str, Any], score: dict[str, Any]) -> d
             "Les écarts techniques/périodes sont moins pénalisés qu’un conflit directionnel réel."
         )
 
+    provenance_conflict = bool(manual.get("fundamental_evidence_conflict"))
+    if provenance_conflict:
+        reliability -= 5
+        reasons.append(
+            "Conflit entre calibration historique et preuve fondamentale actuelle: validation manuelle requise."
+        )
+
     if input_mode == "AUTO_ESTIMATED" and not confirmed_critical and automation_evidence != "STRONG":
         reliability -= 5
         reasons.append("Aucune validation manuelle ou PDF n’a encore confirmé les estimations.")
@@ -198,6 +207,7 @@ def compute_data_reliability(manual: dict[str, Any], score: dict[str, Any]) -> d
         "auto_estimate_dependency": dependency,
         "automation_evidence_level": automation_evidence,
         "auto_critical_fields": auto_critical,
+        "calibration_applied_fields": sorted(calibration_applied_fields),
         "confirmed_critical_fields": confirmed_critical,
         "official_supported_fields": sorted(official_supported_fields),
         "official_confirmed_fields": sorted(official_confirmed_fields),
@@ -210,7 +220,11 @@ def compute_data_reliability(manual: dict[str, Any], score: dict[str, Any]) -> d
         "official_evidence_level": official_evidence_level,
         "data_reliability_reasons": reasons,
         "requires_manual_validation_for_large_allocation": (
-            level != "HIGH" or dependency == "HIGH" or freshness_requires_validation or text_quality_requires_validation
+            level != "HIGH"
+            or dependency == "HIGH"
+            or freshness_requires_validation
+            or text_quality_requires_validation
+            or provenance_conflict
         ),
         **_data_quality_audit_metrics(
             confirmed_critical=confirmed_critical,

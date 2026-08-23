@@ -2,6 +2,16 @@ from __future__ import annotations
 
 from typing import Any
 
+from .evidence_provenance import (
+    AUTO_ESTIMATED,
+    CALIBRATION_CONTEXT_FIELDS,
+    HUMAN_MANUAL,
+    OFFICIAL_CURRENT_DATA,
+    PROXY_CALIBRATION_SYNC,
+    RESEARCH_REPORT,
+    field_set,
+    values_equivalent,
+)
 from .manual_inputs import CATASTROPHIC_COLUMNS, MANUAL_COLUMNS, empty_manual_row, parse_manual_row
 from .proxy_correction_engine import apply_proxy_correction
 from .utils import first_present, safe_float
@@ -254,8 +264,70 @@ def merge_automated_with_manual_overrides(
         return dict(automated)
 
     merged = dict(automated)
-    override_fields = []
-    provided_fields = set(manual_override.get("manual_override_fields") or [])
+    override_fields: list[str] = []
+    calibration_applied_fields: list[str] = []
+    calibration_ignored_fields: list[str] = []
+    provided_fields = field_set(manual_override.get("manual_override_fields"))
+    calibration_fields = field_set(manual_override.get("calibration_synced_fields"))
+    stale_fields = field_set(manual_override.get("calibration_stale_fields"))
+    unknown_date_fields = field_set(manual_override.get("calibration_unknown_date_fields"))
+    research_fields = field_set(merged.get("research_report_fields"))
+    auto_fields = field_set(merged.get("auto_estimated_fields"))
+    auto_source_quality = str(merged.get("auto_source_quality") or "").upper()
+    official_fields = field_set(merged.get("official_supported_manual_fields")) | field_set(
+        merged.get("official_confirmed_manual_fields")
+    )
+    conflict_fields: list[str] = []
+    conflict_reasons: list[str] = []
+
+    for key in (
+        "calibration_synced_fields",
+        "calibration_current_fields",
+        "calibration_stale_fields",
+        "calibration_unknown_date_fields",
+        "calibration_field_freshness",
+        "calibration_field_source_dates",
+        "calibration_source",
+        "calibration_source_date",
+        "calibration_snapshot_values",
+    ):
+        if key in manual_override:
+            merged[key] = manual_override.get(key)
+
+    for field in sorted(calibration_fields):
+        if field in CALIBRATION_CONTEXT_FIELDS:
+            calibration_ignored_fields.append(field)
+            continue
+        value = manual_override.get(field)
+        if value is None or value == "" or field not in MANUAL_COLUMNS:
+            continue
+        current_value = merged.get(field)
+        is_stale_or_unknown = field in stale_fields or field in unknown_date_fields
+        higher_authority_present = field in research_fields or field in official_fields
+        credible_current_auto_evidence = (
+            field in auto_fields and auto_source_quality in {"HIGH", "MEDIUM"}
+        )
+        materially_conflicting = (
+            current_value is not None
+            and current_value != ""
+            and not values_equivalent(current_value, value)
+            and (
+                higher_authority_present
+                or (is_stale_or_unknown and credible_current_auto_evidence)
+            )
+        )
+        if materially_conflicting:
+            conflict_fields.append(field)
+            freshness = (manual_override.get("calibration_field_freshness") or {}).get(field) or {}
+            status = str(freshness.get("status") or "UNKNOWN_DATE")
+            conflict_reasons.append(
+                f"{field}: calibration {status}={value!r} contredit une preuve actuelle de priorite superieure={current_value!r}."
+            )
+        if is_stale_or_unknown or higher_authority_present:
+            calibration_ignored_fields.append(field)
+            continue
+        merged[field] = value
+        calibration_applied_fields.append(field)
 
     for field in MANUAL_COLUMNS:
         if field == "ticker":
@@ -267,13 +339,75 @@ def merge_automated_with_manual_overrides(
             override_fields.append(field)
 
     merged["manual_override_fields"] = sorted(set(override_fields))
+    merged["calibration_applied_fields"] = sorted(set(calibration_applied_fields))
+    merged["calibration_ignored_fields"] = sorted(set(calibration_ignored_fields))
     merged["auto_estimated_fields"] = [
-        field for field in merged.get("auto_estimated_fields", []) if field not in set(override_fields)
+        field
+        for field in merged.get("auto_estimated_fields", [])
+        if field not in set(override_fields) | set(calibration_applied_fields)
     ]
-    _remove_proxy_corrections_for_fields(merged, override_fields)
+    _remove_proxy_corrections_for_fields(merged, override_fields + calibration_applied_fields)
     _remove_confirmed_fields_from_official_support(merged, override_fields)
-    merged["input_data_mode"] = "AUTO_WITH_MANUAL_OVERRIDES" if override_fields else automated.get("input_data_mode", "AUTO_ESTIMATED")
+    merged["fundamental_evidence_conflict"] = bool(conflict_fields)
+    merged["fundamental_evidence_conflict_fields"] = sorted(set(conflict_fields))
+    merged["fundamental_evidence_conflict_reason"] = " ".join(conflict_reasons)
+    merged["field_provenance"] = _winning_field_provenance(
+        merged,
+        override_fields,
+        calibration_applied_fields,
+    )
+    merged["field_evidence_sources"] = _field_evidence_sources(
+        merged,
+        manual_override,
+        calibration_fields,
+    )
+    if override_fields:
+        merged["input_data_mode"] = "AUTO_WITH_MANUAL_OVERRIDES"
+    elif calibration_applied_fields:
+        merged["input_data_mode"] = "AUTO_WITH_PROXY_CALIBRATION"
+    else:
+        merged["input_data_mode"] = automated.get("input_data_mode", "AUTO_ESTIMATED")
     return merged
+
+
+def _winning_field_provenance(
+    payload: dict[str, Any],
+    manual_fields: list[str],
+    calibration_fields: list[str],
+) -> dict[str, str]:
+    provenance = {
+        field: AUTO_ESTIMATED for field in field_set(payload.get("auto_estimated_fields"))
+    }
+    provenance.update(
+        {field: RESEARCH_REPORT for field in field_set(payload.get("research_report_fields"))}
+    )
+    provenance.update(
+        {field: OFFICIAL_CURRENT_DATA for field in field_set(payload.get("official_confirmed_manual_fields"))}
+    )
+    provenance.update({field: PROXY_CALIBRATION_SYNC for field in calibration_fields})
+    provenance.update({field: HUMAN_MANUAL for field in manual_fields})
+    return dict(sorted(provenance.items()))
+
+
+def _field_evidence_sources(
+    payload: dict[str, Any],
+    calibration_payload: dict[str, Any],
+    calibration_fields: set[str],
+) -> dict[str, list[dict[str, Any]]]:
+    evidence: dict[str, list[dict[str, Any]]] = {}
+    freshness_by_field = calibration_payload.get("calibration_field_freshness") or {}
+    for field in sorted(calibration_fields):
+        evidence.setdefault(field, []).append(
+            {
+                "provenance": PROXY_CALIBRATION_SYNC,
+                "value": calibration_payload.get(field),
+                "source": calibration_payload.get("calibration_source"),
+                "source_date": calibration_payload.get("calibration_source_date"),
+                "freshness": (freshness_by_field.get(field) or {}).get("status"),
+                "currently_authoritative": field in field_set(payload.get("calibration_applied_fields")),
+            }
+        )
+    return evidence
 
 
 def _attach_official_source_evidence(parsed: dict[str, Any], market: dict[str, Any]) -> None:

@@ -456,6 +456,23 @@ SCORES_COLUMNS = [
     "proxy_correction_status",
     "proxy_correction_fields",
     "proxy_corrections_applied",
+    "manual_override_fields",
+    "auto_estimated_fields",
+    "field_provenance",
+    "field_evidence_sources",
+    "calibration_source",
+    "calibration_source_date",
+    "calibration_synced_fields",
+    "calibration_current_fields",
+    "calibration_stale_fields",
+    "calibration_unknown_date_fields",
+    "calibration_applied_fields",
+    "calibration_ignored_fields",
+    "calibration_field_freshness",
+    "calibration_field_source_dates",
+    "fundamental_evidence_conflict",
+    "fundamental_evidence_conflict_fields",
+    "fundamental_evidence_conflict_reason",
     "fundamental_fallback_fields",
     "official_data_sources",
     "official_fundamental_fields",
@@ -7290,6 +7307,23 @@ def _score_row_for_csv(row: dict[str, Any]) -> dict[str, Any]:
         "proxy_correction_status": row.get("proxy_correction_status"),
         "proxy_correction_fields": _list_text(row.get("proxy_correction_fields") or []),
         "proxy_corrections_applied": _proxy_corrections_text(row.get("proxy_corrections_applied") or []),
+        "manual_override_fields": _list_text(row.get("manual_override_fields") or []),
+        "auto_estimated_fields": _list_text(row.get("auto_estimated_fields") or []),
+        "field_provenance": _mapping_text(row.get("field_provenance") or {}),
+        "field_evidence_sources": _mapping_text(row.get("field_evidence_sources") or {}),
+        "calibration_source": row.get("calibration_source"),
+        "calibration_source_date": row.get("calibration_source_date"),
+        "calibration_synced_fields": _list_text(row.get("calibration_synced_fields") or []),
+        "calibration_current_fields": _list_text(row.get("calibration_current_fields") or []),
+        "calibration_stale_fields": _list_text(row.get("calibration_stale_fields") or []),
+        "calibration_unknown_date_fields": _list_text(row.get("calibration_unknown_date_fields") or []),
+        "calibration_applied_fields": _list_text(row.get("calibration_applied_fields") or []),
+        "calibration_ignored_fields": _list_text(row.get("calibration_ignored_fields") or []),
+        "calibration_field_freshness": _mapping_text(row.get("calibration_field_freshness") or {}),
+        "calibration_field_source_dates": _mapping_text(row.get("calibration_field_source_dates") or {}),
+        "fundamental_evidence_conflict": row.get("fundamental_evidence_conflict"),
+        "fundamental_evidence_conflict_fields": _list_text(row.get("fundamental_evidence_conflict_fields") or []),
+        "fundamental_evidence_conflict_reason": row.get("fundamental_evidence_conflict_reason"),
         "fundamental_fallback_fields": _list_text(row.get("fundamental_fallback_fields") or []),
         "official_data_sources": _list_text(row.get("official_data_sources") or []),
         "official_fundamental_fields": _list_text(row.get("official_fundamental_fields") or []),
@@ -7669,6 +7703,17 @@ def _position_section(row: dict[str, Any]) -> list[str]:
         f"- Vérification ticker: {_ticker_issue_text(row)}",
         f"- Champs estimés automatiquement: {', '.join(auto_fields) if auto_fields else 'Aucun'}",
         f"- Corrections manuelles utilisées: {', '.join(manual_fields) if manual_fields else 'Aucune'}",
+        (
+            f"- Calibration proxy: appliquée={_list_text(row.get('calibration_applied_fields') or [])}; "
+            f"périmée={_list_text(row.get('calibration_stale_fields') or [])}; "
+            f"date inconnue={_list_text(row.get('calibration_unknown_date_fields') or [])}; "
+            f"source_date={row.get('calibration_source_date') or 'N/D'}"
+        ),
+        (
+            f"- Conflit de preuves fondamentales: "
+            f"{'OUI' if row.get('fundamental_evidence_conflict') else 'NON'} "
+            f"({row.get('fundamental_evidence_conflict_reason') or 'Aucun conflit calibration/preuve actuelle.'})"
+        ),
         f"- Données manquantes: {', '.join(missing) if missing else 'Aucune donnée critique majeure.'}",
         f"- Tendance historique: {row.get('trend_status')} ({trend_reasons_text})",
         (
