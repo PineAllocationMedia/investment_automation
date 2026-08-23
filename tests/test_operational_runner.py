@@ -5,6 +5,7 @@ import sys
 import tempfile
 import textwrap
 import unittest
+from unittest import mock
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
@@ -67,15 +68,20 @@ class OperationalRunnerTest(unittest.TestCase):
         )
         fake_python.chmod(0o755)
         calls = root / "calls.txt"
-        return {
+        env = {
             **os.environ,
             "INVESTMENT_AUTOMATION_PROJECT_ROOT": str(root),
             "INVESTMENT_AUTOMATION_LOG_DIR": str(root / "logs"),
             "INVESTMENT_AUTOMATION_LOCK_DIR": str(root / "state" / "analyze.lock"),
+            "INVESTMENT_AUTOMATION_INPUT_SYNC_CONFIG": str(
+                root / "input-sync-disabled.env"
+            ),
             "INVESTMENT_AUTOMATION_TEST_CALLS": str(calls),
             "INVESTMENT_AUTOMATION_TELEGRAM_CONFIG": str(root / "telegram-disabled.env"),
             "INVESTMENT_AUTOMATION_TELEGRAM_PYTHON": sys.executable,
         }
+        env.pop("INVESTMENT_AUTOMATION_INPUT_SOURCE", None)
+        return env
 
     def _run(
         self, env: dict[str, str], *arguments: str
@@ -239,6 +245,35 @@ class OperationalRunnerTest(unittest.TestCase):
             self.assertIn("SUCCÈS analyse high-cagr", final_notification)
             self.assertIn("walk-forward échoué (statut 6)", final_notification)
             self.assertIn(f"--document {compact_html_report}", final_notification)
+
+    def test_host_input_sync_environment_does_not_contaminate_ordinary_run(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            with mock.patch.dict(
+                os.environ,
+                {
+                    "INVESTMENT_AUTOMATION_INPUT_SOURCE": "/some/real/drive",
+                    "INVESTMENT_AUTOMATION_INPUT_SYNC_CONFIG": "/some/real/config",
+                },
+            ):
+                env = self._project(root)
+
+            result = self._run(env)
+
+            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+            calls = (root / "calls.txt").read_text(encoding="utf-8").splitlines()
+            self.assertEqual(calls[0], "main.py validate-inputs")
+            self.assertNotIn(
+                "INVESTMENT_AUTOMATION_INPUT_SOURCE",
+                env,
+            )
+            self.assertEqual(
+                env["INVESTMENT_AUTOMATION_INPUT_SYNC_CONFIG"],
+                str(root / "input-sync-disabled.env"),
+            )
+            self.assertFalse(
+                any("sync_operational_inputs.py" in call for call in calls)
+            )
 
     def test_configured_input_sync_runs_before_validation(self):
         with tempfile.TemporaryDirectory() as directory:
