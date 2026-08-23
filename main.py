@@ -327,6 +327,11 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="Applique seulement les réparations mécaniques à faible risque: colonnes manquantes, fichiers CSV absents, lignes vides.",
     )
+    health_check.add_argument(
+        "--skip-portfolio-repair",
+        action="store_true",
+        help="Valide data/portfolio.csv sans le créer ni le réécrire pendant --repair-safe.",
+    )
     subparsers.add_parser(
         "clear-proxy-calibration",
         help="Vide les vraies valeurs du fichier de calibration des proxies après recalibration.",
@@ -1278,7 +1283,14 @@ def health_check_command(args: argparse.Namespace) -> int:
     ensure_directories()
     create_research_report_scaffold()
     run_id = make_run_id("health-check")
-    schema_rows = repair_safe_csv_schemas(PROJECT_ROOT) if args.repair_safe else validate_csv_schemas(PROJECT_ROOT)
+    schema_rows = (
+        repair_safe_csv_schemas(
+            PROJECT_ROOT,
+            skip_portfolio_repair=args.skip_portfolio_repair,
+        )
+        if args.repair_safe
+        else validate_csv_schemas(PROJECT_ROOT)
+    )
     schema_path = REPORTS_DIR / "latest_schema_repair.csv"
     write_csv_records(schema_path, schema_rows, SCHEMA_REPAIR_COLUMNS)
     cache_rows = run_cache_maintenance(CACHE_DIR, repair_safe=args.repair_safe)

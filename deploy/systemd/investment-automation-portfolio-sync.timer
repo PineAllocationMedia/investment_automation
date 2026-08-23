@@ -1,0 +1,11 @@
+[Unit]
+Description=Investment Automation - vérification horaire du portefeuille à :15
+
+[Timer]
+OnCalendar=*-*-* *:15:00 America/Toronto
+Persistent=true
+AccuracySec=1min
+Unit=investment-automation-portfolio-sync.service
+
+[Install]
+WantedBy=timers.target

@@ -69,6 +69,32 @@ class TelegramConfirmationTest(unittest.TestCase):
         )
         self.assertTrue(any("Capital proposé : 330 $" in message for message in messages))
 
+    def test_confirmed_analysis_lock_conflict_sends_explicit_busy_failure(self):
+        batches = iter([
+            [],
+            [_update(1, "330")],
+            [_update(2, "CONFIRMER")],
+        ])
+        messages: list[str] = []
+
+        status = telegram_confirmation.request_and_run(
+            token="secret",
+            chat_id="123",
+            mode="high-cagr",
+            refresh_market_data=False,
+            timeout_seconds=60,
+            runner=Path("/runner.sh"),
+            updates_reader=lambda **_kwargs: next(batches),
+            message_sender=lambda **kwargs: messages.append(kwargs["message"]),
+            command_runner=lambda _command, **_kwargs: SimpleNamespace(returncode=75),
+            monotonic=lambda: 0.0,
+        )
+
+        self.assertEqual(status, 75)
+        self.assertIn("Analyse non exécutée", messages[-1])
+        self.assertIn("autre opération Investment Automation", messages[-1])
+        self.assertIn("Aucun rapport", messages[-1])
+
     def test_cancel_never_launches_runner(self):
         batches = iter([[], [_update(1, "ANNULER")]])
         commands: list[list[str]] = []

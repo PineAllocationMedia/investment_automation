@@ -114,6 +114,39 @@ class OperationalInputSyncTest(unittest.TestCase):
             self.assertIsNone(result.backup_directory)
             runner.assert_not_called()
 
+    def test_skip_portfolio_syncs_proxy_and_pdfs_without_reading_portfolio(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            source = self._source(root)
+            project = self._project(root)
+            (source / "data" / "portfolio.csv").unlink()
+            local_portfolio = project / "data" / "portfolio.csv"
+            local_portfolio.parent.mkdir(parents=True)
+            local_portfolio.write_text("local portfolio must remain untouched\n", encoding="utf-8")
+            runner = Mock(return_value=_Result())
+
+            result = input_sync.sync_inputs(
+                source_root=source,
+                project_root=project,
+                backup_root=root / "backups",
+                skip_portfolio=True,
+                command_runner=runner,
+            )
+
+            self.assertEqual(
+                result.copied,
+                (
+                    Path("data/proxy_calibration.csv"),
+                    Path("data/research_reports/bncd_morningstar/APH_report.pdf"),
+                ),
+            )
+            self.assertEqual(local_portfolio.read_text(encoding="utf-8"), "local portfolio must remain untouched\n")
+            self.assertTrue((project / "data" / "proxy_calibration.csv").is_file())
+            self.assertTrue(
+                (project / "data" / "research_reports" / "bncd_morningstar" / "APH_report.pdf").is_file()
+            )
+            runner.assert_called_once()
+
     def test_invalid_pdf_fails_before_any_copy(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)

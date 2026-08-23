@@ -7,6 +7,6 @@ Wants=network-online.target
 Type=oneshot
 WorkingDirectory=@PROJECT_ROOT@
 Environment=PYTHONUNBUFFERED=1
-ExecStartPre=@PROJECT_ROOT@/.venv/bin/python @PROJECT_ROOT@/scripts/update_deployment_code.py --project-root @PROJECT_ROOT@
-ExecStart=@PROJECT_ROOT@/.venv/bin/python @PROJECT_ROOT@/scripts/run_scheduled_maintenance.py --mode high-cagr --repair-safe
+ExecStartPre=/usr/bin/mkdir -p %h/.local/state/investment_automation
+ExecStart=/usr/bin/flock --exclusive --verbose %h/.local/state/investment_automation/operations.lock @PROJECT_ROOT@/.venv/bin/python @PROJECT_ROOT@/scripts/run_scheduled_maintenance.py --mode high-cagr --repair-safe --require-portfolio-sync
 TimeoutStartSec=8h

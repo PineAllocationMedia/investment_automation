@@ -16,8 +16,15 @@ UNIT_NAMES = (
     "investment-automation-analysis.timer",
     "investment-automation-maintenance.service",
     "investment-automation-maintenance.timer",
+    "investment-automation-portfolio-sync.service",
+    "investment-automation-portfolio-sync.timer",
 )
-TIMER_NAMES = tuple(name for name in UNIT_NAMES if name.endswith(".timer"))
+HISTORICAL_TIMER_NAMES = (
+    "investment-automation-analysis.timer",
+    "investment-automation-maintenance.timer",
+)
+PORTFOLIO_TIMER_NAME = "investment-automation-portfolio-sync.timer"
+TIMER_NAMES = (*HISTORICAL_TIMER_NAMES, PORTFOLIO_TIMER_NAME)
 
 
 def render_units(project_root: Path, template_dir: Path = TEMPLATE_DIR) -> dict[str, str]:
@@ -35,6 +42,7 @@ def install_units(
     project_root: Path,
     unit_dir: Path,
     start_timers: bool,
+    enable_portfolio_sync: bool = False,
     command_runner=subprocess.run,
 ) -> None:
     rendered = render_units(project_root)
@@ -44,7 +52,15 @@ def install_units(
 
     command_runner(["systemctl", "--user", "daemon-reload"], check=True)
     if start_timers:
-        command_runner(["systemctl", "--user", "enable", "--now", *TIMER_NAMES], check=True)
+        command_runner(
+            ["systemctl", "--user", "enable", "--now", *HISTORICAL_TIMER_NAMES],
+            check=True,
+        )
+        if enable_portfolio_sync:
+            command_runner(
+                ["systemctl", "--user", "enable", "--now", PORTFOLIO_TIMER_NAME],
+                check=True,
+            )
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -53,6 +69,11 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--unit-dir", type=Path, default=Path.home() / ".config" / "systemd" / "user")
     parser.add_argument("--dry-run", action="store_true", help="Affiche les unités sans les écrire ni les activer.")
     parser.add_argument("--no-start", action="store_true", help="Installe les unités sans activer les timers.")
+    parser.add_argument(
+        "--enable-portfolio-sync",
+        action="store_true",
+        help="Active explicitement le timer portefeuille après le bootstrap contrôlé.",
+    )
     args = parser.parse_args(argv)
 
     project_root = args.project_root.resolve()
@@ -72,6 +93,7 @@ def main(argv: list[str] | None = None) -> int:
             project_root=project_root,
             unit_dir=args.unit_dir,
             start_timers=not args.no_start,
+            enable_portfolio_sync=args.enable_portfolio_sync,
         )
     except (OSError, subprocess.CalledProcessError) as exc:
         print(f"Échec de l'installation systemd: {exc}", file=sys.stderr)
@@ -82,6 +104,10 @@ def main(argv: list[str] | None = None) -> int:
         print("Timers non activés (--no-start).")
     else:
         print("Timers activés: analyses les 1er/15 à 16 h 45 et maintenance le dimanche à 9 h.")
+        if args.enable_portfolio_sync:
+            print("Timer portefeuille activé explicitement: vérification horaire à :15.")
+        else:
+            print("Timer portefeuille installé mais non nouvellement activé (bootstrap requis).")
         print("Vérification: systemctl --user list-timers 'investment-automation-*'")
     return 0
 

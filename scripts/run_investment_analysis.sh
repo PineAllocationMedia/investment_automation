@@ -11,13 +11,16 @@ LOG_RETENTION_COUNT=20
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="${INVESTMENT_AUTOMATION_PROJECT_ROOT:-$(cd "$SCRIPT_DIR/.." && pwd)}"
 LOG_DIR="${INVESTMENT_AUTOMATION_LOG_DIR:-$HOME/investment_automation_run_logs}"
-LOCK_DIR="${INVESTMENT_AUTOMATION_LOCK_DIR:-$HOME/.local/state/investment_automation/analyze.lock}"
+LOCK_FILE="${INVESTMENT_AUTOMATION_LOCK_FILE:-$HOME/.local/state/investment_automation/operations.lock}"
+FLOCK_COMMAND="${INVESTMENT_AUTOMATION_FLOCK_COMMAND:-/usr/bin/flock}"
 PYTHON="$PROJECT_ROOT/.venv/bin/python"
 TELEGRAM_NOTIFIER="${INVESTMENT_AUTOMATION_TELEGRAM_NOTIFIER:-$SCRIPT_DIR/telegram_notify.py}"
 TELEGRAM_CONFIG="${INVESTMENT_AUTOMATION_TELEGRAM_CONFIG:-$HOME/.config/investment_automation/telegram.env}"
 TELEGRAM_PYTHON="${INVESTMENT_AUTOMATION_TELEGRAM_PYTHON:-$PYTHON}"
 INPUT_SYNC_SCRIPT="${INVESTMENT_AUTOMATION_INPUT_SYNC_SCRIPT:-$SCRIPT_DIR/sync_operational_inputs.py}"
 INPUT_SYNC_CONFIG="${INVESTMENT_AUTOMATION_INPUT_SYNC_CONFIG:-$HOME/.config/investment_automation/input_sync.env}"
+PORTFOLIO_SYNC_SCRIPT="${INVESTMENT_AUTOMATION_PORTFOLIO_SYNC_SCRIPT:-$SCRIPT_DIR/run_automatic_portfolio_sync.py}"
+REQUIRE_PORTFOLIO_SYNC="${INVESTMENT_AUTOMATION_REQUIRE_PORTFOLIO_SYNC:-0}"
 
 mode="$DEFAULT_MODE"
 capital="$DEFAULT_CAPITAL"
@@ -73,38 +76,27 @@ if [[ ! -x "$PYTHON" || ! -f "$PROJECT_ROOT/main.py" ]]; then
     exit 66
 fi
 
-mkdir -p "$LOG_DIR" "$(dirname "$LOCK_DIR")"
+mkdir -p "$LOG_DIR" "$(dirname "$LOCK_FILE")"
 
-acquire_lock() {
-    if mkdir "$LOCK_DIR" 2>/dev/null; then
-        printf '%s\n' "$$" >"$LOCK_DIR/pid"
-        return 0
-    fi
-
-    local existing_pid=""
-    if [[ -r "$LOCK_DIR/pid" ]]; then
-        existing_pid="$(cat "$LOCK_DIR/pid" 2>/dev/null || true)"
-    fi
-    if [[ "$existing_pid" =~ ^[0-9]+$ ]] && kill -0 "$existing_pid" 2>/dev/null; then
-        echo "Analyse deja en cours (PID $existing_pid). Aucun second run lance." >&2
-        return "$EXIT_LOCKED"
-    fi
-
-    rm -f "$LOCK_DIR/pid"
-    if ! rmdir "$LOCK_DIR" 2>/dev/null || ! mkdir "$LOCK_DIR" 2>/dev/null; then
-        echo "Erreur: verrou obsolete impossible a recuperer: $LOCK_DIR" >&2
-        return "$EXIT_LOCKED"
-    fi
-    printf '%s\n' "$$" >"$LOCK_DIR/pid"
+if [[ ! -x "$FLOCK_COMMAND" ]]; then
+    echo "Erreur: commande flock introuvable ou non executable: $FLOCK_COMMAND" >&2
+    exit 69
+fi
+LOCK_FD=9
+exec 9>"$LOCK_FILE" || {
+    echo "Erreur: impossible d'ouvrir le verrou partage: $LOCK_FILE" >&2
+    exit 73
 }
-
-acquire_lock || exit $?
-
-cleanup() {
-    rm -f "$LOCK_DIR/pid"
-    rmdir "$LOCK_DIR" 2>/dev/null || true
-}
-trap cleanup EXIT INT TERM
+"$FLOCK_COMMAND" --exclusive --nonblock --conflict-exit-code "$EXIT_LOCKED" "$LOCK_FD"
+lock_status=$?
+if ((lock_status != 0)); then
+    if ((lock_status == EXIT_LOCKED)); then
+        echo "Une operation Investment Automation est deja active. Analyse non executee." >&2
+    else
+        echo "Erreur: acquisition du verrou partage impossible (statut $lock_status)." >&2
+    fi
+    exit "$lock_status"
+fi
 
 timestamp="$(date '+%Y%m%d_%H%M%S')"
 log_file="$LOG_DIR/analysis_${mode}_${timestamp}.log"
@@ -134,9 +126,33 @@ notify_telegram --message "Analyse $mode démarrée. Capital: ${capital} $. Rafr
 cd "$PROJECT_ROOT" || exit 66
 
 echo
-echo "[1/4] Synchronisation des intrants humains"
+source_configured=false
 if [[ -n "${INVESTMENT_AUTOMATION_INPUT_SOURCE:-}" || -s "$INPUT_SYNC_CONFIG" ]]; then
-    "$PYTHON" "$INPUT_SYNC_SCRIPT" --config "$INPUT_SYNC_CONFIG" --project-root "$PROJECT_ROOT" 2>&1 | tee -a "$log_file"
+    source_configured=true
+fi
+
+echo "[1/5] Reconciliation du portefeuille"
+if [[ "$REQUIRE_PORTFOLIO_SYNC" == "1" && "$source_configured" != true ]]; then
+    echo "ECHEC: source portefeuille requise mais non configuree. Analyse annulee." | tee -a "$log_file"
+    notify_telegram --message "ÉCHEC analyse $mode: source portefeuille requise mais non configurée. Aucun rapport produit."
+    exit 5
+fi
+if [[ "$REQUIRE_PORTFOLIO_SYNC" == "1" || "$source_configured" == true ]]; then
+    "$PYTHON" "$PORTFOLIO_SYNC_SCRIPT" --config "$INPUT_SYNC_CONFIG" --project-root "$PROJECT_ROOT" 2>&1 | tee -a "$log_file"
+    portfolio_sync_status=${PIPESTATUS[0]}
+    if ((portfolio_sync_status != 0)); then
+        echo "ECHEC: reconciliation du portefeuille impossible. Analyse annulee." | tee -a "$log_file"
+        notify_telegram --message "ÉCHEC analyse $mode: réconciliation du portefeuille impossible. Aucun rapport produit."
+        exit 5
+    fi
+else
+    echo "Réconciliation désactivée: utilisation locale sans source Drive configurée." | tee -a "$log_file"
+fi
+
+echo
+echo "[2/5] Synchronisation des autres intrants humains"
+if [[ "$source_configured" == true ]]; then
+    "$PYTHON" "$INPUT_SYNC_SCRIPT" --config "$INPUT_SYNC_CONFIG" --project-root "$PROJECT_ROOT" --skip-portfolio 2>&1 | tee -a "$log_file"
     sync_status=${PIPESTATUS[0]}
     if ((sync_status != 0)); then
         echo "ECHEC: synchronisation des intrants impossible. Analyse annulee." | tee -a "$log_file"
@@ -148,7 +164,7 @@ else
 fi
 
 echo
-echo "[2/4] Validation des intrants"
+echo "[3/5] Validation des intrants"
 "$PYTHON" main.py validate-inputs 2>&1 | tee -a "$log_file"
 validation_status=${PIPESTATUS[0]}
 if ((validation_status != 0)); then
@@ -158,7 +174,7 @@ if ((validation_status != 0)); then
 fi
 
 echo
-echo "[3/4] Analyse"
+echo "[4/5] Analyse"
 analysis_args=(main.py analyze --capital "$capital" --mode "$mode")
 if [[ "$refresh_market_data" == true ]]; then
     analysis_args+=(--refresh-market-data)
@@ -188,7 +204,7 @@ stability="$(grep -Eo 'SCORE_STABILITY(_BASELINE|_STABLE|_WATCH|_UNSTABLE)?' "$c
 [[ -n "$stability" ]] || stability="NON_TROUVE"
 
 echo
-echo "[4/4] Walk-forward backtest"
+echo "[5/5] Walk-forward backtest"
 "$PYTHON" main.py walk-forward-backtest --mode "$mode" 2>&1 | tee -a "$log_file"
 walk_forward_status=${PIPESTATUS[0]}
 walk_forward_warning=""
