@@ -134,7 +134,7 @@ notify_telegram --message "Analyse $mode démarrée. Capital: ${capital} $. Rafr
 cd "$PROJECT_ROOT" || exit 66
 
 echo
-echo "[1/3] Synchronisation des intrants humains"
+echo "[1/4] Synchronisation des intrants humains"
 if [[ -n "${INVESTMENT_AUTOMATION_INPUT_SOURCE:-}" || -s "$INPUT_SYNC_CONFIG" ]]; then
     "$PYTHON" "$INPUT_SYNC_SCRIPT" --config "$INPUT_SYNC_CONFIG" --project-root "$PROJECT_ROOT" 2>&1 | tee -a "$log_file"
     sync_status=${PIPESTATUS[0]}
@@ -148,7 +148,7 @@ else
 fi
 
 echo
-echo "[2/3] Validation des intrants"
+echo "[2/4] Validation des intrants"
 "$PYTHON" main.py validate-inputs 2>&1 | tee -a "$log_file"
 validation_status=${PIPESTATUS[0]}
 if ((validation_status != 0)); then
@@ -158,7 +158,7 @@ if ((validation_status != 0)); then
 fi
 
 echo
-echo "[3/3] Analyse"
+echo "[3/4] Analyse"
 analysis_args=(main.py analyze --capital "$capital" --mode "$mode")
 if [[ "$refresh_market_data" == true ]]; then
     analysis_args+=(--refresh-market-data)
@@ -187,6 +187,18 @@ compact_html_report="$PROJECT_ROOT/reports/latest_report_compact_${mode_slug}.ht
 stability="$(grep -Eo 'SCORE_STABILITY(_BASELINE|_STABLE|_WATCH|_UNSTABLE)?' "$compact_report" | head -1 || true)"
 [[ -n "$stability" ]] || stability="NON_TROUVE"
 
+echo
+echo "[4/4] Walk-forward backtest"
+"$PYTHON" main.py walk-forward-backtest --mode "$mode" 2>&1 | tee -a "$log_file"
+walk_forward_status=${PIPESTATUS[0]}
+walk_forward_warning=""
+if ((walk_forward_status == 0)); then
+    echo "SUCCES: walk-forward termine pour le mode $mode." | tee -a "$log_file"
+else
+    echo "AVERTISSEMENT: walk-forward echoue avec le statut $walk_forward_status; le rapport d'analyse reste valide." | tee -a "$log_file"
+    walk_forward_warning=" AVERTISSEMENT: walk-forward échoué (statut $walk_forward_status)."
+fi
+
 {
     echo
     echo "SUCCES: analyse terminee en ${elapsed_seconds}s."
@@ -196,11 +208,11 @@ stability="$(grep -Eo 'SCORE_STABILITY(_BASELINE|_STABLE|_WATCH|_UNSTABLE)?' "$c
 
 if [[ -s "$compact_html_report" ]]; then
     notify_telegram \
-        --message "SUCCÈS analyse $mode en ${elapsed_seconds}s. Score stability: $stability." \
+        --message "SUCCÈS analyse $mode en ${elapsed_seconds}s. Score stability: $stability.${walk_forward_warning}" \
         --document "$compact_html_report" \
         --caption "Rapport compact $mode — capital ${capital} $ — $stability"
 else
-    notify_telegram --message "SUCCÈS analyse $mode en ${elapsed_seconds}s. Score stability: $stability. Rapport HTML absent; consulter le Markdown local."
+    notify_telegram --message "SUCCÈS analyse $mode en ${elapsed_seconds}s. Score stability: $stability. Rapport HTML absent; consulter le Markdown local.${walk_forward_warning}"
 fi
 
 shopt -s nullglob
