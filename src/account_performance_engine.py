@@ -210,11 +210,10 @@ def _upsert_history_rows(
     benchmark_return_price: float | None,
     benchmark_return_basis: str,
 ) -> list[dict[str, Any]]:
-    account_names = set(accounts)
     kept = [
         row
         for row in history_rows
-        if not (str(row.get("date") or "") == as_of_date and str(row.get("account_type") or "") in account_names)
+        if str(row.get("date") or "") != as_of_date
     ]
     for account_type, account in accounts.items():
         kept.append(
