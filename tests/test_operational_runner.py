@@ -12,7 +12,16 @@ RUNNER = PROJECT_ROOT / "scripts" / "run_investment_analysis.sh"
 
 
 class OperationalRunnerTest(unittest.TestCase):
-    def _project(self, root: Path, *, validation_status: int = 0, sync_status: int = 0) -> dict[str, str]:
+    def _project(
+        self,
+        root: Path,
+        *,
+        validation_status: int = 0,
+        sync_status: int = 0,
+        analysis_status: int = 0,
+        walk_forward_status: int = 0,
+        report_state: str = "present",
+    ) -> dict[str, str]:
         (root / ".venv" / "bin").mkdir(parents=True)
         (root / "reports").mkdir()
         (root / "main.py").write_text("# test fixture\n", encoding="utf-8")
@@ -29,8 +38,28 @@ class OperationalRunnerTest(unittest.TestCase):
                     exit {validation_status}
                 fi
                 if [[ "$2" == "analyze" ]]; then
+                    if (({analysis_status} != 0)); then
+                        exit {analysis_status}
+                    fi
+                    mode=""
+                    previous=""
+                    for argument in "$@"; do
+                        if [[ "$previous" == "--mode" ]]; then
+                            mode="$argument"
+                            break
+                        fi
+                        previous="$argument"
+                    done
                     mkdir -p reports
-                    printf 'SCORE_STABILITY_STABLE\\n' >reports/latest_report_compact_high_cagr.md
+                    report="reports/latest_report_compact_${{mode//-/_}}.md"
+                    if [[ "{report_state}" == "present" ]]; then
+                        printf 'SCORE_STABILITY_STABLE\\n' >"$report"
+                    elif [[ "{report_state}" == "empty" ]]; then
+                        : >"$report"
+                    fi
+                fi
+                if [[ "$2" == "walk-forward-backtest" ]]; then
+                    exit {walk_forward_status}
                 fi
                 """
             ),
@@ -48,9 +77,11 @@ class OperationalRunnerTest(unittest.TestCase):
             "INVESTMENT_AUTOMATION_TELEGRAM_PYTHON": sys.executable,
         }
 
-    def _run(self, env: dict[str, str]) -> subprocess.CompletedProcess[str]:
+    def _run(
+        self, env: dict[str, str], *arguments: str
+    ) -> subprocess.CompletedProcess[str]:
         return subprocess.run(
-            ["bash", str(RUNNER)],
+            ["bash", str(RUNNER), *arguments],
             check=False,
             capture_output=True,
             text=True,
@@ -66,10 +97,36 @@ class OperationalRunnerTest(unittest.TestCase):
 
             self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
             calls = (root / "calls.txt").read_text(encoding="utf-8").splitlines()
-            self.assertEqual(calls[0], "main.py validate-inputs")
-            self.assertIn("main.py analyze --capital 0 --mode high-cagr", calls[1])
+            self.assertEqual(
+                calls,
+                [
+                    "main.py validate-inputs",
+                    "main.py analyze --capital 0 --mode high-cagr",
+                    "main.py walk-forward-backtest --mode high-cagr",
+                ],
+            )
             self.assertIn("Score stability: SCORE_STABILITY_STABLE", result.stdout)
             self.assertEqual(len(list((root / "logs").glob("analysis_*.log"))), 1)
+
+    def test_walk_forward_uses_current_mode_without_refresh(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            env = self._project(root)
+
+            result = self._run(
+                env, "--mode", "balanced", "--refresh-market-data"
+            )
+
+            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+            calls = (root / "calls.txt").read_text(encoding="utf-8").splitlines()
+            self.assertEqual(
+                calls,
+                [
+                    "main.py validate-inputs",
+                    "main.py analyze --capital 0 --mode balanced --refresh-market-data",
+                    "main.py walk-forward-backtest --mode balanced",
+                ],
+            )
 
     def test_telegram_failure_does_not_fail_successful_analysis(self):
         with tempfile.TemporaryDirectory() as directory:
@@ -109,6 +166,79 @@ class OperationalRunnerTest(unittest.TestCase):
             calls = (root / "calls.txt").read_text(encoding="utf-8").splitlines()
             self.assertEqual(calls, ["main.py validate-inputs"])
             self.assertIn("Analyse annulee", result.stdout)
+
+    def test_analysis_failure_stops_before_walk_forward(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            env = self._project(root, analysis_status=7)
+
+            result = self._run(env)
+
+            self.assertEqual(result.returncode, 7)
+            calls = (root / "calls.txt").read_text(encoding="utf-8").splitlines()
+            self.assertEqual(
+                calls,
+                [
+                    "main.py validate-inputs",
+                    "main.py analyze --capital 0 --mode high-cagr",
+                ],
+            )
+
+    def test_missing_or_empty_report_stops_before_walk_forward(self):
+        for report_state in ("missing", "empty"):
+            with (
+                self.subTest(report_state=report_state),
+                tempfile.TemporaryDirectory() as directory,
+            ):
+                root = Path(directory)
+                env = self._project(root, report_state=report_state)
+
+                result = self._run(env)
+
+                self.assertEqual(result.returncode, 3)
+                calls = (root / "calls.txt").read_text(encoding="utf-8").splitlines()
+                self.assertEqual(
+                    calls,
+                    [
+                        "main.py validate-inputs",
+                        "main.py analyze --capital 0 --mode high-cagr",
+                    ],
+                )
+
+    def test_walk_forward_failure_does_not_fail_successful_analysis(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            env = self._project(root, walk_forward_status=6)
+            compact_html_report = (
+                root / "reports" / "latest_report_compact_high_cagr.html"
+            )
+            compact_html_report.write_text("<p>report</p>\n", encoding="utf-8")
+            notifications = root / "notifications.txt"
+            notifier = root / "telegram_capture.py"
+            notifier.write_text(
+                textwrap.dedent(
+                    """\
+                    import os
+                    import sys
+
+                    path = os.environ["INVESTMENT_AUTOMATION_TEST_NOTIFICATIONS"]
+                    with open(path, "a", encoding="utf-8") as handle:
+                        handle.write(" ".join(sys.argv[1:]) + "\\n")
+                    """
+                ),
+                encoding="utf-8",
+            )
+            env["INVESTMENT_AUTOMATION_TELEGRAM_NOTIFIER"] = str(notifier)
+            env["INVESTMENT_AUTOMATION_TEST_NOTIFICATIONS"] = str(notifications)
+
+            result = self._run(env)
+
+            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+            self.assertIn("walk-forward echoue avec le statut 6", result.stdout)
+            final_notification = notifications.read_text(encoding="utf-8").splitlines()[-1]
+            self.assertIn("SUCCÈS analyse high-cagr", final_notification)
+            self.assertIn("walk-forward échoué (statut 6)", final_notification)
+            self.assertIn(f"--document {compact_html_report}", final_notification)
 
     def test_configured_input_sync_runs_before_validation(self):
         with tempfile.TemporaryDirectory() as directory:
