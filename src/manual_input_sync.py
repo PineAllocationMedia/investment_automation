@@ -13,8 +13,14 @@ from .evidence_provenance import (
     HUMAN_MANUAL,
     PROXY_CALIBRATION_SYNC,
     calibration_field_freshness,
+    values_equivalent,
 )
-from .manual_inputs import MANUAL_COLUMNS, load_friendly_manual_inputs
+from .manual_inputs import (
+    FRIENDLY_ALIAS_COLUMNS,
+    MANUAL_COLUMNS,
+    load_friendly_manual_inputs,
+    parse_manual_row,
+)
 
 
 MISSING = {"", "x", "X", "N/A", "NA", "N/D", "ND", "LOW-MEDIUM"}
@@ -38,6 +44,18 @@ CALIBRATION_COLUMN_MAP = {
     "notes": "notes",
 }
 
+LEGACY_GENERATED_MARKER = "# Source: data/proxy_calibration.csv"
+PROVENANCE_METADATA_KEYS = {
+    "input_origin",
+    "calibration_synced_fields",
+    "calibration_snapshot_values",
+    "manual_override_fields",
+}
+
+
+class LegacyFriendlyInputMigrationRequired(RuntimeError):
+    """Raised when a metadata-free generated file cannot be migrated safely."""
+
 
 def sync_proxy_calibration_to_friendly(
     proxy_path: str | Path,
@@ -53,6 +71,7 @@ def sync_proxy_calibration_to_friendly(
     with open(proxy_path, newline="", encoding="utf-8") as handle:
         rows = list(csv.DictReader(handle))
 
+    _validate_legacy_friendly_migration(friendly_path, rows)
     existing_inputs = load_friendly_manual_inputs(friendly_path, today=today)
     config = configparser.ConfigParser(interpolation=None)
     config.optionxform = str
@@ -184,6 +203,80 @@ def _generated_values(row: dict[str, Any]) -> dict[str, Any]:
             continue
         values[manual_field] = raw
     return values
+
+
+def _validate_legacy_friendly_migration(
+    friendly_path: Path,
+    proxy_rows: list[dict[str, Any]],
+) -> None:
+    if not friendly_path.exists():
+        return
+    try:
+        source_text = friendly_path.read_text(encoding="utf-8")
+    except OSError as exc:
+        raise LegacyFriendlyInputMigrationRequired(
+            f"Legacy friendly-input migration required: cannot safely read {friendly_path}: {exc}. "
+            "The original file was not modified."
+        ) from exc
+    if LEGACY_GENERATED_MARKER not in source_text:
+        return
+
+    parser = configparser.ConfigParser(interpolation=None)
+    parser.optionxform = str
+    try:
+        parser.read_string(source_text)
+    except configparser.Error as exc:
+        raise LegacyFriendlyInputMigrationRequired(
+            f"Legacy friendly-input migration required: {friendly_path} has no provenance metadata "
+            f"and cannot be parsed safely ({exc}). The original file was not modified."
+        ) from exc
+
+    legacy_sections = [
+        section
+        for section in parser.sections()
+        if not any(metadata_key in parser[section] for metadata_key in PROVENANCE_METADATA_KEYS)
+    ]
+    if not legacy_sections:
+        return
+
+    generated_by_ticker = {
+        str(row.get("ticker", "") or "").strip().upper(): _generated_values(row)
+        for row in proxy_rows
+        if str(row.get("ticker", "") or "").strip()
+    }
+    issues: list[str] = []
+    for section in legacy_sections:
+        ticker = str(section or "").strip().upper()
+        generated_values = generated_by_ticker.get(ticker, {})
+        for raw_field, raw_value in parser.items(section):
+            if not str(raw_value or "").strip():
+                continue
+            field = FRIENDLY_ALIAS_COLUMNS.get(raw_field, raw_field)
+            label = f"{ticker}.{field}"
+            if field not in MANUAL_COLUMNS or field == "ticker":
+                issues.append(f"{label} cannot be safely reconciled")
+                continue
+            if field not in generated_values:
+                issues.append(f"{label} exists only in the legacy friendly file")
+                continue
+            legacy_value = parse_manual_row({"ticker": ticker, field: raw_value}).get(field)
+            generated_value = parse_manual_row(
+                {"ticker": ticker, field: generated_values[field]}
+            ).get(field)
+            if not values_equivalent(legacy_value, generated_value):
+                issues.append(f"{label} differs from proxy_calibration.csv")
+
+    if not issues:
+        return
+
+    details = "; ".join(sorted(issues))
+    raise LegacyFriendlyInputMigrationRequired(
+        "Legacy friendly-input migration required: "
+        f"{details}. The original file was not modified. Copy any intended human values aside, "
+        "reconcile or remove the identified legacy fields until the file matches "
+        "proxy_calibration.csv, run sync-manual-inputs once to add provenance metadata, then "
+        "reapply the intended human values to the metadata-bearing file."
+    )
 
 
 def _human_values(existing: dict[str, Any] | None) -> dict[str, Any]:

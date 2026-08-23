@@ -6,7 +6,10 @@ from tempfile import TemporaryDirectory
 
 from src.auto_fundamentals import merge_automated_with_manual_overrides
 from src.evidence_provenance import field_is_confirmed
-from src.manual_input_sync import sync_proxy_calibration_to_friendly
+from src.manual_input_sync import (
+    LegacyFriendlyInputMigrationRequired,
+    sync_proxy_calibration_to_friendly,
+)
 from src.manual_inputs import load_friendly_manual_inputs
 from src.thesis_engine import compute_thesis_status
 from tests.helpers import strong_benchmark, strong_manual, strong_market
@@ -163,6 +166,101 @@ class ProvenanceFreshnessTest(unittest.TestCase):
         self.assertIn("balance_sheet_strong", resynced["manual_override_fields"])
         self.assertTrue(field_is_confirmed(resynced, "balance_sheet_strong"))
 
+    def test_matching_legacy_generated_file_migrates_safely(self):
+        with TemporaryDirectory() as folder:
+            root = Path(folder)
+            self._write_proxy(root, source_date="2026-08-01")
+            friendly = root / "manual_inputs_friendly.txt"
+            friendly.write_text(
+                "# Source: data/proxy_calibration.csv\n\n"
+                "[VRT]\n"
+                "balance_sheet_strong = FALSE\n"
+                "management_quality_good = TRUE\n"
+                "notes = Historical calibration observation\n",
+                encoding="utf-8",
+            )
+
+            sync_proxy_calibration_to_friendly(
+                root / "proxy_calibration.csv", friendly, root / "sync_log.json", today=TODAY
+            )
+            migrated = load_friendly_manual_inputs(friendly, today=TODAY)["VRT"]
+            migrated_text = friendly.read_text(encoding="utf-8")
+
+        self.assertIn("calibration_snapshot_values", migrated_text)
+        self.assertIn("balance_sheet_strong", migrated["calibration_synced_fields"])
+        self.assertNotIn("balance_sheet_strong", migrated["manual_override_fields"])
+
+    def test_differing_legacy_generated_value_fails_closed(self):
+        with TemporaryDirectory() as folder:
+            root = Path(folder)
+            self._write_proxy(root, source_date="2026-08-01")
+            friendly = root / "manual_inputs_friendly.txt"
+            original = (
+                "# Source: data/proxy_calibration.csv\n\n"
+                "[VRT]\n"
+                "balance_sheet_strong = TRUE\n"
+            )
+            friendly.write_text(original, encoding="utf-8")
+
+            with self.assertRaisesRegex(
+                LegacyFriendlyInputMigrationRequired,
+                r"VRT\.balance_sheet_strong differs",
+            ):
+                sync_proxy_calibration_to_friendly(
+                    root / "proxy_calibration.csv", friendly, root / "sync_log.json", today=TODAY
+                )
+
+            self.assertEqual(friendly.read_text(encoding="utf-8"), original)
+            self.assertFalse((root / "sync_log.json").exists())
+
+    def test_legacy_only_field_fails_closed(self):
+        with TemporaryDirectory() as folder:
+            root = Path(folder)
+            self._write_proxy(root, source_date="2026-08-01")
+            friendly = root / "manual_inputs_friendly.txt"
+            original = (
+                "# Source: data/proxy_calibration.csv\n\n"
+                "[VRT]\n"
+                "catastrophic_fraud = FALSE\n"
+            )
+            friendly.write_text(original, encoding="utf-8")
+
+            with self.assertRaisesRegex(
+                LegacyFriendlyInputMigrationRequired,
+                r"VRT\.catastrophic_fraud exists only",
+            ):
+                sync_proxy_calibration_to_friendly(
+                    root / "proxy_calibration.csv", friendly, root / "sync_log.json", today=TODAY
+                )
+
+            self.assertEqual(friendly.read_text(encoding="utf-8"), original)
+
+    def test_unreconcilable_legacy_field_does_not_partially_rewrite(self):
+        with TemporaryDirectory() as folder:
+            root = Path(folder)
+            self._write_proxy(root, source_date="2026-08-01")
+            friendly = root / "manual_inputs_friendly.txt"
+            original = (
+                "# Source: data/proxy_calibration.csv\n\n"
+                "[VRT]\n"
+                "balance_sheet_strong = FALSE\n"
+                "thesis_health = INTACT\n"
+            )
+            friendly.write_text(original, encoding="utf-8")
+            log = root / "sync_log.json"
+            log.write_text('{"existing": true}\n', encoding="utf-8")
+
+            with self.assertRaisesRegex(
+                LegacyFriendlyInputMigrationRequired,
+                r"VRT\.thesis_health cannot be safely reconciled",
+            ):
+                sync_proxy_calibration_to_friendly(
+                    root / "proxy_calibration.csv", friendly, log, today=TODAY
+                )
+
+            self.assertEqual(friendly.read_text(encoding="utf-8"), original)
+            self.assertEqual(log.read_text(encoding="utf-8"), '{"existing": true}\n')
+
     def test_fresh_research_outranks_stale_calibration(self):
         with TemporaryDirectory() as folder:
             loaded = self._sync_and_load(Path(folder), source_date="2025-01-01")
@@ -189,6 +287,15 @@ class ProvenanceFreshnessTest(unittest.TestCase):
         self.assertEqual(thesis["thesis_status"], "INTACT")
 
     def _sync_and_load(self, root: Path, source_date: str) -> dict:
+        self._write_proxy(root, source_date)
+        friendly = root / "manual_inputs_friendly.txt"
+        sync_proxy_calibration_to_friendly(
+            root / "proxy_calibration.csv", friendly, root / "sync_log.json", today=TODAY
+        )
+        return load_friendly_manual_inputs(friendly, today=TODAY)["VRT"]
+
+    @staticmethod
+    def _write_proxy(root: Path, source_date: str) -> None:
         proxy = root / "proxy_calibration.csv"
         with open(proxy, "w", newline="", encoding="utf-8") as handle:
             writer = csv.DictWriter(handle, fieldnames=PROXY_COLUMNS)
@@ -206,9 +313,6 @@ class ProvenanceFreshnessTest(unittest.TestCase):
                     "notes": "Historical calibration observation",
                 }
             )
-        friendly = root / "manual_inputs_friendly.txt"
-        sync_proxy_calibration_to_friendly(proxy, friendly, root / "sync_log.json", today=TODAY)
-        return load_friendly_manual_inputs(friendly, today=TODAY)["VRT"]
 
     @staticmethod
     def _automated_balance(value: bool) -> dict:

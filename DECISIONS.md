@@ -2468,6 +2468,13 @@ confirmation or outrank current research/official evidence. Material conflicts
 are surfaced for monitoring/manual review. Genuine manual, qualifying research,
 and current official confirmation remain authoritative.
 
+The one-time upgrade of a legacy generated friendly-input file is fail-closed.
+Before writing either the friendly file or sync log, every populated legacy field
+must be safely reconcilable and equivalent to the current calibration source.
+Any difference or legacy-only/unknown field raises a ticker/field diagnostic and
+leaves both files unchanged; the operator must reconcile it before metadata is
+generated, then reapply any intended human value to the metadata-bearing file.
+
 ### Non-goals and history
 No ticker-specific exception, scoring-weight change, allocation-threshold change,
 valuation-rule change, new alpha feature, automatic trading, or broad validation

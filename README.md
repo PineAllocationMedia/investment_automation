@@ -1385,6 +1385,13 @@ Cette commande traduit le CSV vers `data/manual_inputs_friendly.txt` (format INI
 avec gating de staleness automatique. Ne pas éditer `manual_inputs_friendly.txt`
 directement — il est écrasé à chaque sync.
 
+Migration unique : si un ancien fichier généré ne contient pas encore les métadonnées
+de provenance, la synchronisation vérifie d'abord que chaque valeur correspond sans
+ambiguïté à `proxy_calibration.csv`. Au moindre écart ou champ non conciliable, elle
+échoue sans modifier le fichier ni le journal. Conservez les valeurs humaines à part,
+réconciliez ou retirez les champs signalés, lancez une fois la synchronisation pour
+ajouter les métadonnées, puis réappliquez les valeurs humaines voulues.
+
 Il sert plutôt à faire une calibration ponctuelle :
 
 1. vous ajoutez plusieurs exemples fiables;

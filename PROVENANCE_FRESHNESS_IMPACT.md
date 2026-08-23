@@ -5,7 +5,7 @@
 Starting point: `main` at `8356d527fc8aa308f15af7ab077a6189cbdc1bf5`,
 with `MODEL_RULES_VERSION=2026-07-05-continuous-magnitude-scoring-v2`.
 
-This validation checkout intentionally does not contain ignored operational files:
+The initial fixture validation checkout intentionally did not contain ignored operational files:
 `data/portfolio.csv`, `data/proxy_calibration.csv`, generated manual inputs, cached
 market data, or reports. No live portfolio/research data was modified or inferred.
 The before/after run therefore used the same deterministic 14-ticker fixture against
@@ -13,6 +13,9 @@ an archived starting `main` tree and the corrected tree. It exercised the comple
 position-analysis path through thesis, liquidation, cash-flow quality, durability,
 capital-allocation score, and final action. Results below are fixture measurements,
 not current live portfolio recommendations.
+
+The closure validation below subsequently used read-only copies of the real mounted
+operational inputs and a single frozen cache snapshot in isolated temporary trees.
 
 ## Reproduced root cause
 
@@ -96,6 +99,75 @@ rule.
 | `VALUATION_ONLY` | `EXPECTED_PROVENANCE_FIX` | Metadata-only; fundamental thesis stays intact while valuation watch remains separate. |
 | `CATASTROPHIC` | `EXPECTED_PROVENANCE_FIX` | Metadata-only; catastrophic `BROKEN` protection remains intact. |
 
+## Real operational same-input validation
+
+The complete normal `high-cagr` analysis path ran once at the base commit and once
+at the corrected tree with capital `0`. Both isolated trees received byte-identical
+copies of the mounted Drive inputs, state backup, 84 BNCD/Morningstar PDFs, prior
+report state, and the same 995-file market cache snapshot. The cache byte-manifest
+SHA-256 was `9881efd195391296d8e6dc0e9787f79c8a991821e5b2c57b828a8d5f62ef9af6`.
+No refresh flag was used: 264 unique evaluated tickers used `FRESH_CACHE`; `FI`
+remained identically unavailable in both runs and was not among the changed rows.
+The mounted `portfolio.csv`, `proxy_calibration.csv`, and legacy generated friendly
+file remained byte-identical to their pre-run copies.
+
+- Evaluated rows: 266 across core, watchlist, market-scanner, and discovery universes.
+- Unique evaluated tickers: 265.
+- Changed rows across the requested evidence/decision fields: 92 (91 unique tickers;
+  `TSLA` appears in two evaluated universes).
+- Tickers with an actual thesis, monitoring, liquidation, confirmed-sell,
+  allocation, or final-action change: 76.
+- Tickers with score-only or reason-only changes: 15 (`ADBE`, `AIR.PA`, `EFX`,
+  `FTNT`, `FTS.TO`, `FTV`, `HD`, `KLAC`, `MA`, `MPWR`, `NEE`, `NVDA`, `RTX`,
+  `SCHW`, `UDR`).
+- Field-difference classifications: 80 `EXPECTED_PROVENANCE_FIX`,
+  84 `EXPECTED_FRESHNESS_FIX`, 60 `EXPECTED_CONFLICT_FIX`, and
+  671 `EXPECTED_CROSS_ENGINE_FIX`.
+- `UNEXPECTED`: 0.
+
+The 19 real tickers carrying metadata-free legacy calibration fields were `AAPL`,
+`ANET`, `APH`, `APP`, `ASML`, `AVGO`, `CBOE`, `COST`, `CSU.TO`, `GOOGL`, `INTU`,
+`LLY`, `MA`, `META`, `MSFT`, `RHM.NE`, `TOI.V`, `TSLA`, and `VRT`. Their origin,
+freshness, confirmation, conflict, reliability, score, and downstream decision
+differences follow directly from reclassifying the same legacy values as undated
+calibration rather than human confirmation. The other changed rows are the intended
+cross-engine consistency effect: 69 carry current official confirmation and 12
+carry research evidence that the old engine-local confirmation rules handled
+inconsistently; all 72 carry automatic evidence that now uses the central rule.
+
+Actual decision/status/action changes occurred for:
+
+`AAPL`, `ABT`, `AEP`, `AJG`, `AMZN`, `ANET`, `AON`, `APH`, `APP`, `ARAY`, `ASML`,
+`AVGO`, `BRK-B`, `C`, `CB`, `CBOE`, `CEG`, `CMG`, `COST`, `CPRT`, `CRWD`, `CSU.TO`,
+`ETN`, `GEV`, `GILD`, `GOOGL`, `INTC`, `INTU`, `IQV`, `JNJ`, `LLY`, `MELI`, `META`,
+`MFC.TO`, `MSFT`, `MU`, `NEM`, `NOW`, `PG`, `PGR`, `QCOM`, `RHM.NE`, `SBAC`, `SJM`,
+`SLB`, `SNOW`, `SNPS`, `SOLV`, `SPG`, `STT`, `SW`, `SWKS`, `T`, `TAP`, `TECH`,
+`TGT`, `TOI.V`, `TRMB`, `TSCO`, `TSLA`, `TTD`, `TTWO`, `UAL`, `UBER`, `UHS`, `UPS`,
+`VICI`, `VRSK`, `VRT`, `VST`, `VTRS`, `VZ`, `WBD`, `WTW`, `XYZ`, `YUM`.
+
+### Real VRT result
+
+| Field | Base | Corrected |
+|---|---|---|
+| Thesis | `WEAKENING` — confirmed weakened balance sheet | `INTACT` — no major fundamental break |
+| Monitoring | `WATCH` | `MANUAL_REVIEW` for source conflict |
+| Liquidation | `YELLOW` | `GREEN` |
+| Confirmed fundamental sell signals | None | None |
+| `balance_sheet_strong` | `FALSE`, treated as manual/confirmed | `TRUE` from current data; legacy `FALSE` retained as contextual evidence |
+| Calibration freshness | Origin/date absent | `UNKNOWN_DATE`, non-authoritative |
+| Evidence conflict | Not surfaced | `TRUE`: balance sheet plus six other calibration/current-source differences |
+| Data reliability | `HIGH` / 93.88 | `HIGH` / 88.88 |
+| Fundamental score | 6.43 | 7.91 |
+| Capital-allocation score | 0 | 58.69 |
+| Conviction score | 97 | 90 |
+| Allocation decision | `DO_NOT_ADD` | `NO_NEW_ALLOCATION` |
+| Final action | `WATCH` | `NO_NEW_ALLOCATION` |
+
+The operational legacy friendly file was also exercised separately against the
+current operational calibration source in a temporary migration probe. All populated
+legacy values were equivalent, so the safeguard allowed metadata generation there;
+the real Drive file remained unchanged.
+
 ## Freshness and precedence policy
 
 - 90 days: valuation and forward-looking calibration fields.
@@ -114,9 +186,10 @@ and surfaced instead of silently deleted.
 
 ## Verification
 
-- Focused provenance/freshness and adjacent engine tests: 63 passed.
-- Complete suite in an isolated Python 3.12 environment: 718 passed, 0 failed,
-  0 skipped, 22.03 seconds.
+- Focused provenance/freshness tests: 18 passed.
+- Focused plus adjacent engine tests: 84 passed.
+- Complete suite in an isolated Python 3.12 environment: 722 passed, 0 failed,
+  0 skipped, 21.86 seconds.
 - `python main.py validate-inputs` passed in an isolated copy populated only with
   the repository portfolio template; the working checkout itself correctly reports
   its intentionally absent ignored `data/portfolio.csv`.
