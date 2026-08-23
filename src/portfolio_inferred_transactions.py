@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from collections import defaultdict, deque
 from pathlib import Path
 from typing import Any
 
@@ -46,25 +47,31 @@ def update_inferred_transactions_from_changes(
     as_of_date = as_of_date or today_iso()
     path = Path(path)
     existing_rows = read_csv_records(path)
-    output: list[dict[str, Any]] = []
-    seen: set[tuple[Any, ...]] = set()
-
+    existing_by_key: dict[tuple[Any, ...], deque[dict[str, Any]]] = defaultdict(deque)
     for row in existing_rows:
-        key = _dedupe_key(row)
-        if key in seen:
-            continue
-        seen.add(key)
-        output.append(row)
+        existing_by_key[_dedupe_key(row)].append(row)
+
+    output: list[dict[str, Any]] = []
+    represented_keys: set[tuple[Any, ...]] = set()
 
     for change in portfolio_change_history_rows:
         inferred = _inferred_row_from_change(change, as_of_date, sp500_proxy, sp500_proxy_price, sp500_proxy_price_basis)
         if not inferred:
             continue
         key = _dedupe_key(inferred)
-        if key in seen:
+        represented_keys.add(key)
+        if existing_by_key[key]:
+            output.append(existing_by_key[key].popleft())
+        else:
+            output.append(inferred)
+
+    # Preserve one legacy/orphan row per key, matching the previous behavior,
+    # but discard surplus rows for keys whose authoritative multiplicity is now
+    # represented by portfolio change history.
+    for key, rows in existing_by_key.items():
+        if key in represented_keys or not rows:
             continue
-        seen.add(key)
-        output.append(inferred)
+        output.append(rows.popleft())
 
     output = sorted(output, key=lambda row: (str(row.get("date") or ""), str(row.get("account_type") or ""), str(row.get("ticker") or "")))
     write_csv_records(path, output, INFERRED_TRANSACTION_COLUMNS)

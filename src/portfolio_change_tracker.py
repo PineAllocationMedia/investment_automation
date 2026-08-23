@@ -73,16 +73,16 @@ def update_portfolio_change_history(
     existing_history = read_csv_records(history_path)
 
     if not previous_snapshot:
-        latest_changes = _baseline_changes(current_snapshot, as_of_date)
-        changes_to_append = latest_changes if not existing_history else []
+        detected_changes = _baseline_changes(current_snapshot, as_of_date)
+        changes_to_append = detected_changes if not existing_history else []
     else:
-        latest_changes = detect_portfolio_changes(previous_map, current_map, as_of_date)
-        changes_to_append = latest_changes
+        detected_changes = detect_portfolio_changes(previous_map, current_map, as_of_date)
+        changes_to_append = _uncommitted_changes(detected_changes, existing_history)
 
     full_history = [*existing_history, *changes_to_append]
     write_csv_records(history_path, full_history, PORTFOLIO_CHANGE_COLUMNS)
     write_csv_records(snapshot_path, current_snapshot, PORTFOLIO_STATE_COLUMNS)
-    return latest_changes, full_history, summarize_portfolio_change_history(full_history)
+    return changes_to_append, full_history, summarize_portfolio_change_history(full_history)
 
 
 def build_portfolio_state_rows(rows: list[dict[str, Any]], as_of_date: str | None = None) -> list[dict[str, Any]]:
@@ -97,6 +97,15 @@ def build_portfolio_state_rows(rows: list[dict[str, Any]], as_of_date: str | Non
         current_value = safe_float(row.get("current_value_cad") or row.get("current_value")) or 0.0
         acquisition_value_cad = safe_float(row.get("acquisition_value_cad"))
         average_cost_cad = safe_float(row.get("average_cost_cad"))
+        average_cost = safe_float(row.get("average_cost"))
+        average_cost_currency = str(row.get("average_cost_currency") or "").strip().upper()
+        if not average_cost_currency and (average_cost_cad is not None or acquisition_value_cad is not None):
+            average_cost_currency = "CAD"
+        if average_cost is None and average_cost_currency == "CAD":
+            average_cost = average_cost_cad
+        acquisition_value = safe_float(row.get("acquisition_value"))
+        if acquisition_value is None and average_cost is not None:
+            acquisition_value = shares * average_cost
         if acquisition_value_cad is None and average_cost_cad is not None:
             acquisition_value_cad = shares * average_cost_cad
         key = (ticker, account_type)
@@ -115,15 +124,19 @@ def build_portfolio_state_rows(rows: list[dict[str, Any]], as_of_date: str | Non
                 "current_price_cad": row.get("current_price_cad"),
                 "current_value_cad": 0.0,
                 "_average_cost_source_total": 0.0,
-                "_average_cost_currency": str(row.get("average_cost_currency") or "").upper(),
+                "_average_cost_source_complete": True,
+                "_average_cost_currency": average_cost_currency,
             },
         )
         bucket["shares"] += shares
         bucket["current_value_cad"] += current_value
         bucket["acquisition_value_cad"] += acquisition_value_cad or 0.0
-        if acquisition_value_cad is not None:
-            bucket["_average_cost_source_total"] += acquisition_value_cad
-        row_currency = str(row.get("average_cost_currency") or "").upper()
+        if shares > EPSILON:
+            if acquisition_value is None:
+                bucket["_average_cost_source_complete"] = False
+            else:
+                bucket["_average_cost_source_total"] += acquisition_value
+        row_currency = average_cost_currency
         if row_currency:
             current_currency = bucket.get("_average_cost_currency") or row_currency
             bucket["_average_cost_currency"] = current_currency if current_currency == row_currency else "MIXED"
@@ -133,6 +146,17 @@ def build_portfolio_state_rows(rows: list[dict[str, Any]], as_of_date: str | Non
         shares = safe_float(bucket.get("shares")) or 0.0
         acquisition_value_cad = safe_float(bucket.get("acquisition_value_cad")) or 0.0
         average_cost_cad = acquisition_value_cad / shares if shares > EPSILON and acquisition_value_cad > 0 else None
+        average_cost_currency = str(bucket.get("_average_cost_currency") or "")
+        source_cost_total = safe_float(bucket.get("_average_cost_source_total")) or 0.0
+        source_cost_complete = bool(bucket.get("_average_cost_source_complete"))
+        average_cost = (
+            source_cost_total / shares
+            if shares > EPSILON
+            and source_cost_total > 0
+            and source_cost_complete
+            and average_cost_currency not in {"", "MIXED"}
+            else None
+        )
         output.append(
             {
                 "date": bucket.get("date"),
@@ -140,8 +164,8 @@ def build_portfolio_state_rows(rows: list[dict[str, Any]], as_of_date: str | Non
                 "account_type": bucket.get("account_type"),
                 "account_tax_category": bucket.get("account_tax_category"),
                 "shares": round(shares, 8),
-                "average_cost": "",
-                "average_cost_currency": bucket.get("_average_cost_currency") if average_cost_cad is not None else "",
+                "average_cost": round(average_cost, 4) if average_cost is not None else "",
+                "average_cost_currency": average_cost_currency if average_cost is not None or average_cost_cad is not None else "",
                 "average_cost_cad": round(average_cost_cad, 4) if average_cost_cad is not None else "",
                 "acquisition_value_cad": round(acquisition_value_cad, 2) if acquisition_value_cad > 0 else "",
                 "current_price_cad": _round_or_blank(bucket.get("current_price_cad"), 4),
@@ -181,11 +205,7 @@ def detect_portfolio_changes(
             changes.append(_change_row(as_of_date, ticker, account_type, change_type, previous, current, reason))
             continue
 
-        previous_cost = safe_float(previous.get("average_cost_cad"))
-        current_cost = safe_float(current.get("average_cost_cad"))
-        previous_currency = str(previous.get("average_cost_currency") or "")
-        current_currency = str(current.get("average_cost_currency") or "")
-        if shares_after > EPSILON and _cost_changed(previous_cost, current_cost, previous_currency, current_currency):
+        if shares_after > EPSILON and _cost_basis_changed(previous, current):
             changes.append(
                 _change_row(
                     as_of_date,
@@ -301,8 +321,8 @@ def _change_row(
         "shares_before": round(shares_before, 8),
         "shares_after": round(shares_after, 8),
         "shares_change": round(shares_change, 8),
-        "average_cost_before": _round_or_blank(previous.get("average_cost_cad"), 4),
-        "average_cost_after": _round_or_blank(current.get("average_cost_cad"), 4),
+        "average_cost_before": _round_or_blank(_stable_source_cost(previous), 4),
+        "average_cost_after": _round_or_blank(_stable_source_cost(current), 4),
         "average_cost_currency_before": previous.get("average_cost_currency", ""),
         "average_cost_currency_after": current.get("average_cost_currency", ""),
         "estimated_change_value_cad": round(estimated_value, 2) if estimated_value is not None else "",
@@ -355,19 +375,79 @@ def _rows_by_key(rows: list[dict[str, Any]]) -> dict[tuple[str, str], dict[str, 
     return output
 
 
-def _cost_changed(
-    previous_cost: float | None,
-    current_cost: float | None,
-    previous_currency: str,
-    current_currency: str,
-) -> bool:
-    if previous_currency != current_currency:
+def _cost_basis_changed(previous: dict[str, Any], current: dict[str, Any]) -> bool:
+    previous_currency = str(previous.get("average_cost_currency") or "").strip().upper()
+    current_currency = str(current.get("average_cost_currency") or "").strip().upper()
+    previous_cost = _stable_source_cost(previous)
+    current_cost = _stable_source_cost(current)
+
+    if previous_currency and current_currency and previous_currency != current_currency:
         return True
     if previous_cost is None and current_cost is None:
         return False
-    if previous_cost is None or current_cost is None:
+    if previous_cost is None:
+        # Legacy foreign-currency snapshots left average_cost blank. Their CAD
+        # value is FX-sensitive, so populate the new stable field without
+        # manufacturing a user edit during migration.
+        return False
+    if current_cost is None:
         return True
     return abs(previous_cost - current_cost) >= 0.01
+
+
+def _stable_source_cost(row: dict[str, Any]) -> float | None:
+    source_cost = safe_float(row.get("average_cost"))
+    if source_cost is not None:
+        return source_cost
+    currency = str(row.get("average_cost_currency") or "").strip().upper()
+    if currency == "CAD":
+        return safe_float(row.get("average_cost_cad"))
+    return None
+
+
+def _uncommitted_changes(
+    detected_changes: list[dict[str, Any]],
+    existing_history: list[dict[str, Any]],
+) -> list[dict[str, Any]]:
+    latest_by_position: dict[tuple[str, str], dict[str, Any]] = {}
+    for row in existing_history:
+        latest_by_position[_change_position_key(row)] = row
+
+    output: list[dict[str, Any]] = []
+    for change in detected_changes:
+        position_key = _change_position_key(change)
+        latest = latest_by_position.get(position_key)
+        if latest is not None and _change_identity(latest) == _change_identity(change):
+            continue
+        output.append(change)
+        latest_by_position[position_key] = change
+    return output
+
+
+def _change_position_key(row: dict[str, Any]) -> tuple[str, str]:
+    return (
+        normalize_ticker(row.get("ticker")),
+        normalize_account_type(row.get("account_type")) or "UNKNOWN",
+    )
+
+
+def _change_identity(row: dict[str, Any]) -> tuple[Any, ...]:
+    return (
+        str(row.get("date") or "").strip(),
+        *_change_position_key(row),
+        str(row.get("change_type") or "").strip().upper(),
+        _identity_number(row.get("shares_before"), 8),
+        _identity_number(row.get("shares_after"), 8),
+        _identity_number(row.get("average_cost_before"), 4),
+        _identity_number(row.get("average_cost_after"), 4),
+        str(row.get("average_cost_currency_before") or "").strip().upper(),
+        str(row.get("average_cost_currency_after") or "").strip().upper(),
+    )
+
+
+def _identity_number(value: Any, digits: int) -> float | None:
+    number = safe_float(value)
+    return round(number, digits) if number is not None else None
 
 
 def _round_or_blank(value: Any, digits: int) -> Any:

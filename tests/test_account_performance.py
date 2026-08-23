@@ -3,9 +3,72 @@ import unittest
 from pathlib import Path
 
 from src.account_performance_engine import build_account_performance_rows
+from src.utils import read_csv_records
 
 
 class AccountPerformanceTest(unittest.TestCase):
+    def test_same_day_upsert_removes_accounts_that_disappeared(self):
+        with tempfile.TemporaryDirectory() as directory:
+            history = Path(directory) / "account_performance_history.csv"
+            market_data = {"VFV.TO": {"current_price": 100}}
+            build_account_performance_rows(
+                [
+                    {"ticker": "MSFT", "account_type": "TFSA1", "current_value_cad": 1000, "acquisition_value_cad": 900},
+                    {"ticker": "AAPL", "account_type": "TFSA2", "current_value_cad": 500, "acquisition_value_cad": 450},
+                ],
+                market_data,
+                history,
+                as_of_date="2026-06-01",
+            )
+
+            build_account_performance_rows(
+                [{"ticker": "MSFT", "account_type": "TFSA1", "current_value_cad": 1100, "acquisition_value_cad": 900}],
+                market_data,
+                history,
+                as_of_date="2026-06-01",
+            )
+
+            same_day_rows = [row for row in read_csv_records(history) if row["date"] == "2026-06-01"]
+            self.assertEqual({row["account_type"] for row in same_day_rows}, {"TFSA1", "ALL_ACCOUNTS"})
+
+    def test_same_day_account_removal_preserves_prior_date_observations(self):
+        with tempfile.TemporaryDirectory() as directory:
+            history = Path(directory) / "account_performance_history.csv"
+            market_data = {"VFV.TO": {"current_price": 100}}
+            both_accounts = [
+                {"ticker": "MSFT", "account_type": "TFSA1", "current_value_cad": 1000, "acquisition_value_cad": 900},
+                {"ticker": "AAPL", "account_type": "TFSA2", "current_value_cad": 500, "acquisition_value_cad": 450},
+            ]
+            build_account_performance_rows(
+                both_accounts,
+                market_data,
+                history,
+                as_of_date="2026-05-31",
+            )
+            build_account_performance_rows(
+                both_accounts,
+                market_data,
+                history,
+                as_of_date="2026-06-01",
+            )
+            build_account_performance_rows(
+                [{"ticker": "MSFT", "account_type": "TFSA1", "current_value_cad": 1100, "acquisition_value_cad": 900}],
+                market_data,
+                history,
+                as_of_date="2026-06-01",
+            )
+
+            rows = read_csv_records(history)
+            prior_rows = [row for row in rows if row["date"] == "2026-05-31"]
+            current_rows = [row for row in rows if row["date"] == "2026-06-01"]
+            self.assertEqual({row["account_type"] for row in current_rows}, {"TFSA1", "ALL_ACCOUNTS"})
+            self.assertFalse(any(row["account_type"] == "TFSA2" for row in current_rows))
+            self.assertTrue(any(row["account_type"] == "TFSA2" for row in prior_rows))
+            self.assertEqual(
+                {row["account_type"] for row in prior_rows},
+                {"TFSA1", "TFSA2", "ALL_ACCOUNTS"},
+            )
+
     def test_creates_baseline_then_compares_account_to_sp500_proxy(self):
         with tempfile.TemporaryDirectory() as directory:
             history = Path(directory) / "account_performance_history.csv"
