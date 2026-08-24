@@ -2639,3 +2639,46 @@ is introduced. Because this is a behaviorally meaningful allocation correction,
 `2026-08-23-deep-drawdown-allocation-safeguard-v6`.
 `VALIDATION_SCHEMA_VERSION` remains
 `2026-08-23-validation-architecture-v3`.
+
+## 2026-08-23 - P4B allocation-room integrity
+
+### Problem and root cause
+
+The normal high-CAGR path enforced the documented cumulative 22.5% run budget
+for external `HIGH_GROWTH_BUT_FRAGILE` satellites through
+`_external_budget_room()`. The intentional high-CAGR overflow path used a
+separate room calculation that preserved watch and cycle budgets but omitted
+the satellite run budget and its existing individual 15% portfolio target. A
+deterministic $1,000 two-satellite fixture therefore allocated $650 combined.
+The allocation denominator also silently became $100,000 whenever summed
+current value was zero, authorizing percentage room that the inputs did not
+support.
+
+### Decision
+
+Normal and overflow allocation now consume one shared applicable-hard-room
+contract. It takes the minimum of each path's intentional strategy room and all
+hard invariants applicable to that candidate. The aggregate satellite budget is
+recomputed after every chunk across all qualifying tickers and includes normal
+allocations before overflow. The existing 15% constant remains an individual
+fragile-satellite post-purchase target. P3, reliability, drift, watch, and cycle
+precedence remain authoritative; the shared helper only reduces room.
+
+A genuinely empty portfolio uses zero current value and the current contribution
+as its post-contribution denominator. An owned portfolio in which any position
+lacks a valid positive current-value basis receives no percentage-based stock
+room and falls through to the existing defensive/VFV path. A complete valid
+current value, including the canonical `current_value_cad` fallback, retains existing behavior. The
+fabricated $100,000 fallback is removed.
+
+### Compatibility and versioning
+
+Intentional core and durable-external high-CAGR overflow remains unchanged and
+does not inherit the fragile-satellite budget. No new sector, hidden-cluster, or
+factor threshold is introduced; no scoring, thesis, sell, rebalancing,
+provenance, reliability-interpretation, validation-schema, or entity-resolution
+logic changes. `MODEL_RULES_VERSION` advances from
+`2026-08-23-deep-drawdown-allocation-safeguard-v6` to
+`2026-08-23-allocation-room-integrity-v7`.
+`VALIDATION_SCHEMA_VERSION` remains
+`2026-08-23-validation-architecture-v3`.
