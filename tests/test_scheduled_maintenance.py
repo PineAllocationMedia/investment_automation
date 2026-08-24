@@ -47,6 +47,7 @@ class ScheduledMaintenanceTest(unittest.TestCase):
         )
         self.assertEqual(commands, [])
 
+    @patch.dict("os.environ", {"INVESTMENT_AUTOMATION_INPUT_SOURCE": ""})
     def test_health_check_failure_stops_before_audits(self):
         runner = Mock(return_value=_Result(1))
         planner = Mock()
@@ -56,8 +57,9 @@ class ScheduledMaintenanceTest(unittest.TestCase):
             (root / ".venv" / "bin").mkdir(parents=True)
             status = scheduled_maintenance.run_maintenance(
                 project_root=root, mode="high-cagr", repair_safe=True,
-                config_path=root / "telegram.env", command_runner=runner,
-                audit_planner=planner, notifier=notifier,
+                config_path=root / "telegram.env",
+                input_sync_config_path=root / "missing-input-sync.env",
+                command_runner=runner, audit_planner=planner, notifier=notifier,
             )
         self.assertEqual(status, 1)
         planner.assert_not_called()
@@ -67,6 +69,7 @@ class ScheduledMaintenanceTest(unittest.TestCase):
         self.assertIn("--skip-portfolio-repair", runner.call_args.args[0])
         notifier.assert_called_once()
 
+    @patch.dict("os.environ", {"INVESTMENT_AUTOMATION_INPUT_SOURCE": ""})
     def test_healthy_maintenance_without_due_audit_only_runs_health_check(self):
         runner = Mock(return_value=_Result(0))
         notifier = Mock()
@@ -76,14 +79,16 @@ class ScheduledMaintenanceTest(unittest.TestCase):
             (root / ".venv" / "bin").mkdir(parents=True)
             status = scheduled_maintenance.run_maintenance(
                 project_root=root, mode="high-cagr", repair_safe=False,
-                config_path=root / "telegram.env", command_runner=runner,
-                audit_planner=planner, notifier=notifier,
+                config_path=root / "telegram.env",
+                input_sync_config_path=root / "missing-input-sync.env",
+                command_runner=runner, audit_planner=planner, notifier=notifier,
             )
         self.assertEqual(status, 0)
         self.assertEqual(runner.call_count, 1)
         self.assertNotIn("--repair-safe", runner.call_args.args[0])
         notifier.assert_called_once()
 
+    @patch.dict("os.environ", {"INVESTMENT_AUTOMATION_INPUT_SOURCE": ""})
     def test_due_model_audit_runs_after_health_check_and_sends_report(self):
         runner = Mock(side_effect=[_Result(0), _Result(0)])
         notifier = Mock()
@@ -97,8 +102,9 @@ class ScheduledMaintenanceTest(unittest.TestCase):
             (root / ".venv" / "bin").mkdir(parents=True)
             status = scheduled_maintenance.run_maintenance(
                 project_root=root, mode="high-cagr", repair_safe=True,
-                config_path=root / "telegram.env", command_runner=runner,
-                audit_planner=planner, notifier=notifier,
+                config_path=root / "telegram.env",
+                input_sync_config_path=root / "missing-input-sync.env",
+                command_runner=runner, audit_planner=planner, notifier=notifier,
             )
 
         self.assertEqual(status, 0)
@@ -194,6 +200,7 @@ class ScheduledMaintenanceTest(unittest.TestCase):
         planner.assert_not_called()
         notifier.assert_called_once()
 
+    @patch.dict("os.environ", {"INVESTMENT_AUTOMATION_INPUT_SOURCE": ""})
     def test_strict_maintenance_without_source_fails_closed(self):
         runner = Mock()
         notifier = Mock()
