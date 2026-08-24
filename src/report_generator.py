@@ -4479,11 +4479,12 @@ def compact_account_charts_markdown(rows: list[dict[str, Any]]) -> list[str]:
         chart_path = row.get("chart_path")
         if not chart_path:
             continue
+        display_name = "Total - Portfolio 1 + Portfolio 2" if account_type == "ALL_ACCOUNTS" else account_type
         lines.extend(
             [
-                f"#### {account_type}",
+                f"#### {display_name}",
                 "",
-                f"![Répartition du compte {account_type}]({chart_path})",
+                f"![Répartition {display_name}]({chart_path})",
                 "",
             ]
         )
