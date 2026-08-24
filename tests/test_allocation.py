@@ -11,6 +11,22 @@ from src.allocation_engine import (
 from src.sizing_engine import compute_capital_allocation_score
 
 
+def _valid_portfolio_filler(value: float = 100_000) -> dict:
+    filler = full_strong_analysis("OLD")
+    filler.update(
+        {
+            "current_value": value,
+            "current_value_cad": value,
+            "position_weight": 1.0,
+            "shares": 1,
+            "thesis_status": "WEAKENING",
+            "liquidation_status": "YELLOW",
+            "add_eligibility_status": "DO_NOT_ADD",
+        }
+    )
+    return filler
+
+
 class AllocationTest(unittest.TestCase):
     def test_mandatory_vfv_percentage(self):
         self.assertEqual(mandatory_vfv_percent(8.2), 0.10)
@@ -49,8 +65,12 @@ class AllocationTest(unittest.TestCase):
         candidate["conviction_score"] = 90
         candidate["data_reliability_level"] = "HIGH"
         candidate["capital_allocation_score"] = 75
+        candidate["current_value"] = 10_000
+        candidate["current_value_cad"] = 10_000
+        candidate["position_weight"] = 0.10
+        candidate["shares"] = 1
 
-        result = allocate_capital(1000, {"MSFT": candidate}, "high-cagr")
+        result = allocate_capital(1000, {"MSFT": candidate, "OLD": _valid_portfolio_filler(90_000)}, "high-cagr")
         msft_total = sum(row["montant"] for row in result["allocations"] if row["destination"] == "MSFT")
 
         self.assertGreater(msft_total, 0)
@@ -197,6 +217,8 @@ class AllocationTest(unittest.TestCase):
             }
         )
         core["capital_allocation_score"] = 75
+        core.update(_valid_portfolio_filler())
+        core["ticker"] = "MSFT"
 
         result = allocate_capital(1000, {"MSFT": core, "NVDA": external}, "family-office")
         external_total = sum(row["montant"] for row in result["allocations"] if row["destination"] == "NVDA")
@@ -254,14 +276,26 @@ class AllocationTest(unittest.TestCase):
     def test_dynamic_sizing_allocates_to_strong_candidate(self):
         strong = full_strong_analysis("MSFT")
         strong.update(compute_capital_allocation_score(strong, {"concentration_by_sector": {}, "top3_weight": 0}))
-        result = allocate_capital(1000, {"MSFT": strong, "VFV.TO": {"ticker": "VFV.TO", "score_total": 8}}, "family-office")
+        strong["current_value"] = 0
+        strong["position_weight"] = 0
+        result = allocate_capital(
+            1000,
+            {"MSFT": strong, "OLD": _valid_portfolio_filler(), "VFV.TO": {"ticker": "VFV.TO", "score_total": 8}},
+            "family-office",
+        )
         self.assertTrue(any(row["destination"] == "MSFT" for row in result["allocations"]))
 
     def test_high_cagr_mode_reduces_vfv_and_allows_larger_core_allocation(self):
         strong = full_strong_analysis("MSFT")
         strong["score_total"] = 8.6
         strong["capital_allocation_score"] = 90
-        result = allocate_capital(1000, {"MSFT": strong, "VFV.TO": {"ticker": "VFV.TO", "score_total": 8}}, "high-cagr")
+        strong["current_value"] = 0
+        strong["position_weight"] = 0
+        result = allocate_capital(
+            1000,
+            {"MSFT": strong, "OLD": _valid_portfolio_filler(), "VFV.TO": {"ticker": "VFV.TO", "score_total": 8}},
+            "high-cagr",
+        )
         vfv_total = sum(row["montant"] for row in result["allocations"] if row["destination"] == "VFV.TO")
         msft_total = sum(row["montant"] for row in result["allocations"] if row["destination"] == "MSFT")
         self.assertEqual(result["mandatory_vfv_percent"], 0.05)
@@ -612,8 +646,11 @@ class AllocationTest(unittest.TestCase):
         candidate["score_confidence_label"] = "WIDE"
         candidate["conviction_confidence_label"] = "NORMAL"
         candidate["capital_allocation_confidence_label"] = "WIDE"
+        candidate["current_value"] = 1
+        candidate["current_value_cad"] = 1
+        candidate["position_weight"] = 0.00001
 
-        result = allocate_capital(1000, {"INTU": candidate}, "high-cagr")
+        result = allocate_capital(1000, {"INTU": candidate, "OLD": _valid_portfolio_filler()}, "high-cagr")
         intu_rows = [row for row in result["allocations"] if row["destination"] == "INTU"]
         intu_total = sum(row["montant"] for row in intu_rows)
 
@@ -636,8 +673,11 @@ class AllocationTest(unittest.TestCase):
         candidate["conviction_confidence_label"] = "NORMAL"
         candidate["capital_allocation_confidence_label"] = "NORMAL"
         candidate["score_evidence_level"] = "MOSTLY_CONFIRMED"
+        candidate["current_value"] = 1
+        candidate["current_value_cad"] = 1
+        candidate["position_weight"] = 0.00001
 
-        result = allocate_capital(1000, {"MSFT": candidate}, "high-cagr")
+        result = allocate_capital(1000, {"MSFT": candidate, "OLD": _valid_portfolio_filler()}, "high-cagr")
         msft_total = sum(row["montant"] for row in result["allocations"] if row["destination"] == "MSFT")
 
         self.assertGreaterEqual(msft_total, 500)
@@ -683,7 +723,11 @@ class AllocationTest(unittest.TestCase):
         clear_leader["capital_allocation_score"] = 95
         clear_leader["allocation_stability_adjustment"] = 0
 
-        result = allocate_capital(1000, {"MSFT": previous_pick, "AVGO": clear_leader}, "high-cagr")
+        result = allocate_capital(
+            1000,
+            {"MSFT": previous_pick, "AVGO": clear_leader, "OLD": _valid_portfolio_filler()},
+            "high-cagr",
+        )
         msft_total = sum(row["montant"] for row in result["allocations"] if row["destination"] == "MSFT")
         avgo_total = sum(row["montant"] for row in result["allocations"] if row["destination"] == "AVGO")
 

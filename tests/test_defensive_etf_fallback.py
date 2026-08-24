@@ -167,6 +167,8 @@ class DefensiveEtfFallbackTest(unittest.TestCase):
         strong["business_quality_score"] = 95
         strong["long_term_durability_status"] = "VERY_DURABLE_COMPOUNDER"
         strong["opportunity_cost_status"] = "CLEARLY_BETTER_THAN_VFV"
+        strong["current_value"] = 0
+        strong["position_weight"] = 0
         defensive = build_defensive_etf_candidates(CONFIG, "balanced", MARKET_DATA)
 
         result = allocate_capital(1000, {"MSFT": strong}, "balanced", defensive_etf_candidates=defensive)

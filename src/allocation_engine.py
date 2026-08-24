@@ -108,6 +108,10 @@ HIGH_CAGR_EMERGING_SATELLITE_BUDGET = 0.225
 # une position dominante au fil du temps.
 # Ref : Audit anomalie 2 — allocation_engine review session
 HIGH_CAGR_EMERGING_SATELLITE_TARGET_WEIGHT = 0.15
+PORTFOLIO_VALUE_BASIS_VALID = "VALID_CURRENT_PORTFOLIO_VALUE"
+PORTFOLIO_VALUE_BASIS_EMPTY = "EMPTY_PORTFOLIO_POST_CONTRIBUTION"
+PORTFOLIO_VALUE_BASIS_MISSING = "MISSING_CURRENT_PORTFOLIO_VALUE"
+NON_MARKET_PORTFOLIO_VALUE_SOURCES = {"acquisition_value_fallback"}
 
 
 def _defensive_reserve_pct(mode: str) -> float:
@@ -674,8 +678,12 @@ def _optimize_monthly_contribution(
     allocations_by_ticker: dict[str, float] = {}
     remaining_to_allocate = round(remaining, 2)
     current_total = _current_portfolio_value(analyses)
+    portfolio_value_basis_status = _portfolio_value_basis_status(analyses, current_total)
     chunk = _monthly_chunk_size(capital, mode)
-    log = ["Optimisation mensuelle: simulation des poids après contribution."]
+    log = [
+        "Optimisation mensuelle: simulation des poids après contribution.",
+        f"Base de valeur portefeuille: {portfolio_value_basis_status}.",
+    ]
     candidate_lookup = {str(row.get("ticker")): row for row in candidates}
 
     while remaining_to_allocate > 0.01:
@@ -684,7 +692,15 @@ def _optimize_monthly_contribution(
         best_room = 0.0
 
         for candidate in candidates:
-            room = _available_monthly_room(candidate, allocations_by_ticker, candidate_lookup, current_total, capital, mode)
+            room = _available_monthly_room(
+                candidate,
+                allocations_by_ticker,
+                candidate_lookup,
+                current_total,
+                capital,
+                mode,
+                portfolio_value_basis_status,
+            )
             if room <= 0.01:
                 continue
             score = _marginal_monthly_score(candidate, allocations_by_ticker, candidate_lookup, current_total, capital, mode)
@@ -715,6 +731,7 @@ def _optimize_monthly_contribution(
                 capital=capital,
                 candidates=overflow_candidates,
                 chunk=chunk,
+                portfolio_value_basis_status=portfolio_value_basis_status,
             )
             if deployed > 0:
                 remaining_to_allocate = round(remaining_to_allocate - deployed, 2)
@@ -743,6 +760,12 @@ def _optimize_monthly_contribution(
         log.append(
             f"Budget nouvelles positions externes: {external_allocated:.2f} $ / {_external_allocation_budget(capital, mode):.2f} $ "
             "(évite qu'une idée externe remplace trop vite le Core Portfolio)."
+        )
+    satellite_allocated = _high_cagr_emerging_satellite_allocated_total(allocations_by_ticker, all_lookup)
+    if mode == "high-cagr" and satellite_allocated > 0:
+        log.append(
+            f"Budget cumulatif satellites émergents: {satellite_allocated:.2f} $ / "
+            f"{capital * HIGH_CAGR_EMERGING_SATELLITE_BUDGET:.2f} $."
         )
     for ticker, amount in sorted(
         allocations_by_ticker.items(),
@@ -927,6 +950,7 @@ def _deploy_high_cagr_overflow(
     capital: float,
     candidates: list[dict[str, Any]],
     chunk: float,
+    portfolio_value_basis_status: str = PORTFOLIO_VALUE_BASIS_VALID,
 ) -> float:
     remaining = round(amount_to_deploy, 2)
     deployed = 0.0
@@ -936,7 +960,14 @@ def _deploy_high_cagr_overflow(
         best_room = 0.0
         candidate_lookup = {str(row.get("ticker")): row for row in candidates}
         for candidate in candidates:
-            room = _high_cagr_overflow_room(candidate, allocations_by_ticker, candidate_lookup, current_total, capital)
+            room = _high_cagr_overflow_room(
+                candidate,
+                allocations_by_ticker,
+                candidate_lookup,
+                current_total,
+                capital,
+                portfolio_value_basis_status,
+            )
             if room <= 0.01:
                 continue
             score = _high_cagr_overflow_score(candidate, allocations_by_ticker, candidate_lookup)
@@ -963,9 +994,8 @@ def _high_cagr_overflow_room(
     candidate_lookup: dict[str, dict[str, Any]],
     current_total: float,
     capital: float,
+    portfolio_value_basis_status: str = PORTFOLIO_VALUE_BASIS_VALID,
 ) -> float:
-    if candidate.get("deep_averaging_down_blocked") is True:
-        return 0.0
     already_allocated = allocations_by_ticker.get(candidate["ticker"], 0.0)
     amount_basis = capital
     score = safe_float(candidate.get("capital_allocation_score")) or 0.0
@@ -996,18 +1026,26 @@ def _high_cagr_overflow_room(
     fraction = min(fraction, _reliability_cap_fraction(candidate, "high-cagr"))
     _annotate_reliability_allocation_cap(candidate, "high-cagr", fraction_before_reliability, fraction, amount_basis)
     monthly_cap = amount_basis * fraction
-    denominator = current_total + capital if current_total + capital > 0 else capital
-    current_weight = (_candidate_current_value(candidate, current_total) + already_allocated) / denominator if denominator > 0 else 0.0
-    if current_weight > 0.34:
-        return 0.0
-    room = round(max(0.0, monthly_cap - already_allocated), 2)
-    return round(
-        min(
-            room,
-            _watch_budget_room(candidate, allocations_by_ticker, candidate_lookup, capital, "high-cagr"),
-            _cycle_budget_room(candidate, allocations_by_ticker, candidate_lookup, capital, "high-cagr"),
-        ),
-        2,
+    overflow_room = round(max(0.0, monthly_cap - already_allocated), 2)
+    if portfolio_value_basis_status in {PORTFOLIO_VALUE_BASIS_VALID, PORTFOLIO_VALUE_BASIS_EMPTY}:
+        denominator = current_total + capital
+        current_weight = (
+            (_candidate_current_value(candidate, current_total) + already_allocated) / denominator
+            if denominator > 0
+            else 0.0
+        )
+        if current_weight > 0.34:
+            overflow_room = 0.0
+    return _applicable_hard_additional_capital_room(
+        candidate,
+        allocations_by_ticker,
+        candidate_lookup,
+        current_total,
+        capital,
+        "high-cagr",
+        "overflow",
+        portfolio_value_basis_status,
+        [(overflow_room, "HIGH_CAGR_OVERFLOW_CANDIDATE_CAP_REACHED")],
     )
 
 
@@ -1072,16 +1110,50 @@ def _candidate_cap(candidate: dict[str, Any], mode: str, amount_basis: float) ->
 
 
 def _current_portfolio_value(analyses: dict[str, dict[str, Any]]) -> float:
-    total = sum(safe_float(row.get("current_value")) or 0.0 for row in analyses.values())
+    return round(sum(_row_current_portfolio_value(row) for row in analyses.values()), 2)
+
+
+def _row_current_portfolio_value(row: dict[str, Any]) -> float:
+    current_value = safe_float(row.get("current_value"))
+    current_value_cad = safe_float(row.get("current_value_cad"))
+    if current_value is not None and current_value > 0:
+        return current_value
+    if current_value_cad is not None and current_value_cad > 0:
+        return current_value_cad
+    return 0.0
+
+
+def _portfolio_value_basis_status(
+    analyses: dict[str, dict[str, Any]],
+    current_total: float | None = None,
+) -> str:
+    total = _current_portfolio_value(analyses) if current_total is None else current_total
+    owned_rows = [row for row in analyses.values() if _is_existing_owned_position(row)]
+    if any(not _row_has_valid_current_market_value(row) for row in owned_rows):
+        return PORTFOLIO_VALUE_BASIS_MISSING
     if total > 0:
-        return total
-    return 100_000.0
+        return PORTFOLIO_VALUE_BASIS_VALID
+    if owned_rows:
+        return PORTFOLIO_VALUE_BASIS_MISSING
+    return PORTFOLIO_VALUE_BASIS_EMPTY
+
+
+def _row_has_valid_current_market_value(row: dict[str, Any]) -> bool:
+    valuation_source = str(row.get("portfolio_valuation_source") or "").strip()
+    if valuation_source in NON_MARKET_PORTFOLIO_VALUE_SOURCES:
+        return False
+    return _row_current_portfolio_value(row) > 0
 
 
 def _candidate_current_value(candidate: dict[str, Any], current_total: float) -> float:
     value = safe_float(candidate.get("current_value"))
-    if value is not None:
+    value_cad = safe_float(candidate.get("current_value_cad"))
+    if value is not None and value > 0:
         return value
+    if value_cad is not None and value_cad > 0:
+        return value_cad
+    if value == 0 or value_cad == 0:
+        return 0.0
     return (safe_float(candidate.get("position_weight")) or 0.0) * current_total
 
 
@@ -1184,22 +1256,35 @@ def _available_monthly_room(
     current_total: float,
     capital: float,
     mode: str,
+    portfolio_value_basis_status: str = PORTFOLIO_VALUE_BASIS_VALID,
 ) -> float:
-    if candidate.get("deep_averaging_down_blocked") is True:
-        return 0.0
     ticker = candidate["ticker"]
     already_allocated = allocations_by_ticker.get(ticker, 0.0)
-    denominator = current_total + capital if current_total + capital > 0 else capital
-    current_value = _candidate_current_value(candidate, current_total)
-    target_weight = _target_post_contribution_weight(candidate, mode)
-    room_to_target = max(0.0, target_weight * denominator - current_value - already_allocated)
+    path_rooms: list[tuple[float, str]] = []
+    if not (mode == "high-cagr" and _high_cagr_emerging_satellite_candidate(candidate)):
+        denominator = current_total + capital if current_total + capital > 0 else capital
+        current_value = _candidate_current_value(candidate, current_total)
+        target_weight = _target_post_contribution_weight(candidate, mode)
+        room_to_target = max(0.0, target_weight * denominator - current_value - already_allocated)
+        path_rooms.append((room_to_target, "NORMAL_POST_PURCHASE_TARGET_REACHED"))
     room_by_monthly_cap = max(0.0, _candidate_cap(candidate, mode, capital) - already_allocated)
-    room_by_watch_budget = _watch_budget_room(candidate, allocations_by_ticker, candidate_lookup, capital, mode)
-    room_by_cycle_budget = _cycle_budget_room(candidate, allocations_by_ticker, candidate_lookup, capital, mode)
     room_by_external_budget = _external_budget_room(candidate, allocations_by_ticker, candidate_lookup, capital, mode)
-    return round(
-        min(room_to_target, room_by_monthly_cap, room_by_watch_budget, room_by_cycle_budget, room_by_external_budget),
-        2,
+    path_rooms.extend(
+        [
+            (room_by_monthly_cap, "MONTHLY_CANDIDATE_CAP_REACHED"),
+            (room_by_external_budget, "EXTERNAL_ALLOCATION_BUDGET_REACHED"),
+        ]
+    )
+    return _applicable_hard_additional_capital_room(
+        candidate,
+        allocations_by_ticker,
+        candidate_lookup,
+        current_total,
+        capital,
+        mode,
+        "normal",
+        portfolio_value_basis_status,
+        path_rooms,
     )
 
 
@@ -1529,6 +1614,13 @@ def _allocation_row(
                 "single_name_concentration_reason": candidate.get("single_name_concentration_reason", ""),
                 "data_confidence_badge": candidate.get("data_confidence_badge", ""),
                 "canadian_tax_advantage_active": candidate.get("canadian_tax_advantage_active", ""),
+                "applicable_hard_room": candidate.get("applicable_hard_room", ""),
+                "limiting_room_reason": candidate.get("limiting_room_reason", ""),
+                "satellite_run_budget": candidate.get("satellite_run_budget", ""),
+                "satellite_allocated_this_run": candidate.get("satellite_allocated_this_run", ""),
+                "satellite_remaining_run_room": candidate.get("satellite_remaining_run_room", ""),
+                "post_purchase_position_weight": candidate.get("post_purchase_position_weight", ""),
+                "portfolio_value_basis_status": candidate.get("portfolio_value_basis_status", ""),
             }
         )
     return row
@@ -2041,18 +2133,93 @@ def _external_budget_room(
         return capital
     already_allocated = allocations_by_ticker.get(candidate["ticker"], 0.0)
     if mode == "high-cagr" and _high_cagr_emerging_satellite_candidate(candidate):
-        satellite_room = (
-            capital * HIGH_CAGR_EMERGING_SATELLITE_BUDGET
-            - _high_cagr_emerging_satellite_allocated_total(allocations_by_ticker, candidate_lookup)
-        )
-        individual_room = capital * HIGH_CAGR_EMERGING_SATELLITE_BUDGET - already_allocated
-        return round(max(0.0, min(satellite_room, individual_room)), 2)
+        # The shared hard-room contract owns both the aggregate 22.5% run
+        # budget and the existing individual 15% post-purchase target.
+        return round(max(0.0, capital), 2)
     if mode == "high-cagr":
         individual_room = capital * _external_individual_cap_fraction(mode) - already_allocated
         return round(max(0.0, individual_room), 2)
     total_room = _external_allocation_budget(capital, mode) - _external_allocated_total(allocations_by_ticker, candidate_lookup)
     individual_room = capital * _external_individual_cap_fraction(mode) - already_allocated
     return round(max(0.0, min(total_room, individual_room)), 2)
+
+
+def _applicable_hard_additional_capital_room(
+    candidate: dict[str, Any],
+    allocations_by_ticker: dict[str, float],
+    candidate_lookup: dict[str, dict[str, Any]],
+    current_total: float,
+    capital: float,
+    mode: str,
+    path: str,
+    portfolio_value_basis_status: str,
+    path_rooms: list[tuple[float, str]],
+) -> float:
+    """Return the minimum of every hard room applicable to this path."""
+    candidate["portfolio_value_basis_status"] = portfolio_value_basis_status
+    candidate["allocation_room_path"] = path
+    if candidate.get("deep_averaging_down_blocked") is True:
+        candidate["applicable_hard_room"] = 0.0
+        candidate["limiting_room_reason"] = "DEEP_AVERAGING_DOWN_BLOCKED"
+        return 0.0
+
+    # A genuine empty portfolio has a valid post-contribution denominator.
+    # An owned portfolio whose value basis is unavailable does not.
+    if portfolio_value_basis_status == PORTFOLIO_VALUE_BASIS_MISSING:
+        candidate["applicable_hard_room"] = 0.0
+        candidate["limiting_room_reason"] = "POST_PURCHASE_ROOM_UNAVAILABLE_MISSING_PORTFOLIO_VALUE"
+        return 0.0
+
+    rooms = list(path_rooms)
+    rooms.extend(
+        [
+            (
+                _watch_budget_room(candidate, allocations_by_ticker, candidate_lookup, capital, mode),
+                "WATCH_RUN_BUDGET_EXHAUSTED",
+            ),
+            (
+                _cycle_budget_room(candidate, allocations_by_ticker, candidate_lookup, capital, mode),
+                "CYCLE_RUN_BUDGET_EXHAUSTED",
+            ),
+        ]
+    )
+
+    denominator = current_total + capital if current_total + capital > 0 else capital
+    already_allocated = allocations_by_ticker.get(candidate["ticker"], 0.0)
+    current_value = _candidate_current_value(candidate, current_total)
+    if denominator > 0:
+        candidate["post_purchase_position_weight"] = round(
+            (current_value + already_allocated) / denominator,
+            6,
+        )
+
+    if mode == "high-cagr" and _high_cagr_emerging_satellite_candidate(candidate):
+        satellite_budget = round(capital * HIGH_CAGR_EMERGING_SATELLITE_BUDGET, 2)
+        satellite_allocated = _high_cagr_emerging_satellite_allocated_total(
+            allocations_by_ticker,
+            candidate_lookup,
+        )
+        satellite_room = round(max(0.0, satellite_budget - satellite_allocated), 2)
+        target_room = round(
+            max(
+                0.0,
+                HIGH_CAGR_EMERGING_SATELLITE_TARGET_WEIGHT * denominator
+                - current_value
+                - already_allocated,
+            ),
+            2,
+        )
+        candidate["satellite_run_budget"] = satellite_budget
+        candidate["satellite_allocated_this_run"] = satellite_allocated
+        candidate["satellite_remaining_run_room"] = satellite_room
+        rooms.insert(0, (satellite_room, "EMERGING_SATELLITE_RUN_BUDGET_EXHAUSTED"))
+        rooms.insert(1, (target_room, "EMERGING_SATELLITE_TARGET_REACHED"))
+
+    normalized_rooms = [(round(max(0.0, room), 2), reason) for room, reason in rooms]
+    final_room, limiting_reason = min(normalized_rooms, key=lambda item: item[0])
+    candidate["applicable_hard_room"] = final_room
+    candidate["limiting_room_reason"] = limiting_reason
+    return final_room
 
 
 def _cycle_risk_level(candidate: dict[str, Any]) -> str:

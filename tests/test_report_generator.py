@@ -4,6 +4,7 @@ from src.report_generator import (
     _blocked_external_validation_rows_for_compact_report,
     account_performance_rows_for_report,
     account_performance_indicator_legend_rows,
+    allocation_rows_for_csv,
     allocation_justification_rows_for_report,
     allocation_recommendation_narrative,
     auto_estimate_rows_for_output,
@@ -21,6 +22,29 @@ from src.utils import today_iso
 
 
 class ReportGeneratorTest(unittest.TestCase):
+    def test_allocation_csv_preserves_hard_room_audit_metadata(self):
+        rows = allocation_rows_for_csv(
+            [
+                {
+                    "destination": "SAT1",
+                    "montant": 125,
+                    "pourcentage": 0.125,
+                    "applicable_hard_room": 0,
+                    "limiting_room_reason": "EMERGING_SATELLITE_RUN_BUDGET_EXHAUSTED",
+                    "satellite_run_budget": 225,
+                    "satellite_allocated_this_run": 225,
+                    "satellite_remaining_run_room": 0,
+                    "post_purchase_position_weight": 0.125,
+                    "portfolio_value_basis_status": "EMPTY_PORTFOLIO_POST_CONTRIBUTION",
+                }
+            ]
+        )
+
+        self.assertEqual(rows[0]["applicable_hard_room"], 0)
+        self.assertEqual(rows[0]["limiting_room_reason"], "EMERGING_SATELLITE_RUN_BUDGET_EXHAUSTED")
+        self.assertEqual(rows[0]["satellite_run_budget"], 225)
+        self.assertEqual(rows[0]["portfolio_value_basis_status"], "EMPTY_PORTFOLIO_POST_CONTRIBUTION")
+
     def test_compact_risk_includes_secondary_aggregate_clusters(self):
         rows = compact_risk_for_compact_report(
             {
