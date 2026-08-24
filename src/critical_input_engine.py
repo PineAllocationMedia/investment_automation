@@ -43,7 +43,8 @@ class CriticalInputError(RuntimeError):
 
 
 def decision_capable_run(*, capital: Any, run_purpose: Any) -> bool:
-    return purpose_is_genuine_decision(run_purpose) or (safe_float(capital) or 0.0) > 0
+    numeric_capital = safe_float(capital)
+    return numeric_capital is not None and numeric_capital > 0
 
 
 def audit_static_critical_inputs(
@@ -55,6 +56,7 @@ def audit_static_critical_inputs(
 ) -> dict[str, Any]:
     root = Path(project_root)
     decision_capable = decision_capable_run(capital=capital, run_purpose=run_purpose)
+    strict_static_inputs = decision_capable or purpose_is_genuine_decision(run_purpose)
     issues: list[dict[str, str]] = []
     numeric_capital = safe_float(capital)
     if numeric_capital is None or numeric_capital < 0:
@@ -72,9 +74,9 @@ def audit_static_critical_inputs(
         except Exception as exc:  # noqa: BLE001
             issues.append(_issue(HARD_FAIL, "UNREADABLE_PORTFOLIO", f"data/portfolio.csv cannot be read safely: {exc}"))
             portfolio_rows = []
-        if decision_capable and not portfolio_rows:
+        if strict_static_inputs and not portfolio_rows:
             issues.append(_issue(HARD_FAIL, "EMPTY_PORTFOLIO", "A decision-capable analysis requires at least one usable portfolio row."))
-        if decision_capable:
+        if strict_static_inputs:
             try:
                 issues.extend(_cost_basis_consistency_issues(portfolio_path))
             except Exception as exc:  # noqa: BLE001
@@ -86,7 +88,7 @@ def audit_static_critical_inputs(
         validation_messages = []
         issues.append(_issue(HARD_FAIL, "INPUT_VALIDATION_FAILED", f"Critical input validation could not complete safely: {exc}"))
     for message in validation_messages:
-        classification = _validation_issue_classification(message, decision_capable=decision_capable)
+        classification = _validation_issue_classification(message, decision_capable=strict_static_inputs)
         issues.append(_issue(classification, "INPUT_VALIDATION", message))
 
     issues.extend(_config_integrity_issues(root))
@@ -147,6 +149,47 @@ def merge_input_audits(*audits: dict[str, Any]) -> dict[str, Any]:
         issues.extend(audit.get("issues", []))
         decision_capable = decision_capable or bool(audit.get("decision_capable"))
     return _audit_payload(issues, decision_capable=decision_capable)
+
+
+def audit_baseline_environment_authority(baseline_metadata: dict[str, Any]) -> dict[str, Any]:
+    """Hard-fail only frozen, positive-capital Baseline decisions with environment drift."""
+    issues: list[dict[str, str]] = []
+    reasons = set(baseline_metadata.get("baseline_authority_reasons") or [])
+    environment_reasons = {
+        "BASELINE_DEPENDENCY_ENVIRONMENT_INVALID",
+        "BASELINE_TRACKED_GIT_STATE_INVALID",
+    }
+    if reasons - environment_reasons:
+        return _audit_payload(
+            issues,
+            decision_capable=decision_capable_run(
+                capital=baseline_metadata.get("capital"),
+                run_purpose=baseline_metadata.get("run_purpose"),
+            ),
+        )
+    if "BASELINE_DEPENDENCY_ENVIRONMENT_INVALID" in reasons:
+        issues.append(
+            _issue(
+                HARD_FAIL,
+                "BASELINE_DEPENDENCY_ENVIRONMENT_INVALID",
+                "An active positive-capital Baseline decision requires dependency_status=MATCH.",
+            )
+        )
+    if "BASELINE_TRACKED_GIT_STATE_INVALID" in reasons:
+        issues.append(
+            _issue(
+                HARD_FAIL,
+                "BASELINE_TRACKED_GIT_STATE_INVALID",
+                "An active positive-capital Baseline decision requires a clean tracked Git worktree.",
+            )
+        )
+    return _audit_payload(
+        issues,
+        decision_capable=decision_capable_run(
+            capital=baseline_metadata.get("capital"),
+            run_purpose=baseline_metadata.get("run_purpose"),
+        ),
+    )
 
 
 def _validation_issue_classification(message: str, *, decision_capable: bool) -> str:

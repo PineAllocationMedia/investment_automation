@@ -5,6 +5,7 @@ from pathlib import Path
 from typing import Any
 
 from .model_version import MODEL_RULES_VERSION
+from .baseline_identity import baseline_snapshot_fields
 from .utils import read_csv_records, safe_float, today_iso, write_csv_records
 from .validation_evidence import RunPurpose, VALIDATION_SCHEMA_VERSION, normalize_run_purpose
 
@@ -752,10 +753,7 @@ def write_universe_snapshot(
             "mode": mode,
             "model_rules_version": model_rules_version,
             "run_purpose": normalize_run_purpose(run_purpose),
-            "baseline_id": baseline.get("baseline_id", ""),
-            "baseline_started_at": baseline.get("baseline_started_at", ""),
-            "baseline_evidence_status": baseline.get("baseline_evidence_status", ""),
-            "baseline_forward_eligible": baseline.get("baseline_forward_eligible", False),
+            **baseline_snapshot_fields(baseline),
             "manifest_reference": manifest_reference,
             "manifest_fingerprint": manifest_fingerprint,
             "ticker_count": len(scored_tickers),

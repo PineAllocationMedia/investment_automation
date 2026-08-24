@@ -5,6 +5,7 @@ from pathlib import Path
 from typing import Any
 
 from .model_version import MODEL_RULES_VERSION
+from .baseline_identity import baseline_snapshot_fields
 from .validation_evidence import RunPurpose, normalize_run_purpose
 from .utils import load_json, read_csv_records, safe_float, save_json, today_iso, write_csv_records
 
@@ -347,10 +348,7 @@ def save_current_snapshot(
         "model_rules_version": MODEL_RULES_VERSION,
         "analysis_mode": normalized_mode,
         "run_purpose": normalize_run_purpose(run_purpose),
-        "baseline_id": baseline.get("baseline_id", ""),
-        "baseline_started_at": baseline.get("baseline_started_at", ""),
-        "baseline_evidence_status": baseline.get("baseline_evidence_status", ""),
-        "baseline_forward_eligible": baseline.get("baseline_forward_eligible", False),
+        **baseline_snapshot_fields(baseline),
         "manifest_reference": manifest_reference,
         "manifest_fingerprint": manifest_fingerprint,
         "analyses": rows,

@@ -54,6 +54,7 @@ from src.data_freshness_engine import apply_market_freshness_to_reliability, com
 from src.decision_quality_engine import annotate_allocations_with_decision_quality, compute_decision_quality
 from src.decision_manifest_engine import (
     build_decision_manifest,
+    git_tracked_state,
     write_decision_manifest,
     write_failed_run_audit,
 )
@@ -72,10 +73,12 @@ from src.hidden_cluster_engine import apply_hidden_cluster_guardrails
 from src.health_check_engine import HEALTH_CHECK_COLUMNS, health_summary, run_health_check
 from src.critical_input_engine import (
     CriticalInputError,
+    audit_baseline_environment_authority,
     audit_runtime_critical_inputs,
     audit_static_critical_inputs,
     merge_input_audits,
 )
+from src.dependency_reproducibility import dependency_environment
 from src.instrument_profile_engine import build_instrument_profiles
 from src.liquidation_engine import apply_history_sell_discipline, compute_liquidation_status
 from src.long_term_durability_engine import compute_long_term_durability
@@ -1262,17 +1265,34 @@ def run_analysis(
     run_id = make_run_id("analyze", mode)
     run_timestamp = datetime.now().isoformat(timespec="seconds")
     resolved_run_purpose = resolve_analysis_run_purpose(run_purpose, capital=capital)
-    baseline_metadata = baseline_observation_metadata(
-        run_timestamp=run_timestamp,
-        run_purpose=resolved_run_purpose,
-        capital=capital,
-        config_path=CONFIG_DIR / "baseline.yaml",
-    )
     static_input_audit = audit_static_critical_inputs(
         PROJECT_ROOT,
         capital=capital,
         run_purpose=resolved_run_purpose,
         mode=mode,
+    )
+    dependency_payload = dependency_environment(PROJECT_ROOT / "requirements.lock")
+    tracked_git_payload = git_tracked_state(PROJECT_ROOT)
+    approved_config_active = bool(
+        str(load_yaml(CONFIG_DIR / "baseline.yaml").get("approved_config_fingerprint") or "").strip()
+    ) and not any(
+        row.get("code") == "BASELINE_CONFIG_FINGERPRINT_MISMATCH"
+        for row in static_input_audit.get("hard_failures", [])
+    )
+    baseline_metadata = baseline_observation_metadata(
+        run_timestamp=run_timestamp,
+        run_purpose=resolved_run_purpose,
+        capital=capital,
+        config_path=CONFIG_DIR / "baseline.yaml",
+        critical_input_passed=not bool(static_input_audit.get("hard_failures")),
+        approved_config_active=approved_config_active,
+        dependency_status=str(dependency_payload.get("dependency_status") or "UNKNOWN"),
+        git_tracked_worktree_clean=tracked_git_payload.get("git_tracked_worktree_clean") is True,
+        git_tracked_diff_fingerprint=str(tracked_git_payload.get("git_tracked_diff_fingerprint") or ""),
+    )
+    static_input_audit = merge_input_audits(
+        static_input_audit,
+        audit_baseline_environment_authority(baseline_metadata),
     )
     if static_input_audit.get("hard_failures"):
         write_failed_run_audit(
@@ -1426,6 +1446,17 @@ def run_analysis(
             run_purpose=resolved_run_purpose,
         )
         critical_input_audit = merge_input_audits(static_input_audit, runtime_input_audit)
+        baseline_metadata = baseline_observation_metadata(
+            run_timestamp=run_timestamp,
+            run_purpose=resolved_run_purpose,
+            capital=capital,
+            config_path=CONFIG_DIR / "baseline.yaml",
+            critical_input_passed=not bool(critical_input_audit.get("hard_failures")),
+            approved_config_active=approved_config_active,
+            dependency_status=str(dependency_payload.get("dependency_status") or "UNKNOWN"),
+            git_tracked_worktree_clean=tracked_git_payload.get("git_tracked_worktree_clean") is True,
+            git_tracked_diff_fingerprint=str(tracked_git_payload.get("git_tracked_diff_fingerprint") or ""),
+        )
         if critical_input_audit.get("hard_failures"):
             write_failed_run_audit(
                 reports_dir=REPORTS_DIR,
@@ -1741,6 +1772,32 @@ def run_analysis(
             cache_health_rows.append(circuit_breaker_reset_row)
         full_audit_signal = compute_full_audit_signal(REPORTS_DIR, mode)
         model_audit_signal = compute_model_audit_signal(REPORTS_DIR, mode)
+        tracked_git_payload = git_tracked_state(PROJECT_ROOT)
+        baseline_metadata = baseline_observation_metadata(
+            run_timestamp=run_timestamp,
+            run_purpose=resolved_run_purpose,
+            capital=capital,
+            config_path=CONFIG_DIR / "baseline.yaml",
+            critical_input_passed=not bool(critical_input_audit.get("hard_failures")),
+            approved_config_active=approved_config_active,
+            dependency_status=str(dependency_payload.get("dependency_status") or "UNKNOWN"),
+            git_tracked_worktree_clean=tracked_git_payload.get("git_tracked_worktree_clean") is True,
+            git_tracked_diff_fingerprint=str(tracked_git_payload.get("git_tracked_diff_fingerprint") or ""),
+        )
+        final_baseline_environment_audit = audit_baseline_environment_authority(baseline_metadata)
+        if final_baseline_environment_audit.get("hard_failures"):
+            critical_input_audit = merge_input_audits(critical_input_audit, final_baseline_environment_audit)
+            write_failed_run_audit(
+                reports_dir=REPORTS_DIR,
+                project_root=PROJECT_ROOT,
+                run_id=run_id,
+                run_timestamp=run_timestamp,
+                run_purpose=resolved_run_purpose,
+                mode=mode,
+                capital=capital,
+                input_audit=critical_input_audit,
+            )
+            raise CriticalInputError(critical_input_audit)
         decision_manifest = build_decision_manifest(
             project_root=PROJECT_ROOT,
             run_id=run_id,
@@ -1760,6 +1817,8 @@ def run_analysis(
             benchmark_data=benchmark_data,
             baseline_metadata=baseline_metadata,
             input_audit=critical_input_audit,
+            dependency_payload=dependency_payload,
+            git_state_payload=tracked_git_payload,
         )
         manifest_summary = write_decision_manifest(REPORTS_DIR, decision_manifest)
         allocation_result["baseline_identity"] = baseline_metadata

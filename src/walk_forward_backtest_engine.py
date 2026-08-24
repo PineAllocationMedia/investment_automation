@@ -8,6 +8,7 @@ from typing import Any
 import pandas as pd
 
 from .backtest_engine import fetch_price_history_cad
+from .baseline_identity import VALIDATION_BASELINE_ID, combined_baseline_snapshot_authority
 from .benchmark_comparison_engine import (
     WALK_FORWARD_BENCHMARK_COLUMNS,
     benchmark_price_tickers,
@@ -48,6 +49,9 @@ WALK_FORWARD_INVENTORY_COLUMNS = [
     "run_purpose_status",
     "primary_timeline_eligible",
     "eligibility_basis",
+    "baseline_id",
+    "baseline_evidence_status",
+    "baseline_forward_eligible",
     "analysis_snapshot_path",
     "allocation_snapshot_path",
     "analysis_row_count",
@@ -68,6 +72,7 @@ WALK_FORWARD_COVERAGE_COLUMNS = [
     "status",
     "evidence_class",
     "evidence_maturity",
+    "baseline_id",
     "distinct_analysis_dates",
     "paired_snapshot_dates",
     "decision_eligible_snapshots",
@@ -77,6 +82,9 @@ WALK_FORWARD_COVERAGE_COLUMNS = [
     "legacy_partially_recoverable_snapshots",
     "usable_walk_forward_periods",
     "genuine_decision_usable_periods",
+    "baseline_forward_eligible_snapshots",
+    "baseline_forward_usable_periods",
+    "baseline_evidence_maturity",
     "legacy_partially_recoverable_usable_periods",
     "first_analysis_date",
     "last_analysis_date",
@@ -96,6 +104,9 @@ WALK_FORWARD_SUMMARY_COLUMNS = [
     "strategy_validation_authority",
     "simulated_periods",
     "genuine_oos_periods",
+    "baseline_id",
+    "baseline_forward_periods",
+    "baseline_evidence_maturity",
     "explicit_decision_simulated_periods",
     "legacy_partially_recoverable_simulated_periods",
     "non_authoritative_simulated_periods",
@@ -128,6 +139,9 @@ WALK_FORWARD_PERIOD_COLUMNS = [
     "run_purpose_status",
     "eligibility_basis",
     "strategy_validation_authority",
+    "baseline_id",
+    "baseline_evidence_status",
+    "baseline_forward_eligible",
     "model_rules_version",
     "analysis_date",
     "next_analysis_date",
@@ -379,6 +393,13 @@ def build_walk_forward_coverage(
         if str(row.get("eligibility_basis") or "") == LEGACY_PARTIALLY_RECOVERABLE_BASIS
     ]
     legacy_usable = [row for row in usable if row in legacy_partially_recoverable]
+    baseline_eligible = [
+        row
+        for row in explicit_eligible
+        if row.get("baseline_forward_eligible") is True
+        and str(row.get("baseline_id") or "") == VALIDATION_BASELINE_ID
+    ]
+    baseline_usable = [row for row in usable if row in baseline_eligible]
     dates = [str(row.get("analysis_date")) for row in dated]
     status = _coverage_status(len(usable), config.recommended_min_periods)
     return {
@@ -392,6 +413,7 @@ def build_walk_forward_coverage(
             else EvidenceClass.POINT_IN_TIME_WALK_FORWARD.value
         ),
         "evidence_maturity": evidence_maturity(len(genuine_usable)),
+        "baseline_id": VALIDATION_BASELINE_ID,
         "distinct_analysis_dates": len(dated),
         "paired_snapshot_dates": len(paired),
         "decision_eligible_snapshots": len(eligible),
@@ -401,6 +423,9 @@ def build_walk_forward_coverage(
         "legacy_partially_recoverable_snapshots": len(legacy_partially_recoverable),
         "usable_walk_forward_periods": len(usable),
         "genuine_decision_usable_periods": len(genuine_usable),
+        "baseline_forward_eligible_snapshots": len(baseline_eligible),
+        "baseline_forward_usable_periods": len(baseline_usable),
+        "baseline_evidence_maturity": evidence_maturity(len(baseline_usable)),
         "legacy_partially_recoverable_usable_periods": len(legacy_usable),
         "first_analysis_date": min(dates) if dates else "",
         "last_analysis_date": max(dates) if dates else "",
@@ -441,6 +466,8 @@ def build_walk_forward_inventory_report(
             "run_purpose_status",
             "primary_timeline_eligible",
             "eligibility_basis",
+            "baseline_id",
+            "baseline_forward_eligible",
             "allocation_count",
             "allocated_tickers",
             "next_analysis_date",
@@ -491,6 +518,14 @@ def build_walk_forward_simulation_summary(
         if str(row.get("evaluation_status") or "") in {"SIMULATED", "SIMULATED_WITH_PARTIAL_PRICE_DATA"}
     ]
     genuine_oos = [row for row in simulated if walk_forward_period_has_strategy_validation_authority(row)]
+    baseline_forward = [
+        row
+        for row in simulated
+        if row.get("baseline_forward_eligible") is True
+        and str(row.get("baseline_id") or "") == VALIDATION_BASELINE_ID
+        and walk_forward_period_has_strategy_validation_authority(row)
+        and str(row.get("eligibility_basis") or "") == EXPLICIT_DECISION_ELIGIBILITY_BASIS
+    ]
     legacy_partially_recoverable = [
         row
         for row in simulated
@@ -534,6 +569,9 @@ def build_walk_forward_simulation_summary(
         "strategy_validation_authority": "EXPLICIT_DECISION_PERIODS_ONLY",
         "simulated_periods": len(simulated),
         "genuine_oos_periods": len(genuine_oos),
+        "baseline_id": VALIDATION_BASELINE_ID,
+        "baseline_forward_periods": len(baseline_forward),
+        "baseline_evidence_maturity": evidence_maturity(len(baseline_forward)),
         "explicit_decision_simulated_periods": len(genuine_oos),
         "legacy_partially_recoverable_simulated_periods": len(legacy_partially_recoverable),
         "non_authoritative_simulated_periods": non_authoritative_count,
@@ -652,6 +690,8 @@ def build_walk_forward_backtest_report(
             "run_purpose",
             "run_purpose_status",
             "eligibility_basis",
+            "baseline_id",
+            "baseline_forward_eligible",
             "evidence_class",
             "strategy_validation_authority",
             "next_analysis_date",
@@ -695,6 +735,10 @@ def build_walk_forward_backtest_report(
         "",
         _markdown_table(_compact_inventory_rows(inventory_rows), [
             "analysis_date",
+            "run_purpose",
+            "eligibility_basis",
+            "baseline_id",
+            "baseline_forward_eligible",
             "allocation_count",
             "allocated_tickers",
             "next_analysis_date",
@@ -752,6 +796,7 @@ def _latest_daily_payloads(history_dir: Path, kind: str, mode: str) -> dict[str,
             "run_purpose": purpose,
             "run_purpose_status": "EXPLICIT" if str(payload.get("run_purpose") or "").strip() else "LEGACY_UNCERTAINTY",
             "rows": rows,
+            "payload": payload,
         }
     return selected
 
@@ -770,6 +815,7 @@ def _inventory_row(
     top_ticker, top_pct = _top_allocation(allocation_rows)
     vfv_pct = _allocation_pct(allocation_rows, "VFV.TO")
     run_purpose, purpose_status = combined_snapshot_purpose([analysis_payload, allocation_payload])
+    baseline = _inventory_baseline_authority(analysis_payload, allocation_payload, run_purpose)
     exclusion = _exclusion_reason(analysis_payload, allocation_payload, next_date, days_to_next, config)
     return {
         "mode": config.mode,
@@ -781,6 +827,7 @@ def _inventory_row(
         "run_purpose_status": purpose_status,
         "primary_timeline_eligible": False,
         "eligibility_basis": "",
+        **baseline,
         "analysis_snapshot_path": analysis_payload.get("path", ""),
         "allocation_snapshot_path": allocation_payload.get("path", ""),
         "analysis_row_count": len(analysis_rows),
@@ -825,6 +872,19 @@ def _primary_timeline_dates(
             selected.append(analysis_date)
             basis[analysis_date] = LEGACY_PARTIALLY_RECOVERABLE_BASIS
     return sorted(set(selected)), basis
+
+
+def _inventory_baseline_authority(
+    analysis_payload: dict[str, Any],
+    allocation_payload: dict[str, Any],
+    run_purpose: str,
+) -> dict[str, Any]:
+    raw_payloads = [
+        record.get("payload")
+        for record in (analysis_payload, allocation_payload)
+        if isinstance(record.get("payload"), dict)
+    ]
+    return combined_baseline_snapshot_authority(raw_payloads, run_purpose=run_purpose)
 
 
 def _purpose_selection_rank(value: Any) -> int:
@@ -1266,6 +1326,12 @@ def _period_authority_metadata(row: dict[str, Any]) -> dict[str, Any]:
         "run_purpose": run_purpose,
         "run_purpose_status": str(row.get("run_purpose_status") or ""),
         "eligibility_basis": eligibility_basis,
+        "baseline_id": str(row.get("baseline_id") or ""),
+        "baseline_evidence_status": str(row.get("baseline_evidence_status") or ""),
+        "baseline_forward_eligible": (
+            row.get("baseline_forward_eligible") is True
+            and eligibility_basis != LEGACY_PARTIALLY_RECOVERABLE_BASIS
+        ),
     }
     metadata["strategy_validation_authority"] = walk_forward_period_has_strategy_validation_authority(metadata)
     return metadata

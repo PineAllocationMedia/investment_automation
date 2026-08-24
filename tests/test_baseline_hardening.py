@@ -59,11 +59,13 @@ class BaselineIdentityTest(unittest.TestCase):
             after = baseline_observation_metadata(
                 run_timestamp="2026-09-01T12:00:01",
                 run_purpose="SCHEDULED_DECISION",
+                capital=500,
                 config_path=config,
             )
             diagnostic = baseline_observation_metadata(
                 run_timestamp="2026-09-01T12:00:01",
                 run_purpose="DIAGNOSTIC",
+                capital=500,
                 config_path=config,
             )
             zero_capital = baseline_observation_metadata(

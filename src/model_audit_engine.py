@@ -5,6 +5,7 @@ from datetime import date, datetime, timedelta
 from pathlib import Path
 from typing import Any
 
+from .baseline_identity import VALIDATION_BASELINE_ID, combined_baseline_snapshot_authority
 from .mode_artifacts import write_csv_records_mode_pair, write_text_mode_pair
 from .model_version import MODEL_RULES_VERSION
 from .utils import DISCLAIMER, load_json, markdown_to_html, pct, safe_float, today_iso
@@ -213,6 +214,7 @@ def _audit_sample(
         for row in analysis_rows
         if str(row.get("ticker") or "").strip()
     }
+    baseline_metadata = _combined_baseline_authority(allocation_record, analysis_record, run_purpose)
     return {
         "date": sample_date,
         "created_at": max(
@@ -224,7 +226,21 @@ def _audit_sample(
         "analyses_by_ticker": analyses_by_ticker,
         "decision_quality": (allocation_record.get("payload") or {}).get("decision_quality", {}),
         "model_rules_version": allocation_record.get("model_rules_version") or analysis_record.get("model_rules_version") or "",
+        **baseline_metadata,
     }
+
+
+def _combined_baseline_authority(
+    allocation_record: dict[str, Any],
+    analysis_record: dict[str, Any],
+    run_purpose: str,
+) -> dict[str, Any]:
+    payloads = [
+        record.get("payload")
+        for record in (allocation_record, analysis_record)
+        if isinstance(record.get("payload"), dict)
+    ]
+    return combined_baseline_snapshot_authority(payloads, run_purpose=run_purpose)
 
 
 def _audit_metrics(
@@ -253,6 +269,12 @@ def _audit_metrics(
         sample
         for sample in total_samples
         if str(sample.get("model_rules_version") or "") == current_model_rules_version
+    ]
+    baseline_forward_samples = [
+        sample
+        for sample in current_version_samples
+        if sample.get("baseline_forward_eligible") is True
+        and str(sample.get("baseline_id") or "") == VALIDATION_BASELINE_ID
     ]
     current_version_unknown_samples = [
         sample
@@ -360,6 +382,10 @@ def _audit_metrics(
         "current_version_unknown_purpose_observation_count": len(current_version_unknown_samples),
         "cross_version_decision_observation_count": len(cross_version_decision_samples),
         "current_version_observation_count": sample_count,
+        "baseline_id": VALIDATION_BASELINE_ID,
+        "baseline_forward_observation_count": len(baseline_forward_samples),
+        "baseline_forward_periods": len(baseline_forward_samples),
+        "baseline_evidence_maturity": evidence_maturity(len(baseline_forward_samples)),
         "cross_version_observation_count": cross_version_observation_count,
         "unknown_version_observation_count": unknown_version_observation_count,
         "version_transition_count": version_transition_count,
@@ -405,6 +431,17 @@ def _audit_metrics(
 def _audit_rows(metrics: dict[str, Any]) -> list[dict[str, Any]]:
     threshold_review = metrics.get("threshold_review") or {}
     rows = [
+        _row(
+            "Portée",
+            "Évidence forward Baseline V1",
+            metrics.get("baseline_evidence_maturity", "INSUFFICIENT"),
+            f"{metrics.get('baseline_forward_observation_count', 0)} observation(s)",
+            (
+                f"{metrics.get('baseline_id')}: seules les décisions post-déploiement explicitement admissibles "
+                "comptent dans cette maturité."
+            ),
+            "Le contexte P2/OOS historique reste distinct et inchangé.",
+        ),
         _row(
             "Portée",
             "Audit de version courant",
@@ -556,6 +593,7 @@ def _audit_markdown(metrics: dict[str, Any], rows: list[dict[str, Any]]) -> str:
         f"- Période demandée: {metrics.get('period')}",
         f"- Mode analysé: {mode_text}",
         f"- Historique primaire utilisé: {metrics.get('sample_count')} décision(s) comparable(s) sur {metrics.get('span_days')} jour(s)",
+        f"- Évidence {metrics.get('baseline_id')}: {metrics.get('baseline_forward_observation_count', 0)} observation(s); maturité {metrics.get('baseline_evidence_maturity')}",
         f"- Dates avec allocation exploitable: {metrics.get('allocation_sample_count')}",
         f"- Dates récentes incluses: {date_text}",
         f"- Observations du même but/version le même jour regroupées: {metrics.get('same_day_collapsed_count')}",

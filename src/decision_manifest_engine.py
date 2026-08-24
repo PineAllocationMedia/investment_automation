@@ -88,6 +88,30 @@ def git_commit_sha(project_root: str | Path) -> str:
     return value if len(value) == 40 and all(character in "0123456789abcdef" for character in value) else "UNKNOWN"
 
 
+def git_tracked_state(project_root: str | Path) -> dict[str, Any]:
+    """Describe tracked differences only; untracked/ignored operational files do not count."""
+    try:
+        completed = subprocess.run(
+            ["git", "diff", "--binary", "--no-ext-diff", "HEAD", "--"],
+            cwd=Path(project_root),
+            check=True,
+            capture_output=True,
+            timeout=10,
+        )
+    except Exception:  # noqa: BLE001
+        return {
+            "git_tracked_worktree_clean": False,
+            "git_tracked_diff_fingerprint": "UNKNOWN",
+            "git_tracked_state_status": "UNAVAILABLE",
+        }
+    diff = completed.stdout
+    return {
+        "git_tracked_worktree_clean": not diff,
+        "git_tracked_diff_fingerprint": hashlib.sha256(diff).hexdigest(),
+        "git_tracked_state_status": "CLEAN" if not diff else "DIRTY",
+    }
+
+
 def build_decision_manifest(
     *,
     project_root: str | Path,
@@ -105,6 +129,7 @@ def build_decision_manifest(
     input_audit: dict[str, Any] | None = None,
     git_sha: str | None = None,
     dependency_payload: dict[str, Any] | None = None,
+    git_state_payload: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     root = Path(project_root)
     baseline = baseline_metadata or baseline_observation_metadata(
@@ -114,6 +139,7 @@ def build_decision_manifest(
         config_path=root / "config" / "baseline.yaml",
     )
     dependencies = dependency_payload or dependency_environment(root / "requirements.lock")
+    tracked_git = git_state_payload or git_tracked_state(root)
     config_fingerprints = _directory_file_fingerprints(root, root / "config", suffixes={".yaml", ".yml"})
     portfolio_fingerprints = _selected_file_fingerprints(
         root,
@@ -145,6 +171,8 @@ def build_decision_manifest(
         "model_rules_version": MODEL_RULES_VERSION,
         "validation_schema_version": VALIDATION_SCHEMA_VERSION,
         "git_commit_sha": git_sha or git_commit_sha(root),
+        "git_tracked_worktree_clean": tracked_git.get("git_tracked_worktree_clean"),
+        "git_tracked_diff_fingerprint": tracked_git.get("git_tracked_diff_fingerprint"),
         "run_purpose": normalize_run_purpose(run_purpose),
         "mode": mode,
         "capital": capital,
@@ -167,6 +195,9 @@ def build_decision_manifest(
         "model_rules_version": MODEL_RULES_VERSION,
         "validation_schema_version": VALIDATION_SCHEMA_VERSION,
         "git_commit_sha": semantic_identity["git_commit_sha"],
+        "git_tracked_worktree_clean": semantic_identity["git_tracked_worktree_clean"],
+        "git_tracked_diff_fingerprint": semantic_identity["git_tracked_diff_fingerprint"],
+        "git_tracked_state_status": tracked_git.get("git_tracked_state_status", "UNKNOWN"),
         "mode": mode,
         "capital": capital,
         "config_fingerprints": config_fingerprints,
@@ -240,6 +271,9 @@ def write_decision_manifest(
         "manifest_fingerprint": str(manifest.get("manifest_fingerprint") or ""),
         "decision_output_fingerprint": str(manifest.get("decision_output_fingerprint") or ""),
         "git_commit_sha": str(manifest.get("git_commit_sha") or "UNKNOWN"),
+        "git_tracked_worktree_clean": manifest.get("git_tracked_worktree_clean", False),
+        "git_tracked_diff_fingerprint": str(manifest.get("git_tracked_diff_fingerprint") or ""),
+        "git_tracked_state_status": str(manifest.get("git_tracked_state_status") or "UNKNOWN"),
     }
 
 
@@ -254,11 +288,19 @@ def write_failed_run_audit(
     capital: Any,
     input_audit: dict[str, Any],
 ) -> dict[str, Any]:
+    dependencies = dependency_environment(Path(project_root) / "requirements.lock")
+    tracked_git = git_tracked_state(project_root)
     baseline = baseline_observation_metadata(
         run_timestamp=run_timestamp,
         run_purpose=run_purpose,
         capital=capital,
         config_path=Path(project_root) / "config" / "baseline.yaml",
+        run_succeeded=False,
+        critical_input_passed=False,
+        approved_config_active=False,
+        dependency_status=str(dependencies.get("dependency_status") or "UNKNOWN"),
+        git_tracked_worktree_clean=bool(tracked_git.get("git_tracked_worktree_clean")),
+        git_tracked_diff_fingerprint=str(tracked_git.get("git_tracked_diff_fingerprint") or ""),
     )
     payload = {
         "manifest_schema_version": MANIFEST_SCHEMA_VERSION,
@@ -270,6 +312,8 @@ def write_failed_run_audit(
         "model_rules_version": MODEL_RULES_VERSION,
         "validation_schema_version": VALIDATION_SCHEMA_VERSION,
         "git_commit_sha": git_commit_sha(project_root),
+        **tracked_git,
+        "dependency_environment": dependencies,
         "mode": mode,
         "capital": capital,
         "critical_input_audit": input_audit,
