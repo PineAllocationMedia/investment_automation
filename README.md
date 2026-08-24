@@ -409,13 +409,15 @@ reports/latest_improvement_suggestions.html
 
 Si le rapport dit `INSUFFICIENT_HISTORY`, ne rien faire. Cela veut dire que le modèle n’a pas encore assez de recul pour s’ajuster de manière responsable.
 
-Si le rapport contient des suggestions `SAFE` avec `can_auto_apply = True`, vous pouvez appliquer les micro-ajustements :
+Pendant la période de validation Baseline V1, les suggestions restent en mode `PROPOSAL_ONLY`. La commande historique existe pour compatibilité, mais refuse toute modification :
 
 ```bash
 python3 main.py apply-safe-tuning --mode high-cagr
 ```
 
-Cette commande ne touche pas au code. Elle modifie seulement :
+Cette commande ne touche ni au code ni aux paramètres tant que la politique est `PROPOSAL_ONLY`. Les propositions restent visibles dans les rapports pour revue humaine.
+
+Lorsque cette politique sera réévaluée dans un chantier ultérieur, les seuls fichiers historiquement prévus pour les micro-ajustements sont :
 
 ```text
 config/model_tuning.yaml
@@ -434,10 +436,10 @@ Chaque cotisation -> validate-inputs -> analyze -> acheter -> modifier portfolio
 Chaque mois -> research-needed -> research-status
 Quelques fois par année -> full-audit
 Après assez d’historique -> improvement-audit
-Seulement si SAFE -> apply-safe-tuning
+Suggestions -> revue humaine; apply-safe-tuning reste fail-closed en PROPOSAL_ONLY
 ```
 
-Important : `apply-safe-tuning` n’est pas une commande mensuelle. Elle sert seulement quand l’audit d’amélioration détecte un petit réglage sécuritaire.
+Important : `apply-safe-tuning` n’est pas une commande mensuelle et n’applique actuellement aucun changement. Un simple drapeau YAML ne peut pas contourner ce garde-fou codé.
 
 ## Sauvegarder le modèle avant une grosse modification
 
@@ -567,7 +569,7 @@ reports/latest_model_audit.csv
 
 ### Backtest walk-forward local
 
-Le backtest walk-forward sert à vérifier si les recommandations historiques du modèle ont bien agi après leur publication, avec les informations disponibles à ce moment-là.
+Le backtest walk-forward sert à vérifier si les recommandations historiques admissibles ont bien agi après leur publication, avec les informations disponibles à ce moment-là. Sa classe de preuve est `POINT_IN_TIME_WALK_FORWARD`.
 
 Cette commande ne change jamais vos allocations. Elle sert seulement à évaluer la robustesse de la méthode.
 
@@ -587,13 +589,14 @@ Elle vérifie :
 - les anciennes allocations sauvegardées;
 - le mode utilisé, par exemple seulement `high-cagr`;
 - les dates distinctes d’analyse;
-- si deux analyses sont assez espacées pour être utiles;
+- le but du run (`SCHEDULED_DECISION`, `MANUAL_DECISION`, diagnostic, test, maintenance, capital nul ou legacy inconnu);
+- si deux décisions admissibles sont assez espacées pour être utiles;
 - si plusieurs analyses lancées la même journée doivent être dédupliquées.
 
 Elle simule ensuite, quand c’est possible :
 
 - l’allocation réellement recommandée à une date passée;
-- son rendement jusqu’à la prochaine analyse assez espacée;
+- son rendement jusqu’à la prochaine décision admissible, sans qu'un diagnostic intermédiaire fragmente la période;
 - le rendement de `VFV.TO` sur la même période;
 - l’écart entre le modèle et `VFV.TO`;
 - les périodes exclues parce que les prix manquent ou parce que l’historique est trop court.
@@ -636,14 +639,14 @@ reports/latest_walk_forward_regime_summary.csv
 
 Cette section classe les périodes selon le comportement de `VFV.TO`, par exemple marché faible, marché stable ou forte hausse. Elle sert à éviter de conclure que le modèle est robuste seulement parce qu’il a bien fonctionné dans un seul contexte. Si l’historique couvre trop peu de régimes, le signal reste informatif. Il ne bloque pas seul les recommandations.
 
-Important : cette commande sépare l’historique par mode. Le mode `high-cagr` n’est pas mélangé avec `balanced`, `family-office` ou `rational-aggressive`.
+Important : cette commande sépare l’historique par mode et par but de run. Le mode `high-cagr` n’est pas mélangé avec `balanced`, `family-office` ou `rational-aggressive`. Les anciens snapshots sans but explicite restent `UNKNOWN_LEGACY`; un repli causal espacé peut les rendre `PARTIALLY_RECOVERABLE` sans fabriquer une certitude historique.
 
 Le walk-forward est aussi lu par `full-audit` et `improvement-audit`.
 
 - Dans `full-audit`, il devient une preuve supplémentaire pour juger si la méthode tient dans le temps.
-- Dans `improvement-audit`, il sert de garde-fou anti-overfitting avant un micro-ajustement automatique.
-- Si le walk-forward est trop jeune ou sans période utilisable, il reste neutre. Il ne pénalise pas le modèle et ne bloque pas les réglages SAFE.
-- S’il devient suffisamment fourni et montre une faiblesse nette vs `VFV.TO`, il peut forcer une revue manuelle avant `apply-safe-tuning`.
+- Dans `improvement-audit`, il documente la maturité OOS et la portée de version; aucun résultat mécanique ou mixte ne peut autoriser un ajustement automatique.
+- Si le walk-forward est trop jeune ou sans période courante utilisable, la confiance de validation reste `INSUFFICIENT` ou `EARLY`.
+- S’il montre une faiblesse nette vs `VFV.TO`, il conserve une autorité d'avertissement et exige une revue humaine.
 - `health-check` vérifie maintenant aussi si les fichiers walk-forward sont présents, complets et lisibles.
 - `walk-forward-backtest` écrit aussi un journal dans `reports/latest_run_log.csv`, sans créer de nouvelle analyse mensuelle.
 
@@ -652,11 +655,27 @@ Lecture importante :
 - Un walk-forward jeune sert à apprendre, pas à corriger automatiquement.
 - Un régime faible isolé est un signal à surveiller, pas une raison de changer toute la méthode.
 - Les garde-fous sont conçus pour réduire l’overfitting sans rendre `high-cagr` inutilement conservateur.
-- S’il montre une faiblesse seulement dans un régime précis, il limite plutôt l’auto-tuning agressif au lieu de tout bloquer.
+- Un nombre de périodes décrit la maturité des preuves; il ne prouve jamais l'alpha ou un skill statistique.
+
+### Hiérarchie et confiance de validation
+
+La hiérarchie canonique, de la plus forte à la plus faible autorité de validation de stratégie, est :
+
+1. `LIVE_FORWARD_EVIDENCE`;
+2. `POINT_IN_TIME_WALK_FORWARD`;
+3. `HISTORICAL_STRESS_SENSITIVITY`;
+4. `MECHANICAL_DIAGNOSTIC`;
+5. `HEURISTIC_QUALITATIVE`.
+
+Le backtest théorique à scores courants est conservé sous `MECHANICAL_DIAGNOSTIC`. Il peut révéler une concentration pathologique, une mécanique cassée ou un drawdown catastrophique. Ses bons rendements n'ont aucune autorité positive pour prouver l'alpha, augmenter la confiance de validation ou autoriser un tuning.
+
+Les rapports séparent désormais `RUN_EXECUTION_CONFIDENCE`, `DATA_INTEGRITY_CONFIDENCE`, `SOURCE_CONFIDENCE`, `STRATEGY_VALIDATION_CONFIDENCE` et `WALK_FORWARD_CONFIDENCE`. Un niveau élevé de fraîcheur des données ne signifie donc pas que la stratégie est fortement validée.
+
+L'audit de stabilité primaire est `CURRENT_VERSION_AUDIT`: il compare seulement le `MODEL_RULES_VERSION` courant avec lui-même. `CROSS_VERSION_DIAGNOSTIC` conserve les versions antérieures et leurs transitions sans les compter comme instabilité interne. Les maturités `INSUFFICIENT`, `EARLY`, `DEVELOPING` et `SUBSTANTIAL` décrivent le recul disponible, jamais une preuve statistique de skill.
 
 ## Améliorer les réglages du modèle sans Codex
 
-L’agent possède maintenant une couche locale d’auto-amélioration prudente.
+L’agent possède une couche locale de propositions d’amélioration prudentes.
 
 Elle ne réécrit pas le code. Elle propose seulement des micro-ajustements dans :
 
@@ -701,26 +720,19 @@ L’audit d’amélioration inclut maintenant un gouverneur de sous-performance.
 Son rôle est de vérifier si une sous-performance face au S&P 500 ressemble à une vraie faiblesse du modèle ou seulement à un retard temporaire d’un profil long terme.
 Il protège contre deux erreurs : corriger trop vite après une mauvaise année, ou refuser de corriger après plusieurs années de signaux faibles.
 
-Si le rapport contient des suggestions `SAFE` applicables, vous pouvez les appliquer avec :
+La commande historique suivante reste disponible, mais elle est fail-closed sous la politique `PROPOSAL_ONLY` :
 
 ```bash
 python3 main.py apply-safe-tuning --mode high-cagr
 ```
 
-Cette commande :
+Pendant cette phase, cette commande :
 
-- applique seulement les suggestions `SAFE`;
-- ignore les suggestions `MODERATE`, `RISKY` et `INFO`;
-- exige que `improvement-audit` ait été lancé aujourd’hui;
-- exige que l’audit soit pour le même mode;
-- exige que le statut soit `READY_FOR_SAFE_TUNING`;
-- applique seulement les lignes `PENDING_SAFE_APPLY`;
-- respecte le gouverneur de sous-performance, qui peut limiter ou bloquer l’auto-ajustement;
-- respecte le garde-fou walk-forward quand il y a assez d’historique hors-échantillon;
-- limite l’ampleur de chaque micro-ajustement;
-- crée une sauvegarde avant toute modification réelle;
-- modifie seulement `config/model_tuning.yaml`;
-- écrit l’historique dans `data/model_tuning_history.csv`.
+- n'applique aucune suggestion;
+- retourne explicitement `PROPOSAL_ONLY`;
+- laisse toutes les propositions en revue humaine;
+- ne peut pas être réactivée par le seul champ `safe_auto_apply.enabled` du YAML;
+- exige, pour toute future politique différente, une preuve OOS authentique, homogène par version et dotée d'une provenance explicite.
 
 Si l’historique est trop court, la commande ne change rien. C’est normal et voulu.
 
@@ -730,7 +742,7 @@ Bonne routine :
 À chaque cotisation -> analyze -> achat -> mise à jour portfolio.csv -> sync-portfolio
 Quelques fois par année -> full-audit
 Après plusieurs mois d’historique -> improvement-audit
-Seulement si SAFE proposé -> apply-safe-tuning
+Suggestions SAFE -> revue humaine; aucune auto-application pendant Baseline V1
 ```
 
 Important aussi : si vous voyez une étoile `*` à côté d’un ticker dans le rapport, cela veut dire :
@@ -1531,7 +1543,7 @@ Même si une correction est écrite dans ce fichier, elle est ignorée si elle n
 
 Quand une correction validée est active, elle est appliquée au proxy automatique avant le scoring. Le modèle laisse alors une trace dans `latest_scores.csv`, dans les colonnes `proxy_correction_status`, `proxy_correction_fields` et `proxy_corrections_applied`.
 
-Important : l’agent ne change pas une formule de proxy directement. Il peut seulement proposer une correction multiplicative très limitée, puis l’appliquer via `apply-safe-tuning` si les garde-fous passent. Le but est de corriger un biais répété sans surcorriger le modèle sur un petit échantillon.
+Important : l’agent ne change pas une formule de proxy directement. Il peut proposer une correction multiplicative très limitée, mais `apply-safe-tuning` reste fail-closed en `PROPOSAL_ONLY`. Le but est d'observer un biais répété sans surcorriger le modèle sur un petit échantillon.
 
 La commande `improvement-audit` peut maintenant transformer un signal très solide du fichier `latest_proxy_bias_report.csv` en suggestion de correction proxy :
 
@@ -1539,7 +1551,7 @@ La commande `improvement-audit` peut maintenant transformer un signal très soli
 proxy_correction:roic_5y_avg
 ```
 
-La commande `apply-safe-tuning` peut l’appliquer seulement si toutes les conditions sont respectées :
+Une éventuelle politique future ne pourrait l'appliquer que si toutes les conditions suivantes étaient respectées; la politique actuelle bloque avant toute écriture :
 
 - l’audit d’amélioration a été lancé aujourd’hui;
 - le mode est le même;

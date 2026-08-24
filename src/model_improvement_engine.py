@@ -49,6 +49,7 @@ from .underperformance_engine import (
     correction_governor_max_changes,
 )
 from .utils import DISCLAIMER, markdown_to_html, pct, read_csv_records, safe_float
+from .validation_evidence import AUTO_TUNING_POLICY
 
 
 IMPROVEMENT_COLUMNS = [
@@ -81,6 +82,11 @@ IMPROVEMENT_SUMMARY_COLUMNS = [
     "mode",
     "period",
     "status",
+    "tuning_policy",
+    "evidence_class",
+    "evidence_maturity",
+    "model_version_scope",
+    "genuine_oos_periods",
     "suggestion_count",
     "safe_auto_applicable_count",
     "moderate_count",
@@ -490,6 +496,15 @@ def apply_safe_tuning(
     *,
     mode: str = "high-cagr",
 ) -> dict[str, Any]:
+    if AUTO_TUNING_POLICY == "PROPOSAL_ONLY":
+        return {
+            "applied": [],
+            "message": (
+                "Aucun ajustement appliqué: la politique de validation est PROPOSAL_ONLY. "
+                "Les propositions restent visibles pour revue humaine."
+            ),
+            "tuning_policy": AUTO_TUNING_POLICY,
+        }
     reports_dir = Path(reports_dir)
     config_dir = Path(config_dir)
     data_dir = Path(data_dir)
@@ -621,8 +636,8 @@ def build_improvement_summary(
     moderate_count = sum(1 for row in suggestions if row.get("safety_level") == "MODERATE")
     risky_count = sum(1 for row in suggestions if row.get("safety_level") == "RISKY")
     sample_count = int(safe_float(metrics.get("allocation_sample_count")) or 0)
-    status = "READY_FOR_SAFE_TUNING" if safe_count else "OBSERVE_ONLY"
-    if sample_count < 4:
+    status = "PROPOSAL_ONLY" if AUTO_TUNING_POLICY == "PROPOSAL_ONLY" else ("READY_FOR_SAFE_TUNING" if safe_count else "OBSERVE_ONLY")
+    if sample_count < 4 and status != "PROPOSAL_ONLY":
         status = "INSUFFICIENT_HISTORY"
     if underperformance_attribution and not correction_governor_allows_auto_apply(underperformance_attribution):
         status = "OBSERVE_ONLY" if status == "READY_FOR_SAFE_TUNING" else status
@@ -641,6 +656,7 @@ def build_improvement_summary(
         "mode": mode,
         "period": period,
         "status": status,
+        "tuning_policy": AUTO_TUNING_POLICY,
         "suggestion_count": len(suggestions),
         "safe_auto_applicable_count": safe_count,
         "moderate_count": moderate_count,

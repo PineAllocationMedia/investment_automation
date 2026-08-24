@@ -7,6 +7,7 @@ from typing import Any
 
 from .model_version import MODEL_RULES_VERSION
 from .utils import read_csv_records, safe_float, save_json, today_iso
+from .validation_evidence import RunPurpose, VALIDATION_SCHEMA_VERSION, normalize_run_purpose
 
 
 SNAPSHOT_BLOCK_KEYS = [
@@ -71,12 +72,18 @@ def _build_current_run_snapshot(
 ) -> dict:
     now = datetime.now().replace(microsecond=0)
     mode = str(analysis_mode or "unknown")
+    run_purpose = next(
+        (normalize_run_purpose(row.get("run_purpose")) for row in run_log_rows if row.get("run_purpose")),
+        RunPurpose.UNKNOWN_LEGACY.value,
+    )
     return {
         "meta": {
             "run_date": today_iso(),
             "created_at": now.isoformat(),
             "analysis_mode": mode,
             "model_rules_version": MODEL_RULES_VERSION,
+            "validation_schema_version": VALIDATION_SCHEMA_VERSION,
+            "run_purpose": run_purpose,
             "capital": _number(allocation_result.get("monthly_contribution"), _allocation_total(allocation_result)),
             "portfolio_total_value": _number(allocation_result.get("portfolio_total_value_cad"), 0.0),
         },

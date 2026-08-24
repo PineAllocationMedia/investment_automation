@@ -39,7 +39,7 @@ class ModelImprovementEngineTest(unittest.TestCase):
         self.assertTrue(any(row["status"] == "WAIT_FOR_MORE_HISTORY" for row in suggestions))
         self.assertFalse(any(row["can_auto_apply"] for row in suggestions))
 
-    def test_too_defensive_high_cagr_creates_safe_vfv_adjustment(self):
+    def test_too_defensive_high_cagr_creates_review_only_vfv_proposal(self):
         suggestions = build_improvement_suggestions(
             fake_audit(avg_vfv=0.36, avg_core=0.50),
             {"safe_auto_apply": {"min_distinct_allocation_dates": 4}},
@@ -49,7 +49,8 @@ class ModelImprovementEngineTest(unittest.TestCase):
         vfv = [row for row in suggestions if row["parameter"] == "vfv_adjustment"]
 
         self.assertEqual(vfv[0]["safety_level"], "SAFE")
-        self.assertTrue(vfv[0]["can_auto_apply"])
+        self.assertFalse(vfv[0]["can_auto_apply"])
+        self.assertEqual(vfv[0]["status"], "REVIEW_ONLY")
         self.assertLess(vfv[0]["suggested_delta"], 0)
 
     def test_underperformance_governor_can_block_safe_auto_apply(self):
@@ -114,7 +115,7 @@ class ModelImprovementEngineTest(unittest.TestCase):
 
         self.assertEqual(ticker_quality[0]["safety_level"], "INFO")
         self.assertFalse(ticker_quality[0]["can_auto_apply"])
-        self.assertTrue(vfv[0]["can_auto_apply"])
+        self.assertFalse(vfv[0]["can_auto_apply"])
 
     def test_proxy_bias_safe_signal_can_create_proxy_correction_suggestion(self):
         suggestions = build_improvement_suggestions(
@@ -140,8 +141,8 @@ class ModelImprovementEngineTest(unittest.TestCase):
         proxy = [row for row in suggestions if row["parameter"] == "proxy_correction:roic_5y_avg"]
 
         self.assertEqual(proxy[0]["safety_level"], "SAFE")
-        self.assertTrue(proxy[0]["can_auto_apply"])
-        self.assertEqual(proxy[0]["status"], "PENDING_SAFE_APPLY")
+        self.assertFalse(proxy[0]["can_auto_apply"])
+        self.assertEqual(proxy[0]["status"], "REVIEW_ONLY")
         self.assertEqual(proxy[0]["proxy_correction_factor"], 1.12)
 
     def test_proxy_correction_audit_review_is_not_auto_applied(self):
@@ -192,7 +193,7 @@ class ModelImprovementEngineTest(unittest.TestCase):
             },
         )
 
-        self.assertEqual(summary["status"], "READY_FOR_SAFE_TUNING")
+        self.assertEqual(summary["status"], "PROPOSAL_ONLY")
         self.assertEqual(summary["correction_governor"], "THROTTLE_SAFE_TUNING")
         self.assertEqual(summary["max_safe_changes_allowed"], 1)
 
@@ -211,7 +212,7 @@ class ModelImprovementEngineTest(unittest.TestCase):
             },
         )
 
-        self.assertEqual(summary["status"], "OBSERVE_ONLY")
+        self.assertEqual(summary["status"], "PROPOSAL_ONLY")
         self.assertEqual(summary["source_health_auto_tuning_gate"], "BLOCK")
 
     def test_improvement_summary_reports_walk_forward_context(self):
@@ -230,7 +231,7 @@ class ModelImprovementEngineTest(unittest.TestCase):
         self.assertEqual(summary["walk_forward_status"], "PASS")
         self.assertEqual(summary["walk_forward_simulated_periods"], 6)
 
-    def test_apply_safe_tuning_ignores_moderate_and_applies_safe(self):
+    def test_apply_safe_tuning_is_fail_closed_under_proposal_only_policy(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             reports = root / "reports"
@@ -296,10 +297,11 @@ class ModelImprovementEngineTest(unittest.TestCase):
             result = apply_safe_tuning(reports, config, data, mode="high-cagr")
             tuning = load_model_tuning(config / "model_tuning.yaml")
 
-            self.assertEqual(len(result["applied"]), 1)
-            self.assertEqual(tuning_value("high-cagr", "vfv_adjustment", tuning=tuning), -0.01)
+            self.assertEqual(result["applied"], [])
+            self.assertEqual(result["tuning_policy"], "PROPOSAL_ONLY")
+            self.assertEqual(tuning_value("high-cagr", "vfv_adjustment", tuning=tuning), 0.0)
             self.assertEqual(tuning_value("high-cagr", "single_stock_cap_adjustment", tuning=tuning), 0.0)
-            self.assertTrue((data / "model_tuning_history.csv").exists())
+            self.assertFalse((data / "model_tuning_history.csv").exists())
 
     def test_apply_safe_tuning_respects_governor_max_changes(self):
         with tempfile.TemporaryDirectory() as directory:
@@ -365,7 +367,7 @@ class ModelImprovementEngineTest(unittest.TestCase):
 
             result = apply_safe_tuning(reports, config, data, mode="high-cagr")
 
-            self.assertEqual(len(result["applied"]), 1)
+            self.assertEqual(result["applied"], [])
 
     def test_apply_safe_tuning_requires_ready_summary_for_same_mode_today(self):
         with tempfile.TemporaryDirectory() as directory:
@@ -421,7 +423,7 @@ class ModelImprovementEngineTest(unittest.TestCase):
             self.assertEqual(result["applied"], [])
             self.assertEqual(tuning_value("high-cagr", "vfv_adjustment", tuning=tuning), 0.0)
 
-    def test_apply_safe_tuning_can_activate_proxy_correction_with_history(self):
+    def test_apply_safe_tuning_cannot_activate_proxy_correction_in_proposal_only_mode(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             reports = root / "reports"
@@ -489,14 +491,9 @@ class ModelImprovementEngineTest(unittest.TestCase):
             )
 
             result = apply_safe_tuning(reports, config, data, mode="high-cagr")
-            corrections = (config / "proxy_corrections.yaml").read_text(encoding="utf-8")
-            history = (data / "proxy_correction_history.csv").read_text(encoding="utf-8")
-
-            self.assertEqual(len(result["applied"]), 1)
-            self.assertIn("enabled: true", corrections)
-            self.assertIn("roic_5y_avg", corrections)
-            self.assertIn("1.12", corrections)
-            self.assertIn("proxy_correction:roic_5y_avg", history)
+            self.assertEqual(result["applied"], [])
+            self.assertFalse((config / "proxy_corrections.yaml").exists())
+            self.assertFalse((data / "proxy_correction_history.csv").exists())
 
 
 if __name__ == "__main__":

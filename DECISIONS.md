@@ -2496,6 +2496,26 @@ uses stable fixtures when operational ignored inputs are unavailable.
 
 No major change can be applied to the system without being documented here.
 
+## 2026-08-23 - Validation evidence authority and causal history scope
+
+The project now uses one validation contract in `src/validation_evidence.py`.
+Current-score historical simulations are `MECHANICAL_DIAGNOSTIC`: favorable
+returns have no positive strategy-validation or tuning authority, while
+pathological results retain negative warning authority. Primary walk-forward
+periods are built causally from explicit scheduled/manual decisions; diagnostic,
+development, maintenance and zero-capital runs remain auditable without
+fragmenting that timeline. Legacy purpose remains explicit uncertainty and is
+never reconstructed from future returns.
+
+Primary model stability is `CURRENT_VERSION_AUDIT`; older observations and
+version transitions remain visible only through `CROSS_VERSION_DIAGNOSTIC`.
+Execution/data/source confidence is separate from strategy/walk-forward
+confidence, and evidence maturity preserves raw counts without claiming proven
+skill. Behavioral tuning is code-level `PROPOSAL_ONLY` during Baseline V1
+evidence accumulation. These validation-only changes add
+`VALIDATION_SCHEMA_VERSION=2026-08-23-validation-architecture-v1` and do not
+change `MODEL_RULES_VERSION`, scoring, allocation, holdings or deployment.
+
 ## 2026-08-23 - Research-report semantic integrity
 
 ### Problem

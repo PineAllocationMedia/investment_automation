@@ -59,7 +59,7 @@ une attention immédiate :
   lire `data/proxy_calibration.csv` et `reports/latest_proxy_calibration_history.csv`
 - `delta_analysis.walk_forward_trend.direction == "WORSENING"` →
   le nombre de périodes utilisables diminue ; le modèle perd
-  de la base statistique
+  du recul comparable (sans implication automatique de skill statistique)
 - `delta_analysis.decision_quality_trend.direction == "WORSENING"`
   → la qualité de décision se dégrade ; investiguer les données
   manquantes et les conflits de sources
@@ -72,6 +72,12 @@ une attention immédiate :
 - `runs_history[0].source_health.sources_degraded > 0` →
   au moins une source est dégradée ; identifier laquelle dans
   `latest_source_health.csv`
+- `runs_history[0].meta.run_purpose` absent ou `UNKNOWN_LEGACY` →
+  le run reste auditable mais ne doit pas être présenté comme une décision
+  forward certaine
+- l'audit indique peu d'observations `CURRENT_VERSION_AUDIT` malgré un long
+  `CROSS_VERSION_DIAGNOSTIC` → ne jamais emprunter les anciennes versions pour
+  augmenter la confiance primaire
 
 ---
 
@@ -147,6 +153,7 @@ DECISIONS.md :
 | `src/walk_forward_backtest_engine.py` | Walk-forward et backtest |
 | `src/anomaly_detection_engine.py` | Détection d'anomalies post-analyse |
 | `src/model_audit_engine.py` | Audit du modèle |
+| `src/validation_evidence.py` | Taxonomies canoniques de preuve, maturité, but de run et politique de tuning |
 | `src/proxy_calibration.py` | Calibration des proxies automatiques |
 
 ---
@@ -185,6 +192,6 @@ renforçant l'architecture existante.
 
 ---
 
-*Dernière mise à jour : 2026-07-05*
-*Architecture : 78 modules, 6 clusters*
-*Modes disponibles : high-cagr, balanced*
+*Dernière mise à jour : 2026-08-23*
+*Architecture de validation : CURRENT_VERSION_AUDIT, buts de run explicites, tuning PROPOSAL_ONLY*
+*Modes disponibles : high-cagr, rational-aggressive, family-office, balanced*

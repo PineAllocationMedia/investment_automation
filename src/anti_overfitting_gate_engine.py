@@ -6,9 +6,15 @@ from typing import Any
 from .model_tuning import TUNABLE_PARAMETER_LIMITS
 from .proxy_correction_engine import PROXY_CORRECTION_PARAMETER_PREFIX
 from .utils import pct, safe_float
+from .validation_evidence import AUTO_TUNING_POLICY, EvidenceClass, evidence_maturity
 
 
 ANTI_OVERFITTING_FIELDS = [
+    "tuning_policy",
+    "evidence_class",
+    "evidence_maturity",
+    "model_version_scope",
+    "genuine_oos_periods",
     "overfit_gate_status",
     "overfit_gate_score",
     "overfit_gate_reason",
@@ -43,7 +49,14 @@ def build_anti_overfitting_context(
     monthly = backtest_monthly_rows or []
     walk_forward_summary = _first_row(walk_forward_summary_rows or [])
     walk_forward_periods = walk_forward_period_rows or []
-    walk_forward_status = _walk_forward_status(walk_forward_summary, walk_forward_periods)
+    current_model_version = str(model_metrics.get("current_model_rules_version") or "")
+    current_walk_forward_periods = [
+        row for row in walk_forward_periods
+        if current_model_version and str(row.get("model_rules_version") or "") == current_model_version
+    ]
+    scoped_walk_forward_summary = _scoped_walk_forward_summary(current_walk_forward_periods)
+    walk_forward_status = _walk_forward_status(scoped_walk_forward_summary, current_walk_forward_periods)
+    genuine_oos_periods = int(safe_float(scoped_walk_forward_summary.get("simulated_periods")) or 0)
     return {
         "mode": mode,
         "sample_count": sample_count,
@@ -56,17 +69,26 @@ def build_anti_overfitting_context(
         "do_no_harm_status": _do_no_harm_status(summaries),
         "risk_adjusted_status": _risk_adjusted_status(summaries),
         "walk_forward_status": walk_forward_status,
+        "tuning_policy": AUTO_TUNING_POLICY,
+        "evidence_class": EvidenceClass.POINT_IN_TIME_WALK_FORWARD.value,
+        "evidence_maturity": evidence_maturity(genuine_oos_periods),
+        "model_version_scope": "CURRENT_VERSION_AUDIT",
+        "current_version_observations": int(safe_float(model_metrics.get("current_version_observation_count")) or 0),
+        "cross_version_observations": int(safe_float(model_metrics.get("cross_version_observation_count")) or 0),
+        "genuine_oos_periods": genuine_oos_periods,
         "walk_forward_simulated_periods": int(safe_float(walk_forward_summary.get("simulated_periods")) or 0),
         "walk_forward_usable_periods": int(safe_float(walk_forward_summary.get("usable_walk_forward_periods")) or 0),
-        "walk_forward_excess_return": safe_float(walk_forward_summary.get("compounded_excess_return_vs_vfv")),
-        "walk_forward_win_rate": safe_float(walk_forward_summary.get("win_rate_vs_vfv")),
-        "walk_forward_regime_coverage_status": str(walk_forward_summary.get("regime_coverage_status") or "NO_REGIME_EVIDENCE"),
-        "walk_forward_regime_count": int(safe_float(walk_forward_summary.get("regime_count")) or 0),
-        "walk_forward_weak_regimes": str(walk_forward_summary.get("weak_regimes") or ""),
+        "walk_forward_excess_return": safe_float(scoped_walk_forward_summary.get("compounded_excess_return_vs_vfv")),
+        "walk_forward_win_rate": safe_float(scoped_walk_forward_summary.get("win_rate_vs_vfv")),
+        "walk_forward_regime_coverage_status": str(scoped_walk_forward_summary.get("regime_coverage_status") or "NO_REGIME_EVIDENCE"),
+        "walk_forward_regime_count": int(safe_float(scoped_walk_forward_summary.get("regime_count")) or 0),
+        "walk_forward_weak_regimes": str(scoped_walk_forward_summary.get("weak_regimes") or ""),
         "tuning_history_rows": tuning_history_rows or [],
         "backtest_summary_count": len(summaries),
         "monthly_backtest_count": len(monthly),
         "walk_forward_period_count": len(walk_forward_periods),
+        "walk_forward_current_version_period_count": len(current_walk_forward_periods),
+        "walk_forward_cross_version_period_count": max(0, len(walk_forward_periods) - len(current_walk_forward_periods)),
     }
 
 
@@ -101,6 +123,18 @@ def evaluate_anti_overfitting_gate(suggestion: dict[str, Any], context: dict[str
             "Suggestion informative ou non ajustable automatiquement.",
             context,
             "NOT_APPLICABLE",
+        )
+
+    if str(context.get("tuning_policy") or AUTO_TUNING_POLICY) == "PROPOSAL_ONLY":
+        return _gate_result(
+            "REVIEW_ONLY",
+            40,
+            (
+                "Politique PROPOSAL_ONLY: aucune modification comportementale automatique. "
+                "Le backtest mécanique ne possède aucune autorité positive et les preuves OOS restent auditables séparément."
+            ),
+            context,
+            "NOT_EVALUATED_PROPOSAL_ONLY",
         )
 
     sample_count = int(safe_float(context.get("sample_count")) or 0)
@@ -224,6 +258,11 @@ def anti_overfitting_summary(suggestions: list[dict[str, Any]], context: dict[st
         "overfit_gate_pass_count": pass_count,
         "overfit_gate_review_count": review_count + blocked_count,
         "overfit_gate_interpretation": _summary_read(status, context),
+        "tuning_policy": context.get("tuning_policy", AUTO_TUNING_POLICY),
+        "evidence_class": context.get("evidence_class", EvidenceClass.POINT_IN_TIME_WALK_FORWARD.value),
+        "evidence_maturity": context.get("evidence_maturity", "INSUFFICIENT"),
+        "model_version_scope": context.get("model_version_scope", "CURRENT_VERSION_AUDIT"),
+        "genuine_oos_periods": context.get("genuine_oos_periods", 0),
     }
 
 
@@ -433,6 +472,38 @@ def _walk_forward_status(summary: dict[str, Any], period_rows: list[dict[str, An
     return "WATCH"
 
 
+def _scoped_walk_forward_summary(period_rows: list[dict[str, Any]]) -> dict[str, Any]:
+    simulated = [
+        row for row in period_rows
+        if str(row.get("evaluation_status") or "") in {"SIMULATED", "SIMULATED_WITH_PARTIAL_PRICE_DATA"}
+    ]
+    strategy_returns = [safe_float(row.get("strategy_period_return")) or 0.0 for row in simulated]
+    vfv_returns = [safe_float(row.get("vfv_period_return")) or 0.0 for row in simulated]
+    excess_returns = [safe_float(row.get("excess_return_vs_vfv")) or 0.0 for row in simulated]
+    compounded_strategy = _compound(strategy_returns)
+    compounded_vfv = _compound(vfv_returns)
+    compounded_excess = None
+    if compounded_vfv > -1.0:
+        compounded_excess = (1.0 + compounded_strategy) / (1.0 + compounded_vfv) - 1.0
+    return {
+        "status": "READY_FOR_WALK_FORWARD_REVIEW" if len(simulated) >= 6 else ("EARLY_SIGNAL_ONLY" if simulated else "NO_SIMULATED_PERIODS"),
+        "simulated_periods": len(simulated),
+        "compounded_excess_return_vs_vfv": compounded_excess,
+        "avg_excess_return_vs_vfv": sum(excess_returns) / len(excess_returns) if excess_returns else None,
+        "win_rate_vs_vfv": sum(1 for value in excess_returns if value > 0) / len(excess_returns) if excess_returns else None,
+        "regime_coverage_status": "CURRENT_VERSION_SCOPED",
+        "regime_count": len({str(row.get("market_regime") or "UNKNOWN") for row in simulated}),
+        "weak_regimes": "",
+    }
+
+
+def _compound(values: list[float]) -> float:
+    total = 1.0
+    for value in values:
+        total *= 1.0 + value
+    return total - 1.0
+
+
 def _first_row(rows: list[dict[str, Any]]) -> dict[str, Any]:
     return rows[0] if rows else {}
 
@@ -505,6 +576,11 @@ def _gate_result(
         "risk_adjusted_status": context.get("risk_adjusted_status", "LIMITED"),
         "walk_forward_status": context.get("walk_forward_status", "LIMITED"),
         "cooldown_status": cooldown_status,
+        "tuning_policy": context.get("tuning_policy", AUTO_TUNING_POLICY),
+        "evidence_class": context.get("evidence_class", EvidenceClass.POINT_IN_TIME_WALK_FORWARD.value),
+        "evidence_maturity": context.get("evidence_maturity", "INSUFFICIENT"),
+        "model_version_scope": context.get("model_version_scope", "CURRENT_VERSION_AUDIT"),
+        "genuine_oos_periods": context.get("genuine_oos_periods", 0),
     }
 
 

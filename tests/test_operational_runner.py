@@ -131,7 +131,7 @@ class OperationalRunnerTest(unittest.TestCase):
                 calls,
                 [
                     "main.py validate-inputs",
-                    "main.py analyze --capital 0 --mode high-cagr",
+                    "main.py analyze --capital 0 --mode high-cagr --run-purpose SCHEDULED_DECISION",
                     "main.py walk-forward-backtest --mode high-cagr",
                 ],
             )
@@ -153,7 +153,7 @@ class OperationalRunnerTest(unittest.TestCase):
                 calls,
                 [
                     "main.py validate-inputs",
-                    "main.py analyze --capital 0 --mode balanced --refresh-market-data",
+                    "main.py analyze --capital 0 --mode balanced --run-purpose SCHEDULED_DECISION --refresh-market-data",
                     "main.py walk-forward-backtest --mode balanced",
                 ],
             )
@@ -211,7 +211,7 @@ class OperationalRunnerTest(unittest.TestCase):
                 calls,
                 [
                     "main.py validate-inputs",
-                    "main.py analyze --capital 0 --mode high-cagr",
+                    "main.py analyze --capital 0 --mode high-cagr --run-purpose SCHEDULED_DECISION",
                 ],
             )
 
@@ -232,7 +232,7 @@ class OperationalRunnerTest(unittest.TestCase):
                     calls,
                     [
                         "main.py validate-inputs",
-                        "main.py analyze --capital 0 --mode high-cagr",
+                        "main.py analyze --capital 0 --mode high-cagr --run-purpose SCHEDULED_DECISION",
                     ],
                 )
 
