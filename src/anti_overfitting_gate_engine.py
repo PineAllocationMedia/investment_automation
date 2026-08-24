@@ -6,7 +6,13 @@ from typing import Any
 from .model_tuning import TUNABLE_PARAMETER_LIMITS
 from .proxy_correction_engine import PROXY_CORRECTION_PARAMETER_PREFIX
 from .utils import pct, safe_float
-from .validation_evidence import AUTO_TUNING_POLICY, EvidenceClass, evidence_maturity
+from .validation_evidence import (
+    AUTO_TUNING_POLICY,
+    EvidenceClass,
+    evidence_maturity,
+    walk_forward_period_has_strategy_validation_authority,
+    walk_forward_period_is_legacy_diagnostic,
+)
 
 
 ANTI_OVERFITTING_FIELDS = [
@@ -50,9 +56,26 @@ def build_anti_overfitting_context(
     walk_forward_summary = _first_row(walk_forward_summary_rows or [])
     walk_forward_periods = walk_forward_period_rows or []
     current_model_version = str(model_metrics.get("current_model_rules_version") or "")
-    current_walk_forward_periods = [
+    simulated_walk_forward_periods = [
+        row
+        for row in walk_forward_periods
+        if str(row.get("evaluation_status") or "") in {"SIMULATED", "SIMULATED_WITH_PARTIAL_PRICE_DATA"}
+    ]
+    current_version_total_walk_forward_periods = [
         row for row in walk_forward_periods
-        if current_model_version and str(row.get("model_rules_version") or "") == current_model_version
+        if current_model_version
+        and str(row.get("model_rules_version") or "") == current_model_version
+        and str(row.get("evaluation_status") or "") in {"SIMULATED", "SIMULATED_WITH_PARTIAL_PRICE_DATA"}
+    ]
+    current_walk_forward_periods = [
+        row
+        for row in current_version_total_walk_forward_periods
+        if walk_forward_period_has_strategy_validation_authority(row)
+    ]
+    current_version_legacy_walk_forward_periods = [
+        row
+        for row in current_version_total_walk_forward_periods
+        if walk_forward_period_is_legacy_diagnostic(row)
     ]
     scoped_walk_forward_summary = _scoped_walk_forward_summary(current_walk_forward_periods)
     walk_forward_status = _walk_forward_status(scoped_walk_forward_summary, current_walk_forward_periods)
@@ -79,7 +102,13 @@ def build_anti_overfitting_context(
         "risk_adjusted_status": _risk_adjusted_status(summaries),
         "walk_forward_status": walk_forward_status,
         "tuning_policy": AUTO_TUNING_POLICY,
-        "evidence_class": EvidenceClass.POINT_IN_TIME_WALK_FORWARD.value,
+        "evidence_class": (
+            EvidenceClass.POINT_IN_TIME_WALK_FORWARD.value
+            if current_walk_forward_periods
+            else EvidenceClass.HISTORICAL_STRESS_SENSITIVITY.value
+            if current_version_legacy_walk_forward_periods
+            else EvidenceClass.POINT_IN_TIME_WALK_FORWARD.value
+        ),
         "evidence_maturity": evidence_maturity(genuine_oos_periods),
         "model_version_scope": "CURRENT_VERSION_AUDIT",
         "current_version_observations": current_version_decision_observations,
@@ -88,6 +117,12 @@ def build_anti_overfitting_context(
         "genuine_oos_periods": genuine_oos_periods,
         "walk_forward_simulated_periods": int(safe_float(walk_forward_summary.get("simulated_periods")) or 0),
         "walk_forward_usable_periods": int(safe_float(walk_forward_summary.get("usable_walk_forward_periods")) or 0),
+        "walk_forward_current_version_total_simulated_period_count": len(current_version_total_walk_forward_periods),
+        "walk_forward_current_version_legacy_period_count": len(current_version_legacy_walk_forward_periods),
+        "walk_forward_current_version_non_authoritative_period_count": max(
+            0,
+            len(current_version_total_walk_forward_periods) - len(current_walk_forward_periods),
+        ),
         "walk_forward_excess_return": safe_float(scoped_walk_forward_summary.get("compounded_excess_return_vs_vfv")),
         "walk_forward_win_rate": safe_float(scoped_walk_forward_summary.get("win_rate_vs_vfv")),
         "walk_forward_regime_coverage_status": str(scoped_walk_forward_summary.get("regime_coverage_status") or "NO_REGIME_EVIDENCE"),
@@ -98,7 +133,10 @@ def build_anti_overfitting_context(
         "monthly_backtest_count": len(monthly),
         "walk_forward_period_count": len(walk_forward_periods),
         "walk_forward_current_version_period_count": len(current_walk_forward_periods),
-        "walk_forward_cross_version_period_count": max(0, len(walk_forward_periods) - len(current_walk_forward_periods)),
+        "walk_forward_cross_version_period_count": max(
+            0,
+            len(simulated_walk_forward_periods) - len(current_version_total_walk_forward_periods),
+        ),
     }
 
 

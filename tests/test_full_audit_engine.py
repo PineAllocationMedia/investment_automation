@@ -89,6 +89,11 @@ class FullAuditEngineTest(unittest.TestCase):
                 "period_rows": [
                     {
                         "model_rules_version": "v-current",
+                        "run_purpose": "SCHEDULED_DECISION",
+                        "run_purpose_status": "EXPLICIT",
+                        "eligibility_basis": "EXPLICIT_DECISION_PURPOSE",
+                        "evidence_class": "POINT_IN_TIME_WALK_FORWARD",
+                        "strategy_validation_authority": True,
                         "evaluation_status": "SIMULATED",
                         "strategy_period_return": 0.04,
                         "vfv_period_return": 0.02,
@@ -96,6 +101,11 @@ class FullAuditEngineTest(unittest.TestCase):
                     },
                     {
                         "model_rules_version": "v-current",
+                        "run_purpose": "SCHEDULED_DECISION",
+                        "run_purpose_status": "EXPLICIT",
+                        "eligibility_basis": "EXPLICIT_DECISION_PURPOSE",
+                        "evidence_class": "POINT_IN_TIME_WALK_FORWARD",
+                        "strategy_validation_authority": True,
                         "evaluation_status": "SIMULATED",
                         "strategy_period_return": 0.03,
                         "vfv_period_return": 0.02,
@@ -103,6 +113,11 @@ class FullAuditEngineTest(unittest.TestCase):
                     },
                     {
                         "model_rules_version": "v-current",
+                        "run_purpose": "SCHEDULED_DECISION",
+                        "run_purpose_status": "EXPLICIT",
+                        "eligibility_basis": "EXPLICIT_DECISION_PURPOSE",
+                        "evidence_class": "POINT_IN_TIME_WALK_FORWARD",
+                        "strategy_validation_authority": True,
                         "evaluation_status": "SIMULATED",
                         "strategy_period_return": 0.02,
                         "vfv_period_return": 0.01,

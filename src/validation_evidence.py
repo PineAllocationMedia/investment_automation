@@ -6,8 +6,10 @@ from typing import Any, Iterable
 from .utils import safe_float
 
 
-VALIDATION_SCHEMA_VERSION = "2026-08-23-validation-architecture-v2"
+VALIDATION_SCHEMA_VERSION = "2026-08-23-validation-architecture-v3"
 AUTO_TUNING_POLICY = "PROPOSAL_ONLY"
+EXPLICIT_DECISION_ELIGIBILITY_BASIS = "EXPLICIT_DECISION_PURPOSE"
+LEGACY_PARTIALLY_RECOVERABLE_BASIS = "LEGACY_PARTIALLY_RECOVERABLE"
 
 
 class EvidenceClass(str, Enum):
@@ -91,6 +93,47 @@ def purpose_is_genuine_decision(value: Any) -> bool:
 
 def purpose_is_walk_forward_decision(value: Any) -> bool:
     return purpose_is_genuine_decision(value)
+
+
+def walk_forward_period_evidence_class(
+    run_purpose: Any,
+    eligibility_basis: Any = "",
+) -> str:
+    purpose = normalize_run_purpose(run_purpose)
+    basis = str(eligibility_basis or "").strip().upper()
+    if purpose in DECISION_RUN_PURPOSES and basis != LEGACY_PARTIALLY_RECOVERABLE_BASIS:
+        return EvidenceClass.POINT_IN_TIME_WALK_FORWARD.value
+    return EvidenceClass.HISTORICAL_STRESS_SENSITIVITY.value
+
+
+def walk_forward_period_has_strategy_validation_authority(payload: dict[str, Any] | None) -> bool:
+    payload = payload or {}
+    purpose = normalize_run_purpose(payload.get("run_purpose"))
+    basis = str(payload.get("eligibility_basis") or "").strip().upper()
+    evidence_class = str(
+        payload.get("evidence_class")
+        or walk_forward_period_evidence_class(purpose, basis)
+    ).strip().upper()
+    if purpose not in DECISION_RUN_PURPOSES:
+        return False
+    if basis and basis != EXPLICIT_DECISION_ELIGIBILITY_BASIS:
+        return False
+    if evidence_class != EvidenceClass.POINT_IN_TIME_WALK_FORWARD.value:
+        return False
+    explicit_authority = payload.get("strategy_validation_authority")
+    if explicit_authority is None or str(explicit_authority).strip() == "":
+        return True
+    return str(explicit_authority).strip().lower() in {"1", "true", "yes", "y", "on"}
+
+
+def walk_forward_period_is_legacy_diagnostic(payload: dict[str, Any] | None) -> bool:
+    payload = payload or {}
+    purpose = normalize_run_purpose(payload.get("run_purpose"))
+    basis = str(payload.get("eligibility_basis") or "").strip().upper()
+    return purpose == RunPurpose.UNKNOWN_LEGACY.value and basis in {
+        "",
+        LEGACY_PARTIALLY_RECOVERABLE_BASIS,
+    }
 
 
 def evidence_maturity(sample_count: Any) -> str:

@@ -24,12 +24,17 @@ from .transaction_friction_engine import (
 )
 from .utils import DATA_DIR, DISCLAIMER, load_json, markdown_to_html, pct, read_csv_records, safe_float, write_csv_records, write_text
 from .validation_evidence import (
+    EXPLICIT_DECISION_ELIGIBILITY_BASIS,
+    LEGACY_PARTIALLY_RECOVERABLE_BASIS,
     EvidenceClass,
     RunPurpose,
     combined_snapshot_purpose,
     evidence_maturity,
     purpose_is_walk_forward_decision,
     snapshot_run_purpose,
+    walk_forward_period_evidence_class,
+    walk_forward_period_has_strategy_validation_authority,
+    walk_forward_period_is_legacy_diagnostic,
 )
 
 
@@ -66,9 +71,13 @@ WALK_FORWARD_COVERAGE_COLUMNS = [
     "distinct_analysis_dates",
     "paired_snapshot_dates",
     "decision_eligible_snapshots",
+    "explicit_decision_eligible_snapshots",
     "diagnostic_snapshots",
     "legacy_unknown_snapshots",
+    "legacy_partially_recoverable_snapshots",
     "usable_walk_forward_periods",
+    "genuine_decision_usable_periods",
+    "legacy_partially_recoverable_usable_periods",
     "first_analysis_date",
     "last_analysis_date",
     "min_days_between_points",
@@ -82,7 +91,15 @@ WALK_FORWARD_SUMMARY_COLUMNS = [
     "evidence_class",
     "evidence_maturity",
     "strategy_validation_confidence",
+    "walk_forward_confidence",
+    "strategy_validation_status",
+    "strategy_validation_authority",
     "simulated_periods",
+    "genuine_oos_periods",
+    "explicit_decision_simulated_periods",
+    "legacy_partially_recoverable_simulated_periods",
+    "non_authoritative_simulated_periods",
+    "other_non_authoritative_simulated_periods",
     "usable_walk_forward_periods",
     "avg_period_days",
     "avg_strategy_period_return",
@@ -108,6 +125,9 @@ WALK_FORWARD_PERIOD_COLUMNS = [
     "mode",
     "evidence_class",
     "run_purpose",
+    "run_purpose_status",
+    "eligibility_basis",
+    "strategy_validation_authority",
     "model_rules_version",
     "analysis_date",
     "next_analysis_date",
@@ -340,25 +360,48 @@ def build_walk_forward_coverage(
     paired = [row for row in dated if row.get("analysis_snapshot_path") and row.get("allocation_snapshot_path")]
     usable = [row for row in dated if _truthy(row.get("usable_for_walk_forward"))]
     eligible = [row for row in dated if _truthy(row.get("primary_timeline_eligible"))]
+    explicit_eligible = [
+        row
+        for row in eligible
+        if purpose_is_walk_forward_decision(row.get("run_purpose"))
+        and str(row.get("eligibility_basis") or "") == EXPLICIT_DECISION_ELIGIBILITY_BASIS
+    ]
+    genuine_usable = [row for row in usable if row in explicit_eligible]
     diagnostic = [
         row for row in dated
         if str(row.get("run_purpose") or "")
         in {RunPurpose.DIAGNOSTIC.value, RunPurpose.DEVELOPMENT_TEST.value, RunPurpose.ZERO_CAPITAL_ANALYSIS.value, RunPurpose.MAINTENANCE.value}
     ]
     legacy = [row for row in dated if str(row.get("run_purpose") or "") == RunPurpose.UNKNOWN_LEGACY.value]
+    legacy_partially_recoverable = [
+        row
+        for row in legacy
+        if str(row.get("eligibility_basis") or "") == LEGACY_PARTIALLY_RECOVERABLE_BASIS
+    ]
+    legacy_usable = [row for row in usable if row in legacy_partially_recoverable]
     dates = [str(row.get("analysis_date")) for row in dated]
     status = _coverage_status(len(usable), config.recommended_min_periods)
     return {
         "mode": config.mode,
         "status": status,
-        "evidence_class": EvidenceClass.POINT_IN_TIME_WALK_FORWARD.value,
-        "evidence_maturity": evidence_maturity(len(usable)),
+        "evidence_class": (
+            EvidenceClass.POINT_IN_TIME_WALK_FORWARD.value
+            if eligible and len(explicit_eligible) == len(eligible)
+            else EvidenceClass.HISTORICAL_STRESS_SENSITIVITY.value
+            if eligible
+            else EvidenceClass.POINT_IN_TIME_WALK_FORWARD.value
+        ),
+        "evidence_maturity": evidence_maturity(len(genuine_usable)),
         "distinct_analysis_dates": len(dated),
         "paired_snapshot_dates": len(paired),
         "decision_eligible_snapshots": len(eligible),
+        "explicit_decision_eligible_snapshots": len(explicit_eligible),
         "diagnostic_snapshots": len(diagnostic),
         "legacy_unknown_snapshots": len(legacy),
+        "legacy_partially_recoverable_snapshots": len(legacy_partially_recoverable),
         "usable_walk_forward_periods": len(usable),
+        "genuine_decision_usable_periods": len(genuine_usable),
+        "legacy_partially_recoverable_usable_periods": len(legacy_usable),
         "first_analysis_date": min(dates) if dates else "",
         "last_analysis_date": max(dates) if dates else "",
         "min_days_between_points": config.min_days_between_points,
@@ -383,7 +426,7 @@ def build_walk_forward_inventory_report(
         "- Il vérifie si l’historique local contient assez de snapshots analyse + allocation pour un futur backtest hors-échantillon.",
         "- Les analyses multiples d’une même journée sont dédupliquées sans laisser un diagnostic remplacer une décision explicitement identifiée.",
         "- La chronologie primaire utilise les décisions planifiées/manuelles; diagnostics, maintenance, tests et analyses à capital nul restent auditables mais ne la fragmentent pas.",
-        "- Les anciens snapshots sans but explicite restent `UNKNOWN_LEGACY`; un repli causal et espacé peut les rendre `PARTIALLY_RECOVERABLE` sans prétendre connaître leur but réel.",
+        "- Les anciens snapshots sans but explicite restent `UNKNOWN_LEGACY`; un repli causal et espacé peut les rendre `LEGACY_PARTIALLY_RECOVERABLE` sans prétendre connaître leur but réel.",
         "",
         "## Résumé",
         "",
@@ -447,8 +490,21 @@ def build_walk_forward_simulation_summary(
         row for row in period_rows
         if str(row.get("evaluation_status") or "") in {"SIMULATED", "SIMULATED_WITH_PARTIAL_PRICE_DATA"}
     ]
+    genuine_oos = [row for row in simulated if walk_forward_period_has_strategy_validation_authority(row)]
+    legacy_partially_recoverable = [
+        row
+        for row in simulated
+        if walk_forward_period_is_legacy_diagnostic(row)
+    ]
+    non_authoritative_count = max(0, len(simulated) - len(genuine_oos))
+    other_non_authoritative_count = max(0, non_authoritative_count - len(legacy_partially_recoverable))
     usable_count = int(safe_float(coverage_row.get("usable_walk_forward_periods")) or 0)
     status = _simulation_status(len(simulated), usable_count, config.recommended_min_periods)
+    strategy_validation_status = _simulation_status(
+        len(genuine_oos),
+        len(genuine_oos),
+        config.recommended_min_periods,
+    )
     strategy_returns = [safe_float(row.get("strategy_period_return")) or 0.0 for row in simulated]
     vfv_returns = [safe_float(row.get("vfv_period_return")) or 0.0 for row in simulated]
     excess_returns = [safe_float(row.get("excess_return_vs_vfv")) or 0.0 for row in simulated]
@@ -464,10 +520,24 @@ def build_walk_forward_simulation_summary(
     return {
         "mode": config.mode,
         "status": status,
-        "evidence_class": EvidenceClass.POINT_IN_TIME_WALK_FORWARD.value,
-        "evidence_maturity": evidence_maturity(len(simulated)),
-        "strategy_validation_confidence": evidence_maturity(len(simulated)),
+        "evidence_class": (
+            EvidenceClass.POINT_IN_TIME_WALK_FORWARD.value
+            if simulated and len(genuine_oos) == len(simulated)
+            else EvidenceClass.HISTORICAL_STRESS_SENSITIVITY.value
+            if simulated
+            else EvidenceClass.POINT_IN_TIME_WALK_FORWARD.value
+        ),
+        "evidence_maturity": evidence_maturity(len(genuine_oos)),
+        "strategy_validation_confidence": evidence_maturity(len(genuine_oos)),
+        "walk_forward_confidence": evidence_maturity(len(genuine_oos)),
+        "strategy_validation_status": strategy_validation_status,
+        "strategy_validation_authority": "EXPLICIT_DECISION_PERIODS_ONLY",
         "simulated_periods": len(simulated),
+        "genuine_oos_periods": len(genuine_oos),
+        "explicit_decision_simulated_periods": len(genuine_oos),
+        "legacy_partially_recoverable_simulated_periods": len(legacy_partially_recoverable),
+        "non_authoritative_simulated_periods": non_authoritative_count,
+        "other_non_authoritative_simulated_periods": other_non_authoritative_count,
         "usable_walk_forward_periods": usable_count,
         "avg_period_days": round(sum(days) / len(days), 1) if days else "",
         "avg_strategy_period_return": _average(strategy_returns),
@@ -481,7 +551,11 @@ def build_walk_forward_simulation_summary(
         "regime_count": len(regime_rows),
         "weak_regimes": ", ".join(regime for regime in weak_regimes if regime),
         "price_return_basis": price_basis,
-        "interpretation": _simulation_interpretation(status, len(simulated), config.recommended_min_periods),
+        "interpretation": (
+            f"{_simulation_interpretation(status, len(simulated), config.recommended_min_periods)} "
+            f"Autorité de validation: {len(genuine_oos)} période(s) de décision explicite; "
+            f"{len(legacy_partially_recoverable)} période(s) legacy reste(nt) diagnostique(s)."
+        ),
     }
 
 
@@ -549,7 +623,11 @@ def build_walk_forward_backtest_report(
         "",
         "## Lecture",
         "",
-        f"- Classe canonique: `{EvidenceClass.POINT_IN_TIME_WALK_FORWARD.value}`.",
+        (
+            f"- Classes canoniques par période: décision explicite `{EvidenceClass.POINT_IN_TIME_WALK_FORWARD.value}`; "
+            f"legacy partiellement récupérable `{EvidenceClass.HISTORICAL_STRESS_SENSITIVITY.value}`."
+        ),
+        "- Seules les périodes scheduled/manual explicites ont une autorité positive de validation de stratégie.",
         "- Bloc 2: le rapport mesure les recommandations historiques admissibles jusqu’à la prochaine décision admissible, jamais jusqu’au prochain diagnostic.",
         "- Il utilise seulement les snapshots locaux déjà sauvegardés pour le mode choisi.",
         "- Il compare la recommandation complète de la cotisation à une allocation 100 % `VFV.TO` sur la même période.",
@@ -572,7 +650,10 @@ def build_walk_forward_backtest_report(
         _markdown_table(display_periods, [
             "analysis_date",
             "run_purpose",
+            "run_purpose_status",
             "eligibility_basis",
+            "evidence_class",
+            "strategy_validation_authority",
             "next_analysis_date",
             "days_held",
             "market_regime",
@@ -732,7 +813,7 @@ def _primary_timeline_dates(
         purpose = str(row.get("run_purpose") or "")
         if purpose_is_walk_forward_decision(purpose):
             selected.append(analysis_date)
-            basis[analysis_date] = "EXPLICIT_DECISION_PURPOSE"
+            basis[analysis_date] = EXPLICIT_DECISION_ELIGIBILITY_BASIS
             continue
         if purpose != RunPurpose.UNKNOWN_LEGACY.value:
             continue
@@ -742,7 +823,7 @@ def _primary_timeline_dates(
         far_enough_from_next_explicit = not next_explicit or (_days_between(analysis_date, next_explicit) or 0) >= config.min_days_between_points
         if far_enough_from_previous and far_enough_from_next_explicit:
             selected.append(analysis_date)
-            basis[analysis_date] = "LEGACY_PARTIALLY_RECOVERABLE"
+            basis[analysis_date] = LEGACY_PARTIALLY_RECOVERABLE_BASIS
     return sorted(set(selected)), basis
 
 
@@ -915,6 +996,7 @@ def _simulate_single_walk_forward_period(
 ) -> dict[str, list[dict[str, Any]] | dict[str, Any]]:
     analysis_date = str(row.get("analysis_date") or "")[:10]
     next_date = str(row.get("next_analysis_date") or "")[:10]
+    authority_metadata = _period_authority_metadata(row)
     allocation_payload = load_json(row.get("allocation_snapshot_path") or "")
     allocation_rows = allocation_payload.get("allocations") if isinstance(allocation_payload.get("allocations"), list) else []
     weights = _allocation_weights(allocation_rows)
@@ -983,8 +1065,7 @@ def _simulate_single_walk_forward_period(
     return {
         "period_row": {
             "mode": config.mode,
-            "evidence_class": EvidenceClass.POINT_IN_TIME_WALK_FORWARD.value,
-            "run_purpose": row.get("run_purpose", RunPurpose.UNKNOWN_LEGACY.value),
+            **authority_metadata,
             "model_rules_version": row.get("model_rules_version", ""),
             "analysis_date": analysis_date,
             "next_analysis_date": next_date,
@@ -1123,8 +1204,11 @@ def _allocation_return_row(
 def _simulation_error_row(config: WalkForwardInventoryConfig, message: str) -> dict[str, Any]:
     return {
         "mode": config.mode,
-        "evidence_class": EvidenceClass.POINT_IN_TIME_WALK_FORWARD.value,
+        "evidence_class": EvidenceClass.HISTORICAL_STRESS_SENSITIVITY.value,
         "run_purpose": "",
+        "run_purpose_status": "",
+        "eligibility_basis": "",
+        "strategy_validation_authority": False,
         "model_rules_version": "",
         "analysis_date": "",
         "next_analysis_date": "",
@@ -1150,8 +1234,7 @@ def _simulation_error_row(config: WalkForwardInventoryConfig, message: str) -> d
 def _period_error_row(row: dict[str, Any], status: str, message: str) -> dict[str, Any]:
     return {
         "mode": row.get("mode", ""),
-        "evidence_class": EvidenceClass.POINT_IN_TIME_WALK_FORWARD.value,
-        "run_purpose": row.get("run_purpose", RunPurpose.UNKNOWN_LEGACY.value),
+        **_period_authority_metadata(row),
         "model_rules_version": row.get("model_rules_version", ""),
         "analysis_date": row.get("analysis_date", ""),
         "next_analysis_date": row.get("next_analysis_date", ""),
@@ -1172,6 +1255,20 @@ def _period_error_row(row: dict[str, Any], status: str, message: str) -> dict[st
         "evaluation_status": status,
         "notes": message,
     }
+
+
+def _period_authority_metadata(row: dict[str, Any]) -> dict[str, Any]:
+    run_purpose = str(row.get("run_purpose") or RunPurpose.UNKNOWN_LEGACY.value)
+    eligibility_basis = str(row.get("eligibility_basis") or "")
+    evidence_class = walk_forward_period_evidence_class(run_purpose, eligibility_basis)
+    metadata = {
+        "evidence_class": evidence_class,
+        "run_purpose": run_purpose,
+        "run_purpose_status": str(row.get("run_purpose_status") or ""),
+        "eligibility_basis": eligibility_basis,
+    }
+    metadata["strategy_validation_authority"] = walk_forward_period_has_strategy_validation_authority(metadata)
+    return metadata
 
 
 def _annualized_return(period_return: float, days_held: float | int | None) -> float | str:

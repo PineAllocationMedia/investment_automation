@@ -2535,6 +2535,25 @@ advances `VALIDATION_SCHEMA_VERSION` to
 `2026-08-23-validation-architecture-v2`; `MODEL_RULES_VERSION`, formulas,
 thresholds, investment behavior and `PROPOSAL_ONLY` remain unchanged.
 
+## 2026-08-23 - Legacy walk-forward is diagnostic, not genuine OOS authority
+
+The causal `LEGACY_PARTIALLY_RECOVERABLE` fallback remains available for
+simulation, price outcomes, robustness inspection and historical audit. It does
+not reconstruct an unknown historical purpose. Periods sourced from
+`UNKNOWN_LEGACY` are therefore classified as
+`HISTORICAL_STRESS_SENSITIVITY` and explicitly carry no positive
+strategy-validation authority.
+
+Only current-version, successfully simulated periods sourced from explicit
+`SCHEDULED_DECISION` or `MANUAL_DECISION` observations and classified
+`POINT_IN_TIME_WALK_FORWARD` count as `genuine_oos_periods`, evidence maturity,
+strategy/walk-forward confidence, full-audit positive authority or tuning
+support. Period output now preserves `run_purpose_status`, `eligibility_basis`,
+`evidence_class` and `strategy_validation_authority`; summaries preserve total,
+genuine and legacy counts separately. This additive correction advances
+`VALIDATION_SCHEMA_VERSION` to `2026-08-23-validation-architecture-v3` without
+changing investment logic, `MODEL_RULES_VERSION` or `PROPOSAL_ONLY`.
+
 ## 2026-08-23 - Research-report semantic integrity
 
 ### Problem

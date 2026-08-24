@@ -29,6 +29,8 @@ from .validation_evidence import (
     VALIDATION_SCHEMA_VERSION,
     EvidenceClass,
     validation_confidence_dimensions,
+    walk_forward_period_has_strategy_validation_authority,
+    walk_forward_period_is_legacy_diagnostic,
 )
 
 
@@ -268,13 +270,42 @@ def build_full_audit_metrics(
     walk_forward_summary = walk_forward_result.get("summary") or {}
     walk_forward_periods = walk_forward_result.get("period_rows") or []
     current_model_version = str(model_metrics.get("current_model_rules_version") or "")
-    current_version_walk_forward_periods = [
+    simulated_walk_forward_periods = [
+        row
+        for row in walk_forward_periods
+        if str(row.get("evaluation_status") or "") in {"SIMULATED", "SIMULATED_WITH_PARTIAL_PRICE_DATA"}
+    ]
+    current_version_total_walk_forward_periods = [
         row for row in walk_forward_periods
         if current_model_version
         and str(row.get("model_rules_version") or "") == current_model_version
         and str(row.get("evaluation_status") or "") in {"SIMULATED", "SIMULATED_WITH_PARTIAL_PRICE_DATA"}
     ]
+    current_version_walk_forward_periods = [
+        row
+        for row in current_version_total_walk_forward_periods
+        if walk_forward_period_has_strategy_validation_authority(row)
+    ]
+    current_version_legacy_walk_forward_periods = [
+        row
+        for row in current_version_total_walk_forward_periods
+        if walk_forward_period_is_legacy_diagnostic(row)
+    ]
+    current_version_non_authoritative_period_count = max(
+        0,
+        len(current_version_total_walk_forward_periods) - len(current_version_walk_forward_periods),
+    )
     scoped_walk_forward_summary = _current_version_walk_forward_summary(current_version_walk_forward_periods)
+    scoped_walk_forward_summary.update(
+        {
+            "total_simulated_periods": len(current_version_total_walk_forward_periods),
+            "genuine_oos_periods": len(current_version_walk_forward_periods),
+            "explicit_decision_simulated_periods": len(current_version_walk_forward_periods),
+            "legacy_partially_recoverable_simulated_periods": len(current_version_legacy_walk_forward_periods),
+            "non_authoritative_simulated_periods": current_version_non_authoritative_period_count,
+            "strategy_validation_authority": "EXPLICIT_DECISION_PERIODS_ONLY",
+        }
+    )
     account_summary = _account_performance_summary(account_performance_rows)
 
     model_score = safe_float(model_metrics.get("health_score")) or 0.0
@@ -356,19 +387,26 @@ def build_full_audit_metrics(
         "backtest_error": backtest_error,
         "backtest_summaries": backtest_summaries,
         "walk_forward_status": "UNAVAILABLE" if walk_forward_error else _walk_forward_audit_status(scoped_walk_forward_summary),
-        "walk_forward_evidence_class": EvidenceClass.POINT_IN_TIME_WALK_FORWARD.value,
+        "walk_forward_evidence_class": (
+            EvidenceClass.POINT_IN_TIME_WALK_FORWARD.value
+            if current_version_walk_forward_periods
+            else EvidenceClass.HISTORICAL_STRESS_SENSITIVITY.value
+            if current_version_legacy_walk_forward_periods
+            else EvidenceClass.POINT_IN_TIME_WALK_FORWARD.value
+        ),
+        "walk_forward_positive_validation_authority": "EXPLICIT_DECISION_PERIODS_ONLY",
         "walk_forward_score": walk_forward_score,
         "walk_forward_error": walk_forward_error,
         "walk_forward_summary": scoped_walk_forward_summary,
         "walk_forward_cross_version_summary": walk_forward_summary,
         "walk_forward_periods": walk_forward_periods,
         "walk_forward_current_version_period_count": len(current_version_walk_forward_periods),
+        "walk_forward_current_version_total_simulated_period_count": len(current_version_total_walk_forward_periods),
+        "walk_forward_current_version_legacy_period_count": len(current_version_legacy_walk_forward_periods),
+        "walk_forward_current_version_non_authoritative_period_count": current_version_non_authoritative_period_count,
         "walk_forward_cross_version_period_count": max(
             0,
-            len([
-                row for row in walk_forward_periods
-                if str(row.get("evaluation_status") or "") in {"SIMULATED", "SIMULATED_WITH_PARTIAL_PRICE_DATA"}
-            ]) - len(current_version_walk_forward_periods),
+            len(simulated_walk_forward_periods) - len(current_version_total_walk_forward_periods),
         ),
         "realized_performance_status": account_summary.get("status", "UNAVAILABLE"),
         "realized_performance_score": realized_score,
@@ -412,9 +450,15 @@ def build_full_audit_rows(metrics: dict[str, Any]) -> list[dict[str, Any]]:
             "Preuves",
             "Walk-forward point-in-time",
             metrics.get("strategy_validation_confidence", "INSUFFICIENT"),
-            f"{metrics.get('walk_forward_period_count', 0)} période(s) OOS",
-            f"Maturité walk-forward: {metrics.get('walk_forward_confidence', 'INSUFFICIENT')}.",
-            "Autorité de validation supérieure au backtest mécanique; le compte brut reste visible.",
+            (
+                f"{metrics.get('walk_forward_period_count', 0)} période(s) OOS explicite(s); "
+                f"{metrics.get('walk_forward_current_version_legacy_period_count', 0)} legacy"
+            ),
+            (
+                f"Maturité walk-forward: {metrics.get('walk_forward_confidence', 'INSUFFICIENT')}; "
+                "autorité réservée aux décisions scheduled/manual explicites."
+            ),
+            "Les périodes legacy restent diagnostiques et ne peuvent augmenter la validation positive.",
         ),
         _row(
             "Confiance",
@@ -597,6 +641,7 @@ def build_full_audit_markdown(
         f"- Classe backtest: **{metrics.get('backtest_evidence_class')}**; autorité positive de validation: **NON**",
         f"- Walk-forward: **{metrics.get('walk_forward_status')}** ({metrics.get('walk_forward_score'):.1f}/100)",
         f"- Confiance validation stratégie: **{metrics.get('strategy_validation_confidence')}** ({metrics.get('walk_forward_period_count')} période(s) OOS)",
+        f"- Walk-forward courant auditable: {metrics.get('walk_forward_current_version_total_simulated_period_count')} simulée(s), dont {metrics.get('walk_forward_current_version_legacy_period_count')} legacy sans autorité positive",
         f"- Confiance données/sources: **{metrics.get('data_integrity_confidence')}** / **{metrics.get('source_confidence')}**",
         f"- Confiance exécution: **{metrics.get('run_execution_confidence')}**",
         f"- Politique tuning: **{metrics.get('tuning_policy')}**",
@@ -659,12 +704,17 @@ def build_full_audit_markdown(
         "",
         "## Backtest walk-forward",
         "",
-        "- Cette partie utilise les anciennes recommandations réellement produites et mesure ce qui s’est passé jusqu’à l’analyse suivante disponible.",
+        "- Cette partie conserve toutes les périodes simulables. Seules les décisions scheduled/manual explicites ont une autorité positive de validation.",
+        "- Les périodes legacy partiellement récupérables restent visibles comme HISTORICAL_STRESS_SENSITIVITY.",
         "- Si l’historique est trop rapproché, elle reste neutre et ne pénalise pas le modèle.",
         "",
         _markdown_table(_display_walk_forward_summary(walk_forward_summary), [
             "status",
+            "total_simulated_periods",
             "simulated_periods",
+            "genuine_oos_periods",
+            "legacy_partially_recoverable_simulated_periods",
+            "strategy_validation_confidence",
             "usable_walk_forward_periods",
             "regime_coverage_status",
             "regime_count",
@@ -678,6 +728,11 @@ def build_full_audit_markdown(
         "",
         _markdown_table(_display_walk_forward_periods(walk_forward_periods), [
             "analysis_date",
+            "run_purpose",
+            "run_purpose_status",
+            "eligibility_basis",
+            "evidence_class",
+            "strategy_validation_authority",
             "next_analysis_date",
             "days_held",
             "allocated_tickers",

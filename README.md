@@ -569,7 +569,7 @@ reports/latest_model_audit.csv
 
 ### Backtest walk-forward local
 
-Le backtest walk-forward sert à vérifier si les recommandations historiques admissibles ont bien agi après leur publication, avec les informations disponibles à ce moment-là. Sa classe de preuve est `POINT_IN_TIME_WALK_FORWARD`.
+Le backtest walk-forward sert à vérifier si les recommandations historiques admissibles ont bien agi après leur publication, avec les informations disponibles à ce moment-là. Une période issue d'une décision scheduled/manual explicite est `POINT_IN_TIME_WALK_FORWARD`; une période legacy partiellement récupérable reste `HISTORICAL_STRESS_SENSITIVITY` sans autorité positive de validation.
 
 Cette commande ne change jamais vos allocations. Elle sert seulement à évaluer la robustesse de la méthode.
 
@@ -672,6 +672,8 @@ Le backtest théorique à scores courants est conservé sous `MECHANICAL_DIAGNOS
 Les rapports séparent désormais `RUN_EXECUTION_CONFIDENCE`, `DATA_INTEGRITY_CONFIDENCE`, `SOURCE_CONFIDENCE`, `STRATEGY_VALIDATION_CONFIDENCE` et `WALK_FORWARD_CONFIDENCE`. Un niveau élevé de fraîcheur des données ne signifie donc pas que la stratégie est fortement validée.
 
 L'audit de stabilité primaire est `CURRENT_VERSION_AUDIT`: il compare seulement les observations `SCHEDULED_DECISION` et `MANUAL_DECISION` produites sous le `MODEL_RULES_VERSION` courant. Les diagnostics, tests de développement, analyses zéro-capital, maintenances et snapshots `UNKNOWN_LEGACY` restent auditablement comptés, mais ne peuvent augmenter la maturité, la confiance ou l'historique primaire. Le regroupement intra-journée conserve l'identité `(date, version, run_purpose)`, de sorte qu'un diagnostic tardif ne remplace jamais une vraie décision du même jour. `CROSS_VERSION_DIAGNOSTIC` évalue les transitions entre décisions comparables et conserve séparément tout le contexte non décisionnel. Les maturités `INSUFFICIENT`, `EARLY`, `DEVELOPING` et `SUBSTANTIAL` décrivent le recul disponible, jamais une preuve statistique de skill.
+
+Le repli causal `LEGACY_PARTIALLY_RECOVERABLE` du walk-forward est conservé pour simuler et auditer les anciens snapshots sans `run_purpose`. Ces périodes gardent leurs résultats historiques, mais sont classées `HISTORICAL_STRESS_SENSITIVITY`, avec `strategy_validation_authority=false`. Seules les périodes `SCHEDULED_DECISION` ou `MANUAL_DECISION` explicites, courantes et simulées sous `POINT_IN_TIME_WALK_FORWARD` comptent dans `genuine_oos_periods`, `STRATEGY_VALIDATION_CONFIDENCE`, `WALK_FORWARD_CONFIDENCE` et le contexte de tuning.
 
 ## Améliorer les réglages du modèle sans Codex
 
