@@ -6,7 +6,8 @@
 
 ## B. PR
 
-- To be filled after the reviewed commit is pushed. The PR must remain unmerged and undeployed.
+- PR #16: https://github.com/PineAllocationMedia/investment_automation/pull/16
+- Status: open for external review; unmerged and undeployed.
 
 ## C. Starting state
 
