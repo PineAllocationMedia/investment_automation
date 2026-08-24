@@ -42,6 +42,7 @@ ACCOUNT_PERFORMANCE_COLUMNS = [
     "simple_return_status",
     "preferred_performance_read",
     "preferred_performance_summary",
+    "cash_flow_history_status",
     "interpretation",
 ]
 
@@ -337,6 +338,7 @@ def _performance_row(
         twr_comparison,
         status,
     )
+    cash_flow_history_status = _cash_flow_history_status(xirr_comparison, twr_comparison)
 
     return {
         "account_type": account_type,
@@ -372,6 +374,7 @@ def _performance_row(
         "simple_return_status": simple_return_status,
         "preferred_performance_read": preferred_performance_read,
         "preferred_performance_summary": preferred_performance_summary,
+        "cash_flow_history_status": cash_flow_history_status,
         "interpretation": interpretation,
     }
 
@@ -489,6 +492,8 @@ def _xirr_comparison(
         return _empty_xirr("XIRR_WAITING_MORE_HISTORY")
 
     relevant_flows = _cash_flows_for_account(cash_flow_rows, account_type, baseline_date, as_of_date)
+    if _has_inferred_cash_flow_timing(relevant_flows):
+        return _empty_xirr("INSUFFICIENT_CASH_FLOW_HISTORY")
     portfolio_cashflows: list[tuple[date, float]] = [(start_date, -baseline_value)]
     for row in relevant_flows:
         flow_date = _parse_date(str(row.get("date") or ""))
@@ -607,6 +612,10 @@ def _twr_comparison(
     if len(points) < 2:
         return _empty_twr("TWR_WAITING_MORE_HISTORY")
 
+    baseline_flows = _cash_flows_for_account(cash_flow_rows, account_type, baseline_date, as_of_date)
+    if _has_inferred_cash_flow_timing(baseline_flows):
+        return _empty_twr("INSUFFICIENT_CASH_FLOW_HISTORY")
+
     portfolio_growth = 1.0
     benchmark_growth = 1.0
     period_count = 0
@@ -702,7 +711,11 @@ def _empty_twr(status: str) -> dict[str, Any]:
         "twr_excess_vs_sp500": "",
         "twr_status": status,
         "twr_period_count": 0,
-        "twr_method": "TWR non disponible pour l’instant.",
+        "twr_method": (
+            "TWR indisponible: l’historique contient un flux inféré sans date de transaction suffisamment fiable."
+            if status == "INSUFFICIENT_CASH_FLOW_HISTORY"
+            else "TWR non disponible pour l’instant."
+        ),
     }
 
 
@@ -754,8 +767,36 @@ def _empty_xirr(status: str) -> dict[str, Any]:
         "xirr_excess_vs_sp500": "",
         "xirr_status": status,
         "xirr_flow_count": 0,
-        "xirr_method": "XIRR non disponible pour l’instant.",
+        "xirr_method": (
+            "XIRR indisponible: l’historique contient un flux inféré sans date de transaction suffisamment fiable."
+            if status == "INSUFFICIENT_CASH_FLOW_HISTORY"
+            else "XIRR non disponible pour l’instant."
+        ),
     }
+
+
+def _has_inferred_cash_flow_timing(rows: list[dict[str, Any]]) -> bool:
+    return any(
+        str(row.get("performance_flow_source") or "") == "AUTO_INFERRED_FROM_PORTFOLIO"
+        for row in rows
+    )
+
+
+def _cash_flow_history_status(
+    xirr_comparison: dict[str, Any],
+    twr_comparison: dict[str, Any],
+) -> str:
+    statuses = {
+        str(xirr_comparison.get("xirr_status") or ""),
+        str(twr_comparison.get("twr_status") or ""),
+    }
+    if "INSUFFICIENT_CASH_FLOW_HISTORY" in statuses:
+        return "INSUFFICIENT_CASH_FLOW_HISTORY"
+    if any("FLOW_ADJUSTED" in status for status in statuses):
+        return "EXPLICIT_DATED_FLOWS_USED"
+    if statuses <= {"BASELINE_CREATED", "TWR_WAITING_MORE_HISTORY", "XIRR_WAITING_MORE_HISTORY", ""}:
+        return "WAITING_FOR_HISTORY"
+    return "NO_EXTERNAL_FLOWS_DETECTED"
 
 
 def _xirr_status(

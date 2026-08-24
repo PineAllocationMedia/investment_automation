@@ -2699,3 +2699,49 @@ acquisition-cost fallback fails closed for whole-portfolio percentage room.
 contribution, so the existing `>34%` high-CAGR overflow concentration check now
 applies to EMPTY as well as VALID portfolios. The threshold, normal targets,
 satellite budgets, scoring, and all other overflow semantics are unchanged.
+
+## 2026-08-24 - P6 Final Baseline V1 hardening and freeze
+
+### Decision
+
+Baseline V1 is identified separately as `VALIDATION_BASELINE_V1`. The identity
+is additive validation metadata: `MODEL_RULES_VERSION` remains
+`2026-08-23-allocation-room-integrity-v7` and `VALIDATION_SCHEMA_VERSION`
+remains `2026-08-23-validation-architecture-v3`. `baseline_started_at` is left
+blank until the approved deployment, so this implementation cannot
+retroactively label development observations as Baseline forward evidence.
+
+Decision-capable analyses now write a deterministic manifest with the Git SHA,
+run purpose, model/baseline/schema identity, configuration/input/research/data
+fingerprints, dependency fingerprint, and final decision-output fingerprint.
+Generation timestamps and run IDs do not enter the semantic manifest
+fingerprint. Failed critical-input runs contain no allocation and have no
+forward-evidence authority.
+
+The direct `analyze` path no longer creates a missing portfolio or continues
+through malformed critical portfolio/configuration state. A missing or empty
+decision portfolio, corrupted required YAML, unusable VFV price, unsupported
+cost basis, or unsafe acquisition-value portfolio basis fails closed. Optional
+research/watchlist limitations and explicit manual current-value fallbacks
+remain advisory. Scheduled input synchronization was already fail-closed and
+is preserved.
+
+Production raw analysis-log retention increases from 20 to a bounded default of
+100; structured validation histories are not part of that rotation. Health
+checks now expose the baseline/version/tuning identity, dependency drift,
+manifest/history writeability, project/cache/research/log/history usage, and
+free disk space without changing investment behavior or deleting evidence.
+
+Python 3.12.13 and exact direct/transitive packages are recorded in
+`requirements.lock`; minimal GitHub CI compiles the code and runs the complete
+suite. Performance reporting continues to calculate TWR/XIRR for explicit
+dated cash flows (or clean no-flow periods), but returns
+`INSUFFICIENT_CASH_FLOW_HISTORY` instead of fabricating those metrics when the
+flow date is only inferred from portfolio changes.
+
+### Investment-logic compatibility
+
+No scoring, valuation, conviction, CAGR, VFV, discovery, promotion, add/sell,
+P3, P4B, concentration, ranking, sizing, overflow, defensive allocation,
+universe, ticker, currency, or global-equity rule changes. Auto-tuning remains
+`PROPOSAL_ONLY`; global coverage remains deferred until after Baseline V1.

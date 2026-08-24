@@ -138,6 +138,31 @@ class OperationalRunnerTest(unittest.TestCase):
             self.assertIn("Score stability: SCORE_STABILITY_STABLE", result.stdout)
             self.assertEqual(len(list((root / "logs").glob("analysis_*.log"))), 1)
 
+    def test_production_log_retention_is_bounded_without_touching_other_evidence(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            env = self._project(root)
+            env["INVESTMENT_AUTOMATION_PRODUCTION_LOG_RETENTION_COUNT"] = "5"
+            logs = root / "logs"
+            logs.mkdir()
+            for index in range(7):
+                (logs / f"analysis_high-cagr_2026010{index}_000000.log").write_text(
+                    f"analysis {index}\n",
+                    encoding="utf-8",
+                )
+            maintenance_log = logs / "maintenance_20260101.log"
+            maintenance_log.write_text("maintenance\n", encoding="utf-8")
+            structured_history = root / "data" / "run_log_history.csv"
+            structured_history.parent.mkdir()
+            structured_history.write_text("structured\n", encoding="utf-8")
+
+            result = self._run(env)
+
+            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+            self.assertEqual(len(list(logs.glob("analysis_*.log"))), 5)
+            self.assertEqual(maintenance_log.read_text(encoding="utf-8"), "maintenance\n")
+            self.assertEqual(structured_history.read_text(encoding="utf-8"), "structured\n")
+
     def test_walk_forward_uses_current_mode_without_refresh(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)

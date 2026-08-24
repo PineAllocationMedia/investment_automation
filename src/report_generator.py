@@ -1277,6 +1277,20 @@ def data_coverage_summary_block(analyses: dict[str, dict[str, Any]]) -> list[str
     ]
 
 
+def _baseline_report_metadata_lines(allocation_result: dict[str, Any]) -> list[str]:
+    baseline = allocation_result.get("baseline_identity") or {}
+    manifest = allocation_result.get("decision_manifest") or {}
+    if not baseline and not manifest:
+        return []
+    return [
+        f"- Baseline: {baseline.get('baseline_id', 'N/D')} ({baseline.get('baseline_evidence_status', 'N/D')})",
+        f"- Schéma de validation: {baseline.get('validation_schema_version', 'N/D')}",
+        f"- Git: {manifest.get('git_commit_sha', 'N/D')}",
+        f"- But du run: {baseline.get('run_purpose', 'N/D')}",
+        f"- Manifeste: {manifest.get('manifest_reference', 'N/D')} ({manifest.get('manifest_fingerprint', 'N/D')})",
+    ]
+
+
 def build_compact_markdown_report(
     *,
     mode: str,
@@ -1903,6 +1917,8 @@ def build_compact_markdown_report(
     lines = [
         "# Rapport compact d'investissement",
         "",
+        *_baseline_report_metadata_lines(allocation_result),
+        "",
         triage_block,
         "",
         "## 1. Décision & positions",
@@ -2179,6 +2195,7 @@ def build_markdown_report(
         f"- Date: {today_iso()}",
         f"- Mode utilisé: {mode}",
         f"- Version des règles: {MODEL_RULES_VERSION}",
+        *_baseline_report_metadata_lines(allocation_result),
         f"- Capital analysé: {money(capital)}",
         f"- Valeur totale du portefeuille: {money(portfolio_risk.get('total_portfolio_value'))}",
         f"- Moyenne pondérée des scores hors VFV: {_average_score_text(allocation_result.get('average_score_ex_vfv'))}",

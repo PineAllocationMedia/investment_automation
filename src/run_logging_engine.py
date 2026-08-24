@@ -4,8 +4,10 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
+from .model_version import MODEL_RULES_VERSION
+from .baseline_identity import baseline_snapshot_fields
 from .utils import read_csv_records, safe_float, today_iso, write_csv_records
-from .validation_evidence import RunPurpose, normalize_run_purpose
+from .validation_evidence import RunPurpose, VALIDATION_SCHEMA_VERSION, normalize_run_purpose
 
 
 RUN_LOG_COLUMNS = [
@@ -15,6 +17,16 @@ RUN_LOG_COLUMNS = [
     "command",
     "mode",
     "run_purpose",
+    "baseline_id",
+    "baseline_started_at",
+    "baseline_evidence_status",
+    "baseline_forward_eligible",
+    "model_rules_version",
+    "validation_schema_version",
+    "git_commit_sha",
+    "manifest_reference",
+    "manifest_fingerprint",
+    "decision_output_fingerprint",
     "level",
     "component",
     "event",
@@ -53,6 +65,8 @@ def build_analysis_run_log(
     full_audit_signal: dict[str, Any] | None = None,
     model_audit_signal: dict[str, Any] | None = None,
     run_purpose: str = RunPurpose.UNKNOWN_LEGACY.value,
+    baseline_metadata: dict[str, Any] | None = None,
+    manifest_metadata: dict[str, Any] | None = None,
 ) -> list[dict[str, Any]]:
     rows: list[dict[str, Any]] = []
     universe_counts = universe_counts or {}
@@ -259,9 +273,41 @@ def build_analysis_run_log(
         "Analyse terminée et rapports générés.",
         "Aucune action technique.",
     )
+    apply_run_identity_metadata(
+        rows,
+        run_purpose=run_purpose,
+        baseline_metadata=baseline_metadata,
+        manifest_metadata=manifest_metadata,
+    )
+    return rows
+
+
+def apply_run_identity_metadata(
+    rows: list[dict[str, Any]],
+    *,
+    run_purpose: Any,
+    baseline_metadata: dict[str, Any] | None = None,
+    manifest_metadata: dict[str, Any] | None = None,
+) -> list[dict[str, Any]]:
+    baseline = baseline_metadata or {}
+    manifest = manifest_metadata or {}
     normalized_purpose = normalize_run_purpose(run_purpose)
     for row in rows:
-        row["run_purpose"] = normalized_purpose
+        row.update(
+            {
+                "run_purpose": normalized_purpose,
+                "baseline_id": baseline.get("baseline_id", ""),
+                "baseline_started_at": baseline.get("baseline_started_at", ""),
+                "baseline_evidence_status": baseline.get("baseline_evidence_status", ""),
+                "baseline_forward_eligible": baseline.get("baseline_forward_eligible", False),
+                "model_rules_version": MODEL_RULES_VERSION,
+                "validation_schema_version": VALIDATION_SCHEMA_VERSION,
+                "git_commit_sha": manifest.get("git_commit_sha", ""),
+                "manifest_reference": manifest.get("manifest_reference", ""),
+                "manifest_fingerprint": manifest.get("manifest_fingerprint", ""),
+                "decision_output_fingerprint": manifest.get("decision_output_fingerprint", ""),
+            }
+        )
     return rows
 
 
@@ -344,6 +390,22 @@ def extend_report_run_log(
             str(original.get("suggested_action") or "Aucune action technique."),
             details=str(original.get("details") or ""),
         )
+    apply_run_identity_metadata(
+        output,
+        run_purpose=context.get("run_purpose"),
+        baseline_metadata={
+            "baseline_id": context.get("baseline_id", ""),
+            "baseline_started_at": context.get("baseline_started_at", ""),
+            "baseline_evidence_status": context.get("baseline_evidence_status", ""),
+            "baseline_forward_eligible": context.get("baseline_forward_eligible", False),
+        },
+        manifest_metadata={
+            "git_commit_sha": context.get("git_commit_sha", ""),
+            "manifest_reference": context.get("manifest_reference", ""),
+            "manifest_fingerprint": context.get("manifest_fingerprint", ""),
+            "decision_output_fingerprint": context.get("decision_output_fingerprint", ""),
+        },
+    )
     return output
 
 
@@ -637,6 +699,9 @@ def write_universe_snapshot(
     model_rules_version: str,
     reports_dir,
     run_purpose: str = RunPurpose.UNKNOWN_LEGACY.value,
+    baseline_metadata: dict[str, Any] | None = None,
+    manifest_reference: str = "",
+    manifest_fingerprint: str = "",
 ) -> None:
     """
     Write a lightweight per-run universe snapshot for walk-forward validation.
@@ -681,12 +746,16 @@ def write_universe_snapshot(
                 "score_data_gap_label": row.get("score_data_gap_label"),
             }
 
+        baseline = baseline_metadata or {}
         snapshot = {
             "run_id": run_id,
             "run_date": datetime.now().isoformat()[:10],
             "mode": mode,
             "model_rules_version": model_rules_version,
             "run_purpose": normalize_run_purpose(run_purpose),
+            **baseline_snapshot_fields(baseline),
+            "manifest_reference": manifest_reference,
+            "manifest_fingerprint": manifest_fingerprint,
             "ticker_count": len(scored_tickers),
             "tickers": scored_tickers,
         }

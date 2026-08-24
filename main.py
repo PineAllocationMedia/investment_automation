@@ -33,6 +33,7 @@ from src.asset_type_engine import (
 from src.auto_fundamentals import build_automated_manual_inputs, merge_automated_with_manual_overrides
 from src.backtest_engine import run_backtests_from_latest_reports
 from src.backup_engine import create_project_backup, list_project_backups
+from src.baseline_identity import baseline_observation_metadata
 from src.benchmark_relevance_engine import compute_benchmark_relevance, enrich_benchmark_map, infer_benchmark_from_context
 from src.cache_management_engine import CACHE_HEALTH_COLUMNS, reset_expired_market_circuit_breakers, run_cache_maintenance
 from src.cagr_quality_engine import compute_expected_cagr_quality, compute_quality_but_too_expensive
@@ -51,6 +52,12 @@ from src.data_reliability_engine import (
 from src.data_fetcher import MarketDataFetcher, benchmark_metrics_for
 from src.data_freshness_engine import apply_market_freshness_to_reliability, compute_market_data_freshness
 from src.decision_quality_engine import annotate_allocations_with_decision_quality, compute_decision_quality
+from src.decision_manifest_engine import (
+    build_decision_manifest,
+    git_tracked_state,
+    write_decision_manifest,
+    write_failed_run_audit,
+)
 from src.defensive_etf_engine import (
     build_defensive_etf_candidates,
     defensive_etf_analysis_map,
@@ -64,6 +71,14 @@ from src.drift_engine import compute_drift_status
 from src.history_engine import apply_history_context, load_previous_snapshot, save_current_snapshot
 from src.hidden_cluster_engine import apply_hidden_cluster_guardrails
 from src.health_check_engine import HEALTH_CHECK_COLUMNS, health_summary, run_health_check
+from src.critical_input_engine import (
+    CriticalInputError,
+    audit_baseline_environment_authority,
+    audit_runtime_critical_inputs,
+    audit_static_critical_inputs,
+    merge_input_audits,
+)
+from src.dependency_reproducibility import dependency_environment
 from src.instrument_profile_engine import build_instrument_profiles
 from src.liquidation_engine import apply_history_sell_discipline, compute_liquidation_status
 from src.long_term_durability_engine import compute_long_term_durability
@@ -158,6 +173,7 @@ from src.research_reports import (
 )
 from src.run_logging_engine import (
     RUN_LOG_COLUMNS,
+    apply_run_identity_metadata,
     append_run_log_history,
     build_analysis_run_log,
     build_health_check_run_log,
@@ -525,21 +541,24 @@ def analyze_command(args: argparse.Namespace) -> int:
         for error in validation_errors:
             print(error)
         return 1
-    missing_files = [DATA_DIR / "portfolio.csv"]
-    if any(not path.exists() for path in missing_files):
-        init_project()
-
     input_warnings = validate_input_files(PROJECT_ROOT)
     if input_warnings:
-        print("Avertissements de validation détectés. L’analyse continue et les problèmes sont listés dans le rapport.")
+        print("Problèmes de validation détectés; les entrées critiques échoueront avant toute allocation.")
 
-    result = run_analysis(
-        capital=args.capital,
-        mode=args.mode,
-        refresh_market_data=args.refresh_market_data,
-        validation_warnings=input_warnings,
-        run_purpose=args.run_purpose,
-    )
+    try:
+        result = run_analysis(
+            capital=args.capital,
+            mode=args.mode,
+            refresh_market_data=args.refresh_market_data,
+            validation_warnings=input_warnings,
+            run_purpose=args.run_purpose,
+        )
+    except CriticalInputError as exc:
+        print("Analyse annulée: entrée critique non fiable. Aucune allocation ni preuve forward créée.")
+        for issue in exc.audit.get("hard_failures", []):
+            print(f"- {issue.get('code')}: {issue.get('message')}")
+        print(f"Audit d’échec: {REPORTS_DIR / 'latest_failed_run_audit.json'}")
+        return 2
     print(f"Analyse terminée en mode {args.mode}.")
     print(f"Rapport Markdown: {REPORTS_DIR / 'latest_report.md'}")
     print(f"Rapport HTML: {REPORTS_DIR / 'latest_report.html'}")
@@ -1183,6 +1202,11 @@ def health_check_command(args: argparse.Namespace) -> int:
     )
     output_path = REPORTS_DIR / "latest_health_check.csv"
     write_csv_records(output_path, rows, HEALTH_CHECK_COLUMNS)
+    write_csv_records(
+        REPORTS_DIR / "latest_storage_health.csv",
+        [row for row in rows if str(row.get("check") or "").startswith("storage:")],
+        HEALTH_CHECK_COLUMNS,
+    )
     run_log_rows = build_health_check_run_log(
         run_id=run_id,
         repair_safe=args.repair_safe,
@@ -1239,7 +1263,53 @@ def run_analysis(
     #
     # Changing this order can silently alter allocations. Document any change in DECISIONS.md.
     run_id = make_run_id("analyze", mode)
+    run_timestamp = datetime.now().isoformat(timespec="seconds")
     resolved_run_purpose = resolve_analysis_run_purpose(run_purpose, capital=capital)
+    static_input_audit = audit_static_critical_inputs(
+        PROJECT_ROOT,
+        capital=capital,
+        run_purpose=resolved_run_purpose,
+        mode=mode,
+    )
+    dependency_payload = dependency_environment(PROJECT_ROOT / "requirements.lock")
+    tracked_git_payload = git_tracked_state(PROJECT_ROOT)
+    approved_config_active = bool(
+        str(load_yaml(CONFIG_DIR / "baseline.yaml").get("approved_config_fingerprint") or "").strip()
+    ) and not any(
+        row.get("code") == "BASELINE_CONFIG_FINGERPRINT_MISMATCH"
+        for row in static_input_audit.get("hard_failures", [])
+    )
+    baseline_metadata = baseline_observation_metadata(
+        run_timestamp=run_timestamp,
+        run_purpose=resolved_run_purpose,
+        capital=capital,
+        config_path=CONFIG_DIR / "baseline.yaml",
+        critical_input_passed=not bool(static_input_audit.get("hard_failures")),
+        approved_config_active=approved_config_active,
+        dependency_status=str(dependency_payload.get("dependency_status") or "UNKNOWN"),
+        git_tracked_worktree_clean=tracked_git_payload.get("git_tracked_worktree_clean") is True,
+        git_tracked_diff_fingerprint=str(tracked_git_payload.get("git_tracked_diff_fingerprint") or ""),
+    )
+    static_input_audit = merge_input_audits(
+        static_input_audit,
+        audit_baseline_environment_authority(baseline_metadata),
+    )
+    if static_input_audit.get("hard_failures"):
+        write_failed_run_audit(
+            reports_dir=REPORTS_DIR,
+            project_root=PROJECT_ROOT,
+            run_id=run_id,
+            run_timestamp=run_timestamp,
+            run_purpose=resolved_run_purpose,
+            mode=mode,
+            capital=capital,
+            input_audit=static_input_audit,
+        )
+        raise CriticalInputError(static_input_audit)
+    effective_validation_warnings = list(validation_warnings or [])
+    effective_validation_warnings.extend(
+        str(row.get("message") or "") for row in static_input_audit.get("advisories", [])
+    )
     try:
         cache_health_rows = run_cache_maintenance(CACHE_DIR, repair_safe=True)
         circuit_breaker_reset_row = None
@@ -1369,6 +1439,40 @@ def run_analysis(
         fx_rates_to_cad = fetcher.fetch_fx_rates_to_cad(portfolio_currencies, refresh=refresh_market_data)
         portfolio_rows = enrich_portfolio_with_market_data(portfolio_rows, market_data, fx_rates_to_cad)
         portfolio_lot_rows = enrich_portfolio_with_market_data(portfolio_lot_rows, market_data, fx_rates_to_cad)
+        runtime_input_audit = audit_runtime_critical_inputs(
+            portfolio_rows=portfolio_rows,
+            market_data=market_data,
+            capital=capital,
+            run_purpose=resolved_run_purpose,
+        )
+        critical_input_audit = merge_input_audits(static_input_audit, runtime_input_audit)
+        baseline_metadata = baseline_observation_metadata(
+            run_timestamp=run_timestamp,
+            run_purpose=resolved_run_purpose,
+            capital=capital,
+            config_path=CONFIG_DIR / "baseline.yaml",
+            critical_input_passed=not bool(critical_input_audit.get("hard_failures")),
+            approved_config_active=approved_config_active,
+            dependency_status=str(dependency_payload.get("dependency_status") or "UNKNOWN"),
+            git_tracked_worktree_clean=tracked_git_payload.get("git_tracked_worktree_clean") is True,
+            git_tracked_diff_fingerprint=str(tracked_git_payload.get("git_tracked_diff_fingerprint") or ""),
+        )
+        if critical_input_audit.get("hard_failures"):
+            write_failed_run_audit(
+                reports_dir=REPORTS_DIR,
+                project_root=PROJECT_ROOT,
+                run_id=run_id,
+                run_timestamp=run_timestamp,
+                run_purpose=resolved_run_purpose,
+                mode=mode,
+                capital=capital,
+                input_audit=critical_input_audit,
+            )
+            raise CriticalInputError(critical_input_audit)
+        effective_validation_warnings.extend(
+            str(row.get("message") or "") for row in runtime_input_audit.get("advisories", [])
+        )
+        effective_validation_warnings = list(dict.fromkeys(item for item in effective_validation_warnings if item))
         portfolio_change_rows, portfolio_change_history_rows, portfolio_change_summary_rows = update_portfolio_change_history(
             portfolio_lot_rows,
             DATA_DIR / "portfolio_state_snapshot.csv",
@@ -1615,7 +1719,7 @@ def run_analysis(
             allocation_analyses,
             allocation_result,
             portfolio_risk,
-            (validation_warnings or []) + allocation_warnings,
+            effective_validation_warnings + allocation_warnings,
             mode=mode,
             allocation_sensitivity=allocation_sensitivity,
         )
@@ -1668,6 +1772,57 @@ def run_analysis(
             cache_health_rows.append(circuit_breaker_reset_row)
         full_audit_signal = compute_full_audit_signal(REPORTS_DIR, mode)
         model_audit_signal = compute_model_audit_signal(REPORTS_DIR, mode)
+        tracked_git_payload = git_tracked_state(PROJECT_ROOT)
+        baseline_metadata = baseline_observation_metadata(
+            run_timestamp=run_timestamp,
+            run_purpose=resolved_run_purpose,
+            capital=capital,
+            config_path=CONFIG_DIR / "baseline.yaml",
+            critical_input_passed=not bool(critical_input_audit.get("hard_failures")),
+            approved_config_active=approved_config_active,
+            dependency_status=str(dependency_payload.get("dependency_status") or "UNKNOWN"),
+            git_tracked_worktree_clean=tracked_git_payload.get("git_tracked_worktree_clean") is True,
+            git_tracked_diff_fingerprint=str(tracked_git_payload.get("git_tracked_diff_fingerprint") or ""),
+        )
+        final_baseline_environment_audit = audit_baseline_environment_authority(baseline_metadata)
+        if final_baseline_environment_audit.get("hard_failures"):
+            critical_input_audit = merge_input_audits(critical_input_audit, final_baseline_environment_audit)
+            write_failed_run_audit(
+                reports_dir=REPORTS_DIR,
+                project_root=PROJECT_ROOT,
+                run_id=run_id,
+                run_timestamp=run_timestamp,
+                run_purpose=resolved_run_purpose,
+                mode=mode,
+                capital=capital,
+                input_audit=critical_input_audit,
+            )
+            raise CriticalInputError(critical_input_audit)
+        decision_manifest = build_decision_manifest(
+            project_root=PROJECT_ROOT,
+            run_id=run_id,
+            run_timestamp=run_timestamp,
+            run_purpose=resolved_run_purpose,
+            mode=mode,
+            capital=capital,
+            analyses_by_universe={
+                "CORE_PORTFOLIO": analyses,
+                "WATCHLIST": watchlist_analyses,
+                "MARKET_SCANNER": market_analyses,
+                "DISCOVERY_IDEAS": discovery_analyses,
+            },
+            allocation_result=allocation_result,
+            research_inputs=research_inputs,
+            market_data=market_data,
+            benchmark_data=benchmark_data,
+            baseline_metadata=baseline_metadata,
+            input_audit=critical_input_audit,
+            dependency_payload=dependency_payload,
+            git_state_payload=tracked_git_payload,
+        )
+        manifest_summary = write_decision_manifest(REPORTS_DIR, decision_manifest)
+        allocation_result["baseline_identity"] = baseline_metadata
+        allocation_result["decision_manifest"] = manifest_summary
         run_log_rows = build_analysis_run_log(
             run_id=run_id,
             mode=mode,
@@ -1680,7 +1835,7 @@ def run_analysis(
                 "discovery": len(discovery_tickers),
                 "defensive_etf": len(defensive_etf_tickers),
             },
-            validation_warnings=validation_warnings or [],
+            validation_warnings=effective_validation_warnings,
             allocation_warnings=allocation_warnings,
             cache_health_rows=cache_health_rows,
             data_gaps=data_gaps,
@@ -1691,6 +1846,8 @@ def run_analysis(
             full_audit_signal=full_audit_signal,
             model_audit_signal=model_audit_signal,
             run_purpose=resolved_run_purpose,
+            baseline_metadata=baseline_metadata,
+            manifest_metadata=manifest_summary,
         )
         if circuit_breaker_reset_row:
             now = datetime.now()
@@ -1731,6 +1888,12 @@ def run_analysis(
                     ),
                 }
             )
+        apply_run_identity_metadata(
+            run_log_rows,
+            run_purpose=resolved_run_purpose,
+            baseline_metadata=baseline_metadata,
+            manifest_metadata=manifest_summary,
+        )
         walk_forward_signal = compute_walk_forward_signal(REPORTS_DIR, mode)
         instrument_profile_rows = build_instrument_profiles(
             allocation_result.get("allocations", []),
@@ -1745,6 +1908,9 @@ def run_analysis(
             market_analyses,
             discovery_analyses,
             run_purpose=resolved_run_purpose,
+            baseline_metadata=baseline_metadata,
+            manifest_reference=manifest_summary.get("manifest_reference", ""),
+            manifest_fingerprint=manifest_summary.get("manifest_fingerprint", ""),
         )
         score_stability = compute_score_stability(REPORTS_DIR, mode, analyses)
         write_csv_records_mode_pair(
@@ -1776,7 +1942,7 @@ def run_analysis(
             stress_tests=stress_tests,
             tax_report=tax_report,
             data_gaps=data_gaps,
-            validation_warnings=(validation_warnings or []) + allocation_warnings,
+            validation_warnings=effective_validation_warnings + allocation_warnings,
             watchlist_analyses=watchlist_analyses,
             market_analyses=market_analyses,
             market_universe=market_universe,
@@ -1825,6 +1991,9 @@ def run_analysis(
             allocation_result,
             analysis_mode=mode,
             run_purpose=resolved_run_purpose,
+            baseline_metadata=baseline_metadata,
+            manifest_reference=manifest_summary.get("manifest_reference", ""),
+            manifest_fingerprint=manifest_summary.get("manifest_fingerprint", ""),
         )
         write_universe_snapshot(
             analyses={**analyses, **watchlist_analyses, **market_analyses, **discovery_analyses},
@@ -1833,6 +2002,9 @@ def run_analysis(
             model_rules_version=MODEL_RULES_VERSION,
             reports_dir=REPORTS_DIR,
             run_purpose=resolved_run_purpose,
+            baseline_metadata=baseline_metadata,
+            manifest_reference=manifest_summary.get("manifest_reference", ""),
+            manifest_fingerprint=manifest_summary.get("manifest_fingerprint", ""),
         )
         return {
             "allocations": allocation_result.get("allocations", []),
@@ -1849,9 +2021,13 @@ def run_analysis(
             "anomaly_rows": anomaly_rows,
             "cache_health_rows": cache_health_rows,
             "run_log_rows": run_log_rows,
+            "baseline_identity": baseline_metadata,
+            "decision_manifest": manifest_summary,
         }
 
 
+    except CriticalInputError:
+        raise
     except Exception as _run_analysis_exc:  # noqa: BLE001
         import traceback as _tb
         _emergency_entry = {

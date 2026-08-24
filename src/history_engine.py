@@ -5,6 +5,7 @@ from pathlib import Path
 from typing import Any
 
 from .model_version import MODEL_RULES_VERSION
+from .baseline_identity import baseline_snapshot_fields
 from .validation_evidence import RunPurpose, normalize_run_purpose
 from .utils import load_json, read_csv_records, safe_float, save_json, today_iso, write_csv_records
 
@@ -323,6 +324,9 @@ def save_current_snapshot(
     analysis_mode: str | dict[str, dict[str, Any]] | None = None,
     *analysis_groups: dict[str, dict[str, Any]],
     run_purpose: str = RunPurpose.UNKNOWN_LEGACY.value,
+    baseline_metadata: dict[str, Any] | None = None,
+    manifest_reference: str = "",
+    manifest_fingerprint: str = "",
 ) -> None:
     reports_dir = Path(reports_dir)
     history_dir = reports_dir / "history"
@@ -337,12 +341,16 @@ def save_current_snapshot(
     for group in groups:
         for analysis in group.values():
             rows.append(_snapshot_row(analysis, normalized_mode))
+    baseline = baseline_metadata or {}
     payload = {
         "created_at": datetime.now().isoformat(timespec="seconds"),
         "analysis_date": today_iso(),
         "model_rules_version": MODEL_RULES_VERSION,
         "analysis_mode": normalized_mode,
         "run_purpose": normalize_run_purpose(run_purpose),
+        **baseline_snapshot_fields(baseline),
+        "manifest_reference": manifest_reference,
+        "manifest_fingerprint": manifest_fingerprint,
         "analyses": rows,
     }
     stamp = datetime.now().strftime("%Y%m%d_%H%M%S")
