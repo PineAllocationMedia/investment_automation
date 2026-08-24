@@ -23,6 +23,15 @@ from .transaction_friction_engine import BACKTEST_FRICTION_AUDIT_COLUMNS
 from .underperformance_engine import UNDERPERFORMANCE_COLUMNS, build_underperformance_attribution
 from .utils import DATA_DIR, DISCLAIMER, REPORTS_DIR, markdown_to_html, money, pct, read_csv_records, safe_float, write_csv_records, write_text
 from .walk_forward_backtest_engine import run_walk_forward_backtest
+from .validation_evidence import (
+    AUTO_TUNING_POLICY,
+    EVIDENCE_HIERARCHY,
+    VALIDATION_SCHEMA_VERSION,
+    EvidenceClass,
+    validation_confidence_dimensions,
+    walk_forward_period_has_strategy_validation_authority,
+    walk_forward_period_is_legacy_diagnostic,
+)
 
 
 FULL_AUDIT_COLUMNS = [
@@ -260,11 +269,48 @@ def build_full_audit_metrics(
     walk_forward_result = walk_forward_result or {}
     walk_forward_summary = walk_forward_result.get("summary") or {}
     walk_forward_periods = walk_forward_result.get("period_rows") or []
+    current_model_version = str(model_metrics.get("current_model_rules_version") or "")
+    simulated_walk_forward_periods = [
+        row
+        for row in walk_forward_periods
+        if str(row.get("evaluation_status") or "") in {"SIMULATED", "SIMULATED_WITH_PARTIAL_PRICE_DATA"}
+    ]
+    current_version_total_walk_forward_periods = [
+        row for row in walk_forward_periods
+        if current_model_version
+        and str(row.get("model_rules_version") or "") == current_model_version
+        and str(row.get("evaluation_status") or "") in {"SIMULATED", "SIMULATED_WITH_PARTIAL_PRICE_DATA"}
+    ]
+    current_version_walk_forward_periods = [
+        row
+        for row in current_version_total_walk_forward_periods
+        if walk_forward_period_has_strategy_validation_authority(row)
+    ]
+    current_version_legacy_walk_forward_periods = [
+        row
+        for row in current_version_total_walk_forward_periods
+        if walk_forward_period_is_legacy_diagnostic(row)
+    ]
+    current_version_non_authoritative_period_count = max(
+        0,
+        len(current_version_total_walk_forward_periods) - len(current_version_walk_forward_periods),
+    )
+    scoped_walk_forward_summary = _current_version_walk_forward_summary(current_version_walk_forward_periods)
+    scoped_walk_forward_summary.update(
+        {
+            "total_simulated_periods": len(current_version_total_walk_forward_periods),
+            "genuine_oos_periods": len(current_version_walk_forward_periods),
+            "explicit_decision_simulated_periods": len(current_version_walk_forward_periods),
+            "legacy_partially_recoverable_simulated_periods": len(current_version_legacy_walk_forward_periods),
+            "non_authoritative_simulated_periods": current_version_non_authoritative_period_count,
+            "strategy_validation_authority": "EXPLICIT_DECISION_PERIODS_ONLY",
+        }
+    )
     account_summary = _account_performance_summary(account_performance_rows)
 
     model_score = safe_float(model_metrics.get("health_score")) or 0.0
     backtest_score = _backtest_score(backtest_summaries, backtest_error)
-    walk_forward_score = _walk_forward_score(walk_forward_summary, walk_forward_error)
+    walk_forward_score = _walk_forward_score(scoped_walk_forward_summary, walk_forward_error)
     realized_score = _realized_performance_score(account_summary)
     source_health = source_health_audit_context(source_health_rows or [])
     ticker_source_context = ticker_source_context or build_ticker_source_audit_context()
@@ -276,7 +322,7 @@ def build_full_audit_metrics(
         contribution_estimate,
         source_health,
         ticker_source_context,
-        walk_forward_summary,
+        scoped_walk_forward_summary,
     )
     underperformance = build_underperformance_attribution(
         model_metrics=model_metrics,
@@ -284,17 +330,37 @@ def build_full_audit_metrics(
         backtest_summaries=backtest_summaries,
         mode=mode,
     )
+    mechanical_warning_penalty = max(0.0, 60.0 - backtest_score)
     criterion7_score = round(
-        0.28 * model_score + 0.25 * backtest_score + 0.12 * walk_forward_score + 0.20 * realized_score + 0.15 * evidence_score,
+        max(
+            0.0,
+            0.35 * model_score
+            + 0.30 * walk_forward_score
+            + 0.20 * realized_score
+            + 0.15 * evidence_score
+            - 0.10 * mechanical_warning_penalty,
+        ),
         1,
     )
     criterion7_status = _criterion7_status(criterion7_score, model_metrics, backtest_error)
+    current_version_decision_observation_count = model_metrics.get(
+        "current_version_decision_observation_count",
+        model_metrics.get("current_version_observation_count", 0),
+    )
+    confidence_dimensions = validation_confidence_dimensions(
+        run_succeeded=not bool(backtest_error or walk_forward_error),
+        source_health_score=source_health.get("source_health_score"),
+        current_version_observations=current_version_decision_observation_count,
+        walk_forward_periods=len(current_version_walk_forward_periods),
+    )
 
     return {
         "date": date.today().isoformat(),
         "period": period,
         "years": years,
         "mode": mode,
+        "validation_schema_version": VALIDATION_SCHEMA_VERSION,
+        "evidence_hierarchy": dict(EVIDENCE_HIERARCHY),
         "selected_monthly_capital": round(selected_monthly_capital, 2),
         "contribution_estimate": contribution_estimate,
         "model_health_status": model_metrics.get("health_status", "N/D"),
@@ -302,6 +368,9 @@ def build_full_audit_metrics(
         "model_confidence": model_metrics.get("confidence", "N/D"),
         "model_sample_count": model_metrics.get("sample_count", 0),
         "model_allocation_sample_count": model_metrics.get("allocation_sample_count", 0),
+        "current_version_decision_observation_count": int(
+            safe_float(current_version_decision_observation_count) or 0
+        ),
         "model_span_days": model_metrics.get("span_days", 0),
         "avg_allocation_turnover": model_metrics.get("avg_allocation_turnover", 0.0),
         "avg_vfv": model_metrics.get("avg_vfv", 0.0),
@@ -310,14 +379,35 @@ def build_full_audit_metrics(
         "high_cycle_day_rate": model_metrics.get("high_cycle_day_rate", 0.0),
         "low_data_day_rate": model_metrics.get("low_data_day_rate", 0.0),
         "backtest_status": "UNAVAILABLE" if backtest_error else _backtest_status(backtest_summaries),
+        "backtest_evidence_class": EvidenceClass.MECHANICAL_DIAGNOSTIC.value,
+        "backtest_evidence_role": "NEGATIVE_WARNING_AND_NEUTRAL_DIAGNOSTIC_ONLY",
+        "backtest_positive_validation_authority": False,
         "backtest_score": backtest_score,
+        "mechanical_warning_penalty": round(mechanical_warning_penalty, 1),
         "backtest_error": backtest_error,
         "backtest_summaries": backtest_summaries,
-        "walk_forward_status": "UNAVAILABLE" if walk_forward_error else _walk_forward_audit_status(walk_forward_summary),
+        "walk_forward_status": "UNAVAILABLE" if walk_forward_error else _walk_forward_audit_status(scoped_walk_forward_summary),
+        "walk_forward_evidence_class": (
+            EvidenceClass.POINT_IN_TIME_WALK_FORWARD.value
+            if current_version_walk_forward_periods
+            else EvidenceClass.HISTORICAL_STRESS_SENSITIVITY.value
+            if current_version_legacy_walk_forward_periods
+            else EvidenceClass.POINT_IN_TIME_WALK_FORWARD.value
+        ),
+        "walk_forward_positive_validation_authority": "EXPLICIT_DECISION_PERIODS_ONLY",
         "walk_forward_score": walk_forward_score,
         "walk_forward_error": walk_forward_error,
-        "walk_forward_summary": walk_forward_summary,
+        "walk_forward_summary": scoped_walk_forward_summary,
+        "walk_forward_cross_version_summary": walk_forward_summary,
         "walk_forward_periods": walk_forward_periods,
+        "walk_forward_current_version_period_count": len(current_version_walk_forward_periods),
+        "walk_forward_current_version_total_simulated_period_count": len(current_version_total_walk_forward_periods),
+        "walk_forward_current_version_legacy_period_count": len(current_version_legacy_walk_forward_periods),
+        "walk_forward_current_version_non_authoritative_period_count": current_version_non_authoritative_period_count,
+        "walk_forward_cross_version_period_count": max(
+            0,
+            len(simulated_walk_forward_periods) - len(current_version_total_walk_forward_periods),
+        ),
         "realized_performance_status": account_summary.get("status", "UNAVAILABLE"),
         "realized_performance_score": realized_score,
         "account_summary": account_summary,
@@ -338,6 +428,8 @@ def build_full_audit_metrics(
         "criterion7_score": criterion7_score,
         "criterion7_status": criterion7_status,
         "criterion7_interpretation": _criterion7_interpretation(criterion7_status),
+        "tuning_policy": AUTO_TUNING_POLICY,
+        **confidence_dimensions,
     }
 
 
@@ -346,6 +438,40 @@ def build_full_audit_rows(metrics: dict[str, Any]) -> list[dict[str, Any]]:
     account = metrics.get("account_summary") or {}
     underperformance = metrics.get("underperformance_attribution") or {}
     rows = [
+        _row(
+            "Preuves",
+            "Backtest théorique",
+            metrics.get("backtest_evidence_class", EvidenceClass.MECHANICAL_DIAGNOSTIC.value),
+            "Autorité positive: NON",
+            "Les bons rendements restent neutres; les résultats pathologiques peuvent produire un avertissement négatif.",
+            "Ne peut prouver l'alpha, augmenter la confiance de validation, ni autoriser un tuning.",
+        ),
+        _row(
+            "Preuves",
+            "Walk-forward point-in-time",
+            metrics.get("strategy_validation_confidence", "INSUFFICIENT"),
+            (
+                f"{metrics.get('walk_forward_period_count', 0)} période(s) OOS explicite(s); "
+                f"{metrics.get('walk_forward_current_version_legacy_period_count', 0)} legacy"
+            ),
+            (
+                f"Maturité walk-forward: {metrics.get('walk_forward_confidence', 'INSUFFICIENT')}; "
+                "autorité réservée aux décisions scheduled/manual explicites."
+            ),
+            "Les périodes legacy restent diagnostiques et ne peuvent augmenter la validation positive.",
+        ),
+        _row(
+            "Confiance",
+            "Dimensions explicites",
+            metrics.get("strategy_validation_confidence", "INSUFFICIENT"),
+            (
+                f"exécution={metrics.get('run_execution_confidence')}; "
+                f"données={metrics.get('data_integrity_confidence')}; "
+                f"sources={metrics.get('source_confidence')}"
+            ),
+            "Une donnée fraîche et une exécution réussie ne valent pas validation de la stratégie.",
+            "Évite qu'un seul libellé HIGH mélange qualité opérationnelle et maturité OOS.",
+        ),
         _row(
             "Résumé",
             "Intégration du critère 7",
@@ -486,7 +612,7 @@ def build_full_audit_markdown(
     model_metrics = model_audit.get("metrics") or {}
     backtest_summaries = backtest_result.get("summaries") or []
     backtest_benchmark_rows = backtest_result.get("benchmark_rows") or []
-    walk_forward_summary = (walk_forward_result or {}).get("summary") or metrics.get("walk_forward_summary") or {}
+    walk_forward_summary = metrics.get("walk_forward_summary") or (walk_forward_result or {}).get("summary") or {}
     walk_forward_periods = (walk_forward_result or {}).get("period_rows") or metrics.get("walk_forward_periods") or []
     walk_forward_benchmark_rows = (walk_forward_result or {}).get("benchmark_rows") or []
     threshold = model_metrics.get("threshold_review") or {}
@@ -502,6 +628,7 @@ def build_full_audit_markdown(
         f"- Mode audité: {metrics.get('mode')}",
         f"- Période d’audit: {metrics.get('period')}",
         f"- Backtest demandé: {', '.join(str(year) + ' ans' for year in metrics.get('years', []))}",
+        f"- Schéma de validation: {metrics.get('validation_schema_version')}",
         f"- Cotisation mensuelle utilisée pour le backtest: {money(safe_float(metrics.get('selected_monthly_capital')))}",
         "",
         f"> {DISCLAIMER}",
@@ -511,7 +638,13 @@ def build_full_audit_markdown(
         f"- Statut critère 7: **{metrics.get('criterion7_status')}** ({metrics.get('criterion7_score'):.1f}/100)",
         f"- Santé du modèle: **{metrics.get('model_health_status')}** ({metrics.get('model_health_score'):.1f}/100)",
         f"- Backtest: **{metrics.get('backtest_status')}** ({metrics.get('backtest_score'):.1f}/100)",
+        f"- Classe backtest: **{metrics.get('backtest_evidence_class')}**; autorité positive de validation: **NON**",
         f"- Walk-forward: **{metrics.get('walk_forward_status')}** ({metrics.get('walk_forward_score'):.1f}/100)",
+        f"- Confiance validation stratégie: **{metrics.get('strategy_validation_confidence')}** ({metrics.get('walk_forward_period_count')} période(s) OOS)",
+        f"- Walk-forward courant auditable: {metrics.get('walk_forward_current_version_total_simulated_period_count')} simulée(s), dont {metrics.get('walk_forward_current_version_legacy_period_count')} legacy sans autorité positive",
+        f"- Confiance données/sources: **{metrics.get('data_integrity_confidence')}** / **{metrics.get('source_confidence')}**",
+        f"- Confiance exécution: **{metrics.get('run_execution_confidence')}**",
+        f"- Politique tuning: **{metrics.get('tuning_policy')}**",
         f"- Performance réelle suivie: **{metrics.get('realized_performance_status')}** ({metrics.get('realized_performance_score'):.1f}/100)",
         f"- Santé des sources: **{metrics.get('source_health_status', 'UNKNOWN')}** ({safe_float(metrics.get('source_health_score')) or 0:.1f}/100)",
         f"- Qualité tickers/sources: **{metrics.get('ticker_source_quality_status', 'UNKNOWN')}** ({safe_float(metrics.get('ticker_source_quality_score')) or 0:.1f}/100)",
@@ -537,7 +670,8 @@ def build_full_audit_markdown(
         "",
         "## Backtest théorique",
         "",
-        "- Cette partie teste la mécanique actuelle avec prix historiques gratuits. Elle ne reconstruit pas parfaitement les fondamentaux historiques.",
+        "- Classe `MECHANICAL_DIAGNOSTIC`: cette partie teste la mécanique actuelle avec prix historiques gratuits et informations courantes.",
+        "- Elle ne reconstruit pas causalement les fondamentaux historiques. Un bon résultat ne prouve ni alpha ni skill; un mauvais résultat peut conserver une autorité d'avertissement asymétrique.",
         "",
         _markdown_table(_display_backtest_summaries(backtest_summaries), [
             "period_years",
@@ -570,12 +704,17 @@ def build_full_audit_markdown(
         "",
         "## Backtest walk-forward",
         "",
-        "- Cette partie utilise les anciennes recommandations réellement produites et mesure ce qui s’est passé jusqu’à l’analyse suivante disponible.",
+        "- Cette partie conserve toutes les périodes simulables. Seules les décisions scheduled/manual explicites ont une autorité positive de validation.",
+        "- Les périodes legacy partiellement récupérables restent visibles comme HISTORICAL_STRESS_SENSITIVITY.",
         "- Si l’historique est trop rapproché, elle reste neutre et ne pénalise pas le modèle.",
         "",
         _markdown_table(_display_walk_forward_summary(walk_forward_summary), [
             "status",
+            "total_simulated_periods",
             "simulated_periods",
+            "genuine_oos_periods",
+            "legacy_partially_recoverable_simulated_periods",
+            "strategy_validation_confidence",
             "usable_walk_forward_periods",
             "regime_coverage_status",
             "regime_count",
@@ -589,6 +728,11 @@ def build_full_audit_markdown(
         "",
         _markdown_table(_display_walk_forward_periods(walk_forward_periods), [
             "analysis_date",
+            "run_purpose",
+            "run_purpose_status",
+            "eligibility_basis",
+            "evidence_class",
+            "strategy_validation_authority",
             "next_analysis_date",
             "days_held",
             "allocated_tickers",
@@ -861,11 +1005,11 @@ def _backtest_status(summaries: list[dict[str, Any]]) -> str:
 
 def _walk_forward_score(summary: dict[str, Any], error: str) -> float:
     if error:
-        return 45.0
+        return 30.0
     status = str(summary.get("status") or "")
     simulated = int(safe_float(summary.get("simulated_periods")) or 0)
     if status in {"", "NO_USABLE_PERIODS", "NO_SIMULATED_PERIODS"} or simulated <= 0:
-        return 60.0
+        return 35.0
     score = 62.0
     excess = safe_float(summary.get("compounded_excess_return_vs_vfv"))
     avg_excess = safe_float(summary.get("avg_excess_return_vs_vfv"))
@@ -889,6 +1033,43 @@ def _walk_forward_score(summary: dict[str, Any], error: str) -> float:
     if status in {"EARLY_SIGNAL_ONLY", "PRELIMINARY_WALK_FORWARD"}:
         score = 60.0 + (score - 60.0) * 0.50
     return round(max(0.0, min(100.0, score)), 1)
+
+
+def _current_version_walk_forward_summary(period_rows: list[dict[str, Any]]) -> dict[str, Any]:
+    simulated = list(period_rows)
+    strategy_returns = [safe_float(row.get("strategy_period_return")) or 0.0 for row in simulated]
+    vfv_returns = [safe_float(row.get("vfv_period_return")) or 0.0 for row in simulated]
+    excess_returns = [safe_float(row.get("excess_return_vs_vfv")) or 0.0 for row in simulated]
+    compounded_strategy = _compound_period_returns(strategy_returns)
+    compounded_vfv = _compound_period_returns(vfv_returns)
+    compounded_excess = None
+    if compounded_vfv > -1.0:
+        compounded_excess = (1.0 + compounded_strategy) / (1.0 + compounded_vfv) - 1.0
+    return {
+        "status": (
+            "READY_FOR_WALK_FORWARD_REVIEW"
+            if len(simulated) >= 6
+            else "EARLY_SIGNAL_ONLY"
+            if simulated
+            else "NO_SIMULATED_PERIODS"
+        ),
+        "scope": "CURRENT_VERSION_AUDIT",
+        "simulated_periods": len(simulated),
+        "usable_walk_forward_periods": len(simulated),
+        "compounded_strategy_return": compounded_strategy if simulated else "",
+        "compounded_vfv_return": compounded_vfv if simulated else "",
+        "compounded_excess_return_vs_vfv": compounded_excess if simulated else "",
+        "avg_excess_return_vs_vfv": sum(excess_returns) / len(excess_returns) if excess_returns else "",
+        "win_rate_vs_vfv": sum(1 for value in excess_returns if value > 0) / len(excess_returns) if excess_returns else "",
+        "interpretation": "Périodes OOS comparables produites sous le MODEL_RULES_VERSION courant seulement.",
+    }
+
+
+def _compound_period_returns(values: list[float]) -> float:
+    total = 1.0
+    for value in values:
+        total *= 1.0 + value
+    return total - 1.0
 
 
 def _walk_forward_audit_status(summary: dict[str, Any]) -> str:
@@ -979,21 +1160,19 @@ def _evidence_score(
         "SOLID": 75,
         "REPRESENTATIVE": 85,
     }.get(contribution_conf, 45)
-    backtest_points = 75 if backtest_summaries else 35
     walk_forward_summary = walk_forward_summary or {}
     walk_forward_status = str(walk_forward_summary.get("status") or "")
-    walk_forward_points = 60 if walk_forward_status in {"", "NO_USABLE_PERIODS", "NO_SIMULATED_PERIODS"} else _walk_forward_score(walk_forward_summary, "")
+    walk_forward_points = 30 if walk_forward_status in {"", "NO_USABLE_PERIODS", "NO_SIMULATED_PERIODS"} else _walk_forward_score(walk_forward_summary, "")
     real_points = 70 if account_summary.get("status") not in {"UNAVAILABLE", ""} else 35
     source_health = source_health or {}
     source_points = safe_float(source_health.get("source_health_score"))
     if source_points is None:
         source_points = 60.0
     base = (
-        0.32 * confidence_points.get(model_conf, 45)
-        + 0.20 * contribution_points
-        + 0.20 * backtest_points
-        + 0.08 * walk_forward_points
-        + 0.20 * real_points
+        0.30 * confidence_points.get(model_conf, 45)
+        + 0.10 * contribution_points
+        + 0.35 * walk_forward_points
+        + 0.25 * real_points
     )
     # Source health is deliberately capped to a small adjustment so a temporary
     # data-source issue does not dominate the long-term audit.

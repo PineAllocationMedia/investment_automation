@@ -5,6 +5,7 @@ from pathlib import Path
 from typing import Any
 
 from .utils import read_csv_records, safe_float, today_iso, write_csv_records
+from .validation_evidence import RunPurpose, normalize_run_purpose
 
 
 RUN_LOG_COLUMNS = [
@@ -13,6 +14,7 @@ RUN_LOG_COLUMNS = [
     "run_id",
     "command",
     "mode",
+    "run_purpose",
     "level",
     "component",
     "event",
@@ -50,6 +52,7 @@ def build_analysis_run_log(
     portfolio_risk: dict[str, Any] | None = None,
     full_audit_signal: dict[str, Any] | None = None,
     model_audit_signal: dict[str, Any] | None = None,
+    run_purpose: str = RunPurpose.UNKNOWN_LEGACY.value,
 ) -> list[dict[str, Any]]:
     rows: list[dict[str, Any]] = []
     universe_counts = universe_counts or {}
@@ -256,6 +259,9 @@ def build_analysis_run_log(
         "Analyse terminée et rapports générés.",
         "Aucune action technique.",
     )
+    normalized_purpose = normalize_run_purpose(run_purpose)
+    for row in rows:
+        row["run_purpose"] = normalized_purpose
     return rows
 
 
@@ -630,6 +636,7 @@ def write_universe_snapshot(
     mode: str,
     model_rules_version: str,
     reports_dir,
+    run_purpose: str = RunPurpose.UNKNOWN_LEGACY.value,
 ) -> None:
     """
     Write a lightweight per-run universe snapshot for walk-forward validation.
@@ -679,6 +686,7 @@ def write_universe_snapshot(
             "run_date": datetime.now().isoformat()[:10],
             "mode": mode,
             "model_rules_version": model_rules_version,
+            "run_purpose": normalize_run_purpose(run_purpose),
             "ticker_count": len(scored_tickers),
             "tickers": scored_tickers,
         }

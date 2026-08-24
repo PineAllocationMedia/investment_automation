@@ -18,6 +18,7 @@ class ModelAuditEngineTest(unittest.TestCase):
                     "analysis_date": "2026-05-01",
                     "created_at": "2026-05-01T09:00:00",
                     "model_rules_version": "v1",
+                    "run_purpose": "SCHEDULED_DECISION",
                     "allocations": [
                         {"ticker": "VFV.TO", "amount": 50, "percentage": 0.10},
                         {"ticker": "MSFT", "amount": 450, "percentage": 0.90},
@@ -31,6 +32,7 @@ class ModelAuditEngineTest(unittest.TestCase):
                     "analysis_date": "2026-05-01",
                     "created_at": "2026-05-01T18:00:00",
                     "model_rules_version": "v1",
+                    "run_purpose": "SCHEDULED_DECISION",
                     "allocations": [
                         {"ticker": "VFV.TO", "amount": 50, "percentage": 0.10},
                         {"ticker": "GOOGL", "amount": 450, "percentage": 0.90},
@@ -44,6 +46,7 @@ class ModelAuditEngineTest(unittest.TestCase):
                     "analysis_date": "2026-05-15",
                     "created_at": "2026-05-15T09:00:00",
                     "model_rules_version": "v1",
+                    "run_purpose": "SCHEDULED_DECISION",
                     "allocations": [
                         {"ticker": "VFV.TO", "amount": 100, "percentage": 0.20},
                         {"ticker": "GOOGL", "amount": 400, "percentage": 0.80},
@@ -52,7 +55,7 @@ class ModelAuditEngineTest(unittest.TestCase):
                 },
             )
 
-            audit = build_model_audit(reports, period="all")
+            audit = build_model_audit(reports, period="all", current_model_rules_version="v1")
 
         metrics = audit["metrics"]
         self.assertEqual(metrics["sample_count"], 2)
@@ -72,12 +75,13 @@ class ModelAuditEngineTest(unittest.TestCase):
                     "analysis_date": "2026-05-01",
                     "created_at": "2026-05-01T09:00:00",
                     "model_rules_version": "v1",
+                    "run_purpose": "SCHEDULED_DECISION",
                     "allocations": [{"ticker": "VFV.TO", "amount": 500, "percentage": 1.0}],
                     "decision_quality": {"decision_quality_score": 45, "decision_quality_level": "LOW"},
                 },
             )
 
-            audit = run_model_audit(reports, period="all")
+            audit = run_model_audit(reports, period="all", current_model_rules_version="v1")
 
             self.assertTrue((reports / "latest_model_audit.md").exists())
             self.assertTrue((reports / "latest_model_audit.html").exists())
@@ -97,6 +101,7 @@ class ModelAuditEngineTest(unittest.TestCase):
                         "analysis_date": f"2026-{month}-01",
                         "created_at": f"2026-{month}-01T09:00:00",
                         "model_rules_version": "v1",
+                        "run_purpose": "SCHEDULED_DECISION",
                         "allocations": [
                             {"ticker": "VFV.TO", "amount": 200, "percentage": 0.40},
                             {"ticker": "MSFT", "amount": 150, "percentage": 0.30},
@@ -106,7 +111,7 @@ class ModelAuditEngineTest(unittest.TestCase):
                     },
                 )
 
-            audit = build_model_audit(reports, period="all")
+            audit = build_model_audit(reports, period="all", current_model_rules_version="v1")
 
         self.assertEqual(audit["metrics"]["threshold_review"]["status"], "SLIGHTLY_TOO_DEFENSIVE")
         threshold_rows = [row for row in audit["rows"] if row["section"] == "Revue des seuils"]
@@ -124,6 +129,8 @@ class ModelAuditEngineTest(unittest.TestCase):
                     "analysis_date": "2026-05-01",
                     "created_at": "2026-05-01T09:00:00",
                     "analysis_mode": "balanced",
+                    "model_rules_version": "v1",
+                    "run_purpose": "SCHEDULED_DECISION",
                     "allocations": [{"ticker": "VFV.TO", "amount": 500, "percentage": 1.0}],
                 },
             )
@@ -133,11 +140,18 @@ class ModelAuditEngineTest(unittest.TestCase):
                     "analysis_date": "2026-05-02",
                     "created_at": "2026-05-02T09:00:00",
                     "analysis_mode": "high-cagr",
+                    "model_rules_version": "v1",
+                    "run_purpose": "SCHEDULED_DECISION",
                     "allocations": [{"ticker": "MSFT", "amount": 500, "percentage": 1.0}],
                 },
             )
 
-            audit = build_model_audit(reports, period="all", mode="high-cagr")
+            audit = build_model_audit(
+                reports,
+                period="all",
+                mode="high-cagr",
+                current_model_rules_version="v1",
+            )
 
         metrics = audit["metrics"]
         self.assertEqual(metrics["mode"], "high-cagr")

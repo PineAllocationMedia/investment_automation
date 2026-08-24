@@ -58,7 +58,7 @@ class AntiOverfittingGateEngineTest(unittest.TestCase):
         self.assertFalse(suggestions[0]["can_auto_apply"])
         self.assertEqual(suggestions[0]["status"], "REVIEW_ONLY")
 
-    def test_recent_only_evidence_does_not_block_risk_dampener(self):
+    def test_proposal_only_policy_blocks_risk_dampener_auto_apply(self):
         context = build_anti_overfitting_context(
             model_metrics={"allocation_sample_count": 8, "span_days": 300},
             backtest_summary_rows=[
@@ -83,8 +83,9 @@ class AntiOverfittingGateEngineTest(unittest.TestCase):
             context,
         )
 
-        self.assertIn(suggestions[0]["overfit_gate_status"], {"PASS", "PASS_WITH_LIMITS"})
-        self.assertTrue(suggestions[0]["can_auto_apply"])
+        self.assertEqual(suggestions[0]["overfit_gate_status"], "REVIEW_ONLY")
+        self.assertEqual(suggestions[0]["tuning_policy"], "PROPOSAL_ONLY")
+        self.assertFalse(suggestions[0]["can_auto_apply"])
 
     def test_cooldown_blocks_repeated_same_parameter_tuning(self):
         context = build_anti_overfitting_context(
@@ -104,6 +105,7 @@ class AntiOverfittingGateEngineTest(unittest.TestCase):
             mode="high-cagr",
             settings={"min_distinct_allocation_dates": 4, "min_days_between_same_parameter_tuning": 45},
         )
+        context["tuning_policy"] = "GUARDED_AUTO_APPLY"
         suggestions = apply_anti_overfitting_gate_to_suggestions(
             [
                 {
@@ -121,7 +123,7 @@ class AntiOverfittingGateEngineTest(unittest.TestCase):
         self.assertEqual(suggestions[0]["overfit_gate_status"], "REVIEW_ONLY")
         self.assertFalse(suggestions[0]["can_auto_apply"])
 
-    def test_walk_forward_failure_blocks_aggressive_auto_tuning(self):
+    def test_unversioned_walk_forward_cannot_authorize_tuning(self):
         context = build_anti_overfitting_context(
             model_metrics={"allocation_sample_count": 8, "span_days": 300},
             backtest_summary_rows=[
@@ -162,11 +164,11 @@ class AntiOverfittingGateEngineTest(unittest.TestCase):
             context,
         )
 
-        self.assertEqual(suggestions[0]["walk_forward_status"], "FAIL")
+        self.assertEqual(suggestions[0]["walk_forward_status"], "LIMITED")
         self.assertEqual(suggestions[0]["overfit_gate_status"], "REVIEW_ONLY")
         self.assertFalse(suggestions[0]["can_auto_apply"])
 
-    def test_young_walk_forward_does_not_block_auto_tuning(self):
+    def test_young_walk_forward_remains_review_only(self):
         context = build_anti_overfitting_context(
             model_metrics={"allocation_sample_count": 8, "span_days": 300},
             backtest_summary_rows=[
@@ -200,10 +202,10 @@ class AntiOverfittingGateEngineTest(unittest.TestCase):
         )
 
         self.assertEqual(suggestions[0]["walk_forward_status"], "LIMITED")
-        self.assertIn(suggestions[0]["overfit_gate_status"], {"PASS", "PASS_WITH_LIMITS"})
-        self.assertTrue(suggestions[0]["can_auto_apply"])
+        self.assertEqual(suggestions[0]["overfit_gate_status"], "REVIEW_ONLY")
+        self.assertFalse(suggestions[0]["can_auto_apply"])
 
-    def test_weak_walk_forward_regime_limits_aggressive_auto_tuning(self):
+    def test_weak_walk_forward_regime_remains_review_only(self):
         context = build_anti_overfitting_context(
             model_metrics={"allocation_sample_count": 8, "span_days": 300},
             backtest_summary_rows=[
@@ -246,9 +248,8 @@ class AntiOverfittingGateEngineTest(unittest.TestCase):
             context,
         )
 
-        self.assertEqual(suggestions[0]["walk_forward_status"], "WATCH")
-        self.assertEqual(suggestions[0]["overfit_gate_status"], "PASS_WITH_LIMITS")
-        self.assertTrue(suggestions[0]["can_auto_apply"])
+        self.assertEqual(suggestions[0]["overfit_gate_status"], "REVIEW_ONLY")
+        self.assertFalse(suggestions[0]["can_auto_apply"])
 
 
 if __name__ == "__main__":

@@ -84,6 +84,7 @@ from src.model_audit_engine import run_model_audit
 from src.model_improvement_engine import apply_safe_tuning, run_improvement_audit
 from src.model_tuning import create_model_tuning_template
 from src.model_version import MODEL_RULES_VERSION
+from src.validation_evidence import RunPurpose, resolve_analysis_run_purpose
 from src.manual_inputs import (
     create_friendly_manual_template,
     load_friendly_manual_inputs,
@@ -450,6 +451,12 @@ def build_parser() -> argparse.ArgumentParser:
     analyze.add_argument("--capital", type=float, default=0.0, help="Nouveau capital à allouer.")
     analyze.add_argument("--mode", choices=sorted(VALID_MODES), default="rational-aggressive")
     analyze.add_argument("--refresh-market-data", action="store_true", help="Ignore le cache de marché.")
+    analyze.add_argument(
+        "--run-purpose",
+        choices=[purpose.value for purpose in RunPurpose if purpose is not RunPurpose.UNKNOWN_LEGACY],
+        default=None,
+        help="But auditable du run. Sans valeur, le snapshot reste UNKNOWN_LEGACY (ou ZERO_CAPITAL_ANALYSIS si capital nul).",
+    )
     return parser
 
 
@@ -527,6 +534,7 @@ def analyze_command(args: argparse.Namespace) -> int:
         mode=args.mode,
         refresh_market_data=args.refresh_market_data,
         validation_warnings=input_warnings,
+        run_purpose=args.run_purpose,
     )
     print(f"Analyse terminée en mode {args.mode}.")
     print(f"Rapport Markdown: {REPORTS_DIR / 'latest_report.md'}")
@@ -1206,6 +1214,7 @@ def run_analysis(
     mode: str = "rational-aggressive",
     refresh_market_data: bool = False,
     validation_warnings: list[str] | None = None,
+    run_purpose: str | None = None,
 ) -> dict[str, Any]:
     # CONTEXT ENRICHMENT ORDER — DO NOT REORDER WITHOUT REVIEWING DEPENDENCIES
     # Each pass may read keys written by earlier passes. The order is:
@@ -1226,6 +1235,7 @@ def run_analysis(
     #
     # Changing this order can silently alter allocations. Document any change in DECISIONS.md.
     run_id = make_run_id("analyze", mode)
+    resolved_run_purpose = resolve_analysis_run_purpose(run_purpose, capital=capital)
     try:
         cache_health_rows = run_cache_maintenance(CACHE_DIR, repair_safe=True)
         circuit_breaker_reset_row = None
@@ -1675,6 +1685,7 @@ def run_analysis(
             portfolio_risk=portfolio_risk,
             full_audit_signal=full_audit_signal,
             model_audit_signal=model_audit_signal,
+            run_purpose=resolved_run_purpose,
         )
         if circuit_breaker_reset_row:
             now = datetime.now()
@@ -1721,7 +1732,15 @@ def run_analysis(
             {**analyses, **watchlist_analyses, **market_analyses, **discovery_analyses},
             cache_dir=CACHE_DIR / "instrument_profiles",
         )
-        save_current_snapshot(REPORTS_DIR, mode, analyses, watchlist_analyses, market_analyses, discovery_analyses)
+        save_current_snapshot(
+            REPORTS_DIR,
+            mode,
+            analyses,
+            watchlist_analyses,
+            market_analyses,
+            discovery_analyses,
+            run_purpose=resolved_run_purpose,
+        )
         score_stability = compute_score_stability(REPORTS_DIR, mode, analyses)
         write_csv_records_mode_pair(
             REPORTS_DIR,
@@ -1796,13 +1815,19 @@ def run_analysis(
             _research_needed_rows,
             RESEARCH_NEEDED_COLUMNS,
         )
-        save_allocation_snapshot(REPORTS_DIR, allocation_result, analysis_mode=mode)
+        save_allocation_snapshot(
+            REPORTS_DIR,
+            allocation_result,
+            analysis_mode=mode,
+            run_purpose=resolved_run_purpose,
+        )
         write_universe_snapshot(
             analyses={**analyses, **watchlist_analyses, **market_analyses, **discovery_analyses},
             run_id=run_id,
             mode=mode,
             model_rules_version=MODEL_RULES_VERSION,
             reports_dir=REPORTS_DIR,
+            run_purpose=resolved_run_purpose,
         )
         return {
             "allocations": allocation_result.get("allocations", []),

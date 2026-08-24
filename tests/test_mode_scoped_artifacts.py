@@ -116,7 +116,7 @@ class ModeScopedArtifactsTest(unittest.TestCase):
             result = apply_safe_tuning(reports, config, data, mode="high-cagr")
 
             self.assertEqual(result["applied"], [])
-            self.assertIn("relance improvement-audit", result["message"])
+            self.assertIn("PROPOSAL_ONLY", result["message"])
 
 
 def _write_snapshot_pair(history: Path, mode: str, analysis_date: str, ticker: str) -> None:

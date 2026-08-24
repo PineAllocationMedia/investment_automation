@@ -2496,6 +2496,64 @@ uses stable fixtures when operational ignored inputs are unavailable.
 
 No major change can be applied to the system without being documented here.
 
+## 2026-08-23 - Validation evidence authority and causal history scope
+
+The project now uses one validation contract in `src/validation_evidence.py`.
+Current-score historical simulations are `MECHANICAL_DIAGNOSTIC`: favorable
+returns have no positive strategy-validation or tuning authority, while
+pathological results retain negative warning authority. Primary walk-forward
+periods are built causally from explicit scheduled/manual decisions; diagnostic,
+development, maintenance and zero-capital runs remain auditable without
+fragmenting that timeline. Legacy purpose remains explicit uncertainty and is
+never reconstructed from future returns.
+
+Primary model stability is `CURRENT_VERSION_AUDIT`; older observations and
+version transitions remain visible only through `CROSS_VERSION_DIAGNOSTIC`.
+Execution/data/source confidence is separate from strategy/walk-forward
+confidence, and evidence maturity preserves raw counts without claiming proven
+skill. Behavioral tuning is code-level `PROPOSAL_ONLY` during Baseline V1
+evidence accumulation. These validation-only changes add
+`VALIDATION_SCHEMA_VERSION=2026-08-23-validation-architecture-v1` and do not
+change `MODEL_RULES_VERSION`, scoring, allocation, holdings or deployment.
+
+## 2026-08-23 - Primary model audit uses comparable decision purposes
+
+The primary `CURRENT_VERSION_AUDIT` contract is now the intersection of the
+current `MODEL_RULES_VERSION` and the canonical genuine-decision purposes
+`SCHEDULED_DECISION` / `MANUAL_DECISION`. Diagnostic, development-test,
+zero-capital, maintenance and `UNKNOWN_LEGACY` observations remain preserved and
+counted as audit context, but cannot increase primary stability sample size,
+evidence maturity, confidence, model health history or tuning support.
+
+Daily model-audit selection retains `(date, model_rules_version, run_purpose)`
+identity before applying the existing deterministic latest-observation rule.
+Consequently, a later diagnostic cannot replace an earlier genuine decision on
+the same day. Cross-version transition counts are computed only between
+comparable decision observations; non-decision version changes remain visible
+without becoming ordinary investment instability. This additive correction
+advances `VALIDATION_SCHEMA_VERSION` to
+`2026-08-23-validation-architecture-v2`; `MODEL_RULES_VERSION`, formulas,
+thresholds, investment behavior and `PROPOSAL_ONLY` remain unchanged.
+
+## 2026-08-23 - Legacy walk-forward is diagnostic, not genuine OOS authority
+
+The causal `LEGACY_PARTIALLY_RECOVERABLE` fallback remains available for
+simulation, price outcomes, robustness inspection and historical audit. It does
+not reconstruct an unknown historical purpose. Periods sourced from
+`UNKNOWN_LEGACY` are therefore classified as
+`HISTORICAL_STRESS_SENSITIVITY` and explicitly carry no positive
+strategy-validation authority.
+
+Only current-version, successfully simulated periods sourced from explicit
+`SCHEDULED_DECISION` or `MANUAL_DECISION` observations and classified
+`POINT_IN_TIME_WALK_FORWARD` count as `genuine_oos_periods`, evidence maturity,
+strategy/walk-forward confidence, full-audit positive authority or tuning
+support. Period output now preserves `run_purpose_status`, `eligibility_basis`,
+`evidence_class` and `strategy_validation_authority`; summaries preserve total,
+genuine and legacy counts separately. This additive correction advances
+`VALIDATION_SCHEMA_VERSION` to `2026-08-23-validation-architecture-v3` without
+changing investment logic, `MODEL_RULES_VERSION` or `PROPOSAL_ONLY`.
+
 ## 2026-08-23 - Research-report semantic integrity
 
 ### Problem

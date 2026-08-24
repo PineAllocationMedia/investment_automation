@@ -5,6 +5,7 @@ from pathlib import Path
 from typing import Any
 
 from .model_version import MODEL_RULES_VERSION
+from .validation_evidence import RunPurpose, normalize_run_purpose
 from .utils import load_json, read_csv_records, safe_float, save_json, today_iso, write_csv_records
 
 
@@ -321,6 +322,7 @@ def save_current_snapshot(
     reports_dir: str | Path,
     analysis_mode: str | dict[str, dict[str, Any]] | None = None,
     *analysis_groups: dict[str, dict[str, Any]],
+    run_purpose: str = RunPurpose.UNKNOWN_LEGACY.value,
 ) -> None:
     reports_dir = Path(reports_dir)
     history_dir = reports_dir / "history"
@@ -340,6 +342,7 @@ def save_current_snapshot(
         "analysis_date": today_iso(),
         "model_rules_version": MODEL_RULES_VERSION,
         "analysis_mode": normalized_mode,
+        "run_purpose": normalize_run_purpose(run_purpose),
         "analyses": rows,
     }
     stamp = datetime.now().strftime("%Y%m%d_%H%M%S")

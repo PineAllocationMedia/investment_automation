@@ -28,9 +28,13 @@ from .transaction_friction_engine import (
     merge_friction_audit_rows,
 )
 from .utils import DISCLAIMER, DATA_DIR, load_json, money, pct, read_csv_records, safe_float, save_json, write_csv_records, write_text
+from .validation_evidence import EvidenceClass
 
 
 BACKTEST_SUMMARY_COLUMNS = [
+    "evidence_class",
+    "evidence_role",
+    "positive_validation_authority",
     "period_years",
     "strategy",
     "start_date",
@@ -311,6 +315,9 @@ def simulate_monthly_model_backtest(
     cashflows.append(final_value)
     irr = _annualized_irr(cashflows)
     summary = {
+        "evidence_class": EvidenceClass.MECHANICAL_DIAGNOSTIC.value,
+        "evidence_role": "NEGATIVE_WARNING_AND_NEUTRAL_DIAGNOSTIC_ONLY",
+        "positive_validation_authority": False,
         "period_years": config.years,
         "strategy": f"model-lite {config.mode}",
         "start_date": month_ends[0].date().isoformat(),
@@ -327,7 +334,11 @@ def simulate_monthly_model_backtest(
         "max_drawdown_on_capital_multiple": min(row["drawdown_on_capital_multiple"] for row in monthly_rows),
         "avg_vfv_allocation": round(sum(vfv_allocations) / len(vfv_allocations), 4) if vfv_allocations else 0.0,
         "avg_top1_allocation": round(sum(top_allocations) / len(top_allocations), 4) if top_allocations else 0.0,
-        "notes": "Backtest théorique: prix historiques avec Adj Close quand disponible + scores/proxys actuels; ne prouve pas la performance future.",
+        "notes": (
+            "MECHANICAL_DIAGNOSTIC: prix historiques avec scores/proxys actuels. "
+            "Les résultats favorables n'ont aucune autorité positive de validation; "
+            "les anomalies mécaniques défavorables restent des avertissements utiles."
+        ),
     }
     friction_rows = build_theoretical_backtest_friction_rows([summary], allocation_rows, analyses)
     summary = add_friction_fields_to_backtest_summaries([summary], friction_rows)[0]
@@ -343,7 +354,9 @@ def build_backtest_report(summaries: list[dict[str, Any]], benchmark_rows: list[
         "",
         "## Lecture importante",
         "",
-        "- Ce backtest est théorique et sert à tester la mécanique, pas à prédire le futur.",
+        f"- Classe canonique: `{EvidenceClass.MECHANICAL_DIAGNOSTIC.value}`.",
+        "- Ce backtest est théorique et sert à tester la mécanique, pas à valider historiquement la stratégie.",
+        "- Un résultat défavorable peut signaler une mécanique pathologique; un résultat favorable ne prouve ni alpha, ni skill, ni robustesse multi-régime.",
         "- Les prix historiques viennent de yfinance quand disponibles.",
         "- Quand disponible, le backtest utilise `Adj Close`, un proxy gratuit de rendement total approximatif qui inclut les dividendes/distributions réinvestis; sinon il revient à `Close`.",
         "- Les fondamentaux historiques complets ne sont pas reconstruits gratuitement; les scores actuels du modèle servent d’ancrage.",
@@ -354,6 +367,9 @@ def build_backtest_report(summaries: list[dict[str, Any]], benchmark_rows: list[
         "",
         _markdown_table(
             [
+                "evidence_class",
+                "evidence_role",
+                "positive_validation_authority",
                 "period_years",
                 "start_date",
                 "end_date",
@@ -398,11 +414,16 @@ def build_backtest_report(summaries: list[dict[str, Any]], benchmark_rows: list[
     ]
     for row in summaries:
         excess = safe_float(row.get("excess_value_vs_vfv")) or 0.0
-        verdict = "a battu VFV.TO" if excess > 0 else "a sous-performé VFV.TO"
-        lines.append(
-            f"- Sur {row.get('period_years')} ans, la stratégie {verdict} de {money(abs(excess))} "
-            f"avec un rendement annualisé approximatif de {pct(safe_float(row.get('money_weighted_annual_return')), 2)}."
-        )
+        if excess > 0:
+            lines.append(
+                f"- Sur {row.get('period_years')} ans, la simulation mécanique dépasse VFV.TO de {money(abs(excess))}; "
+                "ce résultat contaminé ne possède aucune autorité positive de validation."
+            )
+        else:
+            lines.append(
+                f"- Sur {row.get('period_years')} ans, la simulation mécanique sous-performe VFV.TO de {money(abs(excess))}; "
+                "ce signal défavorable reste un avertissement mécanique utile."
+            )
     return "\n".join(lines) + "\n"
 
 

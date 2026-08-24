@@ -175,7 +175,7 @@ fi
 
 echo
 echo "[4/5] Analyse"
-analysis_args=(main.py analyze --capital "$capital" --mode "$mode")
+analysis_args=(main.py analyze --capital "$capital" --mode "$mode" --run-purpose SCHEDULED_DECISION)
 if [[ "$refresh_market_data" == true ]]; then
     analysis_args+=(--refresh-market-data)
 fi
