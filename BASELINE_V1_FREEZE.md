@@ -52,3 +52,7 @@ The freeze prohibits new factors, scores, weights, optimized thresholds, allocat
 ## Breaking the freeze
 
 A behavior-changing modification requires an explicit code change, a new `MODEL_RULES_VERSION` where appropriate, targeted and complete regression tests, deterministic decision blast-radius analysis, one reviewed pull request, external review, and controlled deployment. No audit, scheduled job, maintenance command, walk-forward process, or improvement command may self-apply a rule change.
+
+## Repository governance
+
+GitHub administrators should manually protect `main`: require a pull request, at least one external approval, and the `Baseline V1 CI / test` status check before merge; disallow force pushes and branch deletion. These account-level settings are intentionally not changed by repository code.
