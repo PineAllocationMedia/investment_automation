@@ -59,6 +59,30 @@ class FinalDecisionTest(unittest.TestCase):
         self.assertEqual(analyses["BAM"]["sell_decision"], "REVIEW_TRIM_25")
         self.assertEqual(analyses["BAM"]["final_position_action"], "REVIEW_TRIM_25")
 
+    def test_deep_averaging_down_block_changes_add_side_only(self):
+        analyses = {
+            "MSFT": {
+                "ticker": "MSFT",
+                "thesis_status": "INTACT",
+                "liquidation_status": "GREEN",
+                "sell_decision": "HOLD",
+                "recommended_action": "HOLD",
+                "add_eligibility_status": "ADD_ALLOWED",
+                "deep_averaging_down_blocked": True,
+                "deep_averaging_down_reason": (
+                    "DEEP AVERAGING DOWN BLOCKED: combined position return -25.00% <= -20%; "
+                    "evidence reliability=MEDIUM."
+                ),
+            }
+        }
+
+        apply_final_decisions(analyses, [])
+
+        self.assertEqual(analyses["MSFT"]["allocation_decision"], "DO_NOT_ADD")
+        self.assertIn("combined position return -25.00%", analyses["MSFT"]["allocation_decision_reason"])
+        self.assertEqual(analyses["MSFT"]["sell_decision"], "HOLD")
+        self.assertEqual(analyses["MSFT"]["final_position_action"], "DO_NOT_ADD")
+
 
 if __name__ == "__main__":
     unittest.main()

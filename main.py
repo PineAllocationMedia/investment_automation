@@ -15,7 +15,11 @@ from src.allocation_change_engine import (
 from src.anomaly_detection_engine import detect_analysis_anomalies, update_anomaly_history
 from src.allocation_sensitivity_engine import compute_allocation_sensitivity
 from src.allocation_stability_engine import apply_allocation_stability
-from src.allocation_engine import allocate_capital, allocation_universe_for_mode
+from src.allocation_engine import (
+    allocate_capital,
+    allocation_universe_for_mode,
+    apply_deep_averaging_down_context,
+)
 from src.account_performance_engine import build_account_performance_rows
 from src.audit_signal_engine import compute_full_audit_signal, compute_model_audit_signal
 from src.asset_type_engine import (
@@ -1534,6 +1538,7 @@ def run_analysis(
             market_analyses,
             discovery_analyses,
         )
+        apply_deep_averaging_down_context(allocation_analyses, mode=mode)
         # Second ETF role check is intentional: allocation_universe_for_mode() can
         # include external/defensive ETF candidates, so this final guard prevents
         # ETF holdings from being sized like individual stocks.
@@ -2424,6 +2429,9 @@ def apply_final_decisions(analyses: dict[str, dict[str, Any]], allocations: list
         elif is_etf_asset_analysis(analysis):
             allocation_decision = "ETF_HOLD_ONLY"
             allocation_reason = "FNB/ETF conservé comme exposition indicielle; pas de nouvelle allocation automatique sauf VFV.TO comme filet de sécurité."
+        elif analysis.get("deep_averaging_down_blocked") is True:
+            allocation_decision = "DO_NOT_ADD"
+            allocation_reason = str(analysis.get("deep_averaging_down_reason") or "Deep averaging-down safeguard active.")
         elif analysis.get("thesis_status") != "INTACT":
             allocation_decision = "DO_NOT_ADD"
             allocation_reason = "Thèse non intacte."
