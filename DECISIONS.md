@@ -2592,3 +2592,50 @@ Because corrected canonical inputs can change valid scores and recommendations,
 `MODEL_RULES_VERSION` advances from
 `2026-08-23-provenance-freshness-confirmation-v3` to
 `2026-08-23-research-semantic-integrity-v4`.
+
+## 2026-08-23 - Deep averaging-down evidence safeguard and combined chart
+
+### Problem and risk
+The allocator could positively reward additional purchases into a falling owned
+position even when current evidence was insufficient or materially conflicted.
+That could create a feedback loop in which a price decline increased drawdown
+attractiveness and new capital while the supporting thesis evidence was not
+trustworthy enough.
+
+### Policy
+The safeguard uses the existing canonical whole-portfolio position across all
+accounts. When positive CAD current value and positive CAD acquisition cost are
+both available, `combined_position_return = current_value_cad /
+acquisition_value_cad - 1`. At or below the single explicit policy threshold of
+`-20%`, additional room is zero unless every pre-existing quality-drawdown
+condition passes, canonical data reliability is `HIGH`, no existing
+large-allocation manual review remains required, and neither a
+`DIRECTIONAL_REVIEW` nor `MATERIAL_REVIEW` source profile (or a current
+fundamental-evidence conflict) is unresolved. Technical/period differences do
+not activate the material-conflict block.
+
+The rule is stateless. It blocks only additional capital for the current
+analysis, never sells, liquidates, blacklists, or creates a cooldown. Invalid or
+missing normalized cost basis produces `UNKNOWN`; no return is fabricated and
+the special `-20%` room block is not activated. New candidates are outside this
+averaging-down policy. Existing positive drawdown rewards are gated by the same
+quality-evidence exception; unrelated scoring and normal concentration/sizing
+limits remain unchanged.
+
+### Portfolio aggregation and chart
+Portfolio 1 and Portfolio 2 remain one economic portfolio for ticker, sector,
+cluster, factor, and total-risk concentration. The existing account SVG renderer
+now also emits `charts/account_ALL_ACCOUNTS.svg` from the same canonical account
+rows, aggregating a duplicate cross-account ticker into one combined slice while
+preserving every existing account chart.
+
+### Non-goals and versioning
+No stop loss, sell rule, transaction memory, cooldown, ticker-specific rule,
+reliability framework, concentration redesign, scoring weight, threshold sweep,
+backtest optimization, systemd change, deployment, or operational-data mutation
+is introduced. Because this is a behaviorally meaningful allocation correction,
+`MODEL_RULES_VERSION` advances from
+`2026-08-23-research-freshness-authority-v5` to
+`2026-08-23-deep-drawdown-allocation-safeguard-v6`.
+`VALIDATION_SCHEMA_VERSION` remains
+`2026-08-23-validation-architecture-v3`.

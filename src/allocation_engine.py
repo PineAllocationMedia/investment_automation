@@ -96,6 +96,8 @@ RELIABILITY_ALLOCATION_EXCEPTION_CAPS = {
 HIGH_CAGR_SINGLE_NAME_WATCH_WEIGHT = 0.18
 HIGH_CAGR_SINGLE_NAME_THROTTLE_WEIGHT = 0.22
 HIGH_CAGR_SINGLE_NAME_STRICT_WEIGHT = 0.30
+DEEP_AVERAGING_DOWN_THRESHOLD = -0.20
+MATERIAL_UNRESOLVED_CONFLICT_PROFILES = {"DIRECTIONAL_REVIEW", "MATERIAL_REVIEW"}
 DEFENSIVE_ROTATION_MIN_EDGE = 5.0
 HIGH_CAGR_EMERGING_SATELLITE_BUDGET = 0.225
 # [DECISION 2026-06-30] Séparation budget run vs cible de poids :
@@ -250,6 +252,16 @@ def allocation_universe_for_mode(
     return merged
 
 
+def apply_deep_averaging_down_context(
+    *analysis_groups: dict[str, dict[str, Any]],
+    mode: str,
+) -> None:
+    """Annotate the stateless whole-position safeguard before allocation scoring."""
+    for group in analysis_groups:
+        for analysis in group.values():
+            _annotate_deep_averaging_down_safeguard(analysis, mode)
+
+
 def allocate_capital(
     capital: float,
     analyses: dict[str, dict[str, Any]],
@@ -263,6 +275,7 @@ def allocate_capital(
     vfv_pct = mandatory_vfv_percent(average_score, mode)
     allocations: list[dict[str, Any]] = []
     for analysis in analyses.values():
+        _annotate_deep_averaging_down_safeguard(analysis, mode)
         _annotate_reliability_allocation_cap(analysis, mode)
 
     if capital <= 0:
@@ -292,6 +305,11 @@ def allocate_capital(
     candidates = [row for row in analyses.values() if row.get("ticker") != "VFV.TO" and _eligible(row, mode)]
     candidates = sorted(candidates, key=_candidate_sort_key, reverse=True)
     allocation_log = [f"Allocation VFV obligatoire: {vfv_pct:.0%}."]
+    allocation_log.extend(
+        str(row.get("deep_averaging_down_reason"))
+        for row in analyses.values()
+        if row.get("deep_averaging_down_blocked") is True and row.get("deep_averaging_down_reason")
+    )
 
     if remaining <= 0:
         return {
@@ -635,7 +653,11 @@ def _candidate_sort_key(analysis: dict[str, Any]) -> tuple[float, float, float, 
     winner = 1.0 if analysis.get("winner_accelerated") else 0.0
     score = safe_float(analysis.get("capital_allocation_score")) or 0.0
     conviction = safe_float(analysis.get("conviction_score")) or 0.0
-    drawdown_bonus = abs(min(safe_float(analysis.get("drawdown_from_12m_high")) or 0.0, 0.0))
+    drawdown_bonus = (
+        abs(min(safe_float(analysis.get("drawdown_from_12m_high")) or 0.0, 0.0))
+        if _drawdown_positive_reward_allowed(analysis)
+        else 0.0
+    )
     return (winner, score, conviction, drawdown_bonus)
 
 
@@ -789,6 +811,8 @@ def _high_cagr_overflow_candidates(
 
 
 def _high_cagr_overflow_eligible(candidate: dict[str, Any]) -> bool:
+    if candidate.get("deep_averaging_down_blocked") is True:
+        return False
     # [DECISION 2026-06-30] Les émergents externes HIGH_GROWTH_BUT_FRAGILE
     # peuvent recevoir de l'overflow sous garde-fous très stricts.
     # Les autres candidats externes restent exclus de l'overflow.
@@ -940,6 +964,8 @@ def _high_cagr_overflow_room(
     current_total: float,
     capital: float,
 ) -> float:
+    if candidate.get("deep_averaging_down_blocked") is True:
+        return 0.0
     already_allocated = allocations_by_ticker.get(candidate["ticker"], 0.0)
     amount_basis = capital
     score = safe_float(candidate.get("capital_allocation_score")) or 0.0
@@ -1159,6 +1185,8 @@ def _available_monthly_room(
     capital: float,
     mode: str,
 ) -> float:
+    if candidate.get("deep_averaging_down_blocked") is True:
+        return 0.0
     ticker = candidate["ticker"]
     already_allocated = allocations_by_ticker.get(ticker, 0.0)
     denominator = current_total + capital if current_total + capital > 0 else capital
@@ -1216,7 +1244,11 @@ def _marginal_monthly_score(
         str(candidate.get("long_term_durability_status") or ""), 0.0
     )
     under_target_bonus = max(0.0, (target_weight - post_weight) / target_weight) * 4.0 if target_weight > 0 else 0.0
-    drawdown_bonus = min(abs(min(drawdown, 0.0)) * 10.0, 3.0)
+    drawdown_bonus = (
+        min(abs(min(drawdown, 0.0)) * 10.0, 3.0)
+        if _drawdown_positive_reward_allowed(candidate)
+        else 0.0
+    )
     concentration_drag = max(0.0, post_weight - target_weight * 0.85) * (90.0 if mode == "high-cagr" else 120.0)
     cycle_drag = (safe_float(candidate.get("cycle_bubble_penalty")) or 0.0) * 0.65
     stability_adjustment = safe_float(candidate.get("allocation_stability_adjustment")) or 0.0
@@ -1807,7 +1839,120 @@ def _quality_drawdown_allocation_exception(analysis: dict[str, Any], mode: str) 
         return False
     if (safe_float(analysis.get("long_term_durability_score")) or 0.0) < 75:
         return False
+    if not _strong_current_evidence(analysis):
+        return False
+    if _has_material_unresolved_evidence_conflict(analysis):
+        return False
     return True
+
+
+def _annotate_deep_averaging_down_safeguard(analysis: dict[str, Any], mode: str) -> None:
+    existing_position = _is_existing_owned_position(analysis)
+    combined_return = _combined_position_return(analysis) if existing_position else None
+    quality_exception_passed = _quality_drawdown_allocation_exception(analysis, mode)
+    material_conflict = _has_material_unresolved_evidence_conflict(analysis)
+
+    if not existing_position:
+        status = "NOT_OWNED"
+    elif combined_return is None:
+        status = "UNKNOWN"
+    elif combined_return <= DEEP_AVERAGING_DOWN_THRESHOLD:
+        status = "DEEP_DRAWDOWN"
+    else:
+        status = "ABOVE_DEEP_THRESHOLD"
+
+    blocked = status == "DEEP_DRAWDOWN" and not quality_exception_passed
+    reliability = str(analysis.get("data_reliability_level") or "UNKNOWN").upper()
+    conflict_profile = str(
+        analysis.get("official_conflict_profile")
+        or analysis.get("source_conflict_profile")
+        or "NO_CONFLICT"
+    ).upper()
+    if blocked:
+        reason = (
+            "DEEP AVERAGING DOWN BLOCKED: combined position return "
+            f"{combined_return:.2%} <= {DEEP_AVERAGING_DOWN_THRESHOLD:.0%}; "
+            f"evidence reliability={reliability}, material conflict={material_conflict} "
+            f"({conflict_profile}), quality-drawdown exception=False."
+        )
+    elif status == "UNKNOWN":
+        reason = (
+            "Deep averaging-down status UNKNOWN: valid combined CAD current value and positive CAD acquisition cost "
+            "are not both available; no combined return was fabricated."
+        )
+    elif status == "DEEP_DRAWDOWN":
+        reason = (
+            f"Combined position return {combined_return:.2%} is at or below "
+            f"{DEEP_AVERAGING_DOWN_THRESHOLD:.0%}, but strong clean evidence passes; normal allocation limits remain authoritative."
+        )
+    elif status == "ABOVE_DEEP_THRESHOLD":
+        reason = (
+            f"Combined position return {combined_return:.2%} is above the deep averaging-down threshold "
+            f"of {DEEP_AVERAGING_DOWN_THRESHOLD:.0%}."
+        )
+    else:
+        reason = "Deep averaging-down safeguard not applicable: ticker is not currently owned."
+
+    analysis.update(
+        {
+            "combined_position_return": combined_return,
+            "deep_averaging_down_status": status,
+            "deep_averaging_down_threshold": DEEP_AVERAGING_DOWN_THRESHOLD,
+            "deep_averaging_down_blocked": blocked,
+            "deep_averaging_down_reason": reason,
+            "quality_drawdown_allocation_exception_passed": quality_exception_passed,
+            "quality_drawdown_evidence_reliability": reliability,
+            "quality_drawdown_material_conflict": material_conflict,
+            "quality_drawdown_conflict_profile": conflict_profile,
+        }
+    )
+
+
+def _combined_position_return(analysis: dict[str, Any]) -> float | None:
+    if str(analysis.get("portfolio_valuation_source") or "") == "acquisition_value_fallback":
+        return None
+    current_value_cad = safe_float(analysis.get("current_value_cad"))
+    acquisition_value_cad = safe_float(analysis.get("acquisition_value_cad"))
+    if current_value_cad is None or current_value_cad < 0:
+        return None
+    if acquisition_value_cad is None or acquisition_value_cad <= 0:
+        return None
+    return round(current_value_cad / acquisition_value_cad - 1.0, 12)
+
+
+def _is_existing_owned_position(analysis: dict[str, Any]) -> bool:
+    return any(
+        (
+            (safe_float(analysis.get("shares")) or 0.0) > 0,
+            (safe_float(analysis.get("current_value_cad")) or 0.0) > 0,
+            (safe_float(analysis.get("current_value")) or 0.0) > 0,
+            (safe_float(analysis.get("position_weight")) or 0.0) > 0,
+        )
+    )
+
+
+def _strong_current_evidence(analysis: dict[str, Any]) -> bool:
+    return (
+        str(analysis.get("data_reliability_level") or "").upper() == "HIGH"
+        and analysis.get("requires_manual_validation_for_large_allocation") is not True
+    )
+
+
+def _has_material_unresolved_evidence_conflict(analysis: dict[str, Any]) -> bool:
+    if analysis.get("fundamental_evidence_conflict") is True:
+        return True
+    conflict_profile = str(
+        analysis.get("official_conflict_profile")
+        or analysis.get("source_conflict_profile")
+        or ""
+    ).upper()
+    return conflict_profile in MATERIAL_UNRESOLVED_CONFLICT_PROFILES
+
+
+def _drawdown_positive_reward_allowed(analysis: dict[str, Any]) -> bool:
+    if not _is_existing_owned_position(analysis):
+        return True
+    return analysis.get("quality_drawdown_allocation_exception_passed") is True
 
 
 def _watch_allocation_budget(capital: float, mode: str) -> float:

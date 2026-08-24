@@ -94,6 +94,7 @@ class QualityDrawdownTest(unittest.TestCase):
         analysis = full_strong_analysis("INTU")
         base = compute_capital_allocation_score(analysis, {"concentration_by_sector": {}, "top3_weight": 0})
         analysis["quality_drawdown_allocation_adjustment"] = 5
+        analysis["quality_drawdown_allocation_exception_passed"] = True
         improved = compute_capital_allocation_score(analysis, {"concentration_by_sector": {}, "top3_weight": 0})
 
         self.assertGreater(improved["capital_allocation_score"], base["capital_allocation_score"])

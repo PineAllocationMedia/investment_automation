@@ -19,6 +19,7 @@ ACCOUNT_CHART_COLUMNS = [
 ]
 
 CHART_RELATIVE_DIR = "charts"
+ALL_ACCOUNTS = "ALL_ACCOUNTS"
 SMALL_POSITION_THRESHOLD = 0.03
 MAX_SLICES = 8
 
@@ -48,7 +49,10 @@ def build_account_allocation_chart_rows(
 
     accounts = _aggregate_by_account(account_rows)
     output: list[dict[str, Any]] = []
-    for account_type, holdings in sorted(accounts.items()):
+    for account_type, holdings in sorted(
+        accounts.items(),
+        key=lambda item: (item[0] == ALL_ACCOUNTS, item[0]),
+    ):
         total_value = sum(value for _, value in holdings)
         if total_value <= 0:
             continue
@@ -97,11 +101,12 @@ def account_charts_markdown(rows: list[dict[str, Any]]) -> list[str]:
     for row in rows:
         account_type = row.get("account_type") or "UNKNOWN"
         chart_path = row.get("chart_path")
+        display_name = "Total - Portfolio 1 + Portfolio 2" if account_type == ALL_ACCOUNTS else account_type
         lines.extend(
             [
-                f"#### {account_type}",
+                f"#### {display_name}",
                 "",
-                f"![Répartition du compte {account_type}]({chart_path})",
+                f"![Répartition {display_name}]({chart_path})",
                 "",
             ]
         )
@@ -118,6 +123,8 @@ def _aggregate_by_account(rows: list[dict[str, Any]]) -> dict[str, list[tuple[st
             continue
         account_bucket = buckets.setdefault(account_type, {})
         account_bucket[ticker] = account_bucket.get(ticker, 0.0) + value
+        combined_bucket = buckets.setdefault(ALL_ACCOUNTS, {})
+        combined_bucket[ticker] = combined_bucket.get(ticker, 0.0) + value
     return {
         account_type: sorted(holdings.items(), key=lambda item: item[1], reverse=True)
         for account_type, holdings in buckets.items()
@@ -160,7 +167,11 @@ def _pie_svg(account_type: str, slices: list[dict[str, Any]], total_value: float
     radius = 118
     legend_x = 330
     legend_y = 112
-    title = html.escape(f"Répartition du compte {account_type}")
+    title = html.escape(
+        "Répartition totale - Portfolio 1 + Portfolio 2"
+        if account_type == ALL_ACCOUNTS
+        else f"Répartition du compte {account_type}"
+    )
     subtitle = html.escape(f"Valeur totale estimée: {money(total_value)} CAD | Positions: {positions_count}")
 
     parts = [

@@ -42,6 +42,20 @@ def drawdown_opportunity_score(drawdown: float | None) -> float:
     return 25.0
 
 
+def _drawdown_positive_reward_allowed(analysis: dict[str, Any]) -> bool:
+    existing_position = any(
+        (
+            (safe_float(analysis.get("shares")) or 0.0) > 0,
+            (safe_float(analysis.get("current_value_cad")) or 0.0) > 0,
+            (safe_float(analysis.get("current_value")) or 0.0) > 0,
+            (safe_float(analysis.get("position_weight")) or 0.0) > 0,
+        )
+    )
+    if not existing_position:
+        return True
+    return analysis.get("quality_drawdown_allocation_exception_passed") is True
+
+
 def compute_valuation_score(analysis: dict[str, Any]) -> float:
     peg = safe_float(analysis.get("peg"))
     ratio = safe_float(analysis.get("price_to_fair_value"))
@@ -153,7 +167,9 @@ def compute_capital_allocation_score(
     conviction_score = safe_float(analysis.get("conviction_score")) or 0.0
     expected_score = EXPECTED_CAGR_QUALITY_SCORE.get(str(analysis.get("expected_cagr_quality")), 20)
     opportunity_score = OPPORTUNITY_COST_SCORE.get(str(analysis.get("opportunity_cost_status")), 0)
-    drawdown_score = drawdown_opportunity_score(safe_float(analysis.get("drawdown_from_12m_high")))
+    raw_drawdown_score = drawdown_opportunity_score(safe_float(analysis.get("drawdown_from_12m_high")))
+    drawdown_reward_allowed = _drawdown_positive_reward_allowed(analysis)
+    drawdown_score = raw_drawdown_score if drawdown_reward_allowed else min(raw_drawdown_score, 25.0)
     valuation_score = compute_valuation_score(analysis)
     business_quality_score = compute_business_quality_score(analysis)
     high_cagr_potential_score = compute_high_cagr_potential_score(analysis)
@@ -177,7 +193,12 @@ def compute_capital_allocation_score(
     )
     shareholder_discipline_score = _get_cached(analysis, shareholder_discipline, "shareholder_discipline_score")
     shareholder_discipline_adjustment = _get_cached(analysis, shareholder_discipline, "shareholder_discipline_adjustment")
-    quality_drawdown_adjustment = safe_float(analysis.get("quality_drawdown_allocation_adjustment")) or 0.0
+    raw_quality_drawdown_adjustment = safe_float(analysis.get("quality_drawdown_allocation_adjustment")) or 0.0
+    quality_drawdown_adjustment = (
+        raw_quality_drawdown_adjustment
+        if drawdown_reward_allowed or raw_quality_drawdown_adjustment <= 0
+        else 0.0
+    )
     market_growth_thesis_score = safe_float(analysis.get("market_growth_thesis_score"))
     market_growth_thesis_adjustment = safe_float(analysis.get("market_growth_thesis_adjustment")) or 0.0
     market_regime_adjustment = safe_float(analysis.get("market_regime_allocation_adjustment")) or 0.0
@@ -297,6 +318,7 @@ def compute_capital_allocation_score(
             "expected_cagr_quality_score": expected_score,
             "opportunity_cost_score": opportunity_score,
             "drawdown_opportunity_score": drawdown_score,
+            "drawdown_opportunity_score_raw": raw_drawdown_score,
             "valuation_score": valuation_score,
             "business_quality_score": business_quality_score,
             "high_cagr_potential_score": high_cagr_potential_score,
@@ -309,6 +331,7 @@ def compute_capital_allocation_score(
             "shareholder_discipline_score": shareholder_discipline_score,
             "shareholder_discipline_adjustment": shareholder_discipline_adjustment,
             "quality_drawdown_allocation_adjustment": quality_drawdown_adjustment,
+            "quality_drawdown_allocation_adjustment_raw": raw_quality_drawdown_adjustment,
             "market_growth_thesis_score": market_growth_thesis_score,
             "market_growth_thesis_adjustment": market_growth_thesis_adjustment,
             "market_regime_allocation_adjustment": market_regime_adjustment,
@@ -328,6 +351,8 @@ def compute_capital_allocation_score(
         "cash_flow_quality_adjustment": cash_flow_quality_adjustment,
         "shareholder_discipline_score": shareholder_discipline_score,
         "shareholder_discipline_adjustment": shareholder_discipline_adjustment,
+        "quality_drawdown_allocation_adjustment": quality_drawdown_adjustment,
+        "quality_drawdown_allocation_adjustment_raw": raw_quality_drawdown_adjustment,
     }
 
 

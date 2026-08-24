@@ -351,7 +351,17 @@ SCORES_COLUMNS = [
     "quality_drawdown_status",
     "quality_drawdown_score",
     "quality_drawdown_allocation_adjustment",
+    "quality_drawdown_allocation_adjustment_raw",
+    "quality_drawdown_allocation_exception_passed",
+    "quality_drawdown_evidence_reliability",
+    "quality_drawdown_material_conflict",
+    "quality_drawdown_conflict_profile",
     "quality_drawdown_reason",
+    "combined_position_return",
+    "deep_averaging_down_status",
+    "deep_averaging_down_threshold",
+    "deep_averaging_down_blocked",
+    "deep_averaging_down_reason",
     "news_context_triggered",
     "news_context_status",
     "news_context_reason",
@@ -4469,11 +4479,12 @@ def compact_account_charts_markdown(rows: list[dict[str, Any]]) -> list[str]:
         chart_path = row.get("chart_path")
         if not chart_path:
             continue
+        display_name = "Total - Portfolio 1 + Portfolio 2" if account_type == "ALL_ACCOUNTS" else account_type
         lines.extend(
             [
-                f"#### {account_type}",
+                f"#### {display_name}",
                 "",
-                f"![Répartition du compte {account_type}]({chart_path})",
+                f"![Répartition {display_name}]({chart_path})",
                 "",
             ]
         )
@@ -7235,7 +7246,17 @@ def _score_row_for_csv(row: dict[str, Any]) -> dict[str, Any]:
         "quality_drawdown_status": row.get("quality_drawdown_status"),
         "quality_drawdown_score": row.get("quality_drawdown_score"),
         "quality_drawdown_allocation_adjustment": row.get("quality_drawdown_allocation_adjustment"),
+        "quality_drawdown_allocation_adjustment_raw": row.get("quality_drawdown_allocation_adjustment_raw"),
+        "quality_drawdown_allocation_exception_passed": row.get("quality_drawdown_allocation_exception_passed"),
+        "quality_drawdown_evidence_reliability": row.get("quality_drawdown_evidence_reliability"),
+        "quality_drawdown_material_conflict": row.get("quality_drawdown_material_conflict"),
+        "quality_drawdown_conflict_profile": row.get("quality_drawdown_conflict_profile"),
         "quality_drawdown_reason": row.get("quality_drawdown_reason"),
+        "combined_position_return": row.get("combined_position_return"),
+        "deep_averaging_down_status": row.get("deep_averaging_down_status"),
+        "deep_averaging_down_threshold": row.get("deep_averaging_down_threshold"),
+        "deep_averaging_down_blocked": row.get("deep_averaging_down_blocked"),
+        "deep_averaging_down_reason": row.get("deep_averaging_down_reason"),
         "news_context_triggered": row.get("news_context_triggered"),
         "news_context_status": row.get("news_context_status"),
         "news_context_reason": row.get("news_context_reason"),
