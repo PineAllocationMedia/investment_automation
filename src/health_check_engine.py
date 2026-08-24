@@ -1,14 +1,21 @@
 from __future__ import annotations
 
 import importlib.util
+import tempfile
 from pathlib import Path
 from typing import Any
 
 from .cache_management_engine import cache_health_summary, run_cache_maintenance
+from .baseline_identity import VALIDATION_BASELINE_ID, load_baseline_identity
 from .csv_schema_engine import repair_safe_csv_schemas, validate_csv_schemas
-from .research_reports import BNCD_MORNINGSTAR_DIR, RESEARCH_REPORTS_DIR, research_status_rows
+from .critical_input_engine import critical_config_fingerprint
+from .dependency_reproducibility import dependency_environment
+from .model_version import MODEL_RULES_VERSION
+from .research_reports import research_status_rows
 from .source_health_engine import check_canadian_source_health
-from .utils import DATA_DIR, read_csv_records, safe_float
+from .storage_observability_engine import build_storage_health_rows
+from .utils import read_csv_records, safe_float
+from .validation_evidence import AUTO_TUNING_POLICY, VALIDATION_SCHEMA_VERSION
 from .validators import validate_input_files
 
 
@@ -31,17 +38,98 @@ def run_health_check(
     project_root = Path(project_root)
     rows: list[dict[str, Any]] = []
     rows.extend(_dependency_rows())
+    rows.extend(_dependency_reproducibility_rows(project_root))
+    rows.extend(_baseline_rows(project_root))
     rows.extend(_file_rows(project_root))
     schema_rows = schema_rows if schema_rows is not None else (
         repair_safe_csv_schemas(project_root) if repair_safe else validate_csv_schemas(project_root)
     )
     rows.extend(_schema_rows(schema_rows, repair_safe=repair_safe))
     rows.extend(_validation_rows(project_root))
-    rows.extend(_research_report_rows(known_tickers or []))
+    rows.extend(_research_report_rows(project_root, known_tickers or []))
     rows.extend(walk_forward_health_rows(project_root))
-    cache_rows = cache_rows if cache_rows is not None else run_cache_maintenance(repair_safe=repair_safe)
+    cache_rows = cache_rows if cache_rows is not None else run_cache_maintenance(
+        project_root / "data" / "cached_market_data",
+        repair_safe=repair_safe,
+    )
     rows.extend(_cache_rows(cache_rows))
     rows.extend(_canadian_source_rows(check_canadian_source_health(project_root / "data" / "cached_market_data")))
+    rows.extend(build_storage_health_rows(project_root))
+    rows.extend(_writeability_rows(project_root))
+    return rows
+
+
+def _dependency_reproducibility_rows(project_root: Path) -> list[dict[str, Any]]:
+    environment = dependency_environment(project_root / "requirements.lock")
+    status = str(environment.get("dependency_status") or "DRIFT")
+    if status == "MATCH":
+        return [
+            _row(
+                "dependency_reproducibility",
+                "PASS",
+                "LOW",
+                f"Python {environment.get('python_version')}; lock and installed dependency versions match; fingerprint={environment.get('dependency_fingerprint')}.",
+                "Aucune action.",
+            )
+        ]
+    return [
+        _row(
+            "dependency_reproducibility",
+            "WARN",
+            "MEDIUM",
+            f"status={status}; Python={environment.get('python_version')}; missing={environment.get('missing_packages')}; drift={environment.get('version_drift')}; fingerprint={environment.get('dependency_fingerprint')}.",
+            "Recréer .venv avec Python 3.12 et requirements.lock avant un run Baseline de décision.",
+        )
+    ]
+
+
+def _baseline_rows(project_root: Path) -> list[dict[str, Any]]:
+    identity = load_baseline_identity(project_root / "config" / "baseline.yaml")
+    approved_config = str(identity.get("approved_config_fingerprint") or "")
+    actual_config = critical_config_fingerprint(project_root) if approved_config else ""
+    checks = [
+        identity.get("baseline_id") == VALIDATION_BASELINE_ID,
+        identity.get("model_rules_version") == MODEL_RULES_VERSION,
+        identity.get("validation_schema_version") == VALIDATION_SCHEMA_VERSION,
+        AUTO_TUNING_POLICY == "PROPOSAL_ONLY",
+        not approved_config or approved_config == actual_config,
+    ]
+    if not all(checks):
+        return [
+            _row(
+                "baseline_identity",
+                "FAIL",
+                "HIGH",
+                f"Baseline identity/config mismatch: {identity}; actual_config_fingerprint={actual_config}; tuning={AUTO_TUNING_POLICY}.",
+                "Stopper les runs de décision et restaurer l’identité Baseline V1 approuvée.",
+            )
+        ]
+    start_note = identity.get("baseline_started_at") or "pending approved deployment"
+    return [
+        _row(
+            "baseline_identity",
+            "PASS",
+            "LOW",
+            f"{VALIDATION_BASELINE_ID}; model={MODEL_RULES_VERSION}; schema={VALIDATION_SCHEMA_VERSION}; start={start_note}; config={actual_config or 'UNPINNED'}; tuning=PROPOSAL_ONLY.",
+            "Renseigner baseline_started_at seulement lors du déploiement Baseline approuvé." if not identity.get("baseline_started_at") else "Aucune action.",
+        )
+    ]
+
+
+def _writeability_rows(project_root: Path) -> list[dict[str, Any]]:
+    rows = []
+    for check, directory in (
+        ("manifest_writeability", project_root / "reports"),
+        ("operational_history_writeability", project_root / "data"),
+    ):
+        try:
+            directory.mkdir(parents=True, exist_ok=True)
+            with tempfile.NamedTemporaryFile(prefix=".baseline-health-", dir=directory, delete=True):
+                pass
+        except OSError as exc:
+            rows.append(_row(check, "FAIL", "HIGH", f"Write test failed: {exc}", "Repair filesystem permissions before production analysis."))
+        else:
+            rows.append(_row(check, "PASS", "LOW", "Atomic temporary write succeeded.", "Aucune action."))
     return rows
 
 
@@ -98,9 +186,9 @@ def _dependency_rows() -> list[dict[str, Any]]:
 
 def _file_rows(project_root: Path) -> list[dict[str, Any]]:
     required_files = [
-        DATA_DIR / "portfolio.csv",
-        DATA_DIR / "market_universe.csv",
-        DATA_DIR / "manual_inputs_friendly.txt",
+        project_root / "data" / "portfolio.csv",
+        project_root / "data" / "market_universe.csv",
+        project_root / "data" / "manual_inputs_friendly.txt",
         project_root / "requirements.txt",
         project_root / "main.py",
     ]
@@ -170,10 +258,11 @@ def _schema_rows(schema_rows: list[dict[str, Any]], repair_safe: bool) -> list[d
     ]
 
 
-def _research_report_rows(known_tickers: list[str]) -> list[dict[str, Any]]:
+def _research_report_rows(project_root: Path, known_tickers: list[str]) -> list[dict[str, Any]]:
+    research_dir = project_root / "data" / "research_reports"
     rows = research_status_rows(
-        BNCD_MORNINGSTAR_DIR,
-        RESEARCH_REPORTS_DIR / "research_index.csv",
+        research_dir / "bncd_morningstar",
+        research_dir / "research_index.csv",
         known_tickers=known_tickers,
     )
     if not rows:

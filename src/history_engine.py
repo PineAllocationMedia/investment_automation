@@ -323,6 +323,9 @@ def save_current_snapshot(
     analysis_mode: str | dict[str, dict[str, Any]] | None = None,
     *analysis_groups: dict[str, dict[str, Any]],
     run_purpose: str = RunPurpose.UNKNOWN_LEGACY.value,
+    baseline_metadata: dict[str, Any] | None = None,
+    manifest_reference: str = "",
+    manifest_fingerprint: str = "",
 ) -> None:
     reports_dir = Path(reports_dir)
     history_dir = reports_dir / "history"
@@ -337,12 +340,19 @@ def save_current_snapshot(
     for group in groups:
         for analysis in group.values():
             rows.append(_snapshot_row(analysis, normalized_mode))
+    baseline = baseline_metadata or {}
     payload = {
         "created_at": datetime.now().isoformat(timespec="seconds"),
         "analysis_date": today_iso(),
         "model_rules_version": MODEL_RULES_VERSION,
         "analysis_mode": normalized_mode,
         "run_purpose": normalize_run_purpose(run_purpose),
+        "baseline_id": baseline.get("baseline_id", ""),
+        "baseline_started_at": baseline.get("baseline_started_at", ""),
+        "baseline_evidence_status": baseline.get("baseline_evidence_status", ""),
+        "baseline_forward_eligible": baseline.get("baseline_forward_eligible", False),
+        "manifest_reference": manifest_reference,
+        "manifest_fingerprint": manifest_fingerprint,
         "analyses": rows,
     }
     stamp = datetime.now().strftime("%Y%m%d_%H%M%S")

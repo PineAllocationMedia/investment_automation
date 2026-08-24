@@ -76,6 +76,8 @@ def _build_current_run_snapshot(
         (normalize_run_purpose(row.get("run_purpose")) for row in run_log_rows if row.get("run_purpose")),
         RunPurpose.UNKNOWN_LEGACY.value,
     )
+    baseline = allocation_result.get("baseline_identity") or {}
+    manifest = allocation_result.get("decision_manifest") or {}
     return {
         "meta": {
             "run_date": today_iso(),
@@ -84,6 +86,14 @@ def _build_current_run_snapshot(
             "model_rules_version": MODEL_RULES_VERSION,
             "validation_schema_version": VALIDATION_SCHEMA_VERSION,
             "run_purpose": run_purpose,
+            "baseline_id": baseline.get("baseline_id", ""),
+            "baseline_started_at": baseline.get("baseline_started_at", ""),
+            "baseline_evidence_status": baseline.get("baseline_evidence_status", ""),
+            "baseline_forward_eligible": baseline.get("baseline_forward_eligible", False),
+            "git_commit_sha": manifest.get("git_commit_sha", ""),
+            "manifest_reference": manifest.get("manifest_reference", ""),
+            "manifest_fingerprint": manifest.get("manifest_fingerprint", ""),
+            "decision_output_fingerprint": manifest.get("decision_output_fingerprint", ""),
             "capital": _number(allocation_result.get("monthly_contribution"), _allocation_total(allocation_result)),
             "portfolio_total_value": _number(allocation_result.get("portfolio_total_value_cad"), 0.0),
         },

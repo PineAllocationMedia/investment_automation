@@ -183,9 +183,11 @@ class AccountPerformanceTest(unittest.TestCase):
         self.assertEqual(tfsa["flow_adjusted_status"], "BEHIND_SP500_FLOW_ADJUSTED")
         self.assertAlmostEqual(tfsa["sp500_equivalent_value_cad"], 1745.45, places=2)
         self.assertAlmostEqual(tfsa["value_added_vs_sp500_cad"], -145.45, places=2)
-        self.assertEqual(tfsa["xirr_status"], "XIRR_FLOW_ADJUSTED_BEHIND_SP500")
-        self.assertLess(tfsa["xirr_excess_vs_sp500"], 0)
-        self.assertIn("flux déduit", tfsa["xirr_method"])
+        self.assertEqual(tfsa["xirr_status"], "INSUFFICIENT_CASH_FLOW_HISTORY")
+        self.assertEqual(tfsa["xirr_excess_vs_sp500"], "")
+        self.assertEqual(tfsa["twr_status"], "INSUFFICIENT_CASH_FLOW_HISTORY")
+        self.assertEqual(tfsa["cash_flow_history_status"], "INSUFFICIENT_CASH_FLOW_HISTORY")
+        self.assertEqual(tfsa["preferred_performance_read"], "WAIT_FOR_TRANSACTION_DETAILS")
 
     def test_xirr_prefers_explicit_contribution_rows_over_inferred_same_day(self):
         with tempfile.TemporaryDirectory() as directory:
@@ -257,12 +259,40 @@ class AccountPerformanceTest(unittest.TestCase):
         tfsa2 = next(row for row in rows if row["account_type"] == "TFSA2")
         total = next(row for row in rows if row["account_type"] == "ALL_ACCOUNTS")
         self.assertAlmostEqual(tfsa1["portfolio_twr"], 0.10)
-        self.assertAlmostEqual(tfsa2["portfolio_twr"], 0.0)
-        self.assertAlmostEqual(tfsa2["sp500_twr"], 0.10)
-        self.assertAlmostEqual(tfsa2["twr_excess_vs_sp500"], -0.10)
-        self.assertEqual(tfsa2["twr_status"], "TWR_FLOW_ADJUSTED_BEHIND_SP500")
-        self.assertAlmostEqual(total["portfolio_twr"], 0.066667)
-        self.assertEqual(total["preferred_performance_read"], "TWR_EXCESS")
+        self.assertEqual(tfsa2["portfolio_twr"], "")
+        self.assertEqual(tfsa2["sp500_twr"], "")
+        self.assertEqual(tfsa2["twr_excess_vs_sp500"], "")
+        self.assertEqual(tfsa2["twr_status"], "INSUFFICIENT_CASH_FLOW_HISTORY")
+        self.assertEqual(total["portfolio_twr"], "")
+        self.assertEqual(total["preferred_performance_read"], "WAIT_FOR_TRANSACTION_DETAILS")
+
+    def test_twr_uses_explicit_dated_contribution_without_fabrication(self):
+        with tempfile.TemporaryDirectory() as directory:
+            history = Path(directory) / "account_performance_history.csv"
+            build_account_performance_rows(
+                [{"ticker": "MSFT", "account_type": "TFSA1", "current_value_cad": 1000, "acquisition_value_cad": 1000}],
+                {"VFV.TO": {"current_price": 100}},
+                history,
+                as_of_date="2026-01-01",
+            )
+            rows = build_account_performance_rows(
+                [{"ticker": "MSFT", "account_type": "TFSA1", "current_value_cad": 1650, "acquisition_value_cad": 1500}],
+                {"VFV.TO": {"current_price": 110}},
+                history,
+                transaction_rows=[
+                    {
+                        "date": "2026-03-01",
+                        "account_type": "TFSA1",
+                        "net_contribution_cad": 500,
+                    }
+                ],
+                as_of_date="2026-06-01",
+            )
+
+        tfsa = next(row for row in rows if row["account_type"] == "TFSA1")
+        self.assertAlmostEqual(tfsa["portfolio_twr"], 0.15)
+        self.assertEqual(tfsa["cash_flow_history_status"], "EXPLICIT_DATED_FLOWS_USED")
+        self.assertNotEqual(tfsa["xirr_status"], "INSUFFICIENT_CASH_FLOW_HISTORY")
 
 
 if __name__ == "__main__":

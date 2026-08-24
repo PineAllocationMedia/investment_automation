@@ -6,7 +6,7 @@ set -o pipefail
 EXIT_LOCKED=75
 DEFAULT_MODE="high-cagr"
 DEFAULT_CAPITAL="0"
-LOG_RETENTION_COUNT=20
+PRODUCTION_LOG_RETENTION_COUNT="${INVESTMENT_AUTOMATION_PRODUCTION_LOG_RETENTION_COUNT:-100}"
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="${INVESTMENT_AUTOMATION_PROJECT_ROOT:-$(cd "$SCRIPT_DIR/.." && pwd)}"
@@ -68,6 +68,11 @@ esac
 
 if ! [[ "$capital" =~ ^[0-9]+([.][0-9]+)?$ ]]; then
     echo "Erreur: le capital doit etre un nombre positif ou nul." >&2
+    exit 64
+fi
+
+if ! [[ "$PRODUCTION_LOG_RETENTION_COUNT" =~ ^[1-9][0-9]*$ ]]; then
+    echo "Erreur: INVESTMENT_AUTOMATION_PRODUCTION_LOG_RETENTION_COUNT doit être un entier positif." >&2
     exit 64
 fi
 
@@ -233,8 +238,8 @@ fi
 
 shopt -s nullglob
 log_files=("$LOG_DIR"/analysis_*.log)
-if ((${#log_files[@]} > LOG_RETENTION_COUNT)); then
+if ((${#log_files[@]} > PRODUCTION_LOG_RETENTION_COUNT)); then
     ls -1t "${log_files[@]}" \
-        | tail -n "+$((LOG_RETENTION_COUNT + 1))" \
+        | tail -n "+$((PRODUCTION_LOG_RETENTION_COUNT + 1))" \
         | while IFS= read -r old_log; do rm -f "$old_log"; done
 fi

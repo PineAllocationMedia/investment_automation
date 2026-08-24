@@ -3,12 +3,48 @@ import unittest
 from datetime import datetime, timedelta
 from pathlib import Path
 
-from src.health_check_engine import walk_forward_health_rows
+from src.health_check_engine import run_health_check, walk_forward_health_rows
+from src.dependency_reproducibility import dependency_environment
 from src.source_health_engine import check_canadian_source_health
 from src.utils import write_csv_records
 
 
 class HealthCheckEngineTest(unittest.TestCase):
+    def test_dependency_lock_matches_verified_test_environment(self):
+        root = Path(__file__).resolve().parents[1]
+        environment = dependency_environment(root / "requirements.lock")
+
+        self.assertEqual(environment["dependency_status"], "MATCH")
+        self.assertTrue(environment["dependency_fingerprint"])
+        self.assertTrue(environment["dependency_lock_fingerprint"])
+
+    def test_health_check_exposes_baseline_storage_and_writeability(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / "config").mkdir()
+            (root / "data").mkdir()
+            (root / "config" / "baseline.yaml").write_text(
+                "baseline_id: VALIDATION_BASELINE_V1\nbaseline_started_at: ''\nbaseline_status: PENDING_APPROVED_DEPLOYMENT\n",
+                encoding="utf-8",
+            )
+            (root / "data" / "portfolio.csv").write_text(
+                "ticker,shares,average_cost,average_cost_currency,account_type\nMSFT,1,100,USD,TFSA\n",
+                encoding="utf-8",
+            )
+            (root / "data" / "market_universe.csv").write_text("ticker,company_name\n", encoding="utf-8")
+            (root / "data" / "manual_inputs_friendly.txt").write_text("", encoding="utf-8")
+            (root / "requirements.txt").write_text("PyYAML==6.0.3\n", encoding="utf-8")
+            (root / "requirements.lock").write_text("PyYAML==6.0.3\n", encoding="utf-8")
+            (root / "main.py").write_text("", encoding="utf-8")
+
+            rows = run_health_check(root, known_tickers=[], cache_rows=[])
+
+        checks = {row["check"] for row in rows}
+        self.assertIn("baseline_identity", checks)
+        self.assertIn("manifest_writeability", checks)
+        self.assertIn("operational_history_writeability", checks)
+        self.assertIn("storage:free_space", checks)
+
     def test_walk_forward_not_ready_is_info_not_failure(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)

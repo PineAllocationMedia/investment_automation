@@ -119,6 +119,43 @@ class RunLoggingEngineTest(unittest.TestCase):
             self.assertEqual({row["run_id"] for row in saved}, {"health-1"})
             self.assertTrue(any(row["level"] == "WARN" for row in saved))
 
+    def test_analysis_log_carries_baseline_and_manifest_identity(self):
+        rows = build_analysis_run_log(
+            run_id="baseline-run-1",
+            mode="high-cagr",
+            capital=500,
+            refresh_market_data=False,
+            allocation_result={"allocations": []},
+            run_purpose="MANUAL_DECISION",
+            baseline_metadata={
+                "baseline_id": "VALIDATION_BASELINE_V1",
+                "baseline_started_at": "2026-09-01T12:00:00",
+                "baseline_evidence_status": "BASELINE_V1_FORWARD_OBSERVATION",
+                "baseline_forward_eligible": True,
+            },
+            manifest_metadata={
+                "git_commit_sha": "a" * 40,
+                "manifest_reference": "reports/decision_manifests/baseline-run-1.json",
+                "manifest_fingerprint": "manifest",
+                "decision_output_fingerprint": "decision",
+            },
+        )
+
+        self.assertTrue(rows)
+        for row in rows:
+            self.assertEqual(row["baseline_id"], "VALIDATION_BASELINE_V1")
+            self.assertTrue(row["baseline_forward_eligible"])
+            self.assertEqual(row["git_commit_sha"], "a" * 40)
+            self.assertEqual(row["manifest_fingerprint"], "manifest")
+
+        extended = extend_report_run_log(
+            rows,
+            source_health_rows=[{"source": "fixture", "status": "DEGRADED", "health_score": 50}],
+        )
+        for row in extended:
+            self.assertEqual(row["baseline_id"], "VALIDATION_BASELINE_V1")
+            self.assertEqual(row["manifest_fingerprint"], "manifest")
+
     def test_walk_forward_log_flags_weak_regime_without_error(self):
         rows = build_walk_forward_run_log(
             run_id="walk-1",

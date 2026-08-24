@@ -8,6 +8,8 @@ Important :
 
 > Ceci n’est pas un conseil financier. Ce rapport applique seulement les règles mécaniques du guide fourni. Les données gratuites peuvent être incomplètes, retardées ou erronées. Toute décision finale doit être validée manuellement.
 
+Le contrat de gel autoritaire pour la période d’observation est documenté dans `BASELINE_V1_FREEZE.md`. Les runs de décision produisent aussi un manifeste dans `reports/decision_manifests/` afin de relier la recommandation au code, aux intrants, aux dépendances et aux données effectivement consommées.
+
 ## 1. Ce que fait l’agent
 
 L’agent répond à une question simple :
@@ -2352,7 +2354,7 @@ Première installation :
 ```bash
 python3 -m venv .venv
 source .venv/bin/activate
-python3 -m pip install -r requirements.txt
+python3 -m pip install -r requirements.lock
 python3 main.py init
 ```
 
@@ -2377,7 +2379,7 @@ Sur Windows :
 ```bash
 python -m venv .venv
 .venv\Scripts\activate
-python -m pip install -r requirements.txt
+python -m pip install -r requirements.lock
 python main.py init
 python main.py validate-inputs
 python main.py analyze --capital 1000 --mode high-cagr --refresh-market-data
