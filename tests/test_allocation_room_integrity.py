@@ -14,6 +14,7 @@ from src.allocation_engine import (
     _portfolio_value_basis_status,
     allocate_capital,
 )
+from src.portfolio_loader import enrich_portfolio_with_market_data
 from tests.helpers import full_strong_analysis
 
 
@@ -71,6 +72,144 @@ def _amount(result: dict, *tickers: str) -> float:
 
 
 class AllocationRoomIntegrityTest(unittest.TestCase):
+    def test_acquisition_value_fallback_is_not_a_valid_percentage_basis(self):
+        fallback = self._acquisition_value_fallback_row()
+
+        self.assertEqual(fallback["current_value"], 1000.0)
+        self.assertEqual(fallback["portfolio_valuation_source"], "acquisition_value_fallback")
+        self.assertEqual(
+            _portfolio_value_basis_status({"OLD": fallback}, _current_portfolio_value({"OLD": fallback})),
+            PORTFOLIO_VALUE_BASIS_MISSING,
+        )
+
+    def test_acquisition_value_fallback_closes_percentage_stock_room(self):
+        fallback = self._acquisition_value_fallback_row()
+        candidate = _candidate("NEW")
+        analyses = {"OLD": fallback, "NEW": candidate}
+        total = _current_portfolio_value(analyses)
+        status = _portfolio_value_basis_status(analyses, total)
+
+        room = _available_monthly_room(
+            candidate,
+            {},
+            {"NEW": candidate},
+            total,
+            1000,
+            "high-cagr",
+            status,
+        )
+
+        self.assertEqual(room, 0.0)
+        self.assertEqual(candidate["limiting_room_reason"], "POST_PURCHASE_ROOM_UNAVAILABLE_MISSING_PORTFOLIO_VALUE")
+
+    def test_acquisition_value_fallback_sends_blocked_capital_to_vfv(self):
+        fallback = self._acquisition_value_fallback_row()
+        candidate = _candidate("NEW")
+
+        result = allocate_capital(1000, {"OLD": fallback, "NEW": candidate}, "high-cagr")
+
+        self.assertEqual(_amount(result, "NEW"), 0.0)
+        self.assertEqual(_amount(result, "VFV.TO"), 1000.0)
+
+    def test_explicit_current_market_value_sources_remain_valid(self):
+        for source in (
+            "shares_x_market_price_CAD",
+            "shares_x_market_price_fx_to_CAD",
+            "manual_current_value_fallback",
+            "manual_current_value_legacy",
+            "",
+        ):
+            with self.subTest(source=source or "absent"):
+                row = {
+                    "ticker": "VALID",
+                    "shares": 10,
+                    "current_value": 1500.0,
+                    "current_value_cad": 1500.0,
+                    "position_weight": 1.0,
+                }
+                if source:
+                    row["portfolio_valuation_source"] = source
+                self.assertEqual(
+                    _portfolio_value_basis_status({"VALID": row}, 1500),
+                    PORTFOLIO_VALUE_BASIS_VALID,
+                )
+
+    def test_loader_market_and_manual_current_value_sources_remain_valid(self):
+        cases = [
+            (
+                [{"ticker": "CSU.TO", "shares": 10, "average_cost": 100, "average_cost_currency": "CAD"}],
+                {"CSU.TO": {"current_price": 150, "currency": "CAD"}},
+                {"CAD": 1.0},
+                "shares_x_market_price_CAD",
+            ),
+            (
+                [{"ticker": "MSFT", "shares": 10, "average_cost": 100, "average_cost_currency": "USD"}],
+                {"MSFT": {"current_price": 150, "currency": "USD"}},
+                {"CAD": 1.0, "USD": 1.35},
+                "shares_x_market_price_fx_to_CAD",
+            ),
+            (
+                [{"ticker": "MSFT", "shares": 10, "current_value": 1800, "average_cost": 100}],
+                {"MSFT": {"current_price": None, "currency": "USD"}},
+                {"CAD": 1.0},
+                "manual_current_value_fallback",
+            ),
+        ]
+        for rows, market, fx, expected_source in cases:
+            with self.subTest(source=expected_source):
+                enriched = enrich_portfolio_with_market_data(rows, market, fx)[0]
+                self.assertEqual(enriched["portfolio_valuation_source"], expected_source)
+                self.assertEqual(
+                    _portfolio_value_basis_status({enriched["ticker"]: enriched}, enriched["current_value"]),
+                    PORTFOLIO_VALUE_BASIS_VALID,
+                )
+
+    def test_mixed_market_and_acquisition_fallback_portfolio_fails_closed(self):
+        valued = {
+            "ticker": "VALUED",
+            "shares": 10,
+            "current_value": 9000,
+            "current_value_cad": 9000,
+            "position_weight": 0.90,
+            "portfolio_valuation_source": "shares_x_market_price_CAD",
+        }
+        fallback = self._acquisition_value_fallback_row()
+        fallback["position_weight"] = 0.10
+        analyses = {"VALUED": valued, "OLD": fallback}
+
+        self.assertEqual(
+            _portfolio_value_basis_status(analyses, _current_portfolio_value(analyses)),
+            PORTFOLIO_VALUE_BASIS_MISSING,
+        )
+
+    def test_empty_overflow_above_existing_34_percent_guard_has_zero_room(self):
+        candidate = _candidate("EMPTY")
+
+        room = _high_cagr_overflow_room(
+            candidate,
+            {"EMPTY": 350.0},
+            {"EMPTY": candidate},
+            0,
+            1000,
+            PORTFOLIO_VALUE_BASIS_EMPTY,
+        )
+
+        self.assertEqual(room, 0.0)
+
+    def test_empty_overflow_below_existing_34_percent_guard_retains_room(self):
+        candidate = _candidate("EMPTY")
+
+        room = _high_cagr_overflow_room(
+            candidate,
+            {"EMPTY": 330.0},
+            {"EMPTY": candidate},
+            0,
+            1000,
+            PORTFOLIO_VALUE_BASIS_EMPTY,
+        )
+
+        self.assertEqual(room, 120.0)
+
     def test_two_satellite_p4a_reproduction_is_now_capped_at_225(self):
         analyses = {"SAT1": _satellite("SAT1", 96), "SAT2": _satellite("SAT2", 95)}
 
@@ -361,6 +500,23 @@ class AllocationRoomIntegrityTest(unittest.TestCase):
         self.assertEqual(zero["allocations"], [])
         self.assertEqual(first, second)
         self.assertEqual(HIGH_CAGR_EMERGING_SATELLITE_BUDGET, 0.225)
+
+    @staticmethod
+    def _acquisition_value_fallback_row() -> dict:
+        row = enrich_portfolio_with_market_data(
+            [{"ticker": "OLD", "shares": 10, "average_cost": 100, "average_cost_currency": "CAD"}],
+            {"OLD": {"current_price": None, "currency": "CAD"}},
+            {"CAD": 1.0},
+        )[0]
+        row.update(
+            {
+                "position_weight": 1.0,
+                "thesis_status": "WEAKENING",
+                "liquidation_status": "YELLOW",
+                "add_eligibility_status": "DO_NOT_ADD",
+            }
+        )
+        return row
 
 
 if __name__ == "__main__":

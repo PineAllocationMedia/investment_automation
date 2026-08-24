@@ -73,8 +73,8 @@ candidate's canonical whole-position current value and every same-run chunk.
 ## Portfolio-value basis
 
 - `VALID_CURRENT_PORTFOLIO_VALUE`: sum positive `current_value`, with existing
-  canonical `current_value_cad` as a per-position fallback. Existing valid-value
-  behavior is preserved.
+  canonical `current_value_cad` as a per-position fallback, provided the explicit
+  source is not `acquisition_value_fallback`. Existing valid-value behavior is preserved.
 - `EMPTY_PORTFOLIO_POST_CONTRIBUTION`: no owned position and no current value.
   Current total is zero and the contribution itself is the mathematically valid
   post-contribution denominator. No $100,000 is invented.
@@ -83,6 +83,41 @@ candidate's canonical whole-position current value and every same-run chunk.
   room is zero and capital continues through the existing defensive/VFV fallback.
 
 No transaction reconstruction or new valuation system was added.
+
+### Current-value source authority
+
+The allocation-room layer rejects exactly `acquisition_value_fallback` as a
+current-market-value basis. The loader's numeric approximation and provenance
+remain visible and unchanged, but acquisition cost cannot authorize percentage
+room. A mixed portfolio with even one owned acquisition-cost fallback position
+fails closed for whole-portfolio percentage calculations.
+
+Positive values remain accepted from `shares_x_market_price_CAD`,
+`shares_x_market_price_fx_to_CAD`, `manual_current_value_fallback`, and
+`manual_current_value_legacy`. For backward-compatible synthetic fixtures, a
+positive current value with no source metadata also remains accepted. Owned
+positions without a positive current value remain unsafe as before.
+
+### Reviewed-head safe-value corrections
+
+Against reviewed PR head `98e3986e220c1465912370d818c21f1c068e3220`:
+
+| Case | Reviewed head | Corrected | Expected |
+|---|---:|---:|---|
+| Acquisition-cost fallback basis | `VALID`; NEW $600; VFV $400 | `MISSING`; NEW $0; VFV $1,000 | Yes |
+| EMPTY overflow already at 35% | $100 additional room | $0 additional room | Yes |
+| EMPTY overflow at 33% | $120 room | $120 room | Unchanged |
+| Two satellites | $225 combined | $225 combined | Unchanged |
+| Three satellites | $225 combined | $225 combined | Unchanged |
+| Individual 15% target fixture | $10 normal / $10 overflow | $10 / $10 | Unchanged |
+| Core-winner overflow | CORE1 $180 / CORE2 $180 | $180 / $180 | Unchanged |
+| Generic durable external overflow | $450 room | $450 room | Unchanged |
+| P3 block | $0 normal / $0 overflow | $0 / $0 | Unchanged |
+
+The existing `>34%` overflow concentration threshold is unchanged. The only
+logic correction is that both `VALID_CURRENT_PORTFOLIO_VALUE` and
+`EMPTY_PORTFOLIO_POST_CONTRIBUTION` use their trustworthy denominator; only
+`MISSING_CURRENT_PORTFOLIO_VALUE` fails closed.
 
 ## Controlled blast radius
 
@@ -131,8 +166,8 @@ aggregation rule, Chromebook deployment, or Drive data was changed.
 
 ## Validation result
 
-- P4B and predecessor/behavior-focused selection: 319 tests passed.
-- Complete repository suite: 821 tests passed.
+- P4B and predecessor/behavior-focused selection: 327 tests passed.
+- Complete repository suite: 829 tests passed.
 - Repository Python sources/tests/scripts: `py_compile` passed.
 - `git diff --check`: passed.
 - Controlled blast radius: `UNEXPECTED=0`.

@@ -111,6 +111,7 @@ HIGH_CAGR_EMERGING_SATELLITE_TARGET_WEIGHT = 0.15
 PORTFOLIO_VALUE_BASIS_VALID = "VALID_CURRENT_PORTFOLIO_VALUE"
 PORTFOLIO_VALUE_BASIS_EMPTY = "EMPTY_PORTFOLIO_POST_CONTRIBUTION"
 PORTFOLIO_VALUE_BASIS_MISSING = "MISSING_CURRENT_PORTFOLIO_VALUE"
+NON_MARKET_PORTFOLIO_VALUE_SOURCES = {"acquisition_value_fallback"}
 
 
 def _defensive_reserve_pct(mode: str) -> float:
@@ -1026,7 +1027,7 @@ def _high_cagr_overflow_room(
     _annotate_reliability_allocation_cap(candidate, "high-cagr", fraction_before_reliability, fraction, amount_basis)
     monthly_cap = amount_basis * fraction
     overflow_room = round(max(0.0, monthly_cap - already_allocated), 2)
-    if portfolio_value_basis_status == PORTFOLIO_VALUE_BASIS_VALID:
+    if portfolio_value_basis_status in {PORTFOLIO_VALUE_BASIS_VALID, PORTFOLIO_VALUE_BASIS_EMPTY}:
         denominator = current_total + capital
         current_weight = (
             (_candidate_current_value(candidate, current_total) + already_allocated) / denominator
@@ -1128,13 +1129,20 @@ def _portfolio_value_basis_status(
 ) -> str:
     total = _current_portfolio_value(analyses) if current_total is None else current_total
     owned_rows = [row for row in analyses.values() if _is_existing_owned_position(row)]
-    if any(_row_current_portfolio_value(row) <= 0 for row in owned_rows):
+    if any(not _row_has_valid_current_market_value(row) for row in owned_rows):
         return PORTFOLIO_VALUE_BASIS_MISSING
     if total > 0:
         return PORTFOLIO_VALUE_BASIS_VALID
     if owned_rows:
         return PORTFOLIO_VALUE_BASIS_MISSING
     return PORTFOLIO_VALUE_BASIS_EMPTY
+
+
+def _row_has_valid_current_market_value(row: dict[str, Any]) -> bool:
+    valuation_source = str(row.get("portfolio_valuation_source") or "").strip()
+    if valuation_source in NON_MARKET_PORTFOLIO_VALUE_SOURCES:
+        return False
+    return _row_current_portfolio_value(row) > 0
 
 
 def _candidate_current_value(candidate: dict[str, Any], current_total: float) -> float:

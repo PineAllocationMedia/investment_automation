@@ -2668,8 +2668,8 @@ A genuinely empty portfolio uses zero current value and the current contribution
 as its post-contribution denominator. An owned portfolio in which any position
 lacks a valid positive current-value basis receives no percentage-based stock
 room and falls through to the existing defensive/VFV path. A complete valid
-current value, including the canonical `current_value_cad` fallback, retains existing behavior. The
-fabricated $100,000 fallback is removed.
+current value, including the canonical `current_value_cad` fallback, retains
+existing behavior. The fabricated $100,000 fallback is removed.
 
 ### Compatibility and versioning
 
@@ -2682,3 +2682,20 @@ logic changes. `MODEL_RULES_VERSION` advances from
 `2026-08-23-allocation-room-integrity-v7`.
 `VALIDATION_SCHEMA_VERSION` remains
 `2026-08-23-validation-architecture-v3`.
+
+### External-review correction: current-value authority and EMPTY denominator
+
+The unmerged v7 implementation is corrected without a version change. An owned
+position whose `portfolio_valuation_source` is `acquisition_value_fallback` is
+now unsafe for percentage-based allocation room even though the loader retains
+a positive acquisition-cost approximation in `current_value`. The fields and
+loader semantics are unchanged; only allocation-room authority is denied. Valid
+market/FX-derived values, explicit manual current-value fallbacks, legacy
+explicit values, and positive backward-compatible fixtures without source
+metadata remain accepted. Any mixed owned portfolio containing an
+acquisition-cost fallback fails closed for whole-portfolio percentage room.
+
+`EMPTY_PORTFOLIO_POST_CONTRIBUTION` has a trustworthy denominator equal to the
+contribution, so the existing `>34%` high-CAGR overflow concentration check now
+applies to EMPTY as well as VALID portfolios. The threshold, normal targets,
+satellite budgets, scoring, and all other overflow semantics are unchanged.
