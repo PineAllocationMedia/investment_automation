@@ -6,7 +6,7 @@ from typing import Any, Iterable
 from .utils import safe_float
 
 
-VALIDATION_SCHEMA_VERSION = "2026-08-23-validation-architecture-v1"
+VALIDATION_SCHEMA_VERSION = "2026-08-23-validation-architecture-v2"
 AUTO_TUNING_POLICY = "PROPOSAL_ONLY"
 
 
@@ -85,8 +85,12 @@ def snapshot_run_purpose(payload: dict[str, Any] | None) -> str:
     return RunPurpose.UNKNOWN_LEGACY.value
 
 
-def purpose_is_walk_forward_decision(value: Any) -> bool:
+def purpose_is_genuine_decision(value: Any) -> bool:
     return normalize_run_purpose(value) in DECISION_RUN_PURPOSES
+
+
+def purpose_is_walk_forward_decision(value: Any) -> bool:
+    return purpose_is_genuine_decision(value)
 
 
 def evidence_maturity(sample_count: Any) -> str:

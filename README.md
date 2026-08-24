@@ -671,7 +671,7 @@ Le backtest théorique à scores courants est conservé sous `MECHANICAL_DIAGNOS
 
 Les rapports séparent désormais `RUN_EXECUTION_CONFIDENCE`, `DATA_INTEGRITY_CONFIDENCE`, `SOURCE_CONFIDENCE`, `STRATEGY_VALIDATION_CONFIDENCE` et `WALK_FORWARD_CONFIDENCE`. Un niveau élevé de fraîcheur des données ne signifie donc pas que la stratégie est fortement validée.
 
-L'audit de stabilité primaire est `CURRENT_VERSION_AUDIT`: il compare seulement le `MODEL_RULES_VERSION` courant avec lui-même. `CROSS_VERSION_DIAGNOSTIC` conserve les versions antérieures et leurs transitions sans les compter comme instabilité interne. Les maturités `INSUFFICIENT`, `EARLY`, `DEVELOPING` et `SUBSTANTIAL` décrivent le recul disponible, jamais une preuve statistique de skill.
+L'audit de stabilité primaire est `CURRENT_VERSION_AUDIT`: il compare seulement les observations `SCHEDULED_DECISION` et `MANUAL_DECISION` produites sous le `MODEL_RULES_VERSION` courant. Les diagnostics, tests de développement, analyses zéro-capital, maintenances et snapshots `UNKNOWN_LEGACY` restent auditablement comptés, mais ne peuvent augmenter la maturité, la confiance ou l'historique primaire. Le regroupement intra-journée conserve l'identité `(date, version, run_purpose)`, de sorte qu'un diagnostic tardif ne remplace jamais une vraie décision du même jour. `CROSS_VERSION_DIAGNOSTIC` évalue les transitions entre décisions comparables et conserve séparément tout le contexte non décisionnel. Les maturités `INSUFFICIENT`, `EARLY`, `DEVELOPING` et `SUBSTANTIAL` décrivent le recul disponible, jamais une preuve statistique de skill.
 
 ## Améliorer les réglages du modèle sans Codex
 

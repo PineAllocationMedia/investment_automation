@@ -57,6 +57,15 @@ def build_anti_overfitting_context(
     scoped_walk_forward_summary = _scoped_walk_forward_summary(current_walk_forward_periods)
     walk_forward_status = _walk_forward_status(scoped_walk_forward_summary, current_walk_forward_periods)
     genuine_oos_periods = int(safe_float(scoped_walk_forward_summary.get("simulated_periods")) or 0)
+    current_version_decision_observations = int(
+        safe_float(
+            model_metrics.get(
+                "current_version_decision_observation_count",
+                model_metrics.get("current_version_observation_count"),
+            )
+        )
+        or 0
+    )
     return {
         "mode": mode,
         "sample_count": sample_count,
@@ -73,7 +82,8 @@ def build_anti_overfitting_context(
         "evidence_class": EvidenceClass.POINT_IN_TIME_WALK_FORWARD.value,
         "evidence_maturity": evidence_maturity(genuine_oos_periods),
         "model_version_scope": "CURRENT_VERSION_AUDIT",
-        "current_version_observations": int(safe_float(model_metrics.get("current_version_observation_count")) or 0),
+        "current_version_observations": current_version_decision_observations,
+        "current_version_decision_observations": current_version_decision_observations,
         "cross_version_observations": int(safe_float(model_metrics.get("cross_version_observation_count")) or 0),
         "genuine_oos_periods": genuine_oos_periods,
         "walk_forward_simulated_periods": int(safe_float(walk_forward_summary.get("simulated_periods")) or 0),

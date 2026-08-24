@@ -2516,6 +2516,25 @@ evidence accumulation. These validation-only changes add
 `VALIDATION_SCHEMA_VERSION=2026-08-23-validation-architecture-v1` and do not
 change `MODEL_RULES_VERSION`, scoring, allocation, holdings or deployment.
 
+## 2026-08-23 - Primary model audit uses comparable decision purposes
+
+The primary `CURRENT_VERSION_AUDIT` contract is now the intersection of the
+current `MODEL_RULES_VERSION` and the canonical genuine-decision purposes
+`SCHEDULED_DECISION` / `MANUAL_DECISION`. Diagnostic, development-test,
+zero-capital, maintenance and `UNKNOWN_LEGACY` observations remain preserved and
+counted as audit context, but cannot increase primary stability sample size,
+evidence maturity, confidence, model health history or tuning support.
+
+Daily model-audit selection retains `(date, model_rules_version, run_purpose)`
+identity before applying the existing deterministic latest-observation rule.
+Consequently, a later diagnostic cannot replace an earlier genuine decision on
+the same day. Cross-version transition counts are computed only between
+comparable decision observations; non-decision version changes remain visible
+without becoming ordinary investment instability. This additive correction
+advances `VALIDATION_SCHEMA_VERSION` to
+`2026-08-23-validation-architecture-v2`; `MODEL_RULES_VERSION`, formulas,
+thresholds, investment behavior and `PROPOSAL_ONLY` remain unchanged.
+
 ## 2026-08-23 - Research-report semantic integrity
 
 ### Problem

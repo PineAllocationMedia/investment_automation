@@ -191,6 +191,7 @@ class ValidationArchitectureTest(unittest.TestCase):
                         "created_at": f"2026-08-23T{clock[:2]}:{clock[2:4]}:00",
                         "analysis_mode": "high-cagr",
                         "model_rules_version": version,
+                        "run_purpose": RunPurpose.SCHEDULED_DECISION.value,
                         "allocations": [{"ticker": ticker, "amount": 500, "percentage": 1.0}],
                     },
                 )
@@ -267,6 +268,7 @@ class ValidationArchitectureTest(unittest.TestCase):
                 "created_at": f"{day}T09:00:00",
                 "analysis_mode": "high-cagr",
                 "model_rules_version": version,
+                "run_purpose": RunPurpose.SCHEDULED_DECISION.value,
                 "allocations": [{"ticker": ticker, "amount": 500, "percentage": 1.0}],
             },
         )

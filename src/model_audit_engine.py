@@ -8,7 +8,12 @@ from typing import Any
 from .mode_artifacts import write_csv_records_mode_pair, write_text_mode_pair
 from .model_version import MODEL_RULES_VERSION
 from .utils import DISCLAIMER, load_json, markdown_to_html, pct, safe_float, today_iso
-from .validation_evidence import evidence_maturity
+from .validation_evidence import (
+    RunPurpose,
+    evidence_maturity,
+    purpose_is_genuine_decision,
+    snapshot_run_purpose,
+)
 
 
 MODEL_AUDIT_COLUMNS = [
@@ -69,17 +74,31 @@ def build_model_audit(
     samples = [
         _audit_sample(
             sample_date=record_key[0],
+            run_purpose=record_key[2],
             allocation_record=allocation_records.get(record_key, {}),
             analysis_record=analysis_records.get(record_key, {}),
         )
         for record_key in record_keys
     ]
     samples = [sample for sample in samples if sample["allocation_map"] or sample["analyses_by_ticker"]]
+    samples.sort(
+        key=lambda sample: (
+            str(sample.get("date") or ""),
+            str(sample.get("created_at") or ""),
+            str(sample.get("model_rules_version") or ""),
+            str(sample.get("run_purpose") or ""),
+        )
+    )
 
     current_version = str(current_model_rules_version or MODEL_RULES_VERSION)
-    current_samples = [sample for sample in samples if str(sample.get("model_rules_version") or "") == current_version]
+    current_version_samples = [
+        sample for sample in samples if str(sample.get("model_rules_version") or "") == current_version
+    ]
+    current_decision_samples = [
+        sample for sample in current_version_samples if purpose_is_genuine_decision(sample.get("run_purpose"))
+    ]
     metrics = _audit_metrics(
-        current_samples,
+        current_decision_samples,
         raw_allocation_count,
         raw_analysis_count,
         period,
@@ -116,7 +135,7 @@ def _load_daily_records(
     period_days: int | None,
     fallback_path: Path,
     mode: str | None = None,
-) -> tuple[dict[tuple[str, str], dict[str, Any]], int]:
+) -> tuple[dict[tuple[str, str, str], dict[str, Any]], int]:
     records: list[dict[str, Any]] = []
     if history_dir.exists():
         for path in history_dir.glob(pattern):
@@ -136,6 +155,7 @@ def _load_daily_records(
                     "created_at": str(payload.get("created_at") or path.stem),
                     "model_rules_version": str(payload.get("model_rules_version") or ""),
                     "analysis_mode": _normalize_mode(payload.get("analysis_mode")),
+                    "run_purpose": snapshot_run_purpose(payload),
                     "rows": rows,
                     "payload": payload,
                 }
@@ -160,6 +180,7 @@ def _load_daily_records(
                     "created_at": str(payload.get("created_at") or fallback_path.stem),
                     "model_rules_version": str(payload.get("model_rules_version") or ""),
                     "analysis_mode": _normalize_mode(payload.get("analysis_mode")),
+                    "run_purpose": snapshot_run_purpose(payload),
                     "rows": rows,
                     "payload": payload,
                 }
@@ -167,18 +188,20 @@ def _load_daily_records(
             raw_count = 1
 
     records.sort(key=lambda row: (str(row.get("analysis_date")), str(row.get("created_at"))))
-    latest_by_date_and_version: dict[tuple[str, str], dict[str, Any]] = {}
+    latest_by_date_version_and_purpose: dict[tuple[str, str, str], dict[str, Any]] = {}
     for record in records:
         key = (
             str(record["analysis_date"]),
             str(record.get("model_rules_version") or "UNKNOWN"),
+            str(record.get("run_purpose") or RunPurpose.UNKNOWN_LEGACY.value),
         )
-        latest_by_date_and_version[key] = record
-    return latest_by_date_and_version, raw_count
+        latest_by_date_version_and_purpose[key] = record
+    return latest_by_date_version_and_purpose, raw_count
 
 
 def _audit_sample(
     sample_date: str,
+    run_purpose: str,
     allocation_record: dict[str, Any],
     analysis_record: dict[str, Any],
 ) -> dict[str, Any]:
@@ -192,6 +215,11 @@ def _audit_sample(
     }
     return {
         "date": sample_date,
+        "created_at": max(
+            str(allocation_record.get("created_at") or ""),
+            str(analysis_record.get("created_at") or ""),
+        ),
+        "run_purpose": run_purpose,
         "allocation_map": allocation_map,
         "analyses_by_ticker": analyses_by_ticker,
         "decision_quality": (allocation_record.get("payload") or {}).get("decision_quality", {}),
@@ -219,11 +247,37 @@ def _audit_metrics(
     raw_count = max(raw_allocation_count, raw_analysis_count)
     same_day_collapsed = max(0, raw_count - len(total_samples))
     versions = Counter(str(sample.get("model_rules_version") or "UNKNOWN") for sample in total_samples)
-    cross_version_observation_count = max(0, len(total_samples) - sample_count)
+    decision_samples = [sample for sample in total_samples if purpose_is_genuine_decision(sample.get("run_purpose"))]
+    decision_versions = Counter(str(sample.get("model_rules_version") or "UNKNOWN") for sample in decision_samples)
+    current_version_samples = [
+        sample
+        for sample in total_samples
+        if str(sample.get("model_rules_version") or "") == current_model_rules_version
+    ]
+    current_version_unknown_samples = [
+        sample
+        for sample in current_version_samples
+        if str(sample.get("run_purpose") or "") == RunPurpose.UNKNOWN_LEGACY.value
+    ]
+    current_version_non_decision_samples = [
+        sample
+        for sample in current_version_samples
+        if not purpose_is_genuine_decision(sample.get("run_purpose"))
+        and str(sample.get("run_purpose") or "") != RunPurpose.UNKNOWN_LEGACY.value
+    ]
+    cross_version_samples = [
+        sample
+        for sample in total_samples
+        if str(sample.get("model_rules_version") or "") != current_model_rules_version
+    ]
+    cross_version_decision_samples = [
+        sample for sample in cross_version_samples if purpose_is_genuine_decision(sample.get("run_purpose"))
+    ]
+    cross_version_observation_count = len(cross_version_samples)
     unknown_version_observation_count = sum(
         1 for sample in total_samples if not str(sample.get("model_rules_version") or "").strip()
     )
-    version_sequence = [str(sample.get("model_rules_version") or "UNKNOWN") for sample in total_samples]
+    version_sequence = [str(sample.get("model_rules_version") or "UNKNOWN") for sample in decision_samples]
     version_transition_count = sum(1 for before, after in zip(version_sequence, version_sequence[1:]) if before != after)
 
     primary_tickers = [_primary_core_ticker(sample.get("allocation_map") or {}) for sample in allocation_samples]
@@ -296,17 +350,26 @@ def _audit_metrics(
         "same_day_collapsed_count": same_day_collapsed,
         "span_days": span_days,
         "model_versions": dict(versions),
+        "decision_model_versions": dict(decision_versions),
         "audit_scope": "CURRENT_VERSION_AUDIT",
         "current_model_rules_version": current_model_rules_version,
         "total_history_observation_count": len(total_samples),
+        "current_version_total_observation_count": len(current_version_samples),
+        "current_version_decision_observation_count": sample_count,
+        "current_version_non_decision_observation_count": len(current_version_non_decision_samples),
+        "current_version_unknown_purpose_observation_count": len(current_version_unknown_samples),
+        "cross_version_decision_observation_count": len(cross_version_decision_samples),
         "current_version_observation_count": sample_count,
         "cross_version_observation_count": cross_version_observation_count,
         "unknown_version_observation_count": unknown_version_observation_count,
         "version_transition_count": version_transition_count,
         "cross_version_diagnostic": {
             "scope": "CROSS_VERSION_DIAGNOSTIC",
-            "model_versions": dict(versions),
+            "model_versions": dict(decision_versions),
+            "all_observation_model_versions": dict(versions),
             "observation_count": len(total_samples),
+            "decision_observation_count": len(decision_samples),
+            "cross_version_decision_observation_count": len(cross_version_decision_samples),
             "version_transition_count": version_transition_count,
             "ordinary_instability_counted": False,
         },
@@ -347,18 +410,22 @@ def _audit_rows(metrics: dict[str, Any]) -> list[dict[str, Any]]:
             "Audit de version courant",
             metrics.get("audit_scope", "CURRENT_VERSION_AUDIT"),
             (
-                f"{metrics.get('current_version_observation_count', 0)} observation(s) comparables sur "
-                f"{metrics.get('total_history_observation_count', 0)} au total"
+                f"{metrics.get('current_version_decision_observation_count', 0)} décision(s) comparable(s) sur "
+                f"{metrics.get('current_version_total_observation_count', 0)} observation(s) de version courante"
             ),
-            f"Version courante: {metrics.get('current_model_rules_version')}; maturité: {metrics.get('evidence_maturity')}.",
-            "Les métriques primaires n'empruntent aucune observation d'une ancienne version.",
+            (
+                f"Version courante: {metrics.get('current_model_rules_version')}; maturité: {metrics.get('evidence_maturity')}; "
+                f"hors décision: {metrics.get('current_version_non_decision_observation_count', 0)}; "
+                f"but inconnu: {metrics.get('current_version_unknown_purpose_observation_count', 0)}."
+            ),
+            "Les métriques primaires utilisent seulement les décisions scheduled/manual de la version courante.",
         ),
         _row(
             "Portée",
             "Diagnostic inter-versions",
             "CROSS_VERSION_DIAGNOSTIC",
             (
-                f"{metrics.get('cross_version_observation_count', 0)} observation(s) hors version courante; "
+                f"{metrics.get('cross_version_decision_observation_count', 0)} décision(s) hors version courante; "
                 f"{metrics.get('version_transition_count', 0)} transition(s)"
             ),
             "Les versions antérieures restent visibles, mais leurs transitions ne comptent pas comme instabilité interne.",
@@ -393,8 +460,8 @@ def _audit_rows(metrics: dict[str, Any]) -> list[dict[str, Any]]:
             "Analyses intra-journée regroupées",
             "OK",
             str(metrics["same_day_collapsed_count"]),
-            "Plusieurs tests le même jour comptent comme une seule date de référence.",
-            "Évite de biaiser l’audit si tu testes souvent le modèle dans la même journée.",
+            "Plusieurs observations du même but/version le même jour comptent comme une seule référence.",
+            "Un diagnostic ne peut pas remplacer une décision du même jour; chaque but reste séparément auditable.",
         ),
         _row(
             "Stabilité",
@@ -488,13 +555,14 @@ def _audit_markdown(metrics: dict[str, Any], rows: list[dict[str, Any]]) -> str:
         f"- Date de création: {today_iso()}",
         f"- Période demandée: {metrics.get('period')}",
         f"- Mode analysé: {mode_text}",
-        f"- Historique utilisé: {metrics.get('sample_count')} date(s) distincte(s) sur {metrics.get('span_days')} jour(s)",
+        f"- Historique primaire utilisé: {metrics.get('sample_count')} décision(s) comparable(s) sur {metrics.get('span_days')} jour(s)",
         f"- Dates avec allocation exploitable: {metrics.get('allocation_sample_count')}",
         f"- Dates récentes incluses: {date_text}",
-        f"- Analyses le même jour regroupées/ignorées pour l’audit: {metrics.get('same_day_collapsed_count')}",
+        f"- Observations du même but/version le même jour regroupées: {metrics.get('same_day_collapsed_count')}",
         f"- Versions de règles observées: {version_text}",
-        f"- Portée primaire: CURRENT_VERSION_AUDIT `{metrics.get('current_model_rules_version')}` ({metrics.get('current_version_observation_count')} observation(s))",
-        f"- Diagnostic séparé: CROSS_VERSION_DIAGNOSTIC ({metrics.get('cross_version_observation_count')} observation(s) hors version; {metrics.get('version_transition_count')} transition(s))",
+        f"- Portée primaire: CURRENT_VERSION_AUDIT `{metrics.get('current_model_rules_version')}` ({metrics.get('current_version_decision_observation_count')} décision(s) scheduled/manual)",
+        f"- Contexte de version courante: {metrics.get('current_version_total_observation_count')} observation(s), dont {metrics.get('current_version_non_decision_observation_count')} hors décision et {metrics.get('current_version_unknown_purpose_observation_count')} au but inconnu",
+        f"- Diagnostic séparé: CROSS_VERSION_DIAGNOSTIC ({metrics.get('cross_version_decision_observation_count')} décision(s) hors version; {metrics.get('version_transition_count')} transition(s) entre décisions comparables)",
         f"- Maturité des preuves comparables: {metrics.get('evidence_maturity')} (décrit le recul, pas un skill prouvé)",
         "",
         f"> {DISCLAIMER}",
@@ -521,8 +589,9 @@ def _audit_markdown(metrics: dict[str, Any], rows: list[dict[str, Any]]) -> str:
         "",
         "- Cet audit ne choisit pas l’allocation du mois. Il vérifie si le moteur reste sain dans le temps.",
         "- Quand un mode est indiqué, l’audit ignore les analyses faites avec les autres modes.",
-        "- Les analyses faites plusieurs fois dans la même journée sont regroupées pour éviter de créer une fausse impression d’historique.",
-        "- Les métriques de stabilité primaires utilisent seulement MODEL_RULES_VERSION courant; l'historique inter-versions est exposé séparément.",
+        "- Les observations de même but et version faites plusieurs fois dans la même journée sont regroupées; un diagnostic ne remplace jamais une décision du même jour.",
+        "- Les métriques de stabilité primaires utilisent seulement SCHEDULED_DECISION et MANUAL_DECISION sous le MODEL_RULES_VERSION courant.",
+        "- Les diagnostics, tests, analyses zéro-capital, maintenances et buts legacy inconnus restent visibles sans augmenter la maturité primaire.",
         "- Avant 4 dates distinctes, les conclusions sont surtout préliminaires. Elles deviennent plus utiles après plusieurs mois de cotisations réelles.",
         "- Une certaine variation est normale: le but n’est pas de figer les mêmes titres, mais d’éviter les changements causés seulement par du bruit de marché.",
         "",

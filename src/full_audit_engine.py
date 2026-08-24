@@ -312,10 +312,14 @@ def build_full_audit_metrics(
         1,
     )
     criterion7_status = _criterion7_status(criterion7_score, model_metrics, backtest_error)
+    current_version_decision_observation_count = model_metrics.get(
+        "current_version_decision_observation_count",
+        model_metrics.get("current_version_observation_count", 0),
+    )
     confidence_dimensions = validation_confidence_dimensions(
         run_succeeded=not bool(backtest_error or walk_forward_error),
         source_health_score=source_health.get("source_health_score"),
-        current_version_observations=model_metrics.get("current_version_observation_count", 0),
+        current_version_observations=current_version_decision_observation_count,
         walk_forward_periods=len(current_version_walk_forward_periods),
     )
 
@@ -333,6 +337,9 @@ def build_full_audit_metrics(
         "model_confidence": model_metrics.get("confidence", "N/D"),
         "model_sample_count": model_metrics.get("sample_count", 0),
         "model_allocation_sample_count": model_metrics.get("allocation_sample_count", 0),
+        "current_version_decision_observation_count": int(
+            safe_float(current_version_decision_observation_count) or 0
+        ),
         "model_span_days": model_metrics.get("span_days", 0),
         "avg_allocation_turnover": model_metrics.get("avg_allocation_turnover", 0.0),
         "avg_vfv": model_metrics.get("avg_vfv", 0.0),
