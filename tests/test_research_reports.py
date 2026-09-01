@@ -5,7 +5,12 @@ from tempfile import TemporaryDirectory
 from unittest.mock import patch
 
 from src.data_reliability_engine import compute_data_reliability
-from src.evidence_provenance import calibration_field_freshness, field_freshness, field_is_confirmed
+from src.evidence_provenance import (
+    calibration_field_freshness,
+    field_freshness,
+    field_is_confirmed,
+    research_field_freshness,
+)
 from src.research_reports import (
     FAIR_VALUE_PATTERNS,
     _safe_report_number,
@@ -401,6 +406,7 @@ class ResearchReportsTest(unittest.TestCase):
         self.assertEqual(merged["research_report_company_description_source_rank"], 1)
 
     def test_non_descriptive_fields_keep_chronological_merge_rule(self):
+        effective_date = date(2026, 6, 1)
         rows = [
             {
                 "ticker": "CSU.TO",
@@ -428,7 +434,20 @@ class ResearchReportsTest(unittest.TestCase):
             },
         ]
 
-        merged = merge_research_rows("CSU.TO", rows)
+        for report_date in ("2026-05-01", "2026-06-01"):
+            with self.subTest(report_date=report_date):
+                freshness = field_freshness("fair_value", report_date, today=effective_date)
+                self.assertEqual(freshness["status"], "CURRENT")
+
+        with patch(
+            "src.research_reports.research_field_freshness",
+            side_effect=lambda payload, field: research_field_freshness(
+                payload,
+                field,
+                today=effective_date,
+            ),
+        ):
+            merged = merge_research_rows("CSU.TO", rows)
 
         self.assertEqual(merged["fair_value"], 2000)
         self.assertEqual(merged["research_report_company_description"], "Better source description.")
