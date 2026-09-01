@@ -115,41 +115,55 @@ def resolve_portfolio_rows(
         register_ticker_resolution(metadata, input_ticker, canonical, aliases, source=source)
         row_currency = str(row.get("average_cost_currency") or row.get("acquisition_value_currency") or "CAD").upper()
         row_account_type = str(row.get("account_type") or "").strip().upper()
+        shares = safe_float(row.get("shares")) or 0.0
+        acquisition_value = safe_float(row.get("acquisition_value")) or 0.0
+        average_cost = safe_float(row.get("average_cost"))
+        if acquisition_value <= 0 and shares > 0 and average_cost is not None:
+            acquisition_value = shares * average_cost
+        has_economic_cost_basis = shares > 0 and acquisition_value > 0
         bucket = totals.setdefault(
             canonical,
             {
                 "current_value": 0.0,
                 "shares": 0.0,
                 "acquisition_value": 0.0,
-                "average_cost_currency": row_currency,
+                "average_cost_currency": None,
+                "cost_basis_currencies": set(),
                 "account_type": row_account_type,
             },
         )
-        if bucket.get("average_cost_currency") != row_currency:
-            bucket["average_cost_currency"] = "MIXED"
         if row_account_type:
             if bucket.get("account_type") in {None, ""}:
                 bucket["account_type"] = row_account_type
             elif bucket.get("account_type") != row_account_type:
                 bucket["account_type"] = "MIXED"
-        shares = safe_float(row.get("shares")) or 0.0
-        acquisition_value = safe_float(row.get("acquisition_value")) or 0.0
-        average_cost = safe_float(row.get("average_cost"))
-        if acquisition_value <= 0 and shares > 0 and average_cost is not None:
-            acquisition_value = shares * average_cost
         bucket["current_value"] += safe_float(row.get("current_value_cad") or row.get("current_value")) or 0.0
         bucket["shares"] += shares
-        if bucket.get("average_cost_currency") != "MIXED":
-            bucket["acquisition_value"] += acquisition_value
+        if has_economic_cost_basis:
+            currencies = bucket["cost_basis_currencies"]
+            currencies.add(row_currency)
+            if len(currencies) == 1:
+                bucket["average_cost_currency"] = row_currency
+                bucket["acquisition_value"] += acquisition_value
+            else:
+                # Different source currencies are intentionally never added.
+                bucket["average_cost_currency"] = "MIXED"
+                bucket["acquisition_value"] = 0.0
     resolved = []
     for ticker, values in sorted(totals.items()):
         shares = values["shares"]
         acquisition_value = values["acquisition_value"] if values["acquisition_value"] > 0 else None
         average_cost = acquisition_value / shares if shares > 0 and acquisition_value is not None else None
         average_cost_currency = values.get("average_cost_currency")
-        if average_cost_currency == "MIXED":
+        cost_basis_currencies = sorted(values.get("cost_basis_currencies") or [])
+        if len(cost_basis_currencies) > 1:
             acquisition_value = None
             average_cost = None
+            cost_basis_aggregation_status = "MIXED_CURRENCY_UNNORMALIZED"
+        elif len(cost_basis_currencies) == 1:
+            cost_basis_aggregation_status = "SINGLE_CURRENCY"
+        else:
+            cost_basis_aggregation_status = "UNAVAILABLE"
         resolved.append(
             {
                 "ticker": ticker,
@@ -162,6 +176,8 @@ def resolve_portfolio_rows(
                 "acquisition_value": acquisition_value,
                 "acquisition_value_cad": acquisition_value if average_cost_currency == "CAD" else None,
                 "acquisition_value_currency": average_cost_currency if acquisition_value is not None else None,
+                "cost_basis_aggregation_status": cost_basis_aggregation_status,
+                "cost_basis_currencies": cost_basis_currencies,
                 "account_type": values.get("account_type") or "",
             }
         )

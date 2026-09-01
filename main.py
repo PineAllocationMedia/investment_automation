@@ -2265,6 +2265,8 @@ def build_position_analyses(
             "average_cost_cad": portfolio_details.get(ticker, {}).get("average_cost_cad"),
             "acquisition_value": portfolio_details.get(ticker, {}).get("acquisition_value"),
             "acquisition_value_cad": portfolio_details.get(ticker, {}).get("acquisition_value_cad"),
+            "cost_basis_aggregation_status": portfolio_details.get(ticker, {}).get("cost_basis_aggregation_status"),
+            "cost_basis_currencies": portfolio_details.get(ticker, {}).get("cost_basis_currencies"),
             "portfolio_valuation_source": portfolio_details.get(ticker, {}).get("portfolio_valuation_source"),
             "portfolio_valuation_warning": portfolio_details.get(ticker, {}).get("portfolio_valuation_warning"),
             "quote_currency": portfolio_details.get(ticker, {}).get("quote_currency"),

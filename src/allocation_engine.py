@@ -1953,14 +1953,28 @@ def _annotate_deep_averaging_down_safeguard(analysis: dict[str, Any], mode: str)
     else:
         status = "ABOVE_DEEP_THRESHOLD"
 
-    blocked = status == "DEEP_DRAWDOWN" and not quality_exception_passed
+    mixed_cost_basis_unavailable = (
+        str(analysis.get("cost_basis_aggregation_status") or "") == "MIXED_CURRENCY_UNNORMALIZED"
+    )
+    blocked = (
+        status == "DEEP_DRAWDOWN" and not quality_exception_passed
+    ) or (
+        status == "UNKNOWN" and mixed_cost_basis_unavailable
+    )
     reliability = str(analysis.get("data_reliability_level") or "UNKNOWN").upper()
     conflict_profile = str(
         analysis.get("official_conflict_profile")
         or analysis.get("source_conflict_profile")
         or "NO_CONFLICT"
     ).upper()
-    if blocked:
+    if status == "UNKNOWN" and mixed_cost_basis_unavailable:
+        currencies = "/".join(str(value) for value in analysis.get("cost_basis_currencies") or []) or "multiple-currency"
+        reason = (
+            f"DEEP AVERAGING DOWN BLOCKED: mixed {currencies} account-level cost basis cannot be safely "
+            "aggregated without inventing acquisition FX; no combined return was fabricated and no additional "
+            "allocation is permitted for this owned ticker."
+        )
+    elif blocked:
         reason = (
             "DEEP AVERAGING DOWN BLOCKED: combined position return "
             f"{combined_return:.2%} <= {DEEP_AVERAGING_DOWN_THRESHOLD:.0%}; "
