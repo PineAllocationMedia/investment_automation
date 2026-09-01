@@ -28,6 +28,18 @@ COMPANY_DOSSIER_COLUMNS = [
 ]
 
 
+ALLOCATION_CRITICAL_RESEARCH_FIELDS = {
+    "fair_value",
+    "eps_growth_estimated_3_5y",
+    "roic_5y_avg",
+    "moat_clear",
+    "peg_manual",
+    "valuation_vs_5y_avg_ok",
+    "balance_sheet_strong",
+    "margin_or_profitability_under_pressure",
+}
+
+
 THEME_PATTERNS: list[tuple[str, str, str]] = [
     ("moat", "effets de réseau", r"\bnetwork effects?\b|\bplatform\b|\bmarketplace\b|\busers?\b|\badvertisers?\b"),
     ("moat", "coûts de changement", r"\bswitching costs?\b|\bmission[- ]critical\b|\bworkflow\b|\benterprise\b"),
@@ -329,6 +341,16 @@ def _source_profile(analysis: dict[str, Any], qualitative_row: dict[str, Any] | 
         quality = "BASIC_AUTOMATED"
     else:
         quality = "LIMITED_SOURCE"
+
+    unresolved_scoring_fields = sorted(
+        ALLOCATION_CRITICAL_RESEARCH_FIELDS & set(_clean_list(analysis.get("auto_estimated_fields")))
+    )
+    if unresolved_scoring_fields:
+        if quality == "FULL_SOURCE_BACKED":
+            quality = "PARTIAL_SOURCE_BACKED"
+        missing.append(
+            "champs d'allocation encore estimés automatiquement: " + ", ".join(unresolved_scoring_fields)
+        )
     return quality, _unique(sources), _unique(missing)
 
 

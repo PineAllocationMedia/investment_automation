@@ -76,6 +76,34 @@ class SourceConflictEngineTests(unittest.TestCase):
         self.assertEqual(profile["conflict_profile"], "DIRECTIONAL_REVIEW")
         self.assertEqual(profile["directional_conflict_count"], 1)
 
+    def test_ftv_period_ambiguity_remains_visible_without_overwriting_source_policy(self):
+        rows = build_source_conflict_rows(
+            {
+                "MARKET_SCANNER": {
+                    "FTV": {
+                        "ticker_display": "FTV",
+                        "allocation_decision": "BUY",
+                        "recommended_allocation_amount": 56.25,
+                        "official_data_conflicts": [
+                            "earnings_growth: yfinance=0.04, SEC=-0.3046, ecart=113%",
+                            "return_on_assets: yfinance=0.03295, SEC=0.05, ecart=34%",
+                            "revenue_growth: yfinance=0.079, SEC=-0.3326, ecart=124%",
+                        ],
+                        "official_source_policy": [
+                            "Conflit source détecté: yfinance conservé pour éviter un écrasement ambigu."
+                        ],
+                    }
+                }
+            }
+        )
+
+        self.assertEqual(rows[0]["conflict_profile"], "DIRECTIONAL_REVIEW")
+        self.assertEqual(rows[0]["directional_conflict_count"], 2)
+        self.assertEqual(rows[0]["severity"], "HIGH_REVIEW")
+        self.assertIn("yfinance conservé", rows[0]["source_policy"])
+        self.assertIn("earnings_growth", rows[0]["conflicts"])
+        self.assertIn("revenue_growth", rows[0]["conflicts"])
+
 
 if __name__ == "__main__":
     unittest.main()
