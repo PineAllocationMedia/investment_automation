@@ -265,12 +265,37 @@ def critical_config_fingerprint(root: str | Path) -> str:
 
 
 def _cost_basis_consistency_issues(portfolio_path: Path) -> list[dict[str, str]]:
-    currencies_by_ticker: dict[str, set[str]] = {}
+    from .portfolio_loader import repair_portfolio_raw_row
+
     issues: list[dict[str, str]] = []
-    for index, row in enumerate(read_csv_records(portfolio_path), start=2):
+    for index, raw_row in enumerate(read_csv_records(portfolio_path), start=2):
+        row = repair_portfolio_raw_row(raw_row)
         ticker = normalize_ticker(row.get("ticker"))
         if not ticker:
             continue
+        cost_fields = (
+            "average_cost",
+            "avg_cost",
+            "cost_per_share",
+            "acquisition_value",
+            "total_cost",
+            "cost_basis",
+            "average_cost_cad",
+            "acquisition_value_cad",
+        )
+        malformed_fields = [
+            field
+            for field in cost_fields
+            if str(row.get(field) or "").strip() and safe_float(row.get(field)) is None
+        ]
+        if malformed_fields:
+            issues.append(
+                _issue(
+                    HARD_FAIL,
+                    "COST_BASIS_VALUE_INVALID",
+                    f"portfolio.csv:{index} {ticker} has malformed cost-basis field(s): {', '.join(malformed_fields)}.",
+                )
+            )
         has_generic_cost = any(
             str(row.get(field) or "").strip()
             for field in ("average_cost", "avg_cost", "cost_per_share", "acquisition_value", "total_cost", "cost_basis")
@@ -288,17 +313,20 @@ def _cost_basis_consistency_issues(portfolio_path: Path) -> list[dict[str, str]]
                     f"portfolio.csv:{index} {ticker} has a cost basis without an explicit CAD/USD currency.",
                 )
             )
-        if has_explicit_cad_cost:
-            currency = "CAD"
-        if has_generic_cost or has_explicit_cad_cost:
-            currencies_by_ticker.setdefault(ticker, set()).add(currency or "UNKNOWN")
-    for ticker, currencies in sorted(currencies_by_ticker.items()):
-        if len(currencies) > 1:
+        elif has_generic_cost and currency not in {"CAD", "USD"}:
             issues.append(
                 _issue(
                     HARD_FAIL,
-                    "INCONSISTENT_TICKER_COST_BASIS_CURRENCIES",
-                    f"{ticker} has mixed cost-basis currencies across portfolio rows: {', '.join(sorted(currencies))}.",
+                    "COST_BASIS_CURRENCY_UNSUPPORTED",
+                    f"portfolio.csv:{index} {ticker} has unsupported cost-basis currency {currency}; use CAD or USD.",
+                )
+            )
+        if has_explicit_cad_cost and currency and currency != "CAD":
+            issues.append(
+                _issue(
+                    HARD_FAIL,
+                    "CONTRADICTORY_COST_BASIS_CURRENCY",
+                    f"portfolio.csv:{index} {ticker} uses an explicit CAD cost field but declares currency {currency}.",
                 )
             )
     return issues

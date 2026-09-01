@@ -284,7 +284,7 @@ class CriticalInputAuditTest(unittest.TestCase):
         self.assertIn("INVALID_CAPITAL", codes)
         self.assertIn("INVALID_ANALYSIS_MODE", codes)
 
-    def test_missing_or_inconsistent_cost_basis_currency_fails_closed(self):
+    def test_missing_cost_basis_currency_fails_closed_but_explicit_mixed_lots_do_not(self):
         with tempfile.TemporaryDirectory() as directory:
             root = self._minimal_project(Path(directory), with_portfolio=True)
             (root / "data" / "portfolio.csv").write_text(
@@ -298,7 +298,25 @@ class CriticalInputAuditTest(unittest.TestCase):
 
         codes = {row["code"] for row in audit["hard_failures"]}
         self.assertIn("COST_BASIS_CURRENCY_MISSING", codes)
-        self.assertIn("INCONSISTENT_TICKER_COST_BASIS_CURRENCIES", codes)
+        self.assertNotIn("INCONSISTENT_TICKER_COST_BASIS_CURRENCIES", codes)
+
+    def test_valid_explicit_mixed_currency_lots_pass_static_critical_input_audit(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = self._minimal_project(Path(directory), with_portfolio=True)
+            (root / "data" / "portfolio.csv").write_text(
+                "ticker,shares,average_cost,average_cost_currency,account_type\n"
+                "AAPL,2,396.94,CAD,TFSA1\n"
+                "AAPL,0.2987,299.45,USD,TFSA2\n"
+                "MSFT,4,652,CAD,TFSA1\n"
+                "MSFT,0.1012,375.18,USD,TFSA2\n"
+                "INTU,1,568.87,CAD,TFSA1\n"
+                "INTU,0.1819,395.59,USD,TFSA2\n",
+                encoding="utf-8",
+            )
+            audit = audit_static_critical_inputs(root, capital=225, run_purpose="SCHEDULED_DECISION")
+
+        self.assertFalse(audit["hard_failures"], audit["hard_failures"])
+        self.assertEqual(audit["status"], "PASS")
 
     def test_unsafe_value_basis_is_hard_but_manual_current_value_is_advisory(self):
         unsafe = audit_runtime_critical_inputs(
