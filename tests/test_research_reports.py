@@ -33,6 +33,7 @@ from src.research_reports import (
 )
 from src.scoring import compute_fundamental_score
 from src.utils import write_csv_records
+from src.validation_priority_engine import build_validation_priority_rows
 from tests.helpers import strong_benchmark, strong_market
 
 
@@ -100,6 +101,122 @@ class ResearchReportsTest(unittest.TestCase):
         self.assertEqual(parsed["forward_pe_manual"], 15.0)
         self.assertNotIn("roic_5y_avg", parsed["research_report_fields"])
         self.assertTrue(research_report_has_usable_fields(parsed))
+
+    def test_ftv_like_tear_sheet_applies_authoritative_fields_and_keeps_true_estimates_prioritized(self):
+        with TemporaryDirectory() as folder:
+            path = Path(folder) / "FTV_MORNINGSTAR_DATA_TEAR_SHEET_08-22-2026.txt"
+            path.write_text(
+                "Investment Detail Report | Morningstar | Currency: USD\n"
+                "Fair Value 58.74 USD\n"
+                "Last Close 59.45 USD\n"
+                "Fair Value Uncertainty Medium\n"
+                "Economic Moat Narrow\n"
+                "Profitability Analysis\n"
+                "Operating Margin % 18.2\n"
+                "Net Margin % 12.4\n"
+                "Free Cash Flow/Revenue % 24.4\n"
+                + ("Fortive provides essential industrial technology and software worldwide. " * 12),
+                encoding="utf-8",
+            )
+
+            parsed = parse_research_report(path, "FTV")
+            research = merge_research_rows("FTV", [parsed])
+
+        estimated_fields = [
+            "fair_value",
+            "eps_growth_estimated_3_5y",
+            "roic_5y_avg",
+            "moat_clear",
+            "peg_manual",
+            "valuation_vs_5y_avg_ok",
+            "balance_sheet_strong",
+            "margin_or_profitability_under_pressure",
+        ]
+        automated = {
+            "ticker": "FTV",
+            "fair_value": 61.0,
+            "eps_growth_estimated_3_5y": 6.5,
+            "roic_5y_avg": 7.0,
+            "moat_clear": True,
+            "peg_manual": 2.1,
+            "valuation_vs_5y_avg_ok": True,
+            "balance_sheet_strong": True,
+            "margin_or_profitability_under_pressure": False,
+            "auto_estimated_fields": estimated_fields,
+            "field_provenance": {field: "AUTO_ESTIMATED" for field in estimated_fields},
+            "input_data_mode": "AUTO_ESTIMATED",
+        }
+
+        merged = merge_research_with_automated(automated, research)
+        validation_rows = build_validation_priority_rows(
+            {
+                "MARKET_SCANNER": {
+                    "FTV": {
+                        **merged,
+                        "ticker": "FTV",
+                        "allocation_decision": "BUY / ADD",
+                        "score_evidence_level": "ESTIMATE_HEAVY",
+                        "auto_estimate_dependency": "HIGH",
+                        "thesis_status": "INTACT",
+                    }
+                }
+            },
+            existing_reports={"FTV": research},
+        )
+
+        self.assertEqual(merged["fair_value"], 58.74)
+        self.assertTrue(merged["moat_clear"])
+        self.assertEqual(merged["field_provenance"]["fair_value"], "RESEARCH_REPORT")
+        self.assertEqual(merged["field_provenance"]["moat_clear"], "RESEARCH_REPORT")
+        self.assertNotIn("fair_value", merged["auto_estimated_fields"])
+        self.assertNotIn("moat_clear", merged["auto_estimated_fields"])
+        self.assertEqual(
+            set(merged["auto_estimated_fields"]),
+            set(estimated_fields) - {"fair_value", "moat_clear"},
+        )
+        prioritized_fields = {row["field"] for row in validation_rows}
+        self.assertNotIn("fair_value", prioritized_fields)
+        self.assertNotIn("moat_clear", prioritized_fields)
+        self.assertIn("eps_growth_estimated_3_5y", prioritized_fields)
+        self.assertIn("roic_5y_avg", prioritized_fields)
+
+    def test_ftv_like_low_quality_fair_value_remains_advisory_and_estimated(self):
+        with TemporaryDirectory() as folder:
+            path = Path(folder) / "FTV_MORNINGSTAR_DATA_TEAR_SHEET_08-22-2026.txt"
+            text = "Morningstar Fair Value 58.74 USD. Last Close 59.45 USD."
+            with patch(
+                "src.research_reports.extract_report_text_detailed",
+                return_value={
+                    "text": text,
+                    "error": "",
+                    "warnings": ["Texte extrait très court."],
+                    "text_quality_status": "LOW_TEXT_QUALITY",
+                    "text_quality_score": 25.0,
+                    "extraction_method": "pypdf",
+                    "ocr_status": "OCR_NEEDED",
+                    "text_characters": len(text),
+                    "messages": [],
+                },
+            ):
+                parsed = parse_research_report(path, "FTV")
+            research = merge_research_rows("FTV", [parsed])
+
+        merged = merge_research_with_automated(
+            {
+                "ticker": "FTV",
+                "fair_value": 61.0,
+                "auto_estimated_fields": ["fair_value"],
+                "field_provenance": {"fair_value": "AUTO_ESTIMATED"},
+                "input_data_mode": "AUTO_ESTIMATED",
+            },
+            research,
+        )
+
+        self.assertEqual(parsed["research_report_field_confidence"]["fair_value"], "LOW")
+        self.assertIn("fair_value", parsed["research_report_advisory_fields"])
+        self.assertEqual(merged["fair_value"], 61.0)
+        self.assertIn("fair_value", merged["auto_estimated_fields"])
+        self.assertEqual(merged["field_provenance"]["fair_value"], "AUTO_ESTIMATED")
 
     def test_valuation_analysis_uses_current_column_not_industry_or_market(self):
         text = (

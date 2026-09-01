@@ -63,6 +63,35 @@ class CompanyDossierEngineTest(unittest.TestCase):
         self.assertIn("recherche", row["business_model"])
         self.assertIn("indices de moat", row["competitive_advantage"])
 
+    def test_full_source_backed_cannot_hide_ftv_like_auto_estimated_allocation_fields(self):
+        analysis = {
+            "ticker": "FTV",
+            "company_name_found": "Fortive Corporation",
+            "business_summary": "Fortive provides essential industrial technology and software.",
+            "official_data_sources": ["SEC EDGAR companyfacts"],
+            "data_source_notes": ["yfinance info"],
+            "research_report_fields": ["fair_value", "moat_clear"],
+            "auto_estimated_fields": [
+                "eps_growth_estimated_3_5y",
+                "roic_5y_avg",
+                "peg_manual",
+                "valuation_vs_5y_avg_ok",
+                "balance_sheet_strong",
+                "margin_or_profitability_under_pressure",
+            ],
+        }
+        qualitative = {
+            "source_status": "LOCAL_RESEARCH_REPORT",
+            "sources": "FTV_MORNINGSTAR_DATA_TEAR_SHEET_08-22-2026.pdf",
+        }
+
+        row = build_company_dossier(analysis, qualitative, target_status="RECOMMANDÉ", allocation_amount=56.25)
+
+        self.assertEqual(row["source_quality"], "PARTIAL_SOURCE_BACKED")
+        self.assertIn("champs d'allocation encore estimés automatiquement", row["missing_sources"])
+        self.assertIn("eps_growth_estimated_3_5y", row["missing_sources"])
+        self.assertIn("roic_5y_avg", row["missing_sources"])
+
     def test_rows_include_recommended_and_eligible_core_positions_only(self):
         rows = build_company_dossier_rows(
             {
