@@ -185,9 +185,7 @@ def build_triage_header(
         f"📊 {counts_text}",
     ]
     system_action_lines = _triage_system_action_lines(
-        mode,
         score_stability,
-        walk_forward_status,
         analyses,
         [*research_actions, *proxy_actions],
     )
@@ -198,25 +196,13 @@ def build_triage_header(
 
 
 def _triage_system_action_lines(
-    mode: str,
     score_stability: dict[str, Any] | None,
-    walk_forward_status: dict[str, Any] | None,
     analyses: dict[str, dict[str, Any]] | None = None,
     maintenance_action_lines: list[str] | None = None,
 ) -> list[str]:
     lines: list[str] = []
     lines.extend(_triage_stale_market_data_lines(analyses))
     lines.extend(maintenance_action_lines or [])
-    walk = walk_forward_status or {}
-    walk_status = str(walk.get("status") or "").strip().upper()
-    walk_message = str(walk.get("message") or "").strip()
-    if walk and ("DORMANT" in walk_status or "WARNING" in walk_status):
-        message = _without_leading_warning_icon(walk_message or "Walk-forward à relancer pour ce mode.")
-        command = f"python3 main.py walk-forward-backtest --mode {mode}"
-        if command not in message:
-            message = f"{message} Commande : {command}"
-        lines.append(f"⚠️ {message}")
-
     stability = score_stability or {}
     stability_status = str(stability.get("status") or "").strip().upper()
     stability_message = str(stability.get("message") or "").strip()
@@ -524,6 +510,14 @@ def _format_percentage(value: Any) -> str:
 def _decision_quality_line(decision_quality: dict[str, Any] | None) -> str:
     if not isinstance(decision_quality, dict) or not decision_quality:
         return "Confiance   : N/D — données de qualité insuffisantes pour évaluation."
+    data_status = str(
+        decision_quality.get("data_status") or decision_quality.get("data_quality_status") or ""
+    ).strip().upper()
+    if data_status == "NOT_APPLICABLE":
+        return (
+            "Confiance   : N/A — aucune allocation active à évaluer; "
+            "ce suivi sans capital ne mesure pas la certitude des conclusions d’investissement."
+        )
     level = str(decision_quality.get("decision_quality_level") or "N/D").strip() or "N/D"
     score = report_value(decision_quality.get("decision_quality_score"))
     detail_lines = build_decision_quality_compact_lines(decision_quality)
@@ -763,11 +757,22 @@ def build_compact_model_health_section(
         "",
         _model_health_signal_line("Score Stability", score_stability),
         "",
-        _model_health_signal_line("Walk-Forward", walk_forward_status),
+        _model_health_signal_line("Walk-Forward", walk_forward_status, automated_operation=True),
+        "",
+        "Avec le runner de production, le walk-forward est prévu automatiquement après la génération "
+        "du rapport, si l’analyse réussit et que le rapport compact est présent. "
+        "Le statut ci-dessus reflète les artefacts disponibles à la génération, pas le résultat de cette étape. "
+        "Consulter le journal du run ou sa notification pour son résultat. "
+        "Une nouvelle exécution ne garantit pas de nouvelles périodes simulables.",
         "",
         _model_health_signal_line("Audit maître", full_audit_status, audit_style=True),
         "",
         _model_health_signal_line("Audit stabilité", model_audit_status, audit_style=True),
+        "",
+        "En production, la maintenance planifiée évalue les audits dus et lance l’audit maître, "
+        "ou sinon l’audit de stabilité dû, après réussite des contrôles préalables et du health-check. "
+        "Un statut absent ou périmé ne demande pas de lancement manuel dans ce workflow. "
+        "En cas de blocage ou d’échec, consulter le journal de maintenance ou sa notification.",
         "",
         "**Confiance dans ce run :**",
         "",
@@ -1107,7 +1112,13 @@ CLUSTER_TABLE_DETAILS = {
 }
 
 
-def _model_health_signal_line(label: str, signal: dict[str, Any] | None, *, audit_style: bool = False) -> str:
+def _model_health_signal_line(
+    label: str,
+    signal: dict[str, Any] | None,
+    *,
+    audit_style: bool = False,
+    automated_operation: bool = False,
+) -> str:
     if not isinstance(signal, dict) or not signal:
         return f"⚠️ {label:<16}: — Non disponible"
     status = str(signal.get("status") or "N/D").strip() or "N/D"
@@ -1115,7 +1126,10 @@ def _model_health_signal_line(label: str, signal: dict[str, Any] | None, *, audi
     if audit_style:
         message = _audit_compact_message(signal)
     else:
-        message = compact_sentence(_clean_signal_message(str(signal.get("message") or ""), status), 90)
+        message = _clean_signal_message(str(signal.get("message") or ""), status)
+        if automated_operation:
+            message = _operational_status_message(message)
+        message = compact_sentence(message, 90)
     if not message or message == "N/D":
         message = "Non disponible"
     return f"{icon} {label:<16}: {status} — {message}"
@@ -1134,7 +1148,22 @@ def _audit_compact_message(signal: dict[str, Any]) -> str:
         parts.append(f"prochain dans ~{next_audit}j")
     if parts:
         return compact_sentence(", ".join(parts), 90)
-    return compact_sentence(_clean_signal_message(str(signal.get("message") or ""), str(signal.get("status") or "")), 90)
+    message = _clean_signal_message(str(signal.get("message") or ""), str(signal.get("status") or ""))
+    return compact_sentence(_operational_status_message(message), 90)
+
+
+def _operational_status_message(message: str) -> str:
+    """Keep artifact facts; compact workflow guidance replaces legacy CLI advice.
+
+    Signal payloads remain unchanged for CLI users and maintenance planning.
+    Remove advice before truncation so even short/absent signals cannot leak a
+    manual command, or present the 21-day stale threshold as a runner schedule.
+    """
+    for marker in ("Continuer à relancer", "Relancer", "Lancer", "Prochaine exécution"):
+        index = message.casefold().find(marker.casefold())
+        if index >= 0:
+            message = message[:index].rstrip()
+    return message
 
 
 def _clean_signal_message(value: str, status: str = "") -> str:

@@ -86,7 +86,7 @@ class ReportFormattersTest(unittest.TestCase):
 
         self.assertIn("DÉCISION : +100$ MSFT", markdown)
         self.assertIn("─── ACTIONS SYSTÈME REQUISES ───", markdown)
-        self.assertIn("python3 main.py walk-forward-backtest --mode high-cagr", markdown)
+        self.assertNotIn("walk-forward-backtest", markdown)
         self.assertIn("Scores à surveiller", markdown)
 
     @patch(
