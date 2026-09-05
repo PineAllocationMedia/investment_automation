@@ -8,6 +8,7 @@ from .account_charts import (
     account_chart_rows_for_report,
     account_charts_markdown,
     build_account_allocation_chart_rows,
+    embed_account_charts_in_html,
 )
 from .account_performance_engine import ACCOUNT_PERFORMANCE_COLUMNS
 from .audit_snapshot_engine import save_audit_snapshot
@@ -959,7 +960,10 @@ def generate_reports(
         instrument_profile_rows=instrument_profile_rows,
     )
     write_text(reports_dir / "latest_report_compact.md", compact_markdown)
-    write_text(reports_dir / "latest_report_compact.html", markdown_to_html(compact_markdown))
+    write_text(
+        reports_dir / "latest_report_compact.html",
+        embed_account_charts_in_html(markdown_to_html(compact_markdown), reports_dir, account_chart_rows),
+    )
     write_scores_csv(reports_dir / "latest_scores.csv", analyses)
     write_allocations_csv(reports_dir / "latest_allocations.csv", allocation_result.get("allocations", []))
     write_allocation_change_csv(reports_dir / "latest_allocation_changes.csv", allocation_change_rows)

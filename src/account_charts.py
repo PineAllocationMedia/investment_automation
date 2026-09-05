@@ -1,8 +1,10 @@
 from __future__ import annotations
 
+import base64
 import html
 import math
 import re
+from html.parser import HTMLParser
 from pathlib import Path
 from typing import Any
 
@@ -22,6 +24,10 @@ CHART_RELATIVE_DIR = "charts"
 ALL_ACCOUNTS = "ALL_ACCOUNTS"
 SMALL_POSITION_THRESHOLD = 0.03
 MAX_SLICES = 8
+
+# Delivery limits only: cap each SVG read and the total added base64 payload.
+MAX_EMBEDDED_CHART_BYTES = 128 * 1024
+MAX_EMBEDDED_CHARTS_BASE64_BYTES = 2 * 1024 * 1024
 
 _COLORS = [
     "#2563eb",
@@ -111,6 +117,70 @@ def account_charts_markdown(rows: list[dict[str, Any]]) -> list[str]:
             ]
         )
     return lines
+
+
+def embed_account_charts_in_html(
+    html_text: str, reports_dir: str | Path, chart_rows: list[dict[str, Any]]
+) -> str:
+    """Embed only this report's generated account SVGs; preserve other HTML verbatim."""
+    parser = _AccountChartEmbedder(html_text, Path(reports_dir), chart_rows)
+    parser.feed(html_text)
+    parser.close()
+    for start, end, replacement in reversed(parser.replacements):
+        html_text = html_text[:start] + replacement + html_text[end:]
+    return html_text
+
+
+class _AccountChartEmbedder(HTMLParser):
+    def __init__(self, source: str, reports_dir: Path, chart_rows: list[dict[str, Any]]):
+        super().__init__(convert_charrefs=False)
+        self.reports_dir = reports_dir
+        self.known_paths = {str(row.get("chart_path") or "") for row in chart_rows}
+        self.remaining_bytes = MAX_EMBEDDED_CHARTS_BASE64_BYTES
+        self.replacements: list[tuple[int, int, str]] = []
+        self.line_offsets = [0]
+        self.line_offsets.extend(match.end() for match in re.finditer("\n", source))
+
+    def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
+        if tag != "img":
+            return
+        attributes = dict(attrs)
+        src = attributes.get("src") or ""
+        if not src or (src not in self.known_paths and not src.startswith("charts/account_")):
+            return
+        alt = html.escape(attributes.get("alt") or "Répartition par compte", quote=True)
+        try:
+            payload = self._read_chart(src)
+        except (OSError, ValueError, RuntimeError):
+            replacement = (
+                f'<span class="note">Graphique indisponible — {alt} '
+                '(fichier absent, illisible, non autorisé ou limite de taille dépassée).</span>'
+            )
+        else:
+            replacement = f'<img alt="{alt}" src="data:image/svg+xml;base64,{payload}" />'
+        line, column = self.getpos()
+        start = self.line_offsets[line - 1] + column
+        self.replacements.append((start, start + len(self.get_starttag_text()), replacement))
+
+    def _read_chart(self, src: str) -> str:
+        if src not in self.known_paths or not re.fullmatch(r"charts/account_[A-Za-z0-9_.-]+\.svg", src):
+            raise ValueError("Not a generated account chart")
+        charts_dir = self.reports_dir / CHART_RELATIVE_DIR
+        path = self.reports_dir / src
+        # Reject directory/file symlinks as well as any path outside reports/charts.
+        if charts_dir.is_symlink() or path.is_symlink() or path.resolve().parent != charts_dir.resolve():
+            raise ValueError("Chart outside the report chart directory")
+        if not path.is_file():
+            raise ValueError("Chart is not a regular file")
+        with path.open("rb") as asset:
+            content = asset.read(MAX_EMBEDDED_CHART_BYTES + 1)
+        if not content or len(content) > MAX_EMBEDDED_CHART_BYTES:
+            raise ValueError("Empty or oversized chart")
+        encoded_size = 4 * ((len(content) + 2) // 3)
+        if encoded_size > self.remaining_bytes:
+            raise ValueError("Report chart payload limit exceeded")
+        self.remaining_bytes -= encoded_size
+        return base64.b64encode(content).decode("ascii")
 
 
 def _aggregate_by_account(rows: list[dict[str, Any]]) -> dict[str, list[tuple[str, float]]]:
