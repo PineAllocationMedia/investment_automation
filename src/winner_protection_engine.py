@@ -116,12 +116,19 @@ def compute_winner_protection(analysis: dict[str, Any], previous: dict[str, Any]
             **_result("NO_POSITION", "NONE", "Aucune position détenue; protection des winners non applicable.", []),
         }
     if gain_percent is None:
+        # Missing aggregate history does not mean the individual lots lack costs.
+        reason = "Coût d’acquisition absent; remplir average_cost et average_cost_currency pour activer la protection."
+        if analysis.get("cost_basis_aggregation_status") == "MIXED_CURRENCY_UNNORMALIZED":
+            reason = (
+                "Coût d’acquisition disponible par lot/compte, mais coût historique agrégé indisponible : "
+                "devises mixtes et absence de conversion fiable aux taux de change historiques."
+            )
         return {
             **base,
             **_result(
                 "NO_COST_DATA",
                 "HOLD",
-                "Coût d’acquisition absent; remplir average_cost et average_cost_currency pour activer la protection.",
+                reason,
                 [],
             ),
         }
