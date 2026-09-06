@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from .runtime_context import RUNTIME
+
 import re
 from datetime import date
 from pathlib import Path
@@ -1298,6 +1300,8 @@ def extract_report_text(path: Path) -> tuple[str, str]:
 
 
 def extract_report_text_detailed(path: Path) -> dict[str, Any]:
+    if RUNTIME.restricted:
+        RUNTIME.check_read(path)
     suffix = path.suffix.lower()
     if suffix in {".txt", ".md"}:
         try:
@@ -1405,6 +1409,8 @@ def _extract_pdf_text_pypdf(path: Path) -> tuple[str, str]:
 
 
 def _extract_pdf_text_pymupdf(path: Path) -> tuple[str, str]:
+    if RUNTIME.restricted:
+        RUNTIME.check_read(path)
     try:
         import fitz  # type: ignore
     except Exception:
@@ -1418,6 +1424,8 @@ def _extract_pdf_text_pymupdf(path: Path) -> tuple[str, str]:
 
 
 def _extract_pdf_text_ocr(path: Path, max_pages: int = 3) -> tuple[str, str]:
+    if RUNTIME.restricted:
+        RUNTIME.check_read(path)
     try:
         import io
 

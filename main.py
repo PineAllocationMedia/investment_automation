@@ -1,7 +1,15 @@
 from __future__ import annotations
 
-import argparse
+import os
 import sys
+
+# Set this before importing src, so direct restricted CLI use also avoids
+# Python bytecode writes into the checkout before runtime activation.
+if (os.environ.get("INVESTMENT_AUTOMATION_RUNTIME_ROOT") or
+        os.environ.get("INVESTMENT_AUTOMATION_RUNTIME_PROFILE", "") not in {"", "v1"}):
+    sys.dont_write_bytecode = True
+
+import argparse
 from datetime import datetime
 from pathlib import Path
 from typing import Any
@@ -207,6 +215,7 @@ from src.ticker_memory_engine import (
     load_ticker_memory,
     update_ticker_memory,
 )
+from src.runtime_context import RUNTIME, check_analysis, reject_restricted, state_root
 from src.utils import CACHE_DIR, CONFIG_DIR, DATA_DIR, PROJECT_ROOT, REPORTS_DIR, ensure_directories, load_yaml, normalize_ticker, safe_float, write_csv_records
 from src.validation_priority_engine import build_validation_priority_rows
 from src.validators import validate_allocation_rules, validate_capital, validate_input_files
@@ -269,6 +278,15 @@ def _reject_implausible_fair_value(manual: dict[str, Any], market: dict[str, Any
 def main(argv: list[str] | None = None) -> int:
     parser = build_parser()
     args = parser.parse_args(argv)
+    if args.command == "runtime-info":
+        import json
+        print(json.dumps(RUNTIME.metadata(), sort_keys=True))
+        return 0
+    if args.command in {"init", "export-template", "sync-portfolio", "apply-safe-tuning"}:
+        reject_restricted(args.command)
+    if args.command == "analyze":
+        check_analysis(capital=args.capital, run_purpose=args.run_purpose)
+    RUNTIME.prepare()
     if args.command == "init":
         init_project()
         print("Projet initialisé. Remplissez data/portfolio.csv. Le fichier manuel est optionnel.")
@@ -325,6 +343,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Agent local de gestion de portefeuille long terme.")
     subparsers = parser.add_subparsers(dest="command")
 
+    subparsers.add_parser("runtime-info", help="Affiche le contexte runtime non autoritatif.")
     subparsers.add_parser("init", help="Crée les fichiers templates et fichiers CSV de départ.")
     subparsers.add_parser("export-template", help="Regénère les templates.")
     subparsers.add_parser("validate-inputs", help="Valide les fichiers CSV.")
@@ -481,6 +500,7 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 def init_project() -> None:
+    reject_restricted("init_project")
     ensure_directories()
     create_research_report_scaffold()
     export_templates()
@@ -511,6 +531,7 @@ def init_project() -> None:
 
 
 def export_templates() -> None:
+    reject_restricted("export_templates")
     ensure_directories()
     create_research_report_scaffold()
     create_portfolio_template(DATA_DIR / "portfolio_template.csv")
@@ -535,6 +556,7 @@ def export_templates() -> None:
 
 
 def analyze_command(args: argparse.Namespace) -> int:
+    check_analysis(capital=args.capital, run_purpose=args.run_purpose)
     ensure_directories()
     validation_errors = validate_capital(args.capital)
     if validation_errors:
@@ -608,6 +630,7 @@ def sync_manual_inputs_command(args: argparse.Namespace) -> int:
 
 
 def sync_portfolio_command(args: argparse.Namespace) -> int:
+    reject_restricted("sync_portfolio_command")
     ensure_directories()
     as_of_date = _validated_sync_date(args.date) if args.date else None
     if args.date and as_of_date is None:
@@ -827,7 +850,7 @@ def backup_command(args: argparse.Namespace) -> int:
 
 def list_backups_command(args: argparse.Namespace) -> int:
     ensure_directories()
-    backups = list_project_backups(PROJECT_ROOT / "backups")
+    backups = list_project_backups(state_root(PROJECT_ROOT) / "backups")
     if not backups:
         print("Aucune sauvegarde trouvée.")
         print("Pour en créer une: python3 main.py backup")
@@ -910,6 +933,7 @@ def improvement_audit_command(args: argparse.Namespace) -> int:
 
 
 def apply_safe_tuning_command(args: argparse.Namespace) -> int:
+    reject_restricted("apply_safe_tuning_command")
     ensure_directories()
     create_model_tuning_template(CONFIG_DIR / "model_tuning.yaml")
     result = apply_safe_tuning(REPORTS_DIR, CONFIG_DIR, DATA_DIR, mode=args.mode)
@@ -1244,6 +1268,7 @@ def run_analysis(
     validation_warnings: list[str] | None = None,
     run_purpose: str | None = None,
 ) -> dict[str, Any]:
+    check_analysis(capital=capital, run_purpose=run_purpose)
     # CONTEXT ENRICHMENT ORDER — DO NOT REORDER WITHOUT REVIEWING DEPENDENCIES
     # Each pass may read keys written by earlier passes. The order is:
     #  1. apply_history_context              -> sets previous_* keys

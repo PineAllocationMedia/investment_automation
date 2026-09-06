@@ -3,6 +3,12 @@
 
 from __future__ import annotations
 
+# Reject before importing application code, credentials or mutable defaults.
+import os as _runtime_os
+if (_runtime_os.environ.get("INVESTMENT_AUTOMATION_RUNTIME_ROOT") or
+        _runtime_os.environ.get("INVESTMENT_AUTOMATION_RUNTIME_PROFILE", "") not in {"", "v1"}):
+    raise RuntimeError("Operation disabled in restricted V2 runtime: run_automatic_portfolio_sync")
+
 import argparse
 import csv
 from datetime import datetime, timezone

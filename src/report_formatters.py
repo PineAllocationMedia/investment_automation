@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from .runtime_context import RUNTIME
+
 from typing import Any
 
 
@@ -215,7 +217,6 @@ def _triage_research_report_maintenance_state(
     research_needed_rows: list[dict[str, Any]] | None,
 ) -> tuple[str, list[str]]:
     from datetime import datetime as _Datetime
-    from pathlib import Path as _Path
 
     rows = [row for row in research_needed_rows or [] if isinstance(row, dict)]
     tickers = {
@@ -226,7 +227,7 @@ def _triage_research_report_maintenance_state(
     if not tickers:
         return "🟢 Rapports BNCD/Morningstar : aucune recherche prioritaire active.", []
 
-    report_dir = _Path(__file__).resolve().parents[1] / "data" / "research_reports" / "bncd_morningstar"
+    report_dir = RUNTIME.path("data") / "research_reports" / "bncd_morningstar"
     report_files = []
     try:
         report_files = [
@@ -273,9 +274,8 @@ def _triage_proxy_calibration_maintenance_state() -> tuple[str, list[str]]:
     import csv as _csv
     from datetime import date as _Date
     from datetime import datetime as _Datetime
-    from pathlib import Path as _Path
 
-    calibration_path = _Path(__file__).resolve().parents[1] / "data" / "proxy_calibration.csv"
+    calibration_path = RUNTIME.path("data") / "proxy_calibration.csv"
     if not calibration_path.exists():
         return (
             "🟡 Calibration des proxys : fichier de calibration absent.",

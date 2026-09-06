@@ -17,10 +17,12 @@ DISCLAIMER = (
     "retardées ou erronées. Toute décision finale doit être validée manuellement."
 )
 
-PROJECT_ROOT = Path(__file__).resolve().parents[1]
+from .runtime_context import CODE_ROOT, RUNTIME
+
+PROJECT_ROOT = CODE_ROOT
 CONFIG_DIR = PROJECT_ROOT / "config"
-DATA_DIR = PROJECT_ROOT / "data"
-REPORTS_DIR = PROJECT_ROOT / "reports"
+DATA_DIR = RUNTIME.path("data")
+REPORTS_DIR = RUNTIME.path("reports")
 CACHE_DIR = DATA_DIR / "cached_market_data"
 RESEARCH_REPORTS_DIR = DATA_DIR / "research_reports"
 BNCD_MORNINGSTAR_DIR = RESEARCH_REPORTS_DIR / "bncd_morningstar"
@@ -31,7 +33,7 @@ CONFIDENCE_LEVELS = {"HIGH", "MEDIUM", "LOW"}
 
 
 def ensure_directories() -> None:
-    for path in [CONFIG_DIR, DATA_DIR, REPORTS_DIR, CACHE_DIR, RESEARCH_REPORTS_DIR, BNCD_MORNINGSTAR_DIR]:
+    for path in ([] if RUNTIME.restricted else [CONFIG_DIR]) + [DATA_DIR, REPORTS_DIR, CACHE_DIR, RESEARCH_REPORTS_DIR, BNCD_MORNINGSTAR_DIR]:
         path.mkdir(parents=True, exist_ok=True)
 
 

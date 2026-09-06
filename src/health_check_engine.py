@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from .runtime_context import state_root
+
 import importlib.util
 import tempfile
 from pathlib import Path
@@ -49,11 +51,11 @@ def run_health_check(
     rows.extend(_research_report_rows(project_root, known_tickers or []))
     rows.extend(walk_forward_health_rows(project_root))
     cache_rows = cache_rows if cache_rows is not None else run_cache_maintenance(
-        project_root / "data" / "cached_market_data",
+        state_root(project_root) / "data" / "cached_market_data",
         repair_safe=repair_safe,
     )
     rows.extend(_cache_rows(cache_rows))
-    rows.extend(_canadian_source_rows(check_canadian_source_health(project_root / "data" / "cached_market_data")))
+    rows.extend(_canadian_source_rows(check_canadian_source_health(state_root(project_root) / "data" / "cached_market_data")))
     rows.extend(build_storage_health_rows(project_root))
     rows.extend(_writeability_rows(project_root))
     return rows
@@ -119,8 +121,8 @@ def _baseline_rows(project_root: Path) -> list[dict[str, Any]]:
 def _writeability_rows(project_root: Path) -> list[dict[str, Any]]:
     rows = []
     for check, directory in (
-        ("manifest_writeability", project_root / "reports"),
-        ("operational_history_writeability", project_root / "data"),
+        ("manifest_writeability", state_root(project_root) / "reports"),
+        ("operational_history_writeability", state_root(project_root) / "data"),
     ):
         try:
             directory.mkdir(parents=True, exist_ok=True)
@@ -186,9 +188,9 @@ def _dependency_rows() -> list[dict[str, Any]]:
 
 def _file_rows(project_root: Path) -> list[dict[str, Any]]:
     required_files = [
-        project_root / "data" / "portfolio.csv",
-        project_root / "data" / "market_universe.csv",
-        project_root / "data" / "manual_inputs_friendly.txt",
+        state_root(project_root) / "data" / "portfolio.csv",
+        state_root(project_root) / "data" / "market_universe.csv",
+        state_root(project_root) / "data" / "manual_inputs_friendly.txt",
         project_root / "requirements.txt",
         project_root / "main.py",
     ]
@@ -259,7 +261,7 @@ def _schema_rows(schema_rows: list[dict[str, Any]], repair_safe: bool) -> list[d
 
 
 def _research_report_rows(project_root: Path, known_tickers: list[str]) -> list[dict[str, Any]]:
-    research_dir = project_root / "data" / "research_reports"
+    research_dir = state_root(project_root) / "data" / "research_reports"
     rows = research_status_rows(
         research_dir / "bncd_morningstar",
         research_dir / "research_index.csv",
@@ -365,7 +367,7 @@ def _canadian_source_rows(health: dict[str, Any]) -> list[dict[str, Any]]:
 
 def walk_forward_health_rows(project_root: str | Path) -> list[dict[str, Any]]:
     project_root = Path(project_root)
-    reports_dir = project_root / "reports"
+    reports_dir = state_root(project_root) / "reports"
     expected = [
         "latest_walk_forward_summary.csv",
         "latest_walk_forward_coverage.csv",

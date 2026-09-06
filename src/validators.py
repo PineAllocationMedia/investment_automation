@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from .runtime_context import state_root
+
 import configparser
 from datetime import datetime
 from pathlib import Path
@@ -298,7 +300,7 @@ def _validate_legacy_proxy_calibration_file(path: Path, rows: list[dict[str, str
 
 def validate_input_files(project_root: str | Path) -> list[str]:
     root = Path(project_root)
-    data_dir = root / "data"
+    data_dir = state_root(root) / "data"
     errors: list[str] = []
     errors.extend(validate_portfolio_file(data_dir / "portfolio.csv"))
     errors.extend(validate_friendly_manual_inputs_file(data_dir / "manual_inputs_friendly.txt"))

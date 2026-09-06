@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from .runtime_context import configure_provider_cache
+
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -185,6 +187,7 @@ def fetch_price_history_cad(
 
     try:
         import yfinance as yf  # type: ignore
+        configure_provider_cache(yf)
     except Exception as exc:
         raise RuntimeError("yfinance n'est pas disponible pour télécharger l'historique.") from exc
 

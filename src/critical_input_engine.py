@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from .runtime_context import state_root
+
 import hashlib
 import json
 from pathlib import Path
@@ -63,7 +65,7 @@ def audit_static_critical_inputs(
         issues.append(_issue(HARD_FAIL, "INVALID_CAPITAL", "Capital must be a finite number greater than or equal to zero."))
     if mode is not None and mode not in {"balanced", "family-office", "rational-aggressive", "high-cagr"}:
         issues.append(_issue(HARD_FAIL, "INVALID_ANALYSIS_MODE", f"Unsupported analysis mode: {mode}."))
-    portfolio_path = root / "data" / "portfolio.csv"
+    portfolio_path = state_root(root) / "data" / "portfolio.csv"
     if not portfolio_path.exists():
         issues.append(_issue(HARD_FAIL, "MISSING_PORTFOLIO", "data/portfolio.csv is required; analyze will not create or fabricate it."))
     else:
