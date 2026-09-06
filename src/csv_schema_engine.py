@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from .runtime_context import state_root
+
 import csv
 import shutil
 from dataclasses import dataclass
@@ -75,7 +77,7 @@ else:
 
 def csv_schema_specs(project_root: str | Path) -> list[CSVSchemaSpec]:
     root = Path(project_root)
-    data_dir = root / "data"
+    data_dir = state_root(root) / "data"
     research_dir = data_dir / "research_reports"
     specs = [
         CSVSchemaSpec(data_dir / "portfolio.csv", PORTFOLIO_COLUMNS),

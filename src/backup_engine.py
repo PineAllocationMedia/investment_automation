@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from .runtime_context import state_root
+
 import json
 import shutil
 from datetime import datetime
@@ -33,7 +35,7 @@ def create_project_backup(
     *,
     include_cache: bool = False,
 ) -> dict[str, Any]:
-    project_root = Path(project_root).resolve()
+    project_root = state_root(project_root).resolve()
     backups_dir = Path(backups_dir).resolve() if backups_dir else project_root / "backups"
     backups_dir.mkdir(parents=True, exist_ok=True)
 
@@ -75,7 +77,7 @@ def create_project_backup(
 
 
 def list_project_backups(backups_dir: str | Path | None = None) -> list[dict[str, Any]]:
-    backups_dir = Path(backups_dir).resolve() if backups_dir else PROJECT_ROOT / "backups"
+    backups_dir = Path(backups_dir).resolve() if backups_dir else state_root(PROJECT_ROOT) / "backups"
     if not backups_dir.exists():
         return []
 

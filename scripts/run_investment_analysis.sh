@@ -1,5 +1,10 @@
 #!/usr/bin/env bash
 
+if [[ -n "${INVESTMENT_AUTOMATION_RUNTIME_ROOT:-}" || ( -n "${INVESTMENT_AUTOMATION_RUNTIME_PROFILE:-}" && "${INVESTMENT_AUTOMATION_RUNTIME_PROFILE:-}" != "v1" ) ]]; then
+    echo "Production runner disabled in restricted V2 runtime." >&2
+    exit 64
+fi
+
 set -u
 set -o pipefail
 

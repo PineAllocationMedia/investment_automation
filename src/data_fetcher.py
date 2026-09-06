@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from .runtime_context import configure_provider_cache
+
 import contextlib
 import html
 import io
@@ -352,6 +354,7 @@ class MarketDataFetcher:
     def _fetch_simple_fx_rate(self, fx_ticker: str) -> float | None:
         try:
             import yfinance as yf  # type: ignore
+            configure_provider_cache(yf)
 
             instrument = yf.Ticker(fx_ticker)
             with contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(io.StringIO()):
@@ -653,6 +656,7 @@ class MarketDataFetcher:
 
     def _fetch_with_yfinance(self, ticker: str) -> dict[str, Any]:
         import yfinance as yf  # type: ignore
+        configure_provider_cache(yf)
 
         instrument = yf.Ticker(ticker)
         history, history_period = self._history_with_fallback(instrument)

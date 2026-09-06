@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from .runtime_context import state_root
+
 import csv
 import hashlib
 import json
@@ -144,17 +146,17 @@ def build_decision_manifest(
     portfolio_fingerprints = _selected_file_fingerprints(
         root,
         [
-            root / "data" / "portfolio.csv",
-            root / "data" / "portfolio_transactions.csv",
-            root / "data" / "watchlist.csv",
-            root / "data" / "market_universe.csv",
+            state_root(root) / "data" / "portfolio.csv",
+            state_root(root) / "data" / "portfolio_transactions.csv",
+            state_root(root) / "data" / "watchlist.csv",
+            state_root(root) / "data" / "market_universe.csv",
         ],
     )
     manual_proxy_fingerprints = _selected_file_fingerprints(
         root,
         [
-            root / "data" / "manual_inputs_friendly.txt",
-            root / "data" / "proxy_calibration.csv",
+            state_root(root) / "data" / "manual_inputs_friendly.txt",
+            state_root(root) / "data" / "proxy_calibration.csv",
             root / "config" / "proxy_corrections.yaml",
         ],
     )
@@ -371,7 +373,8 @@ def _semantic_file_payload(path: Path) -> Any:
 
 def _logical_name(root: Path, path: Path) -> str:
     try:
-        return path.resolve().relative_to(root.resolve()).as_posix()
+        logical_root = state_root(root) if path.resolve().is_relative_to(state_root(root).resolve()) else root
+        return path.resolve().relative_to(logical_root.resolve()).as_posix()
     except ValueError:
         return path.name
 

@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from .runtime_context import RUNTIME, state_root
+
 import os
 import shutil
 from pathlib import Path
@@ -26,9 +28,9 @@ def build_storage_health_rows(
     thresholds: dict[str, float] | None = None,
 ) -> list[dict[str, Any]]:
     root = Path(project_root)
-    raw_logs = Path(raw_log_dir) if raw_log_dir is not None else Path(
+    raw_logs = Path(raw_log_dir) if raw_log_dir is not None else (RUNTIME.path("logs") if RUNTIME.restricted else Path(
         os.environ.get("INVESTMENT_AUTOMATION_LOG_DIR") or Path.home() / "investment_automation_run_logs"
-    )
+    ))
     threshold = {
         "project": DEFAULT_PROJECT_WARN_BYTES,
         "cache": DEFAULT_CACHE_WARN_BYTES,
@@ -42,23 +44,23 @@ def build_storage_health_rows(
         **(thresholds or {}),
     }
 
-    cache_dir = root / "data" / "cached_market_data"
-    research_dir = root / "data" / "research_reports"
+    cache_dir = state_root(root) / "data" / "cached_market_data"
+    research_dir = state_root(root) / "data" / "research_reports"
     structured_paths = [
-        root / "data" / "run_log_history.csv",
-        root / "data" / "account_performance_history.csv",
-        root / "data" / "anomaly_history.csv",
-        root / "data" / "portfolio_change_history.csv",
-        root / "data" / "portfolio_inferred_transactions.csv",
-        root / "data" / "proxy_calibration_history.csv",
-        root / "data" / "source_health_history.csv",
-        root / "data" / "ticker_memory.csv",
-        root / "reports" / "history",
-        root / "reports" / "universe_snapshots",
-        root / "reports" / "decision_manifests",
-        root / "reports" / "failed_run_audits",
+        state_root(root) / "data" / "run_log_history.csv",
+        state_root(root) / "data" / "account_performance_history.csv",
+        state_root(root) / "data" / "anomaly_history.csv",
+        state_root(root) / "data" / "portfolio_change_history.csv",
+        state_root(root) / "data" / "portfolio_inferred_transactions.csv",
+        state_root(root) / "data" / "proxy_calibration_history.csv",
+        state_root(root) / "data" / "source_health_history.csv",
+        state_root(root) / "data" / "ticker_memory.csv",
+        state_root(root) / "reports" / "history",
+        state_root(root) / "reports" / "universe_snapshots",
+        state_root(root) / "reports" / "decision_manifests",
+        state_root(root) / "reports" / "failed_run_audits",
     ]
-    project_size, project_count = _tree_stats(root, excluded_names={".git", ".venv", "__pycache__"})
+    project_size, project_count = _tree_stats(state_root(root), excluded_names={".git", ".venv", "__pycache__"})
     cache_size, cache_count = _tree_stats(cache_dir)
     research_size, research_count = _tree_stats(research_dir)
     log_size, log_count = _tree_stats(raw_logs, glob_pattern="analysis_*.log")
@@ -78,7 +80,7 @@ def build_storage_health_rows(
         ),
     ]
     rows.append(_raw_log_count_row(log_count))
-    rows.append(_free_space_row(root, disk_usage_provider, threshold))
+    rows.append(_free_space_row(state_root(root), disk_usage_provider, threshold))
     return rows
 
 
