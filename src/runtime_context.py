@@ -137,8 +137,11 @@ def resolve_runtime(environ: Mapping[str, str] | None = None, *, code_root: Path
         home / ".cache",
         home / "Library/Caches",
     }
-    if env.get("XDG_CACHE_HOME"):
-        external.add(Path(env["XDG_CACHE_HOME"]).expanduser().resolve())
+    # Explicit inherited config/data directories may hold mutable state for
+    # arbitrary applications; protect those exact roots, not their parents.
+    for key in ("XDG_CACHE_HOME", "XDG_CONFIG_HOME", "XDG_DATA_HOME"):
+        if env.get(key):
+            external.add(Path(env[key]).expanduser().resolve())
     if env.get("XDG_STATE_HOME"):
         external.add(Path(env["XDG_STATE_HOME"]).expanduser().resolve() / "investment_automation")
     for key in ("INVESTMENT_AUTOMATION_PROJECT_ROOT", "INVESTMENT_AUTOMATION_INPUT_SOURCE",
@@ -157,6 +160,8 @@ def resolve_runtime(environ: Mapping[str, str] | None = None, *, code_root: Path
     forbidden = tuple(sorted({p.resolve() for p in checkouts | external}))
     if any(overlaps(root, p) for p in forbidden) or root == home or home.is_relative_to(root):
         raise RuntimeIsolationError(f"Runtime root overlaps production/code state: {root}")
+    if not root.parent.is_dir():
+        raise RuntimeIsolationError(f"Runtime root parent must be an existing directory: {root.parent}")
     sensitive = external | {checkout / family for checkout in checkouts for family in MUTABLE_FAMILIES}
     context = RuntimeContext(code_root, root, "v2-restricted", home, forbidden,
                              tuple(sorted(p.resolve() for p in sensitive)))

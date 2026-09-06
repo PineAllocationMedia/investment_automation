@@ -50,8 +50,11 @@ nothing and does not add manifest fields or validation authority. Other permitte
 or production observation is fabricated. Do not copy live production data into a
 V2 runtime as an implicit setup step.
 
-The root's parent must already exist. Runtime initialization creates only children
-of the authorized root, never missing ancestors outside it. Use `-B` for restricted Python library imports. The launcher and direct main CLI
+The canonical root's immediate parent must already be a directory.
+`resolve_runtime()` rejects a missing or non-directory parent before activation,
+including for read-only `runtime-info`. It never creates that parent. Runtime
+initialization creates only the authorized root and its children; the I/O guard
+remains in place against attempts to create external ancestors. Use `-B` for restricted Python library imports. The launcher and direct main CLI
 disable bytecode before application imports; production scripts reject the profile
 before application imports. Direct CLI use without `-B` is regression-tested.
 A Python process cannot intercept interpreter activity before its first import.
@@ -74,10 +77,19 @@ that environment is cleared.
 Canonical overlap is checked in both directions using resolved path ancestry.
 Forbidden roots include the current code tree, the main checkout and other linked
 checkouts discovered through Git's worktree metadata, original HOME operational
-state/log/config/provider-cache directories, inherited XDG cache/app-state roots,
+state/log/config/provider-cache directories, inherited XDG cache/config/data roots
+and the existing XDG application-state subtree,
 macOS CloudStorage, configured input/Drive sources,
 and production project/log/lock and operational config overrides. The input-sync config file is read only
 to discover its source root; it is never sourced as shell code or modified.
+
+The exact inherited `XDG_CONFIG_HOME` and `XDG_DATA_HOME` directories are protected
+before the environment is cleared. Their arbitrary mutable contents cannot safely
+be reduced to an assumed `investment_automation` subtree. The rule forbids overlap
+in either direction with those declared directories, including canonical symlink
+aliases, but does not forbid their parents or disjoint sibling directories. It adds
+no default-directory restriction when either variable is unset. Existing cache and
+application-specific XDG state rules are unchanged.
 
 Additional production-sensitive locations must be declared explicitly with
 `INVESTMENT_AUTOMATION_FORBIDDEN_ROOTS` (OS path-separator list), or repeated
@@ -255,3 +267,64 @@ No merge, deployment, main modification, Chromebook modification, Drive write,
 production systemd modification, historical artifact rewrite, real positive-capital
 analysis, artificial operational Baseline observation or tuning application is part
 of this PR. Test-only synthetic data stays in disposable test roots.
+
+
+## PR #28 boundary hardening correction
+
+Prior head: `eedaa6d9ee54be38718fb7ebba96751c9d6f7d7c`. Both findings were reproduced
+before editing code, using only a disposable temporary HOME and temporary paths.
+Let T denote that disposable directory and R = T/parent/runtime. Commands below
+were run as fresh Python 3.12.14 processes with the restricted root configured.
+
+| Pre-correction reproduction | Exit | Observed writes/error |
+| --- | --- | --- |
+| Existing parent; `main.py runtime-info` | 0 | No runtime directory or other writes. |
+| Existing parent; `main.py validate-inputs` | 1 | Runtime directories created under R; expected missing-portfolio validation; no RuntimeIsolationError. |
+| Missing parent; `main.py runtime-info` | 0 | No directories created, but the documented precondition was not enforced. |
+| Missing parent; `main.py validate-inputs` | 1 | No parent or runtime created. `prepare()` reached recursive mkdir; `_audit` → `checked` → `check_write` rejected the external ancestor. |
+| R inside either custom inherited XDG config/data directory; `runtime-info` | 0 | Overlapping root accepted. |
+| Same XDG overlap; `validate-inputs` | 1 | Created runtime directories inside the original external XDG directory; expected missing-portfolio validation. |
+| Same XDG overlap; write to pre-existing disposable R/data/external-state.txt | 0 | External sentinel actually overwritten. No real user data was involved. |
+
+**Finding 1: B — correct fail-closed I/O, incomplete contract.** The audit hook
+already prevented external ancestor creation. Preflight now rejects the missing
+canonical parent in `resolve_runtime()`, consistently for both commands, before
+activation or mkdir. The error is `Runtime root parent must be an existing directory`.
+Valid existing parents retain their previous behavior. A file as parent and a
+symlink to a missing parent are rejected; an alias to an existing parent is resolved
+canonically and remains valid when otherwise safe.
+
+**Finding 2: A — genuine isolation defect.** The original inherited XDG config/data
+locations were not captured before environment replacement. Choosing the runtime
+inside one made external mutable files appear authorized to the write guard.
+Those two exact inherited roots now enter both forbidden and sensitive-read sets.
+Equal, child, ancestor and symlink-alias overlaps fail in `resolve_runtime()`;
+siblings remain permitted. Both CLI reproductions and the sentinel overwrite now
+exit 1 before any runtime write, preserving the sentinel.
+
+Only `src/runtime_context.py`, `tests/test_runtime_isolation.py` and this report
+change in the correction. Four focused regression methods cover both findings;
+the existing default-profile fixture now supplies the documented parent directory.
+No V1 default, model/configuration, CI, systemd or authority change is included.
+
+Focused command (uses the existing isolated harness without changing it):
+
+```sh
+.venv/bin/python -B -c 'import runpy, sys, unittest; unittest.defaultTestLoader.testNamePatterns=["*test_boundary_*"]; sys.argv=["scripts/run_isolated_tests.py", "--pattern", "test_runtime_isolation.py"]; runpy.run_path(sys.argv[0], run_name="__main__")'
+```
+
+The runtime-file and complete-suite commands remain those documented above.
+
+Correction validation (Python 3.12.14; all locked dependency versions match):
+
+- Focused command above: **4 passed**, 3.994 seconds.
+- `.venv/bin/python -B scripts/run_isolated_tests.py --pattern test_runtime_isolation.py`:
+  **29 passed**, 27.884 seconds, including V1 compatibility and deterministic equivalence.
+- `.venv/bin/python -B scripts/run_isolated_tests.py`: **938 passed**, 54.114 seconds.
+- `git diff --check`: passed.
+
+All runs used the existing disposable-code/HOME/XDG harness with credentials cleared
+and network denied. Sandbox names beneath the system temporary directory were
+`v2-pr1-suite-nx230dwh` (focused), `v2-pr1-suite-i_baphau` (runtime), and
+`v2-pr1-suite-bmzab7tb` (full). No real portfolio or decision observation was created.
+GitHub CI for the pushed correction is reported separately against its exact head.

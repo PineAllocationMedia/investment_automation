@@ -107,6 +107,108 @@ class RuntimeIsolationTest(unittest.TestCase):
         self.assertFalse(self.root.exists())
         self.assertEqual(before, {str(p): hashlib.sha256(p.read_bytes()).hexdigest() for p in files})
 
+    def test_boundary_parent_contract_cli(self):
+        for parent_exists in (True, False):
+            for command in ("runtime-info", "validate-inputs"):
+                with self.subTest(parent_exists=parent_exists, command=command):
+                    parent = self.base / f"parent-{parent_exists}-{command}"
+                    if parent_exists:
+                        parent.mkdir()
+                    root = parent / "runtime"
+                    result = self.child(f"import main; raise SystemExit(main.main([{command!r}]))",
+                                        root=root, success=parent_exists and command == "runtime-info")
+                    if not parent_exists:
+                        self.assertEqual(result.returncode, 1)
+                        self.assertIn("Runtime root parent must be an existing directory", result.stderr)
+                        self.assertIn("in resolve_runtime", result.stderr)
+                        self.assertNotIn("in prepare", result.stderr)
+                        self.assertFalse(parent.exists())
+                        self.assertFalse(root.exists())
+                    elif command == "runtime-info":
+                        self.assertFalse(root.exists())
+                        self.assertEqual(json.loads(result.stdout)["runtime_root"], str(root))
+                    else:
+                        self.assertEqual(result.returncode, 1)  # Missing real portfolio, not runtime failure.
+                        self.assertEqual(result.stderr, "")
+                        self.assertIn("portfolio.csv", result.stdout)
+                        self.assertTrue((root / "home").is_dir())
+                        self.assertFalse((root / "data/portfolio.csv").exists())
+                    self.assertEqual(parent.exists(), parent_exists)
+
+    def test_boundary_parent_is_canonical_existing_directory(self):
+        existing = self.base / "existing"
+        existing.mkdir()
+        alias = self.base / "parent-alias"
+        alias.symlink_to(existing, target_is_directory=True)
+        context = resolve_runtime({**self.env, "INVESTMENT_AUTOMATION_RUNTIME_ROOT": str(alias / "runtime")})
+        self.assertEqual(context.root, existing / "runtime")
+        self.assertEqual(list(existing.iterdir()), [])
+        file_parent = self.base / "file-parent"
+        file_parent.write_text("preserve")
+        dangling = self.base / "dangling-parent"
+        dangling.symlink_to(self.base / "missing", target_is_directory=True)
+        for parent in (file_parent, dangling, self.base / "missing/deeper"):
+            with self.subTest(parent=parent), self.assertRaisesRegex(
+                    RuntimeIsolationError, "Runtime root parent must be an existing directory"):
+                resolve_runtime({**self.env, "INVESTMENT_AUTOMATION_RUNTIME_ROOT": str(parent / "runtime")})
+        self.assertFalse((self.base / "missing").exists())
+        self.assertEqual(file_parent.read_text(), "preserve")
+
+    def test_boundary_inherited_xdg_config_data_overlap(self):
+        for key in ("XDG_CONFIG_HOME", "XDG_DATA_HOME"):
+            original = self.base / key.lower()
+            original.mkdir()
+            root = original / "runtime"
+            (root / "data").mkdir(parents=True)
+            sentinel = root / "data/external-state.txt"
+            sentinel.write_text("preserve external state")
+            alias = self.base / f"{key}-alias"
+            alias.symlink_to(original, target_is_directory=True)
+            for candidate in (original, root, self.base, alias / "runtime"):
+                with self.subTest(key=key, candidate=candidate), self.assertRaisesRegex(
+                        RuntimeIsolationError, "overlaps production/code state"):
+                    resolve_runtime({**self.env, key: str(original),
+                                     "INVESTMENT_AUTOMATION_RUNTIME_ROOT": str(candidate)})
+            for source in ("import main; raise SystemExit(main.main(['runtime-info']))",
+                           "import main; raise SystemExit(main.main(['validate-inputs']))",
+                           "from src.runtime_context import RUNTIME; "
+                           "(RUNTIME.path('data') / 'external-state.txt').write_text('bad')"):
+                with self.subTest(key=key, source=source):
+                    result = self.child(source, root=root, extra={key: str(original)}, success=False)
+                    self.assertEqual(result.returncode, 1)
+                    self.assertIn("in resolve_runtime", result.stderr)
+                    self.assertIn("overlaps production/code state", result.stderr)
+                    self.assertEqual(sentinel.read_text(), "preserve external state")
+                    self.assertEqual(sorted(str(p.relative_to(root)) for p in root.rglob("*")),
+                                     ["data", "data/external-state.txt"])
+
+    def test_boundary_inherited_xdg_siblings_and_sensitive_reads(self):
+        inherited = {key: self.base / key.lower() for key in ("XDG_CONFIG_HOME", "XDG_DATA_HOME")}
+        for key, original in inherited.items():
+            original.mkdir()
+            (original / "external-state.txt").write_text("preserve")
+            context = resolve_runtime({**self.env, key: str(original),
+                                       "INVESTMENT_AUTOMATION_RUNTIME_ROOT": str(self.base / (original.name + "-v2"))})
+            self.assertTrue(context.restricted)  # Prefix-sharing sibling is allowed.
+            self.assertFalse(context.root.exists())
+        self.child(f'''
+            import os
+            from pathlib import Path
+            from src.runtime_context import RUNTIME, RuntimeIsolationError
+            for original in {list(map(str, inherited.values()))!r}:
+                assert Path(original) in RUNTIME.forbidden_roots
+                assert Path(original) in RUNTIME.sensitive_read_roots
+                try:
+                    RUNTIME.check_read(Path(original) / "external-state.txt")
+                except RuntimeIsolationError as exc:
+                    assert "Production mutable input rejected" in str(exc)
+                else:
+                    raise AssertionError("inherited mutable state accepted")
+            for key in ("XDG_CONFIG_HOME", "XDG_DATA_HOME"):
+                assert Path(os.environ[key]).is_relative_to(RUNTIME.root)
+            assert not RUNTIME.root.exists()
+        ''', extra={key: str(path) for key, path in inherited.items()})
+
     def test_root_overlap_in_both_directions_and_distinct_prefix(self):
         production = self.base / "production"
         for root in (production, production / "child", self.base):
@@ -199,6 +301,8 @@ class RuntimeIsolationTest(unittest.TestCase):
         self.assertFalse((common.parent / "runtime").exists())
 
     def test_profile_default_unknown_relative_and_conflicting_options(self):
+        (self.home / ".local/state").mkdir(parents=True)
+        before = list(self.home.rglob("*"))
         context = resolve_runtime({**self.env, "INVESTMENT_AUTOMATION_RUNTIME_PROFILE": "v2-restricted"})
         self.assertEqual(context.root, self.home / ".local/state/investment_automation_v2")
         for extra in ({"INVESTMENT_AUTOMATION_RUNTIME_PROFILE": "typo"},
@@ -207,7 +311,7 @@ class RuntimeIsolationTest(unittest.TestCase):
                        "INVESTMENT_AUTOMATION_RUNTIME_PROFILE": "v1"}):
             with self.subTest(extra=extra), self.assertRaises(RuntimeIsolationError):
                 resolve_runtime({**self.env, **extra})
-        self.assertEqual(list(self.home.iterdir()), [])
+        self.assertEqual(list(self.home.rglob("*")), before)
 
     def test_native_pdf_paths_and_readers_use_the_runtime_boundary(self):
         self.child(f'''
