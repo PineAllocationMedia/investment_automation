@@ -1,3 +1,4 @@
+from tests.identity_fixtures import production_identity
 import unittest
 from datetime import date
 
@@ -89,7 +90,9 @@ class AntiOverfittingGateEngineTest(unittest.TestCase):
 
     def test_cooldown_blocks_repeated_same_parameter_tuning(self):
         context = build_anti_overfitting_context(
-            model_metrics={"allocation_sample_count": 8, "span_days": 300},
+            model_metrics={**production_identity(), "current_model_lineage": "V1",
+                           "current_model_rules_version": "v-current",
+                           "allocation_sample_count": 8, "span_days": 300},
             backtest_summary_rows=[
                 {"period_years": 5, "excess_value_vs_vfv": 1000, "max_drawdown_on_capital_multiple": -0.20},
                 {"period_years": 10, "excess_value_vs_vfv": 2000, "max_drawdown_on_capital_multiple": -0.24},

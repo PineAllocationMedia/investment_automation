@@ -1,3 +1,4 @@
+from unittest.mock import patch
 import tempfile
 import unittest
 import copy
@@ -32,13 +33,18 @@ from src.validation_evidence import AUTO_TUNING_POLICY, VALIDATION_SCHEMA_VERSIO
 
 
 class BaselineIdentityTest(unittest.TestCase):
+    def setUp(self):
+        lineage = patch("src.model_identity.MODEL_LINEAGE", "V1")
+        lineage.start()
+        self.addCleanup(lineage.stop)
+
     def test_baseline_identity_and_frozen_versions_are_exact(self):
         root = Path(__file__).resolve().parents[1]
         identity = load_baseline_identity(root / "config" / "baseline.yaml")
 
         self.assertEqual(identity["baseline_id"], VALIDATION_BASELINE_ID)
         self.assertEqual(MODEL_RULES_VERSION, "2026-08-23-allocation-room-integrity-v7")
-        self.assertEqual(VALIDATION_SCHEMA_VERSION, "2026-08-23-validation-architecture-v3")
+        self.assertEqual(VALIDATION_SCHEMA_VERSION, "2026-09-06-validation-identity-v4")
         self.assertEqual(AUTO_TUNING_POLICY, "PROPOSAL_ONLY")
         self.assertEqual(identity["approved_config_fingerprint"], critical_config_fingerprint(root))
 

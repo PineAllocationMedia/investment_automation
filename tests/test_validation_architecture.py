@@ -1,3 +1,4 @@
+from tests.identity_fixtures import production_identity
 import unittest
 from pathlib import Path
 from tempfile import TemporaryDirectory
@@ -86,7 +87,7 @@ class ValidationArchitectureTest(unittest.TestCase):
 
             rows = build_walk_forward_inventory(
                 reports,
-                WalkForwardInventoryConfig(mode="high-cagr", min_days_between_points=14),
+                WalkForwardInventoryConfig(mode="high-cagr", min_days_between_points=14, model_lineage="V1"),
             )
 
         by_date = {row["analysis_date"]: row for row in rows}
@@ -99,7 +100,7 @@ class ValidationArchitectureTest(unittest.TestCase):
         with TemporaryDirectory() as folder:
             reports = Path(folder)
             self._write_pair(reports, "2026-07-01", RunPurpose.ZERO_CAPITAL_ANALYSIS.value)
-            rows = build_walk_forward_inventory(reports, WalkForwardInventoryConfig(mode="high-cagr"))
+            rows = build_walk_forward_inventory(reports, WalkForwardInventoryConfig(mode="high-cagr", model_lineage="V1"))
 
         self.assertEqual(rows[0]["run_purpose"], RunPurpose.ZERO_CAPITAL_ANALYSIS.value)
         self.assertFalse(rows[0]["primary_timeline_eligible"])
@@ -111,7 +112,7 @@ class ValidationArchitectureTest(unittest.TestCase):
                 self._write_pair(reports, day, None)
             rows = build_walk_forward_inventory(
                 reports,
-                WalkForwardInventoryConfig(mode="high-cagr", min_days_between_points=14),
+                WalkForwardInventoryConfig(mode="high-cagr", min_days_between_points=14, model_lineage="V1"),
             )
 
         eligible = [row for row in rows if row["primary_timeline_eligible"]]
@@ -126,7 +127,7 @@ class ValidationArchitectureTest(unittest.TestCase):
                 self._write_pair(reports, day, RunPurpose.SCHEDULED_DECISION.value)
             rows = build_walk_forward_inventory(
                 reports,
-                WalkForwardInventoryConfig(mode="high-cagr", min_days_between_points=14),
+                WalkForwardInventoryConfig(mode="high-cagr", min_days_between_points=14, model_lineage="V1"),
             )
 
         periods = [
@@ -152,7 +153,7 @@ class ValidationArchitectureTest(unittest.TestCase):
                 period="all",
                 mode="high-cagr",
                 current_model_rules_version="v2",
-            )
+            current_model_lineage="V1")
 
         metrics = audit["metrics"]
         self.assertEqual(metrics["current_version_observation_count"], 2)
@@ -172,7 +173,7 @@ class ValidationArchitectureTest(unittest.TestCase):
                 period="all",
                 mode="high-cagr",
                 current_model_rules_version="v2",
-            )
+            current_model_lineage="V1")
 
         self.assertEqual(audit["metrics"]["sample_count"], 1)
         self.assertEqual(audit["metrics"]["confidence"], "VERY_LIMITED")
@@ -187,6 +188,7 @@ class ValidationArchitectureTest(unittest.TestCase):
                 save_json(
                     history / f"allocation_high-cagr_20260823_{clock}.json",
                     {
+                        **production_identity(),
                         "analysis_date": "2026-08-23",
                         "created_at": f"2026-08-23T{clock[:2]}:{clock[2:4]}:00",
                         "analysis_mode": "high-cagr",
@@ -200,7 +202,7 @@ class ValidationArchitectureTest(unittest.TestCase):
                 period="all",
                 mode="high-cagr",
                 current_model_rules_version="v2",
-            )
+            current_model_lineage="V1")
 
         self.assertEqual(audit["metrics"]["total_history_observation_count"], 2)
         self.assertEqual(audit["metrics"]["current_version_observation_count"], 1)
@@ -218,6 +220,7 @@ class ValidationArchitectureTest(unittest.TestCase):
     def test_mixed_version_walk_forward_cannot_create_tuning_confidence(self):
         context = build_anti_overfitting_context(
             model_metrics={
+                **production_identity(), "current_model_lineage": "V1",
                 "allocation_sample_count": 8,
                 "current_model_rules_version": "v2",
                 "current_version_observation_count": 2,
@@ -225,7 +228,7 @@ class ValidationArchitectureTest(unittest.TestCase):
             },
             walk_forward_summary_rows=[{"status": "READY_FOR_WALK_FORWARD_REVIEW", "simulated_periods": 8}],
             walk_forward_period_rows=[
-                {"model_rules_version": "v1", "evaluation_status": "SIMULATED", "excess_return_vs_vfv": 0.50}
+                {**production_identity(), "model_rules_version": "v1", "evaluation_status": "SIMULATED", "excess_return_vs_vfv": 0.50}
                 for _ in range(8)
             ],
         )
@@ -240,6 +243,7 @@ class ValidationArchitectureTest(unittest.TestCase):
         history.mkdir(parents=True, exist_ok=True)
         stamp = day.replace("-", "")
         common = {
+            **production_identity(), "run_id": stamp, "manifest_fingerprint": stamp,
             "analysis_date": day,
             "created_at": f"{day}T09:00:00",
             "analysis_mode": "high-cagr",
@@ -264,6 +268,7 @@ class ValidationArchitectureTest(unittest.TestCase):
         save_json(
             history / f"allocation_high-cagr_{stamp}_090000.json",
             {
+                **production_identity(),
                 "analysis_date": day,
                 "created_at": f"{day}T09:00:00",
                 "analysis_mode": "high-cagr",
@@ -278,6 +283,7 @@ class ValidationArchitectureTest(unittest.TestCase):
         return build_full_audit_metrics(
             model_audit={
                 "metrics": {
+                    **production_identity(), "current_model_lineage": "V1",
                     "health_status": "GOOD",
                     "health_score": 75,
                     "confidence": "VERY_LIMITED",

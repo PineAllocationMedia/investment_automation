@@ -1,3 +1,4 @@
+from tests.identity_fixtures import production_identity
 import unittest
 from datetime import date, timedelta
 from pathlib import Path
@@ -119,7 +120,7 @@ class WalkForwardLegacyAuthorityTest(unittest.TestCase):
         summary = build_walk_forward_simulation_summary(
             [*legacy, *explicit],
             {"usable_walk_forward_periods": 12},
-            WalkForwardInventoryConfig(mode="high-cagr", recommended_min_periods=6),
+            WalkForwardInventoryConfig(mode="high-cagr", recommended_min_periods=6, model_lineage="V1", model_rules_version="v-current"),
             "TEST",
         )
 
@@ -150,7 +151,7 @@ class WalkForwardLegacyAuthorityTest(unittest.TestCase):
         summary = build_walk_forward_simulation_summary(
             [period],
             {"usable_walk_forward_periods": 1},
-            WalkForwardInventoryConfig(mode="high-cagr"),
+            WalkForwardInventoryConfig(mode="high-cagr", model_lineage="V1", model_rules_version="v-current"),
             "TEST",
         )
         full = self._full_audit([period], summary)
@@ -173,7 +174,7 @@ class WalkForwardLegacyAuthorityTest(unittest.TestCase):
                 self._write_pair(reports, day, purpose)
             rows = build_walk_forward_inventory(
                 reports,
-                WalkForwardInventoryConfig(mode="high-cagr", min_days_between_points=14),
+                WalkForwardInventoryConfig(mode="high-cagr", min_days_between_points=14, model_lineage="V1", model_rules_version="v-current"),
             )
 
         by_date = {row["analysis_date"]: row for row in rows}
@@ -192,7 +193,7 @@ class WalkForwardLegacyAuthorityTest(unittest.TestCase):
                 period="all",
                 mode="high-cagr",
                 current_model_rules_version="v-current",
-            )["metrics"]
+            current_model_lineage="V1")["metrics"]
 
         self.assertEqual(metrics["current_version_total_observation_count"], 3)
         self.assertEqual(metrics["current_version_decision_observation_count"], 2)
@@ -204,7 +205,7 @@ class WalkForwardLegacyAuthorityTest(unittest.TestCase):
         summary = build_walk_forward_simulation_summary(
             [current, old],
             {"usable_walk_forward_periods": 2},
-            WalkForwardInventoryConfig(mode="high-cagr"),
+            WalkForwardInventoryConfig(mode="high-cagr", model_lineage="V1", model_rules_version="v-current"),
             "TEST",
         )
         metrics = self._full_audit([current, old], summary)
@@ -229,7 +230,7 @@ class WalkForwardLegacyAuthorityTest(unittest.TestCase):
                 mode="high-cagr",
                 min_days_between_points=14,
                 recommended_min_periods=6,
-            )
+            model_lineage="V1", model_rules_version="v-current")
             inventory = build_walk_forward_inventory(reports, config)
             coverage = build_walk_forward_coverage(inventory, config)
             prices = pd.DataFrame(
@@ -254,6 +255,7 @@ class WalkForwardLegacyAuthorityTest(unittest.TestCase):
         history.mkdir(parents=True, exist_ok=True)
         stamp = day.replace("-", "")
         common = {
+            **production_identity(), "run_id": stamp, "manifest_fingerprint": stamp,
             "analysis_date": day,
             "created_at": f"{day}T09:00:00",
             "analysis_mode": "high-cagr",
@@ -285,6 +287,7 @@ class WalkForwardLegacyAuthorityTest(unittest.TestCase):
             basis = LEGACY_PARTIALLY_RECOVERABLE_BASIS
             evidence_class = EvidenceClass.HISTORICAL_STRESS_SENSITIVITY.value
         return {
+            **production_identity(),
             "model_rules_version": version,
             "run_purpose": purpose,
             "run_purpose_status": "EXPLICIT" if authoritative else "LEGACY_UNCERTAINTY",
@@ -318,6 +321,7 @@ class WalkForwardLegacyAuthorityTest(unittest.TestCase):
     @staticmethod
     def _model_metrics() -> dict:
         return {
+            **production_identity(), "current_model_lineage": "V1",
             "health_status": "DATA_TOO_SHORT",
             "health_score": 40,
             "confidence": "VERY_LIMITED",

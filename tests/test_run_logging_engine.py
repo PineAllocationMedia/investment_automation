@@ -1,3 +1,4 @@
+from unittest.mock import patch
 import unittest
 from pathlib import Path
 from tempfile import TemporaryDirectory
@@ -119,6 +120,7 @@ class RunLoggingEngineTest(unittest.TestCase):
             self.assertEqual({row["run_id"] for row in saved}, {"health-1"})
             self.assertTrue(any(row["level"] == "WARN" for row in saved))
 
+    @patch("src.model_identity.MODEL_LINEAGE", "V1")
     def test_analysis_log_carries_baseline_and_manifest_identity(self):
         rows = build_analysis_run_log(
             run_id="baseline-run-1",

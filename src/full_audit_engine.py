@@ -23,6 +23,7 @@ from .transaction_friction_engine import BACKTEST_FRICTION_AUDIT_COLUMNS
 from .underperformance_engine import UNDERPERFORMANCE_COLUMNS, build_underperformance_attribution
 from .utils import DATA_DIR, DISCLAIMER, REPORTS_DIR, markdown_to_html, money, pct, read_csv_records, safe_float, write_csv_records, write_text
 from .walk_forward_backtest_engine import run_walk_forward_backtest
+from .model_identity import MODEL_LINEAGE, matches_current_cohort, production_audit_scope
 from .validation_evidence import (
     AUTO_TUNING_POLICY,
     EVIDENCE_HIERARCHY,
@@ -270,6 +271,7 @@ def build_full_audit_metrics(
     walk_forward_summary = walk_forward_result.get("summary") or {}
     walk_forward_periods = walk_forward_result.get("period_rows") or []
     current_model_version = str(model_metrics.get("current_model_rules_version") or "")
+    current_lineage = str(model_metrics.get("current_model_lineage") or MODEL_LINEAGE)
     simulated_walk_forward_periods = [
         row
         for row in walk_forward_periods
@@ -278,7 +280,7 @@ def build_full_audit_metrics(
     current_version_total_walk_forward_periods = [
         row for row in walk_forward_periods
         if current_model_version
-        and str(row.get("model_rules_version") or "") == current_model_version
+        and matches_current_cohort(row, lineage=current_lineage, rules_version=current_model_version)
         and str(row.get("evaluation_status") or "") in {"SIMULATED", "SIMULATED_WITH_PARTIAL_PRICE_DATA"}
     ]
     current_version_walk_forward_periods = [
@@ -347,6 +349,8 @@ def build_full_audit_metrics(
         "current_version_decision_observation_count",
         model_metrics.get("current_version_observation_count", 0),
     )
+    if not production_audit_scope(model_metrics):
+        current_version_decision_observation_count = 0
     confidence_dimensions = validation_confidence_dimensions(
         run_succeeded=not bool(backtest_error or walk_forward_error),
         source_health_score=source_health.get("source_health_score"),

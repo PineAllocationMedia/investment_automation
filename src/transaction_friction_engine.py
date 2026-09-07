@@ -4,9 +4,11 @@ from pathlib import Path
 from typing import Any
 
 from .utils import CONFIG_DIR, load_yaml, safe_float
+from .model_identity import IDENTITY_FIELDS, evidence_cohort, identity_fields
 
 
 BACKTEST_FRICTION_AUDIT_COLUMNS = [
+    *IDENTITY_FIELDS, "baseline_id", "run_id",
     "audit_scope",
     "mode",
     "period_years",
@@ -147,15 +149,15 @@ def build_walk_forward_friction_rows(
 ) -> list[dict[str, Any]]:
     config = config or load_transaction_friction_config()
     rows = []
-    by_period: dict[tuple[str, str], list[dict[str, Any]]] = {}
+    by_period: dict[tuple[str, ...], list[dict[str, Any]]] = {}
     for row in allocation_return_rows:
-        key = (str(row.get("analysis_date") or ""), str(row.get("next_analysis_date") or ""))
+        key = _walk_forward_evidence_key(row)
         by_period.setdefault(key, []).append(row)
 
     for period in period_rows:
         if str(period.get("evaluation_status") or "") not in {"SIMULATED", "SIMULATED_WITH_PARTIAL_PRICE_DATA"}:
             continue
-        key = (str(period.get("analysis_date") or ""), str(period.get("next_analysis_date") or ""))
+        key = _walk_forward_evidence_key(period)
         allocation_rows = by_period.get(key, [])
         total_notional = _walk_forward_notional(allocation_rows, config)
         friction = estimate_allocation_friction(
@@ -184,6 +186,8 @@ def build_walk_forward_friction_rows(
                 status=_aggregate_status(friction),
             )
         )
+
+        rows[-1].update(identity_fields(period), baseline_id=period.get("baseline_id", ""), run_id=period.get("run_id", ""))
 
     simulated_count = int(safe_float(summary_row.get("simulated_periods")) or 0)
     if simulated_count:
@@ -269,14 +273,14 @@ def add_friction_fields_to_walk_forward_periods(
     friction_rows: list[dict[str, Any]],
 ) -> list[dict[str, Any]]:
     by_period = {
-        (str(row.get("analysis_date") or ""), str(row.get("next_analysis_date") or "")): row
+        _walk_forward_evidence_key(row): row
         for row in friction_rows
         if row.get("audit_scope") == "WALK_FORWARD_PERIOD"
     }
     output = []
     for period in period_rows:
         row = dict(period)
-        friction = by_period.get((str(row.get("analysis_date") or ""), str(row.get("next_analysis_date") or ""))) or {}
+        friction = by_period.get(_walk_forward_evidence_key(row)) or {}
         row.update(_friction_period_fields(friction))
         output.append(row)
     return output
@@ -457,3 +461,9 @@ def _walk_forward_notional(allocation_rows: list[dict[str, Any]], config: dict[s
     if amount_total > 0:
         return amount_total
     return max(1.0, safe_float(config.get("walk_forward_default_notional_cad")) or 1000.0)
+
+
+def _walk_forward_evidence_key(row: dict[str, Any]) -> tuple[str, ...]:
+    # This is evidence joining only; friction assumptions/calculations are unchanged.
+    return (*evidence_cohort(row), str(row.get("run_id") or ""), str(row.get("mode") or ""),
+            str(row.get("analysis_date") or ""), str(row.get("next_analysis_date") or ""))
