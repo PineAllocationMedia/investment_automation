@@ -1305,6 +1305,7 @@ def run_analysis(
         for row in static_input_audit.get("hard_failures", [])
     )
     baseline_metadata = baseline_observation_metadata(
+        run_id=run_id,
         run_timestamp=run_timestamp,
         run_purpose=resolved_run_purpose,
         capital=capital,
@@ -1472,6 +1473,7 @@ def run_analysis(
         )
         critical_input_audit = merge_input_audits(static_input_audit, runtime_input_audit)
         baseline_metadata = baseline_observation_metadata(
+            run_id=run_id,
             run_timestamp=run_timestamp,
             run_purpose=resolved_run_purpose,
             capital=capital,
@@ -1799,6 +1801,7 @@ def run_analysis(
         model_audit_signal = compute_model_audit_signal(REPORTS_DIR, mode)
         tracked_git_payload = git_tracked_state(PROJECT_ROOT)
         baseline_metadata = baseline_observation_metadata(
+            run_id=run_id,
             run_timestamp=run_timestamp,
             run_purpose=resolved_run_purpose,
             capital=capital,
@@ -1934,6 +1937,7 @@ def run_analysis(
             discovery_analyses,
             run_purpose=resolved_run_purpose,
             baseline_metadata=baseline_metadata,
+            run_id=run_id,
             manifest_reference=manifest_summary.get("manifest_reference", ""),
             manifest_fingerprint=manifest_summary.get("manifest_fingerprint", ""),
         )
@@ -2017,6 +2021,7 @@ def run_analysis(
             analysis_mode=mode,
             run_purpose=resolved_run_purpose,
             baseline_metadata=baseline_metadata,
+            run_id=run_id,
             manifest_reference=manifest_summary.get("manifest_reference", ""),
             manifest_fingerprint=manifest_summary.get("manifest_fingerprint", ""),
         )

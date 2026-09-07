@@ -5,7 +5,7 @@ from pathlib import Path
 from typing import Any
 
 from .model_version import MODEL_RULES_VERSION
-from .baseline_identity import baseline_snapshot_fields
+from .baseline_identity import baseline_snapshot_fields, producer_baseline_metadata
 from .utils import read_csv_records, safe_float, today_iso, write_csv_records
 from .validation_evidence import RunPurpose, VALIDATION_SCHEMA_VERSION, normalize_run_purpose
 
@@ -17,6 +17,11 @@ RUN_LOG_COLUMNS = [
     "command",
     "mode",
     "run_purpose",
+    "model_lineage",
+    "validation_authority",
+    "strategy_validation_authority",
+    "eligibility_basis",
+    "baseline_status",
     "baseline_id",
     "baseline_started_at",
     "baseline_evidence_status",
@@ -289,12 +294,14 @@ def apply_run_identity_metadata(
     baseline_metadata: dict[str, Any] | None = None,
     manifest_metadata: dict[str, Any] | None = None,
 ) -> list[dict[str, Any]]:
-    baseline = baseline_metadata or {}
+    baseline = producer_baseline_metadata(baseline_metadata)
     manifest = manifest_metadata or {}
     normalized_purpose = normalize_run_purpose(run_purpose)
     for row in rows:
         row.update(
             {
+                **baseline_snapshot_fields(baseline),
+                "run_id": row.get("run_id") or baseline.get("run_id", ""),
                 "run_purpose": normalized_purpose,
                 "baseline_id": baseline.get("baseline_id", ""),
                 "baseline_started_at": baseline.get("baseline_started_at", ""),
@@ -394,6 +401,7 @@ def extend_report_run_log(
         output,
         run_purpose=context.get("run_purpose"),
         baseline_metadata={
+            **baseline_snapshot_fields(context),
             "baseline_id": context.get("baseline_id", ""),
             "baseline_started_at": context.get("baseline_started_at", ""),
             "baseline_evidence_status": context.get("baseline_evidence_status", ""),
@@ -746,7 +754,7 @@ def write_universe_snapshot(
                 "score_data_gap_label": row.get("score_data_gap_label"),
             }
 
-        baseline = baseline_metadata or {}
+        baseline = producer_baseline_metadata(baseline_metadata)
         snapshot = {
             "run_id": run_id,
             "run_date": datetime.now().isoformat()[:10],
@@ -754,6 +762,7 @@ def write_universe_snapshot(
             "model_rules_version": model_rules_version,
             "run_purpose": normalize_run_purpose(run_purpose),
             **baseline_snapshot_fields(baseline),
+            "run_id": run_id,
             "manifest_reference": manifest_reference,
             "manifest_fingerprint": manifest_fingerprint,
             "ticker_count": len(scored_tickers),

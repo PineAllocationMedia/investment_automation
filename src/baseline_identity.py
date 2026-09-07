@@ -6,11 +6,16 @@ from pathlib import Path
 from typing import Any, Iterable, Mapping
 
 from .model_version import MODEL_RULES_VERSION
+from .model_identity import (IDENTITY_FIELDS, current_model_identity, identity_fields,
+                             evidence_cohort, explicit_true, production_identity_reasons)
 from .utils import CONFIG_DIR, load_yaml, safe_float
 from .validation_evidence import (
     VALIDATION_SCHEMA_VERSION,
     normalize_run_purpose,
     purpose_is_genuine_decision,
+    EXPLICIT_DECISION_ELIGIBILITY_BASIS,
+    EvidenceClass,
+    walk_forward_period_has_strategy_validation_authority,
 )
 
 
@@ -19,6 +24,9 @@ BASELINE_CONFIG_FILENAME = "baseline.yaml"
 BASELINE_PENDING_STATUS = "PENDING_APPROVED_DEPLOYMENT"
 BASELINE_FORWARD_OBSERVATION_STATUS = "BASELINE_V1_FORWARD_OBSERVATION"
 BASELINE_SNAPSHOT_FIELDS = (
+    *IDENTITY_FIELDS,
+    "run_id",
+    "strategy_validation_authority",
     "baseline_id",
     "baseline_started_at",
     "baseline_status",
@@ -38,6 +46,10 @@ BASELINE_SNAPSHOT_FIELDS = (
 
 
 def load_baseline_identity(config_path: str | Path | None = None) -> dict[str, str]:
+    identity = current_model_identity()
+    if identity["model_lineage"] != "V1":
+        return {**identity, "baseline_id": "", "baseline_started_at": "",
+                "baseline_status": "NOT_ESTABLISHED", "approved_config_fingerprint": ""}
     path = Path(config_path) if config_path is not None else CONFIG_DIR / BASELINE_CONFIG_FILENAME
     payload = load_yaml(path)
     baseline_id = str(payload.get("baseline_id") or VALIDATION_BASELINE_ID).strip()
@@ -54,6 +66,7 @@ def load_baseline_identity(config_path: str | Path | None = None) -> dict[str, s
     elif not configured_status or configured_status == BASELINE_PENDING_STATUS:
         configured_status = "ACTIVE"
     return {
+        **identity,
         "baseline_id": baseline_id,
         "baseline_started_at": started_at,
         "baseline_status": configured_status,
@@ -75,12 +88,14 @@ def baseline_observation_metadata(
     dependency_status: str = "MATCH",
     git_tracked_worktree_clean: bool = True,
     git_tracked_diff_fingerprint: str = "",
-    eligibility_basis: str = "EXPLICIT_RUN_PURPOSE",
+    eligibility_basis: str = EXPLICIT_DECISION_ELIGIBILITY_BASIS,
+    run_id: str = "",
 ) -> dict[str, Any]:
     identity = load_baseline_identity(config_path)
     purpose = normalize_run_purpose(run_purpose)
     observation = {
         **identity,
+        "run_id": run_id,
         "run_timestamp": run_timestamp.isoformat() if isinstance(run_timestamp, datetime) else str(run_timestamp or ""),
         "run_purpose": purpose,
         "capital": capital,
@@ -92,7 +107,17 @@ def baseline_observation_metadata(
         "git_tracked_diff_fingerprint": str(git_tracked_diff_fingerprint or ""),
         "eligibility_basis": eligibility_basis,
     }
-    return baseline_forward_authority(observation)
+    result = baseline_forward_authority(observation)
+    strategy_candidate = {
+        **observation, "evidence_class": EvidenceClass.POINT_IN_TIME_WALK_FORWARD.value,
+        "strategy_validation_authority": (
+            run_succeeded is True and critical_input_passed is True and approved_config_active is True
+            and dependency_status == "MATCH" and git_tracked_worktree_clean is True
+            and (safe_float(capital) or 0) > 0
+        ),
+    }
+    result["strategy_validation_authority"] = walk_forward_period_has_strategy_validation_authority(strategy_candidate)
+    return result
 
 
 def baseline_forward_authority(
@@ -115,7 +140,7 @@ def baseline_forward_authority(
     numeric_capital = safe_float(payload.get("capital"))
     eligibility_basis = str(payload.get("eligibility_basis") or "").strip().upper()
 
-    reasons: list[str] = []
+    reasons = production_identity_reasons(payload)
     if baseline_id != VALIDATION_BASELINE_ID:
         reasons.append("BASELINE_ID_MISMATCH")
     if baseline_status == BASELINE_PENDING_STATUS or started_at is None:
@@ -136,6 +161,10 @@ def baseline_forward_authority(
         reasons.append("BASELINE_NON_DECISION_OBSERVATION")
     if eligibility_basis == "LEGACY_PARTIALLY_RECOVERABLE":
         reasons.append("BASELINE_LEGACY_AUTHORITY_EXCLUDED")
+    elif eligibility_basis not in {EXPLICIT_DECISION_ELIGIBILITY_BASIS, "EXPLICIT_RUN_PURPOSE"}:
+        reasons.append("BASELINE_ELIGIBILITY_BASIS_INVALID")
+    if "strategy_validation_authority" in payload and not explicit_true(payload["strategy_validation_authority"]):
+        reasons.append("STRATEGY_VALIDATION_AUTHORITY_DENIED")
     if payload.get("run_succeeded") is not True:
         reasons.append("BASELINE_RUN_NOT_SUCCESSFUL")
     if payload.get("critical_input_passed") is not True:
@@ -146,7 +175,7 @@ def baseline_forward_authority(
         reasons.append("BASELINE_DEPENDENCY_ENVIRONMENT_INVALID")
     if payload.get("git_tracked_worktree_clean") is not True:
         reasons.append("BASELINE_TRACKED_GIT_STATE_INVALID")
-    if require_declared_eligibility and payload.get("baseline_forward_eligible") is not True:
+    if (require_declared_eligibility or "baseline_forward_eligible" in payload) and not explicit_true(payload.get("baseline_forward_eligible")):
         reasons.append("BASELINE_NOT_DECLARED_FORWARD_ELIGIBLE")
 
     eligible = not reasons
@@ -161,55 +190,68 @@ def baseline_forward_authority(
 
 def baseline_snapshot_fields(metadata: Mapping[str, Any] | None) -> dict[str, Any]:
     payload = dict(metadata or {})
-    return {field: payload.get(field, False if field == "baseline_forward_eligible" else "") for field in BASELINE_SNAPSHOT_FIELDS}
+    return {field: payload.get(field, False if field in {"baseline_forward_eligible", "strategy_validation_authority"} else "") for field in BASELINE_SNAPSHOT_FIELDS}
+
+
+def producer_baseline_metadata(metadata: Mapping[str, Any] | None) -> dict[str, Any]:
+    """Fresh writers use their own code identity, never a supplied V1 label in V2."""
+    supplied = dict(metadata or {})
+    payload = {**supplied, **current_model_identity()}
+    if payload["model_lineage"] == "V1":
+        if supplied.get("validation_authority") in {"NONE", "SHADOW_ONLY"}:
+            payload["validation_authority"] = supplied["validation_authority"]
+        if supplied.get("model_lineage") not in {None, "V1"}:
+            payload["validation_authority"] = "NONE"
+        if payload["validation_authority"] != "PRODUCTION":
+            payload.update(baseline_forward_eligible=False, strategy_validation_authority=False)
+    if payload["model_lineage"] != "V1":
+        payload.update(baseline_id="", baseline_started_at="", baseline_status="NOT_ESTABLISHED",
+                       baseline_evidence_status="MODEL_LINEAGE_MISMATCH", baseline_forward_eligible=False,
+                       strategy_validation_authority=False)
+        payload["baseline_authority_reasons"] = production_identity_reasons(payload)
+    return payload
+
+
+def paired_snapshot_identity_matches(snapshots: list[Mapping[str, Any]]) -> bool:
+    if len(snapshots) != 2:
+        return False
+    left, right = snapshots
+    if evidence_cohort(left) != evidence_cohort(right):
+        return False
+    for field in (*IDENTITY_FIELDS, "run_id", "manifest_fingerprint", "analysis_mode", "run_purpose"):
+        if not left.get(field) or left.get(field) != right.get(field):
+            return False
+    return left.get("baseline_started_at", "") == right.get("baseline_started_at", "")
 
 
 def combined_baseline_snapshot_authority(
-    payloads: Iterable[Mapping[str, Any]],
-    *,
-    run_purpose: Any,
+    payloads: Iterable[Mapping[str, Any]], *, run_purpose: Any,
 ) -> dict[str, Any]:
-    """Apply the canonical authority formula to a paired analysis/allocation run."""
+    """Revalidate a same-run pair; neither missing identity nor denial can grant."""
     snapshots = [dict(payload) for payload in payloads]
+    selected = snapshots[0] if snapshots else {}
+    metadata = {**identity_fields(selected), "run_id": selected.get("run_id", ""),
+                "manifest_reference": selected.get("manifest_reference", ""),
+                "manifest_fingerprint": selected.get("manifest_fingerprint", ""),
+                "baseline_id": selected.get("baseline_id", ""),
+                "baseline_forward_eligible": False, "strategy_validation_authority": False}
     if len(snapshots) != 2:
-        return {
-            "baseline_id": next((str(payload.get("baseline_id") or "") for payload in snapshots), ""),
-            "baseline_evidence_status": "BASELINE_PAIRED_SNAPSHOT_REQUIRED",
-            "baseline_forward_eligible": False,
-        }
-    authorities = [
-        baseline_forward_authority(
-            {
-                **payload,
-                "run_timestamp": payload.get("run_timestamp") or payload.get("created_at"),
-                "run_purpose": run_purpose,
-            },
-            require_declared_eligibility=True,
-        )
-        for payload in snapshots
-    ]
-    manifest_fingerprints = {str(payload.get("manifest_fingerprint") or "") for payload in snapshots}
-    same_manifest = len(manifest_fingerprints) == 1 and "" not in manifest_fingerprints
-    eligible = same_manifest and all(authority.get("baseline_forward_eligible") is True for authority in authorities)
-    selected = authorities[0]
-    return {
-        "baseline_id": str(selected.get("baseline_id") or ""),
-        "baseline_evidence_status": (
-            BASELINE_FORWARD_OBSERVATION_STATUS
-            if eligible
-            else "BASELINE_PAIRED_MANIFEST_MISMATCH"
-            if not same_manifest
-            else next(
-                (
-                    str(authority.get("baseline_evidence_status") or "")
-                    for authority in authorities
-                    if not authority.get("baseline_forward_eligible")
-                ),
-                "BASELINE_NOT_FORWARD_ELIGIBLE",
-            )
-        ),
-        "baseline_forward_eligible": eligible,
-    }
+        return {**metadata, "baseline_evidence_status": "BASELINE_PAIRED_SNAPSHOT_REQUIRED"}
+    if not paired_snapshot_identity_matches(snapshots) or any(
+        normalize_run_purpose(p.get("run_purpose")) != normalize_run_purpose(run_purpose) for p in snapshots
+    ):
+        return {**metadata, "baseline_evidence_status": "BASELINE_PAIRED_IDENTITY_MISMATCH"}
+    authorities = [baseline_forward_authority(p, require_declared_eligibility=True) for p in snapshots]
+    eligible = all(p["baseline_forward_eligible"] for p in authorities)
+    # Generic PIT authority is distinct from Baseline authority, but must be
+    # explicitly declared on both originating observations.
+    strategy = all(walk_forward_period_has_strategy_validation_authority({
+        **p, "evidence_class": p.get("evidence_class") or EvidenceClass.POINT_IN_TIME_WALK_FORWARD.value,
+    }) for p in snapshots)
+    return {**metadata, "baseline_forward_eligible": eligible,
+            "strategy_validation_authority": strategy,
+            "baseline_evidence_status": BASELINE_FORWARD_OBSERVATION_STATUS if eligible else next(
+                p["baseline_evidence_status"] for p in authorities if not p["baseline_forward_eligible"])}
 
 
 def _parse_datetime(value: Any) -> datetime | None:

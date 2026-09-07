@@ -1,3 +1,4 @@
+from tests.identity_fixtures import production_identity
 import unittest
 from pathlib import Path
 from tempfile import TemporaryDirectory
@@ -15,6 +16,7 @@ class ModelAuditEngineTest(unittest.TestCase):
             save_json(
                 history / "allocation_20260501_090000.json",
                 {
+                    **production_identity(),
                     "analysis_date": "2026-05-01",
                     "created_at": "2026-05-01T09:00:00",
                     "model_rules_version": "v1",
@@ -29,6 +31,7 @@ class ModelAuditEngineTest(unittest.TestCase):
             save_json(
                 history / "allocation_20260501_180000.json",
                 {
+                    **production_identity(),
                     "analysis_date": "2026-05-01",
                     "created_at": "2026-05-01T18:00:00",
                     "model_rules_version": "v1",
@@ -43,6 +46,7 @@ class ModelAuditEngineTest(unittest.TestCase):
             save_json(
                 history / "allocation_20260515_090000.json",
                 {
+                    **production_identity(),
                     "analysis_date": "2026-05-15",
                     "created_at": "2026-05-15T09:00:00",
                     "model_rules_version": "v1",
@@ -55,7 +59,7 @@ class ModelAuditEngineTest(unittest.TestCase):
                 },
             )
 
-            audit = build_model_audit(reports, period="all", current_model_rules_version="v1")
+            audit = build_model_audit(reports, period="all", current_model_rules_version="v1", current_model_lineage="V1")
 
         metrics = audit["metrics"]
         self.assertEqual(metrics["sample_count"], 2)
@@ -72,6 +76,7 @@ class ModelAuditEngineTest(unittest.TestCase):
             save_json(
                 history / "allocation_20260501_090000.json",
                 {
+                    **production_identity(),
                     "analysis_date": "2026-05-01",
                     "created_at": "2026-05-01T09:00:00",
                     "model_rules_version": "v1",
@@ -81,7 +86,7 @@ class ModelAuditEngineTest(unittest.TestCase):
                 },
             )
 
-            audit = run_model_audit(reports, period="all", current_model_rules_version="v1")
+            audit = run_model_audit(reports, period="all", current_model_rules_version="v1", current_model_lineage="V1")
 
             self.assertTrue((reports / "latest_model_audit.md").exists())
             self.assertTrue((reports / "latest_model_audit.html").exists())
@@ -98,6 +103,7 @@ class ModelAuditEngineTest(unittest.TestCase):
                 save_json(
                     history / f"allocation_2026{month}01_090000.json",
                     {
+                        **production_identity(),
                         "analysis_date": f"2026-{month}-01",
                         "created_at": f"2026-{month}-01T09:00:00",
                         "model_rules_version": "v1",
@@ -111,7 +117,7 @@ class ModelAuditEngineTest(unittest.TestCase):
                     },
                 )
 
-            audit = build_model_audit(reports, period="all", current_model_rules_version="v1")
+            audit = build_model_audit(reports, period="all", current_model_rules_version="v1", current_model_lineage="V1")
 
         self.assertEqual(audit["metrics"]["threshold_review"]["status"], "SLIGHTLY_TOO_DEFENSIVE")
         threshold_rows = [row for row in audit["rows"] if row["section"] == "Revue des seuils"]
@@ -126,6 +132,7 @@ class ModelAuditEngineTest(unittest.TestCase):
             save_json(
                 history / "allocation_balanced_20260501_090000.json",
                 {
+                    **production_identity(),
                     "analysis_date": "2026-05-01",
                     "created_at": "2026-05-01T09:00:00",
                     "analysis_mode": "balanced",
@@ -137,6 +144,7 @@ class ModelAuditEngineTest(unittest.TestCase):
             save_json(
                 history / "allocation_high-cagr_20260502_090000.json",
                 {
+                    **production_identity(),
                     "analysis_date": "2026-05-02",
                     "created_at": "2026-05-02T09:00:00",
                     "analysis_mode": "high-cagr",
@@ -151,7 +159,7 @@ class ModelAuditEngineTest(unittest.TestCase):
                 period="all",
                 mode="high-cagr",
                 current_model_rules_version="v1",
-            )
+            current_model_lineage="V1")
 
         metrics = audit["metrics"]
         self.assertEqual(metrics["mode"], "high-cagr")

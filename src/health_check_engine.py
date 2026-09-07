@@ -87,6 +87,10 @@ def _dependency_reproducibility_rows(project_root: Path) -> list[dict[str, Any]]
 
 def _baseline_rows(project_root: Path) -> list[dict[str, Any]]:
     identity = load_baseline_identity(project_root / "config" / "baseline.yaml")
+    if identity.get("model_lineage") == "V2":
+        return [_row("baseline_identity", "PASS", "LOW",
+                     f"lineage=V2; schema={identity['validation_schema_version']}; authority=NONE; Baseline=NOT_ESTABLISHED. Identity diagnostic only; no production approval.",
+                     "Aucune activation Baseline V2.")]
     approved_config = str(identity.get("approved_config_fingerprint") or "")
     actual_config = critical_config_fingerprint(project_root) if approved_config else ""
     checks = [

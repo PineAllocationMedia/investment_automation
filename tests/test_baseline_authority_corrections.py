@@ -1,3 +1,5 @@
+from unittest.mock import patch
+from tests.identity_fixtures import production_identity
 import subprocess
 import tempfile
 import unittest
@@ -32,6 +34,11 @@ from src.walk_forward_backtest_engine import (
 
 
 class BaselineAuthorityCorrectionTest(unittest.TestCase):
+    def setUp(self):
+        lineage = patch("src.model_identity.MODEL_LINEAGE", "V1")
+        lineage.start()
+        self.addCleanup(lineage.stop)
+
     def test_capital_must_be_finite_numeric_and_strictly_positive(self):
         with tempfile.TemporaryDirectory() as directory:
             config = self._active_config(Path(directory))
@@ -148,7 +155,7 @@ class BaselineAuthorityCorrectionTest(unittest.TestCase):
                 period="all",
                 mode="high-cagr",
                 current_model_rules_version=MODEL_RULES_VERSION,
-            )["metrics"]
+            current_model_lineage="V1")["metrics"]
 
         self.assertEqual(metrics["current_version_decision_observation_count"], 2)
         self.assertEqual(metrics["baseline_forward_observation_count"], 1)
@@ -164,7 +171,7 @@ class BaselineAuthorityCorrectionTest(unittest.TestCase):
                 period="all",
                 mode="high-cagr",
                 current_model_rules_version=MODEL_RULES_VERSION,
-            )["metrics"]
+            current_model_lineage="V1")["metrics"]
 
         self.assertEqual(metrics["current_version_decision_observation_count"], 2)
         self.assertEqual(metrics["baseline_forward_observation_count"], 1)
@@ -178,7 +185,7 @@ class BaselineAuthorityCorrectionTest(unittest.TestCase):
         summary = build_walk_forward_simulation_summary(
             period_rows,
             {"usable_walk_forward_periods": 2},
-            WalkForwardInventoryConfig(mode="high-cagr", recommended_min_periods=6),
+            WalkForwardInventoryConfig(mode="high-cagr", recommended_min_periods=6, model_lineage="V1"),
             "TEST",
         )
 
@@ -195,11 +202,11 @@ class BaselineAuthorityCorrectionTest(unittest.TestCase):
             self._write_snapshot_pair(reports, "2026-08-13", baseline_eligible=False, purpose="DIAGNOSTIC")
             inventory = build_walk_forward_inventory(
                 reports,
-                WalkForwardInventoryConfig(mode="high-cagr", min_days_between_points=1),
+                WalkForwardInventoryConfig(mode="high-cagr", min_days_between_points=1, model_lineage="V1"),
             )
             coverage = build_walk_forward_coverage(
                 inventory,
-                WalkForwardInventoryConfig(mode="high-cagr", min_days_between_points=1),
+                WalkForwardInventoryConfig(mode="high-cagr", min_days_between_points=1, model_lineage="V1"),
             )
 
         by_date = {row["analysis_date"]: row for row in inventory}
@@ -264,6 +271,7 @@ class BaselineAuthorityCorrectionTest(unittest.TestCase):
     @staticmethod
     def _observation() -> dict:
         return {
+            **production_identity(),
             "baseline_id": VALIDATION_BASELINE_ID,
             "baseline_status": "ACTIVE",
             "baseline_started_at": "2026-08-10T00:00:00",
@@ -301,6 +309,7 @@ class BaselineAuthorityCorrectionTest(unittest.TestCase):
         }
         slug = analysis_date.replace("-", "")
         common = {
+            **production_identity(),
             "created_at": timestamp,
             "analysis_date": analysis_date,
             "analysis_mode": "high-cagr",
@@ -308,6 +317,7 @@ class BaselineAuthorityCorrectionTest(unittest.TestCase):
             "run_purpose": purpose,
             "manifest_reference": f"reports/decision_manifests/{slug}.json",
             "manifest_fingerprint": f"manifest-{slug}",
+            "run_id": slug,
             **baseline,
         }
         save_json(
@@ -331,6 +341,7 @@ class BaselineAuthorityCorrectionTest(unittest.TestCase):
             "eligibility_basis": EXPLICIT_DECISION_ELIGIBILITY_BASIS,
             "evidence_class": "POINT_IN_TIME_WALK_FORWARD",
             "strategy_validation_authority": True,
+            **production_identity(),
             "baseline_id": VALIDATION_BASELINE_ID,
             "baseline_forward_eligible": baseline_eligible,
             "analysis_date": analysis_date,

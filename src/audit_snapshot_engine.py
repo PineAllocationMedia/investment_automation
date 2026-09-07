@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import Any
 
 from .model_version import MODEL_RULES_VERSION
+from .baseline_identity import baseline_snapshot_fields, producer_baseline_metadata
 from .utils import read_csv_records, safe_float, save_json, today_iso
 from .validation_evidence import RunPurpose, VALIDATION_SCHEMA_VERSION, normalize_run_purpose
 
@@ -76,10 +77,11 @@ def _build_current_run_snapshot(
         (normalize_run_purpose(row.get("run_purpose")) for row in run_log_rows if row.get("run_purpose")),
         RunPurpose.UNKNOWN_LEGACY.value,
     )
-    baseline = allocation_result.get("baseline_identity") or {}
+    baseline = producer_baseline_metadata(allocation_result.get("baseline_identity"))
     manifest = allocation_result.get("decision_manifest") or {}
     return {
         "meta": {
+            **baseline_snapshot_fields(baseline),
             "run_date": today_iso(),
             "created_at": now.isoformat(),
             "analysis_mode": mode,

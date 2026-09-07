@@ -1,3 +1,4 @@
+from tests.identity_fixtures import production_identity
 import unittest
 from pathlib import Path
 from tempfile import TemporaryDirectory
@@ -185,6 +186,7 @@ class ModelAuditRunPurposeTest(unittest.TestCase):
         metrics = build_full_audit_metrics(
             model_audit={
                 "metrics": {
+                    **production_identity(), "current_model_lineage": "V1",
                     "health_status": "DATA_TOO_SHORT",
                     "health_score": 40,
                     "confidence": "VERY_LIMITED",
@@ -229,7 +231,7 @@ class ModelAuditRunPurposeTest(unittest.TestCase):
                 period="all",
                 mode="high-cagr",
                 current_model_rules_version="v2",
-            )
+            current_model_lineage="V1")
 
         suggestions = build_improvement_suggestions(
             audit,
@@ -254,7 +256,7 @@ class ModelAuditRunPurposeTest(unittest.TestCase):
             self._write_pair(reports, "2026-01-20", RunPurpose.SCHEDULED_DECISION.value, "MSFT")
             rows = build_walk_forward_inventory(
                 reports,
-                WalkForwardInventoryConfig(mode="high-cagr", min_days_between_points=14),
+                WalkForwardInventoryConfig(mode="high-cagr", min_days_between_points=14, model_lineage="V1"),
             )
 
         by_date = {row["analysis_date"]: row for row in rows}
@@ -282,7 +284,7 @@ class ModelAuditRunPurposeTest(unittest.TestCase):
             period="all",
             mode="high-cagr",
             current_model_rules_version=current_version,
-        )["metrics"]
+        current_model_lineage="V1")["metrics"]
 
     @staticmethod
     def _write_allocation(
@@ -297,6 +299,7 @@ class ModelAuditRunPurposeTest(unittest.TestCase):
         history = reports / "history"
         history.mkdir(parents=True, exist_ok=True)
         payload = {
+            **production_identity(), "run_id": day, "manifest_fingerprint": day,
             "analysis_date": day,
             "created_at": f"{day}T{clock[:2]}:{clock[2:4]}:00",
             "analysis_mode": "high-cagr",
@@ -314,6 +317,8 @@ class ModelAuditRunPurposeTest(unittest.TestCase):
         save_json(
             history / f"analysis_high-cagr_{day.replace('-', '')}_090000.json",
             {
+                **production_identity(),
+                "run_id": day, "manifest_fingerprint": day,
                 "analysis_date": day,
                 "created_at": f"{day}T09:00:00",
                 "analysis_mode": "high-cagr",

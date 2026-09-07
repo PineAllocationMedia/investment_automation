@@ -1,3 +1,4 @@
+from tests.identity_fixtures import production_identity
 import unittest
 from pathlib import Path
 from tempfile import TemporaryDirectory
@@ -50,6 +51,7 @@ class FullAuditEngineTest(unittest.TestCase):
         metrics = build_full_audit_metrics(
             model_audit={
                 "metrics": {
+                    **production_identity(), "current_model_lineage": "V1",
                     "health_status": "STRONG",
                     "health_score": 86,
                     "confidence": "SOLID",
@@ -88,6 +90,7 @@ class FullAuditEngineTest(unittest.TestCase):
                 },
                 "period_rows": [
                     {
+                        **production_identity(),
                         "model_rules_version": "v-current",
                         "run_purpose": "SCHEDULED_DECISION",
                         "run_purpose_status": "EXPLICIT",
@@ -100,6 +103,7 @@ class FullAuditEngineTest(unittest.TestCase):
                         "excess_return_vs_vfv": 0.02,
                     },
                     {
+                        **production_identity(),
                         "model_rules_version": "v-current",
                         "run_purpose": "SCHEDULED_DECISION",
                         "run_purpose_status": "EXPLICIT",
@@ -112,6 +116,7 @@ class FullAuditEngineTest(unittest.TestCase):
                         "excess_return_vs_vfv": 0.01,
                     },
                     {
+                        **production_identity(),
                         "model_rules_version": "v-current",
                         "run_purpose": "SCHEDULED_DECISION",
                         "run_purpose_status": "EXPLICIT",

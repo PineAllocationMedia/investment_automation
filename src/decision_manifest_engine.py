@@ -11,14 +11,14 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, Iterable
 
-from .baseline_identity import baseline_observation_metadata
+from .baseline_identity import baseline_observation_metadata, producer_baseline_metadata
+from .model_identity import identity_fields
 from .dependency_reproducibility import dependency_environment
-from .model_version import MODEL_RULES_VERSION
 from .utils import load_json, save_json
-from .validation_evidence import VALIDATION_SCHEMA_VERSION, normalize_run_purpose
+from .validation_evidence import normalize_run_purpose
 
 
-MANIFEST_SCHEMA_VERSION = "2026-08-24-decision-run-manifest-v1"
+MANIFEST_SCHEMA_VERSION = "2026-09-06-decision-run-manifest-v2"
 TRANSIENT_PATH_KEYS = {
     "path",
     "file_path",
@@ -140,6 +140,7 @@ def build_decision_manifest(
         capital=capital,
         config_path=root / "config" / "baseline.yaml",
     )
+    baseline = producer_baseline_metadata({**baseline, "run_id": run_id})
     dependencies = dependency_payload or dependency_environment(root / "requirements.lock")
     tracked_git = git_state_payload or git_tracked_state(root)
     config_fingerprints = _directory_file_fingerprints(root, root / "config", suffixes={".yaml", ".yml"})
@@ -169,9 +170,8 @@ def build_decision_manifest(
     decision_output_fingerprint = canonical_fingerprint(decision_payload)
     semantic_identity = {
         "manifest_schema_version": MANIFEST_SCHEMA_VERSION,
+        **identity_fields(baseline),
         "baseline_id": baseline.get("baseline_id"),
-        "model_rules_version": MODEL_RULES_VERSION,
-        "validation_schema_version": VALIDATION_SCHEMA_VERSION,
         "git_commit_sha": git_sha or git_commit_sha(root),
         "git_tracked_worktree_clean": tracked_git.get("git_tracked_worktree_clean"),
         "git_tracked_diff_fingerprint": tracked_git.get("git_tracked_diff_fingerprint"),
@@ -190,12 +190,11 @@ def build_decision_manifest(
     }
     manifest = {
         "manifest_schema_version": MANIFEST_SCHEMA_VERSION,
+        **identity_fields(baseline),
         "run_id": run_id,
         "timestamp": run_timestamp,
         "run_purpose": normalize_run_purpose(run_purpose),
         "baseline": baseline,
-        "model_rules_version": MODEL_RULES_VERSION,
-        "validation_schema_version": VALIDATION_SCHEMA_VERSION,
         "git_commit_sha": semantic_identity["git_commit_sha"],
         "git_tracked_worktree_clean": semantic_identity["git_tracked_worktree_clean"],
         "git_tracked_diff_fingerprint": semantic_identity["git_tracked_diff_fingerprint"],
@@ -268,6 +267,8 @@ def write_decision_manifest(
     _write_immutable_run_artifact(history_path, manifest)
     save_json(latest_path, manifest)
     return {
+        **identity_fields(manifest),
+        "run_id": run_id,
         "manifest_reference": f"reports/decision_manifests/{run_id}.json",
         "latest_manifest_reference": "reports/latest_decision_manifest.json",
         "manifest_fingerprint": str(manifest.get("manifest_fingerprint") or ""),
@@ -297,6 +298,7 @@ def write_failed_run_audit(
         run_purpose=run_purpose,
         capital=capital,
         config_path=Path(project_root) / "config" / "baseline.yaml",
+        run_id=run_id,
         run_succeeded=False,
         critical_input_passed=False,
         approved_config_active=False,
@@ -306,13 +308,12 @@ def write_failed_run_audit(
     )
     payload = {
         "manifest_schema_version": MANIFEST_SCHEMA_VERSION,
+        **identity_fields(baseline),
         "run_id": run_id,
         "timestamp": run_timestamp,
         "status": "FAILED_CRITICAL_INPUT",
         "run_purpose": normalize_run_purpose(run_purpose),
         "baseline": {**baseline, "baseline_forward_eligible": False},
-        "model_rules_version": MODEL_RULES_VERSION,
-        "validation_schema_version": VALIDATION_SCHEMA_VERSION,
         "git_commit_sha": git_commit_sha(project_root),
         **tracked_git,
         "dependency_environment": dependencies,

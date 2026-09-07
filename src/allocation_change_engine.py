@@ -5,7 +5,7 @@ from pathlib import Path
 from typing import Any
 
 from .model_version import MODEL_RULES_VERSION
-from .baseline_identity import baseline_snapshot_fields
+from .baseline_identity import baseline_snapshot_fields, producer_baseline_metadata
 from .validation_evidence import RunPurpose, normalize_run_purpose
 from .utils import load_json, read_csv_records, safe_float, save_json, today_iso, write_csv_records
 
@@ -130,6 +130,7 @@ def save_allocation_snapshot(
     *,
     run_purpose: str = RunPurpose.UNKNOWN_LEGACY.value,
     baseline_metadata: dict[str, Any] | None = None,
+    run_id: str = "",
     manifest_reference: str = "",
     manifest_fingerprint: str = "",
 ) -> None:
@@ -138,7 +139,7 @@ def save_allocation_snapshot(
     history_dir.mkdir(parents=True, exist_ok=True)
     normalized_mode = _normalize_mode(analysis_mode)
     rows = _snapshot_rows(allocation_result.get("allocations") or [])
-    baseline = baseline_metadata or {}
+    baseline = producer_baseline_metadata(baseline_metadata)
     payload = {
         "created_at": datetime.now().isoformat(timespec="seconds"),
         "analysis_date": today_iso(),
@@ -146,6 +147,7 @@ def save_allocation_snapshot(
         "analysis_mode": normalized_mode,
         "run_purpose": normalize_run_purpose(run_purpose),
         **baseline_snapshot_fields(baseline),
+        "run_id": run_id or baseline.get("run_id", ""),
         "manifest_reference": manifest_reference,
         "manifest_fingerprint": manifest_fingerprint,
         "allocations": rows,

@@ -6,6 +6,7 @@ from typing import Any
 from .model_tuning import TUNABLE_PARAMETER_LIMITS
 from .proxy_correction_engine import PROXY_CORRECTION_PARAMETER_PREFIX
 from .utils import pct, safe_float
+from .model_identity import MODEL_LINEAGE, matches_current_cohort, production_audit_scope
 from .validation_evidence import (
     AUTO_TUNING_POLICY,
     EvidenceClass,
@@ -56,6 +57,7 @@ def build_anti_overfitting_context(
     walk_forward_summary = _first_row(walk_forward_summary_rows or [])
     walk_forward_periods = walk_forward_period_rows or []
     current_model_version = str(model_metrics.get("current_model_rules_version") or "")
+    current_lineage = str(model_metrics.get("current_model_lineage") or MODEL_LINEAGE)
     simulated_walk_forward_periods = [
         row
         for row in walk_forward_periods
@@ -64,7 +66,7 @@ def build_anti_overfitting_context(
     current_version_total_walk_forward_periods = [
         row for row in walk_forward_periods
         if current_model_version
-        and str(row.get("model_rules_version") or "") == current_model_version
+        and matches_current_cohort(row, lineage=current_lineage, rules_version=current_model_version)
         and str(row.get("evaluation_status") or "") in {"SIMULATED", "SIMULATED_WITH_PARTIAL_PRICE_DATA"}
     ]
     current_walk_forward_periods = [
@@ -89,6 +91,10 @@ def build_anti_overfitting_context(
         )
         or 0
     )
+    if not production_audit_scope(model_metrics):
+        current_version_decision_observations = 0
+        sample_count = 0
+        span_days = 0
     return {
         "mode": mode,
         "sample_count": sample_count,

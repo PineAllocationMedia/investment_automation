@@ -9,6 +9,9 @@ import pandas as pd
 
 from .backtest_engine import fetch_price_history_cad
 from .baseline_identity import VALIDATION_BASELINE_ID, combined_baseline_snapshot_authority
+from .model_identity import (MODEL_LINEAGE, IDENTITY_FIELDS, evidence_cohort, identity_fields,
+                             explicit_true, matches_current_cohort)
+from .model_version import MODEL_RULES_VERSION
 from .benchmark_comparison_engine import (
     WALK_FORWARD_BENCHMARK_COLUMNS,
     benchmark_price_tickers,
@@ -28,6 +31,7 @@ from .validation_evidence import (
     EXPLICIT_DECISION_ELIGIBILITY_BASIS,
     LEGACY_PARTIALLY_RECOVERABLE_BASIS,
     EvidenceClass,
+    VALIDATION_SCHEMA_VERSION,
     RunPurpose,
     combined_snapshot_purpose,
     evidence_maturity,
@@ -44,9 +48,16 @@ WALK_FORWARD_INVENTORY_COLUMNS = [
     "evidence_class",
     "analysis_date",
     "created_at",
+    "model_lineage",
+    "validation_schema_version",
+    "validation_authority",
+    "run_id",
+    "manifest_reference",
+    "manifest_fingerprint",
     "model_rules_version",
     "run_purpose",
     "run_purpose_status",
+    "strategy_validation_authority",
     "primary_timeline_eligible",
     "eligibility_basis",
     "baseline_id",
@@ -68,6 +79,7 @@ WALK_FORWARD_INVENTORY_COLUMNS = [
 ]
 
 WALK_FORWARD_COVERAGE_COLUMNS = [
+    *IDENTITY_FIELDS,
     "mode",
     "status",
     "evidence_class",
@@ -94,6 +106,7 @@ WALK_FORWARD_COVERAGE_COLUMNS = [
 ]
 
 WALK_FORWARD_SUMMARY_COLUMNS = [
+    *IDENTITY_FIELDS,
     "mode",
     "status",
     "evidence_class",
@@ -142,6 +155,12 @@ WALK_FORWARD_PERIOD_COLUMNS = [
     "baseline_id",
     "baseline_evidence_status",
     "baseline_forward_eligible",
+    "model_lineage",
+    "validation_schema_version",
+    "validation_authority",
+    "run_id",
+    "manifest_reference",
+    "manifest_fingerprint",
     "model_rules_version",
     "analysis_date",
     "next_analysis_date",
@@ -168,6 +187,7 @@ WALK_FORWARD_PERIOD_COLUMNS = [
 ]
 
 WALK_FORWARD_ALLOCATION_RETURN_COLUMNS = [
+    *IDENTITY_FIELDS, "baseline_id", "run_id",
     "mode",
     "analysis_date",
     "next_analysis_date",
@@ -201,6 +221,8 @@ class WalkForwardInventoryConfig:
     min_days_between_points: int = 14
     recommended_min_periods: int = 6
     max_missing_allocation_weight: float = 0.10
+    model_lineage: str = MODEL_LINEAGE
+    model_rules_version: str = MODEL_RULES_VERSION
 
 
 def run_walk_forward_inventory(
@@ -330,38 +352,38 @@ def build_walk_forward_inventory(
     history_dir = Path(reports_dir) / "history"
     analysis_by_date = _latest_daily_payloads(history_dir, "analysis", config.mode)
     allocation_by_date = _latest_daily_payloads(history_dir, "allocation", config.mode)
-    dates = sorted(set(analysis_by_date) | set(allocation_by_date))
-    rows: list[dict[str, Any]] = []
+    keys = sorted(set(analysis_by_date) | set(allocation_by_date))
+    partitions: dict[tuple[str, ...], list[dict[str, Any]]] = {}
+    payloads = {}
+    for key in keys:
+        cohort, analysis_date = key
+        analysis, allocation = analysis_by_date.get(key, {}), allocation_by_date.get(key, {})
+        payloads[key] = (analysis, allocation)
+        partitions.setdefault(cohort, []).append(_inventory_row(analysis_date, analysis, allocation, "", None, config))
 
-    payloads_by_date: dict[str, tuple[dict[str, Any], dict[str, Any]]] = {}
-    for analysis_date in dates:
-        analysis = analysis_by_date.get(analysis_date, {})
-        allocation = allocation_by_date.get(analysis_date, {})
-        payloads_by_date[analysis_date] = (analysis, allocation)
-        rows.append(_inventory_row(analysis_date, analysis, allocation, "", None, config))
-
-    eligible_dates, eligibility_basis = _primary_timeline_dates(rows, config)
-    eligible_index = {analysis_date: index for index, analysis_date in enumerate(eligible_dates)}
-    for row in rows:
-        analysis_date = str(row.get("analysis_date") or "")
-        is_eligible = analysis_date in eligible_index
-        row["primary_timeline_eligible"] = is_eligible
-        row["eligibility_basis"] = eligibility_basis.get(analysis_date, "PURPOSE_EXCLUDED")
-        if not is_eligible:
-            row["next_analysis_date"] = ""
-            row["days_to_next"] = ""
-            row["usable_for_walk_forward"] = False
-            row["exclusion_reason"] = f"RUN_PURPOSE_NOT_WALK_FORWARD_ELIGIBLE:{row.get('run_purpose')}"
-            continue
-        index = eligible_index[analysis_date]
-        next_date = eligible_dates[index + 1] if index + 1 < len(eligible_dates) else ""
-        days_to_next = _days_between(analysis_date, next_date) if next_date else None
-        analysis, allocation = payloads_by_date[analysis_date]
-        exclusion = _exclusion_reason(analysis, allocation, next_date, days_to_next, config)
-        row["next_analysis_date"] = next_date
-        row["days_to_next"] = days_to_next if days_to_next is not None else ""
-        row["usable_for_walk_forward"] = not exclusion
-        row["exclusion_reason"] = exclusion
+    rows = []
+    for cohort, group in sorted(partitions.items()):
+        eligible_dates, eligibility_basis = _primary_timeline_dates(group, config)
+        eligible_index = {day: index for index, day in enumerate(eligible_dates)}
+        for row in group:
+            day = str(row.get("analysis_date") or "")
+            is_eligible = day in eligible_index
+            row["primary_timeline_eligible"] = is_eligible
+            # Only legacy diagnostics need a recovered basis. A declared basis
+            # on new records must not be repaired into permission.
+            if row.get("run_purpose") == RunPurpose.UNKNOWN_LEGACY.value:
+                row["eligibility_basis"] = eligibility_basis.get(day, "PURPOSE_EXCLUDED")
+            if not is_eligible:
+                row.update(next_analysis_date="", days_to_next="", usable_for_walk_forward=False,
+                           exclusion_reason=f"RUN_PURPOSE_NOT_WALK_FORWARD_ELIGIBLE:{row.get('run_purpose')}")
+            else:
+                index = eligible_index[day]
+                next_date = eligible_dates[index + 1] if index + 1 < len(eligible_dates) else ""
+                days = _days_between(day, next_date) if next_date else None
+                exclusion = _exclusion_reason(*payloads[(cohort, day)], next_date, days, config)
+                row.update(next_analysis_date=next_date, days_to_next=days if days is not None else "",
+                           usable_for_walk_forward=not exclusion, exclusion_reason=exclusion)
+            rows.append(row)
     return rows
 
 
@@ -380,7 +402,9 @@ def build_walk_forward_coverage(
         if purpose_is_walk_forward_decision(row.get("run_purpose"))
         and str(row.get("eligibility_basis") or "") == EXPLICIT_DECISION_ELIGIBILITY_BASIS
     ]
-    genuine_usable = [row for row in usable if row in explicit_eligible]
+    genuine_usable = [row for row in usable if row in explicit_eligible
+                      and _in_validation_cohort(row, config)
+                      and walk_forward_period_has_strategy_validation_authority(row)]
     diagnostic = [
         row for row in dated
         if str(row.get("run_purpose") or "")
@@ -396,8 +420,9 @@ def build_walk_forward_coverage(
     baseline_eligible = [
         row
         for row in explicit_eligible
-        if row.get("baseline_forward_eligible") is True
+        if _in_validation_cohort(row, config) and explicit_true(row.get("baseline_forward_eligible"))
         and str(row.get("baseline_id") or "") == VALIDATION_BASELINE_ID
+        and walk_forward_period_has_strategy_validation_authority(row)
     ]
     baseline_usable = [row for row in usable if row in baseline_eligible]
     dates = [str(row.get("analysis_date")) for row in dated]
@@ -413,7 +438,11 @@ def build_walk_forward_coverage(
             else EvidenceClass.POINT_IN_TIME_WALK_FORWARD.value
         ),
         "evidence_maturity": evidence_maturity(len(genuine_usable)),
-        "baseline_id": VALIDATION_BASELINE_ID,
+        "baseline_id": VALIDATION_BASELINE_ID if config.model_lineage == "V1" else "",
+        "model_lineage": config.model_lineage,
+        "model_rules_version": config.model_rules_version,
+        "validation_schema_version": VALIDATION_SCHEMA_VERSION,
+        "validation_authority": "PRODUCTION" if config.model_lineage == "V1" else "NONE",
         "distinct_analysis_dates": len(dated),
         "paired_snapshot_dates": len(paired),
         "decision_eligible_snapshots": len(eligible),
@@ -517,11 +546,12 @@ def build_walk_forward_simulation_summary(
         row for row in period_rows
         if str(row.get("evaluation_status") or "") in {"SIMULATED", "SIMULATED_WITH_PARTIAL_PRICE_DATA"}
     ]
-    genuine_oos = [row for row in simulated if walk_forward_period_has_strategy_validation_authority(row)]
+    genuine_oos = [row for row in simulated if _in_validation_cohort(row, config)
+                   and walk_forward_period_has_strategy_validation_authority(row)]
     baseline_forward = [
         row
         for row in simulated
-        if row.get("baseline_forward_eligible") is True
+        if _in_validation_cohort(row, config) and explicit_true(row.get("baseline_forward_eligible"))
         and str(row.get("baseline_id") or "") == VALIDATION_BASELINE_ID
         and walk_forward_period_has_strategy_validation_authority(row)
         and str(row.get("eligibility_basis") or "") == EXPLICIT_DECISION_ELIGIBILITY_BASIS
@@ -569,7 +599,11 @@ def build_walk_forward_simulation_summary(
         "strategy_validation_authority": "EXPLICIT_DECISION_PERIODS_ONLY",
         "simulated_periods": len(simulated),
         "genuine_oos_periods": len(genuine_oos),
-        "baseline_id": VALIDATION_BASELINE_ID,
+        "baseline_id": VALIDATION_BASELINE_ID if config.model_lineage == "V1" else "",
+        "model_lineage": config.model_lineage,
+        "model_rules_version": config.model_rules_version,
+        "validation_schema_version": VALIDATION_SCHEMA_VERSION,
+        "validation_authority": "PRODUCTION" if config.model_lineage == "V1" else "NONE",
         "baseline_forward_periods": len(baseline_forward),
         "baseline_evidence_maturity": evidence_maturity(len(baseline_forward)),
         "explicit_decision_simulated_periods": len(genuine_oos),
@@ -758,10 +792,10 @@ def build_walk_forward_backtest_report(
     return "\n".join(lines)
 
 
-def _latest_daily_payloads(history_dir: Path, kind: str, mode: str) -> dict[str, dict[str, Any]]:
+def _latest_daily_payloads(history_dir: Path, kind: str, mode: str) -> dict[tuple, dict[str, Any]]:
     if kind not in {"analysis", "allocation"}:
         return {}
-    selected: dict[str, dict[str, Any]] = {}
+    selected: dict[tuple, dict[str, Any]] = {}
     if not history_dir.exists():
         return selected
     for path in history_dir.glob(f"{kind}_*.json"):
@@ -779,7 +813,8 @@ def _latest_daily_payloads(history_dir: Path, kind: str, mode: str) -> dict[str,
             continue
         created_at = str(payload.get("created_at") or path.stem)
         purpose = snapshot_run_purpose(payload)
-        current = selected.get(analysis_date)
+        key = (evidence_cohort(payload), analysis_date)
+        current = selected.get(key)
         candidate_rank = (_purpose_selection_rank(purpose), created_at)
         current_rank = (
             _purpose_selection_rank(current.get("run_purpose")) if current else -1,
@@ -787,7 +822,8 @@ def _latest_daily_payloads(history_dir: Path, kind: str, mode: str) -> dict[str,
         )
         if current and current_rank >= candidate_rank:
             continue
-        selected[analysis_date] = {
+        selected[key] = {
+            **identity_fields(payload),
             "path": str(path),
             "created_at": created_at,
             "analysis_date": analysis_date,
@@ -819,14 +855,14 @@ def _inventory_row(
     exclusion = _exclusion_reason(analysis_payload, allocation_payload, next_date, days_to_next, config)
     return {
         "mode": config.mode,
-        "evidence_class": EvidenceClass.POINT_IN_TIME_WALK_FORWARD.value,
+        "evidence_class": walk_forward_period_evidence_class(run_purpose),
         "analysis_date": analysis_date,
         "created_at": analysis_payload.get("created_at") or allocation_payload.get("created_at") or "",
         "model_rules_version": analysis_payload.get("model_rules_version") or allocation_payload.get("model_rules_version") or "",
         "run_purpose": run_purpose,
         "run_purpose_status": purpose_status,
         "primary_timeline_eligible": False,
-        "eligibility_basis": "",
+        "eligibility_basis": str((analysis_payload.get("payload") or allocation_payload.get("payload") or {}).get("eligibility_basis") or ""),
         **baseline,
         "analysis_snapshot_path": analysis_payload.get("path", ""),
         "allocation_snapshot_path": allocation_payload.get("path", ""),
@@ -1247,6 +1283,9 @@ def _allocation_return_row(
     trade_value_cad: Any = "",
 ) -> dict[str, Any]:
     return {
+        **identity_fields(period_row),
+        "baseline_id": period_row.get("baseline_id", ""),
+        "run_id": period_row.get("run_id", ""),
         "mode": config.mode,
         "analysis_date": period_row.get("analysis_date", ""),
         "next_analysis_date": period_row.get("next_analysis_date", ""),
@@ -1322,19 +1361,29 @@ def _period_authority_metadata(row: dict[str, Any]) -> dict[str, Any]:
     eligibility_basis = str(row.get("eligibility_basis") or "")
     evidence_class = walk_forward_period_evidence_class(run_purpose, eligibility_basis)
     metadata = {
-        "evidence_class": evidence_class,
+        **identity_fields(row),
+        "run_id": row.get("run_id", ""),
+        "manifest_reference": row.get("manifest_reference", ""),
+        "manifest_fingerprint": row.get("manifest_fingerprint", ""),
+        "strategy_validation_authority": row.get("strategy_validation_authority", False),
+        "evidence_class": str(row.get("evidence_class") or evidence_class),
         "run_purpose": run_purpose,
         "run_purpose_status": str(row.get("run_purpose_status") or ""),
         "eligibility_basis": eligibility_basis,
         "baseline_id": str(row.get("baseline_id") or ""),
         "baseline_evidence_status": str(row.get("baseline_evidence_status") or ""),
         "baseline_forward_eligible": (
-            row.get("baseline_forward_eligible") is True
+            explicit_true(row.get("baseline_forward_eligible"))
             and eligibility_basis != LEGACY_PARTIALLY_RECOVERABLE_BASIS
         ),
     }
     metadata["strategy_validation_authority"] = walk_forward_period_has_strategy_validation_authority(metadata)
+    metadata["baseline_forward_eligible"] = metadata["baseline_forward_eligible"] and metadata["strategy_validation_authority"]
     return metadata
+
+
+def _in_validation_cohort(row: dict[str, Any], config: WalkForwardInventoryConfig) -> bool:
+    return matches_current_cohort(row, lineage=config.model_lineage, rules_version=config.model_rules_version)
 
 
 def _annualized_return(period_return: float, days_held: float | int | None) -> float | str:

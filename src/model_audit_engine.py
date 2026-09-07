@@ -8,12 +8,16 @@ from typing import Any
 from .baseline_identity import VALIDATION_BASELINE_ID, combined_baseline_snapshot_authority
 from .mode_artifacts import write_csv_records_mode_pair, write_text_mode_pair
 from .model_version import MODEL_RULES_VERSION
+from .model_identity import MODEL_LINEAGE, evidence_cohort, matches_current_cohort
 from .utils import DISCLAIMER, load_json, markdown_to_html, pct, safe_float, today_iso
 from .validation_evidence import (
     RunPurpose,
+    VALIDATION_SCHEMA_VERSION,
     evidence_maturity,
     purpose_is_genuine_decision,
     snapshot_run_purpose,
+    EvidenceClass,
+    walk_forward_period_has_strategy_validation_authority,
 )
 
 
@@ -32,6 +36,7 @@ def run_model_audit(
     period: str = "12m",
     mode: str | None = None,
     current_model_rules_version: str | None = None,
+    current_model_lineage: str = MODEL_LINEAGE,
 ) -> dict[str, Any]:
     reports_dir = Path(reports_dir)
     audit = build_model_audit(
@@ -39,6 +44,7 @@ def run_model_audit(
         period,
         mode=mode,
         current_model_rules_version=current_model_rules_version,
+        current_model_lineage=current_model_lineage,
     )
     write_model_audit_outputs(reports_dir, audit)
     return audit
@@ -49,6 +55,7 @@ def build_model_audit(
     period: str = "12m",
     mode: str | None = None,
     current_model_rules_version: str | None = None,
+    current_model_lineage: str = MODEL_LINEAGE,
 ) -> dict[str, Any]:
     reports_dir = Path(reports_dir)
     history_dir = reports_dir / "history"
@@ -93,10 +100,11 @@ def build_model_audit(
 
     current_version = str(current_model_rules_version or MODEL_RULES_VERSION)
     current_version_samples = [
-        sample for sample in samples if str(sample.get("model_rules_version") or "") == current_version
+        sample for sample in samples if matches_current_cohort(sample, lineage=current_model_lineage, rules_version=current_version)
     ]
     current_decision_samples = [
         sample for sample in current_version_samples if purpose_is_genuine_decision(sample.get("run_purpose"))
+        and sample.get("strategy_validation_authority") is True
     ]
     metrics = _audit_metrics(
         current_decision_samples,
@@ -107,6 +115,7 @@ def build_model_audit(
         normalized_mode,
         total_samples=samples,
         current_model_rules_version=current_version,
+        current_model_lineage=current_model_lineage,
     )
     rows = _audit_rows(metrics)
     markdown = _audit_markdown(metrics, rows)
@@ -136,7 +145,7 @@ def _load_daily_records(
     period_days: int | None,
     fallback_path: Path,
     mode: str | None = None,
-) -> tuple[dict[tuple[str, str, str], dict[str, Any]], int]:
+) -> tuple[dict[tuple[str, ...], dict[str, Any]], int]:
     records: list[dict[str, Any]] = []
     if history_dir.exists():
         for path in history_dir.glob(pattern):
@@ -189,12 +198,14 @@ def _load_daily_records(
             raw_count = 1
 
     records.sort(key=lambda row: (str(row.get("analysis_date")), str(row.get("created_at"))))
-    latest_by_date_version_and_purpose: dict[tuple[str, str, str], dict[str, Any]] = {}
+    latest_by_date_version_and_purpose: dict[tuple[str, ...], dict[str, Any]] = {}
     for record in records:
         key = (
             str(record["analysis_date"]),
             str(record.get("model_rules_version") or "UNKNOWN"),
             str(record.get("run_purpose") or RunPurpose.UNKNOWN_LEGACY.value),
+            *evidence_cohort(record.get("payload") or {}),
+            str(record.get("analysis_mode") or ""),
         )
         latest_by_date_version_and_purpose[key] = record
     return latest_by_date_version_and_purpose, raw_count
@@ -215,6 +226,11 @@ def _audit_sample(
         if str(row.get("ticker") or "").strip()
     }
     baseline_metadata = _combined_baseline_authority(allocation_record, analysis_record, run_purpose)
+    available = [r["payload"] for r in (allocation_record, analysis_record) if isinstance(r.get("payload"), dict)]
+    if len(available) == 1:
+        baseline_metadata["strategy_validation_authority"] = walk_forward_period_has_strategy_validation_authority({
+            **available[0], "evidence_class": available[0].get("evidence_class") or EvidenceClass.POINT_IN_TIME_WALK_FORWARD.value,
+        })
     return {
         "date": sample_date,
         "created_at": max(
@@ -253,6 +269,7 @@ def _audit_metrics(
     *,
     total_samples: list[dict[str, Any]] | None = None,
     current_model_rules_version: str = "",
+    current_model_lineage: str = MODEL_LINEAGE,
 ) -> dict[str, Any]:
     total_samples = list(total_samples if total_samples is not None else samples)
     sample_count = len(samples)
@@ -268,7 +285,7 @@ def _audit_metrics(
     current_version_samples = [
         sample
         for sample in total_samples
-        if str(sample.get("model_rules_version") or "") == current_model_rules_version
+        if matches_current_cohort(sample, lineage=current_model_lineage, rules_version=current_model_rules_version)
     ]
     baseline_forward_samples = [
         sample
@@ -375,6 +392,9 @@ def _audit_metrics(
         "decision_model_versions": dict(decision_versions),
         "audit_scope": "CURRENT_VERSION_AUDIT",
         "current_model_rules_version": current_model_rules_version,
+        "current_model_lineage": current_model_lineage,
+        "validation_schema_version": VALIDATION_SCHEMA_VERSION,
+        "validation_authority": "PRODUCTION" if current_model_lineage == "V1" else "NONE",
         "total_history_observation_count": len(total_samples),
         "current_version_total_observation_count": len(current_version_samples),
         "current_version_decision_observation_count": sample_count,
@@ -382,7 +402,7 @@ def _audit_metrics(
         "current_version_unknown_purpose_observation_count": len(current_version_unknown_samples),
         "cross_version_decision_observation_count": len(cross_version_decision_samples),
         "current_version_observation_count": sample_count,
-        "baseline_id": VALIDATION_BASELINE_ID,
+        "baseline_id": VALIDATION_BASELINE_ID if current_model_lineage == "V1" else "",
         "baseline_forward_observation_count": len(baseline_forward_samples),
         "baseline_forward_periods": len(baseline_forward_samples),
         "baseline_evidence_maturity": evidence_maturity(len(baseline_forward_samples)),

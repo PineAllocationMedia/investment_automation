@@ -1,0 +1,26 @@
+{
+  "base_sha": "ec0bf8b3f25730d0954b05d0dee6ab0d8fdfbdb9",
+  "investment_fingerprints": {
+    "analysis_fingerprint": "f137caf20ca0733125ef47e817af58bd11b8a4079086fc680005ef681de3b679",
+    "critical_config_fingerprint": "74086c193328bb3516d07e0978731d5c10c387d2e2a2c438d31a145591ef59c7",
+    "model_rules_version": "2026-08-23-allocation-room-integrity-v7",
+    "modes": {
+      "balanced": {
+        "allocation_fingerprint": "203f39a6c4eda09eab14d0d7037eac32d43048862a96b1b6fcbd5a52128425d7",
+        "recommendation_fingerprint": "82ecab3f27e8c3b4ae55ad8cedc1b2d076674233068249a7c242c6b61e82ac2e"
+      },
+      "family-office": {
+        "allocation_fingerprint": "8a2a2708397ef2b5fef91a0e05977a7c3d618b68b56dedaa67144e931f9e06bd",
+        "recommendation_fingerprint": "4fe325a59c77f90f424015a46c233b99cf4dfbcb754350c74b336b0709d33a3f"
+      },
+      "high-cagr": {
+        "allocation_fingerprint": "c392842de2982b95832de2daba744dd90db28b1a3dc7fbccde747e80a5b1f84c",
+        "recommendation_fingerprint": "8d5f496984614f848c7b654dd2541005ebb6c95cb70e18d04ac75cd4df4897af"
+      },
+      "rational-aggressive": {
+        "allocation_fingerprint": "c392842de2982b95832de2daba744dd90db28b1a3dc7fbccde747e80a5b1f84c",
+        "recommendation_fingerprint": "35f254b5270eab23443cf1ae60a2bfa33b8450c0d94442441375581d7c59a3ce"
+      }
+    }
+  }
+}
