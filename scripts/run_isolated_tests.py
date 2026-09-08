@@ -25,14 +25,15 @@ def main() -> int:
         checkout.mkdir()
         # Only code/config/tests are copied. Never copy working portfolio/data,
         # reports, Git history, provider caches or credentials into a test run.
-        for name in ("src", "scripts", "tests", "config", "deploy"):
+        for name in ("src", "scripts", "tests", "config", "deploy", "pit_comparison"):
             shutil.copytree(code / name, checkout / name, ignore=shutil.ignore_patterns("__pycache__"))
         for path in code.iterdir():
             if path.is_file() and path.suffix in {".py", ".md", ".txt", ".lock"}:
                 shutil.copy2(path, checkout / path.name)
         shutil.copy2(code / ".python-version", checkout / ".python-version")
         env = {"PATH": os.environ.get("PATH", "/usr/bin:/bin"), "LANG": "en_US.UTF-8",
-               "PYTHONDONTWRITEBYTECODE": "1"}
+               "PYTHONDONTWRITEBYTECODE": "1",
+               "PIT_TEST_SOURCE_GIT_REPO": str(code)}
         for key, relative in {"HOME": "home", "XDG_CACHE_HOME": "cache", "XDG_STATE_HOME": "state",
                               "XDG_CONFIG_HOME": "home/.config", "XDG_DATA_HOME": "home/.local/share",
                               "TMPDIR": "tmp"}.items():
