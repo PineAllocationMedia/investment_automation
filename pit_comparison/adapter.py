@@ -13,7 +13,6 @@ from pathlib import Path
 from zoneinfo import ZoneInfo
 
 from .bundle import BundleError, fingerprint, timestamp
-from .source_export import RULES
 
 
 # main.py orchestration is supported only after explicit equivalence review.
@@ -75,8 +74,6 @@ def bind_inputs(bundle, source, runtime, boundary):
     discovery._load_or_fetch_auto_rows = lambda config, path, refresh=False: copy.deepcopy(universe["discovery_rows"])
     main = importlib.import_module("main")
     install_sentinels(boundary, main)
-    if main.MODEL_RULES_VERSION != RULES:
-        raise BundleError("Unsupported model rules version")
     return main
 
 

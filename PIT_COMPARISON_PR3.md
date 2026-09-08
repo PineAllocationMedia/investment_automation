@@ -26,8 +26,28 @@ and SHA-256, and an aggregate source-export SHA-256. Effective input configurati
 has a separate hash. The worker verifies source bytes before imports and after
 calculation. V1's lineage is external comparison provenance; its code is unchanged.
 V2 must activate its native restricted runtime and report V2/NONE identity.
-Both retain rules `2026-08-23-allocation-room-integrity-v7` and validation schema
-`2026-08-23-validation-architecture-v3`.
+At the initial base, both sources declare rules
+`2026-08-23-allocation-room-integrity-v7`. Their validation schemas differ:
+V1 declares `2026-08-23-validation-architecture-v3`; V2 declares
+`2026-09-06-validation-identity-v4`.
+
+Investment rules identity is independent of adapter compatibility. The parent
+reads one unconditional static string from each exported `src/model_version.py`
+and reads that source's validation schema from `src/validation_evidence.py`,
+without importing model code. Supported identities are nonempty ASCII tokens
+(up to 128 characters: letters/digits, dots, underscores and hyphens). Missing,
+dynamic, ambiguous or malformed identities fail closed. V1 additionally requires
+its exact preserved commit, tree, v7 rules and v3 schema. V2 requires a full
+selected commit SHA and its own source-declared identities; it need not use V1's
+rules or schema.
+
+Both identities are included separately in each source manifest, the comparison
+specification's V1/V2 entries and child provenance. Source verification recomputes
+them from exported bytes; workers compare the loaded native identities with their
+own verified source before calculation. Parent publication compares each child
+against its own specification entry, never against the other model's rules.
+There is no caller-supplied rules override. Native history filtering continues
+to use each selected model's own rules version.
 
 The revision-aware adapter accepts only the two reviewed `main.py` orchestration
 hashes. A future orchestration change requires explicit adapter review and new
@@ -232,9 +252,37 @@ clock is not globally modified; PIT ages are asserted against controlled facts.
 The code-only `tests/pit_source_revisions.json` records both pinned source
 inventories and compressed V1 blobs only where they differ from current source.
 Common/V2 files are read from the test checkout with exact hash verification.
-This supports existing shallow CI without fetching historical operational files.
-It contains no portfolio, reports, configs or real PIT data. This fixture cannot
-silently follow future source drift.
+The fixture contains no portfolio, reports, configs or real PIT data.
+
+Every `fixture_export` now proves its entire source inventory against the exact
+pinned Git commit/tree. The cached Git index is obtained with `rev-parse` and
+`ls-tree`; each actual fixture byte string must hash to its Git blob ID using
+Git's `blob <length>\0<bytes>` encoding. A changed fixture plus a recomputed
+self-declared SHA-256 cannot satisfy this external Git-object relationship.
+Missing pinned objects fail the test; there is no skip or fallback to an
+unverified fixture. A separate regression calls real `export_revision` and
+`fixture_export` for both revisions and requires complete manifest and exported
+byte-inventory equality. Thus CI itself proves fidelity, and the same proof gates
+every source export consumed by the 64-case matrix.
+
+CI uses the minimal depth 4 for the current PR merge graph: the GitHub merge ref
+has the V2 base and PR head as parents; the V2 base's parents are PR1 merge
+`ec0bf8b3f25730d0954b05d0dee6ab0d8fdfbdb9` and PR2 head
+`d937a641347e7731b4f5ccf951b222c71a21203e`; the fourth level includes preserved
+V1 `c5fc27c82c29c2a6027eccee245098c4a072fdf1` and PR1 head
+`c6631ff12f805f6b8ff3ae23b164fdad97e46907`. The PR side also includes previous
+head `e7d6b98f174d24dbf11d367b70398e57029d257d`. No full-history fetch, archive,
+Git bundle or historical checkout is performed. Git administrative objects stay
+in CI's checkout; real exports still materialize only allowlisted source blobs.
+Future base movement that removes these pinned objects from the bounded graph
+fails closed and requires an explicit bounded availability update.
+
+For local isolated tests, the wrapper supplies `PIT_TEST_SOURCE_GIT_REPO` to the
+test parent so it can read exact Git source objects from the original checkout.
+No Git history is copied into the disposable test repository. This test-only
+location is removed by worker environment sanitization; model calculations still
+run solely in fresh exports. Production `export_revision` continues using actual
+Git objects and has no fixture path.
 
 ## Results, authority and publication
 
@@ -291,7 +339,7 @@ git diff --check
 
 The wrapper now copies the new harness package along with its previous code-only
 allowlist. Existing GitHub CI discovers the new tests automatically; its Python
-pin, dependency lock and workflow are unchanged. Local execution uses locked
+pin and dependency lock are unchanged; only checkout depth changes from 2 to 4. Local execution uses locked
 Python 3.12 packages and checks worker dependency status before calculation.
 
 Deferred: prospective collector, `SHADOW_ONLY`, prospective challenger execution,
@@ -301,7 +349,7 @@ scheduling. No merge/deploy, production scheduling, Chromebook, Drive, systemd,
 operational analysis/history, real PIT bundle, Baseline observation or tuning is
 part of this PR.
 
-### Recorded local acceptance
+### Original-head acceptance (before the provenance correction)
 
 Python 3.12.14 with every installed locked package matching `requirements.lock`:
 `python -B scripts/run_isolated_tests.py` passed **974 tests in 425.803 seconds**.
@@ -319,9 +367,41 @@ An additional synthetic comparison using the actual Git-object exporter, rather
 than the code-only test fixture exporter, produced that same semantic digest for
 both models with passing containment.
 
-V1 source-export hash:
-`a599feb1f16ec63c1815dba697333ab43f2f0fd73c533e67fd88dd6dd599fdf8`.
-V2 source-export hash:
-`a7164882968217bc9676ef87bebf4d151ad1ed069c9bc9459ed10ed15f97a3b1`.
+The corrected source manifests additionally bind their source-derived rules and
+validation-schema identities. Source file bytes are unchanged, but these
+metadata additions intentionally change aggregate source-export hashes:
+V1 `30edb712f236bb1b6fc2fdceeb728cfa0f64a8e18233894bf63ff9c4724d99df`;
+V2 `01fd39f16d11d5c6b5bec5eb62f9386d4b96a0d5181fb7500c609898ec7e4184`.
+Comparison specification/artifact hashes change accordingly; investment semantic
+fingerprints must remain unchanged.
 Whitespace checks passed. GitHub CI status is reported on the PR so this document
 does not claim a remote run before it occurs.
+
+
+### Review findings and narrow correction
+
+Classification for this review: A = reproduced functional defect;
+B = missing validation guarantee; C = documentation error;
+D = not reproduced. Investigation preceded edits.
+
+| Finding | Class | Reproduction / root cause | Correction |
+| --- | --- | --- | --- |
+| Shared rules identity | A | `adapter.bind_inputs` compared both native versions with one V1 `RULES` constant. | Source-derived per-model identities and unchanged independent main-orchestration hash gate. |
+| Wrong V2 validation schema | C | Documentation claimed v3 for both; selected V2 `validation_evidence.py` declares v4. Worker already loaded the native value. | Correct documentation, source-bound schema metadata and explicit current-pair regression. |
+| Fixture authenticity | B | Tests checked their own hashes and labels without linking bytes to the declared Git objects. | Bounded CI depth, real-Git export equality and mandatory per-fixture blob-ID proof. |
+
+The distinct-rules regression creates only a disposable synthetic Git commit:
+`src/model_version.py` declares `2099-01-01-synthetic-v2-rules-v8`, while the
+supported `main.py` bytes are unchanged. Real `export_revision` exports that
+commit as V2; preserved V1 remains v7. Both succeed and publish as authority NONE,
+with their distinct rules identities recorded independently. Forged manifest or
+child rules, malformed static identities, and altered V1 rules fail closed.
+No real model version or investment engine is modified.
+
+Correction acceptance: Python 3.12.14 with locked dependencies;
+`python -B scripts/run_isolated_tests.py` passed **979 tests in 414.634 seconds**.
+The same 64-case aggregate and repeated-pair semantic fingerprint above are
+unchanged. Targeted source/identity proof (6), comparison (4), bundle (6),
+boundary (3), PR1 (29) and PR2 (19) tests also passed. The suite automatically
+proved both fixture exports equal the actual pinned Git exports and successfully
+published the synthetic V1-v7/V2-v8 comparison with authority NONE.

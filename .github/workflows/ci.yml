@@ -17,7 +17,9 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v4
         with:
-          fetch-depth: 2
+          # Merge-ref -> V2 base -> PR1 merge -> preserved V1: four levels.
+          # PIT tests fail closed if either pinned source commit is unavailable.
+          fetch-depth: 4
 
       - name: Set up frozen Python version
         uses: actions/setup-python@v5

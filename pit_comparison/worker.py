@@ -10,7 +10,7 @@ from pathlib import Path
 from . import AUTHORITY, PIT_ADAPTER_VERSION, PIT_COMPARISON_SCHEMA_VERSION
 from .boundary import Boundary, dependency_roots, platform_roots
 from .bundle import BundleError, canonical, digest, fingerprint, inventory, loads, verify_bundle
-from .source_export import RULES, literal_assignment, verify_export
+from .source_export import verify_export
 
 
 def prepare_inputs(bundle, runtime):
@@ -122,6 +122,10 @@ def execute(request, *, evaluator=None):
             if not RUNTIME.restricted or RUNTIME.root != runtime or current_model_identity()["model_lineage"] != "V2" or current_model_identity()["validation_authority"] != "NONE":
                 raise BundleError("V2 runtime/native identity mismatch")
         model = bind_inputs(bundle, source, runtime, boundary)
+        from src.validation_evidence import VALIDATION_SCHEMA_VERSION
+        if (model.MODEL_RULES_VERSION != provenance["model_rules_version"]
+                or VALIDATION_SCHEMA_VERSION != provenance["validation_schema_version"]):
+            raise BundleError("Runtime identity differs from selected source")
         from src.dependency_reproducibility import dependency_environment
         dependencies = dependency_environment(source / "requirements.lock")
         if dependencies["dependency_status"] != "MATCH":
@@ -135,7 +139,6 @@ def execute(request, *, evaluator=None):
         # Recheck immutable inputs and source after execution, before success.
         verify_bundle(Path(request["bundle_root"]), request["expected_bundle_hash"], require_complete=True)
         verify_export(source, provenance)
-        from src.validation_evidence import VALIDATION_SCHEMA_VERSION
         result = {**AUTHORITY, "schema_version": PIT_COMPARISON_SCHEMA_VERSION,
             "status": "SUCCEEDED", "comparison_id": request["comparison_id"], "execution_id": request["execution_id"],
             "bundle_hash": bundle.manifest["bundle_hash"], "input_identity": bundle.manifest["input_identity"],

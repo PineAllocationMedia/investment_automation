@@ -4,12 +4,15 @@ from __future__ import annotations
 import base64
 import copy
 import json
+import hashlib
+import os
+from functools import lru_cache
 import zlib
 from pathlib import Path
 
 from pit_comparison import PIT_BUNDLE_SCHEMA_VERSION, PIT_INPUT_CONTRACT_VERSION
 from pit_comparison.bundle import CONFIG_NAMES, FAMILIES, MARKET_REQUIRED, canonical, digest, fingerprint
-from pit_comparison.source_export import write_export
+from pit_comparison.source_export import V1_SHA, V2_SHA, V1_TREE, V2_TREE, allowed_source, git, write_export
 
 PIT = "2025-06-02T16:00:00+00:00"
 TICKERS = ["MSFT", "INTU", "SHOP.TO", "COST", "GOOGL", "NVDA", "VFV.TO", "ZAG.TO"]
@@ -166,6 +169,42 @@ def write_bundle(root, data=None, *, quality="COMPLETE_PIT", pretty=False):
     return manifest["bundle_hash"]
 
 
+def source_git_repo():
+    # The isolated runner supplies only a read-only Git source location. It is
+    # not passed to model workers and does not enable operational input reads.
+    return Path(os.environ.get("PIT_TEST_SOURCE_GIT_REPO", Path(__file__).resolve().parents[1]))
+
+
+@lru_cache(maxsize=2)
+def fixture_git_inventory(repo, revision, expected_tree):
+    actual_tree = git(repo, "rev-parse", revision + "^{tree}").decode().strip()
+    if actual_tree != expected_tree:
+        raise ValueError("Pinned fixture Git tree mismatch")
+    records = {}
+    for entry in git(repo, "ls-tree", "-rz", revision).split(b"\0"):
+        if not entry:
+            continue
+        metadata, name = entry.split(b"\t", 1)
+        name = name.decode("utf-8")
+        if allowed_source(name):
+            mode, kind, oid = metadata.decode().split()
+            if mode not in {"100644", "100755"} or kind != "blob":
+                raise ValueError("Nonregular fixture source object")
+            records[name] = oid
+    return records
+
+
+def prove_fixture_bytes(blobs, revision, tree, *, lineage):
+    pinned = {"V1": (V1_SHA, V1_TREE), "V2": (V2_SHA, V2_TREE)}
+    if pinned.get(lineage) != (revision, tree):
+        raise ValueError("Fixture must name the exact pinned revision/tree")
+    expected = fixture_git_inventory(str(source_git_repo()), revision, tree)
+    actual = {name: hashlib.sha1(b"blob " + str(len(raw)).encode("ascii") + b"\0" + raw).hexdigest()
+              for name, raw in blobs.items()}
+    if actual != expected:
+        raise ValueError("Fixture source bytes do not match pinned Git objects")
+
+
 def fixture_export(repo, revision, destination, *, lineage):
     fixture = json.loads((Path(__file__).with_name("pit_source_revisions.json")).read_text())[lineage]
     if revision != fixture["commit"]:
@@ -177,4 +216,5 @@ def fixture_export(repo, revision, destination, *, lineage):
         if digest(raw) != record["sha256"]:
             raise ValueError("Pinned source fixture drift: " + name)
         blobs[name] = raw
+    prove_fixture_bytes(blobs, revision, fixture["tree"], lineage=lineage)
     return write_export(destination, revision, fixture["tree"], lineage, blobs)

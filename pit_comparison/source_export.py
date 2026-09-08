@@ -12,7 +12,8 @@ V1_SHA = "c5fc27c82c29c2a6027eccee245098c4a072fdf1"
 V2_SHA = "2d7abc5ca23f6cf8225793f10034e8e6bae1d41e"
 V1_TREE = "26a69bb0b2185ab141af0763da2d965602c8346b"
 V2_TREE = "8489fb82b5c75701ea0c4a229e001e259fa1a2fe"
-RULES = "2026-08-23-allocation-room-integrity-v7"
+V1_RULES = "2026-08-23-allocation-room-integrity-v7"
+V1_VALIDATION_SCHEMA = "2026-08-23-validation-architecture-v3"
 TOP_FILES = {"main.py", "requirements.txt", "requirements.lock", ".python-version"}
 
 
@@ -53,6 +54,7 @@ def write_export(destination, commit, tree, lineage, blobs):
     """Also used by checked-in code-only test fixtures with verified blob hashes."""
     if not TOP_FILES <= blobs.keys() or any(not allowed_source(p) for p in blobs):
         raise BundleError("Source allowlist/required files mismatch")
+    identity = source_identity(blobs, commit, tree, lineage)
     destination = Path(destination)
     destination.mkdir(parents=True, exist_ok=False)
     records = []
@@ -63,7 +65,7 @@ def write_export(destination, commit, tree, lineage, blobs):
         path.write_bytes(payload)
         records.append({"path": name, "byte_length": len(payload), "sha256": digest(payload)})
     manifest = {"source_schema_version": "pit-source-v1", "git_commit_sha": commit,
-                "git_tree_sha": tree, "model_lineage": lineage, "files": records}
+                "git_tree_sha": tree, "model_lineage": lineage, **identity, "files": records}
     manifest["source_export_hash"] = fingerprint(manifest)
     (destination / "source_manifest.json").write_bytes(canonical(manifest))
     return manifest
@@ -80,14 +82,42 @@ def verify_export(root, expected):
     for p, raw in files.items():
         if len(raw) != declared[p]["byte_length"] or digest(raw) != declared[p]["sha256"]:
             raise BundleError("Source blob mismatch")
-    if manifest["model_lineage"] == "V1" and (manifest["git_commit_sha"], manifest["git_tree_sha"]) != (V1_SHA, V1_TREE):
-        raise BundleError("V1 provenance mismatch")
+    identity = source_identity(files, manifest["git_commit_sha"], manifest["git_tree_sha"], manifest["model_lineage"])
+    if any(manifest.get(key) != value for key, value in identity.items()):
+        raise BundleError("Source-derived identity mismatch")
     return manifest
 
 
-def literal_assignment(root, filename, name):
-    tree = ast.parse((Path(root) / filename).read_text())
-    for node in tree.body:
-        if isinstance(node, ast.Assign) and any(isinstance(t, ast.Name) and t.id == name for t in node.targets):
-            return ast.literal_eval(node.value)
-    raise BundleError(f"Missing static provenance: {name}")
+
+def static_identity(raw, name):
+    """Read one literal identity without importing or executing model source."""
+    try:
+        tree = ast.parse(raw)
+        assignments = [node for node in tree.body if
+            (isinstance(node, ast.Assign) and any(isinstance(t, ast.Name) and t.id == name for t in node.targets))
+            or (isinstance(node, ast.AnnAssign) and isinstance(node.target, ast.Name) and node.target.id == name)]
+        writes = [node for node in ast.walk(tree) if isinstance(node, ast.Name)
+                  and isinstance(node.ctx, ast.Store) and node.id == name]
+        if len(assignments) != 1 or len(writes) != 1:
+            raise ValueError("Expected one unconditional static assignment")
+        value = ast.literal_eval(assignments[0].value)
+        if not isinstance(value, str) or not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9._-]{0,127}", value):
+            raise ValueError("Expected a nonempty supported identity string")
+        return value
+    except (SyntaxError, ValueError, TypeError) as exc:
+        raise BundleError(f"Invalid static source identity: {name}") from exc
+
+
+def source_identity(blobs, commit, tree, lineage):
+    if lineage not in {"V1", "V2"} or any(not isinstance(value, str) or not re.fullmatch(r"[0-9a-f]{40}", value) for value in (commit, tree)):
+        raise BundleError("Explicit full source commit/tree and lineage required")
+    try:
+        identity = {
+            "model_rules_version": static_identity(blobs["src/model_version.py"], "MODEL_RULES_VERSION"),
+            "validation_schema_version": static_identity(blobs["src/validation_evidence.py"], "VALIDATION_SCHEMA_VERSION"),
+        }
+    except KeyError as exc:
+        raise BundleError("Missing source identity module") from exc
+    if lineage == "V1" and (commit, tree, identity["model_rules_version"], identity["validation_schema_version"]) != (V1_SHA, V1_TREE, V1_RULES, V1_VALIDATION_SCHEMA):
+        raise BundleError("Preserved V1 provenance mismatch")
+    return identity
