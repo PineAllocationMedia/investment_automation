@@ -1,0 +1,15 @@
+"""Diagnostic PIT comparisons. Importing this package never imports a model."""
+
+PIT_BUNDLE_SCHEMA_VERSION = "pit-bundle-v1"
+PIT_INPUT_CONTRACT_VERSION = "decision-inputs-v1"
+PIT_COMPARISON_SCHEMA_VERSION = "pit-comparison-v1"
+PIT_ADAPTER_VERSION = "allocation-room-v7-adapter-v1"
+CONTAINMENT_LEVEL = "APPLICATION_GUARDED"
+AUTHORITY = {
+    "comparison_mode": "RETROSPECTIVE_PIT",
+    "run_purpose": "DIAGNOSTIC",
+    "validation_authority": "NONE",
+    "strategy_validation_authority": False,
+    "baseline_forward_eligible": False,
+    "genuine_forward_evidence": False,
+}
