@@ -265,17 +265,33 @@ unverified fixture. A separate regression calls real `export_revision` and
 byte-inventory equality. Thus CI itself proves fidelity, and the same proof gates
 every source export consumed by the 64-case matrix.
 
-CI uses the minimal depth 4 for the current PR merge graph: the GitHub merge ref
-has the V2 base and PR head as parents; the V2 base's parents are PR1 merge
-`ec0bf8b3f25730d0954b05d0dee6ab0d8fdfbdb9` and PR2 head
-`d937a641347e7731b4f5ccf951b222c71a21203e`; the fourth level includes preserved
-V1 `c5fc27c82c29c2a6027eccee245098c4a072fdf1` and PR1 head
-`c6631ff12f805f6b8ff3ae23b164fdad97e46907`. The PR side also includes previous
-head `e7d6b98f174d24dbf11d367b70398e57029d257d`. No full-history fetch, archive,
-Git bundle or historical checkout is performed. Git administrative objects stay
-in CI's checkout; real exports still materialize only allowlisted source blobs.
-Future base movement that removes these pinned objects from the bounded graph
-fails closed and requires an explicit bounded availability update.
+CI keeps the ordinary checkout at depth 2 (also retaining `HEAD^` for whitespace
+checks). Before tests, CI setup explicitly fetches each exact pinned commit with
+`git fetch --no-tags --no-recurse-submodules --depth=1 origin <SHA>:<local-ref>`:
+
+| Source | Authoritative commit | Local CI ref |
+| --- | --- | --- |
+| V1 | `c5fc27c82c29c2a6027eccee245098c4a072fdf1` | `refs/pit-proof/v1` |
+| V2 equivalence baseline | `2d7abc5ca23f6cf8225793f10034e8e6bae1d41e` | `refs/pit-proof/v2` |
+
+Git supports a full hexadecimal object name as the source of a refspec
+([git-fetch documentation](https://git-scm.com/docs/git-fetch.html)). Each fetch
+requests one commit level and its reachable tree/blob objects, without tags,
+submodules or ancestor history. No remote ref is created or changed. Setup
+checks that each local ref resolves to its exact expected commit and that its
+tree exists; fetch or verification failure stops CI. The preservation tag is
+neither fetched nor changed. No full-history fetch, archive, Git bundle or
+historical checkout is performed. Git objects stay in the test-parent checkout;
+only allowlisted source blobs are materialized for model workers.
+
+`PIT_PIN_BEFORE_FETCH` reports whether each object was already available, without
+requiring a particular merge graph. `PIT_PIN_FETCH_VERIFIED` confirms successful
+exact-object acquisition; the suite's `PIT_SOURCE_GIT_PROOF` lines subsequently
+prove actual source-byte equality. In particular, V1 can be absent from the
+ordinary checkout and still pass the proof after its explicit fetch. Future PR
+ancestry distance does not change either fetch. The V2 fixture remains the stable
+equivalence baseline above; future comparisons select later V2 commits through
+the existing explicit `--v2-revision` mechanism.
 
 For local isolated tests, the wrapper supplies `PIT_TEST_SOURCE_GIT_REPO` to the
 test parent so it can read exact Git source objects from the original checkout.
@@ -339,7 +355,8 @@ git diff --check
 
 The wrapper now copies the new harness package along with its previous code-only
 allowlist. Existing GitHub CI discovers the new tests automatically; its Python
-pin and dependency lock are unchanged; only checkout depth changes from 2 to 4. Local execution uses locked
+pin and dependency lock are unchanged. Checkout remains shallow at depth 2, with
+two explicit depth-1 pinned-object fetches before tests. Local execution uses locked
 Python 3.12 packages and checks worker dependency status before calculation.
 
 Deferred: prospective collector, `SHADOW_ONLY`, prospective challenger execution,
@@ -388,7 +405,8 @@ D = not reproduced. Investigation preceded edits.
 | --- | --- | --- | --- |
 | Shared rules identity | A | `adapter.bind_inputs` compared both native versions with one V1 `RULES` constant. | Source-derived per-model identities and unchanged independent main-orchestration hash gate. |
 | Wrong V2 validation schema | C | Documentation claimed v3 for both; selected V2 `validation_evidence.py` declares v4. Worker already loaded the native value. | Correct documentation, source-bound schema metadata and explicit current-pair regression. |
-| Fixture authenticity | B | Tests checked their own hashes and labels without linking bytes to the declared Git objects. | Bounded CI depth, real-Git export equality and mandatory per-fixture blob-ID proof. |
+| Fixture authenticity | B | Tests checked their own hashes and labels without linking bytes to the declared Git objects. | Exact pinned-object CI fetches, real-Git export equality and mandatory per-fixture blob-ID proof. |
+| Ancestry-dependent object availability | A/B mixed | Depth 4 reached V1 through merge-ref -> V2 base -> PR1 merge -> V1 for PR30, but later merge levels can move V1 beyond that boundary. Current CI was correct; future availability was not durable. | Restore depth 2 and fetch each authoritative SHA independently at depth 1 into local test-only refs; log prior availability and fail closed on acquisition/proof errors. |
 
 The distinct-rules regression creates only a disposable synthetic Git commit:
 `src/model_version.py` declares `2099-01-01-synthetic-v2-rules-v8`, while the
@@ -398,10 +416,31 @@ with their distinct rules identities recorded independently. Forged manifest or
 child rules, malformed static identities, and altered V1 rules fail closed.
 No real model version or investment engine is modified.
 
-Correction acceptance: Python 3.12.14 with locked dependencies;
+Rules/schema correction acceptance (head `77b536a`): Python 3.12.14 with locked dependencies;
 `python -B scripts/run_isolated_tests.py` passed **979 tests in 414.634 seconds**.
 The same 64-case aggregate and repeated-pair semantic fingerprint above are
 unchanged. Targeted source/identity proof (6), comparison (4), bundle (6),
 boundary (3), PR1 (29) and PR2 (19) tests also passed. The suite automatically
 proved both fixture exports equal the actual pinned Git exports and successfully
 published the synthetic V1-v7/V2-v8 comparison with authority NONE.
+
+### Exact-object transport correction
+
+Only the CI workflow and this document change. A disposable bare repository
+fetched GitHub's PR30 merge ref at depth 2 without checking out historical files.
+The workflow's exact setup script reported V1 `ABSENT` before fetching its SHA,
+then verified both pinned local refs; `rev-list --count` returned 1 for each.
+All six source-export tests passed against that shallow repository, including
+both `PIT_SOURCE_GIT_PROOF` lines. This exercises the actual GitHub transport with
+V1 initially unavailable, without a graph-specific absence assertion in tests.
+CI emits the same before/after diagnostics and runs the unchanged real-Git proof.
+Final current-head CI results are recorded on PR30 rather than predicted here.
+
+Local acceptance for this transport correction: Python 3.12.14, all installed
+locked versions verified, **979 tests passed in 421.949 seconds** through
+`.venv/bin/python -B scripts/run_isolated_tests.py`. Separate targeted runs passed:
+source export (6), comparison (4), bundle (6), boundary (3), adapter (2, including
+the 64-case matrix), PR1 runtime (29) and PR2 identity (19). Both investment
+fingerprints above remain unchanged. Workflow YAML parsing, Bash syntax and
+`git diff --check` passed. The parent-only Git environment variable remains
+absent from `clean_environment()` outputs; worker read roots are unchanged.

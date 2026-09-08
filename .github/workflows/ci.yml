@@ -17,9 +17,27 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v4
         with:
-          # Merge-ref -> V2 base -> PR1 merge -> preserved V1: four levels.
-          # PIT tests fail closed if either pinned source commit is unavailable.
-          fetch-depth: 4
+          fetch-depth: 2
+
+      - name: Obtain exact pinned PIT source objects for test parent
+        shell: bash
+        run: |
+          set -euo pipefail
+          fetch_pit_source() {
+            local lineage="$1" revision="$2" ref="$3"
+            if git cat-file -e "${revision}^{commit}" 2>/dev/null; then
+              echo "PIT_PIN_BEFORE_FETCH ${lineage} ${revision} PRESENT"
+            else
+              echo "PIT_PIN_BEFORE_FETCH ${lineage} ${revision} ABSENT"
+            fi
+            # Only these exact commits, one level each; refs stay local to CI.
+            git fetch --no-tags --no-recurse-submodules --depth=1 origin "${revision}:${ref}"
+            test "$(git rev-parse --verify "${ref}^{commit}")" = "$revision"
+            git cat-file -e "${revision}^{tree}"
+            echo "PIT_PIN_FETCH_VERIFIED ${lineage} ${revision}"
+          }
+          fetch_pit_source V1 c5fc27c82c29c2a6027eccee245098c4a072fdf1 refs/pit-proof/v1
+          fetch_pit_source V2 2d7abc5ca23f6cf8225793f10034e8e6bae1d41e refs/pit-proof/v2
 
       - name: Set up frozen Python version
         uses: actions/setup-python@v5
