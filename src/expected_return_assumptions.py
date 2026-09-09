@@ -433,6 +433,9 @@ def construct_expected_return(facts: QualifiedFacts, *, mature_policy: MatureGro
         payout_parents.append(history[-1].identity.observation_id)
     if not math.isfinite(payout) or (dividends and payout <= 0):
         return finish(("UNREPRESENTABLE_PAYOUT",))
+    # This initial route cannot establish sustained distributions above earnings.
+    if dividends and payout > 1.0:
+        return finish(("PAYOUT_EXCEEDS_EARNINGS",))
     payout_node = node(expected_rule.value + "_V1", payout_parents, payout, (distribution_policy.policy_hash,))
     growth_nodes, dividend_nodes, terminal_nodes = [], [], []
     try:

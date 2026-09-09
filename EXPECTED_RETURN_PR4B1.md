@@ -236,8 +236,21 @@ misaligned year, snapshot yield or unknown zero is insufficient.
 
 ```text
 payout_reference = latest ordinary annual dividend / matching reported annual EPS
+0 < ordinary dividend / matching reported diluted EPS <= 1
 D_(scenario,year) = payout_reference * projected EPS_(scenario,year)
 ```
+
+For this first supported constant-payout route, a ratio above 1 produces economic
+`UNAVAILABLE:PAYOUT_EXCEEDS_EARNINGS`. The annual facts may be valid, but PR4B1
+does not contain the cash-flow/balance-sheet evidence necessary to establish a
+sustainable seven-year payout exceeding earnings. Exactly 100% remains supported;
+there is no tolerance, clamping, reduction or dividend substitution.
+
+Passing this guard does **not** itself prove dividend sustainability. Payout at or
+below 100% is necessary for this initial route, not sufficient evidence of
+long-term coverage. An explicit `DistributionPolicy` remains required. Future
+real-data qualification may require cash-flow and payout-coverage evidence;
+no new cash-flow or dividend-sustainability model is introduced here.
 
 The denominator is the matching reported EPS, never the arbitrary normalized
 starting median. Projected EPS starts from that median and compounds the
@@ -365,6 +378,23 @@ IRR solver, terminal-price formula or return haircut.
 
 ## Synthetic coverage and validation
 
+### Review correction: payout exceeding earnings
+
+Classification **A — economic functional defect**, reproduced before changing
+`a3645a4f8adf34b579524a8fe91d71e4d95785b2`. A synthetic payer with matching annual
+EPS 2 and ordinary dividend 3 produced `BUILT`, payout 1.5 and a PR4A diagnostic
+with seven dividends equal to 150% of projected EPS. The corrected constructor
+returns `UNAVAILABLE:PAYOUT_EXCEEDS_EARNINGS`, with no request or diagnostic.
+These can be valid annual facts; their seven-year extrapolation is unsupported.
+
+Five regressions cover the 150% example, exactly 100%, the next representable
+ratio above 100% with no clamping or calculator call, and unchanged normal-payer
+and nonpayer arithmetic. The two above-limit regressions failed against the
+original implementation and pass with the guard. Direct pre/post comparisons
+also proved exact cash-flow and return equality for the 100%, normal-payer and
+nonpayer fixtures. The matched reported-EPS denominator, all other constructor
+formulas, PR4A mathematics and policy/version identities remain unchanged.
+
 The test suite covers stable and high-growth/fading histories, temporary margin
 expansion and compression, dilution and buyback identities, matched ordinary
 payer, verified nonpayer, unknown dividend status, weak evidence, direct EPS
@@ -403,15 +433,15 @@ Required unchanged PR3 semantic fingerprints:
 - 64-case aggregate: `f1e73b27b80e41d96ff5e0fe990b482bad71b7220db0b5bd6a2f470d72786166`.
 - Determinism: `f8457910665391e39c234274cae4c029802c681211eebc7dba986a63000876f1`.
 
-Local acceptance: Python **3.12.14**, all **33** installed locked packages verified
-against `requirements.lock`, and **1,118 tests passed in 461.659 seconds** through
+Payout-correction acceptance: Python **3.12.14**, all **33** installed locked packages verified
+against `requirements.lock`, and **1,123 tests passed in 610.115 seconds** through
 the complete isolated wrapper. Both fingerprints above matched in the targeted
 runs and the complete suite. `git diff --check` and the staged whitespace check
 passed. Remote CI is reported separately on the PR; no remote success is assumed.
 
 | Targeted pattern | Tests | Result |
 | --- | ---: | --- |
-| `test_expected_return_assumptions.py` | 64 | PASS |
+| `test_expected_return_assumptions.py` | 69 | PASS |
 | `test_expected_return_engine.py` | 75 | PASS |
 | `test_runtime_isolation.py` | 29 | PASS |
 | `test_validation_identity_isolation.py` | 19 | PASS |
@@ -440,6 +470,10 @@ required target-period/vintage/basis contract and is not supported here.
 No real adapter authenticates these facts yet. Current real-company qualified
 Expected Return remains unavailable. This PR does not certify provider snapshots,
 PIT completeness, analyst estimates or actual portfolio Expected Return.
+Future upstream qualification must authenticate exact quote timing, EPS
+comparability and one-off treatment, revisions, split/share-class basis, real
+dividend coverage and real profile qualification. The payout guard does not
+resolve any of those requirements.
 
 PR4B2 will separately address frozen PIT transport and its acquisition-contract
 requirements. This PR changes no PIT bundle, adapter, worker, runner, schema,

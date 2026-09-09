@@ -194,6 +194,58 @@ class ConstructorTests(unittest.TestCase):
                 self.assertAlmostEqual(dividend, .15 * projected)
         self.assertEqual(node(result, "CONSTANT_MATCHED_ORDINARY_PAYOUT_V1").root_ids, ("dividend", "eps-2025"))
 
+    def test_payout_above_earnings_is_economic_unavailability(self):
+        fixture = change_root(facts(eps=(2.,) * 5, payer=True), "dividend", value=3.)
+        self.unavailable(build(fixture), "PAYOUT_EXCEEDS_EARNINGS")
+
+    def test_exactly_full_payout_remains_supported(self):
+        fixture = change_root(facts(eps=(2.,) * 5, payer=True), "dividend", value=2.)
+        result = build(fixture)
+        self.assertEqual(result.status, "BUILT")
+        self.assertEqual(node(result, "CONSTANT_MATCHED_ORDINARY_PAYOUT_V1").value, 1.)
+        self.assertIsNotNone(result.diagnostic)
+        for scenario in result.request.scenarios:
+            projected = 2.
+            for growth, dividend in zip(scenario.growth_rates, scenario.dividends_per_share):
+                projected *= 1 + growth
+                self.assertEqual(dividend, projected)
+
+    def test_payout_immediately_above_one_has_no_tolerance_or_clamping(self):
+        dividend = math.nextafter(2., math.inf)
+        self.assertEqual(dividend / 2., math.nextafter(1., math.inf))
+        fixture = change_root(facts(eps=(2.,) * 5, payer=True), "dividend", value=dividend)
+        with patch.object(er, "calculate_expected_return", wraps=er.calculate_expected_return) as calculator:
+            result = build(fixture)
+        self.unavailable(result, "PAYOUT_EXCEEDS_EARNINGS")
+        calculator.assert_not_called()
+        self.assertEqual(next(r.value for r in result.input_roots if type(r) is a.OrdinaryAnnualDividend), dividend)
+        self.assertFalse(any(n.transformation_id.startswith(("CONSTANT_MATCHED_ORDINARY_PAYOUT", "DIVIDEND_SCHEDULE"))
+                             for n in result.lineage))
+
+    def test_normal_payer_cash_flows_and_pre_correction_returns_unchanged(self):
+        result = build(facts(payer=True))
+        self.assertEqual(result.status, "BUILT")
+        self.assertEqual(node(result, "CONSTANT_MATCHED_ORDINARY_PAYOUT_V1").value, .3)
+        # Existing fixture: matched dividend .9 / reported EPS 3 = .3;
+        # the latest-three median used to project EPS remains 2.7.
+        for scenario in result.request.scenarios:
+            projected = 2.7
+            for growth, dividend in zip(scenario.growth_rates, scenario.dividends_per_share):
+                projected *= 1 + growth
+                self.assertEqual(dividend, .3 * projected)
+        # Captured at a3645a4; only libm/IRR comparison uses numerical tolerance.
+        for actual, expected in zip(returns(result), (.019342232275808047, .08157136351772037, .1405980658758347)):
+            self.assertAlmostEqual(actual, expected, delta=2e-14)
+
+    def test_nonpayer_cash_flows_and_pre_correction_returns_unchanged(self):
+        result = build(facts())
+        self.assertEqual(result.status, "BUILT")
+        self.assertEqual(node(result, "CONTINUED_VERIFIED_NONPAYER_V1").value, 0.)
+        for scenario in result.request.scenarios:
+            self.assertEqual(scenario.dividends_per_share, (0.,) * 7)
+        for actual, expected in zip(returns(result), (-.003467440923891662, .06089762040432094, .12115309470015583)):
+            self.assertAlmostEqual(actual, expected, delta=2e-14)
+
     def test_nonpayer_requires_continued_policy_and_constructs_zeros(self):
         result = build()
         for scenario in result.request.scenarios:
