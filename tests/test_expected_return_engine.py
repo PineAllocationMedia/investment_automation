@@ -438,7 +438,10 @@ class ExpectedReturnContractTests(unittest.TestCase):
         root = Path(er.__file__).resolve().parents[1]
         for path in (root / "main.py", *sorted((root / "src").glob("*.py")),
                      *sorted((root / "pit_comparison").glob("*.py"))):
-            if path.name == "expected_return_engine.py":
+            if path == root / "src" / "expected_return_engine.py":
+                continue
+            if path == root / "src" / "expected_return_assumptions.py":
+                self.assertIn("from . import expected_return_engine as er", path.read_text())
                 continue
             self.assertNotIn("expected_return_engine", path.read_text(), str(path))
 
