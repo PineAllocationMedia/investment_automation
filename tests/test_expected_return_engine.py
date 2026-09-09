@@ -499,5 +499,191 @@ class ExpectedReturnContractTests(unittest.TestCase):
             er.calculate_expected_return(replace(fixture, current_price=float("nan")))
 
 
+class ExpectedReturnMaterialEvidenceTests(unittest.TestCase):
+    def supported_by(self, field, component="growth", **metadata):
+        fixture = request_fixture(growth=(.1,) * 7)
+        record = replace(fixture.evidence[1], id="support", field=field, value=.12,
+                         unit="DECIMAL_FRACTION", source_kind="MARKET_PROVIDER", **metadata)
+        return replace(fixture, evidence=fixture.evidence + (record,),
+            assumptions=tuple(replace(a, supporting_evidence_ids=(record.id,))
+                              if a.component == component else a for a in fixture.assumptions))
+
+    def assert_prohibited(self, fixture, field):
+        before = copy.deepcopy(fixture)
+        with self.assertRaisesRegex(er.ExpectedReturnError, "prohibited material Expected Return evidence") as raised:
+            er.calculate_expected_return(fixture)
+        self.assertIn(repr(field), str(raised.exception))
+        self.assertEqual(fixture, before)
+
+    def test_stock_cagr_cannot_qualify_growth(self):
+        self.assert_prohibited(self.supported_by("stock_cagr_5y"), "stock_cagr_5y")
+
+    def test_stock_cagr_cannot_qualify_through_derived_child(self):
+        fixture = self.supported_by("stock_cagr_5y")
+        child = replace(fixture.evidence[-1], id="child", field="per_share_eps_growth",
+                        source_kind="DERIVED", parent_evidence_ids=("support",))
+        grandchild = replace(child, id="grandchild", parent_evidence_ids=("child",))
+        fixture = replace(fixture, evidence=fixture.evidence + (child, grandchild),
+            assumptions=tuple(replace(a, supporting_evidence_ids=("grandchild",))
+                              if a.component == "growth" else a for a in fixture.assumptions))
+        self.assert_prohibited(fixture, "stock_cagr_5y")
+
+    def test_v1_score_cannot_qualify_growth(self):
+        self.assert_prohibited(self.supported_by("score_total"), "score_total")
+
+    def test_v1_valuation_cannot_qualify_terminal_valuation(self):
+        for field in ("peg_manual", "fair_value", "price_to_fair_value"):
+            with self.subTest(field=field):
+                self.assert_prohibited(self.supported_by(field, "terminal_valuation"), field)
+
+    def test_existing_cagr_category_cannot_qualify_any_component(self):
+        for component in er.COMPONENTS:
+            with self.subTest(component=component):
+                fixture = self.supported_by("expected_cagr_quality", component)
+                if component == "fundamental":
+                    assumption = er.Assumption("normalization", component, "base", "Synthetic normalization",
+                        "fixture-v1", supporting_evidence_ids=("support",), value=10.)
+                    fixture = alter_scenario(fixture, fundamental_refs=er.References(assumption_ids=(assumption.id,)))
+                    fixture = replace(fixture, assumptions=fixture.assumptions + (assumption,))
+                self.assert_prohibited(fixture, "expected_cagr_quality")
+
+    def test_v1_fields_cannot_enter_material_evidence_graph(self):
+        # Independent contract examples complement the strict typed-API test.
+        fields_to_reject = {
+            "stock_cagr_3y", "stock_cagr_5y", "stock_cagr_10y", "cagr_5y", "cagr_10y",
+            "adjusted_stock_cagr_3y", "adjusted_stock_cagr_5y", "adjusted_stock_cagr_10y",
+            "adjusted_cagr_5y", "adjusted_cagr_10y", "stock_return_1y", "adjusted_stock_return_1y",
+            "sector_cagr_estimated", "benchmark_3y_cagr", "benchmark_5y_cagr", "benchmark_10y_cagr",
+            "benchmark_usable_cagr", "benchmark_1y_return", "benchmark_return_1y",
+            "expected_cagr_quality", "expected_cagr_quality_raw", "expected_cagr_quality_score",
+            "score_total", "score_total_normalized", "conviction_score", "opportunity_cost_status",
+            "opportunity_cost_score", "long_term_durability_score", "business_quality_score",
+            "high_cagr_potential_score", "quality_cagr_intersection", "peg", "peg_manual", "fair_value",
+            "price_to_fair_value", "valuation_severity", "valuation_score", "quality_but_too_expensive",
+            "capital_allocation_score", "capital_allocation_score_low", "capital_allocation_score_high",
+            "capital_allocation_components", "capital_allocation_confidence_range", "capital_allocation_confidence_label",
+            "allocations", "allocation_weight", "montant", "pourcentage", "post_purchase_position_weight",
+            "reliability_allocation_cap_percent", "reliability_allocation_cap_amount",
+        }
+        self.assertEqual(er.PROHIBITED_EXPECTED_RETURN_EVIDENCE_FIELDS, fields_to_reject)
+        for field in sorted(fields_to_reject):
+            with self.subTest(field=field):
+                self.assert_prohibited(self.supported_by(field), field)
+
+    def test_unreferenced_prohibited_evidence_does_not_affect_economics(self):
+        fixture = request_fixture(growth=(.1,) * 7)
+        expected = er.calculate_expected_return(fixture)
+        for field in sorted(er.PROHIBITED_EXPECTED_RETURN_EVIDENCE_FIELDS):
+            for reliability, freshness in (("HIGH", "CURRENT"), ("NONE", "UNKNOWN")):
+                with self.subTest(field=field, reliability=reliability):
+                    extra = replace(fixture.evidence[1], id="unreferenced", field=field,
+                                    reliability_status=reliability, freshness_status=freshness)
+                    unused = er.Assumption("unused", "growth", "base", "Descriptive only", "fixture-v1",
+                                           supporting_evidence_ids=(extra.id,), value=(.2,) * 7)
+                    result = er.calculate_expected_return(replace(fixture, evidence=fixture.evidence + (extra,),
+                                                                  assumptions=fixture.assumptions + (unused,)))
+                    self.assertEqual(result.scenarios, expected.scenarios)
+                    self.assertEqual(result.confidence, expected.confidence)
+                    self.assertEqual(result.overall_confidence, expected.overall_confidence)
+                    self.assertEqual(result.status, expected.status)
+                    self.assertEqual(result.warnings, expected.warnings)
+                    self.assertEqual(result.unavailable_reasons, expected.unavailable_reasons)
+                    self.assertIn(extra.id, {e.id for e in result.evidence})
+
+    def test_legitimate_operating_evidence_still_qualifies_assumptions(self):
+        fixture = request_fixture(growth=(.1,) * 7)
+        expected = er.calculate_expected_return(fixture)
+        examples = (
+            ("revenue_growth", .12, "DECIMAL_FRACTION"),
+            ("normalized_diluted_eps", (8., 9., 10.), "CURRENCY_PER_SHARE"),
+            ("shares_outstanding", 1000000., "SHARES"),
+            ("share_count_cagr_5y", .02, "DECIMAL_FRACTION"),
+            ("dilution", .02, "DECIMAL_FRACTION"),
+            ("dividends_per_share", 1., "CURRENCY_PER_SHARE"),
+            ("net_margin", .2, "DECIMAL_FRACTION"),
+            ("cash_flow", 1000000., "CURRENCY"),
+            ("forward_eps", 11., "CURRENCY_PER_SHARE"),
+            ("roe", .15, "DECIMAL_FRACTION"), ("roa", .08, "DECIMAL_FRACTION"),
+        )
+        for field, value, unit in examples:
+            with self.subTest(field=field):
+                record = replace(fixture.evidence[1], id="operating", field=field, value=value, unit=unit)
+                changed = replace(fixture, evidence=fixture.evidence + (record,),
+                    assumptions=tuple(replace(a, supporting_evidence_ids=(record.id,)) for a in fixture.assumptions))
+                result = er.calculate_expected_return(changed)
+                self.assertEqual(result.scenarios, expected.scenarios)
+                self.assertEqual(result.confidence, expected.confidence)
+                self.assertEqual(result.status, "AVAILABLE")
+
+    def test_current_purchase_price_remains_valid(self):
+        fixture = request_fixture()
+        self.assertEqual(fixture.evidence[0].field, "current_price")
+        result = er.calculate_expected_return(fixture)
+        self.assertEqual(result.status, "AVAILABLE")
+        self.assertEqual(result.current_price_evidence_id, "price")
+        self.assertEqual(result.current_price, 100.)
+
+    def test_purchase_price_prohibited_ancestor_is_rejected(self):
+        fixture = self.supported_by("stock_cagr_5y")
+        fixture = replace(fixture, assumptions=request_fixture(growth=(.1,) * 7).assumptions,
+            evidence=(replace(fixture.evidence[0], parent_evidence_ids=("support",)),) + fixture.evidence[1:])
+        self.assert_prohibited(fixture, "stock_cagr_5y")
+
+    def test_direct_component_evidence_prohibited_ancestor_is_rejected(self):
+        for component in er.COMPONENTS:
+            with self.subTest(component=component):
+                fixture = request_fixture()
+                parent = replace(fixture.evidence[1], id="parent", field="score_total")
+                # A correctly named direct record cannot launder a forbidden parent.
+                mapping = {
+                    "fundamental": ("fundamental_refs", "normalized_diluted_eps", 10., "CURRENCY_PER_SHARE"),
+                    "growth": ("growth_refs", "per_share_eps_growth", (0.,) * 7, "DECIMAL_FRACTION"),
+                    "distributions": ("distribution_refs", "dividends_per_share", (0.,) * 7, "CURRENCY_PER_SHARE"),
+                    "terminal_valuation": ("terminal_refs", "terminal_pe", 10., "MULTIPLE"),
+                }
+                ref_field, field, value, unit = mapping[component]
+                child = replace(fixture.evidence[1], id="direct", field=field, value=value, unit=unit,
+                                source_kind="DERIVED", parent_evidence_ids=(parent.id,))
+                old_refs = getattr(fixture.scenarios[1], ref_field)
+                fixture = alter_scenario(fixture, **{ref_field: replace(old_refs, evidence_ids=(child.id,))})
+                self.assert_prohibited(replace(fixture, evidence=fixture.evidence + (parent, child)), "score_total")
+
+    def test_prohibited_evidence_rejected_regardless_of_source_or_confidence(self):
+        for source in sorted(er.SOURCE_KINDS):
+            for level in er.CONFIDENCE_ORDER:
+                with self.subTest(source=source, level=level):
+                    fixture = self.supported_by("score_total")
+                    fixture = replace(fixture, confidence=replace(fixture.confidence, growth=level),
+                        evidence=fixture.evidence[:-1] + (replace(fixture.evidence[-1], source_kind=source,
+                            reliability_status=level, freshness_status="UNKNOWN" if level == "NONE" else "CURRENT"),))
+                    self.assert_prohibited(fixture, "score_total")
+
+    def test_prohibited_evidence_not_hidden_by_economic_unavailability(self):
+        fixture = replace(self.supported_by("stock_cagr_5y"), profile="BANK", current_price=None)
+        self.assert_prohibited(fixture, "stock_cagr_5y")
+
+    def test_prohibited_field_case_aliases_rejected(self):
+        for field in ("STOCK_CAGR_5Y", "Score_Total", "PEG_MANUAL"):
+            with self.subTest(field=field):
+                self.assert_prohibited(self.supported_by(field), field)
+
+    def test_prohibited_error_is_deterministic_across_provenance_order(self):
+        fixture = self.supported_by("stock_cagr_5y")
+        other = replace(fixture.evidence[-1], id="other", field="score_total")
+        fixture = replace(fixture, evidence=fixture.evidence + (other,),
+            assumptions=tuple(replace(a, supporting_evidence_ids=("support", "other"))
+                              if a.component == "growth" else a for a in fixture.assumptions))
+        reversed_fixture = replace(fixture, evidence=tuple(reversed(fixture.evidence)),
+            scenarios=tuple(reversed(fixture.scenarios)),
+            assumptions=tuple(replace(a, supporting_evidence_ids=tuple(reversed(a.supporting_evidence_ids)))
+                              for a in reversed(fixture.assumptions)))
+        messages = []
+        for variant in (fixture, reversed_fixture):
+            with self.assertRaises(er.ExpectedReturnError) as raised:
+                er.calculate_expected_return(variant)
+            messages.append(str(raised.exception))
+        self.assertEqual(messages[0], messages[1])
+
+
 if __name__ == "__main__":
     unittest.main()

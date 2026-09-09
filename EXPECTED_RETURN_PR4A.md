@@ -204,6 +204,63 @@ availability. Fiscal/target date ranges must be valid and ordered. An observed
 current price cannot claim a future target date. This is local provenance
 validation, not PR3 COMPLETE_PIT certification.
 
+### Material evidence admissibility
+
+Material Expected Return provenance cannot use historical stock-price CAGR,
+benchmark-return-as-growth proxies, or downstream V1 model outputs to qualify
+growth, valuation, or confidence.
+
+The initial typed API correctly excluded these economic inputs, but generic
+assumption support could still attach them to the confidence graph. The PR #31
+correction closes that indirect path. A known prohibited field used as material
+support is a methodology contract-policy violation: `ExpectedReturnError`, not
+`UNAVAILABLE`, silent omission, or a confidence downgrade. The error names the
+evidence ID, prohibited field and affected component, even when other inputs
+would already make the diagnostic unavailable.
+
+Material evidence comprises the current-price reference, direct scenario
+component references, supporting evidence of referenced assumptions, and every
+transitive parent of those records. The existing confidence traversal checks
+admissibility before applying each record's reliability. A child named
+`per_share_eps_growth` cannot qualify a growth assumption if its ancestry contains
+`stock_cagr_5y`. The same rule covers price, fundamentals, distributions and
+terminal valuation. Traversal order is deterministic, including policy errors.
+
+`PROHIBITED_EXPECTED_RETURN_EVIDENCE_FIELDS` enumerates these exact repository
+names. Matching is case-insensitive; no wildcard ban on `cagr`, `growth`, or raw
+operating facts is applied.
+
+| Group and repository basis | Prohibited material fields |
+| --- | --- |
+| Price-history outputs/aliases in `data_fetcher.py`; price returns cannot establish fundamental growth | `stock_cagr_3y`, `stock_cagr_5y`, `stock_cagr_10y`, `cagr_5y`, `cagr_10y`, `adjusted_stock_cagr_3y`, `adjusted_stock_cagr_5y`, `adjusted_stock_cagr_10y`, `adjusted_cagr_5y`, `adjusted_cagr_10y`, `stock_return_1y`, `adjusted_stock_return_1y` |
+| `benchmark_metrics_for` and the V1 sector proxy; historical comparison returns cannot qualify company forecasts | `sector_cagr_estimated`, `benchmark_3y_cagr`, `benchmark_5y_cagr`, `benchmark_10y_cagr`, `benchmark_usable_cagr`, `benchmark_1y_return`, `benchmark_return_1y` |
+| V1 CAGR, scoring, opportunity-cost, durability and sizing judgments; using them as evidence would be circular | `expected_cagr_quality`, `expected_cagr_quality_raw`, `expected_cagr_quality_score`, `score_total`, `score_total_normalized`, `conviction_score`, `opportunity_cost_status`, `opportunity_cost_score`, `long_term_durability_score`, `business_quality_score`, `high_cagr_potential_score`, `quality_cagr_intersection` |
+| Existing V1 valuation judgments; these are not independently qualified terminal-P/E policies | `peg`, `peg_manual`, `fair_value`, `price_to_fair_value`, `valuation_severity`, `valuation_score`, `quality_but_too_expensive` |
+| Sizing/allocation outputs and their weight projection; portfolio decisions cannot qualify economic assumptions | `capital_allocation_score`, `capital_allocation_score_low`, `capital_allocation_score_high`, `capital_allocation_components`, `capital_allocation_confidence_range`, `capital_allocation_confidence_label`, `allocations`, `allocation_weight`, `montant`, `pourcentage`, `post_purchase_position_weight`, `reliability_allocation_cap_percent`, `reliability_allocation_cap_amount` |
+
+These names are prohibited regardless of `source_kind`, reliability or declared
+confidence. In particular, `MARKET_PROVIDER` does not make a stock CAGR admissible.
+All material benchmark-return support is rejected: PR4A has no descriptive/risk
+component for which such support would be needed.
+
+`current_price` remains valid purchase-cost evidence. Underlying economic facts
+remain admissible: revenue growth, qualified normalized EPS history, margins,
+share counts (including `share_count_cagr_5y`), dilution observations, dividends,
+cash flow, explicitly vintaged analyst estimates, ROE and ROA. Their qualification,
+units, dates and transformation rationale remain the caller's responsibility.
+
+Price history may exist elsewhere for descriptive/risk purposes; it is not
+evidence for fundamental growth or terminal valuation. Well-formed unreferenced
+evidence, including prohibited fields and support of unreferenced assumptions,
+is retained for audit but cannot affect returns, confidence, status, warnings or
+economic availability. Existing whole-envelope schema, date and DAG validation
+still applies. Only material reachability triggers this admissibility policy.
+
+This is an auditable policy for known field names and declared ancestry, not a
+semantic classifier of arbitrary text or proof of source authenticity. A caller
+must accurately label facts and disclose their derivation; inventing a new alias
+or omitting an ancestor is not valid upstream qualification.
+
 ## Confidence and availability
 
 `ConfidenceComponents` contains `fundamental`, `growth`, `distributions`,

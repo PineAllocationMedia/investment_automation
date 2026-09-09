@@ -21,6 +21,32 @@ SCENARIOS = ("bear", "base", "bull")
 COMPONENTS = ("fundamental", "growth", "distributions", "terminal_valuation")
 CONFIDENCE_ORDER = ("NONE", "LOW", "MEDIUM", "HIGH")
 SOURCE_KINDS = frozenset({"OFFICIAL_CURRENT_DATA", "MARKET_PROVIDER", "RESEARCH_REPORT", "HUMAN_MANUAL", "DERIVED"})
+# Known repository field names, not a ban on raw operating facts or all CAGR
+# measures (share_count_cagr_5y, for example, is legitimate operating evidence).
+# Enforced only on material provenance, regardless of source kind or confidence.
+PROHIBITED_EXPECTED_RETURN_EVIDENCE_FIELDS = frozenset({
+    # data_fetcher.py: price-history returns and its actual adjusted aliases.
+    "stock_cagr_3y", "stock_cagr_5y", "stock_cagr_10y", "cagr_5y", "cagr_10y",
+    "adjusted_stock_cagr_3y", "adjusted_stock_cagr_5y", "adjusted_stock_cagr_10y",
+    "adjusted_cagr_5y", "adjusted_cagr_10y", "stock_return_1y", "adjusted_stock_return_1y",
+    # benchmark_metrics_for and the sector proxy used by V1 scoring/sizing.
+    "sector_cagr_estimated", "benchmark_3y_cagr", "benchmark_5y_cagr",
+    "benchmark_10y_cagr", "benchmark_usable_cagr", "benchmark_1y_return", "benchmark_return_1y",
+    # V1 classifications, scores and their numeric sizing components.
+    "expected_cagr_quality", "expected_cagr_quality_raw", "expected_cagr_quality_score",
+    "score_total", "score_total_normalized", "conviction_score",
+    "opportunity_cost_status", "opportunity_cost_score", "long_term_durability_score",
+    "business_quality_score", "high_cagr_potential_score", "quality_cagr_intersection",
+    # Existing heuristic valuation judgments, not underlying earnings observations.
+    "peg", "peg_manual", "fair_value", "price_to_fair_value", "valuation_severity",
+    "valuation_score", "quality_but_too_expensive",
+    # sizing_engine/allocation_engine outputs and the allocation-weight projection.
+    "capital_allocation_score", "capital_allocation_score_low", "capital_allocation_score_high",
+    "capital_allocation_components", "capital_allocation_confidence_range",
+    "capital_allocation_confidence_label", "allocations", "allocation_weight",
+    "montant", "pourcentage", "post_purchase_position_weight",
+    "reliability_allocation_cap_percent", "reliability_allocation_cap_amount",
+})
 _MAX_ITERATIONS = 256
 _ROOT_TOLERANCE = 1e-14
 _RESIDUAL_TOLERANCE = 1e-10
@@ -428,14 +454,16 @@ def calculate_expected_return(request: ExpectedReturnRequest) -> ExpectedReturnD
         reasons.add("MISSING_CURRENT_PRICE_EVIDENCE")
 
     def inspect_evidence(keys, component):
-        pending, seen = list(keys), set()
+        pending, seen = sorted(keys, reverse=True), set()
         while pending:
             key = pending.pop()
             if key in seen:
                 continue
             seen.add(key)
             record = evidence[key]
-            pending.extend(record.parent_evidence_ids)
+            _require(record.field.casefold() not in PROHIBITED_EXPECTED_RETURN_EVIDENCE_FIELDS,
+                     f"{key}: prohibited material Expected Return evidence field {record.field!r} for {component}")
+            pending.extend(sorted(record.parent_evidence_ids, reverse=True))
             if record.reliability_status == "NONE" or record.freshness_status == "UNKNOWN":
                 reasons.add("UNUSABLE_EVIDENCE:" + key)
                 levels[component] = "NONE"
