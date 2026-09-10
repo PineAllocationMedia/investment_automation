@@ -443,6 +443,10 @@ class ExpectedReturnContractTests(unittest.TestCase):
             if path == root / "src" / "expected_return_assumptions.py":
                 self.assertIn("from . import expected_return_engine as er", path.read_text())
                 continue
+            # PR4B2 diagnostic transport is the sole additional harness consumer;
+            # test_frozen_model_imports_only_in_v2_branch guards its import scope.
+            if path == root / "pit_comparison" / "expected_return_diagnostics.py":
+                continue
             self.assertNotIn("expected_return_engine", path.read_text(), str(path))
 
     def test_per_share_growth_has_no_second_dilution_adjustment(self):

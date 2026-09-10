@@ -14,6 +14,7 @@ from pathlib import Path
 from . import AUTHORITY, CONTAINMENT_LEVEL, PIT_ADAPTER_VERSION, PIT_COMPARISON_SCHEMA_VERSION
 from .boundary import clean_environment
 from .bundle import BundleError, FAMILIES, canonical, digest, fingerprint, inventory, loads, verify_bundle
+from .expected_return_diagnostics import validate_diagnostic, diagnostic_fingerprint, diagnostic_differences
 from .source_export import V1_SHA, V2_SHA, export_revision, verify_export, git
 
 
@@ -74,6 +75,12 @@ def snapshot_harness(destination):
 def validate_result(result, request):
     if result.get("status") != "SUCCEEDED":
         raise ComparisonError(f"{request['source_provenance']['model_lineage']} worker failed: {result.get('status')}: {result.get('error')}; {result.get('containment')}")
+    expected_keys = {*AUTHORITY, "schema_version", "status", "comparison_id", "execution_id", "bundle_hash", "input_identity",
+        "effective_pit_at", "investment_mode", "capital_context", "artifact_created_at", "runtime_diagnostics", "model_provenance",
+        "containment", "consumed_logical_inputs", "completeness_status", "semantic_result", "semantic_fingerprint",
+        "diagnostic_result", "diagnostic_fingerprint"}
+    if set(result) != expected_keys:
+        raise ComparisonError("Result closed schema mismatch")
     for key, value in AUTHORITY.items():
         if result.get(key) != value or type(result.get(key)) is not type(value):
             raise ComparisonError("Retrospective authority mismatch")
@@ -104,6 +111,13 @@ def validate_result(result, request):
         raise ComparisonError("Semantic decision context mismatch")
     if fingerprint(semantic) != result.get("semantic_fingerprint"):
         raise ComparisonError("Semantic fingerprint mismatch")
+
+    try:
+        validate_diagnostic(result["diagnostic_result"], request)
+        if diagnostic_fingerprint(result["diagnostic_result"]) != result["diagnostic_fingerprint"]:
+            raise BundleError("Diagnostic fingerprint mismatch")
+    except (BundleError, KeyError, TypeError, AttributeError) as exc:
+        raise ComparisonError("Invalid diagnostic result: " + str(exc)) from exc
 
 
 CORRESPONDING_FIELDS = ("score_total", "conviction_score", "capital_allocation_score", "expected_cagr_quality",
@@ -150,6 +164,8 @@ def run_comparison(*, repo, bundle_root, expected_bundle_hash, store, v2_revisio
                 source = temp / (lineage + "-source")
                 provenance = source_preparer(Path(repo), revision, source, lineage=lineage)
                 verify_export(source, provenance)
+                if provenance["model_lineage"] != lineage:
+                    raise ComparisonError("Selected model lineage mismatch")
                 worker = temp / (lineage + "-worker")
                 worker.mkdir()
                 materialized = worker / "runtime" / "bundle"
@@ -198,10 +214,14 @@ def run_comparison(*, repo, bundle_root, expected_bundle_hash, store, v2_revisio
                 (target / "result.json").write_bytes(raw)
                 manifest["executions"][lineage] = {"execution_id": result["execution_id"],
                     "path": f"executions/{result['execution_id']}/result.json", "artifact_sha256": digest(raw),
-                    "semantic_fingerprint": result["semantic_fingerprint"]}
+                    "semantic_fingerprint": result["semantic_fingerprint"],
+                    "diagnostic_fingerprint": result["diagnostic_fingerprint"]}
             delta = canonical(differences(results["V1"][0]["semantic_result"], results["V2"][0]["semantic_result"]))
             (stage / "differences.json").write_bytes(delta)
             manifest["differences_sha256"] = digest(delta)
+            diagnostic_delta = canonical(diagnostic_differences(results["V1"][0]["diagnostic_result"], results["V2"][0]["diagnostic_result"]))
+            (stage / "diagnostic_differences.json").write_bytes(diagnostic_delta)
+            manifest["diagnostic_differences"] = {"path": "diagnostic_differences.json", "sha256": digest(diagnostic_delta)}
             (stage / "comparison_manifest.json").write_bytes(canonical(manifest))
             verify_pair(stage)
             verify_bundle(Path(bundle_root), expected_bundle_hash, require_complete=True)
@@ -224,7 +244,8 @@ def run_comparison(*, repo, bundle_root, expected_bundle_hash, store, v2_revisio
 def verify_pair(root):
     files = inventory(Path(root))
     manifest = loads(files["comparison_manifest.json"])
-    expected = {"comparison_manifest.json", "differences.json"}
+    expected = {"comparison_manifest.json", "differences.json", "diagnostic_differences.json"}
+    diagnostics = {}
     if manifest.get("executions", {}).keys() != {"V1", "V2"}:
         raise ComparisonError("Incomplete pair")
     spec = manifest["specification"]
@@ -236,6 +257,8 @@ def verify_pair(root):
         raise ComparisonError("Parent specification linkage mismatch")
     execution_ids = set()
     for lineage, link in manifest["executions"].items():
+        if spec["models"][lineage]["model_lineage"] != lineage:
+            raise ComparisonError("Parent model lineage mismatch")
         path = link["path"]
         if path != f"executions/{link['execution_id']}/result.json" or link["execution_id"] in execution_ids:
             raise ComparisonError("Execution identity mismatch")
@@ -249,10 +272,17 @@ def verify_pair(root):
         validate_result(result, {"comparison_id": manifest["comparison_id"], "execution_id": link["execution_id"],
             "expected_bundle_hash": manifest["bundle_hash"], "input_identity": manifest["input_identity"],
             "decision_context": spec["decision_context"], "source_provenance": spec["models"][lineage], "harness_hash": spec["harness_hash"]})
+        diagnostics[lineage] = result["diagnostic_result"]
+        if result["diagnostic_fingerprint"] != link.get("diagnostic_fingerprint"):
+            raise ComparisonError("Diagnostic link mismatch")
         if result["semantic_fingerprint"] != link["semantic_fingerprint"]:
             raise ComparisonError("Semantic link mismatch")
     if set(files) != expected or digest(files["differences.json"]) != manifest["differences_sha256"]:
         raise ComparisonError("Pair inventory/difference hash mismatch")
+    diagnostic_raw = files.get("diagnostic_differences.json", b"")
+    if (manifest.get("diagnostic_differences") != {"path": "diagnostic_differences.json", "sha256": digest(diagnostic_raw)}
+            or diagnostic_raw != canonical(diagnostic_differences(diagnostics["V1"], diagnostics["V2"]))):
+        raise ComparisonError("Diagnostic differences hash/content/linkage mismatch")
     if fingerprint(manifest["specification"]) != manifest["comparison_spec_hash"] or any(manifest.get(k) != v or type(manifest.get(k)) is not type(v) for k, v in AUTHORITY.items()):
         raise ComparisonError("Comparison specification/authority mismatch")
     return manifest

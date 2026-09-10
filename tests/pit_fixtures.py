@@ -11,7 +11,7 @@ import zlib
 from pathlib import Path
 
 from pit_comparison import PIT_BUNDLE_SCHEMA_VERSION, PIT_INPUT_CONTRACT_VERSION
-from pit_comparison.bundle import CONFIG_NAMES, FAMILIES, MARKET_REQUIRED, canonical, digest, fingerprint
+from pit_comparison.bundle import CONFIG_NAMES, FAMILIES, MARKET_REQUIRED, explicit_absences, canonical, digest, fingerprint
 from pit_comparison.source_export import V1_SHA, V2_SHA, V1_TREE, V2_TREE, allowed_source, git, write_export
 
 PIT = "2025-06-02T16:00:00+00:00"
@@ -135,6 +135,7 @@ def fixture_data(mode="rational-aggressive", scenario="mixed", capital=1000):
     elif scenario == "regime":
         config["market_regime.yaml"] = {"enabled": True}
         data["regime_market"] = {t: market(t) for t in BENCHMARKS}
+    data["expected_return_inputs"] = {"contract_version": "pit-expected-return-inputs-v1", "entries": []}
     source = {"observation_date": "2025-06-02", "published_at": "2025-06-02T14:00:00+00:00",
         "available_at": "2025-06-02T15:00:00+00:00", "captured_at": "2025-06-02T15:01:00+00:00",
         "availability_evidence": "Entirely synthetic controlled chronology", "source_version": "synthetic-v1",
@@ -161,7 +162,7 @@ def write_bundle(root, data=None, *, quality="COMPLETE_PIT", pretty=False):
         "history_policy": {"selection": "EXPLICIT_ADMISSIBLE_RECORDS", "status": data["prior_state"]["status"]},
         "provenance": {"logical_input": "provenance", "sha256": fingerprint(data["provenance"])},
         "logical_inputs": sorted(FAMILIES), "files": files,
-        "explicit_absences": sorted(k for k in FAMILIES if data[k] == {} or data[k] == [])}
+        "explicit_absences": explicit_absences(data)}
     manifest["input_identity"] = fingerprint({"contract": PIT_INPUT_CONTRACT_VERSION, "files": sorted(files, key=lambda r:r["logical_id"]), "effective_pit_at": PIT, "semantic_timezone": manifest["semantic_timezone"]})
     manifest["bundle_hash"] = fingerprint(manifest)
     manifest["bundle_id"] = "sha256:" + manifest["bundle_hash"]

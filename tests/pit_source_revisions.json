@@ -361,7 +361,7 @@
     "tree": "26a69bb0b2185ab141af0763da2d965602c8346b"
   },
   "V2": {
-    "commit": "2d7abc5ca23f6cf8225793f10034e8e6bae1d41e",
+    "commit": "a95ff74fe0cd448d4b4436dc8506363caabac9d0",
     "files": {
       ".python-version": {
         "sha256": "aa0d6581054e6e4ff3f91839deca7a854ad37221b8784d060b42d0f847ff1a3b"
@@ -500,6 +500,15 @@
       },
       "src/evidence_provenance.py": {
         "sha256": "0770368997ded3f3561f54ca3519f2ba8a6d968682caea2625f9dc5ee399d64b"
+      },
+      "src/expected_return_assumptions.py": {
+        "sha256": "f4d617fb436caf986f1442e00914f34d0425914d7a099f39b5cfe4f8cc3c9f83"
+      },
+      "src/expected_return_engine.py": {
+        "sha256": "2350d1898792ddc1596b4b90c81d2d01353996b58c14f1ce15251bef8d8331f8"
+      },
+      "src/expected_return_policy.py": {
+        "sha256": "411b408b2355184a7391904e8aa8697af95c14171f32335bf4c95cba44ad3390"
       },
       "src/external_etf_engine.py": {
         "sha256": "25eb7ca6533ba7366adbc20546ad843019ff6d549917586d6d419e881135fb4a"
@@ -700,6 +709,6 @@
         "sha256": "3cf464a4fbb47c38d0ca830c9281a5194d8bdc9a71227132fde200bcd078cf93"
       }
     },
-    "tree": "8489fb82b5c75701ea0c4a229e001e259fa1a2fe"
+    "tree": "e5acd0bd8d2fae99879116ab1c0e362af4b4ed6a"
   }
 }

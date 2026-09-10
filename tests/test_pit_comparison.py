@@ -76,6 +76,7 @@ class PITComparisonTests(unittest.TestCase):
             third = self.run_fixture(root,bundle=alternate,expected=alternate_hash)
             for link in verify_pair(third)["executions"].values():
                 self.assertEqual(link["semantic_fingerprint"], fingerprints[0])
+            self.assertEqual(fingerprints[0], "f8457910665391e39c234274cae4c029802c681211eebc7dba986a63000876f1")
             print("PIT_DETERMINISM_FINGERPRINT", fingerprints[0], flush=True)
             target=first/a["executions"]["V1"]["path"]
             target.write_bytes(target.read_bytes()+b" ")

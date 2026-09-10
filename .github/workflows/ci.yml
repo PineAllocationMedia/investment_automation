@@ -37,7 +37,7 @@ jobs:
             echo "PIT_PIN_FETCH_VERIFIED ${lineage} ${revision}"
           }
           fetch_pit_source V1 c5fc27c82c29c2a6027eccee245098c4a072fdf1 refs/pit-proof/v1
-          fetch_pit_source V2 2d7abc5ca23f6cf8225793f10034e8e6bae1d41e refs/pit-proof/v2
+          fetch_pit_source V2 a95ff74fe0cd448d4b4436dc8506363caabac9d0 refs/pit-proof/v2
 
       - name: Set up frozen Python version
         uses: actions/setup-python@v5

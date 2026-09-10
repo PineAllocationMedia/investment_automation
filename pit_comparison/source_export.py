@@ -9,9 +9,9 @@ from pathlib import Path
 from .bundle import BundleError, canonical, digest, fingerprint, inventory, loads, relative_path
 
 V1_SHA = "c5fc27c82c29c2a6027eccee245098c4a072fdf1"
-V2_SHA = "2d7abc5ca23f6cf8225793f10034e8e6bae1d41e"
+V2_SHA = "a95ff74fe0cd448d4b4436dc8506363caabac9d0"
 V1_TREE = "26a69bb0b2185ab141af0763da2d965602c8346b"
-V2_TREE = "8489fb82b5c75701ea0c4a229e001e259fa1a2fe"
+V2_TREE = "e5acd0bd8d2fae99879116ab1c0e362af4b4ed6a"
 V1_RULES = "2026-08-23-allocation-room-integrity-v7"
 V1_VALIDATION_SCHEMA = "2026-08-23-validation-architecture-v3"
 TOP_FILES = {"main.py", "requirements.txt", "requirements.lock", ".python-version"}

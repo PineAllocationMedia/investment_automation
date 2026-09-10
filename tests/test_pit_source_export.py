@@ -17,6 +17,9 @@ class PITSourceExportTests(unittest.TestCase):
                 expected = fixture_export(None, revision, source, lineage=lineage)
                 self.assertEqual(verify_export(source, expected)["git_tree_sha"], tree)
                 self.assertTrue(all(allowed_source(r["path"]) for r in expected["files"]))
+                if lineage == "V2":
+                    for name in ("expected_return_engine.py", "expected_return_assumptions.py", "expected_return_policy.py"):
+                        self.assertTrue((source / "src" / name).is_file())
                 self.assertFalse(any((source/p).exists() for p in ("data", "reports", "config", ".git", "deploy")))
                 (source/"src/utils.py").write_bytes(b"# source mutation\n")
                 with self.assertRaises(BundleError): verify_export(source, expected)
