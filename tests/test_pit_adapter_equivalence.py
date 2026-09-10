@@ -73,6 +73,7 @@ class PITAdapterEquivalenceTests(unittest.TestCase):
                     self.assertEqual(results[0],results[1])
                     fingerprints.append({'mode':mode,'scenario':scenario,'fingerprint':results[0]})
                     print('PIT_EQUIVALENCE', mode, scenario, results[0], flush=True)
+        self.assertEqual(fingerprint(fingerprints), 'f1e73b27b80e41d96ff5e0fe990b482bad71b7220db0b5bd6a2f470d72786166')
         print('PIT_EQUIVALENCE_CASES', len(fingerprints), 'AGGREGATE', fingerprint(fingerprints), flush=True)
 
     def test_worker_fails_after_caught_network_and_native_denials(self):

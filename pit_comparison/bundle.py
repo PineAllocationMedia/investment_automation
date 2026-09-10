@@ -17,7 +17,7 @@ from . import AUTHORITY, PIT_BUNDLE_SCHEMA_VERSION, PIT_INPUT_CONTRACT_VERSION
 
 FAMILIES = ("context", "portfolio", "transactions", "account_locations", "universe",
             "market", "benchmarks", "regime_market", "fx", "manual_inputs",
-            "research_facts", "ticker_memory", "prior_state", "config", "provenance")
+            "research_facts", "ticker_memory", "prior_state", "config", "provenance", "expected_return_inputs")
 CONFIG_NAMES = frozenset({"positions.yaml", "benchmarks.yaml", "sectors.yaml", "exposures.yaml",
     "watchlist.yaml", "market_scanner.yaml", "defensive_etfs.yaml", "market_regime.yaml",
     "ticker_aliases.yaml", "proxy_corrections.yaml", "model_tuning.yaml", "tax_parameters.yaml"})
@@ -220,6 +220,11 @@ def _verify_bundle(root: Path, expected_hash: str, *, require_complete=False) ->
     return VerifiedBundle(manifest, data, files)
 
 
+def explicit_absences(data):
+    return sorted(key for key in FAMILIES if data[key] == {} or data[key] == []
+                  or (key == "expected_return_inputs" and data[key].get("entries") == []))
+
+
 def validate_contract(m, d, *, require_complete):
     pit = timestamp(m.get("effective_pit_at"))
     timestamp(m.get("created_at"))
@@ -306,7 +311,9 @@ def validate_contract(m, d, *, require_complete):
             _require(timestamp(row["created_at"]) < pit and row["analysis_date"] <= pit.astimezone(ZoneInfo(m["semantic_timezone"])).date().isoformat(), "Future prior state")
             _require(isinstance(row["rows"], list), "Invalid prior rows")
     _require((not state["analysis"] and not state["allocation"]) == (state["status"] == "VERIFIED_EMPTY"), "Empty/missing prior state ambiguity")
-    empties = sorted(key for key in FAMILIES if d[key] == {} or d[key] == [])
+    from .expected_return_transport import validate_inputs
+    validate_inputs(d["expected_return_inputs"], m["effective_pit_at"])
+    empties = explicit_absences(d)
     _require(m.get("explicit_absences") == empties, "Explicit absence inventory mismatch")
     for row in d["transactions"]:
         _require(bool(row.get("date")) and row["date"] <= pit.date().isoformat(), "Future/undated transaction")
@@ -320,6 +327,8 @@ def validate_contract(m, d, *, require_complete):
         _require(source["observation_date"] <= pit.date().isoformat(), "Future observation")
         _require(timestamp(source["published_at"]) <= timestamp(source["available_at"]) <= pit, "Future publication/availability")
         _require(timestamp(source["captured_at"]) >= timestamp(source["available_at"]), "Capture precedes availability")
+        if family == "expected_return_inputs":
+            _require(timestamp(source["captured_at"]) <= pit, "Future Expected Return family capture")
         _require(source["historical_version_verified"] is True and bool(source["availability_evidence"])
                  and bool(source["source_version"]) and HEX.fullmatch(source["source_sha256"]), "Historical version/evidence required")
     _require(m.get("provenance") == {"logical_input": "provenance", "sha256": fingerprint(p)}, "Provenance linkage mismatch")

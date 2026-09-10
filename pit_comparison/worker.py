@@ -103,6 +103,7 @@ def execute(request, *, evaluator=None):
         boundary.install()
         install_http_sentinels(boundary)
         sys.path.insert(0, str(source))
+        from .expected_return_diagnostics import evaluate_diagnostics, diagnostic_fingerprint, diagnostic_linkage
         from .adapter import bind_inputs, evaluate
         # All harness modules (and the test oracle, when present) are loaded.
         # Remove the bootstrap search path before PR1 activation so subsequent
@@ -131,7 +132,12 @@ def execute(request, *, evaluator=None):
         if dependencies["dependency_status"] != "MATCH":
             raise BundleError("Locked dependency environment mismatch: " + str(dependencies))
         semantic = semantic_json((evaluator or evaluate)(bundle, model))
-        canonical(semantic)
+        # Freeze a detached JSON decision payload before any diagnostic execution.
+        semantic = loads(canonical(semantic))
+        semantic_hash = fingerprint(semantic)
+        diagnostic = evaluate_diagnostics(bundle.get("expected_return_inputs"), lineage, bundle.manifest["effective_pit_at"])
+        diagnostic["linkage"] = diagnostic_linkage(request)
+        diagnostic_hash = diagnostic_fingerprint(diagnostic)
         if boundary.violations:
             raise BundleError("Caught containment violation")
         if bundle.consumed != set(bundle.data):
@@ -154,7 +160,8 @@ def execute(request, *, evaluator=None):
                 "dependencies": dependencies},
             "containment": boundary.status(), "consumed_logical_inputs": sorted(bundle.consumed),
             "completeness_status": "COMPLETE_PIT", "semantic_result": semantic,
-            "semantic_fingerprint": fingerprint(semantic)}
+            "semantic_fingerprint": semantic_hash,
+            "diagnostic_result": diagnostic, "diagnostic_fingerprint": diagnostic_hash}
     except Exception as exc:
         result = {**AUTHORITY, "schema_version": PIT_COMPARISON_SCHEMA_VERSION,
             "status": "CONTAINMENT_FAILED" if boundary and boundary.violations else "FAILED",
