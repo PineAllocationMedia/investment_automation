@@ -1,1 +1,1 @@
-"""Offline source evidence primitives; no model or provider dependencies."""
+"""Source evidence primitives; explicit SEC acquisition, no model dependencies."""
