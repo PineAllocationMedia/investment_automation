@@ -252,7 +252,9 @@ class SecArchiveTests(unittest.TestCase):
             inspect_archive(self.archive, cik=CIK, cutoff=T1)
         package = Path(__file__).resolve().parents[1] / "economic_facts"
         allowed = {"dataclasses", "datetime", "decimal", "hashlib", "json", "os", "pathlib", "re", "stat"}
-        for file in package.glob("*.py"):
+        # The offline archive/extractor remain pure; PR4C2 separately checks
+        # the explicit network module's one-way archive dependency.
+        for file in (package / "__init__.py", package / "sec_archive.py", package / "sec_diluted_eps.py"):
             tree = ast.parse(file.read_text())
             for node in ast.walk(tree):
                 if isinstance(node, ast.Import):

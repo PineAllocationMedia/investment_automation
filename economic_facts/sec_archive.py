@@ -2,7 +2,7 @@
 
 The caller supplies capture time. This offline API verifies integrity, not the
 truth of that timestamp or the origin of the bytes. Never use filing dates to
-backdate receipts. A future trusted acquisition process must establish capture.
+backdate receipts. sec_acquisition owns the separate internal LIVE route.
 """
 from dataclasses import asdict, dataclass
 from datetime import datetime, timezone
@@ -16,6 +16,9 @@ import stat
 RECEIPT_SCHEMA_VERSION = "2026-09-10-sec-capture-receipt-v1"
 SOURCE_KIND = "SEC_COMPANYFACTS_SNAPSHOT"
 ACQUISITION_CONTRACT_VERSION = "2026-09-10-offline-supplied-companyfacts-v1"
+LIVE_ACQUISITION_CONTRACT_VERSION = "2026-09-11-sec-live-companyfacts-v1"
+_SUPPORTED_ACQUISITION_CONTRACTS = (ACQUISITION_CONTRACT_VERSION,
+                                    LIVE_ACQUISITION_CONTRACT_VERSION)
 _HASH = re.compile(r"[0-9a-f]{64}")
 _TIME = re.compile(r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,6})?(?:Z|[+-]\d{2}:\d{2})")
 
@@ -95,7 +98,7 @@ class CaptureReceipt:
         object.__setattr__(self, "captured_at", canonical_timestamp(self.captured_at))
         require(type(self.source_locator) is str and bool(self.source_locator.strip())
                 and self.source_locator == self.source_locator.strip(), "Source locator required")
-        require(self.acquisition_contract_version == ACQUISITION_CONTRACT_VERSION,
+        require(self.acquisition_contract_version in _SUPPORTED_ACQUISITION_CONTRACTS,
                 "Unsupported acquisition contract")
 
     @property
@@ -211,9 +214,22 @@ class SecArchive:
             os.close(fd)
 
     def capture(self, raw, *, cik, captured_at, source_locator):
+        """Public supplied-byte API: always the original OFFLINE contract."""
+        return self._capture(raw, cik=cik, captured_at=captured_at, source_locator=source_locator,
+                             acquisition_contract_version=ACQUISITION_CONTRACT_VERSION)
+
+    def _capture_live(self, raw, *, cik, captured_at):
+        """Internal publication capability for sec_acquisition's validated response.
+
+        Private by convention under trusted local code, not remote attestation.
+        """
+        return self._capture(raw, cik=cik, captured_at=captured_at, source_locator=endpoint_for(cik),
+                             acquisition_contract_version=LIVE_ACQUISITION_CONTRACT_VERSION)
+
+    def _capture(self, raw, *, cik, captured_at, source_locator, acquisition_contract_version):
         receipt = CaptureReceipt(RECEIPT_SCHEMA_VERSION, SOURCE_KIND, cik, endpoint_for(cik),
                                  digest(raw), len(raw), captured_at, source_locator,
-                                 ACQUISITION_CONTRACT_VERSION)
+                                 acquisition_contract_version)
         self._publish("objects", receipt.content_sha256, raw)
         self._publish("receipts", receipt.receipt_id + ".json", receipt.to_bytes())
         return receipt
