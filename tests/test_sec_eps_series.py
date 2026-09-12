@@ -175,7 +175,8 @@ class SecEPSSeriesTests(unittest.TestCase):
             rows = annual_rows()
             rows[-1].update(start=start, end=end)
             with self.subTest(start=start,end=end):
-                self.blocked(self.resolve(rows), R.UNSUPPORTED_CALENDAR)
+                reason = R.MISSING_ANNUAL_PERIOD if start == '2024-07-01' or end == '2024-06-30' else R.UNSUPPORTED_CALENDAR
+                self.blocked(self.resolve(rows), reason)
 
     def test_full_length_shift_and_overlap_are_not_supported(self):
         rows = annual_rows()
@@ -218,6 +219,54 @@ class SecEPSSeriesTests(unittest.TestCase):
         for value in (None, 'bad', '2024-01-01', '2027-01-01'):
             bad = [*rows[:-1], dict(rows[-1], filed=value)]
             self.blocked(self.resolve(bad), R.INVALID_FILING_CHRONOLOGY)
+
+    def test_later_short_8k_missing_fp_does_not_block_annual_window(self):
+        later = row(2025, start='2025-01-01', end='2025-03-31', form='8-K')
+        del later['fp']
+        result = self.resolve(annual_rows() + [later])
+        self.assertNotIn(R.LATER_ANNUAL_PERIOD_PRESENT, result.reasons)
+        self.assertIs(result.status, S.RESOLVED_ISSUER_EVIDENCE)
+
+    def test_later_short_comparatives_in_annual_forms_do_not_block(self):
+        for form in ('10-K', '10-K/A'):
+            for end in ('2025-03-31', '2025-06-30', '2025-09-30'):
+                with self.subTest(form=form, end=end):
+                    later = row(2025, end=end, form=form)
+                    result = self.resolve(annual_rows() + [later])
+                    self.assertNotIn(R.LATER_ANNUAL_PERIOD_PRESENT, result.reasons)
+                    self.assertIs(result.status, S.RESOLVED_ISSUER_EVIDENCE)
+
+    def test_later_short_quarter_missing_form_does_not_block(self):
+        later = row(2025, end='2025-03-31', fp='Q1')
+        del later['form']
+        result = self.resolve(annual_rows() + [later])
+        self.assertNotIn(R.LATER_ANNUAL_PERIOD_PRESENT, result.reasons)
+        self.assertIs(result.status, S.RESOLVED_ISSUER_EVIDENCE)
+
+    def test_later_365_and_366_day_periods_missing_fp_still_block(self):
+        for start, end in (('2025-01-01', '2025-12-31'), ('2024-03-01', '2025-03-01')):
+            with self.subTest(start=start, end=end):
+                later = row(2025, start=start, end=end, form='8-K')
+                del later['fp']
+                self.blocked(self.resolve(annual_rows() + [later]), R.LATER_ANNUAL_PERIOD_PRESENT)
+
+    def test_later_week_year_envelope_still_blocks_older_window(self):
+        for start in ('2025-01-06', '2024-12-30'):
+            with self.subTest(start=start):
+                later = row(2025, start=start, end='2026-01-04', form='8-K', fp='Q4')
+                self.blocked(self.resolve(annual_rows() + [later]), R.LATER_ANNUAL_PERIOD_PRESENT)
+
+    def test_unlocatable_potential_annual_periods_fail_closed_with_missing_metadata(self):
+        for field in ('start', 'end'):
+            for value in (None, 'invalid-date', '2025-02-30'):
+                for metadata in ({'form': '10-K', 'fp': 'Q1'}, {'form': '8-K', 'fp': 'FY'},
+                                 {'form': '8-K', 'fp': None}, {'form': None, 'fp': 'Q1'}):
+                    with self.subTest(field=field, value=value, metadata=metadata):
+                        later = row(2025, **metadata, **{field: value})
+                        result = self.resolve(annual_rows() + [later])
+                        self.blocked(result, R.INSUFFICIENT_FILING_IDENTITY)
+                        if field == 'start':
+                            self.assertIn(R.LATER_ANNUAL_PERIOD_PRESENT, result.reasons)
 
     def test_later_annual_prevents_older_window_before_any_filters(self):
         for extra in ({'val':0}, {'val':-2}, {'val':None}, {'accn':None}, {'filed':None},

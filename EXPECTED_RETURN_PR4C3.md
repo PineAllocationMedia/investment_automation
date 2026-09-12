@@ -119,8 +119,13 @@ five intervals are generated backward from the explicit final fiscal end; gaps
 cannot be filled with older observations. 364/371-day week calendars, shifted
 annual boundaries, stubs, and calendar transitions are not annualized or admitted.
 
-Before value/identity filtering, an apparent-annual envelope inspects USD rows
-with annual forms, `fp=FY`, missing form/fp, or 364–371-day intervals in other forms.
+Before value/identity filtering, an apparent-annual envelope inspects USD rows.
+When both economic dates are valid, only 364–371 inclusive days enter this
+conservative envelope, regardless of form/fp. This includes supported 365/366-day
+years and unsupported week/shifted annual intervals. Valid short quarterly,
+interim, or stub intervals do not enter merely because form is annual, `fp=FY`,
+or form/fp is missing. When either date is unavailable or invalid, annual forms,
+`fp=FY`, or missing form/fp still make the row potentially annual and fail closed.
 Any later end produces `LATER_ANNUAL_PERIOD_PRESENT`. Unlocatable apparent annual
 rows produce `INSUFFICIENT_FILING_IDENTITY`. Missing accession, value, or other
 qualification metadata cannot hide a newer period. Zero/negative values are
@@ -129,9 +134,10 @@ window. Alternate year-length intervals overlapping the required window fail
 calendar qualification even when a clean interval is also present.
 
 Annual filings can contain quarterly comparative rows. Those rows cannot supply
-annual values; their later dates still conservatively prevent an older window.
-Short comparative rows inside an otherwise complete annual window are preserved
-as excluded nonannual intervals. This envelope can reject uncertain snapshots;
+annual values or establish a later annual economic period. Short comparative rows
+are preserved as excluded nonannual intervals. A stub replacing a required annual
+interval still fails annual coverage; it is not classified as an annual calendar.
+This envelope can reject uncertain snapshots;
 it does not claim to infer fiscal-year identity from incomplete metadata.
 
 ## Candidate identity, contexts, and exact agreement
@@ -289,3 +295,43 @@ The implementation commit also receives the required commit whitespace check.
 
 These runs are fictional mechanical regression evidence. No operational
 Expected Return, real PR4B1 admission, SEC request, or investment decision ran.
+
+### PR #36 annual-envelope correction
+
+Before changing implementation, a fictional 2025-01-01 through 2025-03-31 8-K
+row with missing fp reproduced the defect: the requested 2024-12-31 latest annual
+window incorrectly returned `LATER_ANNUAL_PERIOD_PRESENT`. The resolver suite
+then had 47 tests, with exactly this new regression failing.
+
+The implementation change is confined to `_apparent_annual()`: valid economic
+dates now take precedence over filing-form/missing-metadata heuristics, as
+specified above. Six new test methods cover short later 8-K/annual-form/missing-form
+rows, later 365/366-day rows missing fp, 364/371-day week years, and unlocatable
+potential annual rows with incomplete metadata. Existing zero/negative/missing-value
+later-year and same-interval cross-form identity tests remain unchanged. The stub
+coverage test now expects a missing annual period rather than treating a known
+short interval as an unsupported annual calendar.
+
+The retained Microsoft receipt was rerun offline and still returned only
+`INSUFFICIENT_FILING_IDENTITY` with `UNAVAILABLE` status and 340 observations.
+Archive file hashes, sizes, modification times, and modes remained unchanged.
+No SEC request was made. Filing-version agreement, LIVE/OFFLINE authority,
+PR4C1 identities, PR4B1 admission, and model/allocation rules are unchanged.
+
+Correction validation on Python 3.12.14, using the isolated runner:
+
+| Scope | Passed | Test duration |
+| --- | ---: | ---: |
+| Resolver | 52 | 0.580 s |
+| All SEC | 151 | 3.430 s |
+| Expected Return | 144 | 0.580 s |
+| PIT | 40 | 535.013 s |
+| Runtime isolation | 29 | 41.410 s |
+| Validation identity | 19 | 0.467 s |
+| PR2 equivalence | 1 | 0.103 s |
+| Full isolated suite | **1,293** | **588.618 s** |
+
+Both PIT and full runs reproduced the exact aggregate and determinism fingerprints
+recorded above. Expected fingerprints and `MODEL_RULES_VERSION` were unchanged.
+Only documentation was updated after these runs; executable code and tests were
+unchanged. Correction logs are retained at `/private/tmp/pr36-envelope-*.log`.

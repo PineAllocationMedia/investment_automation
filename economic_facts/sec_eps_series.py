@@ -227,14 +227,15 @@ def _supported(start, end):
 def _apparent_annual(row):
     """Broad anti-selection envelope, deliberately BEFORE admissibility filters.
 
-    Annual forms can contain quarter rows. Their later dates still prevent an
-    older window; only exact annual intervals can supply resolved values. A
-    missing form/fp cannot be used to hide a newer period. Full/week-year durations
-    in other forms also participate. Unlocatable apparent rows fail closed.
+    Valid economic dates take precedence over filing metadata: only 364–371-day
+    intervals enter this envelope, including unsupported week/shifted years.
+    Short intervals cannot imply newer annual coverage. When dates are unavailable,
+    annual or missing form/fp metadata still makes unlocatable rows fail closed.
     """
     start, end = _date(row.start), _date(row.end)
-    return (row.form in _ANNUAL_FORMS or row.fp == "FY" or row.form is None or row.fp is None
-            or (start is not None and end is not None and 364 <= (end - start).days + 1 <= 371))
+    if start is not None and end is not None:
+        return 364 <= (end - start).days + 1 <= 371
+    return row.form in _ANNUAL_FORMS or row.fp == "FY" or row.form is None or row.fp is None
 
 
 def _hash(value):
