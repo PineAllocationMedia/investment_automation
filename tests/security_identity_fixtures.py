@@ -21,14 +21,18 @@ COMMON = i.CommonClass("fixture-common", "Fixture Ordinary Common", "Fixture Res
 
 
 def series_fixture(multiple_versions=False):
+    rows = annual_rows()
+    if multiple_versions:
+        rows.append(dict(rows[-1], accn="0000000000-26-000002", filed="2026-02-01", fy=2025))
+        rows.append(dict(rows[0]))
+    return resolve_series_fixture(rows).series
+
+
+def resolve_series_fixture(rows):
     with tempfile.TemporaryDirectory() as temporary:
         archive = SecArchive(Path(temporary).resolve() / "archive")
-        rows = annual_rows()
-        if multiple_versions:
-            rows.append(dict(rows[-1], accn="0000000000-26-000002", filed="2026-02-01", fy=2025))
-            rows.append(dict(rows[0]))
         receipt = capture(archive, rows)
-        return resolve_annual_diluted_eps(archive, series_request(receipt)).series
+        return resolve_annual_diluted_eps(archive, series_request(receipt))
 
 
 def snapshot(series):

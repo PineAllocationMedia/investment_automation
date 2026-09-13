@@ -14,10 +14,11 @@ import unittest
 from unittest.mock import patch
 
 from economic_facts import security_identity as i
-from economic_facts.sec_eps_series import AdmissionBlocker
+from economic_facts.sec_eps_series import AdmissionBlocker, ResolutionReason, ResolutionStatus
+from tests.sec_eps_series_fixtures import annual_rows
 from tests.security_identity_fixtures import (
     CAPTURED, COMMON, INTERVAL, ISSUER, LISTING, SECURITY, bundle, document,
-    rename, request, series_fixture, snapshot,
+    rename, request, resolve_series_fixture, series_fixture, snapshot,
 )
 
 R = i.IdentityReason
@@ -63,6 +64,129 @@ class SecurityIdentityTests(unittest.TestCase):
         self.assertEqual(result.listing.anchor, LISTING)
         self.assertEqual(len(result.applicability_decisions), 5)
         self.assertEqual(result.qualification_as_of, CAPTURED)
+
+    def cross_form_resolution(self, form="8-K", *, annual_form="10-K", conflict=False, replace_annual=False):
+        rows = annual_rows()
+        rows[-1] = dict(rows[-1], form=annual_form)
+        other = dict(rows[-1], form=form, fp="Q4", accn="9999999999-25-000002")
+        if conflict:
+            other["val"] += 1
+        return resolve_series_fixture((rows[:-1] if replace_annual else rows) + [other])
+
+    def qualify_series(self, series, claims=None):
+        return i.qualify_security_identity(series, request(series),
+            bundle(document(snapshot(series) if claims is None else claims)))
+
+    def reject_period(self, period, *, series=None):
+        original = self.series if series is None else series
+        changed = replace(original, periods=original.periods[:-1] + (period,))
+        with self.assertRaises(i.IdentityContractError):
+            self.qualify_series(changed)
+
+    def test_agreeing_cross_forms_preserve_annual_support_and_complete_lineage(self):
+        for annual_form in ("10-K", "10-K/A"):
+            for form in ("8-K", "10-Q", "10-Q/A"):
+                with self.subTest(annual_form=annual_form, form=form):
+                    upstream = self.cross_form_resolution(form, annual_form=annual_form)
+                    self.assertIs(upstream.status, ResolutionStatus.RESOLVED_ISSUER_EVIDENCE)
+                    series = upstream.series
+                    before = repr(series)
+                    period = series.periods[-1]
+                    self.assertEqual(len(period.filing_versions), 2)
+                    self.assertEqual(len(period.supporting_observation_ids), 1)
+                    comparable = {o for v in period.filing_versions for o in v.observation_ids}
+                    self.assertGreater(comparable, set(period.supporting_observation_ids))
+                    self.assertIn(period.representative_observation_id, period.supporting_observation_ids)
+                    result = self.qualify_series(series)
+                    self.assertIs(result.outcome, O.IDENTITY_ESTABLISHED_WITHIN_SYNTHETIC_SCOPE)
+                    self.assertEqual(result.applicability_decisions[-1].version_ids, period.version_ids)
+                    self.assertEqual(result.applicability_decisions[-1].observation_ids,
+                                     period.supporting_observation_ids)
+                    self.assertEqual(result.series_evidence_hash, series.evidence_hash)
+                    self.assertEqual(set(result.downstream_blockers), set(series.downstream_admission_blockers))
+                    self.assertIs(result.authority, i.Authority.SYNTHETIC_TEST_ONLY)
+                    self.assertEqual(repr(series), before)
+
+    def test_annual_support_requires_nonempty_unique_inventory_and_representative(self):
+        period = self.series.periods[-1]
+        for support in ((), period.supporting_observation_ids * 2, ("f" * 64,),
+                        period.supporting_observation_ids + ("f" * 64,)):
+            with self.subTest(support=support):
+                self.reject_period(replace(period, supporting_observation_ids=support))
+        self.reject_period(replace(period, representative_observation_id="f" * 64))
+
+    def test_cross_form_observation_cannot_be_annual_support_or_representative(self):
+        series = self.cross_form_resolution().series
+        period = series.periods[-1]
+        cross = next(v for v in period.filing_versions if v.form == "8-K").observation_ids
+        for changes in (dict(representative_observation_id=cross[0]),
+                        dict(supporting_observation_ids=period.supporting_observation_ids + cross),
+                        dict(supporting_observation_ids=cross, representative_observation_id=cross[0])):
+            with self.subTest(changes=changes):
+                self.reject_period(replace(period, **changes), series=series)
+
+    def test_annual_support_cannot_omit_an_annual_version(self):
+        period = self.series.periods[-1]
+        self.reject_period(replace(period, supporting_observation_ids=(period.representative_observation_id,)))
+
+    def test_filing_version_ids_must_match_unique_records(self):
+        period = self.series.periods[-1]
+        for changes in (dict(version_ids=period.version_ids[:-1]),
+                        dict(version_ids=period.version_ids + ("f" * 64,)),
+                        dict(version_ids=period.version_ids * 2),
+                        dict(filing_versions=period.filing_versions * 2)):
+            with self.subTest(changes=changes):
+                self.reject_period(replace(period, **changes))
+
+    def test_comparable_observations_require_unique_nonempty_version_ownership(self):
+        series = self.cross_form_resolution().series
+        period = series.periods[-1]
+        cross = next(v for v in period.filing_versions if v.form == "8-K")
+        for observations in ((), cross.observation_ids * 2, period.supporting_observation_ids,
+                             ("malformed",), ("",), (series.periods[0].representative_observation_id,)):
+            with self.subTest(observations=observations):
+                versions = tuple(replace(v, observation_ids=observations) if v is cross else v
+                                 for v in period.filing_versions)
+                self.reject_period(replace(period, filing_versions=versions), series=series)
+
+    def test_malformed_linked_annual_observation_and_version_ids_rejected(self):
+        series = series_fixture()
+        period = series.periods[-1]
+        for invalid in ("", "short", "g" * 64):
+            with self.subTest(invalid=invalid):
+                version = replace(period.filing_versions[0], observation_ids=(invalid,))
+                self.reject_period(replace(period, filing_versions=(version,),
+                    supporting_observation_ids=(invalid,), representative_observation_id=invalid), series=series)
+                version = replace(period.filing_versions[0], semantic_id=invalid)
+                self.reject_period(replace(period, filing_versions=(version,), version_ids=(invalid,)), series=series)
+
+    def test_cross_form_applicability_requires_all_versions_but_only_annual_observations(self):
+        series = self.cross_form_resolution().series
+        claims = snapshot(series)
+        application = claims.eps_applicability[-1]
+        period = series.periods[-1]
+        annual_versions = tuple(v.semantic_id for v in period.filing_versions if v.form == "10-K")
+        all_observations = tuple(o for v in period.filing_versions for o in v.observation_ids)
+        for changed in (replace(application, version_ids=annual_versions),
+                        replace(application, observation_ids=all_observations)):
+            with self.subTest(changed=changed):
+                result = self.qualify_series(series, replace(claims,
+                    eps_applicability=claims.eps_applicability[:-1] + (changed,)))
+                self.assertIs(result.outcome, O.IDENTITY_UNAVAILABLE)
+                self.assertIn(R.EPS_CLASS_APPLICABILITY_UNRESOLVED, result.reasons)
+
+    def test_cross_form_conflicts_and_missing_annual_candidate_remain_upstream_unavailable(self):
+        for form in ("8-K", "10-Q", "10-Q/A"):
+            for changes, reason in ((dict(conflict=True), ResolutionReason.UNRESOLVED_VALUE_CONFLICT),
+                                    (dict(replace_annual=True), ResolutionReason.MISSING_ANNUAL_PERIOD)):
+                with self.subTest(form=form, changes=changes):
+                    upstream = self.cross_form_resolution(form, **changes)
+                    self.assertIs(upstream.status, ResolutionStatus.UNAVAILABLE)
+                    self.assertIsNone(upstream.series)
+                    self.assertIn(reason, upstream.reasons)
+                    with self.assertRaises(i.IdentityContractError):
+                        i.qualify_security_identity(upstream.series, request(self.series),
+                                                    bundle(document(self.claims)))
 
     def test_cik_mismatch(self):
         self.blocked(replace(self.claims, issuer=replace(self.claims.issuer, cik="0000000001")),
