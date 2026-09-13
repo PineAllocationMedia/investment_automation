@@ -32,6 +32,16 @@ def identity_fixture(series, captured_at=CAPTURED, claims=None):
     return i.qualify_security_identity(series, req, evidence), witness
 
 
+def earlier_identity_fixture(series):
+    """Explicit earlier issuer/security/class evidence; listing semantics unchanged."""
+    claims = identities.snapshot(series)
+    interval = i.EffectiveInterval("2018-01-01", "2027-12-31")
+    claims = replace(claims, issuer=replace(claims.issuer, interval=interval),
+        securities=tuple(replace(security, interval=interval) for security in claims.securities),
+        class_inventory=replace(claims.class_inventory, interval=interval))
+    return identity_fixture(series, claims=claims)
+
+
 def request(series, identity, **changes):
     return replace(s.ShareBasisRequest(s.SHARE_BASIS_CONTRACT_VERSION, s.ShareBasisMode.CURRENT_SNAPSHOT,
         series.semantic_hash, series.evidence_hash, identity.semantic_hash, identity.evidence_hash), **changes)
@@ -51,13 +61,13 @@ def references(series):
                  for p in series.periods for v in p.filing_versions for o in v.observation_ids)
 
 
-def snapshot(series, identity, events=(), basis=None):
+def snapshot(series, identity, events=(), basis=None, *, anchored_on="2020-01-01"):
     target = basis or (events[-1].successor_basis_id if events else BASELINE)
     treatments = tuple(s.EventTreatmentEvidence(e.event_id, s.ReportedEventTreatment.INCORPORATED)
                        for e in events if e.lifecycle is s.EventLifecycle.EFFECTIVE)
     return s.ShareBasisSnapshot(series.semantic_hash, series.evidence_hash, identity.semantic_hash,
-        identity.evidence_hash, s.BaselineBasisAnchor(BASELINE, SECURITY, CLASS, "2019-01-01"),
-        s.CorporateActionCoverage(SECURITY, CLASS, "2019-01-01", "2026-03-02", s.CoverageStatus.COMPLETE,
+        identity.evidence_hash, s.BaselineBasisAnchor(BASELINE, SECURITY, CLASS, anchored_on),
+        s.CorporateActionCoverage(SECURITY, CLASS, anchored_on, "2026-03-02", s.CoverageStatus.COMPLETE,
                                  tuple(s.CorporateActionKind), (), tuple(sorted({e.event_id for e in events}))),
         events, tuple(s.ReportedEPSBasisEvidence((r,), SECURITY, CLASS, target, treatments)
                       for r in references(series)))

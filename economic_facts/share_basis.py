@@ -51,6 +51,8 @@ class ShareBasisOutcome(Enum):
 
 class ShareBasisReason(Enum):
     SECURITY_IDENTITY_NOT_QUALIFIED = "SECURITY_IDENTITY_NOT_QUALIFIED"
+    # Baseline/event outside the qualified security interval, or capture boundary
+    # beyond the exact upstream qualification time. Covers both identity bounds.
     IDENTITY_BOUNDARY_NOT_QUALIFIED = "IDENTITY_BOUNDARY_NOT_QUALIFIED"
     BASELINE_BASIS_UNRESOLVED = "BASELINE_BASIS_UNRESOLVED"
     CORPORATE_ACTION_COVERAGE_GAP = "CORPORATE_ACTION_COVERAGE_GAP"
@@ -527,11 +529,21 @@ def _notice_inventory(events, published_at):
     return notices, excluded
 
 
-def _epochs(snapshot, security_anchor, class_id, oldest, boundary, published_at):
+def _within_security_interval(value, interval):
+    # PR4C4's interval explicitly asserts inclusive whole dates. Testing an
+    # instant's calendar date against it introduces no invented event ordering.
+    parsed = _instant(value)
+    day = parsed.date() if type(parsed) is datetime else parsed
+    return _day(interval.start) <= day <= _day(interval.end)
+
+
+def _epochs(snapshot, security_anchor, class_id, oldest, boundary, published_at, security_interval):
     reasons, epochs, information = set(), [], set()
     baseline, coverage = snapshot.baseline, snapshot.coverage
     if baseline is not None:
         _day(baseline.anchored_on)
+        if security_interval is not None and not _within_security_interval(baseline.anchored_on, security_interval):
+            reasons.add(_R.IDENTITY_BOUNDARY_NOT_QUALIFIED)
     if (baseline is None or not _anchor(baseline.basis_id, "basis")
             or (baseline.security_anchor, baseline.class_id) != (security_anchor, class_id)
             or _day(baseline.anchored_on) > _day(oldest)):
@@ -599,6 +611,11 @@ def _epochs(snapshot, security_anchor, class_id, oldest, boundary, published_at)
             reasons.add(_R.EVENT_TERMS_UNRESOLVED)
         if not _anchor(event.successor_basis_id, "basis"):
             reasons.add(_R.EVENT_TERMS_UNRESOLVED)
+        # Check before the pre-anchor exclusion too: an earlier event cannot be
+        # treated as incorporated into the baseline outside qualified identity.
+        if (event.effective_at is not None and security_interval is not None
+                and not _within_security_interval(event.effective_at, security_interval)):
+            reasons.add(_R.IDENTITY_BOUNDARY_NOT_QUALIFIED)
         if baseline is not None and event.effective_at is not None:
             # An event before the anchor is already represented by the explicit baseline.
             relation = _compare(event.effective_at, baseline.anchored_on)
@@ -727,7 +744,8 @@ def qualify_share_basis(
     """Qualify one evidenced denomination without any operation on reported EPS.
 
     Each mandatory snapshot must independently cover baseline through boundary and
-    every retained filing observation. Later identity validity requires a newly
+    every retained filing observation. Baseline and contributing events must lie
+    within the exact qualified security interval. Later identity validity requires a newly
     supplied exact successful PR4C4 replay at that boundary; no silent extension.
     """
     for value, kind in ((series, ResolvedAnnualDilutedEPSSeries), (identity, SecurityIdentityQualification),
@@ -766,7 +784,7 @@ def qualify_share_basis(
                  == (series.semantic_hash, series.evidence_hash, identity.semantic_hash, identity.evidence_hash),
                  "Source/upstream identity mismatch")
         inspected = _epochs(snapshot, security_anchor, class_id, series.periods[0].period_start,
-                            boundary, source.published_at)
+                            boundary, source.published_at, identity.security.interval if identity.security else None)
         inspections.append(inspected)
         reasons.update(inspected[0])
         excluded.update(inspected[3])

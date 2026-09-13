@@ -75,6 +75,11 @@ class ShareBasisTests(unittest.TestCase):
     def action_claims(self, *events):
         return f.snapshot(self.series, self.identity, events)
 
+    def earlier_history(self, events=(), basis=None):
+        identity, witness = f.earlier_identity_fixture(self.series)
+        claims = f.snapshot(self.series, identity, events, basis, anchored_on="2019-01-01")
+        return claims, dict(identity=identity, witness=witness, request=f.request(self.series, identity))
+
     def test_no_action_complete_coverage(self):
         result = self.success()
         self.assertEqual(len(result.epochs), 1)
@@ -122,8 +127,12 @@ class ShareBasisTests(unittest.TestCase):
         self.assertEqual(self.success(self.action_claims(event)).qualified_target_basis.event_id, event.event_id)
 
     def test_split_before_oldest_period_after_anchor_is_material(self):
-        result = self.success(self.action_claims(f.split(effective_at="2019-06-01")))
+        claims, inputs = self.earlier_history((f.split(effective_at="2019-06-01"),))
+        result = self.success(claims, **inputs)
         self.assertEqual(len(result.epochs), 2)
+        self.assertLess(inputs["identity"].security.interval.start, claims.baseline.anchored_on)
+        self.assertLess(claims.baseline.anchored_on, claims.events[0].effective_at)
+        self.assertLess(claims.events[0].effective_at, self.series.periods[0].period_start)
 
     def test_missing_baseline(self):
         self.blocked(replace(self.claims, baseline=None), R.BASELINE_BASIS_UNRESOLVED)
@@ -137,8 +146,9 @@ class ShareBasisTests(unittest.TestCase):
             self.blocked(replace(self.claims, baseline=replace(self.claims.baseline, **change)), R.BASELINE_BASIS_UNRESOLVED)
 
     def test_coverage_starts_at_baseline_not_oldest_eps(self):
-        self.blocked(replace(self.claims, coverage=replace(self.claims.coverage, start="2020-01-01")),
-                     R.CORPORATE_ACTION_COVERAGE_GAP)
+        claims, inputs = self.earlier_history()
+        self.blocked(replace(claims, coverage=replace(claims.coverage, start="2020-01-01")),
+                     R.CORPORATE_ACTION_COVERAGE_GAP, **inputs)
 
     def test_coverage_through_boundary_not_latest_fiscal_end(self):
         self.blocked(replace(self.claims, coverage=replace(self.claims.coverage, through="2024-12-31")),
@@ -734,13 +744,14 @@ print(result.semantic_hash, result.evidence_hash)
 
     def test_known_event_before_anchor_is_retained_in_baseline(self):
         event = f.split(effective_at="2018-06-01")
-        result = self.success(f.snapshot(self.series, self.identity, (event,), basis=f.BASELINE))
+        claims, inputs = self.earlier_history((event,), f.BASELINE)
+        result = self.success(claims, **inputs)
         self.assertEqual(len(result.epochs), 1)
         self.assertIn(event.event_id, result.informational_event_ids)
         self.assertIn(event, result.considered_events)
 
     def test_event_at_baseline_date_is_ambiguous(self):
-        self.blocked(self.action_claims(f.split(effective_at="2019-01-01")), R.BASELINE_BASIS_UNRESOLVED)
+        self.blocked(self.action_claims(f.split(effective_at=self.claims.baseline.anchored_on)), R.BASELINE_BASIS_UNRESOLVED)
 
     def test_valid_bytes_with_nonpositive_ratio_still_contract_error(self):
         for new, old in ((0, 1), (1, 0), (-1, 2), (2, -1)):
@@ -852,3 +863,58 @@ print(result.semantic_hash, result.evidence_hash)
         with self.assertRaises(s.ShareBasisContractError):
             s.qualify_share_basis(series, identity, f.request(series, identity),
                 f.bundle(witness, f.document(f.snapshot(series, identity))))
+
+    def test_baseline_before_qualified_security_identity_fails(self):
+        claims = f.snapshot(self.series, self.identity, anchored_on="2019-01-01")
+        self.assertEqual(self.identity.security.interval.start, "2020-01-01")
+        result = self.blocked(claims, R.IDENTITY_BOUNDARY_NOT_QUALIFIED)
+        self.assertEqual(result.epochs, ())
+
+    def test_split_before_qualified_security_identity_fails_despite_matching_anchors(self):
+        event = f.split(effective_at="2019-06-01")
+        claims = f.snapshot(self.series, self.identity, (event,), anchored_on="2019-01-01")
+        self.assertEqual(event.security_anchor, self.identity.security.anchor)
+        self.assertEqual(event.class_id, self.identity.security.common_class.class_id)
+        result = self.blocked(claims, R.IDENTITY_BOUNDARY_NOT_QUALIFIED)
+        self.assertEqual(result.epochs, ())
+
+    def test_pre_anchor_event_outside_identity_cannot_be_incorporated(self):
+        event = f.split(effective_at="2018-06-01")
+        claims = f.snapshot(self.series, self.identity, (event,), basis=f.BASELINE)
+        self.assertEqual(claims.baseline.anchored_on, self.identity.security.interval.start)
+        result = self.blocked(claims, R.IDENTITY_BOUNDARY_NOT_QUALIFIED)
+        self.assertIn(event, result.considered_events)
+
+    def test_default_baseline_at_qualified_identity_start_succeeds(self):
+        self.assertEqual(self.claims.baseline.anchored_on, self.identity.security.interval.start)
+        self.assertEqual(self.claims.coverage.start, self.identity.security.interval.start)
+        self.success()
+
+    def test_earlier_baseline_without_split_requires_actual_earlier_identity(self):
+        claims, inputs = self.earlier_history()
+        result = self.success(claims, **inputs)
+        self.assertEqual(result.qualified_target_basis.basis_id, f.BASELINE)
+        self.assertLess(inputs["identity"].security.interval.start, claims.baseline.anchored_on)
+        self.assertLess(claims.baseline.anchored_on, self.series.periods[0].period_start)
+
+    def test_multiple_pre_oldest_splits_with_earlier_identity(self):
+        a = f.split(effective_at="2019-03-01")
+        b = f.split("two", new=1, old=2, effective_at="2019-06-01")
+        claims, inputs = self.earlier_history((a, b))
+        result = self.success(claims, **inputs)
+        self.assertEqual([epoch.event_id for epoch in result.epochs[1:]], [a.event_id, b.event_id])
+
+    def test_identity_start_day_preserves_inclusive_date_precision(self):
+        for effective_at in ("2018-01-01", "2018-01-01T00:00:00.000001Z"):
+            claims, inputs = self.earlier_history((f.split(effective_at=effective_at),), f.BASELINE)
+            self.success(claims, **inputs)
+
+    def test_event_just_before_qualified_start_fails(self):
+        for effective_at in ("2017-12-31", "2017-12-31T23:59:59.999999Z"):
+            claims, inputs = self.earlier_history((f.split(effective_at=effective_at),), f.BASELINE)
+            self.blocked(claims, R.IDENTITY_BOUNDARY_NOT_QUALIFIED, **inputs)
+
+    def test_every_snapshot_must_respect_identity_lower_bound(self):
+        invalid = f.snapshot(self.series, self.identity, anchored_on="2019-01-01")
+        self.blocked(None, R.IDENTITY_BOUNDARY_NOT_QUALIFIED,
+            documents=(f.document(self.claims), f.document(invalid)))

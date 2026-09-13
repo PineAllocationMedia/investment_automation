@@ -77,6 +77,11 @@ exact linkage and binds the complete supplied series through PR4C4 replay and
 PR4C5 evidence identity. Fictional callers can construct self-consistent fictional
 inputs; hashes and replay are consistency checks, not external authentication.
 
+`identity.security.interval` is the authoritative security/common-class validity
+interval: PR4C4 includes both the common class and this interval in the qualified
+security's economic core. PR4C5 uses that exact replayed field for its historical
+lower bound. Matching security/class anchor strings cannot extend identity earlier.
+
 All records are frozen and slotted. Exact recursive types reject subclasses,
 mutable containers, strings in place of enums and bools in place of integers.
 Upstream records, values, IDs, blockers and semantics remain unchanged.
@@ -105,8 +110,17 @@ instant on the same day. To qualify at a later boundary, supply a newly successf
 PR4C4 result and its exact original witness covering that boundary. PR4C5 neither
 recaptures identity evidence nor silently extends it.
 
+`IDENTITY_BOUNDARY_NOT_QUALIFIED` covers both lower and upper identity bounds:
+the baseline and every contributing event must lie within the qualified security
+interval, and the qualification boundary must not exceed the exact PR4C4
+qualification time. The security interval's endpoints are inclusive whole dates;
+an intraday event on its first date lies within that asserted interval. This
+membership check does not order a date-only event against another event or an
+intraday qualification boundary; those existing precision checks remain intact.
+
 Let S be the oldest selected period start, A the explicit baseline anchor and B
-the derived boundary. A must be at or before S. Each source independently covers
+the derived boundary. The qualified security interval start must be at or before
+A, and A must be at or before S. Each source independently covers
 A through B, all closed action categories (including unsupported and other
 basis-affecting actions), no gaps, the exact event inventory, and the same
 security/class. Date-based coverage is an explicit inclusive whole-day assertion;
@@ -148,6 +162,15 @@ cancelled event. Neither can be claimed incorporated into reported EPS. A claime
 implementation in the future conflicts. Explicitly known events before the
 baseline remain retained and are represented by that anchor; an event on the
 baseline date with unresolved ordering blocks.
+
+An event treated as already incorporated into a baseline must also lie within
+the exact qualified security interval. That check occurs before the pre-anchor
+event exclusion; a later valid baseline cannot hide unqualified earlier identity.
+Every event used to construct a successor epoch is checked against the same
+interval. Cancelled never-implemented events and future informational proposals
+do not contribute to the denomination chain. A coverage search may start before
+qualified identity, but that wider inventory is not permission to use an earlier
+baseline or basis-changing event.
 
 Epochs preserve baseline -> effective split -> successor, in evidenced order.
 A forward split followed by its numerical inverse still creates two distinct
@@ -235,6 +258,9 @@ subclass boundaries, semantic/evidence stability, and static/runtime capability
 guards. Review added regressions for fractional-second ordering and attempts to
 incorporate cancelled/future proposals.
 
+Initial implementation validation at reviewed head
+`fb4fac948fbe40f849a603d5d7b9717c94ba0a80`:
+
 | Isolated scope | Passed | Test duration |
 | --- | ---: | ---: |
 | PR4C5 share basis | 127 | 2.092 s |
@@ -265,3 +291,64 @@ Expected Return, allocation, portfolio, production, deployment or Chromebook
 work occurred. Network use is limited to the requested Git/PR workflow. The PR
 base is `model-v2/expected-return-challenger`; merging and deployment are not part
 of this change.
+
+## PR #39 identity lower-bound correction
+
+Before modification, the exact reviewed head was fetched and verified on the
+clean existing branch `codex/v2-share-basis-synthetic`; PR #39 remained open
+against `model-v2/expected-return-challenger`. A fictional, network-disabled
+reproduction demonstrated success with the ordinary qualified identity starting
+`2020-01-01` and a baseline at `2019-01-01`, both with no action and with an
+effective split at `2019-06-01`. It also accepted a `2018-06-01` event as already
+incorporated into the baseline. PR4C5 checked anchor/class equality and A <= S,
+but never bounded the denomination history by upstream security validity.
+
+The correction is restricted to these same four PR4C5 files. It uses the exact
+replayed `identity.security.interval` without changing PR4C4, listing semantics,
+international architecture or the public API. The existing reason's documented
+meaning now explicitly covers both identity bounds. Version IDs remain v1:
+this fixes the unmerged v1 contract's intended no-identity-extension invariant;
+there is no new input shape, authority or transformation capability.
+
+The ordinary fixture's baseline and coverage now start `2020-01-01`. Specialized
+earlier-history fixtures create original fictional PR4C4 issuer/security/class
+evidence covering `2018-01-01` through `2027-12-31`, then invoke the unchanged
+qualifier and retain its exact witness. Tests still exercise a 2019 baseline,
+2019 splits, and an earlier event incorporated into that baseline. No existing
+historical test was deleted or replaced by a later event to evade the gate.
+
+Nine new test methods cover invalid earlier baselines, matching-anchor pre-identity
+splits, pre-anchor incorporation outside identity, every mandatory snapshot,
+default equality at the identity start, valid earlier baseline/no-action history,
+multiple pre-oldest-period splits, inclusive first-day timestamp/date membership,
+and events immediately before the valid interval. Four existing history/coverage
+tests now use the corrected default or explicit earlier identity evidence. The
+136-test focused suite first failed in exactly five new rejection tests, then
+passed after the correction. Existing upper-bound replay, intraday precision,
+five decisions, full cross-form lineage, exact Decimal preservation and production
+blocker tests remain in place.
+
+Correction validation used Python 3.12.14 with all 33 unchanged locked dependencies,
+the existing isolated runner, temporary HOME and disabled network.
+
+| Isolated scope | Passed | Test duration |
+| --- | ---: | ---: |
+| PR4C5 share basis | 136 | 2.093 s |
+| PR4C4 security identity | 84 | 0.795 s |
+| All SEC | 151 | 3.793 s |
+| Expected Return | 144 | 1.029 s |
+| PIT | 40 | 611.498 s |
+| Runtime isolation | 29 | 46.846 s |
+| Validation identity | 19 | 0.601 s |
+| PR2 equivalence | 1 | 0.212 s |
+| Complete isolated suite | 1513 | 665.121 s |
+
+Both targeted PIT and full-suite runs reproduced the exact aggregate and
+determinism fingerprints recorded above, including all 64 equivalence cases.
+`MODEL_RULES_VERSION` remains `2026-08-23-allocation-room-integrity-v7`.
+The executable files were verified identical to the full-suite sandbox; only
+this validation record changed afterward. Logs are retained at
+`/private/tmp/pr39-lower-*.log`, including the five failing pre-fix regressions.
+Working-tree, staged and commit whitespace checks are required before push.
+No V1, PR4C4, listing, provider, real acquisition, operational model/allocation/
+portfolio, production, deployment or Chromebook work occurred.
