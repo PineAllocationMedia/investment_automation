@@ -34,16 +34,17 @@ qualify_security_identity(
 
 The module uses standard library and upstream PR4C3 types/version constants only.
 It performs no I/O, acquisition, environment/clock reads, or model computation.
-No existing file is modified. The four additions are this document,
+Original PR4C4 added four files: this document,
 `economic_facts/security_identity.py`, `tests/security_identity_fixtures.py`,
-and `tests/test_security_identity.py`.
+and `tests/test_security_identity.py`. The PR4C4.1 correction described below
+modifies only those four files.
 
 Version identities:
 
 | Constant | Value |
 | --- | --- |
 | `IDENTITY_CONTRACT_VERSION` | `2026-09-12-security-identity-contract-v1` |
-| `IDENTITY_QUALIFIER_VERSION` | `2026-09-12-single-common-class-identity-qualifier-v1` |
+| `IDENTITY_QUALIFIER_VERSION` | `2026-09-12-single-common-class-identity-qualifier-v2` |
 | `SYNTHETIC_EVIDENCE_VERSION` | `2026-09-12-synthetic-security-identity-evidence-v1` |
 | `EXTRACTION_VERSION` | `2026-09-12-synthetic-identity-claims-v1` |
 
@@ -197,8 +198,28 @@ They were inspected before implementation and are unchanged.
 
 Each complete snapshot must contain one resolved applicability claim per required
 PR4C3 period. It binds exact series semantic/evidence hashes, period boundaries,
-security/class, the entire filing-version ID set and every supporting observation
-ID. No representative-only citation or one-year shortcut qualifies.
+security/class, the entire comparable filing-version ID set and every annual
+supporting observation ID. `EPSApplicabilityClaim.version_ids` binds the full
+PR4C3 `version_ids`; `observation_ids` binds exactly PR4C3's annual
+`supporting_observation_ids`. No representative-only citation or one-year
+shortcut qualifies, and the two fields have not changed meaning.
+
+PR4C3 can retain an agreeing 8-K, 10-Q or 10-Q/A version for the exact annual
+period without making its observation an annual candidate. Consequently, annual
+support is a subset of the complete filing-version observation union, and that
+subset may be strict. Within the current SEC profile, support must equal all
+observations belonging to `10-K`/`10-K/A` versions with `reported_fp=FY`. It must
+be nonempty, unique, and contain the representative observation. Version IDs must
+match the complete unique version-record inventory. Every version must contain
+observations, each observation must have exactly one version/period owner, and
+version/observation identities must be canonical SHA-256 strings. None of these
+checks selects, trims or promotes cross-form observations.
+
+The complete supplied PR4C3 series, including every version's observations,
+remains bound into identity evidence. Downstream evidence qualification can
+inspect that full lineage while applicability decisions retain their separate
+full-version and annual-support fields. SEC forms, CIK, US-GAAP and supported
+venues remain source/profile-specific; these are not universal V2 concepts.
 
 Missing, extra, contradictory, wrong-class, wrong-series or incomplete version/
 observation coverage fails. Exactly identical claim duplicates do not create a
@@ -312,3 +333,65 @@ was stopped and restarted so the completed full run covered the final executable
 source and all 75 focused tests. Only this validation record was added afterward.
 Working-tree, staged and HEAD whitespace checks passed. Locked dependencies,
 upstream contracts, model rules, fixture pins and existing behavior are unchanged.
+
+### PR4C4.1 cross-form lineage compatibility
+
+Verified starting V2: `58c8d328d4595126879531d01e23ca1d031df905`, tree
+`761eb054a11810dd7aab631980e944a55f21984d`. V1 remained
+`c5fc27c82c29c2a6027eccee245098c4a072fdf1`, tree
+`26a69bb0b2185ab141af0763da2d965602c8346b`. The clean local branch was
+`codex/v2-security-identity-contract` at
+`3b8d3d7816b4609450dfb2fd77eba68bae67a7f6`, with the authoritative V2 tree.
+Branch `codex/v2-security-identity-cross-form-compat` starts at the exact verified
+V2 commit. Divergent local main/integration references are untouched.
+
+Before changing code, fictional companyfacts for each of 8-K, 10-Q and 10-Q/A
+reproduced a resolved PR4C3 period with two comparable versions, two observations
+in their union, and one annual support observation. PR4C4 rejected each with
+`IdentityContractError: Invalid upstream observation inventory` because it
+incorrectly required equality of the complete observation union and annual
+support. The new focused tests also failed before the correction.
+
+The correction is confined to PR4C4 input validation and its tests/fixtures.
+Annual support now remains a properly validated subset of full comparable
+lineage. Applicability fields and public record shapes are unchanged. The
+qualifier version advances from v1 to v2 because accepted input semantics and
+validation guarantees change; contract, source-evidence and extraction versions
+are unchanged. Existing hash domain separation includes the qualifier version,
+so PR4C4-derived identities intentionally receive the new version domain.
+PR4C3 values, hashes, annual candidacy, conflict detection and retained lineage
+are unchanged.
+
+Nine new test methods cover both 10-K and 10-K/A annual candidates against every
+upstream cross-form case, missing/extra/empty/duplicate annual support,
+representative membership, annual-versus-cross-form classification, complete
+version IDs, malformed IDs, empty/duplicated observation ownership within or
+across versions/periods, exact applicability fields, and upstream conflicts or
+missing annual candidates. No share-basis or corporate-action code is added.
+
+Validation uses Python 3.12.14 with all 33 installed locked distributions matching
+`requirements.lock`, through the existing disposable runner and temporary HOME.
+
+| Isolated runner pattern | Result | Test duration |
+| --- | --- | --- |
+| `test_security_identity.py` | 84 passed | 0.391 s |
+| `test_sec_eps_series.py` | 52 passed | 0.800 s |
+| `test_sec_*.py` | 151 passed | 2.607 s |
+| `test_expected_return*.py` | 144 passed | 0.812 s |
+| `test_pit*.py` | 40 passed | 555.706 s |
+| `test_runtime_isolation.py` | 29 passed | 37.962 s |
+| `test_validation_identity_isolation.py` | 19 passed | 0.411 s |
+| `test_pr2_investment_equivalence.py` | 1 passed | 0.087 s |
+| `Full isolated suite` | 1377 passed | 599.751 s |
+
+Both targeted PIT and full-suite runs reproduced the exact aggregate and
+determinism fingerprints recorded above, including all 64 equivalence cases.
+Expected fingerprints and `MODEL_RULES_VERSION` remain unchanged. Working-tree,
+staged and commit whitespace checks are required before push. Only this completed
+validation record changed after the final suite; executable code and tests did
+not change. Logs are retained at `/private/tmp/pr4c4-1-*.log`.
+
+All validation used fictional isolated fixtures. No real SEC/provider request,
+positive-capital analysis, real Expected Return, portfolio, production, Drive,
+Chromebook, deployment or merge operation was performed. This correction does
+not begin PR4C5 or add share-basis/corporate-action logic.

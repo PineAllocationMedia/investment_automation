@@ -21,7 +21,7 @@ from .sec_eps_series import (
 )
 
 IDENTITY_CONTRACT_VERSION = "2026-09-12-security-identity-contract-v1"
-IDENTITY_QUALIFIER_VERSION = "2026-09-12-single-common-class-identity-qualifier-v1"
+IDENTITY_QUALIFIER_VERSION = "2026-09-12-single-common-class-identity-qualifier-v2"
 SYNTHETIC_EVIDENCE_VERSION = "2026-09-12-synthetic-security-identity-evidence-v1"
 EXTRACTION_VERSION = "2026-09-12-synthetic-identity-claims-v1"
 
@@ -480,6 +480,7 @@ def _validate_series(series, request):
     _time(series.authority_as_of)
     _require(len(series.periods) == 5, "Exactly five resolved periods required")
     previous = None
+    seen_observations = set()
     for period in series.periods:
         start, end = _day(period.period_start), _day(period.period_end)
         _require((end - start).days + 1 == period.inclusive_days and period.inclusive_days in (365, 366),
@@ -488,12 +489,25 @@ def _validate_series(series, request):
         previous = end
         _require(bool(period.filing_versions) and len(set(period.version_ids)) == len(period.version_ids)
                  and set(period.version_ids) == {v.semantic_id for v in period.filing_versions}
-                 and len(period.version_ids) == len(period.filing_versions), "Invalid upstream filing inventory")
-        observations = {o for v in period.filing_versions for o in v.observation_ids}
-        _require(observations == set(period.supporting_observation_ids)
-                 and len(set(period.supporting_observation_ids)) == len(period.supporting_observation_ids)
+                 and len(period.version_ids) == len(period.filing_versions)
+                 and all(re.fullmatch(r"[0-9a-f]{64}", v) for v in period.version_ids),
+                 "Invalid upstream filing inventory")
+        occurrences = tuple(o for v in period.filing_versions for o in v.observation_ids)
+        observations = set(occurrences)
+        # PR4C3 retains comparable cross-form versions without making them annual
+        # candidates. This classification is specific to the current SEC profile.
+        annual_observations = {o for v in period.filing_versions
+                               if v.form in ("10-K", "10-K/A") and v.reported_fp == "FY"
+                               for o in v.observation_ids}
+        support = set(period.supporting_observation_ids)
+        _require(bool(support) and support <= observations and support == annual_observations
+                 and len(support) == len(period.supporting_observation_ids)
+                 and len(observations) == len(occurrences)
+                 and not observations & seen_observations
+                 and all(re.fullmatch(r"[0-9a-f]{64}", o) for o in observations)
                  and all(v.observation_ids for v in period.filing_versions)
-                 and period.representative_observation_id in observations, "Invalid upstream observation inventory")
+                 and period.representative_observation_id in support, "Invalid upstream observation inventory")
+        seen_observations.update(observations)
     _require(series.latest_required_fiscal_end == series.periods[-1].period_end, "Invalid latest period")
 
 
