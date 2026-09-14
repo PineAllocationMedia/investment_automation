@@ -358,11 +358,11 @@ Do not reproduce secrets found in logs or Git metadata in reports.
 
 ## 18. Short operating mantra
 
-> Verify the state.  
-> Understand the contract.  
-> Change the smallest thing.  
-> Preserve provenance.  
-> Fail closed.  
-> Test adversarially.  
-> Do not promote authority implicitly.  
+> Verify the state.
+> Understand the contract.
+> Change the smallest thing.
+> Preserve provenance.
+> Fail closed.
+> Test adversarially.
+> Do not promote authority implicitly.
 > Leave a clean handoff.

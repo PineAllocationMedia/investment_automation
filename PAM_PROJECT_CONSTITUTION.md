@@ -12,7 +12,7 @@
 
 ## 1. Project identity
 
-**Project:** PAM  
+**Project:** PAM
 **Repository:** `PineAllocationMedia/investment_automation`
 
 PAM began as a personal investment-allocation automation system and is evolving into
