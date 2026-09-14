@@ -1,6 +1,9 @@
 # CLAUDE.md
 
-La gouvernance, les rôles, et les contraintes opérationnelles pour Claude
-et ChatGPT sont documentés dans AUDIT_GUIDE.md.
+Avant toute session, lire dans l'ordre :
 
-Lire AUDIT_GUIDE.md en entier avant toute session d'analyse ou d'audit.
+1. `PAM_PROJECT_CONSTITUTION.md` — vision et gouvernance du projet.
+2. `AGENTS.md` — règles de fonctionnement des agents.
+3. `PAM_ROADMAP.md` — état courant et prochaines étapes.
+
+Pour un audit V1 spécifiquement, lire ensuite `AUDIT_GUIDE.md` en entier.
