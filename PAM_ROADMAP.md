@@ -54,15 +54,15 @@ Integration branch:
 
 `model-v2/expected-return-challenger`
 
-State immediately after merged PR #40 / PR4C6:
+Verified state after merged PR #42 / PR4D1 (2026-09-19):
 
 Merge commit:
 
-`1da91db1b3c33ac0f65b4f84efb909b9048ae1e1`
+`1e41092c69827369f8d9ba47d5df6d3792ffaa85`
 
 Tree:
 
-`32c723f382aa09b26a66fa78bf84429512dbcd4e`
+`63344ac395e1396a9a2c2c3de9fa3f72a56061e8`
 
 Always verify current remote state before using these values.
 
@@ -169,11 +169,11 @@ It does not yet constitute a complete real-data admission path into the producti
 
 ---
 
-## 7. Immediate pause / documentation chantier
+## 7. Completed memory architecture
 
-### PAM memory architecture ✅ / CURRENT
+### PAM memory architecture ✅
 
-Before resuming V2 feature development, establish:
+Established canonical memory documents:
 
 - `PAM_PROJECT_CONSTITUTION.md`
 - `AGENTS.md`
@@ -197,38 +197,55 @@ Existing documents remain:
 
 ---
 
-## 8. Next technical frontier after the documentation pause
+## 8. Current technical frontier — remaining real admission
 
-### Candidate next chantier: real admission / adapter architecture
+### PR4D1 — CURRENT real-authority foundation ✅
 
-Goal:
+Merged PR #42 establishes acquisition provenance, capture-bound CURRENT observed
+availability and CURRENT snapshot scope through the controlled LIVE SEC Companyfacts
+route. Its source-route registry grants no provider-wide trust. Exact publication
+remains unknown; there is no historical-as-of authority or freshness beyond capture.
 
-connect the qualified C3→C6 evidence chain to real admissible economic facts without
-weakening provenance or prematurely modifying PR4B1.
+Real identity, share-basis and reporting-subject qualifications remain unresolved.
+There is no final economic admission or Decimal→float model adaptation. Factual
+authority remains separate from licensing/use authority. The detailed contract is
+`EXPECTED_RETURN_PR4D1.md`; the C3→C6 synthetic chain is unchanged.
 
-Questions to resolve include:
-
-- which upstream blockers can be discharged by which real authorities;
-- how authentic acquisition provenance is carried;
-- how real identity authority is established;
-- how real split/share-basis authority is established;
-- how reporting-subject continuity is evidenced in the real route;
-- how publication/availability is represented;
-- where CURRENT real facts become eligible for a future PR4B1 adapter;
-- where Decimal→model-number conversion may occur;
-- how the adapter remains source-neutral at the economic boundary.
-
-This should begin with a read-only architecture audit before implementation.
+The next technical chantier should begin with a read-only audit of the remaining
+real qualifications and admission boundary. Identify the smallest safe contract
+before implementation, including evidence coverage through the capture boundary,
+a source-neutral economic admission join and eventual PR4B1 adaptation. Do not
+reinterpret synthetic qualifications as real authority or weaken existing blockers.
 
 ---
 
 ## 9. Expected future V2 sequence
 
 The exact PR numbering may change. The conceptual sequence is more important.
+The following are approved V2 completeness requirements, not implemented behavior
+or authorization to implement them in this documentation PR. Future contracts must
+define supported cases and validation without inventing thresholds here.
+
+```text
+Real Fact Admission → Expected Return completion → Quality → Durability → Confidence
+→ Position Lifecycle / Thesis Deterioration → Stress / Crisis Resilience
+→ Portfolio Room / Portfolio Intelligence → Data & Operational Resilience
+→ Portfolio State Integrity → Portfolio Risk / Shared Exposure
+→ Decision Delta & Attribution → Benchmark & Performance Integrity
+→ Validation/Audit/Backtest Modernization → Mode Contract & Objective Personalization
+→ Compact Report Information Architecture & UX → any additional future V2 chantiers
+→ FINAL Architecture Cleanup & Dead-Code Retirement
+→ final regression/integrity/shadow-readiness review
+→ V2 isolated Chromebook integration/automation → long-duration shadow validation
+→ explicit authority review
+```
+
+Global source expansion may proceed in parallel where appropriate. Neither complete
+global-market coverage nor the full commercial UI is a prerequisite for shadow.
 
 ### Stage A — Real fact admission
 
-- real acquisition authority;
+- CURRENT acquisition authority foundation completed by PR4D1; remaining admission work;
 - source registry / permitted-use metadata;
 - real identity authorities;
 - real corporate-action/share-basis evidence;
@@ -291,53 +308,165 @@ Confidence should reflect:
 
 Low confidence should reduce authority/sizing rather than fabricate certainty.
 
-### Stage F — Global universe
+### Stage F — Position Lifecycle / Thesis Deterioration
 
-Expand progressively from the initial SEC/US route.
+Distinguish normal volatility, temporary deterioration, information uncertainty,
+material fundamental deterioration and structural thesis break. Conceptual states
+may include `ADD`, `HOLD`, `STOP_ADDING`, `ENHANCED_REVIEW`, `TRIM_REVIEW` and
+`EXIT_REVIEW`; these are future contract concepts, without numeric thresholds.
 
-Conceptual source expansion may include:
+Price decline is not thesis deterioration; crisis is not an automatic sell signal.
+Selling remains rare and thesis-driven. Deterioration states may recover when
+evidence genuinely improves. Trim/exit review should consider Expected Return,
+Quality, Durability, Confidence, Portfolio Room, concentration and shared economic
+exposure.
 
-- OpenFIGI;
-- GLEIF;
-- official exchange/listing directories;
-- ESEF / filings.xbrl.org;
-- EDINET;
-- OpenDART;
-- Canadian sources where legally usable;
-- other official jurisdictions.
+### Stage G — Stress / Crisis Resilience
 
-Each market may use different source adapters but should map to common economic contracts.
+Assess thesis resilience under stress and crisis, with explicit evidence and
+uncertainty. This layer concerns business/portfolio resilience, not macro timing.
 
-### Stage G — Portfolio intelligence
+### Stage H — Portfolio Room / Portfolio Intelligence
 
-Build the commercializable analytical layer:
+Build the analytical layer for positions, room, exposures, concentration,
+expected-return distribution, thesis state, watchlists, change history, alerts
+and comparative opportunity context.
 
-- positions;
-- exposures;
-- concentration;
-- expected-return distribution;
-- thesis state;
-- watchlists;
-- change history;
-- alerts;
-- comparative opportunity context.
+### Stage I — Data & Operational Resilience
 
-### Stage H — Research product surface
+Explicitly handle stale data, source/provider failure, partial or contradictory
+evidence, failed runs, degraded mode and freshness/source-health visibility.
 
-Potential features:
+> A data outage or evidence failure must not silently become an investment signal.
 
-- company research pages;
-- comparable-company views;
-- screener;
-- watchlists;
-- evidence explorer;
-- thesis timeline;
-- change alerts;
-- portfolio dashboard;
-- generated research reports;
-- API / B2B surface.
+### Stage J — Portfolio State Integrity
 
-### Stage I — Shadow validation
+Reconcile economic ownership through transactions, cash, dividends, splits,
+mergers, spin-offs, security/class/ticker/listing changes and FX where relevant.
+This is a completeness requirement, not a new ledger design.
+
+### Stage K — Portfolio Risk / Shared Exposure
+
+Expose interpretable risks across sector, geography, currency, business model,
+common macro drivers, liquidity, concentration and hidden/shared economic exposure.
+Do not prescribe Markowitz or covariance-driven optimization.
+
+### Stage L — Decision Delta & Attribution
+
+Explain what changed between analyses and why: evidence, Expected Return, Quality,
+Durability, Confidence, Position State, Portfolio Room, allocation, concentration
+and provenance/context. Distinguish fundamental change, valuation change,
+information-quality change and portfolio-context change.
+
+### Stage M — Benchmark & Performance Integrity
+
+Preserve and modernize the existing portfolio-vs-VFV/S&P 500 capability, including
+TWR, XIRR, external flows, total-return basis, CAD/FX coherence, benchmark continuity
+and freshness, and value-added comparison.
+
+During shadow, keep three histories strictly separate:
+
+1. actual V1/production portfolio;
+2. hypothetical V2 shadow portfolio;
+3. VFV benchmark.
+
+V2 shadow history must never contaminate real portfolio history. Benchmark results
+remain validation/context evidence, not direct investment-rule authority.
+
+### Stage N — Validation / Audit / Backtest Modernization
+
+Before long-duration V2 shadow, preserve relevant V1 validation, performance,
+benchmark, audit and maintenance capabilities or supersede them only with validated
+V2-aware equivalents. Audit coverage must understand ER, Quality, Durability,
+Confidence, Position Lifecycle, Portfolio Room, data authority/provenance,
+Decision Delta and portfolio state.
+
+Maintain the authority hierarchy:
+
+- theoretical retrospective backtest = diagnostic;
+- genuine PIT/walk-forward = stronger validation evidence;
+- genuine accumulated forward V2 shadow = principal evidence of real V2 behavior;
+- promotion/authority migration = separate explicit owner decision.
+
+Any recurring integrity, audit, validation or benchmark task that can be executed
+deterministically should be automated and condition-driven rather than becoming an
+owner maintenance obligation. Preserve existing V1 maintenance/runtime protection;
+future V2 shadow maintenance must use an isolated V2 path without weakening V1 guards.
+`AUDIT_GUIDE.md` stays unchanged until actual V2 audit commands/contracts exist.
+
+### Stage O — Mode Contract & Objective Personalization
+
+Preserve and modernize the existing allocation-mode contract and all four modes.
+Economic facts about a company should not change merely because the selected mode
+changes. The mode changes the policy response to those facts.
+
+| Mode | Broad objective |
+| --- | --- |
+| `balanced` | Growth with greater diversification/defensiveness. |
+| `family-office` | Long-term compounding with stronger portfolio resilience awareness. |
+| `rational-aggressive` | Higher willingness to concentrate when evidence justifies it. |
+| `high-cagr` | Strongest long-term CAGR orientation and drawdown tolerance, while remaining strict on evidence uncertainty/permanent-loss risk. |
+
+Future policy differences may include hurdle, uncertainty tolerance, diversification,
+concentration, sizing, Portfolio Room, fallback behavior, stress emphasis and
+lifecycle/action policy. Final thresholds require future contracts.
+
+Future scheduled/manual Telegram analysis initiation should let the owner select
+among all four modes before capital confirmation, instead of being implicitly
+locked to `high-cagr`. This is interface/orchestration work, not an investment-rule
+change; no Telegram implementation is part of this documentation update.
+
+### Stage P — Compact Report Information Architecture & UX
+
+The compact HTML report is the owner's primary post-analysis human interface.
+
+> Compact means consolidated, not information-poor.
+
+Preserve useful analytical content; shortening reading time is not a reason to
+reduce that content. Improve organization, hierarchy, navigation, visual clarity,
+intuitiveness and grouping of related information once the analytical V2 layers
+are stable enough to design against their real information architecture.
+
+Coherently present, when available: analysis/mode context; portfolio and benchmark
+performance; positions; ER / Quality / Durability / Confidence; Position Lifecycle;
+allocation reasoning; changes since the previous run; risks/stress; watchlist/discovery;
+data reliability/provenance; and model/audit health. No report redesign occurs now.
+
+### Stage Q — Any additional future V2 chantiers
+
+New V2 development must precede final cleanup. Adding a chantier automatically
+moves that cleanup after it; the gate cannot be bypassed by later additions.
+
+### Stage R — FINAL Architecture Cleanup & Dead-Code Retirement
+
+Permanent sequencing invariant: final cleanup always occurs after every V2
+development chantier, including any added in the future, and before V2 integration/
+automation on the Chromebook. Inventory obsolete, dead or duplicated components
+and prove whether they are still used before removing genuinely obsolete code or
+functionality.
+
+Review imports/references, CLI paths, tests, reports/artifacts, runners/systemd,
+mode-specific paths, indirect dependencies, historical/shadow needs and compatibility
+requirements. Classify candidates as `ACTIVE`, `UNCERTAIN — KEEP`,
+`SUPERSEDED BUT STILL REQUIRED` or `SAFE TO RETIRE`.
+
+> No code or feature should be removed merely because it looks old. If no genuinely
+> dead component exists, no deletion is required.
+
+No cleanup is performed in this documentation PR.
+
+### Stage S — Final regression / integrity / shadow-readiness review
+
+Verify the completed architecture, preserved capabilities, evidence boundaries and
+isolated operational readiness before integration. This gate grants no production
+or investment authority.
+
+### Stage T — V2 isolated Chromebook integration / automation
+
+Only after final cleanup and readiness review, integrate a separately approved,
+isolated V2 shadow path. Preserve V1 runtime guards and production authority.
+
+### Stage U — Long-duration shadow validation
 
 Run V2 beside V1 with zero decision authority.
 
@@ -354,7 +483,7 @@ Track:
 - quality of explanations;
 - operational reliability.
 
-### Stage J — Authority review
+### Stage V — Explicit authority review
 
 Only after substantial forward evidence:
 
@@ -363,6 +492,43 @@ Only after substantial forward evidence:
 - decide whether to retain V1, adopt parts of V2 or promote V2 more broadly.
 
 No automatic promotion.
+
+---
+
+### Parallel direction — Global universe
+
+Expand progressively from the initial SEC/US route.
+
+Conceptual source expansion may include:
+
+- OpenFIGI;
+- GLEIF;
+- official exchange/listing directories;
+- ESEF / filings.xbrl.org;
+- EDINET;
+- OpenDART;
+- Canadian sources where legally usable;
+- other official jurisdictions.
+
+Each market may use different source adapters but should map to common economic contracts.
+
+### Longer-term direction — Research product surface
+
+Potential features:
+
+- company research pages;
+- comparable-company views;
+- screener;
+- watchlists;
+- evidence explorer;
+- thesis timeline;
+- change alerts;
+- portfolio dashboard;
+- generated research reports;
+- API / B2B surface.
+
+Full commercial UI and complete global coverage are not pre-shadow gates. Any V2
+development included before integration remains subject to the final-cleanup invariant.
 
 ---
 
@@ -457,14 +623,15 @@ Do not allow all four documents to repeat the same implementation details.
 
 ## 14. Next session handoff
 
-When development resumes after this documentation pause:
+After this documentation-only roadmap expansion:
 
 1. verify the current V2 remote head;
 2. read the constitution and this roadmap;
-3. audit the proposed real-admission boundary;
+3. read `EXPECTED_RETURN_PR4D1.md` and audit the remaining real-admission boundary;
 4. do not implement until the smallest safe next contract is identified;
 5. preserve V1 unchanged.
 
 ---
 
-*Roadmap snapshot created immediately after V2 PR4C6 / PR #40 was merged on 2026-09-13.*
+*Roadmap updated on 2026-09-20 after V2 PR4D1 / PR #42; completion requirements
+are approved direction only, with no runtime or model-rule change.*

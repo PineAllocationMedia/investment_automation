@@ -2745,3 +2745,32 @@ No scoring, valuation, conviction, CAGR, VFV, discovery, promotion, add/sell,
 P3, P4B, concentration, ranking, sizing, overflow, defensive allocation,
 universe, ticker, currency, or global-equity rule changes. Auto-tuning remains
 `PROPOSAL_ONLY`; global coverage remains deferred until after Baseline V1.
+
+## 2026-09-20 - Approved V2 completeness and final development gates
+
+The owner approved the roadmap expansion covering Position Lifecycle / Thesis
+Deterioration, Stress / Crisis Resilience, data/operational resilience, portfolio
+state integrity, shared exposure, Decision Delta, benchmark/performance integrity
+and V2-aware validation/audit/backtest modernization. These complete the existing
+ER, Quality, Durability, Confidence and Portfolio Room sequence while preserving
+V1 capabilities or superseding them only through validated V2 equivalents.
+
+The decision preserves and personalizes all four allocation modes with common
+economic facts and mode-specific policy responses; records future Telegram mode
+selection before capital confirmation as orchestration work; and establishes
+compact-report information-architecture modernization without sacrificing useful
+analytical content. Deterministic recurring integrity, audit, validation and
+benchmark work should be automated and condition-driven to avoid owner maintenance.
+
+Final Architecture Cleanup & Dead-Code Retirement is permanently the last V2
+development chantier before Chromebook V2 integration/automation: any later-added
+V2 chantier moves cleanup after it, followed by final regression/integrity/shadow-
+readiness review. Retirement requires evidence of genuine obsolescence; deletion
+is not mandatory. Long-duration isolated shadow precedes explicit owner authority
+review, with no automatic promotion or requirement for complete global coverage
+or a full commercial UI before shadow.
+
+This changes project direction/documentation only. It does NOT modify current
+investment rules, V1 behavior, runtime, Telegram, reports, model outputs, source
+authority or deployment, and defines no new numeric thresholds. Detailed future
+requirements and sequencing live in `PAM_ROADMAP.md`.

@@ -130,6 +130,24 @@ Canonical maxim:
 
 > **Be aggressive with economic risk, not information uncertainty.**
 
+### Position lifecycle doctrine
+
+Distinguish normal volatility, temporary deterioration, information uncertainty,
+material fundamental deterioration and structural thesis break. Price decline is
+not thesis deterioration; crisis is not an automatic sell signal. Selling remains
+rare and thesis-driven, and deterioration states may recover when evidence genuinely
+improves. Review thesis resilience under stress rather than attempting macro timing.
+Trim/exit review considers Expected Return, Quality, Durability, Confidence,
+Portfolio Room, concentration and shared economic exposure.
+
+### Four-mode architecture
+
+Preserve and modernize `balanced`, `family-office`, `rational-aggressive` and
+`high-cagr`. Economic facts about a company should not change merely because the
+selected mode changes; the mode changes the policy response to those facts.
+Mode objectives and future policy contracts belong in the roadmap and specific
+contracts, without relaxing evidence integrity.
+
 ---
 
 ## 4. Expected Return philosophy
@@ -453,6 +471,13 @@ separate regulatory/business decision and is not the default target.
 
 The proprietary engine should remain server-side where practical.
 
+### Primary owner interface
+
+The compact HTML report is the owner's primary post-analysis human interface.
+Compact means consolidated, not information-poor. Preserve useful analytical content
+while improving organization, hierarchy, navigation, visual clarity and grouping;
+shorter reading time alone is not a reason to remove analytical information.
+
 ---
 
 ## 12. Potential business forms
@@ -497,7 +522,8 @@ Preferred progression:
 5. formal promotion audit;
 6. explicit owner decision.
 
-V1 remains sole authority during shadow validation.
+V1 remains sole authority during shadow validation. V2 remains a challenger until
+explicit owner promotion.
 
 Promotion must never be automatic.
 
@@ -614,6 +640,22 @@ Avoid:
 Canonical engineering principle:
 
 > Build the smallest architecture that closes the real risk.
+
+### Deterministic maintenance and final cleanup
+
+Any recurring integrity, audit, validation or benchmark task that can be executed
+deterministically should be automated and condition-driven rather than becoming an
+owner maintenance obligation. Preserve V1 maintenance/runtime protection; future
+V2 shadow maintenance uses an isolated path. A data outage or evidence failure must
+not silently become an investment signal.
+
+Final Architecture Cleanup & Dead-Code Retirement always occurs after every V2
+development chantier, including any new chantier added in the future, and before
+V2 integration/automation on the Chromebook. New V2 work automatically moves this
+cleanup after it. Follow cleanup with final regression/integrity/shadow-readiness
+review before integration. Prove usage and compatibility needs before retirement;
+no code or feature is removed merely because it looks old. If no genuinely dead
+component exists, no deletion is required.
 
 ---
 
