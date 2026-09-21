@@ -54,15 +54,15 @@ Integration branch:
 
 `model-v2/expected-return-challenger`
 
-Verified pre-PR4D2B state after merged PR #44 / PR4D2A (2026-09-21):
+Verified post-PR4D2B state after merged PR #45 (2026-09-21):
 
 Merge commit:
 
-`23651b9738996257ffa57ac49249470904b51dc9`
+`f892a1e693472b840b1e93274e2a583b270f6c6f`
 
 Tree:
 
-`9a3e8994ecfeca2b3af752ac2ec080b1993d3151`
+`83a89549d98e337852d3985dcc720fd932bca82e`
 
 Always verify current remote state before using these values.
 
@@ -216,12 +216,20 @@ authority remains separate from licensing/use authority. The detailed contract i
 Merged PR #44 adds immutable exact-byte filing evidence and controlled acquisition.
 It grants no economic identity qualification or D1 authority upgrade.
 
-Controlled SEC Submissions inventory is the current evidence prerequisite, under
-the approved PR4D2B implementation contract (`EXPECTED_RETURN_PR4D2B.md`). PR4D2B
-is not recorded as merged here. Captured-reference closure is not filing-history
-completeness, economic-event completeness, or coverage through the D1 CURRENT
-boundary. Real property 4 and obligations 5–7 remain unresolved. Do not reinterpret
-synthetic qualifications as real authority or weaken existing blockers.
+### PR4D2B — Controlled SEC Submissions inventory ✅
+
+Merged PR #45 adds controlled SEC Submissions root/history acquisition, immutable
+parent-linked receipts, deterministic offline replay and captured-reference closure.
+The detailed implementation contract is `EXPECTED_RETURN_PR4D2B.md`.
+
+> Captured-reference closure is not filing-history completeness, economic-event
+> completeness, historical authority, property-4 qualification, or coverage through
+> the D1 CURRENT boundary.
+
+Real property 4 and obligations 5–7 remain unresolved. D2B does not advance economic
+admission authority. Do not reinterpret synthetic qualifications as real authority
+or weaken existing blockers. The next evidence/temporal-coverage and real-qualification
+contract requires separate review.
 
 ---
 
@@ -356,6 +364,67 @@ This is a completeness requirement, not a new ledger design.
 Expose interpretable risks across sector, geography, currency, business model,
 common macro drivers, liquidity, concentration and hidden/shared economic exposure.
 Do not prescribe Markowitz or covariance-driven optimization.
+
+#### ETF / Fund Look-Through & Exposure Intelligence
+
+Future V2 capability: understand an ETF/fund as an economic exposure container.
+**Nominal concentration** is the portfolio weight in each directly held ticker/fund;
+**economic concentration** is aggregated underlying exposure after appropriate
+look-through. Preserve both views. This subsection authorizes no implementation;
+future contracts will define exact sources, schemas, algorithms and supported cases.
+
+- **Economic classification:** identify broad-market equity, sector/thematic equity,
+  country/region equity, emerging markets, fixed income, cash-like, commodity,
+  digital asset, asset-allocation funds and other reviewed structures where evidence
+  permits. Classification must be evidence-backed, never inferred solely from ticker
+  text. Remain fund/provider/global-neutral: no universal dependency on one provider,
+  exchange, country, identifier system or fund-report format. Source-specific adapters
+  should map into source-neutral economic exposure concepts.
+- **Holdings and overlap:** where reliable holdings evidence exists, decompose funds
+  across constituent/security, sector, industry, country/geography, currency,
+  market-cap profile, business-model/theme, common macro drivers and relevant risk
+  factors. Transparency varies by fund. Aggregate direct exposure to a security plus
+  indirect exposure through all funds; apply the same principle to other reviewed
+  exposure dimensions. Detect direct-stock ↔ fund overlap and fund-to-fund shared
+  constituents and economic drivers, so nominally different wrappers do not conceal
+  combined exposure or hidden concentration.
+- **Geography and currency:** distinguish fund domicile/listing venue, quote currency
+  and underlying economic geography. Canadian listing does not imply Canadian
+  economic exposure. Separately retain quote currency, underlying asset denomination,
+  economic FX exposure and hedged/unhedged structure where evidence permits;
+  CAD quotation does not imply CAD economic exposure.
+- **Sector/theme concentration:** **A diversified wrapper must not be mistaken for
+  diversified economic exposure.** Detect concentration created or amplified by a
+  fund in, for example, technology, semiconductors, AI-related businesses, financials,
+  energy, emerging markets, specific countries or rates-sensitive assets. These are
+  illustrative themes/factors, not hard-coded investment categories or fund rules.
+- **Evidence and freshness:** holdings change over time. Retain source, relevant
+  source authority/use status, effective/reporting date, capture time,
+  completeness/scope, freshness, extraction/provenance and uncertainty. Distinguish
+  reliable current-enough, partial, stale and unavailable look-through. Never present
+  stale holdings as the exact current composition or fabricate missing precision.
+- **Coverage and confidence:** known look-through exposure plus explicit unresolved
+  residual exposure must account for the fund position. Do not silently renormalize
+  partial evidence into 100% certainty. Fund-specific uncertainty must propagate into
+  portfolio-level confidence: a fund at 20% portfolio weight with only 70% reliably
+  classified holdings does not yield fully known portfolio exposure. Lower evidence
+  quality reduces confidence in interpretation, without an invented numeric formula:
+  **Be aggressive with economic risk, not information uncertainty.**
+- **Multi-layer funds:** fund-of-funds may require bounded recursive look-through,
+  safe handling of cycles and prevention of double counting. Unsupported structures
+  must remain explicit; implementation design belongs to a later contract.
+- **Portfolio use and stage relationships:** use the exposure map for concentration,
+  hidden/shared exposure, sector, geography, currency and macro-driver risk,
+  liquidity/context interpretation and portfolio-room analysis. Stage H uses it for
+  portfolio context; Stage I handles stale/missing/provider-failed holdings data;
+  Stage J establishes actual nominal ownership; Stage P presents direct/indirect
+  exposure clearly to the owner.
+- **Scope and sequence:** these are analytical capability requirements only. No
+  investment thresholds, allocation/diversification/country/sector limits, overlap
+  penalties or automatic sell rules are added; such policy requires later approved
+  contracts. This work remains within Stage K's existing sequence. Final Architecture
+  Cleanup & Dead-Code Retirement remains the final development chantier before
+  Chromebook integration; look-through does not bypass that gate.
 
 ### Stage L — Decision Delta & Attribution
 
@@ -629,16 +698,17 @@ Do not allow all four documents to repeat the same implementation details.
 
 ## 14. Next session handoff
 
-For the approved PR4D2B evidence prerequisite:
+After merged PR4D2B, for the remaining real-admission frontier:
 
 1. verify the current V2 remote head;
 2. read the constitution and this roadmap;
 3. read `EXPECTED_RETURN_PR4D1.md`, `EXPECTED_RETURN_PR4D2A.md` and `EXPECTED_RETURN_PR4D2B.md`;
-4. verify PR4D2B review/merge status before selecting a later qualifier contract;
+4. obtain separate review of the next evidence/temporal-coverage and real-qualification
+   contract; property 4 and obligations 5–7 remain unresolved;
 5. preserve V1 unchanged.
 
 ---
 
-*Roadmap state corrected on 2026-09-21 to verified post-PR #44 / pre-PR4D2B;
-PR4D2B is not claimed merged. Future completion requirements remain approved
-direction only, with no runtime or model-rule change.*
+*Roadmap state updated on 2026-09-21 to verified post-PR #45 / PR4D2B.
+ETF/fund look-through is recorded under Stage K as a future V2 requirement only.
+No implementation, runtime, investment-rule or authority change is authorized here.*
