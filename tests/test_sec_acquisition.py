@@ -484,7 +484,7 @@ class SecAcquisitionBoundaryTests(unittest.TestCase):
                 self.assertTrue((node.level == 1 and node.module == "sec_archive") or node.module in allowed)
         for directory in ("src", "pit_comparison", "economic_facts", "scripts"):
             for file in (root / directory).rglob("*.py"):
-                if file.name in ("sec_acquisition.py", "capture_sec_companyfacts.py"):
+                if file.name in ("sec_acquisition.py", "capture_sec_companyfacts.py", "sec_filing_acquisition.py"):
                     continue
                 for node in ast.walk(ast.parse(file.read_text())):
                     if isinstance(node, ast.Import):
