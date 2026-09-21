@@ -54,15 +54,15 @@ Integration branch:
 
 `model-v2/expected-return-challenger`
 
-Verified state after merged PR #42 / PR4D1 (2026-09-19):
+Verified pre-PR4D2B state after merged PR #44 / PR4D2A (2026-09-21):
 
 Merge commit:
 
-`1e41092c69827369f8d9ba47d5df6d3792ffaa85`
+`23651b9738996257ffa57ac49249470904b51dc9`
 
 Tree:
 
-`63344ac395e1396a9a2c2c3de9fa3f72a56061e8`
+`9a3e8994ecfeca2b3af752ac2ec080b1993d3151`
 
 Always verify current remote state before using these values.
 
@@ -211,11 +211,17 @@ There is no final economic admission or Decimal→float model adaptation. Factua
 authority remains separate from licensing/use authority. The detailed contract is
 `EXPECTED_RETURN_PR4D1.md`; the C3→C6 synthetic chain is unchanged.
 
-The next technical chantier should begin with a read-only audit of the remaining
-real qualifications and admission boundary. Identify the smallest safe contract
-before implementation, including evidence coverage through the capture boundary,
-a source-neutral economic admission join and eventual PR4B1 adaptation. Do not
-reinterpret synthetic qualifications as real authority or weaken existing blockers.
+### PR4D2A — Controlled SEC complete-submission filing capture ✅
+
+Merged PR #44 adds immutable exact-byte filing evidence and controlled acquisition.
+It grants no economic identity qualification or D1 authority upgrade.
+
+Controlled SEC Submissions inventory is the current evidence prerequisite, under
+the approved PR4D2B implementation contract (`EXPECTED_RETURN_PR4D2B.md`). PR4D2B
+is not recorded as merged here. Captured-reference closure is not filing-history
+completeness, economic-event completeness, or coverage through the D1 CURRENT
+boundary. Real property 4 and obligations 5–7 remain unresolved. Do not reinterpret
+synthetic qualifications as real authority or weaken existing blockers.
 
 ---
 
@@ -623,15 +629,16 @@ Do not allow all four documents to repeat the same implementation details.
 
 ## 14. Next session handoff
 
-After this documentation-only roadmap expansion:
+For the approved PR4D2B evidence prerequisite:
 
 1. verify the current V2 remote head;
 2. read the constitution and this roadmap;
-3. read `EXPECTED_RETURN_PR4D1.md` and audit the remaining real-admission boundary;
-4. do not implement until the smallest safe next contract is identified;
+3. read `EXPECTED_RETURN_PR4D1.md`, `EXPECTED_RETURN_PR4D2A.md` and `EXPECTED_RETURN_PR4D2B.md`;
+4. verify PR4D2B review/merge status before selecting a later qualifier contract;
 5. preserve V1 unchanged.
 
 ---
 
-*Roadmap updated on 2026-09-20 after V2 PR4D1 / PR #42; completion requirements
-are approved direction only, with no runtime or model-rule change.*
+*Roadmap state corrected on 2026-09-21 to verified post-PR #44 / pre-PR4D2B;
+PR4D2B is not claimed merged. Future completion requirements remain approved
+direction only, with no runtime or model-rule change.*
