@@ -54,15 +54,15 @@ Integration branch:
 
 `model-v2/expected-return-challenger`
 
-Verified post-PR4D2B state after merged PR #45 (2026-09-21):
+Verified post-PR4D2C state after merged PR #47 (2026-09-21):
 
 Merge commit:
 
-`f892a1e693472b840b1e93274e2a583b270f6c6f`
+`020a3ec8989203fb4e9b9f46fce10d51c15e7cee`
 
 Tree:
 
-`83a89549d98e337852d3985dcc720fd932bca82e`
+`c935033606c7b5348695cf218efb1a827f533028`
 
 Always verify current remote state before using these values.
 
@@ -226,8 +226,21 @@ The detailed implementation contract is `EXPECTED_RETURN_PR4D2B.md`.
 > completeness, historical authority, property-4 qualification, or coverage through
 > the D1 CURRENT boundary.
 
-Real property 4 and obligations 5–7 remain unresolved. D2B does not advance economic
-admission authority. Do not reinterpret synthetic qualifications as real authority
+### PR4D2C — Controlled Nasdaq Listed snapshot ✅
+
+Merged PR #47 adds controlled capture of Nasdaq's official `nasdaqlisted.txt`,
+an immutable exact-byte evidence archive, explicit receipt-based offline replay
+and structural validation. Duplicate symbols preserve every occurrence and produce
+`SOURCE_CONFLICT`; no silent deduplication or winner selection occurs. The detailed
+contract is `EXPECTED_RETURN_PR4D2C.md`.
+
+A captured current directory snapshot grants no economic identity authority,
+historical listing continuity, CIK qualification, quote-currency proof,
+D1-through-T continuity or final admission authority.
+
+**Property 4 remains unresolved in every part**, as do obligations 5–7. D2B and
+D2C do not advance economic admission authority. Do not reinterpret synthetic
+qualifications or current snapshots as real identity or historical continuity,
 or weaken existing blockers. The next evidence/temporal-coverage and real-qualification
 contract requires separate review.
 
@@ -242,11 +255,15 @@ define supported cases and validation without inventing thresholds here.
 
 ```text
 Real Fact Admission → Expected Return completion → Quality → Durability → Confidence
-→ Position Lifecycle / Thesis Deterioration → Stress / Crisis Resilience
+→ Opportunity Set → Position Lifecycle / Thesis Deterioration → Stress / Crisis Resilience
 → Portfolio Room / Portfolio Intelligence → Data & Operational Resilience
-→ Portfolio State Integrity → Portfolio Risk / Shared Exposure
-→ Decision Delta & Attribution → Benchmark & Performance Integrity
-→ Validation/Audit/Backtest Modernization → Mode Contract & Objective Personalization
+→ Portfolio State Integrity → Portfolio Risk / Shared Exposure / ETF look-through
+→ Dependency & Invalidation → Persistent Decision / Thesis Memory
+→ Decision Delta & Attribution → Outcome Evaluation → Benchmark & Performance Integrity
+→ Validation / Audit / Backtest Modernization → Validation Firewall
+→ Calibration Governance → Mode Contract & Objective Personalization
+→ Recommendation / Execution Separation → Monitoring / Observability
+→ Commercial Data Governance
 → Compact Report Information Architecture & UX → any additional future V2 chantiers
 → FINAL Architecture Cleanup & Dead-Code Retirement
 → final regression/integrity/shadow-readiness review
@@ -256,6 +273,7 @@ Real Fact Admission → Expected Return completion → Quality → Durability �
 
 Global source expansion may proceed in parallel where appropriate. Neither complete
 global-market coverage nor the full commercial UI is a prerequisite for shadow.
+Inserted stages use numeric suffixes to preserve existing stage references.
 
 ### Stage A — Real fact admission
 
@@ -321,6 +339,14 @@ Confidence should reflect:
 - historical evidence maturity.
 
 Low confidence should reduce authority/sizing rather than fabricate certainty.
+
+### Stage E1 — Opportunity Set
+
+Establish which securities are eligible for consideration under current evidence,
+data coverage, model support and policy constraints before portfolio allocation
+decisions become mature. Distinguish supported and qualified, observable but not
+yet admissible, unsupported, and unavailable / insufficient evidence. This stage
+defines no scoring formula or ranking threshold; observability alone is not admission.
 
 ### Stage F — Position Lifecycle / Thesis Deterioration
 
@@ -426,12 +452,41 @@ future contracts will define exact sources, schemas, algorithms and supported ca
   Cleanup & Dead-Code Retirement remains the final development chantier before
   Chromebook integration; look-through does not bypass that gate.
 
+### Stage K1 — Dependency & Invalidation
+
+Track analytical dependencies on evidence, derived facts, assumptions, model
+versions and portfolio state. Upstream changes, staleness, corrections, lost
+authority or contradictions must identify dependent results needing recomputation
+or review; prior outputs must not silently retain authority. Implementation design
+belongs in a later contract.
+
+### Stage K2 — Persistent Decision / Thesis Memory
+
+Durably preserve inspectable prior analytical state: thesis, material evidence,
+important assumptions, valuation / Expected Return, Quality / Durability /
+Confidence, portfolio context, decision/recommendation state and relevant model/data
+identities. This is project analytical memory, distinct from conversation memory
+and the canonical project documents in section 7. It must precede Decision Delta:
+a comparison requires a durably recorded account of what PAM previously believed.
+
 ### Stage L — Decision Delta & Attribution
 
-Explain what changed between analyses and why: evidence, Expected Return, Quality,
-Durability, Confidence, Position State, Portfolio Room, allocation, concentration
-and provenance/context. Distinguish fundamental change, valuation change,
-information-quality change and portfolio-context change.
+Consume persistent prior decision/thesis state from Stage K2 to explain what
+changed and why across evidence, Expected Return, Quality, Durability, Confidence,
+Position State, Portfolio Room, allocation, concentration and provenance/context.
+Distinguish fundamental, valuation, information-quality/evidence, assumption/model,
+portfolio-context and policy/mode changes. No attribution weights are prescribed.
+
+### Stage L1 — Outcome Evaluation
+
+Evaluate what happened after prior analyses or recommendations using persistent
+decision memory and Decision Delta, without rewriting history. Assess thesis
+outcomes, Expected Return realization/error, avoided mistakes, missed opportunities,
+lifecycle decisions, concentration consequences, benchmark-relative outcomes,
+evidence-quality failures and calibration quality. Keep actual V1 portfolio,
+hypothetical V2 shadow and benchmark histories separate; Stage M establishes the
+performance integrity needed for these comparisons. Outcomes inform model assessment
+and must not automatically rewrite investment rules.
 
 ### Stage M — Benchmark & Performance Integrity
 
@@ -469,6 +524,23 @@ owner maintenance obligation. Preserve existing V1 maintenance/runtime protectio
 future V2 shadow maintenance must use an isolated V2 path without weakening V1 guards.
 `AUDIT_GUIDE.md` stays unchanged until actual V2 audit commands/contracts exist.
 
+### Stage N1 — Validation Firewall
+
+Maintain explicit boundaries between research/development, retrospective validation,
+genuine PIT/walk-forward evidence, forward shadow evidence, calibration and
+production authority. Evidence in one domain must not silently grant authority in
+another. Backtests remain diagnostic; forward shadow evidence is stronger, while
+production authority remains a separate explicit owner decision.
+
+### Stage N2 — Calibration Governance
+
+Future calibration/tuning must be versioned, reproducible, auditable, evidence-backed
+and separated from live decision generation. Protect against look-ahead leakage and
+automatically learning from the model's own latest recommendations. Acceptance and
+promotion require explicit review. Preserve V1's `PROPOSAL_ONLY` safety philosophy:
+no self-modifying investment model or automatic threshold optimization from live
+outcomes.
+
 ### Stage O — Mode Contract & Objective Personalization
 
 Preserve and modernize the existing allocation-mode contract and all four modes.
@@ -490,6 +562,30 @@ Future scheduled/manual Telegram analysis initiation should let the owner select
 among all four modes before capital confirmation, instead of being implicitly
 locked to `high-cagr`. This is interface/orchestration work, not an investment-rule
 change; no Telegram implementation is part of this documentation update.
+
+### Stage O1 — Recommendation / Execution Separation
+
+PAM remains research intelligence + portfolio intelligence. Recommendation state
+and brokerage execution must remain separate: a model conclusion is not an
+execution instruction. Automatic brokerage trading remains out of scope unless
+separately and explicitly authorized in the future.
+
+### Stage O2 — Monitoring / Observability
+
+Make provider/source failures, stale evidence, unsupported variants, degraded
+pipelines, unresolved conflicts, invalidated dependencies, failed scheduled runs,
+model/input version drift and shadow/runtime health visible across V2. Distinguish
+operational/data failures from investment signals. Prefer automated deterministic
+monitoring over routine owner maintenance; build on Stage I's resilience behavior.
+
+### Stage O3 — Commercial Data Governance
+
+Before commercialization, establish source/provider identity, permitted use,
+redistribution/display rights where relevant, retention, provenance, licensing
+constraints, attribution, geographic/product limitations, replacement/deprecation
+and paid-vs-free dependency risk. Keep factual authority separate from legal or
+permitted-use authority. PR4D2C and existing source contracts do not universally
+license Nasdaq or other provider data.
 
 ### Stage P — Compact Report Information Architecture & UX
 
@@ -532,9 +628,17 @@ No cleanup is performed in this documentation PR.
 
 ### Stage S — Final regression / integrity / shadow-readiness review
 
-Verify the completed architecture, preserved capabilities, evidence boundaries and
-isolated operational readiness before integration. This gate grants no production
-or investment authority.
+Before Chromebook integration or long-duration V2 shadow, require evidence that:
+
+- required V2 capabilities are present or explicitly unsupported;
+- dependency/invalidation behavior is coherent and persistent decision state exists;
+- monitoring is adequate and actual V1, hypothetical V2 shadow and benchmark
+  performance histories remain correctly separated;
+- validation boundaries are intact, no V1 authority has silently migrated and no
+  V2 path has positive-capital decision authority;
+- runtime isolation is preserved and final cleanup/regression review has passed.
+
+Shadow-readiness is not production readiness and grants no investment authority.
 
 ### Stage T — V2 isolated Chromebook integration / automation
 
@@ -698,17 +802,24 @@ Do not allow all four documents to repeat the same implementation details.
 
 ## 14. Next session handoff
 
-After merged PR4D2B, for the remaining real-admission frontier:
+After merged PR4D2C / PR #47, the immediate next engineering frontier following
+this documentation PR remains **Real Fact Admission**, with **Property 4 unresolved**.
+PR4D2C supplies controlled Nasdaq Listed snapshot evidence only. It does not solve
+economic identity, issuer/security/share-class/listing mapping, CIK correspondence,
+historical listing continuity, D1-through-T temporal coverage, quote currency or
+final real admission.
 
 1. verify the current V2 remote head;
 2. read the constitution and this roadmap;
-3. read `EXPECTED_RETURN_PR4D1.md`, `EXPECTED_RETURN_PR4D2A.md` and `EXPECTED_RETURN_PR4D2B.md`;
+3. read `EXPECTED_RETURN_PR4D1.md`, `EXPECTED_RETURN_PR4D2A.md`,
+   `EXPECTED_RETURN_PR4D2B.md` and `EXPECTED_RETURN_PR4D2C.md`;
 4. obtain separate review of the next evidence/temporal-coverage and real-qualification
-   contract; property 4 and obligations 5–7 remain unresolved;
+   implementation contract; Property 4 and obligations 5–7 remain unresolved, and
+   this roadmap edit does not authorize that implementation;
 5. preserve V1 unchanged.
 
 ---
 
-*Roadmap state updated on 2026-09-21 to verified post-PR #45 / PR4D2B.
-ETF/fund look-through is recorded under Stage K as a future V2 requirement only.
+*Roadmap state updated on 2026-09-21 to verified post-PR #47 / PR4D2C.
+Future architecture stages and shadow-readiness gates are requirements only.
 No implementation, runtime, investment-rule or authority change is authorized here.*
