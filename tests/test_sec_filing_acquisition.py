@@ -504,7 +504,10 @@ class FilingDependencyTests(unittest.TestCase):
             for node in ast.walk(ast.parse(file.read_text())):
                 if isinstance(node, (ast.Import, ast.ImportFrom)):
                     names = [n.name for n in node.names] + ([node.module or ""] if isinstance(node, ast.ImportFrom) else [])
-                    self.assertFalse(any("sec_filing_acquisition" in n or "sec_filing_archive" in n for n in names), str(file))
+                    # PR4D3A may read the archive, but must not depend on acquisition.
+                    self.assertFalse(any("sec_filing_acquisition" in n for n in names), str(file))
+                    if file.name != "sec_registered_securities.py":
+                        self.assertFalse(any("sec_filing_archive" in n for n in names), str(file))
 
     def test_result_contains_only_capture_and_selector_metadata(self):
         self.assertEqual(set(a.SecFilingAcquisitionResult.__dataclass_fields__),
