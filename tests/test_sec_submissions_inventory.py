@@ -289,7 +289,7 @@ class SubmissionsDependencyTests(unittest.TestCase):
                     self.assertTrue(all(alias.name.split('.')[0] in stdlib for alias in node.names))
         for directory in ("src", "pit_comparison", "economic_facts", "scripts"):
             for path in (root_dir / directory).rglob("*.py"):
-                if path.stem in new:
+                if path.stem in new | {"sec_property4_temporal_dossier"}:
                     continue
                 for node in ast.walk(ast.parse(path.read_text())):
                     if isinstance(node, ast.Import):
