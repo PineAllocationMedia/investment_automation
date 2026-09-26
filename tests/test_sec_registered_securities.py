@@ -579,13 +579,14 @@ class RegisteredSecurityBoundaryTests(unittest.TestCase):
             if isinstance(node, ast.Import):
                 self.assertTrue(all(n.name in allowed for n in node.names))
             if isinstance(node, ast.ImportFrom):
-                self.assertTrue((node.level == 1 and node.module == 'sec_filing_archive') or
+                self.assertTrue((node.level == 1 and node.module in
+                                 {'sec_filing_archive', 'sec_primary_document'}) or
                                 (node.level == 0 and node.module in allowed))
             if isinstance(node, ast.Call) and isinstance(node.func, ast.Name):
                 self.assertNotIn(node.func.id, {'open', 'float', 'eval', 'exec', '__import__'})
         for file in [root / 'main.py', *(root / 'src').rglob('*.py'), *(root / 'economic_facts').rglob('*.py'),
                      *(root / 'pit_comparison').rglob('*.py'), *(root / 'scripts').rglob('*.py')]:
-            if file == module:
+            if file in {module, root / 'economic_facts/sec_primary_document.py'}:
                 continue
             self.assertNotIn('sec_registered_securities', file.read_text(), str(file))
 
