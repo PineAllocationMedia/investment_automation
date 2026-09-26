@@ -18,7 +18,7 @@ from .sec_primary_document import (
     read_primary_document,
 )
 
-EXTRACTION_CONTRACT_VERSION = "2026-09-26-sec-class-eps-source-claims-v1"
+EXTRACTION_CONTRACT_VERSION = "2026-09-26-sec-class-eps-source-claims-v2"
 SUPPORTED_FORMS = frozenset(("10-K", "10-K/A", "10-Q", "10-Q/A"))
 TAXONOMY_PROFILES = (
     ("http://xbrl.sec.gov/dei/2025", "http://fasb.org/us-gaap/2025"),
@@ -28,7 +28,6 @@ IX = "http://www.xbrl.org/2013/inlineXBRL"
 XBRLI = "http://www.xbrl.org/2003/instance"
 XBRLDI = "http://xbrl.org/2006/xbrldi"
 XHTML = "http://www.w3.org/1999/xhtml"
-XSI = "http://www.w3.org/2001/XMLSchema-instance"
 CLASS_AXIS_LOCAL_NAME = "StatementClassOfStockAxis"
 COMMON_SHARES_LOCAL_NAME = "EntityCommonStockSharesOutstanding"
 DILUTED_EPS_LOCAL_NAME = "EarningsPerShareDiluted"
@@ -148,8 +147,7 @@ class SourceContext:
 @dataclass(frozen=True, slots=True)
 class SourceRepresentation:
     unit_ref: str
-    decimals: str | None
-    precision: str | None
+    decimals: str
 
 
 @dataclass(frozen=True, slots=True)
@@ -208,8 +206,7 @@ class SecClassEPSExtractionAssessment:
                             context_ids[occurrence.context_ref],
                             occurrence.source_class_scope_id, occurrence.source_value,
                             (occurrence.representation.unit_ref,
-                             occurrence.representation.decimals,
-                             occurrence.representation.precision))
+                             occurrence.representation.decimals))
                            for occurrence in self.occurrences), key=repr)
         return _identity("assessment-semantics", {
             "contract": self.contract_version,
@@ -358,7 +355,7 @@ def _parse_inline(payload, document):
     _require(root.tag == "{" + XHTML + "}html", "Namespaced XHTML primary required")
     _require(root.getroottree().docinfo.encoding.upper().replace("-", "") == "UTF8",
              "Only UTF-8 XML supported")
-    elements, namespaces, ids, contexts = [], set(), {}, {}
+    elements, namespaces, ids, contexts, units = [], set(), {}, {}, {}
     for element in root.iter():
         if not isinstance(element.tag, str):
             continue
@@ -374,6 +371,8 @@ def _parse_inline(payload, document):
             _require(source_id is not None, "Missing context ID")
             contexts[source_id] = (element, ordinal)
             _require(len(contexts) <= MAX_CONTEXTS, "Context safety bound exceeded")
+        if element.tag == "{" + XBRLI + "}unit" and source_id is not None:
+            units[source_id] = element
         if element.tag.startswith("{" + IX + "}"):
             _require(element.get("target", "") == "", "Multiple Inline XBRL targets unsupported")
     profile = _profile(namespaces)
@@ -401,18 +400,18 @@ def _parse_inline(payload, document):
         _require(name in concepts, "Unreviewed target concept namespace")
         _require(element.tag == "{" + IX + "}nonFraction",
                  "Target numeric fact must be ix:nonFraction")
-        allowed = {"name", "contextRef", "unitRef", "decimals", "precision", "id", "target"}
-        _require(set(element.attrib) <= allowed
-                 and "{" + XSI + "}nil" not in element.attrib
-                 and not ({"decimals", "precision"} <= set(element.attrib)),
-                 "Transformed, scaled, signed, nil, continued or ambiguous fact unsupported")
+        allowed = {"name", "contextRef", "unitRef", "decimals", "id", "target"}
+        _require(set(element.attrib) <= allowed,
+                 "Transformed, scaled, signed, nil, continued or precision fact unsupported")
         unit_ref = element.get("unitRef")
         _require(type(unit_ref) is str and _TOKEN.fullmatch(unit_ref) is not None,
                  "Exact unitRef required")
-        decimals, precision = element.get("decimals"), element.get("precision")
-        _require((decimals is None or re.fullmatch(r"INF|[+-]?[0-9]{1,6}", decimals))
-                 and (precision is None or re.fullmatch(r"INF|[1-9][0-9]{0,5}", precision)),
-                 "Unsupported accuracy attribute")
+        _require(unit_ref in units and units[unit_ref].getparent() is resources[0],
+                 "unitRef must resolve to a unit in Inline resources")
+        decimals = element.get("decimals")
+        _require(type(decimals) is str
+                 and re.fullmatch(r"INF|[+-]?[0-9]{1,6}", decimals) is not None,
+                 "Exact decimals attribute required")
         ref = element.get("contextRef")
         _require(ref in contexts, "Unknown fact contextRef")
         context_element, context_ordinal = contexts[ref]
@@ -432,7 +431,7 @@ def _parse_inline(payload, document):
         value = "".join(element.itertext())
         _require(len(value) <= MAX_VALUE_LENGTH and _DECIMAL_LEXICAL.fullmatch(value) is not None,
                  "Unsupported numeric lexical representation")
-        representation = SourceRepresentation(unit_ref, decimals, precision)
+        representation = SourceRepresentation(unit_ref, decimals)
         scope_id = context.source_class_scope_id(document)
         facts.append(ClassEPSFactOccurrence(
             document.evidence_id, ordinal, element.sourceline, concepts[name], name,

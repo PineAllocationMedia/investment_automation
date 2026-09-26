@@ -34,8 +34,8 @@ configuration, roadmap, model rule, deployment, or Chromebook file is changed.
 
 ## Official source semantics reviewed
 
-The current SEC [EDGAR XBRL Guide, April 2026, sections 3.2.3 and
-6.4](https://www.sec.gov/files/edgar/filer-information/specifications/xbrl-guide-2026-04-21.pdf)
+The current SEC [EDGAR XBRL Guide, August 2026, sections 3.2.3 and
+8.6](https://www.sec.gov/files/edgar/filer-information/specifications/xbrl-guide-2026-08-14.pdf)
 states that `dei:EntityCommonStockSharesOutstanding` uses an instant context;
 its permitted cases distinguish an undimensioned assertion from multiple
 class-member contexts. The same guide states that facts applying to all classes
@@ -43,6 +43,11 @@ omit `us-gaap:StatementClassOfStockAxis`, while facts specific to distinct stock
 classes use explicit members on that axis. It also illustrates custom members.
 These are source-context semantics only; they do not establish PAM economic
 classification, class rights, inventory completeness, or EPS entitlement.
+
+Section 8.6 (EFM 6.5.17, “Decimals Not Precision”) rejects a numeric fact with
+`precision`. The supported SEC profile therefore requires exactly one valid
+`decimals` attribute and rejects missing `decimals`, `precision`, and facts that
+carry both. This is a source-representation constraint, not numeric conversion.
 
 The guide identifies `us-gaap:EarningsPerShareDiluted` as the diluted-EPS
 concept. The [XBRL Open Information Model XML
@@ -129,9 +134,13 @@ cross-filing class identity.
 ## Numeric representation boundary
 
 Supported facts are direct, untransformed, non-nil `ix:nonFraction` elements with
-an exact `unitRef`, at most one retained `decimals` or `precision` assertion, no
-numeric descendants, and an exact XML-Schema-decimal lexical value. The extractor
-preserves the lexical value, unit reference, accuracy attribute, source fact ID,
+exactly one retained `decimals` assertion, no `precision`, no numeric descendants,
+and an exact XML-Schema-decimal lexical value. Under the normative [XBRL 2.1
+unit-reference rule](https://www.xbrl.org/Specification/xbrl-2.1/rec-2003-12-31/xbrl-2.1-rec-2003-12-31%2Bcorrected-errata-2013-02-20.html),
+the exact `unitRef` must resolve unambiguously to an `xbrli:unit` in the same
+`ix:resources`. The extractor checks only this referential integrity; it does not
+interpret, normalize, or qualify the unit's economics. It preserves the lexical
+value, unit reference, decimals assertion, source fact ID,
 lexical/expanded concept name, source line, element order, context reference, and
 primary-document identity. It does not resolve unit semantics or create an
 investment-ready number.
@@ -201,18 +210,14 @@ results on the final executable source are:
 
 | Isolated selection | Tests | Result / seconds |
 | --- | ---: | --- |
-| `test_sec_class_eps_claims.py` | 36 | PASS / 0.389 |
-| `test_sec_registered_securities.py` | 68 | PASS / 0.812 |
-| `test_sec_*.py` | 471 | PASS / 7.743 |
-| `test_sec_filing_*.py` | 74 | PASS / 1.871 |
-| `test_nasdaq_listed_*.py` | 89 | PASS / 1.965 |
-| `test_security_identity.py` | 84 | PASS / 1.006 |
-| `test_current_authority.py` | 17 | PASS / 0.014 |
-| `test_source_authority.py` | 11 | PASS / 0.002 |
-| `test_expected_return*.py` | 144 | PASS / 1.144 |
-| `test_runtime_isolation.py` | 29 | PASS / 45.273 |
-| `test_validation_identity_isolation.py` | 19 | PASS / 0.459 |
-| Complete isolated suite | **2,027** | **PASS / 756.802** |
+| `test_sec_class_eps_claims.py` | 39 | PASS / 0.403 |
+| `test_sec_registered_securities.py` | 68 | PASS / 1.267 |
+| `test_sec_*.py` | 474 | PASS / 8.378 |
+| `test_security_identity.py` | 84 | PASS / 0.656 |
+| `test_current_authority.py` | 17 | PASS / 0.009 |
+| `test_source_authority.py` | 11 | PASS / 0.001 |
+| `test_expected_return*.py` | 144 | PASS / 1.114 |
+| Complete isolated suite | **2,030** | **PASS / 737.286** |
 
 The complete suite reported no failures or skips and reproduced all 64 protected
 equivalence cases and the unchanged identities below without regenerating an

@@ -28,30 +28,36 @@ def context(ref, *, kind="duration", member=None, cik=CIK,
 
 
 def numeric_fact(name, value, ref, *, prefix, unit="shares", fact_id=None,
-                 decimals="0", precision=None, attrs=""):
-    accuracy = (f' precision={quoteattr(precision)}' if precision is not None
-                else f' decimals={quoteattr(decimals)}')
+                 decimals="0", attrs=""):
+    accuracy = "" if decimals is None else f' decimals={quoteattr(decimals)}'
     identity = "" if fact_id is None else f' id={quoteattr(fact_id)}'
     return (f'<ix:nonFraction name={quoteattr(prefix + ":" + name)} '
             f'contextRef={quoteattr(ref)} unitRef={quoteattr(unit)}'
             f'{accuracy}{identity}{attrs}>{escape(value)}</ix:nonFraction>')
 
 
-def common_shares(value="1000000", ref="shares", **kwargs):
+def common_shares(value="1000000", ref="shares", *, unit="u-shares", **kwargs):
     return numeric_fact("EntityCommonStockSharesOutstanding", value, ref,
-                        prefix="dei", unit="u-shares", **kwargs)
+                        prefix="dei", unit=unit, **kwargs)
 
 
-def diluted_eps(value="2.50", ref="eps", **kwargs):
+def diluted_eps(value="2.50", ref="eps", *, unit="u-usd-per-share", decimals="2",
+                **kwargs):
     return numeric_fact("EarningsPerShareDiluted", value, ref,
-                        prefix="us-gaap", unit="u-usd-per-share", decimals="2", **kwargs)
+                        prefix="us-gaap", unit=unit, decimals=decimals, **kwargs)
 
 
-def inline(*, year=2025, contexts=None, facts=None, extra="", namespaces=""):
+def inline(*, year=2025, contexts=None, facts=None, units=None, extra="", namespaces=""):
     dei, gaap = PROFILES[year]
     default_contexts = (context("shares", kind="instant", member="fiction:ClassAMember")
                         + context("eps"))
     default_facts = common_shares(fact_id="shares-fact") + diluted_eps(fact_id="eps-fact")
+    default_units = (
+        '<xbrli:unit id="u-shares"><xbrli:measure>xbrli:shares</xbrli:measure></xbrli:unit>'
+        '<xbrli:unit id="u-usd-per-share"><xbrli:divide><xbrli:unitNumerator>'
+        '<xbrli:measure>iso4217:USD</xbrli:measure></xbrli:unitNumerator>'
+        '<xbrli:unitDenominator><xbrli:measure>xbrli:shares</xbrli:measure>'
+        '</xbrli:unitDenominator></xbrli:divide></xbrli:unit>')
     return (f'<html xmlns="http://www.w3.org/1999/xhtml" '
             f'xmlns:ix="http://www.xbrl.org/2013/inlineXBRL" xmlns:dei="{dei}" '
             f'xmlns:us-gaap="{gaap}" xmlns:fiction="https://fiction.invalid/{year}" '
@@ -61,11 +67,7 @@ def inline(*, year=2025, contexts=None, facts=None, extra="", namespaces=""):
             f'{namespaces}><head><title>Fictional only</title></head><body>'
             '<ix:header><ix:resources>'
             + (default_contexts if contexts is None else contexts)
-            + '<xbrli:unit id="u-shares"><xbrli:measure>xbrli:shares</xbrli:measure></xbrli:unit>'
-            + '<xbrli:unit id="u-usd-per-share"><xbrli:divide><xbrli:unitNumerator>'
-              '<xbrli:measure>iso4217:USD</xbrli:measure></xbrli:unitNumerator>'
-              '<xbrli:unitDenominator><xbrli:measure>xbrli:shares</xbrli:measure>'
-              '</xbrli:unitDenominator></xbrli:divide></xbrli:unit>'
+            + (default_units if units is None else units)
             + '</ix:resources></ix:header>'
             + (default_facts if facts is None else facts) + extra
             + '</body></html>').encode("utf-8")

@@ -255,12 +255,38 @@ class ClassEPSClaimTests(unittest.TestCase):
             with self.subTest(fact=fact):
                 self.unsupported(inline(facts=fact + diluted_eps()))
 
-    def test_exact_uninterpreted_lexical_and_accuracy_attributes_are_retained(self):
+    def test_decimals_is_required_and_retained_exactly(self):
         result = self.extract(facts=(common_shares("+00100.00", decimals="-2")
-                                     + diluted_eps("-0.25", precision="3")))
+                                     + diluted_eps("-0.25", decimals="INF")))
         self.assertEqual([fact.source_value for fact in result.occurrences], ["+00100.00", "-0.25"])
         self.assertEqual(result.occurrences[0].representation.decimals, "-2")
-        self.assertEqual(result.occurrences[1].representation.precision, "3")
+        self.assertEqual(result.occurrences[1].representation.decimals, "INF")
+        self.assertEqual(set(s.SourceRepresentation.__dataclass_fields__), {"unit_ref", "decimals"})
+
+    def test_precision_missing_decimals_and_both_fail_closed(self):
+        variants = (
+            common_shares(decimals=None, attrs=' precision="3"'),
+            common_shares(decimals=None),
+            common_shares(attrs=' precision="3"'),
+        )
+        for fact in variants:
+            with self.subTest(fact=fact):
+                self.unsupported(inline(facts=fact + diluted_eps()))
+
+    def test_unit_ref_must_resolve_to_unit_in_same_resources(self):
+        variants = (
+            common_shares(unit="missing-unit"),
+            common_shares(unit="shares"),  # Resolves to a context ID, not a unit.
+        )
+        for fact in variants:
+            with self.subTest(fact=fact):
+                self.unsupported(inline(facts=fact + diluted_eps()))
+
+    def test_unit_ref_is_retained_verbatim_without_unit_interpretation(self):
+        units = ('<xbrli:unit id="Unit.Exact-1"><xbrli:measure>'
+                 'fiction:OpaqueUnit</xbrli:measure></xbrli:unit>')
+        result = self.extract(facts=common_shares(unit="Unit.Exact-1"), units=units)
+        self.assertEqual(result.occurrences[0].representation.unit_ref, "Unit.Exact-1")
 
     def test_malformed_non_inline_and_non_utf8_primary_fail_closed(self):
         for payload in (b"<html>not namespaced</html>", b"<html", b"\xff",
