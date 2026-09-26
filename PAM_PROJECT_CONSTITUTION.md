@@ -120,7 +120,9 @@ This is a conceptual guide, not permission to introduce an opaque single formula
   expected-return advantage higher.
 - A rough hurdle for established companies is VFV + ~2 percentage points of expected return.
 - Less-established companies may require roughly +3–4 percentage points.
-- Cash/T-bill target is normally 0; reserve cash is exceptional, not the default.
+- Cash/cash-like/T-bill reserve target is normally 0; qualified individual
+  opportunities come first, the benchmark is the normal fallback, and temporary
+  reserve is an exceptional last resort.
 - Selling should remain rare and thesis-driven.
 - High valuation is not by itself a sell reason if conservative forward expected return remains adequate.
 - Economic portfolio construction comes before tax-location optimization.
@@ -147,6 +149,23 @@ Preserve and modernize `balanced`, `family-office`, `rational-aggressive` and
 selected mode changes; the mode changes the policy response to those facts.
 Mode objectives and future policy contracts belong in the roadmap and specific
 contracts, without relaxing evidence integrity.
+
+All four modes preserve the same capital-destination hierarchy:
+
+> **qualified individual opportunities → benchmark → exceptional temporary reserve**
+
+The modes may differ in reserve propensity, but not in the underlying company,
+benchmark, cash-like, price, currency, cost, eligibility, provenance or freshness
+facts. Crisis, recession, volatility, drawdown or negative headlines alone never
+trigger reserve. Existing-position sales remain governed by the separate lifecycle
+and thesis doctrine; missing data is not a sell signal. Future analysis must
+reconsider settled, deployable temporary reserve together with new contributions
+rather than removing it permanently from the opportunity set.
+
+Broker capabilities and costs affect future executable net economics, not core
+economic truth. The owner's current Wealthsimple self-directed context is an
+initial broker adapter/capability context only; it is not a universal PAM semantic,
+an execution authority or an enduring fee schedule.
 
 ---
 
