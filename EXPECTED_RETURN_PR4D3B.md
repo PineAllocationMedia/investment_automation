@@ -59,11 +59,10 @@ classifies a custom member from its name.
 
 The SEC [Operating Companies standard-taxonomy
 registry](https://www.sec.gov/data-research/structured-data/taxonomies-schemas/standard-taxonomies/operating-companies)
-lists the exact 2025 and 2026 DEI and US-GAAP entry points. The SEC's
-[2026 taxonomy update](https://www.sec.gov/newsroom/whats-new/2603-2026-xbrl-taxonomies-update)
-states that 2026 taxonomies are compatible only with other 2026 taxonomies.
-The implementation therefore uses a literal two-pair allowlist and does not
-recognize taxonomy years generically.
+and historical registry identify the exact accepted entry points. PR4D3C audits
+those releases, their EDGAR-acceptance intervals, compatibility rules, and the
+availability and semantics of every D3B target QName. The implementation uses
+that literal finite matrix and does not recognize taxonomy years generically.
 
 ## API and dependency direction
 
@@ -97,15 +96,17 @@ XBRL framework.
 Forms are exactly `10-K`, `10-K/A`, `10-Q`, and `10-Q/A`. `8-K`, foreign forms,
 and international axes remain unsupported.
 
-| Profile | DEI namespace | US-GAAP namespace |
-| --- | --- | --- |
-| 2025 | `http://xbrl.sec.gov/dei/2025` | `http://fasb.org/us-gaap/2025` |
-| 2026 | `http://xbrl.sec.gov/dei/2026` | `http://fasb.org/us-gaap/2026` |
+The exact finite profile table is canonical in `EXPECTED_RETURN_PR4D3C.md`. It
+contains the reviewed 2019/2020 legacy pairs and explicit cross-pairs,
+2021/2021Q4, 2022/2022Q4, and annual 2023 through 2026 pairs. The exact
+`http://fasb.org/us-gaap-sup/2022q3` namespace is accepted only as an overlay with
+a reviewed 2022 core pair; it does not supply target fact or axis QNames.
 
-Mixed pairs, multiple generations, and unknown past/future generations fail
-closed. Namespace-expanded QNames, not lexical prefixes, determine identity.
-Taxonomy namespaces remain part of source semantics; no 2025/2026 normalization
-or cross-year join exists.
+Unlisted cross-pairs, multiple generations, unknown past/future generations,
+generic date lookalikes, and supplement substitutions fail closed.
+Namespace-expanded QNames, not lexical prefixes, determine identity. Taxonomy
+namespaces remain part of source semantics; no cross-profile normalization or
+cross-year join exists.
 
 Target facts are only:
 

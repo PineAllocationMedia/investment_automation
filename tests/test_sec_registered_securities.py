@@ -13,7 +13,14 @@ from unittest.mock import patch
 from economic_facts import sec_filing_archive as a
 from economic_facts import sec_registered_securities as s
 from tests.sec_original_filing_fixtures import ACCESSION, CIK, T1, T2, document, filing
-from tests.sec_registered_security_fixtures import context, fact, inline, security, submission
+from tests.sec_registered_security_fixtures import (
+    PROFILES,
+    context,
+    fact,
+    inline,
+    security,
+    submission,
+)
 
 
 class RegisteredSecurityTests(unittest.TestCase):
@@ -270,10 +277,58 @@ class RegisteredSecurityTests(unittest.TestCase):
         self.unsupported(inline().replace(b'xmlns:dei=', b'xmlns:unbound='))
 
     def test_taxonomy_profiles_are_exact_literal_pairs(self):
-        self.assertEqual(s.TAXONOMY_PROFILES, (
-            ("http://xbrl.sec.gov/dei/2025", "http://fasb.org/us-gaap/2025"),
-            ("http://xbrl.sec.gov/dei/2026", "http://fasb.org/us-gaap/2026"),
-        ))
+        self.assertEqual(s.TAXONOMY_PROFILES, tuple(PROFILES.values()))
+
+    def test_every_reviewed_historical_profile_preserves_exact_qnames_and_axes(self):
+        for release, profile in PROFILES.items():
+            with self.subTest(release=release):
+                result = self.extract(
+                    profile=profile,
+                    contexts=context(member="fiction:ClassAMember",
+                                     exchange="fiction:NasdaqMember"),
+                )
+                self.assertEqual(result.status,
+                                 s.ExtractionStatus.CAPTURED_REGISTERED_SECURITY_CLAIMS)
+                self.assertTrue(all(fact.fact_name.startswith("{" + profile[0] + "}")
+                                    for fact in result.occurrences))
+                self.assertEqual(
+                    {dimension.axis for dimension in result.contexts[0].dimensions},
+                    {"{" + profile[1] + "}StatementClassOfStockAxis",
+                     "{" + profile[0] + "}EntityListingsExchangeAxis"},
+                )
+
+    def test_pre_2021_reviewed_cross_year_pairs_are_explicit_not_generic(self):
+        for release in ("2019/2020", "2020/2019"):
+            with self.subTest(release=release):
+                result = self.extract(profile=PROFILES[release])
+                self.assertEqual(result.status,
+                                 s.ExtractionStatus.CAPTURED_REGISTERED_SECURITY_CLAIMS)
+        for profile in ((PROFILES["2020/2020"][0], PROFILES["2021"][1]),
+                        (PROFILES["2021"][0], PROFILES["2020/2020"][1])):
+            with self.subTest(profile=profile):
+                self.unsupported(inline(profile=profile))
+
+    def test_reviewed_quarterly_profiles_and_2022q3_supplement_are_exact(self):
+        for release in ("2021q4", "2022q4"):
+            with self.subTest(release=release):
+                self.assertEqual(
+                    self.extract(profile=PROFILES[release]).status,
+                    s.ExtractionStatus.CAPTURED_REGISTERED_SECURITY_CLAIMS,
+                )
+        supplement = 'xmlns:sup="http://fasb.org/us-gaap-sup/2022q3"'
+        for release in ("2022", "2022q4"):
+            with self.subTest(release=release):
+                self.assertEqual(
+                    self.extract(profile=PROFILES[release], namespaces=supplement).status,
+                    s.ExtractionStatus.CAPTURED_REGISTERED_SECURITY_CLAIMS,
+                )
+        self.unsupported(inline(profile=("http://xbrl.sec.gov/dei/2021q3",
+                                         PROFILES["2021"][1])))
+        self.unsupported(inline(profile=(PROFILES["2021q4"][0], PROFILES["2022"][1])))
+        self.unsupported(inline(profile=PROFILES["2022"],
+                                namespaces='xmlns:sup="http://fasb.org/us-gaap-sup/2023q3"'))
+        self.unsupported(inline(profile=(PROFILES["2022"][0],
+                                         "http://fasb.org/us-gaap/2022q3")))
 
     def test_2026_preserves_2025_claim_values_pairing_and_conflicts(self):
         variants = (
@@ -333,10 +388,29 @@ class RegisteredSecurityTests(unittest.TestCase):
 
     def test_unknown_taxonomy_years_fail_closed_even_without_class_dimension(self):
         for namespace in (b'http://xbrl.sec.gov/dei/2025', b'http://fasb.org/us-gaap/2025'):
-            for year in (b'2027', b'2099', b'2024'):
+            for year in (b'2027', b'2099', b'2018'):
                 self.unsupported(inline().replace(namespace, namespace[:-4] + year))
         self.unsupported(inline().replace(b'http://xbrl.sec.gov/dei/2025', b'http://xbrl.sec.gov/dei/2099').replace(
             b'http://fasb.org/us-gaap/2025', b'http://fasb.org/us-gaap/2099'))
+        self.unsupported(inline().replace(
+            b'http://xbrl.sec.gov/dei/2025', b'http://xbrl.sec.gov/dei/2020-12-31'))
+        self.unsupported(inline().replace(
+            b'http://xbrl.sec.gov/dei/2025', b'http://xbrl.sec.gov/dei/2018'))
+
+    def test_unavailable_dei_2018_concept_is_never_constructed_as_supported(self):
+        payload = inline(facts=fact("NoTradingSymbolFlag", "true")).replace(
+            b'http://xbrl.sec.gov/dei/2025', b'http://xbrl.sec.gov/dei/2018-01-31')
+        self.unsupported(payload)
+
+    def test_historical_profile_prefix_spelling_is_not_semantics(self):
+        raw = inline(profile=PROFILES["2019/2019"],
+                     contexts=context(member="fiction:AMember", exchange="fiction:XMember"))
+        renamed = raw.replace(b'xmlns:dei=', b'xmlns:d=').replace(b'dei:', b'd:').replace(
+            b'xmlns:us-gaap=', b'xmlns:g=').replace(b'us-gaap:', b'g:')
+        original = self.replay(self.capture(filing(payload=raw)))
+        result = self.replay(self.capture(filing(payload=renamed)))
+        self.assertEqual(original.semantic_id, result.semantic_id)
+        self.assertNotEqual(original.evidence_id, result.evidence_id)
 
     def test_2026_profile_uses_namespace_uris_not_prefix_spelling(self):
         raw = inline(contexts=context(member='fiction:AMember', exchange='fiction:XMember')).replace(
