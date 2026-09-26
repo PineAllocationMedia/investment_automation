@@ -855,6 +855,9 @@ review, the architecture must demonstrate real cross-market capability through:
 This proof establishes that the architecture is actually source-neutral. It does
 not require Europe, Japan, Korea, Canada and every other market before shadow.
 Additional markets may be added later through the same reviewed contracts.
+A material expansion of the supported market universe during Stage U must follow
+the shadow-epoch/versioning rules above and must not be silently pooled with prior
+forward evidence as one unchanged validation record.
 
 #### Currency and geography semantics
 
@@ -882,10 +885,14 @@ Pre-shadow validation must cover:
 
 Equivalent qualified economic facts from different adapters must feed the same
 downstream economic contracts. Different listings of the same economic security
-must not change business Quality, Durability or Expected Return merely because the
-listing changed. A source outage may reduce availability, Confidence or Admission,
-but must not become `THESIS_BROKEN`, `SELL` or degraded economic Quality without
-economic evidence.
+must not change business Quality, Durability or the underlying economic Expected
+Return assumptions merely because the venue or symbol changed. Instrument-level
+Expected Return may differ only when evidence-backed instrument properties such as
+price, wrapper entitlement, fees, trading friction or currency conversion
+legitimately change executable economics. Quote currency or listing venue alone
+does not alter business economics. A source outage may reduce availability,
+Confidence or Admission, but must not become `THESIS_BROKEN`, `SELL` or degraded
+economic Quality without economic evidence.
 
 ### Longer-term direction — Research product surface
 
