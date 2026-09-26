@@ -335,6 +335,7 @@ Inserted stages use numeric suffixes to preserve existing stage references.
 - robust current forward ER inputs;
 - bear/base/bull assumptions;
 - VFV forward ER comparator;
+- cash-like opportunity-cost rate/carry and comparable executable net instrument ER;
 - confidence propagation;
 - explicit unsupported cases.
 
@@ -383,6 +384,9 @@ Confidence should reflect:
 - historical evidence maturity.
 
 Low confidence should reduce authority/sizing rather than fabricate certainty.
+For new deployable capital, fail-closed evidence may support temporary reserve
+rather than guessed deployment. `DATA_UNAVAILABLE` and low Confidence are neither
+automatic cash rules nor sell signals; existing positions remain subject to Stage F.
 
 ### Stage E1 — Opportunity Set
 
@@ -393,6 +397,9 @@ yet admissible, unsupported, and unavailable / insufficient evidence. This stage
 defines no scoring formula or ranking threshold; observability alone is not admission.
 The global discovery/admission funnel and dimensional market capability state below
 must constrain this stage and fail closed.
+Cash, cash-like holdings and short-government-bill instruments are capital
+destinations/liquidity classes, not company candidates; they receive no company
+Quality, Durability, moat score or company ranking.
 
 ### Stage F — Position Lifecycle / Thesis Deterioration
 
@@ -406,11 +413,18 @@ Selling remains rare and thesis-driven. Deterioration states may recover when
 evidence genuinely improves. Trim/exit review should consider Expected Return,
 Quality, Durability, Confidence, Portfolio Room, concentration and shared economic
 exposure.
+Reserve logic applies primarily to deployable capital and must not become a parallel
+liquidation engine. Market difficulty, higher volatility, recession probability or
+temporarily attractive reserve carry does not authorize selling an existing healthy
+position into reserve.
 
 ### Stage G — Stress / Crisis Resilience
 
 Assess thesis resilience under stress and crisis, with explicit evidence and
 uncertainty. This layer concerns business/portfolio resilience, not macro timing.
+Stress state may change scenario assumptions, Confidence, liquidity awareness,
+Portfolio Room and risk visibility, but must never mechanically produce
+`CRISIS → CASH`. Falling prices may improve prospective benchmark Expected Return.
 
 ### Stage H — Portfolio Room / Portfolio Intelligence
 
@@ -420,6 +434,10 @@ and comparative opportunity context.
 For supported international instruments, this includes coherent cross-listing,
 wrapper, currency and economic-geography context without turning listing venue into
 economic exposure.
+Distinguish invested capital, deployable cash, temporary strategic reserve,
+transactional cash, unsettled/unavailable cash, reserve currency and instrument,
+and redeployability. Temporary reserve remains visible capital awaiting
+reconsideration, not capital removed from the opportunity set.
 
 ### Stage I — Data & Operational Resilience
 
@@ -428,6 +446,10 @@ evidence, failed runs, degraded mode and freshness/source-health visibility.
 
 > A data outage or evidence failure must not silently become an investment signal.
 
+Cash-like yields, broker costs, FX assumptions, account capabilities and instrument
+eligibility are time-sensitive evidence. Stale or unavailable values must remain
+explicit and must not silently become zero cost or current truth.
+
 ### Stage J — Portfolio State Integrity
 
 Reconcile economic ownership through transactions, cash, dividends, splits,
@@ -435,6 +457,10 @@ mergers, spin-offs, security/class/ticker/listing changes and FX where relevant.
 This is a completeness requirement, not a new ledger design.
 Supported cross-market instruments must preserve economic ownership across listings,
 wrappers, quote/transaction currencies and relevant corporate actions.
+Future state must reconcile CAD and USD cash, cash-like and benchmark holdings,
+individual securities, contributions, distributions, proceeds, FX conversions,
+reserve creation/release, trades and settlement state while preserving native
+currency before any reporting conversion.
 
 ### Stage K — Portfolio Risk / Shared Exposure
 
@@ -512,6 +538,9 @@ or review; prior outputs must not silently retain authority. Implementation desi
 belongs in a later contract.
 Cross-market evidence, capability-registry and FX changes must participate in these
 dependency and invalidation semantics rather than leaving stale authority in place.
+Reserve recommendations must also invalidate on material changes to benchmark ER,
+cash-like carry, broker fees, instrument properties/eligibility, account capability,
+portfolio state, Confidence or available capital.
 
 ### Stage K2 — Persistent Decision / Thesis Memory
 
@@ -523,6 +552,10 @@ and the canonical project documents in section 7. It must precede Decision Delta
 a comparison requires a durably recorded account of what PAM previously believed.
 Multiple listings or wrappers for one qualified economic exposure must not create
 independent business theses merely because their symbols differ.
+Future reserve memory should preserve amount, currency, instrument/form, reason,
+mode, decision date, relevant ER comparison, Confidence, benchmark state,
+broker/FX assumptions, estimated net carry and review/release state. Historical
+decisions retain the mode and assumptions actually used.
 
 ### Stage L — Decision Delta & Attribution
 
@@ -531,6 +564,9 @@ changed and why across evidence, Expected Return, Quality, Durability, Confidenc
 Position State, Portfolio Room, allocation, concentration and provenance/context.
 Distinguish fundamental, valuation, information-quality/evidence, assumption/model,
 portfolio-context and policy/mode changes. No attribution weights are prescribed.
+For reserve, explain creation, maintenance, partial/full release and changes caused
+by contributions, individual opportunities, benchmark ER, carry, Confidence, FX,
+fees, Portfolio Room or mode without rewriting prior history.
 
 ### Stage L1 — Outcome Evaluation
 
@@ -542,6 +578,10 @@ evidence-quality failures and calibration quality. Keep actual V1 portfolio,
 hypothetical V2 shadow and benchmark histories separate; Stage M establishes the
 performance integrity needed for these comparisons. Outcomes inform model assessment
 and must not automatically rewrite investment rules.
+Reserve evaluation should attribute carry, FX, fund costs, friction, benchmark
+opportunity cost, foregone upside, avoided downside, duration and redeployment
+quality against the policy and information available at decision time. Avoided
+downside in hindsight does not by itself prove that a reserve decision was sound.
 
 ### Stage M — Benchmark & Performance Integrity
 
@@ -557,6 +597,10 @@ During shadow, keep three histories strictly separate:
 
 V2 shadow history must never contaminate real portfolio history. Benchmark results
 remain validation/context evidence, not direct investment-rule authority.
+Temporary reserve remains in total-portfolio denominators. Shadow performance must
+retain reserve entries, carry, costs, FX, redeployment and the benchmark
+counterfactual, with attribution separating security selection, benchmark fallback,
+reserve carry, allocation timing, FX and friction.
 
 ### Stage N — Validation / Audit / Backtest Modernization
 
@@ -581,6 +625,8 @@ future V2 shadow maintenance must use an isolated V2 path without weakening V1 g
 
 Pre-shadow validation must include the cross-market invariance, reconciliation,
 fail-closed and coverage-bias requirements in the cross-cutting program below.
+It must also include the benchmark-first/reserve scenarios and anti-market-timing,
+anti-churn and transition-path audits in the reserve program below.
 
 ### Stage N1 — Validation Firewall
 
@@ -589,6 +635,8 @@ genuine PIT/walk-forward evidence, forward shadow evidence, calibration and
 production authority. Evidence in one domain must not silently grant authority in
 another. Backtests remain diagnostic; forward shadow evidence is stronger, while
 production authority remains a separate explicit owner decision.
+Reserve research, retrospective diagnostics and shadow records grant no execution
+or production authority.
 
 ### Stage N2 — Calibration Governance
 
@@ -598,6 +646,8 @@ automatically learning from the model's own latest recommendations. Acceptance a
 promotion require explicit review. Preserve V1's `PROPOSAL_ONLY` safety philosophy:
 no self-modifying investment model or automatic threshold optimization from live
 outcomes.
+Reserve activation/release margins, persistence and hysteresis require a separate
+reviewed investment-rule contract, validation, calibration and owner approval.
 
 ### Stage O — Mode Contract & Objective Personalization
 
@@ -616,6 +666,33 @@ Future policy differences may include hurdle, uncertainty tolerance, diversifica
 concentration, sizing, Portfolio Room, fallback behavior, stress emphasis and
 lifecycle/action policy. Final thresholds require future contracts.
 
+All modes remain benchmark-first and reserve-last-resort. With identical economic
+facts, conceptual reserve propensity is ordered:
+
+```text
+balanced >= family-office >= rational-aggressive >= high-cagr
+```
+
+This is a policy ordering, not a required allocation pattern; zero reserve in all
+four modes is valid. Cross-mode audit should preserve these conceptual policy
+orderings without requiring different results on every run:
+
+```text
+DEFENSIVENESS:           balanced >= family-office >= rational-aggressive >= high-cagr
+RESERVE PROPENSITY:      balanced >= family-office >= rational-aggressive >= high-cagr
+CONCENTRATION TOLERANCE: balanced <= family-office <= rational-aggressive <= high-cagr
+```
+
+`balanced` may tolerate temporary undeployed
+capital more readily under material uncertainty, stretched concentration or
+marginal deployment economics. `family-office` may give more weight to resilience,
+liquidity optionality and permanent-impairment avoidance without creating a routine
+strategic cash allocation. `rational-aggressive` generally prefers qualified
+opportunities and then the benchmark, while still refusing investment at any price.
+Reserve is most exceptional in `high-cagr`, which remains especially resistant to
+crisis-based cash flight and drawdown timing while failing closed under information
+uncertainty.
+
 Future scheduled/manual Telegram analysis initiation should let the owner select
 among all four modes before capital confirmation, instead of being implicitly
 locked to `high-cagr`. This is interface/orchestration work, not an investment-rule
@@ -627,6 +704,8 @@ PAM remains research intelligence + portfolio intelligence. Recommendation state
 and brokerage execution must remain separate: a model conclusion is not an
 execution instruction. Automatic brokerage trading remains out of scope unless
 separately and explicitly authorized in the future.
+Reserve recommendation is analytical state only: no broker order, reserve-instrument
+purchase, cash conversion or FX transaction follows automatically.
 
 ### Stage O2 — Monitoring / Observability
 
@@ -635,6 +714,9 @@ pipelines, unresolved conflicts, invalidated dependencies, failed scheduled runs
 model/input version drift and shadow/runtime health visible across V2. Distinguish
 operational/data failures from investment signals. Prefer automated deterministic
 monitoring over routine owner maintenance; build on Stage I's resilience behavior.
+Future reserve observability should expose amount, weight, currency, instrument/form,
+age, reason, mode, estimated carry, data and broker-cost freshness, redeployable
+amount, review/release state, activation frequency, duration and FX round trips.
 
 ### Stage O3 — Commercial Data Governance
 
@@ -662,6 +744,10 @@ Coherently present, when available: analysis/mode context; portfolio and benchma
 performance; positions; ER / Quality / Durability / Confidence; Position Lifecycle;
 allocation reasoning; changes since the previous run; risks/stress; watchlist/discovery;
 data reliability/provenance; and model/audit health. No report redesign occurs now.
+Future compact reporting should reconcile new contributions, redeployable reserve
+and other settled deployable cash into current available capital, while separating
+strategic investments, temporary reserve, transactional cash and unsettled or
+unavailable cash. Explain why reserve remains or what changed when it releases.
 
 ### Stage Q — Any additional future V2 chantiers
 
@@ -752,6 +838,149 @@ Only after substantial forward evidence:
 - decide whether to retain V1, adopt parts of V2 or promote V2 more broadly.
 
 No automatic promotion.
+
+---
+
+### Cross-cutting program — Benchmark-First Fallback & Exceptional Liquidity Reserve
+
+This program is a pre-shadow V2 completeness requirement whose executable
+implementation remains pending and requires separately reviewed contracts. It
+changes no current investment behavior, threshold, instrument selection, model
+version, V1 authority or execution authority. The existing rough individual-security
+hurdle and VFV philosophy remain unchanged.
+
+#### Capital-destination hierarchy and scope
+
+Canonical hierarchy:
+
+```text
+QUALIFIED INDIVIDUAL OPPORTUNITIES
+        ↓
+BROAD MARKET BENCHMARK
+        ↓
+ONLY THEN, EXCEPTIONAL TEMPORARY LIQUIDITY RESERVE
+```
+
+The benchmark is the normal fallback when no individual security clears its
+required hurdle. Reserve is not a third equal tactical alternative and is not a
+market-timing response. Difficult markets, recessions, volatility, drawdowns,
+negative headlines or a crisis classification do not automatically justify it.
+Reserve may become appropriate only when both individual deployment and benchmark
+deployment fail a future reviewed net-economics/confidence policy after considering
+conservative ER, cash-like carry, information uncertainty, permanent-loss risk,
+Portfolio Room and the full executable cost path. No activation number is approved
+here.
+
+#### Deployable capital and reserve lifecycle
+
+Every future analysis should reconsider the full actually settled and deployable
+pool, subject to account, settlement, currency, broker-eligibility and operational
+constraints:
+
+```text
+new contribution
++ free settled cash
++ releasable temporary reserve
++ relevant distributions/proceeds
+= current deployable capital
+```
+
+Reserve is re-evaluated for maintenance, partial release or full release each run.
+It is not permanently removed from the opportunity set. Transitions from existing
+investments remain governed by Position Lifecycle; transitions from reserve back
+to investment may be reconsidered each analysis.
+For example, a settled $500 temporary reserve plus a new settled $330 contribution
+means reconsidering up to $830, subject to the actual account and settlement state.
+
+#### Comparable economics, broker adapter and currencies
+
+Future capital-destination analysis must separate underlying economic ER from
+executable net instrument ER. Compare the likely full transition path, including
+reserve carry, fund expense, bid-ask spread, slippage, commission, FX conversion
+and spread, and eventual redeployment friction. Avoid unnecessary FX round trips.
+Distinguish incremental transaction costs, fixed recurring account costs,
+sunk/shared platform costs, fund-level recurring costs and FX-path costs; a fixed
+fee already incurred for another reason must not be charged blindly to every
+transaction.
+
+Representative paths include CAD contribution → CAD reserve → Canadian security;
+CAD contribution → CAD reserve → FX → U.S. security; CAD contribution → FX → USD
+reserve → U.S. security; and USD proceeds → USD reserve → U.S. security. The likely
+next deployment currency can change which temporary route has better net economics.
+
+Preserve portfolio base, contribution, reserve/cash, quote, transaction, reporting
+and eventual deployment currencies, plus economic FX exposure. Nominal yield or
+quote currency alone does not determine superiority or economic risk. No reserve
+instrument is universally risk-free; duration, credit/sovereign, currency,
+liquidity, wrapper and tracking/friction risks remain explicit.
+
+The core is broker-, jurisdiction-, source- and currency-neutral. The owner's
+initial execution context is Wealthsimple self-directed: provider/account
+capabilities, eligible listed Canadian and U.S. securities, currency paths and
+costs affect future implementation feasibility and executable net economics only.
+They must be dated, versioned, sourced and revalidated as adapter metadata, never
+constitutional constants. Do not assume direct individual Treasury-bill access.
+Initial routes may include settled CAD/USD cash or later-qualified eligible listed
+cash-like/short-government-bill funds; this roadmap selects no product or ticker.
+
+Current noncanonical context observed **2026-09-26** from Wealthsimple's official
+[Trade fee schedule](https://www.wealthsimple.com/en-ca/legal/fees/trade) and
+[USD-account documentation](https://help.wealthsimple.com/hc/en-ca/articles/4418893583515-Using-USD-stock-trading-accounts): listed Canadian and U.S. securities currently
+have $0 commission; CAD-account trades in U.S.-listed securities can incur currency
+conversion; and an applicable USD account can hold USD and avoid a new conversion
+on each U.S.-security trade. These provider facts are dated, subject to change and
+must be revalidated before use.
+
+A future broker-cost/capability contract may include provider, account type,
+account/cash/contribution/reserve/trade/quote/eventual-deployment currencies,
+commission, FX fee and spread, fund expense, bid-ask spread, slippage, incremental
+fixed/subscription cost, settlement, security/fractional eligibility, minimums,
+effective date, source/provenance and freshness. This roadmap defines no schema.
+
+#### Facts, mode policy and anti-churn
+
+For identical market/account state, all modes consume the same company Quality and
+Durability, underlying and benchmark ER, cash-like carry, prices, currencies,
+broker/FX/fund/trading costs, eligibility, evidence authority, freshness and
+provenance. Modes change policy response, not economics. The Stage O ordering
+governs reserve propensity but never forces visibly different allocations.
+
+Because benchmark ER is uncertain, future activation and release require a
+meaningful economic margin, persistence, hysteresis and confidence-aware safeguards.
+Tiny or model-noisy differences must not cause frequent reserve/benchmark switching.
+Exact margins and persistence periods are deferred to an owner-approved contract.
+
+#### Validation, reporting and shadow evidence
+
+Before shadow readiness, validate at least:
+
+1. strong individual opportunity;
+2. no qualifying individual but attractive benchmark;
+3. marginal benchmark versus reserve;
+4. severe drawdown with improved prospective benchmark ER;
+5. insufficient evidence authority for new deployment;
+6. high cash-like carry with weak benchmark economics;
+7. large FX friction;
+8. prior reserve plus new contribution;
+9. mode switching;
+10. CAD-reserve versus USD-reserve paths;
+11. stale broker fees;
+12. stale cash-like yield;
+13. reserve instrument becoming ineligible;
+14. frequent reserve activation;
+15. reserve↔benchmark oscillation;
+16. unnecessary CAD↔USD round trips;
+17. no-stock-but-benchmark-attractive;
+18. crisis-but-benchmark-attractive;
+19. different modes under identical economic facts; and
+20. existing positions remaining under lifecycle rather than cash-flight logic.
+
+Frequent activation, excessive duration, repeated FX round trips or rapid switching
+are audit signals for hidden timing, noisy ER comparisons, cost-attribution defects
+or overly defensive mode behavior. Shadow operation retains zero authority while
+recording hypothetical reserve decisions, carry, FX, fund/transaction costs,
+redeployment and the benchmark counterfactual. A material later semantic change
+starts a distinct version/shadow epoch rather than pooling incompatible evidence.
 
 ---
 
@@ -869,6 +1098,10 @@ inference may not become authoritative evidence.
 They must also distinguish incorporation/domicile, reporting jurisdiction, listing
 geography, revenue/economic geography, asset geography and regulatory geography.
 Listing geography is not economic geography.
+Temporary highly liquid capital-preservation destinations must likewise remain
+jurisdiction-neutral and instrument-aware, with explicit currency, issuer/credit,
+duration, liquidity, wrapper, cost and evidence properties rather than defining a
+global “safe asset” as one country's bill.
 
 #### Cross-market validation
 

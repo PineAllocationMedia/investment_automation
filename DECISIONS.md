@@ -2774,3 +2774,57 @@ This changes project direction/documentation only. It does NOT modify current
 investment rules, V1 behavior, runtime, Telegram, reports, model outputs, source
 authority or deployment, and defines no new numeric thresholds. Detailed future
 requirements and sequencing live in `PAM_ROADMAP.md`.
+
+## 2026-09-26 - Benchmark-first fallback and exceptional liquidity reserve
+
+### Decision
+
+PAM adopts this capital-destination hierarchy:
+
+```text
+qualified individual opportunities
+→ broad market benchmark
+→ only then exceptional temporary liquidity reserve
+```
+
+The benchmark remains the normal fallback. Cash/cash-like/short-government-bill
+reserve normally targets zero and exists only as a temporary last resort when
+neither qualified individual opportunities nor benchmark deployment offers
+sufficient future reviewed net economics and confidence. Reserve is a capital
+destination/liquidity class, not a company candidate or a parallel sell engine.
+
+### Reasoning and policy
+
+PAM is a long-horizon compounding architecture, so persistent cash drag carries a
+material opportunity cost. Recession, volatility, drawdown, negative headlines or
+crisis classification alone must not create hidden market timing or force reserve.
+Existing-position sales remain governed by lifecycle, thesis, Expected Return,
+Quality, Durability, Confidence, Portfolio Room, concentration, shared exposure and
+permanent-loss considerations. Missing information may temporarily withhold new
+deployable capital, but `DATA_UNAVAILABLE` is not a sell signal.
+
+Economic facts remain mode-invariant. Conceptual reserve propensity is a policy
+ordering:
+
+```text
+balanced >= family-office >= rational-aggressive >= high-cagr
+```
+
+It does not require different outputs; all four modes may legitimately hold zero
+reserve. Future analysis must reconsider settled, releasable reserve with new
+contributions and other deployable capital each run.
+
+### Wealthsimple and implementation boundary
+
+The owner's initial execution environment is Wealthsimple self-directed.
+Provider/account capabilities, eligible routes, fees and currency paths affect
+future executable net economics, but are dated/versioned broker-adapter metadata,
+not core PAM economic semantics. No direct Treasury-bill access, fee value or
+specific reserve instrument is assumed.
+
+This decision is architecture/documentation only. Executable reserve behavior,
+activation/release thresholds, hysteresis calibration, broker integration, schema,
+ETF selection, FX transaction and order execution remain pending separately reviewed
+contracts. It changes no investment rule, V1 behavior, V2 challenger authority,
+runtime, deployment or `MODEL_RULES_VERSION`, which remains
+`2026-08-23-allocation-room-integrity-v7`.
