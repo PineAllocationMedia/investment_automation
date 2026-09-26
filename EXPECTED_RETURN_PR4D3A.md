@@ -57,7 +57,12 @@ Forms: **10-K, 10-K/A, 10-Q, 10-Q/A** only. No 8-K extraction.
 
 The initial deliberately narrow profile is UTF-8, well-formed namespace-aware
 XHTML, Inline XBRL 1.1 (`http://www.xbrl.org/2013/inlineXBRL`), with these four
-DEI concepts in **`http://xbrl.sec.gov/dei/2025`**:
+DEI concepts in either of the two exact reviewed annual namespace pairs below:
+
+| Profile | DEI namespace | US-GAAP namespace |
+| --- | --- | --- |
+| 2025 | `http://xbrl.sec.gov/dei/2025` | `http://fasb.org/us-gaap/2025` |
+| 2026 | `http://xbrl.sec.gov/dei/2026` | `http://fasb.org/us-gaap/2026` |
 
 - `Security12bTitle`
 - `TradingSymbol`
@@ -65,7 +70,14 @@ DEI concepts in **`http://xbrl.sec.gov/dei/2025`**:
 - `SecurityExchangeName`
 
 Namespace-expanded QNames determine concept identity; lexical prefixes alone
-do not. Unknown taxonomy versions and lookalike concepts are unsupported.
+do not. `TAXONOMY_PROFILES` is a literal two-pair allowlist, with no generic year
+matching or taxonomy downloads/resolution. All DEI/US-GAAP family namespace
+declarations in the primary document, including nested and unused declarations,
+must fit a single reviewed pair. DEI 2025 + US-GAAP 2026, DEI 2026 + US-GAAP 2025,
+multiple DEI or US-GAAP generations, unknown years and lookalike concepts are
+unsupported. An unused companion namespace need not be declared; any declared
+companion must match the same reviewed pair. Namespace-family prefix checks only
+identify declarations to validate; they never admit a year.
 Only untransformed, non-nil `ix:nonNumeric` facts are supported. `escape` may be
 absent/false/0. Plain XHTML descendants contribute their exact decoded text.
 Whitespace, Unicode, punctuation and descriptive title/exchange strings are
@@ -76,8 +88,8 @@ or `1`; its exact source string survives. No implicit false/absent equivalence.
 Contexts must have the SEC CIK scheme and ten-digit identifier, date-only duration
 period, and optionally explicit segment dimensions on:
 
-- `us-gaap:StatementClassOfStockAxis`, namespace `http://fasb.org/us-gaap/2025`;
-- `dei:EntityListingsExchangeAxis`, namespace `http://xbrl.sec.gov/dei/2025`.
+- `us-gaap:StatementClassOfStockAxis`, in that pair's US-GAAP namespace;
+- `dei:EntityListingsExchangeAxis`, in that pair's DEI namespace.
 
 Member QNames, including custom members, are retained as source assertions.
 No taxonomy download, member classification or dimensional taxonomy validation
@@ -146,7 +158,8 @@ empty/oversized values. No partial-success assessment masks those variants;
 original evidence remains in the archive for future inspection.
 
 In particular `ixt-sec:exchnameen`, transformed checkbox booleans, `ix:continuation`,
-`ix:exclude`, alternate namespace years and IFRS class axes need separate review.
+`ix:exclude`, namespace years outside the two reviewed pairs and IFRS class axes
+need separate review.
 Rejecting these variants is an explicit initial limitation, not a claim that they
 are invalid SEC filings. No HTML parser repair, provider framework, fallback
 document, extension taxonomy resolution or external incorporation is attempted.
@@ -172,6 +185,13 @@ They exclude context-label spelling, prefix spelling, source occurrence order,
 identical duplicate multiplicity, capture time and formatting outside fact values.
 Claim groups sort by their context semantic hash; occurrence order remains source
 order. Source strings are not economically normalized.
+
+The taxonomy correction preserves this encoding and contract version. Expanded
+QName namespaces deliberately remain part of source semantics: equivalent 2025
+and 2026 assertions have the same retained values, exact-context pairing, conflict
+behavior and source relationships, but different fact namespace identities and
+assessment semantic hashes. There is no cross-year QName normalization or join.
+Existing supported 2025 inputs retain their original identities.
 
 Evidence identity additionally binds the verified receipt, exact primary bytes,
 offset/length/metadata, source context spellings/order, every original occurrence
@@ -208,7 +228,7 @@ Titles saying common/preferred/ADR/fund/warrant remain text. Exchange values are
 not mapped to PAM venues or MICs. No model rule changes, production deployment,
 positive-capital analysis, Chromebook operation or V2 promotion is included.
 
-## Validation and handoff
+## Original implementation validation and handoff
 
 The existing environment has Python 3.12.14; the unchanged repository pin is
 3.12.13. All 33 distributions match unchanged `requirements.lock`. The unchanged
@@ -264,4 +284,69 @@ is recorded in the published handoff and Git history. No merge is authorized.
 Next recommended chantier: independent review of this source profile, then a
 separately approved real Property-4 qualifier and temporal-coverage contract.
 Extraction alone cannot close the remaining blockers. Merge and any promotion
-remain owner decisions. Stop after opening exactly one PR against V2 integration.
+remain owner decisions. The original implementation opened PR #49 against V2
+integration; the following correction updates that same PR without merging it.
+
+## PR #49 correction — explicit 2026 taxonomy compatibility
+
+Before editing, `git fetch origin`, the remote branch and GitHub PR #49 all
+confirmed the prior HEAD `0bd6ebaae58689323d02000c25e2e69ed3666922`, tree
+`65e6db01761816e38c8e655b04825c9e54c2a80c`. PR #49 was OPEN against the same V2
+integration branch; the worktree/index was clean. This is defect A: the reviewed
+CURRENT US extraction profile omitted the explicitly approved 2026 pair.
+
+Correction scope is exactly three existing files: `economic_facts/sec_registered_securities.py`,
+`tests/test_sec_registered_securities.py` and this contract. No fixture helper,
+existing authority-boundary test, dependency, runtime, model rule, D1, C4–C6,
+D2A/B/C, Expected Return, roadmap or unrelated file changes. No additional PR,
+merge, deployment or new authority is authorized.
+
+The extractor recognizes fact/axis QNames derived only from the two literal
+pairs. A document-wide namespace check rejects mixed generations before extracting
+claims. Pairing, source text, provenance, conflict rules and evidence hashing are
+unchanged. Seven added regression methods cover literal profile closure, equivalent
+2025/2026 assertions (including multiple securities/exchanges, no-symbol, duplicate,
+conflict and incomplete cases), both mixed pairs, nested mixed declarations,
+unknown future/past years and namespace-prefix aliases. All pre-existing tests,
+including authority-boundary tests, remain unchanged.
+
+Completed correction validation through the unchanged isolated runner:
+
+| Selection | Tests | Result / seconds |
+| --- | ---: | --- |
+| `test_sec_registered_securities.py` | 68 | PASS / 0.558 |
+| `test_sec_*.py` (includes the 68 extractor tests) | 435 | PASS / 5.231 |
+| `test_nasdaq_listed_*.py` | 89 | PASS / 1.291 |
+| `test_security_identity.py` | 84 | PASS / 0.425 |
+| `test_current_authority.py` | 17 | PASS / 0.003 |
+| `test_source_authority.py` | 11 | PASS / 0.001 |
+| `test_expected_return*.py` | 144 | PASS / 0.568 |
+| `test_runtime_isolation.py` | 29 | PASS / 35.802 |
+| `test_validation_identity_isolation.py` | 19 | PASS / 0.458 |
+| `test_pr2_investment_equivalence.py` | 1 | PASS / 0.093 |
+| Complete isolated suite | **1,991** | **PASS / 461.055** |
+
+The adjacent selections total **829 passing tests**, including the focused 68.
+All seven new regression methods pass. The full suite includes the 40 PIT tests,
+all 64 equivalence scenarios, determinism, share-basis and reporting-subject
+regressions, with no failures or skips. It reproduced the unchanged identities:
+
+- PIT: `f1e73b27b80e41d96ff5e0fe990b482bad71b7220db0b5bd6a2f470d72786166`
+- Determinism: `f8457910665391e39c234274cae4c029802c681211eebc7dba986a63000876f1`
+- Model rules: `2026-08-23-allocation-room-integrity-v7`
+
+No expected fingerprint was regenerated. All 33 locked distributions still match;
+the existing Python 3.12.14 versus repository pin 3.12.13 difference is unchanged.
+Both changed executable files were byte-compared with the active full-suite
+snapshot and their saved hashes verified again before publication. No code/tests
+changed after validation; only this validation record was completed afterward.
+All pre-existing test methods, including authority boundaries, were independently
+verified unchanged by AST comparison with the prior HEAD.
+
+Logs: `/private/tmp/pr4d3a-2026-focused.log`,
+`/private/tmp/pr4d3a-2026-adjacent.log`, `/private/tmp/pr4d3a-2026-full.log`.
+A fresh fetch and GitHub check before publication again confirmed PR #49 OPEN
+at the expected prior HEAD. Working/staged whitespace checks and the committed
+HEAD check are required before push. This correction is a follow-up commit on
+the existing PR branch, preserving the original commit and local refs.
+Property 4A–4H and obligations 5–7 remain unresolved. No merge or new PR.

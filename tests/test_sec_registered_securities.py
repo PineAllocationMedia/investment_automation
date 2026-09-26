@@ -269,6 +269,87 @@ class RegisteredSecurityTests(unittest.TestCase):
             self.unsupported(inline().replace(s.DEI.encode(), namespace))
         self.unsupported(inline().replace(b'xmlns:dei=', b'xmlns:unbound='))
 
+    def test_taxonomy_profiles_are_exact_literal_pairs(self):
+        self.assertEqual(s.TAXONOMY_PROFILES, (
+            ("http://xbrl.sec.gov/dei/2025", "http://fasb.org/us-gaap/2025"),
+            ("http://xbrl.sec.gov/dei/2026", "http://fasb.org/us-gaap/2026"),
+        ))
+
+    def test_2026_preserves_2025_claim_values_pairing_and_conflicts(self):
+        variants = (
+            {},
+            dict(facts=security(no_symbol=True)),
+            dict(contexts=context("a", member="fiction:AMember") + context("b", member="fiction:BMember"),
+                 facts=security("a") + security("b")),
+            dict(contexts=context("a", member="fiction:AMember", exchange="fiction:XMember")
+                 + context("b", member="fiction:AMember", exchange="fiction:YMember"),
+                 facts=security("a") + security("b", exchange="OTHER", symbol="FICT2")),
+            dict(facts=security() + security() + fact("TradingSymbol", "OTHER")),
+            dict(facts=fact("Security12bTitle", "Unpaired source title")),
+        )
+        for variant in variants:
+            with self.subTest(variant=variant):
+                old_raw = inline(**variant)
+                new_raw = old_raw.replace(b'http://xbrl.sec.gov/dei/2025', b'http://xbrl.sec.gov/dei/2026').replace(
+                    b'http://fasb.org/us-gaap/2025', b'http://fasb.org/us-gaap/2026')
+                old = self.replay(self.capture(filing(payload=old_raw)))
+                new = self.replay(self.capture(filing(payload=new_raw)))
+                self.assertEqual(old.status, new.status)
+                # Namespace identity remains intentional source semantics; no production normalization.
+                self.assertNotEqual(old.semantic_id, new.semantic_id)
+                self.assertNotEqual(old.evidence_id, new.evidence_id)
+                def claims_by_context(result):
+                    return {c.context_refs: (c.titles, c.trading_symbols, c.no_trading_symbol_flags,
+                                            c.exchange_names, c.issues, len(c.occurrence_ids)) for c in result.claims}
+                self.assertEqual(claims_by_context(old), claims_by_context(new))
+                self.assertEqual(len({c.source_security_scope_id for c in old.claims}),
+                                 len({c.source_security_scope_id for c in new.claims}))
+                for old_fact, new_fact in zip(old.occurrences, new.occurrences, strict=True):
+                    self.assertEqual(new_fact.fact_name, old_fact.fact_name.replace(
+                        'http://xbrl.sec.gov/dei/2025', 'http://xbrl.sec.gov/dei/2026'))
+                    for field in ('source_name', 'source_value', 'context_ref', 'source_fact_id',
+                                  'language', 'element_ordinal', 'source_line'):
+                        self.assertEqual(getattr(old_fact, field), getattr(new_fact, field))
+                self.assertEqual(new.primary_document.content_sha256, hashlib.sha256(new_raw).hexdigest())
+
+    def test_mixed_2025_dei_2026_gaap_fails_closed(self):
+        for ctx in (context(), context(member="fiction:AMember", exchange="fiction:XMember")):
+            self.unsupported(inline(contexts=ctx).replace(
+                b'http://fasb.org/us-gaap/2025', b'http://fasb.org/us-gaap/2026'))
+
+    def test_mixed_2026_dei_2025_gaap_fails_closed(self):
+        for ctx in (context(), context(member="fiction:AMember", exchange="fiction:XMember")):
+            self.unsupported(inline(contexts=ctx).replace(
+                b'http://xbrl.sec.gov/dei/2025', b'http://xbrl.sec.gov/dei/2026'))
+
+    def test_mixed_generations_in_nested_namespace_scopes_fail_closed(self):
+        for namespace in ('http://xbrl.sec.gov/dei/2026', 'http://fasb.org/us-gaap/2026'):
+            self.unsupported(inline(extra=f'<div xmlns:other="{namespace}"/>'))
+        other_fact = fact('TradingSymbol', 'FICT', attrs=' xmlns:dei="http://xbrl.sec.gov/dei/2026"')
+        self.unsupported(inline(facts=security() + other_fact))
+        other_context = context('b', member='fiction:BMember').replace(
+            '<xbrli:context ', '<xbrli:context xmlns:us-gaap="http://fasb.org/us-gaap/2026" ')
+        self.unsupported(inline(contexts=context() + other_context, facts=security() + security('b')))
+
+    def test_unknown_taxonomy_years_fail_closed_even_without_class_dimension(self):
+        for namespace in (b'http://xbrl.sec.gov/dei/2025', b'http://fasb.org/us-gaap/2025'):
+            for year in (b'2027', b'2099', b'2024'):
+                self.unsupported(inline().replace(namespace, namespace[:-4] + year))
+        self.unsupported(inline().replace(b'http://xbrl.sec.gov/dei/2025', b'http://xbrl.sec.gov/dei/2099').replace(
+            b'http://fasb.org/us-gaap/2025', b'http://fasb.org/us-gaap/2099'))
+
+    def test_2026_profile_uses_namespace_uris_not_prefix_spelling(self):
+        raw = inline(contexts=context(member='fiction:AMember', exchange='fiction:XMember')).replace(
+            b'http://xbrl.sec.gov/dei/2025', b'http://xbrl.sec.gov/dei/2026').replace(
+            b'http://fasb.org/us-gaap/2025', b'http://fasb.org/us-gaap/2026')
+        renamed = raw.replace(b'xmlns:dei=', b'xmlns:d=').replace(b'dei:', b'd:').replace(
+            b'xmlns:us-gaap=', b'xmlns:g=').replace(b'us-gaap:', b'g:')
+        original = self.replay(self.capture(filing(payload=raw)))
+        result = self.replay(self.capture(filing(payload=renamed)))
+        self.assertEqual(result.status, s.ExtractionStatus.CAPTURED_REGISTERED_SECURITY_CLAIMS)
+        self.assertEqual(original.semantic_id, result.semantic_id)
+        self.assertNotEqual(original.evidence_id, result.evidence_id)
+
     def test_unreviewed_dimensions_and_typed_members_rejected(self):
         raw = inline(contexts=context(member="fiction:AMember"))
         self.unsupported(raw.replace(b'us-gaap:StatementClassOfStockAxis', b'fiction:UnknownAxis'))

@@ -17,14 +17,19 @@ EXTRACTION_CONTRACT_VERSION = "2026-09-22-sec-registered-security-claims-v1"
 SUPPORTED_FORMS = frozenset(("10-K", "10-K/A", "10-Q", "10-Q/A"))
 DEI = "http://xbrl.sec.gov/dei/2025"
 GAAP = "http://fasb.org/us-gaap/2025"
+TAXONOMY_PROFILES = (
+    (DEI, GAAP),
+    ("http://xbrl.sec.gov/dei/2026", "http://fasb.org/us-gaap/2026"),
+)
 IX = "http://www.xbrl.org/2013/inlineXBRL"
 XBRLI = "http://www.xbrl.org/2003/instance"
 XBRLDI = "http://xbrl.org/2006/xbrldi"
 XHTML = "http://www.w3.org/1999/xhtml"
 XML = "http://www.w3.org/XML/1998/namespace"
-CLASS_AXIS = "{" + GAAP + "}StatementClassOfStockAxis"
-EXCHANGE_AXIS = "{" + DEI + "}EntityListingsExchangeAxis"
+CLASS_AXES = frozenset("{" + gaap + "}StatementClassOfStockAxis" for _, gaap in TAXONOMY_PROFILES)
+EXCHANGE_AXES = frozenset("{" + dei + "}EntityListingsExchangeAxis" for dei, _ in TAXONOMY_PROFILES)
 FACT_NAMES = ("Security12bTitle", "TradingSymbol", "NoTradingSymbolFlag", "SecurityExchangeName")
+FACT_QNAMES = frozenset("{" + dei + "}" + name for dei, _ in TAXONOMY_PROFILES for name in FACT_NAMES)
 MAX_ELEMENTS = 250_000
 MAX_CONTEXTS = 20_000
 MAX_FACTS = 10_000
@@ -122,7 +127,7 @@ class SourceContext:
     def aspects(self, *, without_exchange=False):
         return (self.entity_scheme, self.entity_identifier, self.start_date, self.end_date,
                 tuple(sorted((d.axis, d.member) for d in self.dimensions
-                             if not without_exchange or d.axis != EXCHANGE_AXIS)))
+                             if not without_exchange or d.axis not in EXCHANGE_AXES)))
 
     @property
     def semantic_id(self):
@@ -366,7 +371,7 @@ def _context(element, ordinal):
                      "Only explicit dimensions supported")
             source_axis, source_member = member.get("dimension"), _leaf(member)
             axis, member_name = _qname(member, source_axis), _qname(member, source_member)
-            _require(axis in {CLASS_AXIS, EXCHANGE_AXIS}, "Unsupported registered-security axis")
+            _require(axis in CLASS_AXES | EXCHANGE_AXES, "Unsupported registered-security axis")
             _require(axis not in {d.axis for d in dimensions}, "Duplicate context dimension")
             dimensions.append(SourceDimension(axis, member_name, source_axis, source_member))
     dates = _children(period)
@@ -398,6 +403,7 @@ def _parse_inline(payload, document):
     _require(root.tag == "{" + XHTML + "}html", "Namespaced XHTML primary required")
     _require(root.getroottree().docinfo.encoding.upper().replace("-", "") == "UTF8", "Only UTF-8 XML supported")
     elements = []
+    namespaces = set()
     ids, contexts = {}, {}
     for element in root.iter():
         if not isinstance(element.tag, str):
@@ -405,6 +411,7 @@ def _parse_inline(payload, document):
         ordinal = len(elements)
         elements.append(element)
         _require(len(elements) <= MAX_ELEMENTS, "Element safety bound exceeded")
+        namespaces.update(element.nsmap.values())
         source_id = element.get("id")
         if source_id is not None:
             _require(source_id not in ids, "Duplicate XML ID")
@@ -415,13 +422,20 @@ def _parse_inline(payload, document):
             _require(len(contexts) <= MAX_CONTEXTS, "Context safety bound exceeded")
         if element.tag.startswith("{" + IX + "}"):
             _require(element.get("target", "") == "", "Multiple Inline XBRL targets unsupported")
+    # Family prefixes identify declarations to check, never acceptable years.
+    # Every DEI/GAAP declaration (including nested/unused ones) must fit ONE
+    # literal reviewed pair. An unused companion namespace need not be declared.
+    taxonomy_namespaces = {ns for ns in namespaces if ns.startswith(
+        ("http://xbrl.sec.gov/dei/", "http://fasb.org/us-gaap/"))}
+    _require(any(taxonomy_namespaces <= set(profile) for profile in TAXONOMY_PROFILES),
+             "Mixed or unreviewed taxonomy generations")
     headers = [e for e in elements if e.tag == "{" + IX + "}header"]
     resources = [e for e in elements if e.tag == "{" + IX + "}resources"]
     _require(len(headers) == len(resources) == 1 and resources[0].getparent() is headers[0],
              "Single Inline XBRL header/resources required")
     parsed_contexts, facts = {}, []
     for ordinal, element in enumerate(elements):
-        _require(element.tag not in {"{" + DEI + "}" + n for n in FACT_NAMES},
+        _require(element.tag not in FACT_QNAMES,
                  "Non-Inline registered-security fact unsupported")
         if not element.tag.startswith("{" + IX + "}") or element.get("name") is None:
             continue
@@ -429,7 +443,7 @@ def _parse_inline(payload, document):
         local = name.rsplit("}", 1)[-1]
         if local not in FACT_NAMES:
             continue
-        _require(name == "{" + DEI + "}" + local, "Unreviewed registered-security concept namespace")
+        _require(name in FACT_QNAMES, "Unreviewed registered-security concept namespace")
         _require(element.tag == "{" + IX + "}nonNumeric", "Registered-security fact must be nonNumeric")
         allowed = {"name", "contextRef", "id", "escape", "target", "{" + XML + "}lang"}
         _require(set(element.attrib) <= allowed and element.get("escape", "false") in {"false", "0"},
@@ -466,18 +480,19 @@ def _claims(contexts, facts, cik):
     scope_titles, scope_exchange_flags, period_class_flags = {}, {}, {}
     for context in contexts:
         scope_exchange_flags.setdefault(scope_ids[context.context_id], set()).add(
-            any(d.axis == EXCHANGE_AXIS for d in context.dimensions))
+            any(d.axis in EXCHANGE_AXES for d in context.dimensions))
         period_class_flags.setdefault(context.aspects()[:4], set()).add(
-            any(d.axis == CLASS_AXIS for d in context.dimensions))
+            any(d.axis in CLASS_AXES for d in context.dimensions))
     groups = {}
     for fact in facts:
         groups.setdefault(context_ids[fact.context_ref], []).append(fact)
-        if fact.fact_name == "{" + DEI + "}Security12bTitle":
+        if fact.fact_name.rsplit("}", 1)[-1] == "Security12bTitle":
             scope_titles.setdefault(scope_ids[fact.context_ref], set()).add(fact.source_value)
     records = []
     for context_id, occurrences in sorted(groups.items()):
         context = by_ref[occurrences[0].context_ref]
-        values = [tuple(sorted({f.source_value for f in occurrences if f.fact_name == "{" + DEI + "}" + name}))
+        # Namespaces were verified as a single reviewed profile before grouping.
+        values = [tuple(sorted({f.source_value for f in occurrences if f.fact_name.rsplit("}", 1)[-1] == name}))
                   for name in FACT_NAMES]
         title, symbols, flags, exchanges = values
         issues = set()
