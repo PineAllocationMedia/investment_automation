@@ -55,14 +55,13 @@ integrity records, not external authentication or proof of issuer truth.
 
 Forms: **10-K, 10-K/A, 10-Q, 10-Q/A** only. No 8-K extraction.
 
-The initial deliberately narrow profile is UTF-8, well-formed namespace-aware
-XHTML, Inline XBRL 1.1 (`http://www.xbrl.org/2013/inlineXBRL`), with these four
-DEI concepts in either of the two exact reviewed annual namespace pairs below:
-
-| Profile | DEI namespace | US-GAAP namespace |
-| --- | --- | --- |
-| 2025 | `http://xbrl.sec.gov/dei/2025` | `http://fasb.org/us-gaap/2025` |
-| 2026 | `http://xbrl.sec.gov/dei/2026` | `http://fasb.org/us-gaap/2026` |
+The source profile is UTF-8, well-formed namespace-aware XHTML, Inline XBRL 1.1
+(`http://www.xbrl.org/2013/inlineXBRL`), with the four DEI concepts below in one
+of the exact historical core namespace pairs audited by PR4D3C. The canonical
+finite matrix, EDGAR-acceptance intervals, concept/axis availability, quarterly
+variants, exact 2022Q3 overlay, and rejected candidates are recorded in
+`EXPECTED_RETURN_PR4D3C.md`. It includes the reviewed 2019/2020 legacy pairs and
+cross-pairs, 2021/2021Q4, 2022/2022Q4, and annual 2023 through 2026 pairs.
 
 - `Security12bTitle`
 - `TradingSymbol`
@@ -70,14 +69,17 @@ DEI concepts in either of the two exact reviewed annual namespace pairs below:
 - `SecurityExchangeName`
 
 Namespace-expanded QNames determine concept identity; lexical prefixes alone
-do not. `TAXONOMY_PROFILES` is a literal two-pair allowlist, with no generic year
+do not. `TAXONOMY_PROFILES` is a literal finite allowlist, with no generic year
 matching or taxonomy downloads/resolution. All DEI/US-GAAP family namespace
 declarations in the primary document, including nested and unused declarations,
-must fit a single reviewed pair. DEI 2025 + US-GAAP 2026, DEI 2026 + US-GAAP 2025,
-multiple DEI or US-GAAP generations, unknown years and lookalike concepts are
-unsupported. An unused companion namespace need not be declared; any declared
-companion must match the same reviewed pair. Namespace-family prefix checks only
-identify declarations to validate; they never admit a year.
+must fit one exact reviewed pair. The two pre-2021 cross-year pairs are explicit
+entries rather than a generic compatibility rule. Any 2021-or-later cross-year
+pair, multiple generations, unknown years, and lookalike concepts are unsupported.
+The exact `http://fasb.org/us-gaap-sup/2022q3` namespace is accepted only as an
+overlay with a reviewed 2022 core pair; it is never a replacement fact namespace.
+An unused companion namespace need not be declared; any declared companion must
+fit the resolved profile. Namespace-family prefix checks only identify
+declarations to validate; they never admit a release.
 Only untransformed, non-nil `ix:nonNumeric` facts are supported. `escape` may be
 absent/false/0. Plain XHTML descendants contribute their exact decoded text.
 Whitespace, Unicode, punctuation and descriptive title/exchange strings are
@@ -158,7 +160,7 @@ empty/oversized values. No partial-success assessment masks those variants;
 original evidence remains in the archive for future inspection.
 
 In particular `ixt-sec:exchnameen`, transformed checkbox booleans, `ix:continuation`,
-`ix:exclude`, namespace years outside the two reviewed pairs and IFRS class axes
+`ix:exclude`, namespace combinations outside the audited finite matrix and IFRS class axes
 need separate review.
 Rejecting these variants is an explicit initial limitation, not a claim that they
 are invalid SEC filings. No HTML parser repair, provider framework, fallback
@@ -186,12 +188,13 @@ identical duplicate multiplicity, capture time and formatting outside fact value
 Claim groups sort by their context semantic hash; occurrence order remains source
 order. Source strings are not economically normalized.
 
-The taxonomy correction preserves this encoding and contract version. Expanded
-QName namespaces deliberately remain part of source semantics: equivalent 2025
-and 2026 assertions have the same retained values, exact-context pairing, conflict
-behavior and source relationships, but different fact namespace identities and
-assessment semantic hashes. There is no cross-year QName normalization or join.
-Existing supported 2025 inputs retain their original identities.
+The taxonomy corrections preserve this encoding and contract version. Expanded
+QName namespaces deliberately remain part of source semantics: assertions across
+admitted profiles can have the same retained values, exact-context pairing,
+conflict behavior and source relationships, but different fact namespace
+identities and assessment semantic hashes. There is no cross-profile QName
+normalization or join. Existing supported 2025 and 2026 inputs retain their
+original identities.
 
 Evidence identity additionally binds the verified receipt, exact primary bytes,
 offset/length/metadata, source context spellings/order, every original occurrence
@@ -301,8 +304,8 @@ existing authority-boundary test, dependency, runtime, model rule, D1, C4–C6,
 D2A/B/C, Expected Return, roadmap or unrelated file changes. No additional PR,
 merge, deployment or new authority is authorized.
 
-The extractor recognizes fact/axis QNames derived only from the two literal
-pairs. A document-wide namespace check rejects mixed generations before extracting
+At that correction, the extractor recognized fact/axis QNames derived only from
+the two literal pairs. A document-wide namespace check rejected mixed generations before extracting
 claims. Pairing, source text, provenance, conflict rules and evidence hashing are
 unchanged. Seven added regression methods cover literal profile closure, equivalent
 2025/2026 assertions (including multiple securities/exchanges, no-symbol, duplicate,

@@ -78,6 +78,51 @@ class ClassEPSClaimTests(unittest.TestCase):
         self.assertTrue(second.occurrences[1].concept_name.startswith("{" + PROFILES[2026][1] + "}"))
         self.assertNotEqual(first.semantic_id, second.semantic_id)
 
+    def test_every_reviewed_historical_profile_uses_exact_source_namespaces(self):
+        for release, profile in PROFILES.items():
+            with self.subTest(release=release):
+                result = self.extract(profile=profile)
+                self.assertEqual(result.status,
+                                 s.ExtractionStatus.CAPTURED_CLASS_EPS_SOURCE_CLAIMS)
+                self.assertEqual(result.taxonomy_profile, s.SourceTaxonomyProfile(*profile))
+                self.assertEqual(result.occurrences[0].concept_name,
+                                 "{" + profile[0] + "}EntityCommonStockSharesOutstanding")
+                self.assertEqual(result.occurrences[1].concept_name,
+                                 "{" + profile[1] + "}EarningsPerShareDiluted")
+                self.assertEqual(result.contexts[0].dimensions[0].axis,
+                                 "{" + profile[1] + "}StatementClassOfStockAxis")
+
+    def test_pre_2021_cross_year_compatibility_is_finite_and_reviewed(self):
+        for release in ("2019/2020", "2020/2019"):
+            with self.subTest(release=release):
+                self.assertEqual(self.extract(profile=PROFILES[release]).taxonomy_profile,
+                                 s.SourceTaxonomyProfile(*PROFILES[release]))
+        for profile in ((PROFILES["2020/2020"][0], PROFILES[2021][1]),
+                        (PROFILES[2021][0], PROFILES["2020/2020"][1])):
+            with self.subTest(profile=profile):
+                self.unsupported(inline(profile=profile))
+
+    def test_quarterly_profiles_and_supplement_overlay_are_exact(self):
+        for release in ("2021q4", "2022q4"):
+            with self.subTest(release=release):
+                result = self.extract(profile=PROFILES[release])
+                self.assertEqual(result.taxonomy_profile,
+                                 s.SourceTaxonomyProfile(*PROFILES[release]))
+        supplement = 'xmlns:sup="http://fasb.org/us-gaap-sup/2022q3"'
+        for release in (2022, "2022q4"):
+            with self.subTest(release=release):
+                self.assertEqual(
+                    self.extract(profile=PROFILES[release], namespaces=supplement).status,
+                    s.ExtractionStatus.CAPTURED_CLASS_EPS_SOURCE_CLAIMS,
+                )
+        self.unsupported(inline(profile=("http://xbrl.sec.gov/dei/2021q3",
+                                         PROFILES[2021][1])))
+        self.unsupported(inline(profile=(PROFILES["2021q4"][0], PROFILES[2022][1])))
+        self.unsupported(inline(profile=PROFILES[2022],
+                                namespaces='xmlns:sup="http://fasb.org/us-gaap-sup/2023q3"'))
+        self.unsupported(inline(profile=(PROFILES[2022][0],
+                                         "http://fasb.org/us-gaap/2022q3")))
+
     def test_mixed_taxonomy_profiles_fail_closed_both_directions(self):
         mixed = (
             inline(year=2025).replace(PROFILES[2025][1].encode(), PROFILES[2026][1].encode()),
@@ -92,9 +137,20 @@ class ClassEPSClaimTests(unittest.TestCase):
         self.unsupported(inline(extra='<div xmlns:old="http://xbrl.sec.gov/dei/2026">x</div>'))
 
     def test_unknown_taxonomy_years_fail_closed(self):
-        for old, new in ((PROFILES[2025][0], "http://xbrl.sec.gov/dei/2024"),
+        for old, new in ((PROFILES[2025][0], "http://xbrl.sec.gov/dei/2018"),
                          (PROFILES[2025][1], "http://fasb.org/us-gaap/2027")):
             self.unsupported(inline().replace(old.encode(), new.encode()))
+        self.unsupported(inline().replace(
+            PROFILES[2025][0].encode(), b"http://xbrl.sec.gov/dei/2020-12-31"))
+
+    def test_historical_profile_prefix_aliases_preserve_expanded_semantics(self):
+        raw = inline(profile=PROFILES["2019/2019"])
+        renamed = raw.replace(b'xmlns:dei=', b'xmlns:d=').replace(b'dei:', b'd:').replace(
+            b'xmlns:us-gaap=', b'xmlns:g=').replace(b'us-gaap:', b'g:')
+        original = self.replay(self.capture(filing(payload=raw)))
+        result = self.replay(self.capture(filing(payload=renamed)))
+        self.assertEqual(original.semantic_id, result.semantic_id)
+        self.assertNotEqual(original.evidence_id, result.evidence_id)
 
     def test_supported_forms_and_8k_exclusion(self):
         for form in ("10-K", "10-K/A", "10-Q", "10-Q/A"):
@@ -365,6 +421,22 @@ class ClassEPSClaimTests(unittest.TestCase):
                          "84e9c6921b10377369f079f4fd7fab6e8822543f3310b4a341da2d857705b069")
         self.assertEqual(result.evidence_id,
                          "d10207c2a5d4677cd5acc8e1dc0ca15e7255b9a9a390511c6d84cddf72dd70c5")
+
+    def test_published_2025_and_2026_d3b_fixture_identities_are_unchanged(self):
+        expected = {
+            2025: (
+                "7db512b6cbeb8287edf05a12dbf52bb69809ef34fb9952dd9683981f5d4ed162",
+                "4b7398fe87b8bbfeb54efd3b7ab64c326e1431d9e4e5d61da9629001016c601f",
+            ),
+            2026: (
+                "3d52c78db301f5ec993b00784400de0a54c0d4c13e12716979ea9a0d95548b82",
+                "f6707ff858ece6adb1c9c1b9d8bc6447bcf9e6d8088eb0114ea7013ebd025a41",
+            ),
+        }
+        for year, identities in expected.items():
+            with self.subTest(year=year):
+                result = self.extract(year=year)
+                self.assertEqual((result.semantic_id, result.evidence_id), identities)
 
     def test_actual_output_cannot_enter_d1_c4_pr4b1_or_expected_return(self):
         from economic_facts.current_authority import CurrentAuthorityError

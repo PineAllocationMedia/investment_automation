@@ -23,9 +23,25 @@ SUPPORTED_FORMS = frozenset(("10-K", "10-K/A", "10-Q", "10-Q/A"))
 DEI = "http://xbrl.sec.gov/dei/2025"
 GAAP = "http://fasb.org/us-gaap/2025"
 TAXONOMY_PROFILES = (
+    ("http://xbrl.sec.gov/dei/2019-01-31", "http://fasb.org/us-gaap/2019-01-31"),
+    ("http://xbrl.sec.gov/dei/2019-01-31", "http://fasb.org/us-gaap/2020-01-31"),
+    ("http://xbrl.sec.gov/dei/2020-01-31", "http://fasb.org/us-gaap/2019-01-31"),
+    ("http://xbrl.sec.gov/dei/2020-01-31", "http://fasb.org/us-gaap/2020-01-31"),
+    ("http://xbrl.sec.gov/dei/2021", "http://fasb.org/us-gaap/2021-01-31"),
+    ("http://xbrl.sec.gov/dei/2021q4", "http://fasb.org/us-gaap/2021-01-31"),
+    ("http://xbrl.sec.gov/dei/2022", "http://fasb.org/us-gaap/2022"),
+    ("http://xbrl.sec.gov/dei/2022q4", "http://fasb.org/us-gaap/2022"),
+    ("http://xbrl.sec.gov/dei/2023", "http://fasb.org/us-gaap/2023"),
+    ("http://xbrl.sec.gov/dei/2024", "http://fasb.org/us-gaap/2024"),
     (DEI, GAAP),
     ("http://xbrl.sec.gov/dei/2026", "http://fasb.org/us-gaap/2026"),
 )
+US_GAAP_SUPPLEMENT_PROFILES = {
+    "http://fasb.org/us-gaap-sup/2022q3": frozenset((
+        ("http://xbrl.sec.gov/dei/2022", "http://fasb.org/us-gaap/2022"),
+        ("http://xbrl.sec.gov/dei/2022q4", "http://fasb.org/us-gaap/2022"),
+    )),
+}
 IX = "http://www.xbrl.org/2013/inlineXBRL"
 XBRLI = "http://www.xbrl.org/2003/instance"
 XBRLDI = "http://xbrl.org/2006/xbrldi"
@@ -298,8 +314,16 @@ def _parse_inline(payload, document):
     # literal reviewed pair. An unused companion namespace need not be declared.
     taxonomy_namespaces = {ns for ns in namespaces if ns.startswith(
         ("http://xbrl.sec.gov/dei/", "http://fasb.org/us-gaap/"))}
-    _require(any(taxonomy_namespaces <= set(profile) for profile in TAXONOMY_PROFILES),
-             "Mixed or unreviewed taxonomy generations")
+    candidates = tuple(profile for profile in TAXONOMY_PROFILES
+                       if taxonomy_namespaces <= set(profile))
+    _require(bool(candidates), "Mixed or unreviewed taxonomy generations")
+    supplement_namespaces = {ns for ns in namespaces
+                             if ns.startswith("http://fasb.org/us-gaap-sup/")}
+    if supplement_namespaces:
+        _require(len(supplement_namespaces) == 1 and len(candidates) == 1
+                 and candidates[0] in US_GAAP_SUPPLEMENT_PROFILES.get(
+                     next(iter(supplement_namespaces)), ()),
+                 "Mixed or unreviewed supplemental taxonomy generation")
     headers = [e for e in elements if e.tag == "{" + IX + "}header"]
     resources = [e for e in elements if e.tag == "{" + IX + "}resources"]
     _require(len(headers) == len(resources) == 1 and resources[0].getparent() is headers[0],

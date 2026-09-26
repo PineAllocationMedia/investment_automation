@@ -21,9 +21,25 @@ from .sec_primary_document import (
 EXTRACTION_CONTRACT_VERSION = "2026-09-26-sec-class-eps-source-claims-v2"
 SUPPORTED_FORMS = frozenset(("10-K", "10-K/A", "10-Q", "10-Q/A"))
 TAXONOMY_PROFILES = (
+    ("http://xbrl.sec.gov/dei/2019-01-31", "http://fasb.org/us-gaap/2019-01-31"),
+    ("http://xbrl.sec.gov/dei/2019-01-31", "http://fasb.org/us-gaap/2020-01-31"),
+    ("http://xbrl.sec.gov/dei/2020-01-31", "http://fasb.org/us-gaap/2019-01-31"),
+    ("http://xbrl.sec.gov/dei/2020-01-31", "http://fasb.org/us-gaap/2020-01-31"),
+    ("http://xbrl.sec.gov/dei/2021", "http://fasb.org/us-gaap/2021-01-31"),
+    ("http://xbrl.sec.gov/dei/2021q4", "http://fasb.org/us-gaap/2021-01-31"),
+    ("http://xbrl.sec.gov/dei/2022", "http://fasb.org/us-gaap/2022"),
+    ("http://xbrl.sec.gov/dei/2022q4", "http://fasb.org/us-gaap/2022"),
+    ("http://xbrl.sec.gov/dei/2023", "http://fasb.org/us-gaap/2023"),
+    ("http://xbrl.sec.gov/dei/2024", "http://fasb.org/us-gaap/2024"),
     ("http://xbrl.sec.gov/dei/2025", "http://fasb.org/us-gaap/2025"),
     ("http://xbrl.sec.gov/dei/2026", "http://fasb.org/us-gaap/2026"),
 )
+US_GAAP_SUPPLEMENT_PROFILES = {
+    "http://fasb.org/us-gaap-sup/2022q3": frozenset((
+        ("http://xbrl.sec.gov/dei/2022", "http://fasb.org/us-gaap/2022"),
+        ("http://xbrl.sec.gov/dei/2022q4", "http://fasb.org/us-gaap/2022"),
+    )),
+}
 IX = "http://www.xbrl.org/2013/inlineXBRL"
 XBRLI = "http://www.xbrl.org/2003/instance"
 XBRLDI = "http://xbrl.org/2006/xbrldi"
@@ -335,6 +351,13 @@ def _profile(namespaces):
     candidates = [profile for profile in TAXONOMY_PROFILES
                   if taxonomy_namespaces and taxonomy_namespaces <= set(profile)]
     _require(len(candidates) == 1, "Mixed or unreviewed taxonomy generations")
+    supplement_namespaces = {namespace for namespace in namespaces
+                             if namespace.startswith("http://fasb.org/us-gaap-sup/")}
+    if supplement_namespaces:
+        _require(len(supplement_namespaces) == 1
+                 and candidates[0] in US_GAAP_SUPPLEMENT_PROFILES.get(
+                     next(iter(supplement_namespaces)), ()),
+                 "Mixed or unreviewed supplemental taxonomy generation")
     return SourceTaxonomyProfile(*candidates[0])
 
 

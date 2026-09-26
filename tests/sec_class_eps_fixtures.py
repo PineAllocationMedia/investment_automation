@@ -4,6 +4,20 @@ from xml.sax.saxutils import escape, quoteattr
 from tests.sec_original_filing_fixtures import CIK, filing
 
 PROFILES = {
+    "2019/2019": ("http://xbrl.sec.gov/dei/2019-01-31",
+                  "http://fasb.org/us-gaap/2019-01-31"),
+    "2019/2020": ("http://xbrl.sec.gov/dei/2019-01-31",
+                  "http://fasb.org/us-gaap/2020-01-31"),
+    "2020/2019": ("http://xbrl.sec.gov/dei/2020-01-31",
+                  "http://fasb.org/us-gaap/2019-01-31"),
+    "2020/2020": ("http://xbrl.sec.gov/dei/2020-01-31",
+                  "http://fasb.org/us-gaap/2020-01-31"),
+    2021: ("http://xbrl.sec.gov/dei/2021", "http://fasb.org/us-gaap/2021-01-31"),
+    "2021q4": ("http://xbrl.sec.gov/dei/2021q4", "http://fasb.org/us-gaap/2021-01-31"),
+    2022: ("http://xbrl.sec.gov/dei/2022", "http://fasb.org/us-gaap/2022"),
+    "2022q4": ("http://xbrl.sec.gov/dei/2022q4", "http://fasb.org/us-gaap/2022"),
+    2023: ("http://xbrl.sec.gov/dei/2023", "http://fasb.org/us-gaap/2023"),
+    2024: ("http://xbrl.sec.gov/dei/2024", "http://fasb.org/us-gaap/2024"),
     2025: ("http://xbrl.sec.gov/dei/2025", "http://fasb.org/us-gaap/2025"),
     2026: ("http://xbrl.sec.gov/dei/2026", "http://fasb.org/us-gaap/2026"),
 }
@@ -47,8 +61,9 @@ def diluted_eps(value="2.50", ref="eps", *, unit="u-usd-per-share", decimals="2"
                         prefix="us-gaap", unit=unit, decimals=decimals, **kwargs)
 
 
-def inline(*, year=2025, contexts=None, facts=None, units=None, extra="", namespaces=""):
-    dei, gaap = PROFILES[year]
+def inline(*, year=2025, profile=None, contexts=None, facts=None, units=None, extra="",
+           namespaces=""):
+    dei, gaap = PROFILES[year] if profile is None else profile
     default_contexts = (context("shares", kind="instant", member="fiction:ClassAMember")
                         + context("eps"))
     default_facts = common_shares(fact_id="shares-fact") + diluted_eps(fact_id="eps-fact")
