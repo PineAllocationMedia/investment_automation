@@ -54,15 +54,15 @@ Integration branch:
 
 `model-v2/expected-return-challenger`
 
-Verified post-PR4D2C state after merged PR #47 (2026-09-21):
+Verified post-PR4D3A state after merged PR #49 (2026-09-26):
 
 Merge commit:
 
-`020a3ec8989203fb4e9b9f46fce10d51c15e7cee`
+`aed7c97e41388daa11bc7021fbc38a2911d979ff`
 
 Tree:
 
-`c935033606c7b5348695cf218efb1a827f533028`
+`8e761292be0418d26e7c031a64696b2f30135b22`
 
 Always verify current remote state before using these values.
 
@@ -238,10 +238,32 @@ A captured current directory snapshot grants no economic identity authority,
 historical listing continuity, CIK qualification, quote-currency proof,
 D1-through-T continuity or final admission authority.
 
-**Property 4 remains unresolved in every part**, as do obligations 5–7. D2B and
-D2C do not advance economic admission authority. Do not reinterpret synthetic
-qualifications or current snapshots as real identity or historical continuity,
-or weaken existing blockers. The next evidence/temporal-coverage and real-qualification
+### PR4D3A — Offline SEC registered-security source-claim extraction ✅
+
+Merged PR #49 adds deterministic offline extraction of SEC registered-security
+source claims from an explicitly selected D2A filing receipt. Its deliberately
+narrow reviewed profile supports DEI 2025 + US-GAAP 2025 and DEI 2026 + US-GAAP
+2026.
+
+PR4D3A is **source-claim extraction only**. The extractor is not an identity
+authority and does not establish:
+
+- Property 4A issuer economic identity;
+- 4B security identity;
+- 4C class identity or rights;
+- 4D complete relevant class inventory;
+- 4E EPS entitlement or applicability;
+- 4F qualified listing, quote currency or quote unit;
+- 4G complete listing inventory;
+- 4H historical continuity or D1-through-T coverage;
+- obligations 5–7; or
+- final admission.
+
+**Property 4 remains unresolved in every part**, as do obligations 5–7. D2B,
+D2C and D3A do not grant economic admission authority. Do not reinterpret
+synthetic qualifications, current snapshots or extracted source claims as real
+identity or historical continuity, or weaken existing blockers. Real Fact
+Admission remains the immediate engineering frontier and its next implementation
 contract requires separate review.
 
 ---
@@ -252,6 +274,22 @@ The exact PR numbering may change. The conceptual sequence is more important.
 The following are approved V2 completeness requirements, not implemented behavior
 or authorization to implement them in this documentation PR. Future contracts must
 define supported cases and validation without inventing thresholds here.
+
+Permanent shadow invariant:
+
+> **V2 shadow begins only after the approved V2 architecture is feature-complete
+> within its explicitly supported scope.**
+
+Feature-complete means that the V2 completeness requirements in this roadmap are
+implemented, or deliberately and explicitly marked unsupported/deferred outside
+the approved supported scope; required cross-component contracts are stable enough
+for longitudinal validation; and final architecture cleanup plus the full readiness
+review have passed. It does not mean every possible future PAM feature, country,
+exchange, provider or commercial product surface is complete.
+
+Stage U is therefore primarily a validation and evidence-accumulation phase, not
+a normal major-feature-development phase. Beginning shadow with a largely stable
+architecture keeps early and late forward observations meaningfully comparable.
 
 ```text
 Real Fact Admission → Expected Return completion → Quality → Durability → Confidence
@@ -265,14 +303,20 @@ Real Fact Admission → Expected Return completion → Quality → Durability �
 → Recommendation / Execution Separation → Monitoring / Observability
 → Commercial Data Governance
 → Compact Report Information Architecture & UX → any additional future V2 chantiers
+→ agreed initial international capability complete
 → FINAL Architecture Cleanup & Dead-Code Retirement
 → final regression/integrity/shadow-readiness review
 → V2 isolated Chromebook integration/automation → long-duration shadow validation
 → explicit authority review
 ```
 
-Global source expansion may proceed in parallel where appropriate. Neither complete
-global-market coverage nor the full commercial UI is a prerequisite for shadow.
+Global Universe & Cross-Market Admission Architecture is a cross-cutting program,
+not a separate engine added after the other stages. Its contracts integrate where
+relevant into Real Fact Admission, Opportunity Set, Portfolio Intelligence,
+Portfolio State, Shared Exposure, Dependency & Invalidation, Decision / Thesis
+Memory, Validation and Commercial Data Governance. Complete global-market coverage
+and the full commercial UI are not prerequisites for shadow. Functional initial
+international capability, as defined below, is part of pre-shadow V2 scope.
 Inserted stages use numeric suffixes to preserve existing stage references.
 
 ### Stage A — Real fact admission
@@ -347,6 +391,8 @@ data coverage, model support and policy constraints before portfolio allocation
 decisions become mature. Distinguish supported and qualified, observable but not
 yet admissible, unsupported, and unavailable / insufficient evidence. This stage
 defines no scoring formula or ranking threshold; observability alone is not admission.
+The global discovery/admission funnel and dimensional market capability state below
+must constrain this stage and fail closed.
 
 ### Stage F — Position Lifecycle / Thesis Deterioration
 
@@ -371,6 +417,9 @@ uncertainty. This layer concerns business/portfolio resilience, not macro timing
 Build the analytical layer for positions, room, exposures, concentration,
 expected-return distribution, thesis state, watchlists, change history, alerts
 and comparative opportunity context.
+For supported international instruments, this includes coherent cross-listing,
+wrapper, currency and economic-geography context without turning listing venue into
+economic exposure.
 
 ### Stage I — Data & Operational Resilience
 
@@ -384,6 +433,8 @@ evidence, failed runs, degraded mode and freshness/source-health visibility.
 Reconcile economic ownership through transactions, cash, dividends, splits,
 mergers, spin-offs, security/class/ticker/listing changes and FX where relevant.
 This is a completeness requirement, not a new ledger design.
+Supported cross-market instruments must preserve economic ownership across listings,
+wrappers, quote/transaction currencies and relevant corporate actions.
 
 ### Stage K — Portfolio Risk / Shared Exposure
 
@@ -459,6 +510,8 @@ versions and portfolio state. Upstream changes, staleness, corrections, lost
 authority or contradictions must identify dependent results needing recomputation
 or review; prior outputs must not silently retain authority. Implementation design
 belongs in a later contract.
+Cross-market evidence, capability-registry and FX changes must participate in these
+dependency and invalidation semantics rather than leaving stale authority in place.
 
 ### Stage K2 — Persistent Decision / Thesis Memory
 
@@ -468,6 +521,8 @@ Confidence, portfolio context, decision/recommendation state and relevant model/
 identities. This is project analytical memory, distinct from conversation memory
 and the canonical project documents in section 7. It must precede Decision Delta:
 a comparison requires a durably recorded account of what PAM previously believed.
+Multiple listings or wrappers for one qualified economic exposure must not create
+independent business theses merely because their symbols differ.
 
 ### Stage L — Decision Delta & Attribution
 
@@ -523,6 +578,9 @@ deterministically should be automated and condition-driven rather than becoming 
 owner maintenance obligation. Preserve existing V1 maintenance/runtime protection;
 future V2 shadow maintenance must use an isolated V2 path without weakening V1 guards.
 `AUDIT_GUIDE.md` stays unchanged until actual V2 audit commands/contracts exist.
+
+Pre-shadow validation must include the cross-market invariance, reconciliation,
+fail-closed and coverage-bias requirements in the cross-cutting program below.
 
 ### Stage N1 — Validation Firewall
 
@@ -586,6 +644,8 @@ constraints, attribution, geographic/product limitations, replacement/deprecatio
 and paid-vs-free dependency risk. Keep factual authority separate from legal or
 permitted-use authority. PR4D2C and existing source contracts do not universally
 license Nasdaq or other provider data.
+The Global/Market Capability Registry must represent permitted-use and commercial-use
+status dimensionally; registry membership must never grant evidence authority.
 
 ### Stage P — Compact Report Information Architecture & UX
 
@@ -630,13 +690,21 @@ No cleanup is performed in this documentation PR.
 
 Before Chromebook integration or long-duration V2 shadow, require evidence that:
 
-- required V2 capabilities are present or explicitly unsupported;
-- dependency/invalidation behavior is coherent and persistent decision state exists;
+- the approved V2 feature set is complete within its declared supported scope and
+  major analytical/core architecture is no longer awaiting construction;
+- Real Fact Admission works for every declared supported route;
+- the initial cross-market/international proof defined below exists;
+- unsupported markets and cases are explicit and fail closed;
+- dependency/invalidation behavior is coherent and persistent Decision / Thesis
+  Memory exists;
 - monitoring is adequate and actual V1, hypothetical V2 shadow and benchmark
   performance histories remain correctly separated;
+- Portfolio State, cross-listing, wrapper and currency semantics are coherent for
+  supported instruments;
 - validation boundaries are intact, no V1 authority has silently migrated and no
   V2 path has positive-capital decision authority;
-- runtime isolation is preserved and final cleanup/regression review has passed.
+- runtime isolation is preserved; and
+- final architecture cleanup and the full regression/integrity review have passed.
 
 Shadow-readiness is not production readiness and grants no investment authority.
 
@@ -647,7 +715,9 @@ isolated V2 shadow path. Preserve V1 runtime guards and production authority.
 
 ### Stage U — Long-duration shadow validation
 
-Run V2 beside V1 with zero decision authority.
+Run V2 beside V1 with zero decision authority. This stage is intended to maximize
+the value of accumulated forward evidence from a largely stable V2 architecture;
+major structural feature development should not normally occur during it.
 
 Track:
 
@@ -662,6 +732,17 @@ Track:
 - quality of explanations;
 - operational reliability.
 
+Bug fixes, security fixes, source-compatibility repairs, operational-reliability
+fixes and bounded extensions using already-reviewed contracts may still occur.
+Major new analytical pillars, identity/admission semantics, portfolio-state
+semantics, decision-memory semantics, cross-market core contracts or
+recommendation/execution semantics should not normally be introduced during shadow.
+
+If a material semantic, model or capability change becomes necessary, preserve the
+prior evidence, version the change, mark a clearly distinguishable validation/shadow
+epoch where appropriate, and never silently pool pre-change and post-change evidence
+as one homogeneous forward record. Do not rewrite history.
+
 ### Stage V — Explicit authority review
 
 Only after substantial forward evidence:
@@ -674,22 +755,137 @@ No automatic promotion.
 
 ---
 
-### Parallel direction — Global universe
+### Cross-cutting program — Global Universe & Cross-Market Admission Architecture
 
-Expand progressively from the initial SEC/US route.
+Global expansion must preserve one source-neutral analytical architecture:
 
-Conceptual source expansion may include:
+```text
+GLOBAL ECONOMIC CONTRACTS
+        ↑
+jurisdiction/source adapters
+        ↓
+SAME ECONOMIC FACT MODEL
+        ↓
+ER / Quality / Durability / Confidence
+        ↓
+GLOBAL OPPORTUNITY SET
+        ↓
+PORTFOLIO ROOM
+```
 
-- OpenFIGI;
-- GLEIF;
-- official exchange/listing directories;
-- ESEF / filings.xbrl.org;
-- EDINET;
-- OpenDART;
-- Canadian sources where legally usable;
-- other official jurisdictions.
+Jurisdiction-specific source adapters may differ, but downstream economic contracts
+must remain source-, provider-, jurisdiction-, currency-, identifier- and
+exchange-neutral where economically appropriate. Do not create separate country
+analyzers as the core architecture.
 
-Each market may use different source adapters but should map to common economic contracts.
+#### Global economic identity
+
+The intended conceptual identity graph is:
+
+```text
+ECONOMIC ISSUER / ENTITY
+→ REPORTING SUBJECT
+→ SECURITY / SHARE CLASS
+→ LISTING and/or WRAPPER
+→ executable/observable instrument
+```
+
+Ticker is a property of a listing, not permanent economic identity. CIK is an
+SEC-route identifier, not PAM's global entity identity. LEI, FIGI, ISIN, CIK and
+other external identifiers are evidence-backed external claims or anchors, not
+automatic economic qualification. Future contracts may establish stable
+PAM-internal economic IDs; this roadmap does not prescribe their implementation.
+
+> **One economic thesis per economic security/issuer context, not per ticker.**
+
+Multiple listings or wrappers representing the same economic exposure must not
+become independent business theses merely because they use different symbols.
+Instrument-level price, quote currency, liquidity, transaction friction, wrapper
+ratio, fees and venue may still differ.
+
+#### Global/Market Capability Registry
+
+Pre-shadow V2 requires a versioned, dimensional Global/Market Capability Registry.
+It should represent, as applicable, jurisdiction, regulator/source route, listing
+venues, identity and filing routes, supported accounting bases, current and
+historical authority, corporate-actions and listing-continuity support, pricing,
+FX, instrument types, legal/permitted-use status and commercial-use status.
+
+Do not collapse these dimensions into one synthetic coverage score. Capabilities
+must fail closed through explicit states conceptually such as `SUPPORTED`, `PARTIAL`,
+`UNSUPPORTED`, `UNAVAILABLE` and `REVIEW_REQUIRED`. Registry membership never grants
+evidence authority.
+
+#### Global discovery and admission funnel
+
+```text
+DISCOVERY
+→ OBSERVABLE
+→ QUALIFICATION CANDIDATE / QUEUE
+→ V2 ADMISSIBLE
+```
+
+Cheap discovery may span a much larger universe than deep evidence qualification.
+Market-data availability, or a provider returning a ticker or price, never grants
+admission. Unknown or incomplete international evidence should reduce Confidence
+or Admission, not automatically reduce a company's economic Quality. No geographic
+quotas are introduced.
+
+#### Initial international capability before shadow
+
+Complete global-market coverage is **not** a prerequisite for shadow. Functional
+international V2 capability **is** part of the pre-shadow V2 supported scope. Before
+final shadow-readiness, subject to separate implementation contracts and evidence
+review, the architecture must demonstrate real cross-market capability through:
+
+1. the fully qualified initial US/SEC real-admission route;
+2. at least one real foreign-issuer / IFRS route, with SEC foreign private issuers,
+   Form 20-F and IFRS as the preferred high-reuse candidate unless later evidence
+   establishes a better route;
+3. at least one real non-SEC jurisdiction/source adapter selected later using source
+   quality, licensing/permitted use, historical coverage, reliability and
+   implementation cost—this roadmap does not select ESEF, OpenDART or another route;
+4. evidence-backed wrapper/entitlement capability for the supported ADR/ADS scope
+   required by the approved international universe;
+5. multi-currency portfolio/FX architecture sufficient for explicitly supported
+   international instruments and currencies;
+6. cross-market/source-neutral invariance validation; and
+7. a Global Coverage Bias Audit.
+
+This proof establishes that the architecture is actually source-neutral. It does
+not require Europe, Japan, Korea, Canada and every other market before shadow.
+Additional markets may be added later through the same reviewed contracts.
+
+#### Currency and geography semantics
+
+Future contracts must distinguish reporting currency, economic-fact currency,
+quote currency, transaction currency, portfolio base currency and economic FX
+exposure. Quote currency must be evidence-backed for V2 authority; ticker-suffix
+inference may not become authoritative evidence.
+
+They must also distinguish incorporation/domicile, reporting jurisdiction, listing
+geography, revenue/economic geography, asset geography and regulatory geography.
+Listing geography is not economic geography.
+
+#### Cross-market validation
+
+Pre-shadow validation must cover:
+
+- cross-source economic-fact equivalence;
+- listing invariance;
+- wrapper/ADR-underlying reconciliation;
+- multi-currency reconciliation;
+- a no-US-identifier core-contract test;
+- capability-registry fail-closed behavior;
+- provider/source-outage behavior; and
+- the Global Coverage Bias Audit.
+
+Equivalent qualified economic facts from different adapters must feed the same
+downstream economic contracts. Different listings of the same economic security
+must not change business Quality, Durability or Expected Return merely because the
+listing changed. A source outage may reduce availability, Confidence or Admission,
+but must not become `THESIS_BROKEN`, `SELL` or degraded economic Quality without
+economic evidence.
 
 ### Longer-term direction — Research product surface
 
@@ -802,24 +998,23 @@ Do not allow all four documents to repeat the same implementation details.
 
 ## 14. Next session handoff
 
-After merged PR4D2C / PR #47, the immediate next engineering frontier following
-this documentation PR remains **Real Fact Admission**, with **Property 4 unresolved**.
-PR4D2C supplies controlled Nasdaq Listed snapshot evidence only. It does not solve
-economic identity, issuer/security/share-class/listing mapping, CIK correspondence,
-historical listing continuity, D1-through-T temporal coverage, quote currency or
-final real admission.
+The current V2 integration base is post-PR4D3A / merged PR #49. D3A supplies
+structured registered-security source claims from explicitly selected D2A filing
+receipts, but remains extraction-only. It does not solve Property 4A–4H or
+obligations 5–7 and is not an identity authority. The immediate engineering
+frontier remains **Real Fact Admission**.
 
 1. verify the current V2 remote head;
 2. read the constitution and this roadmap;
-3. read `EXPECTED_RETURN_PR4D1.md`, `EXPECTED_RETURN_PR4D2A.md`,
-   `EXPECTED_RETURN_PR4D2B.md` and `EXPECTED_RETURN_PR4D2C.md`;
-4. obtain separate review of the next evidence/temporal-coverage and real-qualification
-   implementation contract; Property 4 and obligations 5–7 remain unresolved, and
-   this roadmap edit does not authorize that implementation;
+3. read the relevant Real Fact Admission contracts, including
+   `EXPECTED_RETURN_PR4D3A.md`;
+4. obtain separate review of the next Real Fact Admission implementation contract;
+   future code must preserve the Global Universe & Cross-Market Admission
+   Architecture formalized here, and this roadmap edit authorizes no implementation;
 5. preserve V1 unchanged.
 
 ---
 
-*Roadmap state updated on 2026-09-21 to verified post-PR #47 / PR4D2C.
+*Roadmap state updated on 2026-09-26 to verified post-PR #49 / PR4D3A.
 Future architecture stages and shadow-readiness gates are requirements only.
 No implementation, runtime, investment-rule or authority change is authorized here.*
