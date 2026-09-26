@@ -509,7 +509,8 @@ class FilingDependencyTests(unittest.TestCase):
                     self.assertFalse(any("sec_filing_acquisition" in n for n in names), str(file))
                     if file.name not in {"sec_registered_securities.py", "sec_class_eps_claims.py",
                                          "sec_primary_document.py",
-                                         "sec_property4_temporal_dossier.py"}:
+                                         "sec_property4_temporal_dossier.py",
+                                         "sec_property4_temporal_boundary.py"}:
                         self.assertFalse(any("sec_filing_archive" in n for n in names), str(file))
 
     def test_result_contains_only_capture_and_selector_metadata(self):
