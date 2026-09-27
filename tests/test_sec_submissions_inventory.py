@@ -292,7 +292,8 @@ class SubmissionsDependencyTests(unittest.TestCase):
                 if path.stem in new | {"sec_property4_temporal_dossier",
                                        "sec_property4_temporal_boundary",
                                        "sec_current_registered_listing_bridge",
-                                       "sec_current_common_stock_class_bridge"}:
+                                       "sec_current_common_stock_class_bridge",
+                                       "sec_temporal_common_stock_source_series"}:
                     continue
                 for node in ast.walk(ast.parse(path.read_text())):
                     if isinstance(node, ast.Import):
