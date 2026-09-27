@@ -122,7 +122,7 @@ class QualificationIssue(StrEnum):
         "MIXED_DIMENSIONED_UNDIMENSIONED_SOURCE_CONFLICT"
     )
     EPS_APPLICABILITY_NOT_ESTABLISHED = "EPS_APPLICABILITY_NOT_ESTABLISHED"
-    UNSUPPORTED_SOURCE_TAXONOMY_PROFILE = "UNSUPPORTED_SOURCE_TAXONOMY_PROFILE"
+    UNSUPPORTED_SOURCE_EXTRACTION_PROFILE = "UNSUPPORTED_SOURCE_EXTRACTION_PROFILE"
     EVIDENCE_AFTER_CURRENT_BOUNDARY = "EVIDENCE_AFTER_CURRENT_BOUNDARY"
     UNSUPPORTED_INSTRUMENT_PROFILE = "UNSUPPORTED_INSTRUMENT_PROFILE"
     EXTRANEOUS_SELECTED_SOURCE_EVIDENCE = "EXTRANEOUS_SELECTED_SOURCE_EVIDENCE"
@@ -377,7 +377,7 @@ def _component_status(issues):
     unsupported = {
         QualificationIssue.UNSUPPORTED_REGISTERED_LISTING_ROUTE,
         QualificationIssue.UNSUPPORTED_ORDINARY_COMMON_PARTICIPATION,
-        QualificationIssue.UNSUPPORTED_SOURCE_TAXONOMY_PROFILE,
+        QualificationIssue.UNSUPPORTED_SOURCE_EXTRACTION_PROFILE,
         QualificationIssue.UNSUPPORTED_INSTRUMENT_PROFILE,
     }
     if issue_set & conflicts:
@@ -458,7 +458,7 @@ def _has_unsupported_extraction(boundary):
 
 
 def _unsupported_qualification(bridge):
-    issue = QualificationIssue.UNSUPPORTED_SOURCE_TAXONOMY_PROFILE
+    issue = QualificationIssue.UNSUPPORTED_SOURCE_EXTRACTION_PROFILE
     issues = (issue,)
     participation = OrdinaryCommonParticipationQualification(
         PARTICIPATION_PROFILE_VERSION, ComponentStatus.UNSUPPORTED_PROFILE,
@@ -468,11 +468,25 @@ def _unsupported_qualification(bridge):
         "UNDIMENSIONED_ALL_CLASS_COMMON_SHARES_AND_DILUTED_EPS",
         (), (), (), (), (), issues)
     listing, _candidate = _listing_bridge(bridge)
-    combined = _ordered(set(issues) | set(listing.issues))
+    combined_issues = set(issues) | set(listing.issues)
+    boundary = bridge.temporal_boundary
+    current = boundary.current_evidence
+    if (current.current_authority.status is not AssessmentStatus.EVIDENCE_ESTABLISHED
+            or boundary.status is BoundaryAssessmentStatus.CURRENT_AUTHORITY_UNAVAILABLE
+            or bridge.status is BridgeAssessmentStatus.CURRENT_AUTHORITY_UNAVAILABLE):
+        combined_issues.add(QualificationIssue.CURRENT_AUTHORITY_UNAVAILABLE)
+    if (current.resolution.status is not ResolutionStatus.RESOLVED_ISSUER_EVIDENCE
+            or current.resolution.series is None):
+        combined_issues.add(QualificationIssue.C3_SERIES_UNAVAILABLE)
+    if bridge.status is BridgeAssessmentStatus.SOURCE_CONFLICT:
+        combined_issues.add(QualificationIssue.D4C2_CONFLICT_OR_AMBIGUITY)
+    elif bridge.status is BridgeAssessmentStatus.UNSUPPORTED_SOURCE_PROFILE:
+        combined_issues.add(QualificationIssue.UNSUPPORTED_REGISTERED_LISTING_ROUTE)
+    combined = _ordered(combined_issues)
     return SecCurrentSecurityEPSQualification(
         CONTRACT_VERSION,
         ROUTE_PROFILE,
-        QualificationStatus.UNSUPPORTED_QUALIFICATION_PROFILE,
+        _qualification_status(combined),
         (),
         bridge.current_authority_boundary,
         None,
@@ -626,7 +640,7 @@ def _coverage(upstream, series, listing_candidate):
                 if any(item.value == "D3B_UNSUPPORTED_SOURCE"
                        for item in capture.issues):
                     accession_issues.add(
-                        QualificationIssue.UNSUPPORTED_SOURCE_TAXONOMY_PROFILE)
+                        QualificationIssue.UNSUPPORTED_SOURCE_EXTRACTION_PROFILE)
                 else:
                     accession_issues.add(
                         QualificationIssue.RELEVANT_COMMON_CLASS_COVERAGE_NOT_ESTABLISHED)
@@ -717,7 +731,7 @@ def _eps_decisions(upstream, series, *, route_components_established):
                     if d3b is None:
                         if any(item.value == "D3B_UNSUPPORTED_SOURCE"
                                for item in capture.issues):
-                            issues.add(QualificationIssue.UNSUPPORTED_SOURCE_TAXONOMY_PROFILE)
+                            issues.add(QualificationIssue.UNSUPPORTED_SOURCE_EXTRACTION_PROFILE)
                         continue
                     assessment_semantics.add(d3b.semantic_id)
                     assessment_evidence.add(d3b.evidence_id)
@@ -839,7 +853,7 @@ def _qualification_status(issues):
     if issue_set & {
         QualificationIssue.UNSUPPORTED_REGISTERED_LISTING_ROUTE,
         QualificationIssue.UNSUPPORTED_ORDINARY_COMMON_PARTICIPATION,
-        QualificationIssue.UNSUPPORTED_SOURCE_TAXONOMY_PROFILE,
+        QualificationIssue.UNSUPPORTED_SOURCE_EXTRACTION_PROFILE,
         QualificationIssue.UNSUPPORTED_INSTRUMENT_PROFILE,
     }:
         return QualificationStatus.UNSUPPORTED_QUALIFICATION_PROFILE

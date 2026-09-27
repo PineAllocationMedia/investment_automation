@@ -90,10 +90,20 @@ observation and their D1-D4 dependencies. No prebuilt result can bypass that
 path.
 
 A narrow D4C2 preflight exists only so an actually captured but unsupported
-D3A/D3B taxonomy profile can return the frozen typed
-`UNSUPPORTED_QUALIFICATION_PROFILE` result instead of escaping as an untyped
-downstream construction error. It does not select a winner or supply a positive
-qualification. Supported calls still require the complete fresh D4D3B replay.
+D3A/D3B source or extraction profile can return a frozen typed result instead
+of escaping as an untyped downstream construction error. The broad upstream
+`D3A_UNSUPPORTED_SOURCE` and `D3B_UNSUPPORTED_SOURCE` conditions map to
+`UNSUPPORTED_SOURCE_EXTRACTION_PROFILE`; they can include unsupported taxonomy,
+document structure, or other source representations, so PR5B does not invent a
+more specific cause.
+
+The preflight combines that issue with all typed D4C2/current-authority issues
+and applies the normal closed PR5B precedence: CURRENT authority unavailable,
+then source conflict, then unsupported profile, then ordinary incomplete/blocking
+evidence. A real D4C2 conflict therefore remains `SOURCE_CONFLICT` even when an
+unsupported extraction condition coexists. The preflight does not select a
+winner or supply a positive qualification. Supported calls still require the
+complete fresh D4D3B replay.
 
 There is one exact boundary:
 
@@ -140,8 +150,8 @@ The issue vocabulary distinguishes, among other conditions:
 - missing affirmative relevant-class coverage or a competing common class;
 - D3B conflicts, absent EPS correspondence, or dimension ambiguity;
 - an uncontrolled, omitted, period-mismatched, or value-mismatched C3 version;
-- post-T evidence, unsupported taxonomy, unsupported instrument, and extraneous
-  selected evidence.
+- post-T evidence, unsupported source/extraction profile, unsupported instrument,
+  and extraneous selected evidence.
 
 No latest, earliest, majority, duplicate-count, or caller-order rule resolves a
 conflict.
@@ -347,7 +357,7 @@ Unsupported or blocked cases include, without implying an exhaustive global
 taxonomy:
 
 - historical-as-of requests;
-- unsupported D3 taxonomy or filing-source profiles;
+- unsupported D3 taxonomy, extraction structure, or filing-source profiles;
 - ADS/ADR, preferred, convertible, unit, warrant, fund, partnership, trust, and
   indirect listing structures;
 - multiple or conflicting direct listings;
@@ -375,7 +385,10 @@ The PR5B suite must cover:
 - class-specific and mixed-dimension EPS;
 - retained-version omission, period mismatch, value mismatch, and post-T
   evidence;
-- unsupported source taxonomy and unsupported instrument profiles;
+- generic unsupported source/extraction and unsupported instrument profiles;
+- combined unsupported extraction plus genuine source conflict, preserving both
+  issues and the stronger `SOURCE_CONFLICT` status;
+- CURRENT-authority precedence when unsupported extraction coexists;
 - boundary, CIK, D4C2, and recapture conflicts;
 - duplicate source observations and evidence enrichment;
 - caller-permutation and semantic/evidence identity invariants; and
@@ -402,13 +415,13 @@ remain owner decisions outside this PR.
 Validation was run with the repository-pinned Python 3.12.14 environment and
 the disposable isolated runner where applicable:
 
-- focused PR5B: 28 tests passed;
-- isolated adjacent SEC C3/D3/D4 source chain: 790 tests passed;
+- focused PR5B: 31 tests passed;
+- isolated adjacent SEC C3/D3/D4 source chain: 793 tests passed;
 - isolated Nasdaq source chain: 89 tests passed;
 - identity, source-authority, CURRENT-authority, runtime-isolation, validation-
   identity, investment-equivalence, and health-check boundaries: 170 tests
   passed;
-- complete isolated suite: 2,346 tests passed;
+- complete isolated suite: 2,349 tests passed;
 - Python compilation and `git diff --check`: passed;
 - protected PIT fingerprint:
   `f1e73b27b80e41d96ff5e0fe990b482bad71b7220db0b5bd6a2f470d72786166`;

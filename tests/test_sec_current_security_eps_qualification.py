@@ -100,6 +100,18 @@ class CurrentSecurityEPSQualificationTests(unittest.TestCase):
         values = tuple(self.filing(year, **per_filing_changes) for year in VALUES)
         return values + (self.filing(2022, amendment=True, **per_filing_changes),)
 
+    def unsupported_taxonomy_filings(self):
+        filings = list(self.filings())
+        raw = qualification_submission(2024).replace(
+            b"http://xbrl.sec.gov/dei/2025",
+            b"http://xbrl.sec.gov/dei/2099",
+        ).replace(
+            b"http://fasb.org/us-gaap/2025",
+            b"http://fasb.org/us-gaap/2099",
+        )
+        filings[4] = self.filing(2024, raw=raw)
+        return tuple(filings)
+
     def sec(self, *, captured_at=SEC_CAPTURE, **changes):
         return self.sec_archive._capture_live(
             sec_snapshot(**changes), captured_at=captured_at)
@@ -382,18 +394,13 @@ class CurrentSecurityEPSQualificationTests(unittest.TestCase):
         )
 
     def test_unsupported_taxonomy_and_instrument_profiles_fail_closed(self):
-        taxonomy_filings = list(self.filings())
-        raw = qualification_submission(2024).replace(
-            b"http://xbrl.sec.gov/dei/2025",
-            b"http://xbrl.sec.gov/dei/2099",
-        ).replace(
-            b"http://fasb.org/us-gaap/2025",
-            b"http://fasb.org/us-gaap/2099",
+        taxonomy_result = self.qualify(filings=self.unsupported_taxonomy_filings())
+        self.assertEqual(
+            taxonomy_result.status,
+            qualification.QualificationStatus.UNSUPPORTED_QUALIFICATION_PROFILE,
         )
-        taxonomy_filings[4] = self.filing(2024, raw=raw)
-        taxonomy_result = self.qualify(filings=tuple(taxonomy_filings))
         self.assertIn(
-            qualification.QualificationIssue.UNSUPPORTED_SOURCE_TAXONOMY_PROFILE,
+            qualification.QualificationIssue.UNSUPPORTED_SOURCE_EXTRACTION_PROFILE,
             taxonomy_result.issues,
         )
 
@@ -402,6 +409,62 @@ class CurrentSecurityEPSQualificationTests(unittest.TestCase):
         self.assertIn(
             qualification.QualificationIssue.UNSUPPORTED_INSTRUMENT_PROFILE,
             instrument_result.issues,
+        )
+
+    def test_broad_unsupported_source_is_not_mislabelled_as_taxonomy_specific(self):
+        filings = list(self.filings())
+        raw = qualification_submission(2024).replace(
+            b'<html xmlns="http://www.w3.org/1999/xhtml"',
+            b'<html',
+        )
+        filings[4] = self.filing(2024, raw=raw)
+        result = self.qualify(filings=tuple(filings))
+        self.assertEqual(
+            result.status,
+            qualification.QualificationStatus.UNSUPPORTED_QUALIFICATION_PROFILE,
+        )
+        self.assertIn(
+            qualification.QualificationIssue.UNSUPPORTED_SOURCE_EXTRACTION_PROFILE,
+            result.issues,
+        )
+        self.assertFalse(any("TAXONOMY" in issue.value for issue in result.issues))
+
+    def test_unsupported_extraction_does_not_mask_d4c2_source_conflict(self):
+        from tests.nasdaq_listed_fixtures import row as nasdaq_row
+        ambiguous = self.nasdaq_archive._capture_live(
+            nasdaq_snapshot(rows=[nasdaq_row("FICT"), nasdaq_row("FICT")]),
+            captured_at=NASDAQ_CAPTURE,
+        )
+        result = self.qualify(
+            filings=self.unsupported_taxonomy_filings(),
+            nasdaq=ambiguous,
+        )
+        self.assertEqual(result.status, qualification.QualificationStatus.SOURCE_CONFLICT)
+        self.assertIn(
+            qualification.QualificationIssue.D4C2_CONFLICT_OR_AMBIGUITY,
+            result.issues,
+        )
+        self.assertIn(
+            qualification.QualificationIssue.UNSUPPORTED_SOURCE_EXTRACTION_PROFILE,
+            result.issues,
+        )
+
+    def test_current_authority_precedes_unsupported_extraction(self):
+        result = self.qualify(
+            current=self.current(live=False),
+            filings=self.unsupported_taxonomy_filings(),
+        )
+        self.assertEqual(
+            result.status,
+            qualification.QualificationStatus.UPSTREAM_CURRENT_AUTHORITY_UNAVAILABLE,
+        )
+        self.assertIn(
+            qualification.QualificationIssue.CURRENT_AUTHORITY_UNAVAILABLE,
+            result.issues,
+        )
+        self.assertIn(
+            qualification.QualificationIssue.UNSUPPORTED_SOURCE_EXTRACTION_PROFILE,
+            result.issues,
         )
 
     def test_wrong_context_cik_is_a_source_conflict(self):
