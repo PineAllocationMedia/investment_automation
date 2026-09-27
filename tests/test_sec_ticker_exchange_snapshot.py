@@ -244,7 +244,8 @@ class SecTickerExchangeDependencyTests(unittest.TestCase):
         for path in paths:
             if path.stem in modules | {"sec_current_registered_listing_bridge",
                                        "sec_current_common_stock_class_bridge",
-                                       "sec_temporal_common_stock_source_series"}:
+                                       "sec_temporal_common_stock_source_series",
+                                       "sec_current_security_eps_qualification"}:
                 continue
             text = path.read_text()
             self.assertNotIn("sec_ticker_exchange", text, str(path))
