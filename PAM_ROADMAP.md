@@ -227,8 +227,9 @@ The hyper-fragmented PR4D4D numbering sequence is closed. Subject to separate
 owner review and then-current base verification, the audited immediate sequence is:
 
 1. **PR5B — Narrow CURRENT security and EPS qualification:** route-local
-   issuer/security/common-class/direct-Nasdaq qualification plus applicability of
-   every retained C3 EPS observation.
+   issuer/security qualification, positive ordinary-common participation,
+   affirmative relevant-common-class coverage, direct-Nasdaq source qualification,
+   and applicability of every retained C3 EPS observation/version.
 2. **PR5C — Comparable real EPS qualification:** positive no-transformation
    share-basis and single-reporting-subject qualification through T.
 3. **PR5D — Remaining real Expected Return roots:** controlled current price and
@@ -237,10 +238,13 @@ owner review and then-current base verification, the audited immediate sequence 
 4. **PR5E — Final admission and real ER adapter:** closed evidence-replaying
    admission join and real-capable typed facts into the existing PR4B1/PR4A path.
 
-Universal identity, corporate-action, M&A, legal-right, listing-inventory and
-HISTORICAL_AS_OF engines are not prerequisites for that first route when affected
-cases fail closed. They remain roadmap requirements for broader coverage and do
-not disappear merely because they are deferred. The immediate frontier remains
+Universal identity, universal issuer-wide class inventory, corporate-action, M&A,
+exhaustive legal-right, listing-inventory and HISTORICAL_AS_OF engines are not
+prerequisites for that first route when affected cases fail closed. PR5B must still
+positively establish the supported ordinary-common participation profile and
+affirmative route-local relevant-class coverage; absence of an observed second
+class is insufficient. The broader capabilities remain roadmap requirements and
+do not disappear merely because they are deferred. The immediate frontier remains
 **Real Fact Admission**, followed by Expected Return completion and the unchanged
 pre-shadow sequence in section 9.
 
@@ -302,7 +306,9 @@ Inserted stages use numeric suffixes to preserve existing stage references.
 - controlled CURRENT acquisition and source-correspondence foundation completed
   through PR #62;
 - PR5A closure review and deliberately narrow first-route definition;
-- PR5B route-local security/class/listing and EPS-applicability qualification;
+- PR5B route-local issuer/security, ordinary-common participation,
+  affirmative relevant-common-class coverage, direct-listing source and
+  EPS-applicability qualification;
 - PR5C no-transformation share-basis and reporting-subject qualification;
 - PR5D missing current price/quote, distribution, profile and governed-policy roots;
 - PR5E final admission join and real-capable adapter into Expected Return facts;
@@ -1220,11 +1226,12 @@ Do not allow all four documents to repeat the same implementation details.
 ## 14. Next session handoff
 
 The current audited V2 integration base is post-PR4D4D3B / merged PR #62. The
-real-source chain is strong enough to support a narrow route-local identity
-foundation, but does not yet establish EPS applicability, quote semantics,
-share-basis comparability, reporting-subject comparability, the remaining ER roots,
-or final economic admission. The immediate engineering frontier remains **Real
-Fact Admission** under the PR5A closure plan.
+real-source chain supplies a strong source foundation, but does not yet establish
+ordinary-common economic participation, affirmative route-local relevant-class
+coverage, EPS applicability, quote semantics, share-basis comparability,
+reporting-subject comparability, the remaining ER roots, or final economic
+admission. The immediate engineering frontier remains **Real Fact Admission**
+under the PR5A closure plan.
 
 1. verify the current V2 remote head;
 2. read the constitution and this roadmap;

@@ -26,7 +26,8 @@ It is not necessary to build universal corporate-action, M&A, legal-right,
 cross-market identity, listing-inventory, or historical-PIT engines before the
 first real CURRENT Expected Return result. Four implementation PRs are sufficient
 as a credible plan if each receives a separate reviewed contract: PR5B qualifies
-the selected security/class/listing and EPS applicability; PR5C qualifies a
+the selected security, ordinary-common participation, route-local relevant-class
+coverage, direct listing, and EPS applicability; PR5C qualifies a
 no-transformation comparable EPS history; PR5D supplies the remaining real ER
 roots and governed policies; PR5E performs final admission and adapts admitted
 facts into the existing calculator path.
@@ -112,7 +113,7 @@ evidence structures.
 
 | Contract | Semantics proved | Real-route implication |
 | --- | --- | --- |
-| C4 security identity | One issuer, one common security/class, one direct listing, applicability across every retained EPS observation/version, and fail-closed ambiguity | The first route needs the same economic conclusions, but a route-specific SEC/Nasdaq adapter may prove them from D evidence and reject everything else |
+| C4 security identity | One issuer; ordinary residual common participation; complete relevant common-class coverage with no unresolved competing common class; one direct listing; applicability across every retained EPS observation/version; and fail-closed ambiguity | The first route needs the same economic conclusions, but a route-specific SEC/Nasdaq adapter may prove them from D evidence and reject everything else. Source correspondence or silence about another class is insufficient |
 | C5 share basis | Every retained observation is already on one evidenced target denomination; every relevant event and filing-specific treatment is covered; transformation is `NONE` | Real admission must positively establish comparable presentation. It need not implement EPS arithmetic or every corporate-action type |
 | C6 reporting subject | Every retained observation and the current issuer belong to one accounting reporting subject throughout the required interval | CIK/security sameness is insufficient. A narrow real qualifier may admit only simple continuous cases and reject predecessor/successor ambiguity |
 
@@ -127,7 +128,7 @@ C3 emits exactly seven downstream blockers. Their first-route dispositions are:
 | --- | --- | --- |
 | `OFFLINE_CAPTURE_NOT_AUTHENTICATED` | Controlled acquisition provenance | D1 can discharge this only for an exact LIVE Companyfacts replay; offline inputs remain rejected |
 | `PUBLICATION_AND_AVAILABILITY_NOT_ESTABLISHED` | No use of evidence before it is known | D1 supplies capture-bound CURRENT observed availability. Exact original publication remains unknown and must not be invented; the real ER fact contract must represent that distinction |
-| `SECURITY_SHARE_CLASS_AND_LISTING_NOT_ESTABLISHED` | Correct issuer/security/class/listing and EPS entitlement | Existing D evidence is adequate for a narrow correspondence profile, but a positive qualifier must still establish applicability and reject ambiguity |
+| `SECURITY_SHARE_CLASS_AND_LISTING_NOT_ESTABLISHED` | Correct issuer/security/class participation, relevant-class coverage, listing, and EPS entitlement | Existing D evidence is an adequate source foundation, but a positive qualifier must establish ordinary participation, affirmative route-local relevant-class coverage, EPS applicability, and reject ambiguity. Absence of an observed second class is not coverage |
 | `SPLIT_BASIS_NOT_ESTABLISHED` | Comparable currency/share denomination | Requires a real no-transformation basis qualifier; C3 exact agreement alone is insufficient |
 | `ECONOMIC_COMPARABILITY_NOT_ESTABLISHED` | One accounting reporting subject | Requires a real subject-continuity qualifier; same CIK is insufficient |
 | `SNAPSHOT_COVERAGE_ONLY` | Evidence scope/temporal completeness | May be discharged only for the exact evidence graph and interval positively covered by the narrow qualifiers; it is not removed globally |
@@ -142,16 +143,18 @@ blocker globally, accepts a caller boolean, or treats a hash/report as a capabil
 | --- | --- | --- | --- | --- |
 | 4A — issuer identity | `SUFFICIENT_FOR_FIRST_CURRENT_ROUTE` | Controlled Companyfacts CIK; controlled SEC filing/submission CIK; D4C1 CIK association; D4C2 exact CIK/symbol/exchange join | No global PAM economic-issuer identifier. A final consumer still must replay exact evidence and bind one route-local issuer anchor | PR5B binds the exact SEC registrant CIK to the selected route and rejects disagreement/reorganization ambiguity. Global entity resolution, LEI mapping, aliases, and cross-market identity are deferred |
 | 4B — security identity | `SUFFICIENT_FOR_FIRST_CURRENT_ROUTE` | D3A registered title/symbol/exchange claims; D4C2 exact current Nasdaq correspondence; D4D3A/D4D3B exact source scopes through controlled filings | No durable security identity across arbitrary ticker/listing changes | PR5B creates a route-local security key from the exact controlled evidence and rejects conflicts. Universal security masters and ticker-transition engines are deferred |
-| 4C — class identity / rights | `SUFFICIENT_FOR_FIRST_CURRENT_ROUTE` | D3A exact `COMMON STOCK` or reviewed `CLASS … COMMON STOCK` grammar; D4D2B source scope/topics; D4D3A same-filing match; D4D3B ordered correspondence | Source topics are not legal-right conclusions; no universal class-right parser | PR5B supports only the closed ordinary-common source profile, requires one unambiguous matching scope, and rejects preferred/wrapper/partnership/fund or competing common-class cases. Exhaustive legal interpretation is deferred |
-| 4D — relevant common-class inventory | `DEFERRED_BEYOND_FIRST_ROUTE` | D3A/D3B and D4 dossier retain observed registered and outstanding-class source claims and conflicts | No complete global or historical common-class inventory | A complete inventory is not mathematically required for one explicitly selected direct common class if any observed multi-class ambiguity blocks admission. Full issuer-wide class inventory remains required for broader coverage |
-| 4E — EPS applicability | `REQUIRES_REAL_CLOSURE` | C3 retains every period, filing version, and observation; D3B retains EPS dimensions; D4D3A links the selected common-stock scope | No real qualifier binds every retained C3 EPS observation/version to the selected ordinary common economics | PR5B freshly replays C3 and D evidence, requires supported total diluted-EPS semantics and unambiguous applicability for all retained lineage, and blocks dimension/class conflicts. Other numerator/entitlement profiles are deferred |
+| 4C — class identity / rights | `REQUIRES_REAL_CLOSURE` | D3A exact `COMMON STOCK` or reviewed `CLASS … COMMON STOCK` grammar; D4D2B source scopes and uninterpreted rights topics; D4D3A same-filing match; D4D3B ordered correspondence | The D-chain does not establish that the selected source class satisfies the supported ordinary residual common participation profile. A title or matched source scope is not an economic/legal participation conclusion | PR5B performs a narrow positive ordinary-common participation qualification and blocks unsupported or ambiguous participation. Exhaustive interpretation of every legal right remains deferred |
+| 4D — relevant common-class inventory | `REQUIRES_REAL_CLOSURE` | D3A/D3B and the D4 dossier retain observed registered and outstanding-class source claims, dimensions, scopes, and conflicts | The D-chain does not affirmatively establish route-local relevant-class coverage or the absence of another economically relevant common class. Silence about a second class is insufficient | PR5B requires affirmative coverage for the exact supported route and no unresolved competing economically relevant common class for the EPS-applicability question; every observed contradiction or multiple-class condition blocks. A universal issuer-wide, historical, U.S., or global class-inventory engine is deferred |
+| 4E — EPS applicability | `REQUIRES_REAL_CLOSURE` | C3 retains every period, filing version, and observation; D3B retains EPS dimensions; D4D3A links one common-stock source scope | No real qualifier binds every retained C3 EPS observation/version to selected supported ordinary-common economics. Undimensioned EPS or one matched `COMMON STOCK` scope cannot establish applicability | Only after PR5B positively closes 4C and 4D may it bind every retained C3 observation/version to the selected class, require supported total diluted-EPS semantics, and block dimension/class conflicts. Other numerator/entitlement profiles are deferred |
 | 4F — listing / quote semantics | `REQUIRES_REAL_CLOSURE` | D4C2 establishes one exact current direct Nasdaq source correspondence; C3 EPS unit is `USD/shares` | No observed-price route and no evidence-backed quote currency/unit. Venue does not prove currency | PR5D adds a controlled price/quote source with explicit currency, per-share unit, observation time, and selected-listing linkage. Other venues/currencies and FX conversion are deferred |
 | 4G — listing inventory | `DEFERRED_BEYOND_FIRST_ROUTE` | D3A/D4C1 retain observed SEC listings; D2C/D4C2 retain the selected current Nasdaq row and target-local ambiguity | No complete U.S. or historical listing inventory | The first route admits one exact direct Nasdaq listing and blocks observed conflicts/multiple candidates. Complete inventory, dual listings, migrations, and wrapper reconciliation remain future work |
 | 4H — continuity | `REQUIRES_REAL_CLOSURE` | D4A/B provide ordered controlled filing evidence through T; D4D3B exposes ordered source correspondence and variation signals | D4D3B explicitly does not prove security/class continuity or absence of basis/subject events | PR5B/PR5C require an affirmative, bounded continuity decision across the oldest EPS start through T and reject gaps, ticker/class conflicts, reclassifications, mergers, and unsupported transitions. Universal lifecycle history is deferred |
 
-The sufficiency decisions for 4A-4C are evidence decisions, not admission tokens.
-They depend on the deliberately narrow profile and on PR5B rejecting cases outside
-it. D4 and G are deferred requirements, not silently satisfied completeness claims.
+The sufficiency decisions for 4A and 4B are evidence decisions, not admission
+tokens. Properties 4C-4E require positive PR5B qualification for the deliberately
+narrow route. In particular, absence of an observed second class is not affirmative
+relevant-class coverage, and EPS applicability depends on successful 4C/4D closure.
+Property 4G remains deferred, not silently satisfied by a selected listing.
 
 ## 8. Obligations 5-7 matrix
 
@@ -277,7 +280,7 @@ analytical policies. The classifications below describe current readiness.
 | Required root/fact/policy | State | Audit conclusion |
 | --- | --- | --- |
 | CURRENT `as_of` / boundary | `REAL_ADAPTER_NEEDED` | D1 supplies T, but no real `QualifiedFacts` adapter consumes it |
-| Security and common-class identity | `REAL_ADAPTER_NEEDED` | Existing D evidence is sufficient for the narrow route; PR5B/PR5E must emit a source-neutral typed identity |
+| Security and common-class identity | `REAL_ADAPTER_NEEDED` | Existing D evidence is a sufficient source foundation, but PR5B must positively qualify ordinary participation and route-local relevant-class coverage before PR5E emits a source-neutral typed identity |
 | Observed price | `REAL_SOURCE_MISSING` | No reviewed real price acquisition/qualification route exists |
 | Price quote currency and per-share unit | `REAL_SOURCE_MISSING` | Nasdaq venue/ticker correspondence does not prove quote currency or unit |
 | Five reported diluted-EPS values/history | `REAL_SOURCE_READY` | C3 supplies exact real `Decimal` values and full retained filing-version lineage; Property 4E and obligations 5-7 still gate admission |
@@ -326,8 +329,10 @@ Quality. Commercial use is a separate owner/legal decision.
 The first safe CURRENT real ER route remains blocked by exactly these capability
 groups:
 
-1. positive route-local security/class/listing qualification and EPS applicability,
-   including bounded continuity and fail-closed ambiguity;
+1. positive route-local issuer/security qualification, ordinary-common
+   participation, affirmative relevant-common-class coverage, direct-listing
+   source qualification, and EPS applicability, including bounded continuity and
+   fail-closed ambiguity;
 2. positive no-transformation share-basis and single-reporting-subject
    comparability through T;
 3. a controlled current price with quote semantics, latest-period ordinary
@@ -370,20 +375,28 @@ route remains blocked. Each needs a separately reviewed implementation contract.
 ### PR5B — Narrow CURRENT security and EPS qualification
 
 **One capability:** produce a positive or blocked route-local qualification for
-one supported direct Nasdaq ordinary common security and the applicability of
-every retained C3 EPS observation.
+one supported issuer, security, ordinary-common participation profile,
+affirmatively covered relevant-common-class boundary, direct Nasdaq listing, and
+the applicability of every retained C3 EPS observation/version.
 
-- **Discharges:** the route-specific portion of
-  `SECURITY_SHARE_CLASS_AND_LISTING_NOT_ESTABLISHED`; Property 4E; the identity
-  and source-correspondence portion of 4H.
+- **Discharges:** Properties 4A, 4B, 4C, 4D, and 4E for the exact supported first
+  route; the route-specific
+  `SECURITY_SHARE_CLASS_AND_LISTING_NOT_ESTABLISHED` blocker; and the
+  source-correspondence portion of 4H.
 - **Dependencies:** unchanged C3, D1, and D2A-D4D3B controlled archives/replayers.
-- **Exit:** fresh replay yields one typed issuer/security/class/listing/EPS
-  qualification or explicit blocked reasons; every ambiguity and unsupported
-  profile fails closed.
-- **Nonclaims:** no global durable identity, complete class/listing inventory,
-  quote currency, share basis, reporting subject, final admission, or ER input.
+- **Exit:** fresh replay positively establishes one route-local issuer/security,
+  supported ordinary-common economic participation, affirmative relevant-class
+  coverage with no unresolved competing economic common class, direct Nasdaq
+  listing source qualification, and EPS applicability for every retained C3
+  observation/version—or returns explicit blocked reasons. Every ambiguity,
+  unsupported participation profile, contradictory/multiple-class condition, and
+  coverage gap fails closed; coverage is never inferred from silence.
+- **Nonclaims:** no global durable identity, universal issuer-wide class inventory,
+  complete listing inventory, exhaustive legal-right interpretation, quote
+  currency, share basis, reporting subject, final admission, or ER input.
 - **Omission test:** yes, omitted PR5B leaves no positive EPS-to-security/class
-  applicability decision.
+  applicability decision and no affirmative ordinary-participation/relevant-class
+  boundary.
 
 ### PR5C — Comparable real EPS qualification
 
@@ -445,7 +458,10 @@ The initial supported route is all of the following, not a looser union:
 - CURRENT analysis at one explicit D1 boundary T;
 - controlled LIVE SEC Companyfacts acquisition and supported C3 profile;
 - SEC-reporting issuer under one exact controlled CIK;
-- one ordinary common equity under the closed D4D3A title grammar;
+- one ordinary common equity under the closed D4D3A source-title grammar and a
+  positive supported ordinary residual participation qualification;
+- affirmative route-local relevant-common-class coverage with no unresolved
+  competing economically relevant common class for EPS applicability;
 - one direct, exact, non-test Nasdaq listing under the D4C2 profile;
 - a supported D3A/D3B taxonomy profile;
 - five consecutive positive 365/366-day annual US-GAAP diluted-EPS periods in
@@ -475,8 +491,11 @@ explicitly supported real ordinary common equity from controlled source evidence
 through:
 
 1. CURRENT acquisition, immutable provenance, and observed-available-by-T authority;
-2. route-local issuer/security/common-class/direct-Nasdaq qualification;
-3. every retained diluted-EPS observation's applicability to that common equity;
+2. route-local issuer/security qualification, supported ordinary-common economic
+   participation, affirmative relevant-common-class coverage, and direct-Nasdaq
+   source qualification;
+3. every retained diluted-EPS observation/version's applicability to that common
+   equity after the class boundary in step 2 is established;
 4. one positively evidenced no-transformation share basis and one accounting
    reporting subject across the required interval through T;
 5. a closed final admission decision that freshly verifies its inputs;
@@ -532,8 +551,10 @@ validation. No expected value may be regenerated to make a failure pass.
 
 After owner review of PR5A, the next proposed chantier is PR5B — Narrow CURRENT
 security and EPS qualification. Its contract must start from the then-current
-verified V2 integration head, preserve all D-chain nonclaims, define exact positive
-and negative route cases, and stop before share-basis/reporting-subject admission.
+verified V2 integration head, preserve all D-chain nonclaims, positively qualify
+ordinary-common participation and route-local relevant-class coverage before EPS
+applicability, define exact positive and negative route cases, and stop before
+share-basis/reporting-subject admission.
 
 If owner review changes the first-route scope or concludes that an evidence source
 cannot positively support PR5B/PR5C, revise this closure plan explicitly. Do not
