@@ -54,15 +54,15 @@ Integration branch:
 
 `model-v2/expected-return-challenger`
 
-Verified post-PR4D3A state after merged PR #49 (2026-09-26):
+Verified post-PR4D4D3B state after merged PR #62 (2026-09-27):
 
 Merge commit:
 
-`aed7c97e41388daa11bc7021fbc38a2911d979ff`
+`880d61f001bdfb1b8196f9207212c8dc83257f2d`
 
 Tree:
 
-`8e761292be0418d26e7c031a64696b2f30135b22`
+`98c7deebb10c7779cb77e0e9230ed38659a8637a`
 
 Always verify current remote state before using these values.
 
@@ -197,74 +197,52 @@ Existing documents remain:
 
 ---
 
-## 8. Current technical frontier — remaining real admission
+## 8. Current technical frontier — audited Real Fact Admission closure
 
-### PR4D1 — CURRENT real-authority foundation ✅
+### Real-source chain through PR #62 ✅
 
-Merged PR #42 establishes acquisition provenance, capture-bound CURRENT observed
-availability and CURRENT snapshot scope through the controlled LIVE SEC Companyfacts
-route. Its source-route registry grants no provider-wide trust. Exact publication
-remains unknown; there is no historical-as-of authority or freshness beyond capture.
+Merged PR4D1 through PR4D4D3B now provide a controlled CURRENT Companyfacts
+authority boundary; complete-submission, Submissions, Nasdaq Listed and SEC
+ticker/exchange captures; registered-security and common-class/EPS source claims;
+historical taxonomy profiles; a Property-4 temporal dossier and T boundary; one
+exact CURRENT SEC/Nasdaq registered-listing bridge; filing-document and direct
+Section-12 source discovery; common-stock source scopes; a same-filing class
+source bridge; and an ordered temporal common-stock source correspondence series.
 
-Real identity, share-basis and reporting-subject qualifications remain unresolved.
-There is no final economic admission or Decimal→float model adaptation. Factual
-authority remains separate from licensing/use authority. The detailed contract is
-`EXPECTED_RETURN_PR4D1.md`; the C3→C6 synthetic chain is unchanged.
+These are evidence and source-correspondence capabilities. They do not silently
+establish economic identity, share basis, reporting subject, quote semantics,
+publication time, or final admission. D1 still establishes only route-specific
+acquisition provenance, capture-bound CURRENT observed availability and snapshot
+scope. Factual authority remains separate from permitted/commercial use.
 
-### PR4D2A — Controlled SEC complete-submission filing capture ✅
+### PR5A — Real Fact Admission gap review ✅
 
-Merged PR #44 adds immutable exact-byte filing evidence and controlled acquisition.
-It grants no economic identity qualification or D1 authority upgrade.
+`EXPECTED_RETURN_PR5A_REAL_ADMISSION_GAP_REVIEW.md` audits the actual code, tests,
+synthetic semantics and real-source chain at post-PR #62. It freezes one narrow
+first route and distinguishes existing sufficient evidence, immediate real
+closures, deferred requirements and optional refinements. PR5A is documentation
+only and grants no implementation or admission authority.
 
-### PR4D2B — Controlled SEC Submissions inventory ✅
+The hyper-fragmented PR4D4D numbering sequence is closed. Subject to separate
+owner review and then-current base verification, the audited immediate sequence is:
 
-Merged PR #45 adds controlled SEC Submissions root/history acquisition, immutable
-parent-linked receipts, deterministic offline replay and captured-reference closure.
-The detailed implementation contract is `EXPECTED_RETURN_PR4D2B.md`.
+1. **PR5B — Narrow CURRENT security and EPS qualification:** route-local
+   issuer/security/common-class/direct-Nasdaq qualification plus applicability of
+   every retained C3 EPS observation.
+2. **PR5C — Comparable real EPS qualification:** positive no-transformation
+   share-basis and single-reporting-subject qualification through T.
+3. **PR5D — Remaining real Expected Return roots:** controlled current price and
+   quote semantics, dividend/nonpayer state, ordinary-compounder profile and
+   reviewed applicable ER policies.
+4. **PR5E — Final admission and real ER adapter:** closed evidence-replaying
+   admission join and real-capable typed facts into the existing PR4B1/PR4A path.
 
-> Captured-reference closure is not filing-history completeness, economic-event
-> completeness, historical authority, property-4 qualification, or coverage through
-> the D1 CURRENT boundary.
-
-### PR4D2C — Controlled Nasdaq Listed snapshot ✅
-
-Merged PR #47 adds controlled capture of Nasdaq's official `nasdaqlisted.txt`,
-an immutable exact-byte evidence archive, explicit receipt-based offline replay
-and structural validation. Duplicate symbols preserve every occurrence and produce
-`SOURCE_CONFLICT`; no silent deduplication or winner selection occurs. The detailed
-contract is `EXPECTED_RETURN_PR4D2C.md`.
-
-A captured current directory snapshot grants no economic identity authority,
-historical listing continuity, CIK qualification, quote-currency proof,
-D1-through-T continuity or final admission authority.
-
-### PR4D3A — Offline SEC registered-security source-claim extraction ✅
-
-Merged PR #49 adds deterministic offline extraction of SEC registered-security
-source claims from an explicitly selected D2A filing receipt. Its deliberately
-narrow reviewed profile supports DEI 2025 + US-GAAP 2025 and DEI 2026 + US-GAAP
-2026.
-
-PR4D3A is **source-claim extraction only**. The extractor is not an identity
-authority and does not establish:
-
-- Property 4A issuer economic identity;
-- 4B security identity;
-- 4C class identity or rights;
-- 4D complete relevant class inventory;
-- 4E EPS entitlement or applicability;
-- 4F qualified listing, quote currency or quote unit;
-- 4G complete listing inventory;
-- 4H historical continuity or D1-through-T coverage;
-- obligations 5–7; or
-- final admission.
-
-**Property 4 remains unresolved in every part**, as do obligations 5–7. D2B,
-D2C and D3A do not grant economic admission authority. Do not reinterpret
-synthetic qualifications, current snapshots or extracted source claims as real
-identity or historical continuity, or weaken existing blockers. Real Fact
-Admission remains the immediate engineering frontier and its next implementation
-contract requires separate review.
+Universal identity, corporate-action, M&A, legal-right, listing-inventory and
+HISTORICAL_AS_OF engines are not prerequisites for that first route when affected
+cases fail closed. They remain roadmap requirements for broader coverage and do
+not disappear merely because they are deferred. The immediate frontier remains
+**Real Fact Admission**, followed by Expected Return completion and the unchanged
+pre-shadow sequence in section 9.
 
 ---
 
@@ -321,14 +299,17 @@ Inserted stages use numeric suffixes to preserve existing stage references.
 
 ### Stage A — Real fact admission
 
-- CURRENT acquisition authority foundation completed by PR4D1; remaining admission work;
-- source registry / permitted-use metadata;
-- real identity authorities;
-- real corporate-action/share-basis evidence;
-- reporting-subject evidence;
-- publication / availability qualification;
-- real admission join;
-- real-capable adapter into Expected Return facts.
+- controlled CURRENT acquisition and source-correspondence foundation completed
+  through PR #62;
+- PR5A closure review and deliberately narrow first-route definition;
+- PR5B route-local security/class/listing and EPS-applicability qualification;
+- PR5C no-transformation share-basis and reporting-subject qualification;
+- PR5D missing current price/quote, distribution, profile and governed-policy roots;
+- PR5E final admission join and real-capable adapter into Expected Return facts;
+- route-specific factual authority kept separate from permitted/commercial use;
+- broader identity, action, listing, historical-PIT and international capabilities
+  remain required according to their later approved scope, without blocking the
+  first safe CURRENT route when unsupported cases fail closed.
 
 ### Stage B — Expected Return completion
 
@@ -1238,23 +1219,26 @@ Do not allow all four documents to repeat the same implementation details.
 
 ## 14. Next session handoff
 
-The current V2 integration base is post-PR4D3A / merged PR #49. D3A supplies
-structured registered-security source claims from explicitly selected D2A filing
-receipts, but remains extraction-only. It does not solve Property 4A–4H or
-obligations 5–7 and is not an identity authority. The immediate engineering
-frontier remains **Real Fact Admission**.
+The current audited V2 integration base is post-PR4D4D3B / merged PR #62. The
+real-source chain is strong enough to support a narrow route-local identity
+foundation, but does not yet establish EPS applicability, quote semantics,
+share-basis comparability, reporting-subject comparability, the remaining ER roots,
+or final economic admission. The immediate engineering frontier remains **Real
+Fact Admission** under the PR5A closure plan.
 
 1. verify the current V2 remote head;
 2. read the constitution and this roadmap;
-3. read the relevant Real Fact Admission contracts, including
-   `EXPECTED_RETURN_PR4D3A.md`;
-4. obtain separate review of the next Real Fact Admission implementation contract;
-   future code must preserve the Global Universe & Cross-Market Admission
-   Architecture formalized here, and this roadmap edit authorizes no implementation;
-5. preserve V1 unchanged.
+3. read `EXPECTED_RETURN_PR5A_REAL_ADMISSION_GAP_REVIEW.md` and the relevant
+   PR4C/PR4D contracts;
+4. obtain separate owner review of a PR5B implementation contract; PR5A and this
+   roadmap update authorize no implementation;
+5. preserve every source-authority, fail-closed, global-universe and pre-shadow
+   invariant while supporting only the exact reviewed first route;
+6. preserve V1 unchanged.
 
 ---
 
-*Roadmap state updated on 2026-09-26 to verified post-PR #49 / PR4D3A.
+*Roadmap state updated on 2026-09-27 to verified post-PR #62 / PR4D4D3B and the
+PR5A Real Fact Admission closure review.
 Future architecture stages and shadow-readiness gates are requirements only.
 No implementation, runtime, investment-rule or authority change is authorized here.*
