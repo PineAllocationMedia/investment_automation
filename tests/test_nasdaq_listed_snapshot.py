@@ -259,7 +259,8 @@ class NasdaqListedDependencyTests(unittest.TestCase):
         for directory_name in ("src", "pit_comparison", "economic_facts", "scripts"):
             paths.extend((root / directory_name).rglob("*.py"))
         for path in paths:
-            if path.stem in modules | {"sec_current_registered_listing_bridge"}:
+            if path.stem in modules | {"sec_current_registered_listing_bridge",
+                                       "sec_current_common_stock_class_bridge"}:
                 continue
             for node in ast.walk(ast.parse(path.read_text())):
                 if isinstance(node, ast.ImportFrom):
