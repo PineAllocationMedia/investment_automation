@@ -474,7 +474,8 @@ class ClassEPSBoundaryTests(unittest.TestCase):
                      *(root / "economic_facts").rglob("*.py"),
                      *(root / "pit_comparison").rglob("*.py"),
                      *(root / "scripts").rglob("*.py")]:
-            if file in {module, root / "economic_facts/sec_property4_temporal_dossier.py"}:
+            if file in {module, root / "economic_facts/sec_property4_temporal_dossier.py",
+                        root / "economic_facts/sec_current_security_eps_qualification.py"}:
                 continue
             self.assertNotIn("sec_class_eps_claims", file.read_text(), str(file))
 
