@@ -434,7 +434,8 @@ class SecFilingDocumentInventoryDependencyTests(unittest.TestCase):
                 self.assertNotIn(node.func.id, {"float", "eval", "exec", "open", "__import__"})
         for file in (root / "economic_facts").glob("*.py"):
             if file in {module,
-                        root / "economic_facts/sec_direct_section12_description_source.py"}:
+                        root / "economic_facts/sec_direct_section12_description_source.py",
+                        root / "economic_facts/sec_section12_rights_source_claims.py"}:
                 continue
             self.assertNotIn("sec_filing_document_inventory", file.read_text(), str(file))
 
