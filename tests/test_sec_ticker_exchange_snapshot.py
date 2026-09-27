@@ -242,7 +242,8 @@ class SecTickerExchangeDependencyTests(unittest.TestCase):
         for directory in ("src", "pit_comparison", "economic_facts", "scripts"):
             paths.extend((root / directory).rglob("*.py"))
         for path in paths:
-            if path.stem in modules | {"sec_current_registered_listing_bridge"}:
+            if path.stem in modules | {"sec_current_registered_listing_bridge",
+                                       "sec_current_common_stock_class_bridge"}:
                 continue
             text = path.read_text()
             self.assertNotIn("sec_ticker_exchange", text, str(path))

@@ -497,11 +497,12 @@ class SecSection12RightsSourceClaimsDependencyTests(unittest.TestCase):
         root = Path(__file__).resolve().parents[1]
         module_name = "sec_section12_rights_source_claims"
         allowed = root / "economic_facts" / (module_name + ".py")
+        downstream = root / "economic_facts/sec_current_common_stock_class_bridge.py"
         for path in [root / "main.py", *(root / "src").rglob("*.py"),
                      *(root / "pit_comparison").rglob("*.py"),
                      *(root / "scripts").rglob("*.py"),
                      *(root / "economic_facts").rglob("*.py")]:
-            if path == allowed:
+            if path in {allowed, downstream}:
                 continue
             self.assertNotIn(module_name, path.read_text(), str(path))
 

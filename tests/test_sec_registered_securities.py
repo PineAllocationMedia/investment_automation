@@ -662,7 +662,8 @@ class RegisteredSecurityBoundaryTests(unittest.TestCase):
                      *(root / 'pit_comparison').rglob('*.py'), *(root / 'scripts').rglob('*.py')]:
             if file in {module, root / 'economic_facts/sec_primary_document.py',
                         root / 'economic_facts/sec_property4_temporal_dossier.py',
-                        root / 'economic_facts/sec_current_registered_listing_bridge.py'}:
+                        root / 'economic_facts/sec_current_registered_listing_bridge.py',
+                        root / 'economic_facts/sec_current_common_stock_class_bridge.py'}:
                 continue
             self.assertNotIn('sec_registered_securities', file.read_text(), str(file))
 

@@ -291,7 +291,8 @@ class SubmissionsDependencyTests(unittest.TestCase):
             for path in (root_dir / directory).rglob("*.py"):
                 if path.stem in new | {"sec_property4_temporal_dossier",
                                        "sec_property4_temporal_boundary",
-                                       "sec_current_registered_listing_bridge"}:
+                                       "sec_current_registered_listing_bridge",
+                                       "sec_current_common_stock_class_bridge"}:
                     continue
                 for node in ast.walk(ast.parse(path.read_text())):
                     if isinstance(node, ast.Import):
