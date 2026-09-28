@@ -2875,3 +2875,39 @@ that depends on PR5C. PR5D remains incomplete and PR5E has not started. This dec
 changes no runtime behavior, model, score, Quality calculation, Confidence formula,
 recommendation, allocation, V1 behavior, production authority, deployment or
 `MODEL_RULES_VERSION`.
+
+## 2026-09-28 - Risk-aware CI routing without reducing validation coverage
+
+### Decision
+
+PAM retains narrow logical pull requests and introduces three deterministic CI
+tiers derived from the complete base-to-head change set. `DOCS_ONLY` applies only
+to all-Markdown diffs. `STANDARD` runs the complete discovered ordinary unittest
+suite minus exactly the isolated heavyweight PIT adapter-equivalence module.
+`FULL_PIT` adds that complete heavyweight module back. Unknown or ambiguous paths
+fail to `FULL_PIT`, and the existing `Baseline V1 CI / test` required-check identity
+is preserved.
+
+The heavyweight proof remains mandatory whenever its reviewed dependency surface
+changes, including CI routing, `main.py`, the Python environment, `src/**`,
+`pit_comparison/**`, `tests/pit_*`, `tests/test_pit_*`, and the CI helpers or their
+tests. Documentation-only work avoids Python setup/testing. Reviewed isolated
+`economic_facts/**` work continues to run every ordinary discovered test under
+`STANDARD`.
+
+### Reasoning
+
+A recent complete CI run executed 2,452 tests in about 890 seconds. The pinned PIT
+adapter-equivalence proof accounts for most of that wall-clock time. Repeating the
+same four-mode, sixteen-scenario equivalence proof for unrelated economic-fact or
+documentation changes adds substantial latency without materially increasing
+coverage. Dependency-sensitive routing preserves the proof where it can change,
+keeps future ordinary tests automatically covered, and fails expensive on doubt.
+
+### Expected impact
+
+Ordinary V2 pull-request feedback should become materially faster without changing
+model behavior, PIT fingerprints, determinism identity, V1 authority, evidence
+semantics or production behavior. Full heavyweight validation remains mandatory
+for its dependency surface. Obsolete runs for the same PR may be cancelled safely;
+unrelated PRs remain independent.
