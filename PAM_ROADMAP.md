@@ -54,15 +54,15 @@ Integration branch:
 
 `model-v2/expected-return-challenger`
 
-Verified post-PR4D4D3B state after merged PR #62 (2026-09-27):
+Verified post-PR5C0A state after merged PR #65 (2026-09-28):
 
 Merge commit:
 
-`880d61f001bdfb1b8196f9207212c8dc83257f2d`
+`639599aa4daa947296ef21bb46ae314702e72500`
 
 Tree:
 
-`98c7deebb10c7779cb77e0e9230ed38659a8637a`
+`78ee953428255be6424b192b5b6c7284e1b22a9c`
 
 Always verify current remote state before using these values.
 
@@ -199,7 +199,7 @@ Existing documents remain:
 
 ## 8. Current technical frontier — audited Real Fact Admission closure
 
-### Real-source chain through PR #64 / PR5B ✅
+### Real-source chain through PR #65 / PR5C0A ✅
 
 Merged PR4D1 through PR4D4D3B now provide a controlled CURRENT Companyfacts
 authority boundary; complete-submission, Submissions, Nasdaq Listed and SEC
@@ -217,6 +217,10 @@ still establishes only route-specific acquisition provenance, capture-bound
 CURRENT observed availability and snapshot scope. Factual authority remains
 separate from permitted/commercial use.
 
+Merged PR5C0A adds controlled reporting-subject filing-universe, metadata-signal
+and explicit source-local claim evidence only. It establishes no reporting-subject
+continuity and discharges no admission blocker.
+
 ### PR5A — Real Fact Admission gap review ✅
 
 `EXPECTED_RETURN_PR5A_REAL_ADMISSION_GAP_REVIEW.md` audits the actual code, tests,
@@ -232,8 +236,10 @@ basis source foundations are still missing. The reviewed immediate sequence is:
 1. **PR5C0A — Reporting-subject source foundation:** controlled SEC filing
    inventory, metadata signals, exact passages and explicit source-local claims;
    no continuity conclusion and no blocker discharge.
-2. **PR5C0B — Corporate-action/share-basis source foundation:** separately
-   reviewed denominator/basis evidence; not implemented or authorized by PR5C0A.
+2. **PR5C0B — Corporate-action/share-basis source foundation:** implementation
+   under review preserves controlled filing-universe, explicit action/presentation
+   claims, ratios, dates, class scope, provenance and conflicts only. It does not
+   establish share-basis comparability or discharge `SPLIT_BASIS_NOT_ESTABLISHED`.
 3. **PR5C — Comparable real EPS qualification:** positive no-transformation
    share-basis and single-reporting-subject qualification through T.
 4. **PR5D — Remaining real Expected Return roots:** controlled current price and
@@ -1232,26 +1238,28 @@ Do not allow all four documents to repeat the same implementation details.
 
 ## 14. Next session handoff
 
-The current audited V2 integration base is post-PR5B / merged PR #64. PR5B closes
+The current audited V2 integration base is post-PR5C0A / merged PR #65. PR5B closes
 its narrow CURRENT security/EPS route, but the graph still does not establish
 share-basis comparability, reporting-subject continuity, quote semantics, the
 remaining ER roots, or final economic admission. PR5C0A is the reviewed source-
-foundation step for reporting-subject evidence only; PR5C0B and final PR5C remain
-separate. The immediate frontier remains **Real Fact Admission**.
+foundation step for reporting-subject evidence only. PR5C0B source-foundation
+implementation is under review and still cannot establish public-source
+no-transformation completeness; final PR5C remains separate. The immediate
+frontier remains **Real Fact Admission**.
 
 1. verify the current V2 remote head;
 2. read the constitution and this roadmap;
 3. read `EXPECTED_RETURN_PR5A_REAL_ADMISSION_GAP_REVIEW.md` and the relevant
    PR4C/PR4D contracts;
-4. complete PR5C0A review without treating source silence as continuity, then
-   obtain separate owner review for PR5C0B and PR5C;
+4. review PR5C0B without treating an empty detected-event inventory as no-action
+   evidence, then perform an evidence-sufficiency review before PR5C;
 5. preserve every source-authority, fail-closed, global-universe and pre-shadow
    invariant while supporting only the exact reviewed first route;
 6. preserve V1 unchanged.
 
 ---
 
-*Roadmap state updated on 2026-09-27 to verified post-PR #64 / PR5B and the
-PR5C0A reporting-subject source-foundation checkpoint.
+*Roadmap state updated on 2026-09-28 to verified post-PR #65 / PR5C0A and the
+PR5C0B corporate-action/share-basis source-foundation implementation under review.
 Future architecture stages and shadow-readiness gates are requirements only.
 No implementation, runtime, investment-rule or authority change is authorized here.*
