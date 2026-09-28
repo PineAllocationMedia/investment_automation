@@ -154,6 +154,52 @@ class SecShareBasisSourceClaimsTests(unittest.TestCase):
                     self.assertNotEqual(claim.lifecycle,
                                         source.CorporateActionLifecycle.EFFECTIVE_OR_IMPLEMENTED_REFERENCE)
 
+    def test_explicit_lifecycle_negation_precedes_positive_tokens(self):
+        passages = (
+            "The board did not approve the reverse stock split.",
+            "The reverse stock split was not approved.",
+            "The reverse stock split was not effective on January 15, 2026.",
+            "The reverse stock split did not become effective.",
+            "The approved reverse stock split will not be implemented.",
+            "The reverse stock split was not authorized.",
+            "The reverse stock split did not receive approval.",
+            "The reverse stock split will not be effected.",
+            "The reverse stock split will not become effective.",
+            "The reverse stock split was never effected.",
+            "The reverse stock split was never implemented.",
+        )
+        for index, passage in enumerate(passages, start=1):
+            with self.subTest(passage=passage):
+                current = row(number=index, form="8-K")
+                assessment = self.assess(self.parent([current]),
+                                         self.filing(current, blocks=(passage,)))
+                claim = next(claim for claim in assessment.explicit_claims
+                             if claim.kind is
+                             source.ShareBasisClaimKind.REVERSE_STOCK_SPLIT_REFERENCE)
+                self.assertEqual(
+                    claim.lifecycle,
+                    source.CorporateActionLifecycle.CANCELLED_OR_NOT_IMPLEMENTED_REFERENCE,
+                )
+
+    def test_affirmative_lifecycle_grammar_remains_supported(self):
+        passages = (
+            ("Stockholders approved a 1-for-10 reverse stock split.",
+             source.CorporateActionLifecycle.APPROVED_REFERENCE),
+            ("The 1-for-10 reverse stock split became effective on January 15, 2026.",
+             source.CorporateActionLifecycle.EFFECTIVE_OR_IMPLEMENTED_REFERENCE),
+            ("The 1-for-10 reverse stock split was implemented on January 15, 2026.",
+             source.CorporateActionLifecycle.EFFECTIVE_OR_IMPLEMENTED_REFERENCE),
+        )
+        for index, (passage, expected) in enumerate(passages, start=1):
+            with self.subTest(passage=passage):
+                current = row(number=index, form="8-K")
+                assessment = self.assess(self.parent([current]),
+                                         self.filing(current, blocks=(passage,)))
+                claim = next(claim for claim in assessment.explicit_claims
+                             if claim.kind is
+                             source.ShareBasisClaimKind.REVERSE_STOCK_SPLIT_REFERENCE)
+                self.assertEqual(claim.lifecycle, expected)
+
     def test_conditional_ratio_without_action_is_not_completed_event(self):
         current = row(form="8-K")
         passage = "If approved, every 10 shares would become one share."
@@ -261,6 +307,25 @@ class SecShareBasisSourceClaimsTests(unittest.TestCase):
                                      source.ShareBasisClaimKind.SPLIT_RATIO_REFERENCE}:
                 self.assertEqual(claim.retrospective_scope,
                                  source.RetrospectivePresentationScope.ALL_PERIODS_PRESENTED)
+
+    def test_explicit_retrospective_negation_is_not_affirmative_adjustment(self):
+        affirmative_adjustments = {
+            source.ShareBasisClaimKind.RETROACTIVE_SHARE_ADJUSTMENT_REFERENCE,
+            source.ShareBasisClaimKind.RETROACTIVE_PER_SHARE_ADJUSTMENT_REFERENCE,
+            source.ShareBasisClaimKind.HISTORICAL_EPS_ADJUSTED_FOR_ACTION_REFERENCE,
+        }
+        passages = (
+            "Historical EPS was not retroactively adjusted.",
+            "Per-share amounts were not retrospectively adjusted.",
+            "The Company did not restate prior share amounts to reflect the stock split.",
+        )
+        for index, passage in enumerate(passages, start=1):
+            with self.subTest(passage=passage):
+                annual = row(number=index, form="10-K")
+                assessment = self.assess(self.parent([annual]),
+                                         self.filing(annual, blocks=(passage,)))
+                self.assertTrue(affirmative_adjustments.isdisjoint(
+                    claim.kind for claim in assessment.explicit_claims))
 
     def test_retrospective_specific_and_vague_scope_remain_bounded(self):
         annual = row(form="10-K")

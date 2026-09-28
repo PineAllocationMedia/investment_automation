@@ -742,8 +742,20 @@ def _lifecycle(value, action_kind):
     if action_kind is None:
         return CorporateActionLifecycle.UNRESOLVED_LIFECYCLE
     negative = (
-        r"\bDID\s+NOT\s+(?:EFFECT|IMPLEMENT|COMPLETE|PROCEED\s+WITH)\b",
-        r"\bWAS\s+NOT\s+(?:EFFECTED|IMPLEMENTED|COMPLETED)\b",
+        r"\bDID\s+NOT\s+(?:APPROVE|AUTHORIZE|EFFECT|IMPLEMENT|COMPLETE|"
+        r"PROCEED\s+WITH|BECOME\s+EFFECTIVE|OCCUR)\b",
+        r"\bDID\s+NOT\s+(?:RECEIVE|OBTAIN)\s+APPROVAL\b",
+        r"\b(?:WAS|WERE|IS|ARE)\s+(?:NOT|NEVER)\s+"
+        r"(?:APPROVED|AUTHORIZED|EFFECTIVE|EFFECTED|IMPLEMENTED|COMPLETED)\b",
+        r"\b(?:HAS|HAVE|HAD)\s+(?:NOT|NEVER)\s+BEEN\s+"
+        r"(?:APPROVED|AUTHORIZED|EFFECTIVE|EFFECTED|IMPLEMENTED|COMPLETED)\b",
+        r"\bWILL\s+(?:NOT|NEVER)\s+(?:(?:BE|BECOME)\s+)?"
+        r"(?:APPROVED|AUTHORIZED|EFFECTIVE|EFFECTED|IMPLEMENTED|COMPLETED)\b",
+        r"\bWILL\s+(?:NOT|NEVER)\s+"
+        r"(?:APPROVE|AUTHORIZE|EFFECT|IMPLEMENT|COMPLETE|OCCUR)\b",
+        r"\b(?:APPROVAL|AUTHORIZATION)\s+(?:WAS|WERE|IS|ARE)\s+"
+        r"(?:NOT|NEVER)\s+(?:RECEIVED|OBTAINED|GRANTED)\b",
+        r"\b(?:WAS|WERE)\s+REJECTED\b",
         r"\bCANCELLED\b", r"\bCANCELED\b", r"\bABANDONED\b",
     )
     if any(re.search(pattern, value, re.ASCII) for pattern in negative):
@@ -827,6 +839,20 @@ def _class_link(value, exact_text, accession, document_semantic_id, block_ordina
 
 
 def _retrospective(value):
+    negative_adjustment = (
+        r"\b(?:WAS|WERE|IS|ARE)\s+(?:NOT|NEVER)\s+"
+        r"(?:RETROACTIVELY|RETROSPECTIVELY)\s+ADJUSTED\b",
+        r"\b(?:HAS|HAVE|HAD)\s+(?:NOT|NEVER)\s+BEEN\s+"
+        r"(?:RETROACTIVELY|RETROSPECTIVELY)\s+ADJUSTED\b",
+        r"\b(?:WAS|WERE|IS|ARE|HAS|HAVE|HAD)\s+(?:NOT|NEVER)\s+"
+        r"(?:BEEN\s+)?ADJUSTED\s+(?:RETROACTIVELY|RETROSPECTIVELY)\b",
+        r"\bDID\s+NOT\s+(?:(?:RETROACTIVELY|RETROSPECTIVELY)\s+)?ADJUST\b",
+        r"\bDID\s+NOT\s+RESTATE\b",
+        r"\b(?:WAS|WERE|IS|ARE|HAS|HAVE|HAD)\s+(?:NOT|NEVER)\s+"
+        r"(?:BEEN\s+)?RESTATED\s+TO\s+REFLECT\b",
+    )
+    if any(re.search(pattern, value, re.ASCII) for pattern in negative_adjustment):
+        return (), RetrospectivePresentationScope.NOT_APPLICABLE, None
     adjusted = (_contains(value, "RETROACTIVELY ADJUSTED")
                 or _contains(value, "RETROSPECTIVELY ADJUSTED")
                 or _contains(value, "RESTATED TO REFLECT"))

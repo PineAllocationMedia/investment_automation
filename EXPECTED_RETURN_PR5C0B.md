@@ -142,8 +142,12 @@ Keyword presence never creates an implemented event. The closed lifecycle is:
 - `UNRESOLVED_LIFECYCLE`.
 
 Finite affirmative grammar is evaluated only within one bounded visible block.
-Negative, cancelled, proposed, conditional, and approved-but-not-effective
-language cannot become an effective action. Unresolved language stays unresolved.
+Reviewed explicit negation has precedence over positive lifecycle tokens, so
+not-approved, not-authorized, not-effective, not-effected, not-implemented,
+cancelled, rejected, proposed, conditional, and approved-but-not-effective language
+cannot become a positive approval or effective action. Explicitly negated
+retrospective adjustment language likewise cannot emit an affirmative adjustment
+claim. Unresolved language stays unresolved.
 
 ## Ratios, dates and retrospective presentation
 
@@ -258,7 +262,7 @@ expectation was regenerated.
 
 | Isolated selection | Tests | Result |
 | --- | ---: | --- |
-| PR5C0B focused | 24 | PASS |
+| PR5C0B focused | 27 | PASS |
 | PR5C0A | 27 | PASS |
 | SEC Submissions | 101 | PASS |
 | SEC filing acquisition/archive/document inventory | 99 | PASS |
@@ -271,7 +275,7 @@ expectation was regenerated.
 | runtime isolation | 29 | PASS |
 | validation identity isolation | 19 | PASS |
 | protected PIT/determinism | 40 | PASS |
-| complete isolated suite | **2,400** | **PASS** |
+| complete isolated suite | **2,403** | **PASS** |
 
 Python compilation and working-tree whitespace checks passed. Final staged and
 committed-tree whitespace checks are performed during publication.
