@@ -18,7 +18,7 @@ from .sec_filing_archive import (
 )
 
 INVENTORY_CONTRACT_VERSION = "2026-09-26-sec-filing-document-inventory-v1"
-SUPPORTED_FORMS = frozenset(("10-K", "10-K/A", "10-Q", "10-Q/A", "8-K"))
+SUPPORTED_FORMS = frozenset(("10-K", "10-K/A", "10-Q", "10-Q/A", "8-K", "8-K/A"))
 _MAX_HEADER_BYTES = 256 * 1024
 _MAX_DOCUMENTS = 1_000
 _MAX_DESCRIPTION_BYTES = 4_096

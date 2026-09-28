@@ -18,7 +18,7 @@ from . import sec_acquisition as _sec
 from .sec_filing_archive import (FilingArchiveError, FilingReceipt, MAX_FILING_BYTES,
                                  SecFilingArchive, endpoint_for)
 
-SUPPORTED_FORMS = frozenset(("10-K", "10-K/A", "10-Q", "10-Q/A", "8-K"))
+SUPPORTED_FORMS = frozenset(("10-K", "10-K/A", "10-Q", "10-Q/A", "8-K", "8-K/A"))
 _MAX_HEADER_BYTES = 256 * 1024
 _MAX_DOCUMENTS = 1000
 _CHUNK_BYTES = 64 * 1024
