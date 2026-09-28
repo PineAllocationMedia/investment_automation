@@ -2828,3 +2828,50 @@ ETF selection, FX transaction and order execution remain pending separately revi
 contracts. It changes no investment rule, V1 behavior, V2 challenger authority,
 runtime, deployment or `MODEL_RULES_VERSION`, which remains
 `2026-08-23-allocation-room-integrity-v7`.
+
+## 2026-09-28 - Capability-based partial analysis and free-core data architecture
+
+### Decision
+
+PAM will evaluate research capabilities dimensionally rather than rejecting an
+entire security because one qualification or analytical capability is unavailable,
+partial, unsupported, review-required or conflicted. Economic evidence, capability
+coverage, analytical conclusions and investment/admission authority remain separate.
+Each analytical output must declare and satisfy its own dependencies and carry its
+own availability and authority boundary.
+
+The canonical capability states are `SUPPORTED`, `PARTIAL`, `UNSUPPORTED`,
+`UNAVAILABLE`, `REVIEW_REQUIRED` and `CONFLICTED`. They must not be compressed into
+one synthetic coverage score for authority decisions. Research participation is
+separately described by `FULL_ANALYSIS_ELIGIBLE`, `PARTIAL_ANALYSIS`,
+`RESEARCH_CANDIDATE` and `UNSUPPORTED_RESEARCH_PROFILE`; none grants Opportunity Set,
+recommendation or allocation authority.
+
+PAM's supported core operation must not require a paid financial-data subscription.
+Paid data may later extend coverage only as an optional, separately approved source
+with explicit factual, permitted-use, licensing and commercial-use boundaries. A
+paid provider may not become a hidden prerequisite for core PAM operation.
+
+### Reasoning
+
+- International official/public-source coverage will remain heterogeneous.
+- Missing evidence is information uncertainty, not negative company economics.
+- Independent analytical outputs have different evidence and qualification
+  dependencies.
+- Strict admission and every dependent output must remain fail-closed.
+- Narrower but trustworthy free/public coverage is preferable to universal-looking
+  coverage built from guessed facts.
+
+### Expected impact
+
+More securities may remain research candidates or support legitimate partial
+analysis while unavailable outputs stay explicitly unavailable. Future international
+adapters can improve capability coverage incrementally through source-neutral
+economic contracts.
+
+PR5C remains the strict comparable-EPS route: its failure does not erase unrelated
+research, but it continues to block strict EPS growth and every Expected Return path
+that depends on PR5C. PR5D remains incomplete and PR5E has not started. This decision
+changes no runtime behavior, model, score, Quality calculation, Confidence formula,
+recommendation, allocation, V1 behavior, production authority, deployment or
+`MODEL_RULES_VERSION`.

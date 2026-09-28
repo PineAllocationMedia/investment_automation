@@ -244,6 +244,28 @@ The purpose of this structure is to separate:
 If evidence is missing, contradictory or outside the supported contract, the system
 should prefer **unavailable / unsupported / lower confidence** over fabricated certainty.
 
+### Capability-based partial analysis
+
+Failure of one qualification or analytical capability must not automatically
+invalidate every other independent research capability for the same security.
+Economic evidence, capability coverage, analytical conclusions and investment/
+admission authority remain separate; each analytical output must satisfy its own
+dependencies and carry its own availability and authority boundary.
+
+Canonical invariants:
+
+```text
+DATA_UNAVAILABLE != BAD_COMPANY
+UNSUPPORTED != LOW_QUALITY
+ONE_CAPABILITY_FAILURE != WHOLE_RESEARCH_FAILURE
+```
+
+Missing or incomplete evidence must not directly reduce economic Quality. It may
+make Quality unavailable or partial, reduce Confidence, block Admission or require
+review. It must not create a guessed conclusion, a weaker Expected Return route, a
+thesis break or a sell signal. Capability authority remains dimensional and must
+not be collapsed into one synthetic coverage score.
+
 ---
 
 ## 6. Point-in-time and validation doctrine
@@ -434,6 +456,13 @@ macroeconomic authorities and other legally usable sources.
 
 Licensing and permitted use are first-class concerns. A technically accessible source
 is not automatically commercially usable.
+
+PAM's supported core system must remain operable without a paid financial-data
+subscription. Paid sources may later extend coverage only as optional, separately
+approved enhancements; no paid provider, premium market-data API or commercial
+corporate-action feed may become a hidden prerequisite for core operation. Narrower
+free/public/official coverage must remain explicit rather than being repaired with
+guessed facts. Commercial licensing remains a separate decision.
 
 ---
 

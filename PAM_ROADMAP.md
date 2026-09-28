@@ -54,15 +54,15 @@ Integration branch:
 
 `model-v2/expected-return-challenger`
 
-Verified post-PR5D0A state after merged PR #67 (2026-09-28):
+Verified post-PR5D0B state after merged PR #68 (2026-09-28):
 
 Merge commit:
 
-`fed2ffbbb580faf1e474ca801405ad304eefec31`
+`d3e04abcdfb4d2a7dc8c857ffed234c589d67386`
 
 Tree:
 
-`b7b1ce297b1ba6aee6a13fd3496c3b0190ae2827`
+`9164afc3d5d5d67fb5b5e221de605293d758c0ff`
 
 Always verify current remote state before using these values.
 
@@ -272,6 +272,21 @@ This advances distribution source evidence only. PR5D remains incomplete: no
 selected-class/share-basis/reporting-subject join, PR4B1 real root, price/quote,
 ordinary-compounder profile, or owner-approved numerical policy values are added.
 
+### PR5D0C — Capability-Based Partial Analysis Architecture
+
+PR5D0C is cross-cutting architecture/documentation only. It formalizes
+source-neutral dimensional capability states (`SUPPORTED`, `PARTIAL`,
+`UNSUPPORTED`, `UNAVAILABLE`, `REVIEW_REQUIRED`, `CONFLICTED`), per-output
+dependency and availability boundaries, and research participation separately
+from Confidence and Opportunity Set authority. One missing capability may block
+every dependent output without erasing independent research capabilities.
+
+PR5D0C adds no runtime behavior, fallback Expected Return, model rule, score,
+ranking, recommendation, allocation or admission authority. PR5C remains blocked,
+PR5D remains incomplete and PR5E has not started. The supported core must remain
+operable without a paid financial-data subscription; paid sources may only be
+optional, separately approved coverage enhancements.
+
 PR5D0A advances independently of PR5C. The public SEC/free-Nasdaq source graph still
 lacks complete positive no-transformation coverage through CURRENT T, so PR5C
 remains source-blocked and both share-basis and economic-comparability blockers
@@ -356,6 +371,8 @@ Inserted stages use numeric suffixes to preserve existing stage references.
   policy sets, without owner-approved numerical values or any operational consumer;
 - PR5D0B controlled issuer-level source qualification for the strict two-concept
   annual verified-nonpayer condition, with payer support deferred and no PR4B1 root;
+- PR5D0C capability-based partial-analysis architecture, preserving independent
+  research availability without weakening any dependent admission requirement;
 - PR5D still missing current price/quote, payer distribution support, selected-
   class/comparability joins, profile, and governed authoritative-policy roots;
 - PR5E final admission join and real-capable adapter into Expected Return facts;
@@ -421,6 +438,10 @@ Low confidence should reduce authority/sizing rather than fabricate certainty.
 For new deployable capital, fail-closed evidence may support temporary reserve
 rather than guessed deployment. `DATA_UNAVAILABLE` and low Confidence are neither
 automatic cash rules nor sell signals; existing positions remain subject to Stage F.
+Capability availability remains separate: it asks whether one exact analysis can
+run at all, while Confidence describes uncertainty in an available analysis.
+`PARTIAL` is not a numeric Confidence score and `SUPPORTED` does not imply high
+Confidence.
 
 ### Stage E1 — Opportunity Set
 
@@ -431,6 +452,10 @@ yet admissible, unsupported, and unavailable / insufficient evidence. This stage
 defines no scoring formula or ranking threshold; observability alone is not admission.
 The global discovery/admission funnel and dimensional market capability state below
 must constrain this stage and fail closed.
+Research participation is broader than Opportunity Set admission:
+`RESEARCH_CANDIDATE`, `PARTIAL_ANALYSIS` and `FULL_ANALYSIS_ELIGIBLE` are
+descriptive research states, not allocation eligibility. Every analytical output
+must satisfy its own dependencies before this stricter downstream gate is applied.
 Cash, cash-like holdings and short-government-bill instruments are capital
 destinations/liquidity classes, not company candidates; they receive no company
 Quality, Durability, moat score or company ranking.
@@ -1076,8 +1101,10 @@ FX, instrument types, legal/permitted-use status and commercial-use status.
 
 Do not collapse these dimensions into one synthetic coverage score. Capabilities
 must fail closed through explicit states conceptually such as `SUPPORTED`, `PARTIAL`,
-`UNSUPPORTED`, `UNAVAILABLE` and `REVIEW_REQUIRED`. Registry membership never grants
-evidence authority.
+`UNSUPPORTED`, `UNAVAILABLE`, `REVIEW_REQUIRED` and `CONFLICTED`. Registry
+membership never grants evidence authority. Independent supported capabilities may
+continue to serve research when another dimension fails, but every output depending
+on the failed dimension remains unavailable.
 
 #### Global discovery and admission funnel
 
@@ -1090,9 +1117,11 @@ DISCOVERY
 
 Cheap discovery may span a much larger universe than deep evidence qualification.
 Market-data availability, or a provider returning a ticker or price, never grants
-admission. Unknown or incomplete international evidence should reduce Confidence
-or Admission, not automatically reduce a company's economic Quality. No geographic
-quotas are introduced.
+admission. Unknown or incomplete international evidence should reduce capability
+availability, Confidence or Admission as applicable, not automatically reduce a
+company's economic Quality. Discovery may progress through `RESEARCH_CANDIDATE`,
+`PARTIAL_ANALYSIS` and `FULL_ANALYSIS_ELIGIBLE` before strict admission; these
+states are not necessarily irreversible. No geographic quotas are introduced.
 
 #### Initial international capability before shadow
 
@@ -1253,6 +1282,8 @@ Unless explicitly revisited:
 - opaque machine-learning stock picker with no explanation;
 - fragile full DCF as the default ER engine;
 - paid-data dependency before the free/official architecture is understood;
+- any paid financial-data subscription becoming mandatory for supported core
+  operation;
 - broad global ingestion without evidence/licensing qualification.
 
 ---
@@ -1272,7 +1303,7 @@ Do not allow all four documents to repeat the same implementation details.
 
 ## 14. Next session handoff
 
-The current audited V2 integration base includes merged PR5D0A / PR #67. PR5B closes
+The current audited V2 integration base includes merged PR5D0B / PR #68. PR5B closes
 its narrow CURRENT security/EPS route, but the graph still does not establish
 share-basis comparability, reporting-subject continuity, quote semantics, the
 remaining ER roots, or final economic admission. PR5C0A is the reviewed source-
@@ -1283,7 +1314,10 @@ PR5D0A proposal governance proceeds independently without completing PR5D or
 supplying owner-approved numerical values. PR5D0B advances the strict nonpayer
 distribution source route only; payer support, price/quote, ordinary-compounder
 profile, PR5C comparability, owner-approved policy values, and the final PR5E join
-remain missing. The immediate frontier remains
+remain missing. PR5D0C adds only the cross-cutting rule that independent research
+capabilities may remain available while every output depending on a missing
+capability stays unavailable. It does not weaken PR5C: PR5C remains blocked,
+PR5D remains incomplete and PR5E has not started. The immediate frontier remains
 **Real Fact Admission**.
 
 1. verify the current V2 remote head;
@@ -1298,7 +1332,7 @@ remain missing. The immediate frontier remains
 
 ---
 
-*Roadmap state updated on 2026-09-28 through the PR5D0A integration base and the
-PR5D0B controlled verified-nonpayer source chantier. Future
+*Roadmap state updated on 2026-09-28 through the PR5D0B integration base and the
+PR5D0C capability-based partial-analysis architecture checkpoint. Future
 architecture stages and shadow-readiness gates are requirements only. No runtime,
 investment-rule, numerical-policy or production-authority change is authorized here.*
