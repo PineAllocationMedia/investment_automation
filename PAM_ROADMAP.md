@@ -54,15 +54,15 @@ Integration branch:
 
 `model-v2/expected-return-challenger`
 
-Verified post-PR5C0B state after merged PR #66 (2026-09-28):
+Verified post-PR5D0A state after merged PR #67 (2026-09-28):
 
 Merge commit:
 
-`8f224757c924a55638eabbdc0b775d32b201814d`
+`fed2ffbbb580faf1e474ca801405ad304eefec31`
 
 Tree:
 
-`c32e8f62d4d3c489bd4f6eee6ba8e2d5b51382b8`
+`b7b1ce297b1ba6aee6a13fd3496c3b0190ae2827`
 
 Always verify current remote state before using these values.
 
@@ -258,6 +258,20 @@ approval, operational consumer, real issuer connection, or investment-rule chang
 Owner-approved mature-growth, terminal-valuation, payer and nonpayer policy values
 remain required in a separate reviewed repository change. PR5D remains incomplete.
 
+### PR5D0B — Controlled SEC verified-nonpayer source qualification
+
+PR5D0B adds a strict issuer-level Companyfacts source route for the existing
+PR4B1 nonpayer alternative. It requires both reviewed annual US-GAAP common-stock
+dividend-per-share concepts—declared and cash paid—to be exactly zero for the
+exact latest required period, with every retained comparable version agreeing and
+no positive intra-period contradiction. Missing or silent dividend data never
+becomes zero. The first real ER route is therefore temporarily narrowed to
+positively verified nonpayers; payer support is deferred.
+
+This advances distribution source evidence only. PR5D remains incomplete: no
+selected-class/share-basis/reporting-subject join, PR4B1 real root, price/quote,
+ordinary-compounder profile, or owner-approved numerical policy values are added.
+
 PR5D0A advances independently of PR5C. The public SEC/free-Nasdaq source graph still
 lacks complete positive no-transformation coverage through CURRENT T, so PR5C
 remains source-blocked and both share-basis and economic-comparability blockers
@@ -340,7 +354,10 @@ Inserted stages use numeric suffixes to preserve existing stage references.
 - PR5C no-transformation share-basis and reporting-subject qualification;
 - PR5D0A proposal-only governance for deterministic review of complete candidate
   policy sets, without owner-approved numerical values or any operational consumer;
-- PR5D missing current price/quote, distribution, profile and governed-policy roots;
+- PR5D0B controlled issuer-level source qualification for the strict two-concept
+  annual verified-nonpayer condition, with payer support deferred and no PR4B1 root;
+- PR5D still missing current price/quote, payer distribution support, selected-
+  class/comparability joins, profile, and governed authoritative-policy roots;
 - PR5E final admission join and real-capable adapter into Expected Return facts;
 - route-specific factual authority kept separate from permitted/commercial use;
 - broader identity, action, listing, historical-PIT and international capabilities
@@ -1255,7 +1272,7 @@ Do not allow all four documents to repeat the same implementation details.
 
 ## 14. Next session handoff
 
-The current audited V2 integration base is post-PR5C0B / merged PR #66. PR5B closes
+The current audited V2 integration base includes merged PR5D0A / PR #67. PR5B closes
 its narrow CURRENT security/EPS route, but the graph still does not establish
 share-basis comparability, reporting-subject continuity, quote semantics, the
 remaining ER roots, or final economic admission. PR5C0A is the reviewed source-
@@ -1263,7 +1280,10 @@ foundation step for reporting-subject evidence only. Merged PR5C0B retains
 corporate-action/share-basis claims but still cannot establish public-source
 no-transformation completeness; final PR5C remains separate and source-blocked.
 PR5D0A proposal governance proceeds independently without completing PR5D or
-supplying owner-approved numerical values. The immediate frontier remains
+supplying owner-approved numerical values. PR5D0B advances the strict nonpayer
+distribution source route only; payer support, price/quote, ordinary-compounder
+profile, PR5C comparability, owner-approved policy values, and the final PR5E join
+remain missing. The immediate frontier remains
 **Real Fact Admission**.
 
 1. verify the current V2 remote head;
@@ -1278,7 +1298,7 @@ supplying owner-approved numerical values. The immediate frontier remains
 
 ---
 
-*Roadmap state updated on 2026-09-28 to verified post-PR #66 / PR5C0B and the
-PR5D0A proposal-only Expected Return policy-governance foundation. Future
+*Roadmap state updated on 2026-09-28 through the PR5D0A integration base and the
+PR5D0B controlled verified-nonpayer source chantier. Future
 architecture stages and shadow-readiness gates are requirements only. No runtime,
 investment-rule, numerical-policy or production-authority change is authorized here.*
