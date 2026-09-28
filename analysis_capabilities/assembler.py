@@ -208,6 +208,14 @@ class DependencyResolution:
             _canonical_states(self.accepted_states, "accepted_states"),
         )
         _require(
+            self.accepted_states
+            in (
+                (CapabilityState.SUPPORTED,),
+                (CapabilityState.SUPPORTED, CapabilityState.PARTIAL),
+            ),
+            "accepted_states: only SUPPORTED or SUPPORTED plus PARTIAL permitted",
+        )
+        _require(
             self.bound_scope is None or type(self.bound_scope) is CapabilityScope,
             "bound_scope: exact CapabilityScope or None required",
         )
@@ -241,6 +249,75 @@ class DependencyResolution:
                 field_name,
                 _canonical_codes(getattr(self, field_name), field_name),
             )
+        self._validate_status()
+
+    def _validate_status(self) -> None:
+        if self.status is DependencyResolutionStatus.SATISFIED_SUPPORTED:
+            _require(
+                self.bound_scope is not None,
+                "SATISFIED_SUPPORTED requires a bound scope",
+            )
+            _require(
+                self.upstream_states == (CapabilityState.SUPPORTED,),
+                "SATISFIED_SUPPORTED requires exactly one SUPPORTED upstream state",
+            )
+            _require(
+                bool(self.assessment_semantic_ids and self.assessment_evidence_ids),
+                "SATISFIED_SUPPORTED requires retained assessment identities",
+            )
+            _require(
+                not self.assembler_reason_codes,
+                "SATISFIED_SUPPORTED cannot contain assembler failure reasons",
+            )
+            return
+        if self.status is DependencyResolutionStatus.SATISFIED_PARTIAL:
+            _require(
+                CapabilityState.PARTIAL in self.accepted_states,
+                "SATISFIED_PARTIAL requires PARTIAL to be explicitly accepted",
+            )
+            _require(
+                self.bound_scope is not None,
+                "SATISFIED_PARTIAL requires a bound scope",
+            )
+            _require(
+                self.upstream_states == (CapabilityState.PARTIAL,),
+                "SATISFIED_PARTIAL requires exactly one PARTIAL upstream state",
+            )
+            _require(
+                bool(self.assessment_semantic_ids and self.assessment_evidence_ids),
+                "SATISFIED_PARTIAL requires retained assessment identities",
+            )
+            _require(
+                bool(self.upstream_reason_codes),
+                "SATISFIED_PARTIAL requires upstream reasons",
+            )
+            _require(
+                bool(self.upstream_limitation_codes),
+                "SATISFIED_PARTIAL requires upstream limitations",
+            )
+            _require(
+                not self.assembler_reason_codes,
+                "SATISFIED_PARTIAL cannot contain assembler failure reasons",
+            )
+            return
+
+        _require(
+            bool(self.assembler_reason_codes),
+            "Unsatisfied dependency resolution requires an assembler reason",
+        )
+        if self.status is DependencyResolutionStatus.UNSATISFIED_MISSING_BINDING:
+            _require(
+                self.bound_scope is None,
+                "UNSATISFIED_MISSING_BINDING cannot contain a bound scope",
+            )
+            _require(
+                not self.assessment_semantic_ids
+                and not self.assessment_evidence_ids
+                and not self.relationship_semantic_ids
+                and not self.relationship_evidence_ids
+                and not self.upstream_states,
+                "UNSATISFIED_MISSING_BINDING cannot retain binding or assessment identities",
+            )
 
     @property
     def upstream_state(self) -> CapabilityState | None:
@@ -248,6 +325,19 @@ class DependencyResolution:
         if len(self.upstream_states) == 1:
             return self.upstream_states[0]
         return None
+
+
+def _derive_output_status(
+    resolutions: tuple[DependencyResolution, ...],
+) -> OutputAvailabilityStatus:
+    if any(item.status not in _SATISFIED_STATUSES for item in resolutions):
+        return OutputAvailabilityStatus.UNAVAILABLE
+    if any(
+        item.status is DependencyResolutionStatus.SATISFIED_PARTIAL
+        for item in resolutions
+    ):
+        return OutputAvailabilityStatus.AVAILABLE_WITH_LIMITATIONS
+    return OutputAvailabilityStatus.AVAILABLE
 
 
 @dataclass(frozen=True, slots=True)
@@ -323,6 +413,30 @@ class OutputAvailability:
             "limitation_codes",
             _canonical_codes(self.limitation_codes, "limitation_codes"),
         )
+        derived_status = _derive_output_status(self.dependency_resolutions)
+        _require(
+            self.status is derived_status,
+            "Output availability status contradicts dependency resolutions",
+        )
+        if self.status is OutputAvailabilityStatus.AVAILABLE:
+            _require(
+                not self.reason_codes and not self.limitation_codes,
+                "AVAILABLE cannot contain output-level reasons or limitations",
+            )
+        elif self.status is OutputAvailabilityStatus.AVAILABLE_WITH_LIMITATIONS:
+            _require(
+                bool(self.reason_codes),
+                "AVAILABLE_WITH_LIMITATIONS requires output-level reasons",
+            )
+            _require(
+                bool(self.limitation_codes),
+                "AVAILABLE_WITH_LIMITATIONS requires output-level limitations",
+            )
+        else:
+            _require(
+                bool(self.reason_codes),
+                "UNAVAILABLE requires output-level reasons",
+            )
 
     def _resolution_payload(self, *, include_evidence: bool) -> list[dict[str, object]]:
         payload = []
@@ -580,21 +694,16 @@ def assemble_output_availability(
         )
 
     resolution_tuple = tuple(resolutions)
-    if any(item.status not in _SATISFIED_STATUSES for item in resolution_tuple):
-        output_status = OutputAvailabilityStatus.UNAVAILABLE
+    output_status = _derive_output_status(resolution_tuple)
+    if output_status is OutputAvailabilityStatus.UNAVAILABLE:
         relevant = resolution_tuple
-    elif any(
-        item.status is DependencyResolutionStatus.SATISFIED_PARTIAL
-        for item in resolution_tuple
-    ):
-        output_status = OutputAvailabilityStatus.AVAILABLE_WITH_LIMITATIONS
+    elif output_status is OutputAvailabilityStatus.AVAILABLE_WITH_LIMITATIONS:
         relevant = tuple(
             item
             for item in resolution_tuple
             if item.status is DependencyResolutionStatus.SATISFIED_PARTIAL
         )
     else:
-        output_status = OutputAvailabilityStatus.AVAILABLE
         relevant = ()
 
     reason_codes = tuple(

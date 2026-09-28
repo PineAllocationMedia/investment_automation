@@ -122,6 +122,36 @@ def assemble(**changes):
     return assemble_output_availability(**values)
 
 
+def partial_availability():
+    partial_requirement = dependency(
+        accepted_states=(CapabilityState.SUPPORTED, CapabilityState.PARTIAL)
+    )
+    return assemble(
+        dependency_contract=contract(requirements=(partial_requirement,)),
+        assessments=(assessment(CapabilityState.PARTIAL),),
+    )
+
+
+def rebuild_resolution(item=None, **changes):
+    original = item or assemble().dependency_resolutions[0]
+    values = {
+        field.name: getattr(original, field.name)
+        for field in fields(DependencyResolution)
+    }
+    values.update(changes)
+    return DependencyResolution(**values)
+
+
+def rebuild_availability(item=None, **changes):
+    original = item or assemble()
+    values = {
+        field.name: getattr(original, field.name)
+        for field in fields(OutputAvailability)
+    }
+    values.update(changes)
+    return OutputAvailability(**values)
+
+
 class PartialAnalysisAssemblerTests(unittest.TestCase):
     def test_exact_public_api_and_closed_states(self):
         self.assertEqual(
@@ -179,6 +209,115 @@ class PartialAnalysisAssemblerTests(unittest.TestCase):
                 OutputAvailabilityStatus.AVAILABLE,
                 result.dependency_resolutions,
             )
+
+    def test_resolution_rejects_empty_accepted_states(self):
+        with self.assertRaises(AssemblyContractError):
+            rebuild_resolution(accepted_states=())
+
+    def test_resolution_rejects_non_pr5d0e_accepted_states(self):
+        with self.assertRaises(AssemblyContractError):
+            rebuild_resolution(accepted_states=(CapabilityState.UNAVAILABLE,))
+
+    def test_satisfied_supported_rejects_partial_upstream_state(self):
+        with self.assertRaises(AssemblyContractError):
+            rebuild_resolution(upstream_states=(CapabilityState.PARTIAL,))
+
+    def test_satisfied_supported_requires_retained_assessment_identity(self):
+        with self.assertRaises(AssemblyContractError):
+            rebuild_resolution(
+                assessment_semantic_ids=(),
+                assessment_evidence_ids=(),
+            )
+
+    def test_satisfied_supported_rejects_assembler_failure_reason(self):
+        with self.assertRaises(AssemblyContractError):
+            rebuild_resolution(assembler_reason_codes=("IMPOSSIBLE_FAILURE",))
+
+    def test_satisfied_partial_requires_partial_to_be_accepted(self):
+        partial = partial_availability().dependency_resolutions[0]
+        with self.assertRaises(AssemblyContractError):
+            rebuild_resolution(
+                partial,
+                accepted_states=(CapabilityState.SUPPORTED,),
+            )
+
+    def test_satisfied_partial_requires_upstream_reason(self):
+        partial = partial_availability().dependency_resolutions[0]
+        with self.assertRaises(AssemblyContractError):
+            rebuild_resolution(partial, upstream_reason_codes=())
+
+    def test_satisfied_partial_requires_upstream_limitation(self):
+        partial = partial_availability().dependency_resolutions[0]
+        with self.assertRaises(AssemblyContractError):
+            rebuild_resolution(partial, upstream_limitation_codes=())
+
+    def test_unsatisfied_resolution_requires_assembler_reason(self):
+        missing = assemble(bindings=()).dependency_resolutions[0]
+        with self.assertRaises(AssemblyContractError):
+            rebuild_resolution(missing, assembler_reason_codes=())
+
+    def test_missing_binding_resolution_rejects_bound_scope(self):
+        missing = assemble(bindings=()).dependency_resolutions[0]
+        with self.assertRaises(AssemblyContractError):
+            rebuild_resolution(missing, bound_scope=scope())
+
+    def test_available_rejects_unsatisfied_resolution(self):
+        unavailable = assemble(bindings=())
+        with self.assertRaises(AssemblyContractError):
+            rebuild_availability(
+                unavailable,
+                status=OutputAvailabilityStatus.AVAILABLE,
+            )
+
+    def test_available_with_limitations_rejects_all_supported_resolutions(self):
+        with self.assertRaises(AssemblyContractError):
+            rebuild_availability(
+                status=OutputAvailabilityStatus.AVAILABLE_WITH_LIMITATIONS,
+                reason_codes=("IMPOSSIBLE_REASON",),
+                limitation_codes=("IMPOSSIBLE_LIMIT",),
+            )
+
+    def test_unavailable_rejects_only_satisfied_resolutions(self):
+        with self.assertRaises(AssemblyContractError):
+            rebuild_availability(
+                status=OutputAvailabilityStatus.UNAVAILABLE,
+                reason_codes=("IMPOSSIBLE_REASON",),
+            )
+
+    def test_available_rejects_output_reason_codes(self):
+        with self.assertRaises(AssemblyContractError):
+            rebuild_availability(reason_codes=("IMPOSSIBLE_REASON",))
+
+    def test_available_rejects_output_limitation_codes(self):
+        with self.assertRaises(AssemblyContractError):
+            rebuild_availability(limitation_codes=("IMPOSSIBLE_LIMIT",))
+
+    def test_available_with_limitations_requires_propagated_reason(self):
+        with self.assertRaises(AssemblyContractError):
+            rebuild_availability(partial_availability(), reason_codes=())
+
+    def test_available_with_limitations_requires_propagated_limitation(self):
+        with self.assertRaises(AssemblyContractError):
+            rebuild_availability(partial_availability(), limitation_codes=())
+
+    def test_unavailable_requires_output_reason(self):
+        with self.assertRaises(AssemblyContractError):
+            rebuild_availability(assemble(bindings=()), reason_codes=())
+
+    def test_assembler_generated_status_variants_remain_structurally_valid(self):
+        results = (
+            assemble(),
+            partial_availability(),
+            assemble(bindings=()),
+        )
+        self.assertEqual(
+            tuple(item.status for item in results),
+            (
+                OutputAvailabilityStatus.AVAILABLE,
+                OutputAvailabilityStatus.AVAILABLE_WITH_LIMITATIONS,
+                OutputAvailabilityStatus.UNAVAILABLE,
+            ),
+        )
 
     def test_exact_input_types_and_output_subject_kind_fail_closed(self):
         valid = assemble()

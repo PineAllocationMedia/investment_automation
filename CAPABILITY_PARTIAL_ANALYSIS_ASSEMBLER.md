@@ -224,6 +224,27 @@ propagates assembler failure reasons plus all retained upstream reasons and
 limitations. All collections are deterministic sorted tuples. Missing evidence is
 reported as assembly coverage failure, not as an economic criticism.
 
+## Structural validity and production authority
+
+```text
+structural validity != production authority
+```
+
+Public `DependencyResolution` records fail closed when their accepted-state set,
+typed status, bound scope, retained assessment identities, upstream state, or
+assembler reasons form a combination the assembler cannot emit. Public
+`OutputAvailability` records independently derive their required status from their
+dependency resolutions and reject a contradictory declared status. They also
+require the output-level reason and limitation shape emitted for that status:
+`AVAILABLE` has neither, `AVAILABLE_WITH_LIMITATIONS` has both, and `UNAVAILABLE`
+has at least one reason.
+
+This structural coherence is necessary for future downstream consumers such as the
+separately reviewed Research Participation Classifier. It does not authenticate
+provenance. An arbitrary caller-created object that is internally coherent still
+does not establish trusted economic evidence, an approved output contract, a real
+subject relationship, or production authority.
+
 ## Deterministic identities
 
 `OutputAvailability.semantic_id` uses the dedicated domain separator:
