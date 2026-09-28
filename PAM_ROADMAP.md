@@ -320,8 +320,35 @@ evidence identities.
 
 It calculates no analytical value and does not aggregate whole-company research
 participation. It changes no admission or investment authority, does not unblock
-PR5C, does not complete PR5D, and does not start PR5E. The next separately
-reviewed capability-architecture stage is the Research Participation Classifier.
+PR5C, does not complete PR5D, and does not start PR5E.
+
+### PR5D0G — Research Participation Classifier
+
+PR5D0G classifies one research subject from a reviewed profile contract, an
+explicit profile-support capability assessment, and independently assembled output
+availability. Only explicit profile-support `UNSUPPORTED` yields
+`UNSUPPORTED_RESEARCH_PROFILE`; missing or unresolved data instead preserves
+candidate or partial research behavior.
+
+It implements no economic output, score, Confidence, Opportunity Set, admission,
+recommendation, allocation, execution, or production authority. It does not unblock
+PR5C, complete PR5D, or start PR5E.
+
+```text
+PR5D0D → PR5D0E → PR5D0F → PR5D0G
+COMPLETE for the current capability-foundation interlude.
+```
+
+The immediate implementation frontier returns to:
+
+```text
+PR5C
+→ PR5D
+→ PR5E
+→ first real end-to-end Expected Return
+```
+
+No additional PR5D0x capability-architecture stage is planned in this sequence.
 
 PR5D0A advances independently of PR5C. The public SEC/free-Nasdaq source graph still
 lacks complete positive no-transformation coverage through CURRENT T, so PR5C
@@ -418,6 +445,10 @@ Inserted stages use numeric suffixes to preserve existing stage references.
   cross-scope relationship evidence, strict v1 boundary equality, deterministic
   output availability and preserved reasons/limitations, but no analytical value,
   research-participation aggregation or admission authority;
+- PR5D0G pure research-participation classifier, with explicit profile support,
+  exact output/dependency-contract pinning, common research-subject scope, and the
+  four descriptive participation states, but no economic output, score, Confidence,
+  Opportunity Set, admission or investment authority;
 - PR5D still missing current price/quote, payer distribution support, selected-
   class/comparability joins, profile, and governed authoritative-policy roots;
 - PR5E final admission join and real-capable adapter into Expected Return facts;
@@ -1365,8 +1396,12 @@ capability stays unavailable. It does not weaken PR5C: PR5C remains blocked,
 PR5D remains incomplete and PR5E has not started. The immediate frontier remains
 **Real Fact Admission**. PR5D0D implements the generic capability assessment
 contract foundation, PR5D0E implements per-output dependency declarations, and
-PR5D0F implements only the pure per-output availability assembler. Analytical
-output execution and research participation remain future separately reviewed work.
+PR5D0F implements the pure per-output availability assembler. PR5D0G implements
+the research participation classifier and closes the current PR5D0 capability-
+foundation interlude. Immediate implementation returns to PR5C → PR5D → PR5E →
+the first real end-to-end V2 Expected Return. Analytical output execution remains
+separately reviewed; Confidence and Opportunity Set remain later stages, not the
+next PR.
 
 1. verify the current V2 remote head;
 2. read the constitution and this roadmap;
@@ -1381,7 +1416,8 @@ output execution and research participation remain future separately reviewed wo
 ---
 
 *Roadmap state updated on 2026-09-28 through the PR5D0B integration base, PR5D0C
-architecture checkpoint, PR5D0D capability contract foundation, PR5D0E dependency
-contract foundation and PR5D0F partial-analysis assembler. Later architecture
-stages and shadow-readiness gates remain requirements only. No investment-rule,
-numerical-policy or production-authority change is authorized here.*
+architecture checkpoint, and the completed PR5D0D → PR5D0E → PR5D0F → PR5D0G
+capability-foundation interlude. Immediate implementation returns to PR5C → PR5D
+→ PR5E. Later architecture stages and shadow-readiness gates remain requirements
+only. No investment-rule, numerical-policy or production-authority change is
+authorized here.*

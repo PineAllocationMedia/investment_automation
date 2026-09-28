@@ -23,6 +23,15 @@ from .assembler import (
     OutputAvailabilityStatus,
     assemble_output_availability,
 )
+from .participation import (
+    RESEARCH_PARTICIPATION_CONTRACT_VERSION,
+    ResearchOutputRequirement,
+    ResearchParticipation,
+    ResearchParticipationContract,
+    ResearchParticipationContractError,
+    ResearchParticipationState,
+    classify_research_participation,
+)
 
 __all__ = (
     "CAPABILITY_CONTRACT_VERSION",
@@ -42,4 +51,11 @@ __all__ = (
     "DependencyResolution",
     "OutputAvailability",
     "assemble_output_availability",
+    "RESEARCH_PARTICIPATION_CONTRACT_VERSION",
+    "ResearchParticipationContractError",
+    "ResearchParticipationState",
+    "ResearchOutputRequirement",
+    "ResearchParticipationContract",
+    "ResearchParticipation",
+    "classify_research_participation",
 )

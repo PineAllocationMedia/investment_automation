@@ -71,7 +71,7 @@ class CapabilityContractTests(unittest.TestCase):
         )
         self.assertEqual(len(CapabilityState.__members__), 6)
 
-    def test_public_api_is_minimal_and_excludes_participation_states(self):
+    def test_public_api_is_exact(self):
         self.assertEqual(
             analysis_capabilities.__all__,
             (
@@ -92,6 +92,13 @@ class CapabilityContractTests(unittest.TestCase):
                 "DependencyResolution",
                 "OutputAvailability",
                 "assemble_output_availability",
+                "RESEARCH_PARTICIPATION_CONTRACT_VERSION",
+                "ResearchParticipationContractError",
+                "ResearchParticipationState",
+                "ResearchOutputRequirement",
+                "ResearchParticipationContract",
+                "ResearchParticipation",
+                "classify_research_participation",
             ),
         )
         self.assertEqual(
