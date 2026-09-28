@@ -620,6 +620,10 @@ class IsolationTests(unittest.TestCase):
         for path in (root / "main.py", *sorted((root / "src").rglob("*.py")), *sorted((root / "pit_comparison").rglob("*.py"))):
             if path in (Path(a.__file__), Path(p.__file__)):
                 continue
+            # PR5D0A adds one pure proposal-only policy consumer. It does not
+            # consume the constructor, calculator, model, runtime or V1.
+            if path == Path(p.__file__).with_name("expected_return_policy_governance.py"):
+                continue
             # PR4B2 adds exactly one post-decision frozen V2 consumer. Its
             # branch/import boundary is separately enforced by the PIT tests.
             if path == root / "pit_comparison" / "expected_return_diagnostics.py":

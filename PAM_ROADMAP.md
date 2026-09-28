@@ -54,15 +54,15 @@ Integration branch:
 
 `model-v2/expected-return-challenger`
 
-Verified post-PR5C0A state after merged PR #65 (2026-09-28):
+Verified post-PR5C0B state after merged PR #66 (2026-09-28):
 
 Merge commit:
 
-`639599aa4daa947296ef21bb46ae314702e72500`
+`8f224757c924a55638eabbdc0b775d32b201814d`
 
 Tree:
 
-`78ee953428255be6424b192b5b6c7284e1b22a9c`
+`c32e8f62d4d3c489bd4f6eee6ba8e2d5b51382b8`
 
 Always verify current remote state before using these values.
 
@@ -199,7 +199,7 @@ Existing documents remain:
 
 ## 8. Current technical frontier — audited Real Fact Admission closure
 
-### Real-source chain through PR #65 / PR5C0A ✅
+### Real-source chain through PR #66 / PR5C0B ✅
 
 Merged PR4D1 through PR4D4D3B now provide a controlled CURRENT Companyfacts
 authority boundary; complete-submission, Submissions, Nasdaq Listed and SEC
@@ -218,8 +218,9 @@ CURRENT observed availability and snapshot scope. Factual authority remains
 separate from permitted/commercial use.
 
 Merged PR5C0A adds controlled reporting-subject filing-universe, metadata-signal
-and explicit source-local claim evidence only. It establishes no reporting-subject
-continuity and discharges no admission blocker.
+and explicit source-local claim evidence only. Merged PR5C0B separately adds
+controlled corporate-action/share-basis source claims. Neither establishes
+positive continuity/comparability or discharges an admission blocker.
 
 ### PR5A — Real Fact Admission gap review ✅
 
@@ -236,8 +237,8 @@ basis source foundations are still missing. The reviewed immediate sequence is:
 1. **PR5C0A — Reporting-subject source foundation:** controlled SEC filing
    inventory, metadata signals, exact passages and explicit source-local claims;
    no continuity conclusion and no blocker discharge.
-2. **PR5C0B — Corporate-action/share-basis source foundation:** implementation
-   under review preserves controlled filing-universe, explicit action/presentation
+2. **PR5C0B — Corporate-action/share-basis source foundation:** merged source
+   layer preserving controlled filing-universe, explicit action/presentation
    claims, ratios, dates, class scope, provenance and conflicts only. It does not
    establish share-basis comparability or discharge `SPLIT_BASIS_NOT_ESTABLISHED`.
 3. **PR5C — Comparable real EPS qualification:** positive no-transformation
@@ -247,6 +248,20 @@ basis source foundations are still missing. The reviewed immediate sequence is:
    reviewed applicable ER policies.
 5. **PR5E — Final admission and real ER adapter:** closed evidence-replaying
    admission join and real-capable typed facts into the existing PR4B1/PR4A path.
+
+### PR5D0A — Expected Return policy governance foundation
+
+PR5D0A is proposal/governance infrastructure only. It validates and packages one
+complete four-policy candidate set under deterministic content identity and the
+closed status `PROPOSAL_ONLY`. It supplies no numerical production policy, owner
+approval, operational consumer, real issuer connection, or investment-rule change.
+Owner-approved mature-growth, terminal-valuation, payer and nonpayer policy values
+remain required in a separate reviewed repository change. PR5D remains incomplete.
+
+PR5D0A advances independently of PR5C. The public SEC/free-Nasdaq source graph still
+lacks complete positive no-transformation coverage through CURRENT T, so PR5C
+remains source-blocked and both share-basis and economic-comparability blockers
+remain unresolved.
 
 Universal identity, universal issuer-wide class inventory, corporate-action, M&A,
 exhaustive legal-right, listing-inventory and HISTORICAL_AS_OF engines are not
@@ -323,6 +338,8 @@ Inserted stages use numeric suffixes to preserve existing stage references.
 - PR5C0A reporting-subject source evidence without continuity or blocker discharge;
 - PR5C0B separately reviewed corporate-action/share-basis source evidence;
 - PR5C no-transformation share-basis and reporting-subject qualification;
+- PR5D0A proposal-only governance for deterministic review of complete candidate
+  policy sets, without owner-approved numerical values or any operational consumer;
 - PR5D missing current price/quote, distribution, profile and governed-policy roots;
 - PR5E final admission join and real-capable adapter into Expected Return facts;
 - route-specific factual authority kept separate from permitted/commercial use;
@@ -1238,28 +1255,30 @@ Do not allow all four documents to repeat the same implementation details.
 
 ## 14. Next session handoff
 
-The current audited V2 integration base is post-PR5C0A / merged PR #65. PR5B closes
+The current audited V2 integration base is post-PR5C0B / merged PR #66. PR5B closes
 its narrow CURRENT security/EPS route, but the graph still does not establish
 share-basis comparability, reporting-subject continuity, quote semantics, the
 remaining ER roots, or final economic admission. PR5C0A is the reviewed source-
-foundation step for reporting-subject evidence only. PR5C0B source-foundation
-implementation is under review and still cannot establish public-source
-no-transformation completeness; final PR5C remains separate. The immediate
-frontier remains **Real Fact Admission**.
+foundation step for reporting-subject evidence only. Merged PR5C0B retains
+corporate-action/share-basis claims but still cannot establish public-source
+no-transformation completeness; final PR5C remains separate and source-blocked.
+PR5D0A proposal governance proceeds independently without completing PR5D or
+supplying owner-approved numerical values. The immediate frontier remains
+**Real Fact Admission**.
 
 1. verify the current V2 remote head;
 2. read the constitution and this roadmap;
 3. read `EXPECTED_RETURN_PR5A_REAL_ADMISSION_GAP_REVIEW.md` and the relevant
    PR4C/PR4D contracts;
-4. review PR5C0B without treating an empty detected-event inventory as no-action
-   evidence, then perform an evidence-sufficiency review before PR5C;
+4. preserve PR5C0B's rule that an empty detected-event inventory is not no-action
+   evidence, and resolve the positive source-coverage gap before PR5C;
 5. preserve every source-authority, fail-closed, global-universe and pre-shadow
    invariant while supporting only the exact reviewed first route;
 6. preserve V1 unchanged.
 
 ---
 
-*Roadmap state updated on 2026-09-28 to verified post-PR #65 / PR5C0A and the
-PR5C0B corporate-action/share-basis source-foundation implementation under review.
-Future architecture stages and shadow-readiness gates are requirements only.
-No implementation, runtime, investment-rule or authority change is authorized here.*
+*Roadmap state updated on 2026-09-28 to verified post-PR #66 / PR5C0B and the
+PR5D0A proposal-only Expected Return policy-governance foundation. Future
+architecture stages and shadow-readiness gates are requirements only. No runtime,
+investment-rule, numerical-policy or production-authority change is authorized here.*
