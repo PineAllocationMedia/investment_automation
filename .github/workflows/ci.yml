@@ -9,6 +9,10 @@ name: Baseline V1 CI
 permissions:
   contents: read
 
+concurrency:
+  group: baseline-v1-ci-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -17,9 +21,51 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v4
         with:
-          fetch-depth: 2
+          fetch-depth: 1
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+
+      - name: Determine risk-aware validation tier
+        id: plan
+        shell: bash
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          PUSH_BEFORE_SHA: ${{ github.event.before }}
+        run: |
+          set -euo pipefail
+          if [[ "$EVENT_NAME" == "pull_request" ]]; then
+            base_sha="$PR_BASE_SHA"
+          elif [[ "$EVENT_NAME" == "push" ]]; then
+            base_sha="$PUSH_BEFORE_SHA"
+          else
+            base_sha=""
+          fi
+
+          if [[ ! "$base_sha" =~ ^[0-9a-f]{40}$ || "$base_sha" == "0000000000000000000000000000000000000000" ]]; then
+            plan_output="$(python3 scripts/ci_validation_plan.py --nul-input < /dev/null)"
+            printf '%s\n' "$plan_output"
+            echo "CI_DIFF_ERROR=missing or invalid event base SHA" >&2
+            exit 1
+          fi
+          if ! git cat-file -e "${base_sha}^{commit}" 2>/dev/null; then
+            git fetch --no-tags --no-recurse-submodules --depth=1 origin "$base_sha"
+          fi
+          test "$(git rev-parse --verify "${base_sha}^{commit}")" = "$base_sha"
+
+          changed_file="$RUNNER_TEMP/ci-changed-files.nul"
+          git diff --no-renames --name-only -z "$base_sha" HEAD > "$changed_file"
+          plan_output="$(python3 scripts/ci_validation_plan.py --nul-input < "$changed_file")"
+          printf '%s\n' "$plan_output"
+          tier="$(printf '%s\n' "$plan_output" | sed -n 's/^CI_VALIDATION_TIER=//p')"
+          heavy="$(printf '%s\n' "$plan_output" | sed -n 's/^CI_HEAVY_PIT_REQUIRED=//p')"
+          test "$tier" = "DOCS_ONLY" || test "$tier" = "STANDARD" || test "$tier" = "FULL_PIT"
+          test "$heavy" = "true" || test "$heavy" = "false"
+          echo "tier=$tier" >> "$GITHUB_OUTPUT"
+          echo "heavy_pit_required=$heavy" >> "$GITHUB_OUTPUT"
+          echo "base_sha=$base_sha" >> "$GITHUB_OUTPUT"
 
       - name: Obtain exact pinned PIT source objects for test parent
+        if: steps.plan.outputs.tier != 'DOCS_ONLY'
         shell: bash
         run: |
           set -euo pipefail
@@ -40,6 +86,7 @@ jobs:
           fetch_pit_source V2 a95ff74fe0cd448d4b4436dc8506363caabac9d0 refs/pit-proof/v2
 
       - name: Set up frozen Python version
+        if: steps.plan.outputs.tier != 'DOCS_ONLY'
         uses: actions/setup-python@v5
         with:
           python-version-file: ".python-version"
@@ -47,13 +94,16 @@ jobs:
           cache-dependency-path: requirements.lock
 
       - name: Install locked dependencies
+        if: steps.plan.outputs.tier != 'DOCS_ONLY'
         run: python -m pip install -r requirements.lock
 
       - name: Compile Python sources
-        run: python -m compileall -q main.py src scripts tests
+        if: steps.plan.outputs.tier != 'DOCS_ONLY'
+        run: python -m compileall -q main.py src scripts tests economic_facts pit_comparison
 
-      - name: Run complete test suite
-        run: python -m unittest discover -s tests -q
+      - name: Run tiered discovered test suite
+        if: steps.plan.outputs.tier != 'DOCS_ONLY'
+        run: python scripts/ci_unittest_runner.py --tier "${{ steps.plan.outputs.tier }}"
 
       - name: Check whitespace errors
-        run: git diff --check HEAD^
+        run: git diff --check "${{ steps.plan.outputs.base_sha }}" HEAD

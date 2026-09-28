@@ -227,7 +227,12 @@ For substantive V2 work, preserve and verify as applicable:
 
 - targeted tests;
 - adjacent-layer regression tests;
-- complete isolated suite;
+- the validation tier determined from the complete change set:
+  - `DOCS_ONLY` — documentation integrity for an all-Markdown diff;
+  - `STANDARD` — complete discovered ordinary suite minus only the isolated
+    heavyweight PIT adapter-equivalence module;
+  - `FULL_PIT` — the complete ordinary suite plus that heavyweight PIT module;
+- unknown or ambiguous paths must fail toward `FULL_PIT`;
 - `git diff --check`;
 - `git diff --cached --check`;
 - `git show --format= --check HEAD`;
