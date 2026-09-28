@@ -3041,3 +3041,45 @@ inputs and can preserve explainable unavailability without erasing independent
 capability assessments. No economic analytical output is calculated yet. PR5D0F
 adds no research-participation classifier, admission, Opportunity Set,
 recommendation, allocation, execution, production, or promotion authority.
+
+## 2026-09-28 - Explicit research participation without data-scarcity rejection
+
+### Decision
+
+Research participation is derived from one reviewed research-profile contract, one
+explicit profile-support capability assessment, and exact independently assembled
+output availability. Every required output pins its reviewed dependency-contract
+semantic identity, and all supplied outputs share one explicit research-subject
+scope.
+
+Only profile-support `CapabilityState.UNSUPPORTED` produces
+`UNSUPPORTED_RESEARCH_PROFILE`. Missing, unavailable, partial, review-required, or
+conflicted evidence cannot do so. Full analysis requires profile support
+`SUPPORTED`, every required output present, and every output fully `AVAILABLE`.
+Any meaningful `AVAILABLE` or `AVAILABLE_WITH_LIMITATIONS` output short of full
+analysis yields `PARTIAL_ANALYSIS`; otherwise unresolved/supported cases remain
+`RESEARCH_CANDIDATE`. No scalar coverage score, percentage, weight, or ranking is
+used.
+
+### Reasoning
+
+- Data scarcity is information uncertainty, not proof that an economic or
+  instrument profile is unsupported.
+- Explicit profile support preserves a positive reviewed unsupported conclusion
+  without inferring it from missing analytical results.
+- Exact dependency-contract pinning prevents a same-name output produced under
+  different methodology from satisfying the reviewed profile.
+- Descriptive research participation must remain separate from economic merit,
+  Confidence, Opportunity Set admission, recommendation, allocation, and trading.
+
+### Expected impact
+
+PAM can now deterministically classify complete, partial, candidate, and explicitly
+unsupported research participation while retaining individual output availability,
+reasons, limitations, and separate semantic/evidence identities. It calculates no
+economic output and changes no admission or investment authority.
+
+PR5D0G closes the current capability-architecture interlude. Immediate
+implementation resumes Real Fact Admission—PR5C → PR5D → PR5E—rather than
+continuing into Confidence or Opportunity Set. V1, production, deployment,
+protected identities, and `MODEL_RULES_VERSION` remain unchanged.

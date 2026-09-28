@@ -525,8 +525,9 @@ to let a descriptive UI summary become an authority token.
 
 ## 19. Implementation roadmap
 
-PR5D0D, PR5D0E, and PR5D0F implement the first three foundations below. Every
-later stage still requires its own reviewed contract and narrow PR.
+PR5D0D, PR5D0E, PR5D0F, and PR5D0G implement the current capability-foundation
+interlude below. Every later stage still requires its own reviewed contract and
+narrow PR.
 
 ### Capability contract foundation — implemented by PR5D0D
 
@@ -562,15 +563,37 @@ matches remain ambiguous and block availability rather than selecting a latest,
 majority, or caller-order winner. Upstream partial, unavailable, review-required,
 and conflicted reasons and limitations remain visible.
 
-PR5D0F performs no economic calculation or analytical-output execution, creates no
-research-participation state, and grants no investment, admission, Opportunity Set,
-recommendation, allocation, execution, production, or promotion authority. The
-next implementation stage is the Research Participation Classifier.
+PR5D0F performs no economic calculation or analytical-output execution and grants
+no investment, admission, Opportunity Set, recommendation, allocation, execution,
+production, or promotion authority.
 
-### Research participation classifier
+### Research participation classifier — implemented by PR5D0G
 
-Derive descriptive participation from legitimate output availability, not from
-economic ranking, model score, or investment eligibility.
+The source-neutral classifier derives descriptive participation from one reviewed
+research-profile contract, one explicit profile-support `CapabilityAssessment`, and
+independently assembled `OutputAvailability` results. The profile pins every exact
+output ID and its reviewed dependency-contract semantic identity, and all supplied
+outputs must share the exact explicit research-subject scope.
+
+Only explicit profile-support `CapabilityState.UNSUPPORTED` produces
+`UNSUPPORTED_RESEARCH_PROFILE`. Missing, unavailable, partial, review-required, or
+conflicted evidence cannot do so. Missing data alone yields candidate or partial
+behavior, never unsupported profile.
+
+`FULL_ANALYSIS_ELIGIBLE` requires profile support `SUPPORTED`, every required
+output present, and every output fully `AVAILABLE`. At least one `AVAILABLE` or
+`AVAILABLE_WITH_LIMITATIONS` output short of that complete profile yields
+`PARTIAL_ANALYSIS`. With no meaningful output and no explicit unsupported profile,
+the result is `RESEARCH_CANDIDATE`.
+
+PR5D0G adds no economic output, score, Confidence, Opportunity Set, admission,
+recommendation, allocation, execution, production, or promotion authority. Its
+semantic identity excludes exact evidence recaptures; its evidence identity binds
+them separately. The complete contract is documented in
+`RESEARCH_PARTICIPATION_CLASSIFIER.md`.
+
+> The PR5D0 capability-architecture interlude ends with PR5D0G. Immediate
+> implementation returns to Stage A Real Fact Admission: PR5C → PR5D → PR5E.
 
 ### Confidence integration
 
@@ -611,7 +634,7 @@ Does this PR require paid data? NO.
 Can paid data become mandatory for core PAM operation? NO.
 ```
 
-PR5D0C adds no runtime types, assembler, classifier, source adapter, analytical
-module, score, threshold, formula, policy value, recommendation, allocation,
-deployment, production authority, or automatic promotion. PR5C remains blocked,
-PR5D remains incomplete, and PR5E has not started.
+The PR5D0D–G foundation adds no source adapter, analytical calculation, score,
+threshold, formula, policy value, recommendation, allocation, deployment,
+production authority, or automatic promotion. PR5C remains blocked, PR5D remains
+incomplete, and PR5E has not started.
