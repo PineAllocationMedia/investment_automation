@@ -512,6 +512,7 @@ class FilingDependencyTests(unittest.TestCase):
                                          "sec_direct_section12_description_source.py",
                                          "sec_section12_rights_source_claims.py",
                                          "sec_reporting_subject_source_claims.py",
+                                         "sec_share_basis_source_claims.py",
                                          "sec_property4_temporal_dossier.py",
                                          "sec_property4_temporal_boundary.py",
                                          "sec_current_registered_listing_bridge.py",
