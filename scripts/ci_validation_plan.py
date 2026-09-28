@@ -32,6 +32,7 @@ FULL_PIT_EXACT_PATHS = frozenset(
 )
 FULL_PIT_PREFIXES = ("src/", "pit_comparison/")
 FULL_PIT_TEST_PREFIXES = ("tests/pit_", "tests/test_pit_")
+STANDARD_PREFIXES = ("economic_facts/", "analysis_capabilities/")
 
 
 @dataclass(frozen=True)
@@ -61,7 +62,7 @@ def classify_path(path: str) -> ValidationTier:
         return ValidationTier.FULL_PIT
     if path.endswith(".md"):
         return ValidationTier.DOCS_ONLY
-    if path.startswith("economic_facts/"):
+    if path.startswith(STANDARD_PREFIXES):
         return ValidationTier.STANDARD
     if path.startswith("tests/") and path.endswith(".py"):
         name = PurePosixPath(path).name

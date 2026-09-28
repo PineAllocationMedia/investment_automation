@@ -37,6 +37,49 @@ class CIValidationPlanTests(unittest.TestCase):
             ["tests/sec_new_source_fixtures.py"], ValidationTier.STANDARD
         )
 
+    def test_analysis_capabilities_reviewed_surface_is_standard(self):
+        cases = (
+            (["analysis_capabilities/contracts.py"], ValidationTier.STANDARD),
+            (
+                [
+                    "analysis_capabilities/new_contract.py",
+                    "tests/test_new_contract.py",
+                ],
+                ValidationTier.STANDARD,
+            ),
+            (
+                [
+                    "analysis_capabilities/contracts.py",
+                    "CAPABILITY_CONTRACT_FOUNDATION.md",
+                ],
+                ValidationTier.STANDARD,
+            ),
+            (
+                [
+                    "analysis_capabilities/contracts.py",
+                    "economic_facts/new_fact.py",
+                ],
+                ValidationTier.STANDARD,
+            ),
+            (
+                ["analysis_capabilities/contracts.py", "src/scoring.py"],
+                ValidationTier.FULL_PIT,
+            ),
+            (
+                ["analysis_capabilities/contracts.py", "pit_comparison/runner.py"],
+                ValidationTier.FULL_PIT,
+            ),
+            (
+                ["analysis_capabilities/contracts.py", "requirements.lock"],
+                ValidationTier.FULL_PIT,
+            ),
+            (["analysis_capability/contracts.py"], ValidationTier.FULL_PIT),
+            (["analysis_capabilities_extra/contracts.py"], ValidationTier.FULL_PIT),
+        )
+        for paths, expected in cases:
+            with self.subTest(paths=paths):
+                self.assert_tier(paths, expected)
+
     def test_unknown_or_ambiguous_paths_fail_to_full_pit(self):
         for path in (
             "new_package/engine.py",

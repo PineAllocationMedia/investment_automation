@@ -2946,3 +2946,28 @@ Opportunity Set behavior or investment authority. Current V1/V2 analytical and
 production behavior is unchanged, PR5C remains blocked, PR5D remains incomplete,
 PR5E has not started and `MODEL_RULES_VERSION` remains
 `2026-08-23-allocation-room-integrity-v7`.
+
+## 2026-09-28 - Homologate analysis_capabilities for STANDARD CI
+
+### Decision
+
+`analysis_capabilities/**` becomes an explicitly reviewed `STANDARD` validation
+surface. Unknown top-level packages remain `FULL_PIT`, mixed changes continue to
+take the highest required tier, and no other CI authority changes.
+
+### Reasoning
+
+PR #71 established and fully validated the pure, source-neutral package under a
+complete `FULL_PIT` run. The package is outside the pinned source export and the
+heavyweight PIT adapter-equivalence dependency graph, while its ordinary and
+static boundary tests remain covered by `STANDARD`. Repeating pinned equivalence
+for an isolated capability-contract change adds latency without additional
+relevant coverage.
+
+### Expected impact
+
+Future capability-contract, dependency, and assembler changes confined to the
+reviewed package and ordinary tests/documentation may receive materially faster
+feedback. Sensitive mixed changes remain `FULL_PIT`. Investment behavior,
+capability semantics, workflow mechanics, unittest partitioning, PIT identities,
+V1, production, deployment, and model authority are unchanged.

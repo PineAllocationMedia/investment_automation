@@ -45,6 +45,7 @@ policy.
 Selected for the reviewed heavyweight-independent surface:
 
 - `economic_facts/**`;
+- `analysis_capabilities/**`;
 - ordinary `tests/test_*.py` modules;
 - ordinary `tests/*_fixtures.py` helpers;
 - Markdown mixed with either of the above.
@@ -86,6 +87,14 @@ By contrast, `economic_facts/**` is outside the pinned V1/V2 investment-source
 export and adapter-equivalence execution graph. It may use `STANDARD`, while its
 ordinary tests still run with the rest of the discovered suite.
 
+`analysis_capabilities/**` joined this reviewed surface only after PR #71
+established the pure, source-neutral package and passed complete `FULL_PIT`
+validation. The package is outside the pinned source export and heavyweight
+adapter-equivalence dependency graph, while its static boundary checks and other
+tests remain in ordinary unittest discovery. This does not make capability
+contracts low-risk in general: `STANDARD` still runs the complete discovered
+ordinary suite minus exactly the heavyweight PIT adapter-equivalence module.
+
 ## Complete diff and rename safety
 
 Pull requests use the exact GitHub base SHA; pushes use the valid event `before`
@@ -126,6 +135,9 @@ README.md + PAM_ROADMAP.md
 → DOCS_ONLY
 
 economic_facts/new_fact.py + tests/test_new_fact.py
+→ STANDARD
+
+analysis_capabilities/contracts.py + tests/test_analysis_capability_contracts.py
 → STANDARD
 
 src/expected_return_engine.py
