@@ -7,6 +7,12 @@ from .contracts import (
     CapabilityScope,
     CapabilityState,
 )
+from .dependencies import (
+    DEPENDENCY_CONTRACT_VERSION,
+    CapabilityDependency,
+    DependencyContractError,
+    OutputDependencyContract,
+)
 
 __all__ = (
     "CAPABILITY_CONTRACT_VERSION",
@@ -14,4 +20,8 @@ __all__ = (
     "CapabilityContractError",
     "CapabilityScope",
     "CapabilityState",
+    "DEPENDENCY_CONTRACT_VERSION",
+    "CapabilityDependency",
+    "DependencyContractError",
+    "OutputDependencyContract",
 )

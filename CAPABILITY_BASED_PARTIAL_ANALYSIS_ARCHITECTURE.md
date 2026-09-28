@@ -525,8 +525,8 @@ to let a descriptive UI summary become an authority token.
 
 ## 19. Implementation roadmap
 
-PR5D0D implements only the first foundation below. Every later stage still
-requires its own reviewed contract and narrow PR.
+PR5D0D and PR5D0E implement only the first two foundations below. Every later
+stage still requires its own reviewed contract and narrow PR.
 
 ### Capability contract foundation — implemented by PR5D0D
 
@@ -535,10 +535,16 @@ state, scope and dimensional assessment records with explicit reasons,
 limitations, retained support and separate deterministic semantic/evidence
 identity. It has no evidence resolver or downstream consumer.
 
-### Dependency contracts
+### Dependency contracts — implemented by PR5D0E
 
-Require each analytical module to declare the exact capabilities and accepted
-states needed for its output.
+The source-neutral `analysis_capabilities` package now provides immutable output
+dependency declarations with explicit dependency roles, required capability IDs,
+expected subject kinds, accepted `SUPPORTED` or explicit `SUPPORTED + PARTIAL`
+states, and deterministic semantic identity.
+
+PR5D0E provides no evaluation, subject binding, assembler, output execution,
+research participation classifier, or investment authority. It creates no actual
+production output contract. The next stage remains the Partial Analysis Assembler.
 
 ### Partial analysis assembler
 
