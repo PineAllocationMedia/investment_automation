@@ -80,9 +80,22 @@ class CapabilityContractTests(unittest.TestCase):
                 "CapabilityContractError",
                 "CapabilityScope",
                 "CapabilityState",
+                "DEPENDENCY_CONTRACT_VERSION",
+                "CapabilityDependency",
+                "DependencyContractError",
+                "OutputDependencyContract",
             ),
         )
-        self.assertEqual(contracts.__all__, analysis_capabilities.__all__)
+        self.assertEqual(
+            contracts.__all__,
+            (
+                "CAPABILITY_CONTRACT_VERSION",
+                "CapabilityAssessment",
+                "CapabilityContractError",
+                "CapabilityScope",
+                "CapabilityState",
+            ),
+        )
         for prohibited in (
             "FULL_ANALYSIS_ELIGIBLE",
             "PARTIAL_ANALYSIS",

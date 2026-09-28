@@ -2971,3 +2971,38 @@ reviewed package and ordinary tests/documentation may receive materially faster
 feedback. Sensitive mixed changes remain `FULL_PIT`. Investment behavior,
 capability semantics, workflow mechanics, unittest partitioning, PIT identities,
 V1, production, deployment, and model authority are unchanged.
+
+## 2026-09-28 - Source-neutral per-output dependency contracts
+
+### Decision
+
+Every future analytical output must use an explicit, versioned dependency
+declaration. Each dependency is named by its semantic role inside that output and
+declares the required source-neutral capability ID, expected subject kind, and
+accepted capability states.
+
+Automated analytical dependencies may accept only `SUPPORTED`, or may explicitly
+accept both `SUPPORTED` and `PARTIAL`. `PARTIAL` alone and the unresolved/non-support
+states `UNSUPPORTED`, `UNAVAILABLE`, `REVIEW_REQUIRED`, and `CONFLICTED` cannot
+satisfy an automated analytical dependency. All requirements are conjunctive in
+this foundation. Source/provider-route alternatives belong upstream in capability
+resolution rather than in the analytical core. PR5D0E performs no dependency
+evaluation.
+
+### Reasoning
+
+- Per-output declarations prevent a global security-wide pass bit.
+- Exact dependency roles prevent unrelated good capabilities from filling missing
+  requirements.
+- Closed accepted-state rules prevent conflict or review-required evidence from
+  becoming automatic analytical authority.
+- Canonical declarations give the future Partial Analysis Assembler deterministic,
+  inspectable contracts.
+- Source-neutral capability requirements keep provider-specific routes out of the
+  analytical core.
+
+### Expected impact
+
+Future analytical modules can declare exact prerequisites. PR5D0E creates no
+production output contract, evaluator, binding, assembler, runtime behavior,
+admission authority, investment-rule change, or production authority.
