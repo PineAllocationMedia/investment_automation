@@ -199,7 +199,7 @@ Existing documents remain:
 
 ## 8. Current technical frontier — audited Real Fact Admission closure
 
-### Real-source chain through PR #62 ✅
+### Real-source chain through PR #64 / PR5B ✅
 
 Merged PR4D1 through PR4D4D3B now provide a controlled CURRENT Companyfacts
 authority boundary; complete-submission, Submissions, Nasdaq Listed and SEC
@@ -209,11 +209,13 @@ exact CURRENT SEC/Nasdaq registered-listing bridge; filing-document and direct
 Section-12 source discovery; common-stock source scopes; a same-filing class
 source bridge; and an ordered temporal common-stock source correspondence series.
 
-These are evidence and source-correspondence capabilities. They do not silently
-establish economic identity, share basis, reporting subject, quote semantics,
-publication time, or final admission. D1 still establishes only route-specific
-acquisition provenance, capture-bound CURRENT observed availability and snapshot
-scope. Factual authority remains separate from permitted/commercial use.
+These source capabilities do not silently establish share basis, reporting
+subject, quote semantics, publication time, or final admission. Merged PR5B adds
+the reviewed narrow CURRENT route-local issuer/security, ordinary-common,
+relevant-class, direct-listing-source and EPS-applicability qualification. D1
+still establishes only route-specific acquisition provenance, capture-bound
+CURRENT observed availability and snapshot scope. Factual authority remains
+separate from permitted/commercial use.
 
 ### PR5A — Real Fact Admission gap review ✅
 
@@ -223,19 +225,21 @@ first route and distinguishes existing sufficient evidence, immediate real
 closures, deferred requirements and optional refinements. PR5A is documentation
 only and grants no implementation or admission authority.
 
-The hyper-fragmented PR4D4D numbering sequence is closed. Subject to separate
-owner review and then-current base verification, the audited immediate sequence is:
+The hyper-fragmented PR4D4D numbering sequence is closed. The attempted PR5C
+evidence checkpoint correctly found that positive reporting-subject and share-
+basis source foundations are still missing. The reviewed immediate sequence is:
 
-1. **PR5B — Narrow CURRENT security and EPS qualification:** route-local
-   issuer/security qualification, positive ordinary-common participation,
-   affirmative relevant-common-class coverage, direct-Nasdaq source qualification,
-   and applicability of every retained C3 EPS observation/version.
-2. **PR5C — Comparable real EPS qualification:** positive no-transformation
+1. **PR5C0A — Reporting-subject source foundation:** controlled SEC filing
+   inventory, metadata signals, exact passages and explicit source-local claims;
+   no continuity conclusion and no blocker discharge.
+2. **PR5C0B — Corporate-action/share-basis source foundation:** separately
+   reviewed denominator/basis evidence; not implemented or authorized by PR5C0A.
+3. **PR5C — Comparable real EPS qualification:** positive no-transformation
    share-basis and single-reporting-subject qualification through T.
-3. **PR5D — Remaining real Expected Return roots:** controlled current price and
+4. **PR5D — Remaining real Expected Return roots:** controlled current price and
    quote semantics, dividend/nonpayer state, ordinary-compounder profile and
    reviewed applicable ER policies.
-4. **PR5E — Final admission and real ER adapter:** closed evidence-replaying
+5. **PR5E — Final admission and real ER adapter:** closed evidence-replaying
    admission join and real-capable typed facts into the existing PR4B1/PR4A path.
 
 Universal identity, universal issuer-wide class inventory, corporate-action, M&A,
@@ -304,11 +308,14 @@ Inserted stages use numeric suffixes to preserve existing stage references.
 ### Stage A — Real fact admission
 
 - controlled CURRENT acquisition and source-correspondence foundation completed
-  through PR #62;
+  through PR #62, with the reviewed narrow CURRENT PR5B qualification merged in
+  PR #64;
 - PR5A closure review and deliberately narrow first-route definition;
 - PR5B route-local issuer/security, ordinary-common participation,
   affirmative relevant-common-class coverage, direct-listing source and
   EPS-applicability qualification;
+- PR5C0A reporting-subject source evidence without continuity or blocker discharge;
+- PR5C0B separately reviewed corporate-action/share-basis source evidence;
 - PR5C no-transformation share-basis and reporting-subject qualification;
 - PR5D missing current price/quote, distribution, profile and governed-policy roots;
 - PR5E final admission join and real-capable adapter into Expected Return facts;
@@ -1225,27 +1232,26 @@ Do not allow all four documents to repeat the same implementation details.
 
 ## 14. Next session handoff
 
-The current audited V2 integration base is post-PR4D4D3B / merged PR #62. The
-real-source chain supplies a strong source foundation, but does not yet establish
-ordinary-common economic participation, affirmative route-local relevant-class
-coverage, EPS applicability, quote semantics, share-basis comparability,
-reporting-subject comparability, the remaining ER roots, or final economic
-admission. The immediate engineering frontier remains **Real Fact Admission**
-under the PR5A closure plan.
+The current audited V2 integration base is post-PR5B / merged PR #64. PR5B closes
+its narrow CURRENT security/EPS route, but the graph still does not establish
+share-basis comparability, reporting-subject continuity, quote semantics, the
+remaining ER roots, or final economic admission. PR5C0A is the reviewed source-
+foundation step for reporting-subject evidence only; PR5C0B and final PR5C remain
+separate. The immediate frontier remains **Real Fact Admission**.
 
 1. verify the current V2 remote head;
 2. read the constitution and this roadmap;
 3. read `EXPECTED_RETURN_PR5A_REAL_ADMISSION_GAP_REVIEW.md` and the relevant
    PR4C/PR4D contracts;
-4. obtain separate owner review of a PR5B implementation contract; PR5A and this
-   roadmap update authorize no implementation;
+4. complete PR5C0A review without treating source silence as continuity, then
+   obtain separate owner review for PR5C0B and PR5C;
 5. preserve every source-authority, fail-closed, global-universe and pre-shadow
    invariant while supporting only the exact reviewed first route;
 6. preserve V1 unchanged.
 
 ---
 
-*Roadmap state updated on 2026-09-27 to verified post-PR #62 / PR4D4D3B and the
-PR5A Real Fact Admission closure review.
+*Roadmap state updated on 2026-09-27 to verified post-PR #64 / PR5B and the
+PR5C0A reporting-subject source-foundation checkpoint.
 Future architecture stages and shadow-readiness gates are requirements only.
 No implementation, runtime, investment-rule or authority change is authorized here.*

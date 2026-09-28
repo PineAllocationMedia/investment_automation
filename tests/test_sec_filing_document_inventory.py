@@ -138,14 +138,14 @@ class SecFilingDocumentInventoryTests(unittest.TestCase):
         self.assertEqual(primary.evidence_id, prior_identity)
 
     def test_all_and_only_d2a_supported_forms(self):
-        for form in ("10-K", "10-K/A", "10-Q", "10-Q/A", "8-K"):
+        for form in ("10-K", "10-K/A", "10-Q", "10-Q/A", "8-K", "8-K/A"):
             with self.subTest(form=form):
                 raw = filing_inventory(form=form, documents=self.documents(form=form))
                 receipt = self.capture(raw, captured_at=T1)
                 self.assertEqual(self.replay(receipt).form, form)
                 self.root = self.root.parent / ("archive-" + form.replace("/", "-"))
                 self.archive = SecFilingArchive(self.root)
-        for form in ("8-K/A", "20-F", "6-K"):
+        for form in ("20-F", "6-K"):
             with self.subTest(form=form):
                 raw = filing_inventory(form=form, documents=self.documents(form=form))
                 receipt = self.capture(raw)
@@ -436,6 +436,7 @@ class SecFilingDocumentInventoryDependencyTests(unittest.TestCase):
             if file in {module,
                         root / "economic_facts/sec_direct_section12_description_source.py",
                         root / "economic_facts/sec_section12_rights_source_claims.py",
+                        root / "economic_facts/sec_reporting_subject_source_claims.py",
                         root / "economic_facts/sec_temporal_common_stock_source_series.py"}:
                 continue
             self.assertNotIn("sec_filing_document_inventory", file.read_text(), str(file))
