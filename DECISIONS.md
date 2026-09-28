@@ -3006,3 +3006,38 @@ evaluation.
 Future analytical modules can declare exact prerequisites. PR5D0E creates no
 production output contract, evaluator, binding, assembler, runtime behavior,
 admission authority, investment-rule change, or production authority.
+
+## 2026-09-28 - Fail-closed partial-analysis dependency assembler
+
+### Decision
+
+Each analytical output is evaluated independently. Every declared dependency role
+requires an explicit subject binding, and every cross-scope binding requires
+positive retained relationship semantic and exact-evidence identities. Assembler
+v1 requires exact authority-boundary equality, including `None`.
+
+Capability matching uses the exact required capability plus the exact bound scope.
+Semantically equivalent recaptures may coexist and retain all exact evidence
+identities. Semantically different matching assessments remain ambiguous and block
+output availability rather than allowing a latest, majority, or caller-order
+winner. An explicitly accepted partial assessment produces
+`AVAILABLE_WITH_LIMITATIONS`; any unsatisfied dependency produces `UNAVAILABLE`.
+
+### Reasoning
+
+- Explicit role and scope bindings prevent ticker, CIK, name, first-element, and
+  caller-order identity shortcuts.
+- Exact capability-plus-scope matching prevents unrelated good evidence from
+  filling a missing dependency.
+- Retained upstream reasons and limitations preserve legitimate partial research
+  without promoting `PARTIAL` to `SUPPORTED`.
+- Output availability remains separate from economic calculation, whole-company
+  research participation, and investment/admission authority.
+
+### Expected impact
+
+V2 can now determine whether one future analytical output has legitimate declared
+inputs and can preserve explainable unavailability without erasing independent
+capability assessments. No economic analytical output is calculated yet. PR5D0F
+adds no research-participation classifier, admission, Opportunity Set,
+recommendation, allocation, execution, production, or promotion authority.

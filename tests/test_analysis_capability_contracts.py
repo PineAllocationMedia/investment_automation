@@ -84,6 +84,14 @@ class CapabilityContractTests(unittest.TestCase):
                 "CapabilityDependency",
                 "DependencyContractError",
                 "OutputDependencyContract",
+                "ASSEMBLER_CONTRACT_VERSION",
+                "AssemblyContractError",
+                "OutputAvailabilityStatus",
+                "DependencyBinding",
+                "DependencyResolutionStatus",
+                "DependencyResolution",
+                "OutputAvailability",
+                "assemble_output_availability",
             ),
         )
         self.assertEqual(
