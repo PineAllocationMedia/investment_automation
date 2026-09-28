@@ -562,6 +562,26 @@ _LABEL_PATTERNS = (
         r"(?:THE\s+)?SUCCESSOR(?:\b|,)", re.ASCII)),
 )
 
+_AFFIRMATIVE_PREDECESSOR_SUCCESSOR_PATTERNS = (
+    re.compile(
+        r"^[A-Z][A-Z0-9&.,'() /-]{1,120}?\s+(?:WAS|IS)\s+(?:THE\s+)?PREDECESSOR,?\s+"
+        r"AND\s+[A-Z][A-Z0-9&.,'() /-]{1,120}?\s+(?:WAS|IS|BECAME)\s+"
+        r"(?:THE\s+)?SUCCESSOR[.]?$",
+        re.ASCII,
+    ),
+)
+
+_AFFIRMATIVE_ACCOUNTING_ACQUIRER_REPORTING_ENTITY_PATTERNS = (
+    re.compile(
+        r"^(?:FOR ACCOUNTING PURPOSES,?\s+)?[A-Z][A-Z0-9&.,'() /-]{1,120}?\s+"
+        r"(?:WAS|IS|HAS BEEN)\s+"
+        r"(?:DETERMINED TO BE|IDENTIFIED AS|CONSIDERED|DEEMED)\s+"
+        r"(?:THE\s+)?ACCOUNTING ACQUIRER\s+AND\s+"
+        r"(?:THE\s+)?CONTINUING REPORTING ENTITY[.]?$",
+        re.ASCII,
+    ),
+)
+
 
 def _labels(text, normalized, *, accession, document_semantic_id, kind):
     labels = []
@@ -599,17 +619,14 @@ def _claim_kinds(normalized):
         kinds.add(ReportingSubjectClaimKind.PREDECESSOR_REFERENCE)
     if successor:
         kinds.add(ReportingSubjectClaimKind.SUCCESSOR_REFERENCE)
-    if predecessor and successor:
+    if predecessor and successor and any(
+            pattern.fullmatch(normalized)
+            for pattern in _AFFIRMATIVE_PREDECESSOR_SUCCESSOR_PATTERNS):
         kinds.add(ReportingSubjectClaimKind.PREDECESSOR_SUCCESSOR_TRANSITION)
     if _contains(normalized, "ACCOUNTING ACQUIRER"):
         kinds.add(ReportingSubjectClaimKind.ACCOUNTING_ACQUIRER_REFERENCE)
-        if (_contains(normalized, "CONTINUING REPORTING ENTITY")
-                or (_contains(normalized, "FINANCIAL STATEMENTS")
-                    and re.search(r"\bBEC(?:OME|AME)\b.{0,80}\b(?:REGISTRANT|COMPANY)\b",
-                                  normalized, re.ASCII))
-                or (_contains(normalized, "CONSIDERED") and predecessor)
-                or (_contains(normalized, "LEGAL SUCCESSOR") and
-                    _contains(normalized, "REPORTING OBLIGATION"))):
+        if any(pattern.fullmatch(normalized) for pattern in
+               _AFFIRMATIVE_ACCOUNTING_ACQUIRER_REPORTING_ENTITY_PATTERNS):
             kinds.add(ReportingSubjectClaimKind.ACCOUNTING_ACQUIRER_BECOMES_REPORTING_ENTITY)
     if _contains(normalized, "REVERSE ACQUISITION") or _contains(normalized, "REVERSE MERGER"):
         kinds.add(ReportingSubjectClaimKind.REVERSE_ACQUISITION_REFERENCE)
@@ -633,14 +650,6 @@ def _claim_kinds(normalized):
                            and _contains(normalized, "ACCOUNTING")))):
         kinds.add(ReportingSubjectClaimKind.UNINTERPRETED_RESTRUCTURING_LANGUAGE)
     return tuple(sorted(kinds, key=lambda item: item.value))
-
-
-def _event_key(occurrences):
-    fields = [dict(item.fields) for item in occurrences]
-    forms = sorted({field["form"].removesuffix("/A") for field in fields})
-    reports = sorted({field["reportDate"] for field in fields if field["reportDate"]})
-    return "|".join((forms[0] if len(forms) == 1 else "CONFLICTING_FORM",
-                     reports[0] if len(reports) == 1 else occurrences[0].semantic_id))
 
 
 def _metadata_signals(occurrence):
@@ -794,7 +803,7 @@ def build_sec_reporting_subject_source_foundation(
             conflicts.append(occurrence)
             accession_issues.add(occurrence.issue)
         known_forms = {dict(item.fields)["form"] for item in occurrences}
-        event_key = _event_key(occurrences)
+        event_key = accession
         captures = []
         for receipt in receipts:
             document_inventory, claims, issues, occurrences_issues = _extract_capture(

@@ -141,6 +141,34 @@ class SecReportingSubjectSourceClaimsTests(unittest.TestCase):
         self.assertEqual(claim.subject_labels[0].role, "ACCOUNTING_ACQUIRER")
         self.assertNotEqual(claim.subject_labels[0].source_local_id, assessment.source_cik)
 
+    def test_negative_and_conditional_wording_does_not_create_strong_claims(self):
+        cases = (
+            (
+                "The transaction did not result in a predecessor or successor transition.",
+                source.ReportingSubjectClaimKind.PREDECESSOR_SUCCESSOR_TRANSITION,
+            ),
+            (
+                "Alpha Inc. is not the accounting acquirer or continuing reporting entity.",
+                source.ReportingSubjectClaimKind.ACCOUNTING_ACQUIRER_BECOMES_REPORTING_ENTITY,
+            ),
+            (
+                "If Alpha Inc. were the accounting acquirer, it would become the "
+                "continuing reporting entity.",
+                source.ReportingSubjectClaimKind.ACCOUNTING_ACQUIRER_BECOMES_REPORTING_ENTITY,
+            ),
+        )
+        for number, (passage, prohibited) in enumerate(cases, start=1):
+            with self.subTest(passage=passage):
+                current = row(number=number, form="8-K", items="2.01")
+                assessment = self.assess(
+                    self.parent([current]), self.filing(current, blocks=(passage,)))
+                self.assertNotIn(prohibited,
+                                 {claim.kind for claim in assessment.explicit_claims})
+                self.assertEqual(
+                    assessment.status,
+                    source.ReportingSubjectSourceStatus.CAPTURED_REPORTING_SUBJECT_SOURCE_SET,
+                )
+
     def test_reverse_acquisition_and_reverse_recapitalization_remain_distinct(self):
         current = row(form="8-K", items="5.06")
         assessment = self.assess(
@@ -207,7 +235,7 @@ class SecReportingSubjectSourceClaimsTests(unittest.TestCase):
                               if item.issue is source.ReportingSubjectSourceIssue.
                               UNINTERPRETED_RESTRUCTURING_LANGUAGE), passage)
 
-    def test_unreviewed_8k_item_metadata_fails_closed_without_claim(self):
+    def test_unreviewed_8k_item_metadata_is_retained_without_invalidating_source_set(self):
         current = row(form="8-K", items="2.01, 7.99")
         assessment = self.assess(self.parent([current]), self.filing(current))
         self.assertEqual(assessment.status,
@@ -245,15 +273,58 @@ class SecReportingSubjectSourceClaimsTests(unittest.TestCase):
         self.assertEqual({claim.exact_source_passage for claim in assessment.explicit_claims},
                          {"Alpha Inc. was the predecessor.", "Beta Inc. was the predecessor."})
 
-    def test_original_and_amendment_incompatible_subject_labels_conflict(self):
+    def test_same_date_distinct_8k_accessions_remain_separate_source_events(self):
+        first = row(number=1, form="8-K", items="2.01", reportDate="2026-01-15")
+        second = row(number=2, form="8-K", items="2.01", reportDate="2026-01-15")
+        assessment = self.assess(
+            self.parent([first, second]),
+            self.filing(first, blocks=(
+                "Alpha Operating Inc. was determined to be the accounting acquirer and "
+                "continuing reporting entity.",)),
+            self.filing(second, blocks=(
+                "Beta Operating Inc. was determined to be the accounting acquirer and "
+                "continuing reporting entity.",)),
+        )
+        self.assertEqual(
+            assessment.status,
+            source.ReportingSubjectSourceStatus.CAPTURED_REPORTING_SUBJECT_SOURCE_SET,
+        )
+        self.assertNotIn(source.ReportingSubjectSourceIssue.INCOMPATIBLE_SUBJECT_LABELS,
+                         {item.issue for item in assessment.conflicts})
+        self.assertEqual({claim.event_key for claim in assessment.explicit_claims},
+                         {first["accessionNumber"], second["accessionNumber"]})
+
+    def test_same_date_8k_and_amendment_are_not_inferred_to_be_linked(self):
         original = row(number=1, form="8-K", items="2.01", reportDate="2026-01-15")
         amendment = row(number=2, form="8-K/A", items="9.01", reportDate="2026-01-15")
         assessment = self.assess(
             self.parent([original, amendment]),
             self.filing(original, blocks=(
-                "Alpha Operating Inc. was determined to be the accounting acquirer.",)),
+                "Alpha Operating Inc. was determined to be the accounting acquirer and "
+                "continuing reporting entity.",)),
             self.filing(amendment, blocks=(
-                "Beta Operating Inc. was determined to be the accounting acquirer.",)),
+                "Beta Operating Inc. was determined to be the accounting acquirer and "
+                "continuing reporting entity.",)),
+        )
+        self.assertEqual(
+            assessment.status,
+            source.ReportingSubjectSourceStatus.CAPTURED_REPORTING_SUBJECT_SOURCE_SET,
+        )
+        self.assertNotIn(source.ReportingSubjectSourceIssue.INCOMPATIBLE_SUBJECT_LABELS,
+                         {item.issue for item in assessment.conflicts})
+        self.assertEqual({claim.event_key for claim in assessment.explicit_claims},
+                         {original["accessionNumber"], amendment["accessionNumber"]})
+
+    def test_incompatible_labels_within_one_accession_remain_a_conflict(self):
+        current = row(form="8-K", items="2.01", reportDate="2026-01-15")
+        assessment = self.assess(
+            self.parent([current]),
+            self.filing(current, blocks=(
+                "Alpha Operating Inc. was determined to be the accounting acquirer and "
+                "continuing reporting entity.",
+                "Beta Operating Inc. was determined to be the accounting acquirer and "
+                "continuing reporting entity.",
+            )),
         )
         self.assertEqual(assessment.status, source.ReportingSubjectSourceStatus.SOURCE_CONFLICT)
         self.assertIn(source.ReportingSubjectSourceIssue.INCOMPATIBLE_SUBJECT_LABELS,

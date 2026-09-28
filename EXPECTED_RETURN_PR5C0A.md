@@ -125,6 +125,13 @@ closed visible-block parser. Unsupported encodings, malformed structure, and
 safety-bound excess remain unsupported. There is no LLM, fuzzy classifier,
 browser repair, or external-resource resolution.
 
+Reference claims retain reviewed term mentions. The two stronger relational
+claims are narrower: they require a finite, reviewed affirmative sentence
+grammar. Keyword co-occurrence does not create a transition or reporting-entity
+relation. Negative, hypothetical, conditional, and otherwise unreviewed wording
+therefore cannot emit `PREDECESSOR_SUCCESSOR_TRANSITION` or
+`ACCOUNTING_ACQUIRER_BECOMES_REPORTING_ENTITY`.
+
 Closed claim vocabulary:
 
 - `PREDECESSOR_REFERENCE`;
@@ -164,10 +171,15 @@ Closed statuses are:
 - `UNSUPPORTED_SOURCE_PROFILE`.
 
 Conflict has precedence. Conflicts retain all D2B variants, differing D2A bytes,
-D2B/D2A form disagreement, and incompatible explicitly named subject labels in an
-original/amendment event group. Unsupported status covers unreviewed metadata,
-unsupported or malformed eligible documents, bounds, and uninterpreted language.
-Incomplete status covers omitted D2B history or missing relevant filing captures.
+D2B/D2A form disagreement, and incompatible explicitly named subject labels within
+one accession-local source scope. Accessions are separate source events by default:
+form plus report date does not link filings, and an `8-K/A` is not inferred to amend
+a same-date `8-K` without an explicit captured source relationship. No latest or
+amendment winner exists. Unsupported status covers unsupported or malformed
+eligible documents, bounds, and uninterpreted language. Unreviewed 8-K item
+metadata remains an issue occurrence but does not invalidate an otherwise reviewed
+captured source set. Incomplete status covers omitted D2B history or missing
+relevant filing captures.
 
 A captured status means only that the selected captured source surface replayed
 under this profile. It does not mean no transition occurred.
@@ -208,19 +220,19 @@ request or positive-capital analysis was performed.
 
 | Isolated selection | Tests | Result |
 | --- | ---: | --- |
-| PR5C0A focused | 24 | PASS |
+| PR5C0A focused | 27 | PASS |
 | SEC Submissions | 101 | PASS |
 | SEC filing acquisition/archive/document inventory | 99 | PASS |
 | D4A/D4B temporal | 58 | PASS |
 | PR5B | 31 | PASS |
-| all SEC tests | 817 | PASS |
+| all SEC tests | 820 | PASS |
 | source/current authority | 44 | PASS |
 | security identity | 84 | PASS |
 | Expected Return | 144 | PASS |
 | runtime isolation | 29 | PASS |
 | validation identity isolation | 19 | PASS |
 | protected PIT | 40 | PASS |
-| complete isolated suite | **2,373** | **PASS** |
+| complete isolated suite | **2,376** | **PASS** |
 
 The protected PIT aggregate remains
 `f1e73b27b80e41d96ff5e0fe990b482bad71b7220db0b5bd6a2f470d72786166`;
