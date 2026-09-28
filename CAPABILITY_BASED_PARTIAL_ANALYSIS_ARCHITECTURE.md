@@ -525,8 +525,8 @@ to let a descriptive UI summary become an authority token.
 
 ## 19. Implementation roadmap
 
-PR5D0D and PR5D0E implement only the first two foundations below. Every later
-stage still requires its own reviewed contract and narrow PR.
+PR5D0D, PR5D0E, and PR5D0F implement the first three foundations below. Every
+later stage still requires its own reviewed contract and narrow PR.
 
 ### Capability contract foundation — implemented by PR5D0D
 
@@ -544,12 +544,28 @@ states, and deterministic semantic identity.
 
 PR5D0E provides no evaluation, subject binding, assembler, output execution,
 research participation classifier, or investment authority. It creates no actual
-production output contract. The next stage remains the Partial Analysis Assembler.
+production output contract. Its declaration layer is now consumed by the PR5D0F
+Partial Analysis Assembler described below.
 
-### Partial analysis assembler
+### Partial analysis assembler — implemented by PR5D0F
 
-Execute only outputs whose dependency contracts are satisfied. Preserve unavailable
-outputs and reasons without erasing independent supported outputs.
+The source-neutral `analysis_capabilities` package now matches every explicit
+dependency role to one exact bound capability scope and determines that output's
+dependency availability as `AVAILABLE`, `AVAILABLE_WITH_LIMITATIONS`, or
+`UNAVAILABLE`.
+
+Cross-scope dependencies require retained semantic and exact-evidence relationship
+identities. Assembler v1 requires exact authority-boundary equality, including
+`None`. Exact capability-plus-scope matching accepts semantically equivalent
+recaptures while retaining all exact evidence identities; semantically different
+matches remain ambiguous and block availability rather than selecting a latest,
+majority, or caller-order winner. Upstream partial, unavailable, review-required,
+and conflicted reasons and limitations remain visible.
+
+PR5D0F performs no economic calculation or analytical-output execution, creates no
+research-participation state, and grants no investment, admission, Opportunity Set,
+recommendation, allocation, execution, production, or promotion authority. The
+next implementation stage is the Research Participation Classifier.
 
 ### Research participation classifier
 

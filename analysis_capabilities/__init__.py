@@ -13,6 +13,16 @@ from .dependencies import (
     DependencyContractError,
     OutputDependencyContract,
 )
+from .assembler import (
+    ASSEMBLER_CONTRACT_VERSION,
+    AssemblyContractError,
+    DependencyBinding,
+    DependencyResolution,
+    DependencyResolutionStatus,
+    OutputAvailability,
+    OutputAvailabilityStatus,
+    assemble_output_availability,
+)
 
 __all__ = (
     "CAPABILITY_CONTRACT_VERSION",
@@ -24,4 +34,12 @@ __all__ = (
     "CapabilityDependency",
     "DependencyContractError",
     "OutputDependencyContract",
+    "ASSEMBLER_CONTRACT_VERSION",
+    "AssemblyContractError",
+    "OutputAvailabilityStatus",
+    "DependencyBinding",
+    "DependencyResolutionStatus",
+    "DependencyResolution",
+    "OutputAvailability",
+    "assemble_output_availability",
 )

@@ -310,6 +310,19 @@ It creates no actual analytical-output wiring, dependency evaluator, subject
 binding, assembler, research participation classifier, score, admission authority,
 or investment authority. It does not unblock PR5C, complete PR5D, or start PR5E.
 
+### PR5D0F — Partial Analysis Assembler
+
+PR5D0F implements the first pure evaluator for one analytical output's declared
+dependencies. It binds every dependency role to one explicit capability scope and
+produces `AVAILABLE`, `AVAILABLE_WITH_LIMITATIONS`, or `UNAVAILABLE` while
+preserving partial and unavailable reasons, limitations, and semantic/exact
+evidence identities.
+
+It calculates no analytical value and does not aggregate whole-company research
+participation. It changes no admission or investment authority, does not unblock
+PR5C, does not complete PR5D, and does not start PR5E. The next separately
+reviewed capability-architecture stage is the Research Participation Classifier.
+
 PR5D0A advances independently of PR5C. The public SEC/free-Nasdaq source graph still
 lacks complete positive no-transformation coverage through CURRENT T, so PR5C
 remains source-blocked and both share-basis and economic-comparability blockers
@@ -401,6 +414,10 @@ Inserted stages use numeric suffixes to preserve existing stage references.
 - PR5D0E source-neutral per-output dependency declarations only, with canonical
   accepted states and semantic identity but no evaluator, binding, assembler,
   actual output wiring or admission authority;
+- PR5D0F pure per-output dependency assembler, with explicit scope bindings,
+  cross-scope relationship evidence, strict v1 boundary equality, deterministic
+  output availability and preserved reasons/limitations, but no analytical value,
+  research-participation aggregation or admission authority;
 - PR5D still missing current price/quote, payer distribution support, selected-
   class/comparability joins, profile, and governed authoritative-policy roots;
 - PR5E final admission join and real-capable adapter into Expected Return facts;
@@ -1346,10 +1363,10 @@ remain missing. PR5D0C adds only the cross-cutting rule that independent researc
 capabilities may remain available while every output depending on a missing
 capability stays unavailable. It does not weaken PR5C: PR5C remains blocked,
 PR5D remains incomplete and PR5E has not started. The immediate frontier remains
-**Real Fact Admission**. PR5D0D implements only the generic capability assessment
-contract foundation, and PR5D0E implements only per-output dependency declarations;
-the Partial Analysis Assembler, output execution and research participation remain
-future separately reviewed work.
+**Real Fact Admission**. PR5D0D implements the generic capability assessment
+contract foundation, PR5D0E implements per-output dependency declarations, and
+PR5D0F implements only the pure per-output availability assembler. Analytical
+output execution and research participation remain future separately reviewed work.
 
 1. verify the current V2 remote head;
 2. read the constitution and this roadmap;
@@ -1364,7 +1381,7 @@ future separately reviewed work.
 ---
 
 *Roadmap state updated on 2026-09-28 through the PR5D0B integration base, PR5D0C
-architecture checkpoint, PR5D0D capability contract foundation and PR5D0E dependency
-contract foundation. Later architecture stages and shadow-readiness gates remain
-requirements only. No investment-rule, numerical-policy or production-authority
-change is authorized here.*
+architecture checkpoint, PR5D0D capability contract foundation, PR5D0E dependency
+contract foundation and PR5D0F partial-analysis assembler. Later architecture
+stages and shadow-readiness gates remain requirements only. No investment-rule,
+numerical-policy or production-authority change is authorized here.*
