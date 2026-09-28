@@ -2911,3 +2911,38 @@ model behavior, PIT fingerprints, determinism identity, V1 authority, evidence
 semantics or production behavior. Full heavyweight validation remains mandatory
 for its dependency surface. Obsolete runs for the same PR may be cancelled safely;
 unrelated PRs remain independent.
+
+## 2026-09-28 - Source-neutral capability assessment contract foundation
+
+### Decision
+
+Capability coverage is represented by immutable dimensional assessments using the
+exact PR5D0C states `SUPPORTED`, `PARTIAL`, `UNSUPPORTED`, `UNAVAILABLE`,
+`REVIEW_REQUIRED` and `CONFLICTED`. Each assessment has an explicit scope bound to
+an upstream reviewed semantic subject identity and, when applicable, an explicit
+authority/time boundary and additional scope-semantic identities.
+
+Semantic identity binds contract version, capability, scope, state, supporting
+semantic identities, reasons and limitations. Evidence identity additionally
+binds exact evidence identities. Positive and unresolved evidence-bearing states
+cannot exist without retained support. Capability support grants no downstream
+analytical, investment, admission, recommendation, allocation, execution or
+production authority.
+
+### Reasoning
+
+- Partial-analysis architecture needs one common representation before dependency
+  contracts or orchestration can be reviewed.
+- Source-specific evidence must not define core analytical semantics.
+- Deterministic semantic/evidence separation is required for future replay, audit
+  and invalidation without making equivalent recaptures semantically different.
+
+### Expected impact
+
+Later analytical outputs may depend on explicit capability contracts after their
+own reviewed implementation. PR5D0D adds no dependency graph, assembler, research
+participation classifier, source adapter, global coverage score, Confidence,
+Opportunity Set behavior or investment authority. Current V1/V2 analytical and
+production behavior is unchanged, PR5C remains blocked, PR5D remains incomplete,
+PR5E has not started and `MODEL_RULES_VERSION` remains
+`2026-08-23-allocation-room-integrity-v7`.
