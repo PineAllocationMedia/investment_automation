@@ -287,6 +287,18 @@ PR5D remains incomplete and PR5E has not started. The supported core must remain
 operable without a paid financial-data subscription; paid sources may only be
 optional, separately approved coverage enhancements.
 
+### PR5D0D — Capability Contract Foundation
+
+PR5D0D implements the first PR5D0C runtime-neutral layer: a source-neutral,
+immutable capability scope and assessment representation with the exact six-state
+vocabulary and separate deterministic semantic/evidence identities. Positive and
+unresolved evidence-bearing states fail closed without retained support.
+
+It implements no dependency graph, partial-analysis assembler, research
+participation classifier, Confidence, Opportunity Set integration, source adapter,
+or downstream consumer. It changes no admission authority, does not unblock PR5C,
+does not complete PR5D, and does not start PR5E.
+
 PR5D0A advances independently of PR5C. The public SEC/free-Nasdaq source graph still
 lacks complete positive no-transformation coverage through CURRENT T, so PR5C
 remains source-blocked and both share-basis and economic-comparability blockers
@@ -373,6 +385,8 @@ Inserted stages use numeric suffixes to preserve existing stage references.
   annual verified-nonpayer condition, with payer support deferred and no PR4B1 root;
 - PR5D0C capability-based partial-analysis architecture, preserving independent
   research availability without weakening any dependent admission requirement;
+- PR5D0D source-neutral capability contract foundation only, with no dependency
+  graph, assembler, research participation classifier or admission authority;
 - PR5D still missing current price/quote, payer distribution support, selected-
   class/comparability joins, profile, and governed authoritative-policy roots;
 - PR5E final admission join and real-capable adapter into Expected Return facts;
@@ -1318,7 +1332,9 @@ remain missing. PR5D0C adds only the cross-cutting rule that independent researc
 capabilities may remain available while every output depending on a missing
 capability stays unavailable. It does not weaken PR5C: PR5C remains blocked,
 PR5D remains incomplete and PR5E has not started. The immediate frontier remains
-**Real Fact Admission**.
+**Real Fact Admission**. PR5D0D implements only the generic capability contract
+foundation; dependency contracts, orchestration and research participation remain
+future separately reviewed work.
 
 1. verify the current V2 remote head;
 2. read the constitution and this roadmap;
@@ -1332,7 +1348,7 @@ PR5D remains incomplete and PR5E has not started. The immediate frontier remains
 
 ---
 
-*Roadmap state updated on 2026-09-28 through the PR5D0B integration base and the
-PR5D0C capability-based partial-analysis architecture checkpoint. Future
-architecture stages and shadow-readiness gates are requirements only. No runtime,
+*Roadmap state updated on 2026-09-28 through the PR5D0B integration base, PR5D0C
+architecture checkpoint and PR5D0D capability contract foundation. Later
+architecture stages and shadow-readiness gates remain requirements only. No
 investment-rule, numerical-policy or production-authority change is authorized here.*

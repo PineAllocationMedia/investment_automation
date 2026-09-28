@@ -523,15 +523,17 @@ It is also prohibited to select the latest, majority, or most convenient evidenc
 to hide a conflict; to convert review-required evidence into automatic support; or
 to let a descriptive UI summary become an authority token.
 
-## 19. Future implementation roadmap
+## 19. Implementation roadmap
 
-PR5D0C authorizes none of the following implementation. Each stage requires its
-own reviewed contract and narrow PR.
+PR5D0D implements only the first foundation below. Every later stage still
+requires its own reviewed contract and narrow PR.
 
-### Capability contract foundation
+### Capability contract foundation — implemented by PR5D0D
 
-Introduce pure, versioned state types and dimensional capability records, with
-explicit evidence scope, reasons, limitations, and deterministic identity.
+The source-neutral `analysis_capabilities` package now provides pure, versioned
+state, scope and dimensional assessment records with explicit reasons,
+limitations, retained support and separate deterministic semantic/evidence
+identity. It has no evidence resolver or downstream consumer.
 
 ### Dependency contracts
 
