@@ -54,15 +54,15 @@ Integration branch:
 
 `model-v2/expected-return-challenger`
 
-Verified post-PR5D0B state after merged PR #68 (2026-09-28):
+Verified pre-PR5C integration state (2026-09-28):
 
-Merge commit:
+Commit:
 
-`d3e04abcdfb4d2a7dc8c857ffed234c589d67386`
+`64dbfc20b6d3b282ce0d29a80ace22588d556c67`
 
 Tree:
 
-`9164afc3d5d5d67fb5b5e221de605293d758c0ff`
+`755747f3452dd48267e4408ceabd2f41d29ba4c4`
 
 Always verify current remote state before using these values.
 
@@ -199,7 +199,7 @@ Existing documents remain:
 
 ## 8. Current technical frontier — audited Real Fact Admission closure
 
-### Real-source chain through PR #66 / PR5C0B ✅
+### Real-source chain through PR5C comparable historical EPS presentation ✅
 
 Merged PR4D1 through PR4D4D3B now provide a controlled CURRENT Companyfacts
 authority boundary; complete-submission, Submissions, Nasdaq Listed and SEC
@@ -219,8 +219,11 @@ separate from permitted/commercial use.
 
 Merged PR5C0A adds controlled reporting-subject filing-universe, metadata-signal
 and explicit source-local claim evidence only. Merged PR5C0B separately adds
-controlled corporate-action/share-basis source claims. Neither establishes
-positive continuity/comparability or discharges an admission blocker.
+controlled corporate-action/share-basis source claims. Neither source layer alone
+establishes continuity/comparability or discharges an admission blocker. PR5C now
+freshly replays those layers with successful PR5B, exact C3 and one controlled
+five-period SEC presentation to establish narrow historical presentation
+comparability. It does not bridge a later/current quote to that basis.
 
 ### PR5A — Real Fact Admission gap review ✅
 
@@ -241,11 +244,12 @@ basis source foundations are still missing. The reviewed immediate sequence is:
    layer preserving controlled filing-universe, explicit action/presentation
    claims, ratios, dates, class scope, provenance and conflicts only. It does not
    establish share-basis comparability or discharge `SPLIT_BASIS_NOT_ESTABLISHED`.
-3. **PR5C — Comparable real EPS qualification:** positive no-transformation
-   share-basis and single-reporting-subject qualification through T.
+3. **PR5C — Comparable real EPS qualification:** positive single-presentation
+   historical share-basis and reporting-subject qualification, including only
+   explicitly retrospective `ALL_PERIODS_PRESENTED` split-adjusted cases.
 4. **PR5D — Remaining real Expected Return roots:** controlled current price and
-   quote semantics, dividend/nonpayer state, ordinary-compounder profile and
-   reviewed applicable ER policies.
+   quote semantics, explicit quote-to-PR5C-basis linkage, dividend/nonpayer state,
+   ordinary-compounder profile and reviewed applicable ER policies.
 5. **PR5E — Final admission and real ER adapter:** closed evidence-replaying
    admission join and real-capable typed facts into the existing PR4B1/PR4A path.
 
@@ -282,8 +286,8 @@ from Confidence and Opportunity Set authority. One missing capability may block
 every dependent output without erasing independent research capabilities.
 
 PR5D0C adds no runtime behavior, fallback Expected Return, model rule, score,
-ranking, recommendation, allocation or admission authority. PR5C remains blocked,
-PR5D remains incomplete and PR5E has not started. The supported core must remain
+ranking, recommendation, allocation or admission authority. It did not itself
+unblock PR5C; PR5D remains incomplete and PR5E has not started. The supported core must remain
 operable without a paid financial-data subscription; paid sources may only be
 optional, separately approved coverage enhancements.
 
@@ -342,18 +346,19 @@ COMPLETE for the current capability-foundation interlude.
 The immediate implementation frontier returns to:
 
 ```text
-PR5C
-→ PR5D
+PR5D
 → PR5E
 → first real end-to-end Expected Return
 ```
 
 No additional PR5D0x capability-architecture stage is planned in this sequence.
 
-PR5D0A advances independently of PR5C. The public SEC/free-Nasdaq source graph still
-lacks complete positive no-transformation coverage through CURRENT T, so PR5C
-remains source-blocked and both share-basis and economic-comparability blockers
-remain unresolved.
+The public SEC/free-Nasdaq source graph still lacks complete positive
+no-transformation coverage through CURRENT T. PR5C therefore uses positive
+historical five-period presentation evidence rather than silence. PR5D must now
+establish the separate current quote-to-qualified-EPS-basis bridge, and PR5E must
+replay both before final admission. This partition does not relax the final
+economic comparability requirement.
 
 Universal identity, universal issuer-wide class inventory, corporate-action, M&A,
 exhaustive legal-right, listing-inventory and HISTORICAL_AS_OF engines are not
@@ -429,7 +434,9 @@ Inserted stages use numeric suffixes to preserve existing stage references.
   EPS-applicability qualification;
 - PR5C0A reporting-subject source evidence without continuity or blocker discharge;
 - PR5C0B separately reviewed corporate-action/share-basis source evidence;
-- PR5C no-transformation share-basis and reporting-subject qualification;
+- PR5C positive single-presentation historical share-basis and reporting-subject
+  qualification, with explicit split-adjusted evidence where applicable and no
+  current quote-basis claim;
 - PR5D0A proposal-only governance for deterministic review of complete candidate
   policy sets, without owner-approved numerical values or any operational consumer;
 - PR5D0B controlled issuer-level source qualification for the strict two-concept
@@ -449,8 +456,9 @@ Inserted stages use numeric suffixes to preserve existing stage references.
   exact output/dependency-contract pinning, common research-subject scope, and the
   four descriptive participation states, but no economic output, score, Confidence,
   Opportunity Set, admission or investment authority;
-- PR5D still missing current price/quote, payer distribution support, selected-
-  class/comparability joins, profile, and governed authoritative-policy roots;
+- PR5D still missing current price/quote, the quote-to-PR5C-basis bridge, payer
+  distribution support, selected-class joins, profile, and governed authoritative-
+  policy roots;
 - PR5E final admission join and real-capable adapter into Expected Return facts;
 - route-specific factual authority kept separate from permitted/commercial use;
 - broader identity, action, listing, historical-PIT and international capabilities
@@ -1379,45 +1387,38 @@ Do not allow all four documents to repeat the same implementation details.
 
 ## 14. Next session handoff
 
-The current audited V2 integration base includes merged PR5D0B / PR #68. PR5B closes
-its narrow CURRENT security/EPS route, but the graph still does not establish
-share-basis comparability, reporting-subject continuity, quote semantics, the
-remaining ER roots, or final economic admission. PR5C0A is the reviewed source-
-foundation step for reporting-subject evidence only. Merged PR5C0B retains
-corporate-action/share-basis claims but still cannot establish public-source
-no-transformation completeness; final PR5C remains separate and source-blocked.
-PR5D0A proposal governance proceeds independently without completing PR5D or
-supplying owner-approved numerical values. PR5D0B advances the strict nonpayer
-distribution source route only; payer support, price/quote, ordinary-compounder
-profile, PR5C comparability, owner-approved policy values, and the final PR5E join
-remain missing. PR5D0C adds only the cross-cutting rule that independent research
-capabilities may remain available while every output depending on a missing
-capability stays unavailable. It does not weaken PR5C: PR5C remains blocked,
-PR5D remains incomplete and PR5E has not started. The immediate frontier remains
-**Real Fact Admission**. PR5D0D implements the generic capability assessment
-contract foundation, PR5D0E implements per-output dependency declarations, and
-PR5D0F implements the pure per-output availability assembler. PR5D0G implements
-the research participation classifier and closes the current PR5D0 capability-
-foundation interlude. Immediate implementation returns to PR5C → PR5D → PR5E →
-the first real end-to-end V2 Expected Return. Analytical output execution remains
-separately reviewed; Confidence and Opportunity Set remain later stages, not the
-next PR.
+The current Stage-A branch adds PR5C's narrow positive historical presentation
+route on top of the audited V2 integration base. Successful PR5B, exact C3, one
+controlled five-period SEC presentation, and freshly replayed PR5C0A/PR5C0B may
+now establish comparable historical real EPS. Empty action history is never
+treated as no-action evidence, supported split cases require exact
+`ALL_PERIODS_PRESENTED` retrospective evidence, and unsupported transformations
+or reporting-subject transitions remain blocked.
+
+PR5C consumes no price and does not establish coverage through current quote time.
+PR5D is the immediate implementation frontier: it must supply the controlled
+current price/quote, currency/per-share semantics, explicit quote-to-qualified-
+EPS-basis linkage, remaining distribution/profile roots, and owner-approved
+policies. PR5E remains the only final admission join and must replay both PR5C and
+PR5D. The completed PR5D0 capability-foundation interlude remains available for
+future partial research outputs but grants no admission authority. Confidence and
+Opportunity Set remain later stages.
 
 1. verify the current V2 remote head;
 2. read the constitution and this roadmap;
 3. read `EXPECTED_RETURN_PR5A_REAL_ADMISSION_GAP_REVIEW.md` and the relevant
    PR4C/PR4D contracts;
-4. preserve PR5C0B's rule that an empty detected-event inventory is not no-action
-   evidence, and resolve the positive source-coverage gap before PR5C;
+4. preserve PR5C's exact presentation boundary and PR5C0B's rule that an empty
+   detected-event inventory is not no-action evidence;
 5. preserve every source-authority, fail-closed, global-universe and pre-shadow
    invariant while supporting only the exact reviewed first route;
 6. preserve V1 unchanged.
 
 ---
 
-*Roadmap state updated on 2026-09-28 through the PR5D0B integration base, PR5D0C
-architecture checkpoint, and the completed PR5D0D → PR5D0E → PR5D0F → PR5D0G
-capability-foundation interlude. Immediate implementation returns to PR5C → PR5D
-→ PR5E. Later architecture stages and shadow-readiness gates remain requirements
-only. No investment-rule, numerical-policy or production-authority change is
-authorized here.*
+*Roadmap state updated on 2026-09-28 through PR5C's positive historical EPS
+presentation-comparability route and the completed PR5D0D → PR5D0E → PR5D0F →
+PR5D0G capability-foundation interlude. Immediate implementation proceeds to
+PR5D → PR5E. Later architecture stages and shadow-readiness gates remain
+requirements only. No investment-rule, numerical-policy or production-authority
+change is authorized here.*

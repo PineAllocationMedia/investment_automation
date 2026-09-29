@@ -35,6 +35,28 @@ facts into the existing calculator path.
 PR5A implements none of those capabilities. It freezes the closure plan for owner
 review. No subsequent implementation is authorized by this document.
 
+### Post-PR5C0B superseding clarification
+
+Implementation evidence obtained after PR5C0B established that complete free
+no-transformation coverage from the retained EPS history through CURRENT T is not
+available from the controlled public source graph. The earlier PR5A language that
+assigned that entire proof to PR5C is therefore superseded for the first route.
+
+The safe free-core responsibility partition is now:
+
+```text
+PR5C: positive historical five-period EPS presentation comparability
++
+PR5D: explicit current quote-to-qualified-EPS-basis linkage
++
+PR5E: final replay and admission only after both succeed
+```
+
+Silence still cannot prove no transformation. This change redistributes proof
+responsibilities; it does not weaken the final economic requirement that the
+admitted current price and all five retained EPS values share a positively
+established denominator basis.
+
 ## 2. Audited base and repository state
 
 The remote was fetched before review. The approved integration ref matched exactly:
@@ -401,18 +423,23 @@ the applicability of every retained C3 EPS observation/version.
 ### PR5C — Comparable real EPS qualification
 
 **One capability:** establish that the already-qualified five-year EPS history is
-on one unchanged share basis and belongs to one accounting reporting subject.
+positively presented on one historical reported share basis and belongs to one
+supported accounting reporting subject.
 
 - **Discharges:** `SPLIT_BASIS_NOT_ESTABLISHED`,
   `ECONOMIC_COMPARABILITY_NOT_ESTABLISHED`, remaining required 4H continuity,
   obligations 5 and 6 for the supported profile.
-- **Dependencies:** successful PR5B plus controlled positive basis/subject evidence.
-- **Exit:** all retained observations are bound to one target basis and one subject
-  through T with original `Decimal` values unchanged, or the case is blocked.
+- **Dependencies:** successful PR5B, exact C3, one controlled positive five-period
+  SEC presentation, and freshly replayed PR5C0A/PR5C0B evidence.
+- **Exit:** one exact presentation positively covers all five C3 periods on one
+  historical reported per-share basis and one supported subject, with original
+  `Decimal` values unchanged, or the case is blocked. Current quote-basis linkage
+  remains for PR5D.
 - **Nonclaims:** no EPS normalization, universal corporate-action engine, event
   transformation, universal M&A/perimeter history, or Portfolio State capability.
 - **Omission test:** yes, omitted PR5C leaves historical EPS economically
-  incomparable to itself and to the current price basis.
+  incomparable as one presentation and therefore unusable by the final price/EPS
+  join.
 
 ### PR5D — Remaining real Expected Return roots
 
@@ -420,9 +447,11 @@ on one unchanged share basis and belongs to one accounting reporting subject.
 initial ordinary-compounder ER profile.
 
 - **Discharges:** Property 4F and the missing price, latest-period dividend/nonpayer,
-  profile, quote-unit/currency, and governed-policy gaps.
-- **Dependencies:** PR5B identity/listing; PR5C target share basis; separately
-  reviewed controlled source routes and owner-approved policy values.
+  profile, quote-unit/currency, quote-to-PR5C-basis linkage, and governed-policy
+  gaps.
+- **Dependencies:** PR5B identity/listing; successful PR5C historical presentation
+  basis; separately reviewed controlled source routes and owner-approved policy
+  values.
 - **Exit:** one exact selected security has a positive current observed price on
   the same currency/share basis, exactly one matched dividend/nonpayer state, an
   evidence-backed ordinary-compounder profile with all required exclusions, and

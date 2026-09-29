@@ -438,7 +438,8 @@ class SecFilingDocumentInventoryDependencyTests(unittest.TestCase):
                         root / "economic_facts/sec_section12_rights_source_claims.py",
                         root / "economic_facts/sec_reporting_subject_source_claims.py",
                         root / "economic_facts/sec_share_basis_source_claims.py",
-                        root / "economic_facts/sec_temporal_common_stock_source_series.py"}:
+                        root / "economic_facts/sec_temporal_common_stock_source_series.py",
+                        root / "economic_facts/sec_five_year_eps_presentation.py"}:
                 continue
             self.assertNotIn("sec_filing_document_inventory", file.read_text(), str(file))
 

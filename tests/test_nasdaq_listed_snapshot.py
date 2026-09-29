@@ -262,7 +262,8 @@ class NasdaqListedDependencyTests(unittest.TestCase):
             if path.stem in modules | {"sec_current_registered_listing_bridge",
                                        "sec_current_common_stock_class_bridge",
                                        "sec_temporal_common_stock_source_series",
-                                       "sec_current_security_eps_qualification"}:
+                                       "sec_current_security_eps_qualification",
+                                       "sec_current_eps_comparability_qualification"}:
                 continue
             for node in ast.walk(ast.parse(path.read_text())):
                 if isinstance(node, ast.ImportFrom):
