@@ -394,6 +394,14 @@ architecture requirements remain unchanged.
 Each PR below fails the omission test: without it, the first safe CURRENT real ER
 route remains blocked. Each needs a separately reviewed implementation contract.
 
+**Superseding implementation partition.** PR5C0B established that the free
+controlled source graph cannot positively prove a universal no-transformation
+interval through CURRENT T by silence. PR5C therefore supersedes the original
+PR5A implementation partition for obligation 5: PR5C establishes historical EPS
+presentation comparability, PR5D establishes current quote-to-EPS denominator
+linkage, and PR5E performs final blocker discharge. The final economic requirement
+itself is unchanged.
+
 ### PR5B — Narrow CURRENT security and EPS qualification
 
 **One capability:** produce a positive or blocked route-local qualification for
@@ -496,13 +504,20 @@ The initial supported route is all of the following, not a looser union:
 - five consecutive positive 365/366-day annual US-GAAP diluted-EPS periods in
   `USD/shares`, with all retained versions in exact agreement;
 - unambiguous EPS applicability to the selected common equity;
-- one affirmatively covered no-transformation share basis through T;
-- one affirmatively covered accounting reporting subject through T;
+- one positively evidenced PR5C five-period historical EPS presentation basis;
+- one positively evidenced PR5C historical accounting-subject conclusion within
+  that supported presentation boundary;
+- supported split, reverse-split, or stock-dividend cases only when exact
+  `ALL_PERIODS_PRESENTED` retrospective presentation treatment is established;
 - no ADR/ADS/wrapper, preferred security, partnership, fund, dual-listing,
-  multiple-class ambiguity, ticker/listing conflict, unsupported restructuring,
-  split/reclassification, subject transition, source conflict, or coverage gap;
-- one controlled positive current price with explicit quote currency/unit on the
-  admitted basis;
+  multiple-class ambiguity, or ticker/listing conflict;
+- no unresolved or unsupported basis transformation, class conversion,
+  unsupported recapitalization, merger/security-exchange basis ambiguity,
+  basis-affecting spin-off, redenomination, reporting-subject transition, source
+  conflict, or coverage gap;
+- one controlled positive current price with explicit quote currency/unit;
+- one positive PR5D bridge proving that the current traded share unit corresponds
+  to the qualified PR5C EPS presentation basis at the quote boundary;
 - one matched latest-period ordinary dividend excluding specials or verified
   nonpayer state;
 - one evidence-backed ordinary-compounder profile with all PR4B1 unsupported
@@ -525,11 +540,15 @@ through:
    source qualification;
 3. every retained diluted-EPS observation/version's applicability to that common
    equity after the class boundary in step 2 is established;
-4. one positively evidenced no-transformation share basis and one accounting
-   reporting subject across the required interval through T;
-5. a closed final admission decision that freshly verifies its inputs;
-6. qualified price, dividend/nonpayer, ordinary-profile, policy, provenance, and
-   confidence inputs; and
+4. one successful PR5C qualification establishing historical five-period EPS
+   presentation comparability and the supported accounting subject at the PR5C
+   presentation boundary;
+5. one successful PR5D qualification establishing a controlled current price,
+   explicit quote currency/per-share semantics, a positive quote-to-PR5C-basis
+   bridge at the current quote boundary, and the remaining qualified
+   dividend/nonpayer, ordinary-profile, policy, provenance, and confidence inputs;
+6. a closed PR5E final admission decision that freshly verifies PR5B, PR5C, and
+   PR5D before discharging the complete graph's comparability blockers; and
 7. real-capable typed facts accepted by the existing PR4B1/PR4A computation path.
 
 The path must use no synthetic authority, guessed values, caller-supplied
