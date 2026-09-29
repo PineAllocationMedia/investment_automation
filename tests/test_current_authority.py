@@ -26,7 +26,7 @@ class CurrentAuthorityTests(unittest.TestCase):
     def test_exact_obligation_partition(self):
         result = self.build()
         self.assertEqual(len(result.satisfied_obligations), 3)
-        self.assertEqual(len(result.unresolved_obligations), 4)
+        self.assertEqual(len(result.unresolved_obligations), 6)
         self.assertEqual(set(result.satisfied_obligations) | set(result.unresolved_obligations), set(s.AuthorityProperty))
         self.assertFalse(set(result.satisfied_obligations) & set(result.unresolved_obligations))
         self.assertEqual({x.grant.property for x in result.established_claims}, set(result.satisfied_obligations))

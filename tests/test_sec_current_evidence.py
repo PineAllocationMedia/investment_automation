@@ -40,7 +40,7 @@ class SecCurrentEvidenceTests(unittest.TestCase):
         neutral = result.current_authority
         self.assertIs(neutral.status, c.AssessmentStatus.EVIDENCE_ESTABLISHED)
         self.assertEqual(len(neutral.established_claims), 3)
-        self.assertEqual(len(neutral.unresolved_obligations), 4)
+        self.assertEqual(len(neutral.unresolved_obligations), 6)
         self.assertEqual(len(result.resolution.series.downstream_admission_blockers), 6)
         self.assertNotIn(AdmissionBlocker.OFFLINE_CAPTURE_NOT_AUTHENTICATED,
                          result.resolution.series.downstream_admission_blockers)

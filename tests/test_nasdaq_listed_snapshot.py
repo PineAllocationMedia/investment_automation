@@ -263,7 +263,8 @@ class NasdaqListedDependencyTests(unittest.TestCase):
                                        "sec_current_common_stock_class_bridge",
                                        "sec_temporal_common_stock_source_series",
                                        "sec_current_security_eps_qualification",
-                                       "sec_current_eps_comparability_qualification"}:
+                                       "sec_current_eps_comparability_qualification",
+                                       "yahoo_current_quote"}:
                 continue
             for node in ast.walk(ast.parse(path.read_text())):
                 if isinstance(node, ast.ImportFrom):

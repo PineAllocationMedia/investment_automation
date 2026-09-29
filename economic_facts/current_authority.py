@@ -129,7 +129,8 @@ def _build_assessment(*, route_id, boundary, reasons, verified_properties, upstr
         _require(boundary is None, AuthorityErrorReason.AUTHORITY_BOUNDARY_MISMATCH)
         _require(not verified_properties)
     satisfied = tuple(sorted(set(verified_properties), key=lambda p: p.value))
-    # The route can never qualify the remaining four economic obligations.
+    # This report satisfies only the exact verified properties; every other
+    # registered neutral property remains unresolved for this evidence graph.
     unresolved = tuple(sorted(set(AuthorityProperty) - set(satisfied), key=lambda p: p.value))
     claims = tuple(EstablishedClaim(permitted_claim(route_id, p), source_hashes,
                                     verified_evidence_hash) for p in satisfied)
