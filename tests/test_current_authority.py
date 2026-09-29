@@ -25,12 +25,45 @@ class CurrentAuthorityTests(unittest.TestCase):
 
     def test_exact_obligation_partition(self):
         result = self.build()
+        expected_unresolved = (
+            s.AuthorityProperty.ECONOMIC_REPORTING_SUBJECT_COMPARABILITY,
+            s.AuthorityProperty.FINAL_ECONOMIC_ADMISSION,
+            s.AuthorityProperty.SECURITY_SHARE_CLASS_LISTING_IDENTITY,
+            s.AuthorityProperty.SHARE_BASIS_COMPARABILITY,
+        )
         self.assertEqual(len(result.satisfied_obligations), 3)
+        self.assertEqual(result.unresolved_obligations, expected_unresolved)
         self.assertEqual(len(result.unresolved_obligations), 4)
-        self.assertEqual(set(result.satisfied_obligations) | set(result.unresolved_obligations), set(s.AuthorityProperty))
+        self.assertEqual(
+            set(result.satisfied_obligations) | set(result.unresolved_obligations),
+            set(c._CURRENT_AUTHORITY_V1_PROPERTIES),
+        )
         self.assertFalse(set(result.satisfied_obligations) & set(result.unresolved_obligations))
         self.assertEqual({x.grant.property for x in result.established_claims}, set(result.satisfied_obligations))
         self.assertIn(s.AuthorityProperty.FINAL_ECONOMIC_ADMISSION, result.unresolved_obligations)
+        self.assertNotIn(s.AuthorityProperty.CURRENT_OBSERVED_MARKET_PRICE,
+                         result.unresolved_obligations)
+        self.assertNotIn(s.AuthorityProperty.QUOTE_CURRENCY_AND_UNIT,
+                         result.unresolved_obligations)
+
+    def test_pr5d1_route_registration_does_not_drift_pr4d1_v1_identities(self):
+        result = self.build()
+        self.assertEqual(
+            result.semantic_hash,
+            "e3230ad8e7c2bd354752339cec02a08de7c985f6df5dbf3a467cb4ecec2e21a4",
+        )
+        self.assertEqual(
+            result.evidence_hash,
+            "0b70711120547c8b995a02a5643e9c55a4dbf69507bf0cf1d92b1c2bd1170640",
+        )
+
+    def test_later_route_properties_cannot_enter_v1_assessment(self):
+        for prop in (
+            s.AuthorityProperty.CURRENT_OBSERVED_MARKET_PRICE,
+            s.AuthorityProperty.QUOTE_CURRENCY_AND_UNIT,
+        ):
+            with self.subTest(property=prop), self.assertRaises(c.CurrentAuthorityError):
+                self.build(verified_properties=arguments()["verified_properties"] + (prop,))
 
     def test_unpermitted_claim_is_rejected_even_with_other_valid_claims(self):
         for prop in (s.AuthorityProperty.SECURITY_SHARE_CLASS_LISTING_IDENTITY,
@@ -61,7 +94,10 @@ class CurrentAuthorityTests(unittest.TestCase):
             result = self.build(boundary=None, reasons=(reason,), verified_properties=())
             self.assertIs(result.status, c.AssessmentStatus.UNAVAILABLE)
             self.assertEqual(result.established_claims, ())
-            self.assertEqual(set(result.unresolved_obligations), set(s.AuthorityProperty))
+            self.assertEqual(
+                set(result.unresolved_obligations),
+                set(c._CURRENT_AUTHORITY_V1_PROPERTIES),
+            )
             self.assertIsNone(result.observed_available_by)
 
     def test_failure_cannot_carry_boundary_or_claims(self):

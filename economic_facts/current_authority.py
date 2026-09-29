@@ -14,6 +14,18 @@ from .source_authority import (AuthorityProperty, ClaimGrant, PublicationSemanti
 
 CURRENT_AUTHORITY_VERSION = "2026-09-19-current-authority-assessment-v1"
 
+# Frozen contract universe for CURRENT_AUTHORITY_VERSION v1.  Later source-route
+# properties must not retroactively rewrite existing PR4D1 semantic/evidence IDs.
+_CURRENT_AUTHORITY_V1_PROPERTIES = (
+    AuthorityProperty.SOURCE_ACQUISITION_PROVENANCE,
+    AuthorityProperty.CURRENT_OBSERVED_AVAILABILITY,
+    AuthorityProperty.SECURITY_SHARE_CLASS_LISTING_IDENTITY,
+    AuthorityProperty.SHARE_BASIS_COMPARABILITY,
+    AuthorityProperty.ECONOMIC_REPORTING_SUBJECT_COMPARABILITY,
+    AuthorityProperty.CURRENT_SNAPSHOT_SCOPE,
+    AuthorityProperty.FINAL_ECONOMIC_ADMISSION,
+)
+
 
 class AssessmentStatus(Enum):
     EVIDENCE_ESTABLISHED = "EVIDENCE_ESTABLISHED"
@@ -110,6 +122,8 @@ def _build_assessment(*, route_id, boundary, reasons, verified_properties, upstr
     reasons = tuple(sorted(set(reasons), key=lambda r: r.value))
     _require(type(verified_properties) is tuple
              and all(type(p) is AuthorityProperty for p in verified_properties))
+    v1_properties = set(_CURRENT_AUTHORITY_V1_PROPERTIES)
+    _require(set(verified_properties) <= v1_properties)
     _require(AuthorityProperty.FINAL_ECONOMIC_ADMISSION not in verified_properties)
     _require(type(upstream_blockers) is tuple and all(type(b) is str and b and b == b.strip()
                                                     for b in upstream_blockers))
@@ -129,8 +143,9 @@ def _build_assessment(*, route_id, boundary, reasons, verified_properties, upstr
         _require(boundary is None, AuthorityErrorReason.AUTHORITY_BOUNDARY_MISMATCH)
         _require(not verified_properties)
     satisfied = tuple(sorted(set(verified_properties), key=lambda p: p.value))
-    # The route can never qualify the remaining four economic obligations.
-    unresolved = tuple(sorted(set(AuthorityProperty) - set(satisfied), key=lambda p: p.value))
+    # This v1 report satisfies only the exact verified v1 properties. Properties
+    # registered by later routes are outside this frozen assessment contract.
+    unresolved = tuple(sorted(v1_properties - set(satisfied), key=lambda p: p.value))
     claims = tuple(EstablishedClaim(permitted_claim(route_id, p), source_hashes,
                                     verified_evidence_hash) for p in satisfied)
     limitations = tuple(sorted(AuthorityLimitation, key=lambda p: p.value))

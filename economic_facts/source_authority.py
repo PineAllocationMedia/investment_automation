@@ -12,6 +12,7 @@ import json
 
 SOURCE_AUTHORITY_VERSION = "2026-09-19-source-route-authority-v1"
 SEC_COMPANYFACTS_LIVE_CURRENT_V1 = "SEC_COMPANYFACTS_LIVE_CURRENT_V1"
+YAHOO_FINANCE_CHART_CURRENT_QUOTE_V1 = "YAHOO_FINANCE_CHART_CURRENT_QUOTE_V1"
 
 
 class AuthorityProperty(Enum):
@@ -21,6 +22,8 @@ class AuthorityProperty(Enum):
     SHARE_BASIS_COMPARABILITY = "SHARE_BASIS_COMPARABILITY"
     ECONOMIC_REPORTING_SUBJECT_COMPARABILITY = "ECONOMIC_REPORTING_SUBJECT_COMPARABILITY"
     CURRENT_SNAPSHOT_SCOPE = "CURRENT_SNAPSHOT_SCOPE"
+    CURRENT_OBSERVED_MARKET_PRICE = "CURRENT_OBSERVED_MARKET_PRICE"
+    QUOTE_CURRENCY_AND_UNIT = "QUOTE_CURRENCY_AND_UNIT"
     FINAL_ECONOMIC_ADMISSION = "FINAL_ECONOMIC_ADMISSION"
 
 
@@ -150,7 +153,31 @@ _ROUTES = (SourceRouteProfile(
     PublicationSemantics.UNKNOWN, AvailabilitySemantics.CAPTURE_BOUND,
     PITCapability.UNSUPPORTED, FailurePolicy.FAIL_CLOSED,
     UseStatus.UNKNOWN, UseStatus.REVIEW_REQUIRED,
-),)
+), SourceRouteProfile(
+    YAHOO_FINANCE_CHART_CURRENT_QUOTE_V1,
+    "YAHOO_FINANCE",
+    "2026-09-28-yahoo-chart-current-quote-route-v1",
+    ("US",),
+    tuple(ClaimGrant(p, ClaimAuthority.TRUSTED_LOCAL_PROCESS, ClaimRole.PRIMARY)
+          for p in (AuthorityProperty.SOURCE_ACQUISITION_PROVENANCE,
+                    AuthorityProperty.CURRENT_OBSERVED_AVAILABILITY,
+                    AuthorityProperty.CURRENT_SNAPSHOT_SCOPE,
+                    AuthorityProperty.CURRENT_OBSERVED_MARKET_PRICE,
+                    AuthorityProperty.QUOTE_CURRENCY_AND_UNIT)),
+    "2026-09-28-yahoo-current-quote-qualification-v1",
+    "2026-09-28-yahoo-chart-current-quote-acquisition-v1",
+    "2026-09-28-yahoo-quote-receipt-v1",
+    "2026-09-28-yahoo-current-quote-extraction-v1",
+    "2026-09-28-yahoo-current-quote-qualification-v1",
+    "2026-09-28-yahoo-nms-nasdaqgs-usd-equity-v1",
+    True,
+    PublicationSemantics.UNKNOWN,
+    AvailabilitySemantics.CAPTURE_BOUND,
+    PITCapability.UNSUPPORTED,
+    FailurePolicy.FAIL_CLOSED,
+    UseStatus.UNKNOWN,
+    UseStatus.REVIEW_REQUIRED,
+))
 
 
 def get_source_route(route_id: str) -> SourceRouteProfile:

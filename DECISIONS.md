@@ -3127,3 +3127,61 @@ investment-rule change, V1 change, production authority, or deployment.
 
 This change redistributes proof responsibilities. It does not weaken final
 admission.
+
+## 2026-09-28 - Controlled free Yahoo quote route for private V2 research
+
+### Decision
+
+PR5D1 uses one fixed Yahoo Finance Chart request to acquire and immutably retain
+the exact response bytes for one freshly replayed PR5B direct Nasdaq symbol. The
+only positive v1 provider profile is an `EQUITY` quote in explicit `USD` under
+Yahoo's exact reviewed `NMS` / `NasdaqGS` representation, with positive exact
+Decimal `regularMarketPrice`, integer `regularMarketTime`, and distinct PAM
+capture time.
+
+V1 `MarketDataFetcher`, yfinance objects, caches, last-known-good values, Chart
+history/previous-close fallbacks, fund fallback providers, and manual substitutes
+are not V2 evidence and are not consumed by this route. Missing, malformed,
+unsupported, conflicting, or future-dated provider evidence fails closed.
+
+The quote's provider timestamp must be no later than the freshly replayed PR5B
+`current_authority_boundary`, in addition to being no later than PAM capture.
+Equality is supported. The same ticker and Yahoo venue after that boundary do not
+extend PR5B security/listing identity continuity; the temporal join is unavailable
+without introducing an arbitrary freshness duration.
+
+### Factual/use boundary
+
+The exact registered route is
+`YAHOO_FINANCE_CHART_CURRENT_QUOTE_V1`; no provider-wide Yahoo trust is granted.
+It may establish only exact-route acquisition provenance, capture-bound CURRENT
+availability/snapshot scope, current observed market price, and quote currency/
+unit. Licensing remains `UNKNOWN` and use remains `REVIEW_REQUIRED`.
+
+The PR4D1 `CURRENT_AUTHORITY_VERSION` v1 obligation universe remains frozen to
+its original seven properties. Registering the two Yahoo quote properties in the
+source-authority registry does not add them to old v1 current-authority reports or
+change existing SEC semantic/evidence identities.
+
+This route is intended for PAM's current private/internal research development.
+Commercial display or redistribution permission is not authorized. A future
+commercial product requires a separately reviewed provider/use decision. The use
+limitation remains separate from factual quote validity.
+
+### Mandatory remaining boundary
+
+Yahoo quote evidence alone cannot prove that the current traded share uses the
+same denominator basis as PR5C's historical EPS presentation. Absence of a Chart
+split event is not complete corporate-action evidence. Every PR5D1 result therefore
+retains `QUOTE_TO_PR5C_BASIS_BRIDGE_NOT_ESTABLISHED`.
+
+PR5D2 remains mandatory for that bridge, the distribution/nonpayer join,
+ordinary-compounder profile, owner-approved policies, and the complete PR5D
+non-EPS bundle. PR5E remains the only final admission and real PR4B1 adapter.
+
+### Expected impact
+
+PAM gains one free-core, replayable current-price foundation without a paid data
+subscription or provider fallback. No PR4B1 `ObservedPrice`, Expected Return,
+recommendation, allocation, model-rule, V1, production, deployment, or promotion
+authority is added.

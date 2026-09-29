@@ -338,15 +338,28 @@ It implements no economic output, score, Confidence, Opportunity Set, admission,
 recommendation, allocation, execution, or production authority. It does not unblock
 PR5C, complete PR5D, or start PR5E.
 
+### PR5D1 — Controlled Free Current Quote Foundation
+
+PR5D1 adds one immutable, fixed-profile Yahoo Finance Chart route for the exact
+freshly replayed PR5B direct Nasdaq listing. It establishes a positive current
+observed price, explicit USD currency, `CURRENCY_PER_SHARE` unit semantics, one
+reviewed Yahoo Nasdaq venue representation, and distinct provider-market/capture
+timestamps. Factual authority remains separate from `UNKNOWN` licensing and
+`REVIEW_REQUIRED` use status; commercial redistribution is not authorized.
+
+PR5D1 does not establish the quote-to-PR5C basis linkage, distribution root,
+ordinary-compounder profile, owner-approved policies, complete PR5D non-EPS
+bundle, PR4B1 root, or final admission. PR5D2 remains mandatory.
+
 ```text
 PR5D0D → PR5D0E → PR5D0F → PR5D0G
 COMPLETE for the current capability-foundation interlude.
 ```
 
-The immediate implementation frontier returns to:
+The immediate implementation frontier after PR5D1 is:
 
 ```text
-PR5D
+PR5D2
 → PR5E
 → first real end-to-end Expected Return
 ```
@@ -456,9 +469,11 @@ Inserted stages use numeric suffixes to preserve existing stage references.
   exact output/dependency-contract pinning, common research-subject scope, and the
   four descriptive participation states, but no economic output, score, Confidence,
   Opportunity Set, admission or investment authority;
-- PR5D still missing current price/quote, the quote-to-PR5C-basis bridge, payer
-  distribution support, selected-class joins, profile, and governed authoritative-
-  policy roots;
+- PR5D1 controlled free current quote foundation, establishing current observed
+  USD-per-share price and selected direct-listing linkage only;
+- PR5D2 still required for the quote-to-PR5C-basis bridge, distribution root,
+  ordinary-compounder profile, selected-class joins, owner-approved policies,
+  and the complete PR5D non-EPS bundle;
 - PR5E final admission join and real-capable adapter into Expected Return facts;
 - route-specific factual authority kept separate from permitted/commercial use;
 - broader identity, action, listing, historical-PIT and international capabilities
@@ -1387,38 +1402,36 @@ Do not allow all four documents to repeat the same implementation details.
 
 ## 14. Next session handoff
 
-The current Stage-A branch adds PR5C's narrow positive historical presentation
-route on top of the audited V2 integration base. Successful PR5B, exact C3, one
-controlled five-period SEC presentation, and freshly replayed PR5C0A/PR5C0B may
-now establish comparable historical real EPS. Empty action history is never
-treated as no-action evidence, supported split cases require exact
-`ALL_PERIODS_PRESENTED` retrospective evidence, and unsupported transformations
-or reporting-subject transitions remain blocked.
+PR5D1 now supplies the controlled free current quote foundation for one freshly
+replayed PR5B direct Nasdaq route: immutable Yahoo Chart bytes, explicit USD and
+per-share semantics, exact current price, reviewed venue identity, and distinct
+provider/capture timestamps. It deliberately does not establish the quote-to-PR5C
+basis bridge or produce a PR4B1 root.
 
-PR5C consumes no price and does not establish coverage through current quote time.
-PR5D is the immediate implementation frontier: it must supply the controlled
-current price/quote, currency/per-share semantics, explicit quote-to-qualified-
-EPS-basis linkage, remaining distribution/profile roots, and owner-approved
-policies. PR5E remains the only final admission join and must replay both PR5C and
-PR5D. The completed PR5D0 capability-foundation interlude remains available for
-future partial research outputs but grants no admission authority. Confidence and
+PR5D2 is the immediate implementation frontier. It must establish the explicit
+quote-to-PR5C-basis bridge, distribution root, ordinary-compounder profile,
+owner-approved policies, and complete PR5D non-EPS bundle. PR5E remains the only
+final admission join and real-capable Expected Return adapter. The completed
+PR5D0 capability foundation grants no admission authority. Confidence and
 Opportunity Set remain later stages.
 
 1. verify the current V2 remote head;
 2. read the constitution and this roadmap;
-3. read `EXPECTED_RETURN_PR5A_REAL_ADMISSION_GAP_REVIEW.md` and the relevant
-   PR4C/PR4D contracts;
-4. preserve PR5C's exact presentation boundary and PR5C0B's rule that an empty
-   detected-event inventory is not no-action evidence;
-5. preserve every source-authority, fail-closed, global-universe and pre-shadow
+3. read `EXPECTED_RETURN_PR5D1.md`, PR5C, PR5D0A/PR5D0B and the relevant
+   PR4B1/PR4D1 contracts;
+4. preserve PR5D1's explicit `QUOTE_TO_PR5C_BASIS_BRIDGE_NOT_ESTABLISHED`
+   limitation and its exact-receipt replay;
+5. implement only PR5D2 before PR5E, without another generic PR5D architecture
+   interlude;
+6. preserve every source-authority, fail-closed, global-universe and pre-shadow
    invariant while supporting only the exact reviewed first route;
-6. preserve V1 unchanged.
+7. preserve V1 unchanged.
 
 ---
 
-*Roadmap state updated on 2026-09-28 through PR5C's positive historical EPS
-presentation-comparability route and the completed PR5D0D → PR5D0E → PR5D0F →
-PR5D0G capability-foundation interlude. Immediate implementation proceeds to
-PR5D → PR5E. Later architecture stages and shadow-readiness gates remain
+*Roadmap state updated on 2026-09-28 through PR5D1's controlled free current
+quote foundation and the completed PR5D0D → PR5D0E → PR5D0F → PR5D0G
+capability-foundation interlude. Immediate implementation proceeds to PR5D2 →
+PR5E. Later architecture stages and shadow-readiness gates remain
 requirements only. No investment-rule, numerical-policy or production-authority
 change is authorized here.*

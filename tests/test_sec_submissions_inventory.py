@@ -297,7 +297,8 @@ class SubmissionsDependencyTests(unittest.TestCase):
                                        "sec_reporting_subject_source_claims",
                                        "sec_share_basis_source_claims",
                                        "sec_current_security_eps_qualification",
-                                       "sec_current_eps_comparability_qualification"}:
+                                       "sec_current_eps_comparability_qualification",
+                                       "yahoo_current_quote"}:
                     continue
                 for node in ast.walk(ast.parse(path.read_text())):
                     if isinstance(node, ast.Import):

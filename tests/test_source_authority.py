@@ -9,6 +9,7 @@ from economic_facts import source_authority as s
 class SourceAuthorityTests(unittest.TestCase):
     def setUp(self):
         self.route = s.get_source_route(s.SEC_COMPANYFACTS_LIVE_CURRENT_V1)
+        self.yahoo = s.get_source_route(s.YAHOO_FINANCE_CHART_CURRENT_QUOTE_V1)
 
     def test_exact_registered_route_and_pins(self):
         self.assertEqual(self.route.provider, "SEC")
@@ -46,6 +47,34 @@ class SourceAuthorityTests(unittest.TestCase):
                 with self.assertRaises(s.SourceAuthorityError) as caught:
                     s.permitted_claim(self.route.route_id, prop)
                 self.assertIs(caught.exception.reason, s.SourceAuthorityReason.CLAIM_NOT_PERMITTED)
+
+    def test_yahoo_grant_is_exact_route_not_provider_wide_trust(self):
+        self.assertEqual(self.yahoo.provider, "YAHOO_FINANCE")
+        self.assertEqual(self.yahoo.required_acquisition_contract,
+                         "2026-09-28-yahoo-chart-current-quote-acquisition-v1")
+        self.assertEqual(self.yahoo.required_capture_contract,
+                         "2026-09-28-yahoo-quote-receipt-v1")
+        self.assertEqual(self.yahoo.required_extraction_contract,
+                         "2026-09-28-yahoo-current-quote-extraction-v1")
+        self.assertEqual({grant.property for grant in self.yahoo.permitted_claims}, {
+            s.AuthorityProperty.SOURCE_ACQUISITION_PROVENANCE,
+            s.AuthorityProperty.CURRENT_OBSERVED_AVAILABILITY,
+            s.AuthorityProperty.CURRENT_SNAPSHOT_SCOPE,
+            s.AuthorityProperty.CURRENT_OBSERVED_MARKET_PRICE,
+            s.AuthorityProperty.QUOTE_CURRENCY_AND_UNIT,
+        })
+        self.assertNotIn(s.AuthorityProperty.SHARE_BASIS_COMPARABILITY,
+                         {grant.property for grant in self.yahoo.permitted_claims})
+        self.assertNotIn(s.AuthorityProperty.FINAL_ECONOMIC_ADMISSION,
+                         {grant.property for grant in self.yahoo.permitted_claims})
+        self.assertIs(self.yahoo.license_status, s.UseStatus.UNKNOWN)
+        self.assertIs(self.yahoo.use_status, s.UseStatus.REVIEW_REQUIRED)
+        changed = replace(self.yahoo, use_status=s.UseStatus.UNKNOWN)
+        self.assertEqual(changed.factual_hash, self.yahoo.factual_hash)
+        self.assertNotEqual(changed.profile_hash, self.yahoo.profile_hash)
+        for value in ("YAHOO_FINANCE", "YAHOO", "query1.finance.yahoo.com"):
+            with self.assertRaises(s.SourceAuthorityError):
+                s.get_source_route(value)
 
     def test_string_claims_are_not_typed_authority(self):
         with self.assertRaises(s.SourceAuthorityError):
