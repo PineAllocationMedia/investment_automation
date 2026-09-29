@@ -3083,3 +3083,47 @@ PR5D0G closes the current capability-architecture interlude. Immediate
 implementation resumes Real Fact Admission—PR5C → PR5D → PR5E—rather than
 continuing into Confidence or Opportunity Set. V1, production, deployment,
 protected identities, and `MODEL_RULES_VERSION` remain unchanged.
+
+## 2026-09-28 - Free-core positive EPS presentation route for PR5C
+
+### Decision
+
+Paid corporate-action history is not permitted as a core dependency for the first
+real Expected Return route, and silence in the controlled public source graph
+cannot prove that no share-basis transformation occurred.
+
+PR5C therefore establishes only historical five-period EPS presentation
+comparability from positive controlled SEC evidence. One exact filing presentation
+must contain all five required diluted-EPS periods and values on one reported
+per-share basis for the freshly replayed PR5B route and supported reporting
+subject. Already-adjusted stock-split, reverse-split, or stock-dividend cases are
+supported only when exact action/class terms and explicit
+`ALL_PERIODS_PRESENTED` retrospective per-share/EPS evidence are retained in the
+same controlled presentation. Unsupported, ambiguous, conflicted, or unresolved
+basis transformations remain blocked, and PR5C performs no normalization.
+
+PR5D must separately prove that a controlled current quote is linked to the
+qualified PR5C EPS basis at the quote's own boundary. PR5E may admit only after it
+freshly replays successful PR5C and PR5D evidence.
+
+### Reasoning
+
+- PR5C0B proved useful explicit action and retrospective-presentation semantics,
+  but not complete free no-transformation coverage through CURRENT T.
+- A positive single five-period issuer presentation can safely establish the
+  narrower historical comparability proposition without treating an empty action
+  inventory as evidence.
+- Keeping the current quote bridge in PR5D preserves the missing temporal and
+  denominator proof instead of silently extending a historical presentation.
+- Paid data may later improve coverage only through a separately approved source,
+  licensing, authority and fallback contract.
+
+### Expected impact
+
+PR5C can qualify one narrow free-core historical presentation route, including
+explicitly supported already-adjusted split cases, while unsupported issuers fail
+closed. It adds no current price, quote authority, final economic admission,
+investment-rule change, V1 change, production authority, or deployment.
+
+This change redistributes proof responsibilities. It does not weaken final
+admission.

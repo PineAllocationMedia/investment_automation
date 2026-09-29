@@ -35,6 +35,28 @@ facts into the existing calculator path.
 PR5A implements none of those capabilities. It freezes the closure plan for owner
 review. No subsequent implementation is authorized by this document.
 
+### Post-PR5C0B superseding clarification
+
+Implementation evidence obtained after PR5C0B established that complete free
+no-transformation coverage from the retained EPS history through CURRENT T is not
+available from the controlled public source graph. The earlier PR5A language that
+assigned that entire proof to PR5C is therefore superseded for the first route.
+
+The safe free-core responsibility partition is now:
+
+```text
+PR5C: positive historical five-period EPS presentation comparability
++
+PR5D: explicit current quote-to-qualified-EPS-basis linkage
++
+PR5E: final replay and admission only after both succeed
+```
+
+Silence still cannot prove no transformation. This change redistributes proof
+responsibilities; it does not weaken the final economic requirement that the
+admitted current price and all five retained EPS values share a positively
+established denominator basis.
+
 ## 2. Audited base and repository state
 
 The remote was fetched before review. The approved integration ref matched exactly:
@@ -372,6 +394,14 @@ architecture requirements remain unchanged.
 Each PR below fails the omission test: without it, the first safe CURRENT real ER
 route remains blocked. Each needs a separately reviewed implementation contract.
 
+**Superseding implementation partition.** PR5C0B established that the free
+controlled source graph cannot positively prove a universal no-transformation
+interval through CURRENT T by silence. PR5C therefore supersedes the original
+PR5A implementation partition for obligation 5: PR5C establishes historical EPS
+presentation comparability, PR5D establishes current quote-to-EPS denominator
+linkage, and PR5E performs final blocker discharge. The final economic requirement
+itself is unchanged.
+
 ### PR5B — Narrow CURRENT security and EPS qualification
 
 **One capability:** produce a positive or blocked route-local qualification for
@@ -401,18 +431,23 @@ the applicability of every retained C3 EPS observation/version.
 ### PR5C — Comparable real EPS qualification
 
 **One capability:** establish that the already-qualified five-year EPS history is
-on one unchanged share basis and belongs to one accounting reporting subject.
+positively presented on one historical reported share basis and belongs to one
+supported accounting reporting subject.
 
 - **Discharges:** `SPLIT_BASIS_NOT_ESTABLISHED`,
   `ECONOMIC_COMPARABILITY_NOT_ESTABLISHED`, remaining required 4H continuity,
   obligations 5 and 6 for the supported profile.
-- **Dependencies:** successful PR5B plus controlled positive basis/subject evidence.
-- **Exit:** all retained observations are bound to one target basis and one subject
-  through T with original `Decimal` values unchanged, or the case is blocked.
+- **Dependencies:** successful PR5B, exact C3, one controlled positive five-period
+  SEC presentation, and freshly replayed PR5C0A/PR5C0B evidence.
+- **Exit:** one exact presentation positively covers all five C3 periods on one
+  historical reported per-share basis and one supported subject, with original
+  `Decimal` values unchanged, or the case is blocked. Current quote-basis linkage
+  remains for PR5D.
 - **Nonclaims:** no EPS normalization, universal corporate-action engine, event
   transformation, universal M&A/perimeter history, or Portfolio State capability.
 - **Omission test:** yes, omitted PR5C leaves historical EPS economically
-  incomparable to itself and to the current price basis.
+  incomparable as one presentation and therefore unusable by the final price/EPS
+  join.
 
 ### PR5D — Remaining real Expected Return roots
 
@@ -420,9 +455,11 @@ on one unchanged share basis and belongs to one accounting reporting subject.
 initial ordinary-compounder ER profile.
 
 - **Discharges:** Property 4F and the missing price, latest-period dividend/nonpayer,
-  profile, quote-unit/currency, and governed-policy gaps.
-- **Dependencies:** PR5B identity/listing; PR5C target share basis; separately
-  reviewed controlled source routes and owner-approved policy values.
+  profile, quote-unit/currency, quote-to-PR5C-basis linkage, and governed-policy
+  gaps.
+- **Dependencies:** PR5B identity/listing; successful PR5C historical presentation
+  basis; separately reviewed controlled source routes and owner-approved policy
+  values.
 - **Exit:** one exact selected security has a positive current observed price on
   the same currency/share basis, exactly one matched dividend/nonpayer state, an
   evidence-backed ordinary-compounder profile with all required exclusions, and
@@ -467,13 +504,20 @@ The initial supported route is all of the following, not a looser union:
 - five consecutive positive 365/366-day annual US-GAAP diluted-EPS periods in
   `USD/shares`, with all retained versions in exact agreement;
 - unambiguous EPS applicability to the selected common equity;
-- one affirmatively covered no-transformation share basis through T;
-- one affirmatively covered accounting reporting subject through T;
+- one positively evidenced PR5C five-period historical EPS presentation basis;
+- one positively evidenced PR5C historical accounting-subject conclusion within
+  that supported presentation boundary;
+- supported split, reverse-split, or stock-dividend cases only when exact
+  `ALL_PERIODS_PRESENTED` retrospective presentation treatment is established;
 - no ADR/ADS/wrapper, preferred security, partnership, fund, dual-listing,
-  multiple-class ambiguity, ticker/listing conflict, unsupported restructuring,
-  split/reclassification, subject transition, source conflict, or coverage gap;
-- one controlled positive current price with explicit quote currency/unit on the
-  admitted basis;
+  multiple-class ambiguity, or ticker/listing conflict;
+- no unresolved or unsupported basis transformation, class conversion,
+  unsupported recapitalization, merger/security-exchange basis ambiguity,
+  basis-affecting spin-off, redenomination, reporting-subject transition, source
+  conflict, or coverage gap;
+- one controlled positive current price with explicit quote currency/unit;
+- one positive PR5D bridge proving that the current traded share unit corresponds
+  to the qualified PR5C EPS presentation basis at the quote boundary;
 - one matched latest-period ordinary dividend excluding specials or verified
   nonpayer state;
 - one evidence-backed ordinary-compounder profile with all PR4B1 unsupported
@@ -496,11 +540,15 @@ through:
    source qualification;
 3. every retained diluted-EPS observation/version's applicability to that common
    equity after the class boundary in step 2 is established;
-4. one positively evidenced no-transformation share basis and one accounting
-   reporting subject across the required interval through T;
-5. a closed final admission decision that freshly verifies its inputs;
-6. qualified price, dividend/nonpayer, ordinary-profile, policy, provenance, and
-   confidence inputs; and
+4. one successful PR5C qualification establishing historical five-period EPS
+   presentation comparability and the supported accounting subject at the PR5C
+   presentation boundary;
+5. one successful PR5D qualification establishing a controlled current price,
+   explicit quote currency/per-share semantics, a positive quote-to-PR5C-basis
+   bridge at the current quote boundary, and the remaining qualified
+   dividend/nonpayer, ordinary-profile, policy, provenance, and confidence inputs;
+6. a closed PR5E final admission decision that freshly verifies PR5B, PR5C, and
+   PR5D before discharging the complete graph's comparability blockers; and
 7. real-capable typed facts accepted by the existing PR4B1/PR4A computation path.
 
 The path must use no synthetic authority, guessed values, caller-supplied
