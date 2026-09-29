@@ -1,5 +1,5 @@
 import ast
-from dataclasses import FrozenInstanceError, fields
+from dataclasses import FrozenInstanceError, fields, replace
 from datetime import datetime, timezone
 from decimal import Decimal
 import inspect
@@ -192,6 +192,76 @@ class YahooCurrentQuoteTests(unittest.TestCase):
         future = self.qualify(raw=chart_response(market_time=equal_epoch + 1))
         self.assertIs(future.status, quote.CurrentQuoteStatus.SOURCE_CONFLICT)
         self.assertIn(quote.CurrentQuoteReason.QUOTE_AFTER_CAPTURE, future.reasons)
+
+    def test_quote_is_temporally_bounded_by_fresh_pr5b_authority(self):
+        boundary = "2026-03-01T12:00:00Z"
+        boundary_epoch = int(datetime.fromisoformat(
+            boundary.replace("Z", "+00:00")).timestamp())
+        capture_after_boundary = "2026-03-02T12:00:00Z"
+
+        before = self.qualify(
+            raw=chart_response(market_time=boundary_epoch - 1),
+            captured_at=capture_after_boundary,
+        )
+        equal = self.qualify(
+            raw=chart_response(market_time=boundary_epoch),
+            captured_at=capture_after_boundary,
+        )
+        after = self.qualify(
+            raw=chart_response(market_time=boundary_epoch + 1),
+            captured_at=capture_after_boundary,
+        )
+        much_later_epoch = int(datetime.fromisoformat(
+            "2026-06-01T12:00:00+00:00").timestamp())
+        much_later = self.qualify(
+            raw=chart_response(market_time=much_later_epoch),
+            captured_at="2026-06-02T12:00:00Z",
+        )
+
+        self.assertIs(before.status, quote.CurrentQuoteStatus.CURRENT_QUOTE_ESTABLISHED)
+        self.assertIs(equal.status, quote.CurrentQuoteStatus.CURRENT_QUOTE_ESTABLISHED)
+        for result in (after, much_later):
+            self.assertIs(result.status, quote.CurrentQuoteStatus.QUOTE_UNAVAILABLE)
+            self.assertEqual(
+                result.reasons,
+                (quote.CurrentQuoteReason.QUOTE_OUTSIDE_PR5B_CURRENT_BOUNDARY,),
+            )
+
+    def test_later_capture_does_not_shorten_pr5b_temporal_coverage(self):
+        result = self.qualify(
+            raw=chart_response(market_time=MARKET_EPOCH),
+            captured_at="2026-06-02T12:00:00Z",
+        )
+        self.assertIs(result.status, quote.CurrentQuoteStatus.CURRENT_QUOTE_ESTABLISHED)
+        self.assertEqual(result.reasons, ())
+
+    def test_missing_or_malformed_pr5b_boundary_cannot_establish_quote(self):
+        request = self.request()
+        security = self.security.qualify_request(request.security_request)
+        for boundary in (None, "not-a-timestamp"):
+            altered = replace(security, current_authority_boundary=boundary)
+            altered_request = replace(
+                request,
+                expected_security_semantic_id=altered.semantic_id,
+                expected_security_evidence_id=altered.evidence_id,
+            )
+            with self.subTest(boundary=boundary), patch.object(
+                quote, "qualify_sec_current_security_eps", return_value=altered,
+            ):
+                result = quote.qualify_yahoo_current_quote(
+                    self.quote_archive,
+                    self.security.current_archive,
+                    self.security.submissions_archive,
+                    self.security.filing_archive,
+                    self.security.sec_archive,
+                    self.security.nasdaq_archive,
+                    altered_request,
+                )
+            self.assertIs(result.status, quote.CurrentQuoteStatus.QUOTE_UNAVAILABLE)
+            self.assertIn(
+                quote.CurrentQuoteReason.QUOTE_OUTSIDE_PR5B_CURRENT_BOUNDARY,
+                result.reasons,
+            )
 
     def test_source_structure_provider_error_multiple_results_and_duplicate_keys(self):
         cases = (

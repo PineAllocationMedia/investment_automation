@@ -40,6 +40,9 @@ REVIEWED_VENUE_ID = "NASDAQ_GLOBAL_SELECT"
 REVIEWED_YAHOO_VENUE = ("NMS", "NasdaqGS")
 VENUE_PROFILE_VERSION = "2026-09-28-yahoo-nms-nasdaqgs-usd-equity-v1"
 _HASH = re.compile(r"[0-9a-f]{64}")
+_UTC_TIMESTAMP = re.compile(
+    r"[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(?:\.[0-9]{6})?Z"
+)
 
 
 class YahooCurrentQuoteError(ValueError):
@@ -71,6 +74,7 @@ class CurrentQuoteReason(StrEnum):
     PRICE_INVALID = "PRICE_INVALID"
     PROVIDER_TIMESTAMP_INVALID = "PROVIDER_TIMESTAMP_INVALID"
     QUOTE_AFTER_CAPTURE = "QUOTE_AFTER_CAPTURE"
+    QUOTE_OUTSIDE_PR5B_CURRENT_BOUNDARY = "QUOTE_OUTSIDE_PR5B_CURRENT_BOUNDARY"
     SOURCE_CONFLICT = "SOURCE_CONFLICT"
 
 
@@ -284,6 +288,18 @@ def _utc_epoch(value):
     return parsed.isoformat().replace("+00:00", "Z")
 
 
+def _utc_timestamp(value):
+    if type(value) is not str or _UTC_TIMESTAMP.fullmatch(value) is None:
+        return None
+    try:
+        parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
+    except ValueError:
+        return None
+    if parsed.isoformat().replace("+00:00", "Z") != value:
+        return None
+    return parsed
+
+
 def _meta_hash(meta):
     raw = json.dumps(_project(meta), sort_keys=True, separators=(",", ":"),
                      ensure_ascii=True, allow_nan=False).encode("ascii")
@@ -435,7 +451,7 @@ def qualify_yahoo_current_quote(
     nasdaq_listed_archive: NasdaqListedArchive,
     request: YahooCurrentQuoteQualificationRequest,
 ) -> QualifiedCurrentQuote:
-    """Freshly replay PR5B and one exact Yahoo receipt, then join by symbol."""
+    """Freshly replay PR5B and join one quote by symbol and authority time."""
     if (type(quote_archive) is not YahooQuoteArchive
             or type(current_archive) is not SecArchive
             or type(submissions_archive) is not SecSubmissionsArchive
@@ -460,16 +476,16 @@ def qualify_yahoo_current_quote(
     if (security.status is QualificationStatus.CURRENT_SECURITY_EPS_QUALIFICATION_ESTABLISHED
             and security.direct_listing.source_symbol != quote.returned_symbol):
         reasons.add(CurrentQuoteReason.SYMBOL_MISMATCH)
-    try:
-        provider_time = (None if quote.provider_market_timestamp is None else
-                         datetime.fromisoformat(quote.provider_market_timestamp.replace("Z", "+00:00")))
-        capture_time = datetime.fromisoformat(quote.receipt.captured_at.replace("Z", "+00:00"))
-    except ValueError:
-        provider_time = None
-        capture_time = None
+    provider_time = _utc_timestamp(quote.provider_market_timestamp)
+    capture_time = _utc_timestamp(quote.receipt.captured_at)
+    security_boundary = _utc_timestamp(security.current_authority_boundary)
+    if provider_time is None or capture_time is None:
         reasons.add(CurrentQuoteReason.PROVIDER_TIMESTAMP_INVALID)
     if provider_time is not None and capture_time is not None and provider_time > capture_time:
         reasons.add(CurrentQuoteReason.QUOTE_AFTER_CAPTURE)
+    if (security_boundary is None
+            or (provider_time is not None and provider_time > security_boundary)):
+        reasons.add(CurrentQuoteReason.QUOTE_OUTSIDE_PR5B_CURRENT_BOUNDARY)
 
     if reasons & {
         CurrentQuoteReason.SOURCE_CONFLICT,

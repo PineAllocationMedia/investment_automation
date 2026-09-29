@@ -3144,6 +3144,12 @@ history/previous-close fallbacks, fund fallback providers, and manual substitute
 are not V2 evidence and are not consumed by this route. Missing, malformed,
 unsupported, conflicting, or future-dated provider evidence fails closed.
 
+The quote's provider timestamp must be no later than the freshly replayed PR5B
+`current_authority_boundary`, in addition to being no later than PAM capture.
+Equality is supported. The same ticker and Yahoo venue after that boundary do not
+extend PR5B security/listing identity continuity; the temporal join is unavailable
+without introducing an arbitrary freshness duration.
+
 ### Factual/use boundary
 
 The exact registered route is
@@ -3151,6 +3157,11 @@ The exact registered route is
 It may establish only exact-route acquisition provenance, capture-bound CURRENT
 availability/snapshot scope, current observed market price, and quote currency/
 unit. Licensing remains `UNKNOWN` and use remains `REVIEW_REQUIRED`.
+
+The PR4D1 `CURRENT_AUTHORITY_VERSION` v1 obligation universe remains frozen to
+its original seven properties. Registering the two Yahoo quote properties in the
+source-authority registry does not add them to old v1 current-authority reports or
+change existing SEC semantic/evidence identities.
 
 This route is intended for PAM's current private/internal research development.
 Commercial display or redistribution permission is not authorized. A future

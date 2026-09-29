@@ -30,8 +30,9 @@ PR5D1 answers one bounded question:
 
 > At provider timestamp Q, did Yahoo Finance report a positive USD-per-share
 > regular market price P for the exact direct Nasdaq symbol established by a
-> freshly replayed successful PR5B route, and did PAM capture those exact Chart
-> response bytes at C with Q no later than C?
+> freshly replayed successful PR5B route, while that PR5B identity remained
+> CURRENT, and did PAM capture those exact Chart response bytes at C with Q no
+> later than C?
 
 Success is `CURRENT_QUOTE_ESTABLISHED`. It is not final admission and it is not
 evidence that the current traded share uses PR5C's historical EPS presentation
@@ -174,11 +175,14 @@ Qualification freshly replays PR5B and the quote receipt. Success requires:
 - explicit USD currency;
 - positive finite exact Decimal price;
 - valid provider epoch/time; and
+- provider market timestamp Q no later than the freshly replayed PR5B
+  `current_authority_boundary`; and
 - provider market timestamp Q no later than receipt capture C.
 
 The result retains PR5B's route-local issuer/security identities. Ticker-only
 qualification, detached results, forged expected identities, and caller-order
-selection are rejected.
+selection are rejected. The same symbol and Yahoo venue after PR5B's CURRENT
+boundary are not sufficient evidence of security/listing identity continuity.
 
 Closed outcomes are:
 
@@ -193,13 +197,21 @@ The provider market timestamp and PAM capture timestamp remain distinct:
 
 ```text
 Q = Yahoo regularMarketTime, converted from exact integer epoch to UTC
+B = freshly replayed PR5B current_authority_boundary
 C = reviewed PAM capture time retained in the immutable receipt
-Q <= C
+Q <= B and Q <= C
 ```
 
 Q is not called publication time, first availability time, exchange execution
 time, or historical PIT authority. Replay uses no system clock and never advances
-an old receipt because a newer quote exists.
+an old receipt because a newer quote exists. A later C does not extend B, and no
+arbitrary elapsed-time freshness threshold substitutes for this temporal join.
+
+`CURRENT_AUTHORITY_VERSION == "2026-09-19-current-authority-assessment-v1"`
+retains the original seven-property PR4D1 obligation universe. The PR5D1 quote
+authority properties are route-local additions to `SourceAuthority`; they do not
+retroactively enter v1 `CurrentAuthorityAssessment` unresolved obligations or
+rewrite established PR4D1 semantic/evidence identities.
 
 ## Factual authority versus permitted use
 
