@@ -384,7 +384,7 @@ PR5E
 → first real end-to-end Expected Return
 ```
 
-An approved administrative interlude now precedes that technical work:
+The approved administrative interlude is complete:
 
 ```text
 PR5D2 complete
@@ -393,25 +393,24 @@ Governance Reform Phase 1 complete
     ↓
 Governance Cleanup / Migration complete
     ↓
-Configure ChatGPT role Projects/employees (current)
+Configure ChatGPT role Projects/employees complete
     ↓
-PR5E
+PR5E active technical chantier
 ```
 
-This governance sequence is an administrative prerequisite, not a replacement for
+This governance sequence was an administrative prerequisite, not a replacement for
 PR5E and not an expansion of Expected Return architecture. Role configuration is
-the final administrative setup step before technical development resumes. PR5E
-remains the immediate next technical chantier; later technical stages remain in
-their existing order.
+complete. PR5E is now the active technical chantier; its implementation has not
+started, and later technical stages remain in their existing order.
 
 No additional Expected Return architecture interlude is authorized in this
 sequence.
 
 The public SEC/free-Nasdaq source graph still lacks complete positive
 no-transformation coverage through CURRENT T. PR5C therefore uses positive
-historical five-period presentation evidence rather than silence. PR5D must now
-establish the separate current quote-to-qualified-EPS-basis bridge, and PR5E must
-replay both before final admission. This partition does not relax the final
+historical five-period presentation evidence rather than silence. PR5D established
+the separate current quote-to-qualified-EPS-basis bridge, and PR5E must replay both
+before final admission. This partition does not relax the final
 economic comparability requirement.
 
 Universal identity, universal issuer-wide class inventory, corporate-action, M&A,
@@ -1457,35 +1456,33 @@ and remains the only final admission join and real-capable Expected Return adapt
 PR5D0 capability foundation grants no admission authority. Confidence and
 Opportunity Set remain later stages.
 
-Before PR5E implementation, complete the remaining approved administrative
-sequence: the current Governance Cleanup / Migration, then ChatGPT role
-Projects/employees configuration. Governance Reform Phase 1 is complete. These
-steps do not change PR5E's technical priority or authorize additional Expected
-Return architecture.
+The approved administrative sequence is complete: Governance Reform Phase 1,
+Governance Cleanup / Migration and ChatGPT role Projects/employees configuration.
+PR5E is now the active technical chantier, but its implementation has not started.
+The completed administrative steps do not authorize additional Expected Return
+architecture.
 
 1. verify the current V2 remote head;
 2. read the constitution and this roadmap;
-3. complete the approved governance cleanup / migration and role
-   Projects/employees configuration before technical implementation resumes;
-4. read `docs/contracts/v2/expected_return/EXPECTED_RETURN_PR5D1.md`, PR5C,
+3. read `docs/contracts/v2/expected_return/EXPECTED_RETURN_PR5D1.md`, PR5C,
    PR5D0A/PR5D0B and the relevant
    PR4B1/PR4D1 contracts;
-5. preserve PR5D1's explicit `QUOTE_TO_PR5C_BASIS_BRIDGE_NOT_ESTABLISHED`
+4. preserve PR5D1's explicit `QUOTE_TO_PR5C_BASIS_BRIDGE_NOT_ESTABLISHED`
    limitation and its exact-receipt replay;
-6. implement only PR5E as the next technical chantier, without another generic
+5. implement only PR5E as the active technical chantier, without another generic
    PR5D architecture interlude;
-7. preserve every source-authority, fail-closed, global-universe and pre-shadow
+6. preserve every source-authority, fail-closed, global-universe and pre-shadow
    invariant while supporting only the exact reviewed first route;
-8. preserve V1 unchanged.
+7. preserve V1 unchanged.
 
 ---
 
 *Roadmap state updated on 2026-09-30 through PR5D2's complete free real-root
 bundle and the completed PR5D0D → PR5D0E → PR5D0F → PR5D0G
 capability-foundation interlude.
-Governance Reform Phase 1 is complete. The current cleanup/migration and next
-role-configuration administrative steps occur before technical implementation
-proceeds to PR5E, which remains the next technical chantier.
+Governance Reform Phase 1, Governance Cleanup / Migration and role Projects/employees
+configuration are complete. PR5E is the active technical chantier, and its
+implementation has not started.
 Later architecture stages and shadow-readiness gates remain requirements only.
 The reviewed PR5D2 Expected Return assumption policies are now pinned, but no
 investment-rule, model-rule, V1 or production-authority change is authorized
