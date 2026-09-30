@@ -1,9 +1,7 @@
 # CLAUDE.md
 
-Avant toute session, lire dans l'ordre :
+Fichier de compatibilité pour les agents Claude-like ou généralistes.
 
-1. `PAM_PROJECT_CONSTITUTION.md` — vision et gouvernance du projet.
-2. `AGENTS.md` — règles de fonctionnement des agents.
-3. `PAM_ROADMAP.md` — état courant et prochaines étapes.
-
-Pour un audit V1 spécifiquement, lire ensuite `AUDIT_GUIDE.md` en entier.
+Suivre `AGENTS.md`, puis les documents de gouvernance canoniques qu'il impose.
+Ce fichier ne définit aucun ordre de lecture concurrent et ne confère aucune
+autorité particulière à Claude ou à un autre outil.
