@@ -1,8 +1,9 @@
-"""Pure, synthetic-only qualified-fact constructor; no acquisition or decisions.
+"""Pure qualified-fact constructor; no acquisition or decisions.
 
 Only exact closed root classes are admitted. Derived nodes are constructor output,
 never an input capability. Adapter identities attest semantics, not authenticity
-of external documents: no real adapter/provider contract is certified here.
+of external documents. The original synthetic contract remains closed; PR5E owns
+the only currently supported real-fact construction path.
 """
 from __future__ import annotations
 
@@ -22,6 +23,7 @@ from .expected_return_policy import (
 )
 
 EXPECTED_RETURN_FACTS_CONTRACT_VERSION = "2026-09-09-synthetic-qualified-facts-v1"
+EXPECTED_RETURN_REAL_FACTS_CONTRACT_VERSION = "2026-09-30-pr5e-real-qualified-facts-v1"
 EXPECTED_RETURN_CONSTRUCTOR_VERSION = "2026-09-09-qualified-history-constructor-v1"
 
 
@@ -51,11 +53,27 @@ class AdapterIdentity(Enum):
     SYNTHETIC_ORDINARY_ANNUAL_DIVIDEND_V1 = "SYNTHETIC_ORDINARY_ANNUAL_DIVIDEND_V1"
     SYNTHETIC_VERIFIED_NONPAYER_V1 = "SYNTHETIC_VERIFIED_NONPAYER_V1"
     SYNTHETIC_PROFILE_QUALIFICATION_V1 = "SYNTHETIC_PROFILE_QUALIFICATION_V1"
+    PR5E_REAL_OBSERVED_PRICE_V1 = "PR5E_REAL_OBSERVED_PRICE_V1"
+    PR5E_REAL_REPORTED_DILUTED_EPS_V1 = "PR5E_REAL_REPORTED_DILUTED_EPS_V1"
+    PR5E_REAL_VERIFIED_NONPAYER_V1 = "PR5E_REAL_VERIFIED_NONPAYER_V1"
+    PR5E_REAL_PROFILE_QUALIFICATION_V1 = "PR5E_REAL_PROFILE_QUALIFICATION_V1"
 
 
 class SourceKind(Enum):
     SYNTHETIC_OFFICIAL = "SYNTHETIC_OFFICIAL"
     SYNTHETIC_MANUAL = "SYNTHETIC_MANUAL"
+    SEC_CURRENT = "SEC_CURRENT"
+    YAHOO_MARKET_PROVIDER = "YAHOO_MARKET_PROVIDER"
+
+
+class PublicationSemantics(Enum):
+    EXACT = "EXACT"
+    UNKNOWN = "UNKNOWN"
+
+
+class AvailabilitySemantics(Enum):
+    EXACT = "EXACT"
+    CAPTURE_BOUND = "CAPTURE_BOUND"
 
 
 @dataclass(frozen=True, slots=True)
@@ -73,11 +91,27 @@ class Provenance:
 
 
 @dataclass(frozen=True, slots=True)
+class RealProvenance:
+    source_kind: SourceKind
+    source_reference: str
+    source_version: str
+    source_document_hash: str
+    source_locator: str
+    published_at: None
+    available_at: str
+    captured_at: str
+    extractor_id: AdapterIdentity
+    extractor_version: str
+    publication_semantics: PublicationSemantics
+    availability_semantics: AvailabilitySemantics
+
+
+@dataclass(frozen=True, slots=True)
 class Identity:
     observation_id: str
     security_id: str
     share_class: str
-    provenance: Provenance
+    provenance: Provenance | RealProvenance
 
 
 @dataclass(frozen=True, slots=True)
@@ -135,11 +169,30 @@ class ProfileQualification:
 
 RootFact = ObservedPrice | ReportedDilutedEPS | OrdinaryAnnualDividend | VerifiedNonpayer | ProfileQualification
 ROOT_ADAPTERS = {
-    ObservedPrice: AdapterIdentity.SYNTHETIC_OBSERVED_PRICE_V1,
-    ReportedDilutedEPS: AdapterIdentity.SYNTHETIC_REPORTED_DILUTED_EPS_V1,
-    OrdinaryAnnualDividend: AdapterIdentity.SYNTHETIC_ORDINARY_ANNUAL_DIVIDEND_V1,
-    VerifiedNonpayer: AdapterIdentity.SYNTHETIC_VERIFIED_NONPAYER_V1,
-    ProfileQualification: AdapterIdentity.SYNTHETIC_PROFILE_QUALIFICATION_V1,
+    ObservedPrice: frozenset((AdapterIdentity.SYNTHETIC_OBSERVED_PRICE_V1,
+                              AdapterIdentity.PR5E_REAL_OBSERVED_PRICE_V1)),
+    ReportedDilutedEPS: frozenset((AdapterIdentity.SYNTHETIC_REPORTED_DILUTED_EPS_V1,
+                                   AdapterIdentity.PR5E_REAL_REPORTED_DILUTED_EPS_V1)),
+    OrdinaryAnnualDividend: frozenset((AdapterIdentity.SYNTHETIC_ORDINARY_ANNUAL_DIVIDEND_V1,)),
+    VerifiedNonpayer: frozenset((AdapterIdentity.SYNTHETIC_VERIFIED_NONPAYER_V1,
+                                 AdapterIdentity.PR5E_REAL_VERIFIED_NONPAYER_V1)),
+    ProfileQualification: frozenset((AdapterIdentity.SYNTHETIC_PROFILE_QUALIFICATION_V1,
+                                     AdapterIdentity.PR5E_REAL_PROFILE_QUALIFICATION_V1)),
+}
+SYNTHETIC_ADAPTERS = frozenset(adapter for adapters in ROOT_ADAPTERS.values()
+                               for adapter in adapters if adapter.value.startswith("SYNTHETIC_"))
+REAL_ADAPTERS = frozenset(adapter for adapters in ROOT_ADAPTERS.values()
+                          for adapter in adapters if adapter.value.startswith("PR5E_REAL_"))
+ADAPTER_SOURCE_KINDS = {
+    AdapterIdentity.SYNTHETIC_OBSERVED_PRICE_V1: frozenset((SourceKind.SYNTHETIC_OFFICIAL, SourceKind.SYNTHETIC_MANUAL)),
+    AdapterIdentity.SYNTHETIC_REPORTED_DILUTED_EPS_V1: frozenset((SourceKind.SYNTHETIC_OFFICIAL, SourceKind.SYNTHETIC_MANUAL)),
+    AdapterIdentity.SYNTHETIC_ORDINARY_ANNUAL_DIVIDEND_V1: frozenset((SourceKind.SYNTHETIC_OFFICIAL, SourceKind.SYNTHETIC_MANUAL)),
+    AdapterIdentity.SYNTHETIC_VERIFIED_NONPAYER_V1: frozenset((SourceKind.SYNTHETIC_OFFICIAL, SourceKind.SYNTHETIC_MANUAL)),
+    AdapterIdentity.SYNTHETIC_PROFILE_QUALIFICATION_V1: frozenset((SourceKind.SYNTHETIC_OFFICIAL, SourceKind.SYNTHETIC_MANUAL)),
+    AdapterIdentity.PR5E_REAL_OBSERVED_PRICE_V1: frozenset((SourceKind.YAHOO_MARKET_PROVIDER,)),
+    AdapterIdentity.PR5E_REAL_REPORTED_DILUTED_EPS_V1: frozenset((SourceKind.SEC_CURRENT,)),
+    AdapterIdentity.PR5E_REAL_VERIFIED_NONPAYER_V1: frozenset((SourceKind.SEC_CURRENT,)),
+    AdapterIdentity.PR5E_REAL_PROFILE_QUALIFICATION_V1: frozenset((SourceKind.SEC_CURRENT,)),
 }
 
 
@@ -222,7 +275,10 @@ def _period(value) -> None:
 
 def _validate(facts: QualifiedFacts) -> tuple[RootFact, ...]:
     require(type(facts) is QualifiedFacts, "Closed QualifiedFacts input required; no mappings or derived inputs")
-    require(facts.contract_version == EXPECTED_RETURN_FACTS_CONTRACT_VERSION, "Unsupported facts contract")
+    require(facts.contract_version in (EXPECTED_RETURN_FACTS_CONTRACT_VERSION,
+                                       EXPECTED_RETURN_REAL_FACTS_CONTRACT_VERSION),
+            "Unsupported facts contract")
+    real_contract = facts.contract_version == EXPECTED_RETURN_REAL_FACTS_CONTRACT_VERSION
     as_of = _timestamp(facts.as_of)
     for key in ("security_id", "share_class"):
         text(getattr(facts, key), key)
@@ -241,17 +297,38 @@ def _validate(facts: QualifiedFacts) -> tuple[RootFact, ...]:
         ids.add(identity.observation_id)
         require((identity.security_id, identity.share_class) == (facts.security_id, facts.share_class), "Security/share class mismatch")
         provenance = identity.provenance
-        require(type(provenance) is Provenance, "Typed provenance required")
+        require(type(provenance) is (RealProvenance if real_contract else Provenance),
+                "Facts contract requires its exact typed provenance")
         require(type(provenance.source_kind) is SourceKind, "Unsupported semantic source kind")
-        require(type(provenance.extractor_id) is AdapterIdentity and provenance.extractor_id is ROOT_ADAPTERS[type(root)],
+        require(type(provenance.extractor_id) is AdapterIdentity
+                and provenance.extractor_id in ROOT_ADAPTERS[type(root)],
                 "Root type/semantic source adapter mismatch")
+        require(provenance.extractor_id in (REAL_ADAPTERS if real_contract else SYNTHETIC_ADAPTERS),
+                "Facts contract/source adapter authority mismatch")
+        require(provenance.source_kind in ADAPTER_SOURCE_KINDS[provenance.extractor_id],
+                "Source kind/source adapter mismatch")
         require(provenance.extractor_version == "1", "Unsupported source adapter version")
         for key in ("source_reference", "source_version", "source_locator"):
             text(getattr(provenance, key), key)
         require(type(provenance.source_document_hash) is str
                 and re.fullmatch(r"[0-9a-f]{64}", provenance.source_document_hash) is not None, "SHA-256 document hash required")
-        published, available, captured = (_timestamp(getattr(provenance, key)) for key in ("published_at", "available_at", "captured_at"))
-        require(published <= available <= captured <= as_of, "Invalid publication/availability/capture chronology")
+        available, captured = (_timestamp(getattr(provenance, key))
+                               for key in ("available_at", "captured_at"))
+        if type(provenance) is Provenance:
+            published = _timestamp(provenance.published_at)
+            require(published <= available, "Publication cannot follow availability")
+        else:
+            require(type(provenance.publication_semantics) is PublicationSemantics
+                    and provenance.publication_semantics is PublicationSemantics.UNKNOWN,
+                    "Real provenance requires UNKNOWN publication semantics")
+            require(type(provenance.availability_semantics) is AvailabilitySemantics
+                    and provenance.availability_semantics is AvailabilitySemantics.CAPTURE_BOUND,
+                    "Real provenance requires CAPTURE_BOUND availability semantics")
+            require(provenance.published_at is None, "Unknown publication requires published_at=None")
+            published = None
+            require(available == captured,
+                    "Capture-bound availability must equal the exact capture timestamp")
+        require(available <= captured <= as_of, "Invalid availability/capture chronology")
         economic_key = (identity.security_id, identity.share_class, provenance.source_document_hash,
                         provenance.source_locator, provenance.extractor_id)
         require(economic_key not in economic_roots, "Duplicate economic root under another wrapper")
@@ -262,10 +339,12 @@ def _validate(facts: QualifiedFacts) -> tuple[RootFact, ...]:
             number(root.value, "root value")
         if type(root) is ObservedPrice:
             require(root.value > 0, "Observed price must be positive")
-            require(iso_date(root.observed_on) <= published.date(), "Price observation after publication")
+            require(iso_date(root.observed_on) <= (published or available).date(),
+                    "Price observation after evidence boundary")
         elif type(root) in (ReportedDilutedEPS, OrdinaryAnnualDividend, VerifiedNonpayer):
             _period(root.period)
-            require(iso_date(root.period.end) <= published.date(), "Reported fiscal period after publication")
+            require(iso_date(root.period.end) <= (published or available).date(),
+                    "Reported fiscal period after evidence boundary")
             period_key = (type(root), root.period.end)
             require(period_key not in periods, "Duplicate fiscal period / unresolved revision")
             periods.add(period_key)
@@ -283,13 +362,21 @@ def _validate(facts: QualifiedFacts) -> tuple[RootFact, ...]:
             text(root.rationale, "profile qualification rationale")
     for root_type in (ObservedPrice, ProfileQualification, OrdinaryAnnualDividend, VerifiedNonpayer):
         require(sum(type(r) is root_type for r in facts.roots) <= 1, "Ambiguous or conflicting " + root_type.__name__)
+    if real_contract:
+        require(not any(type(r) is OrdinaryAnnualDividend for r in facts.roots),
+                "PR5E real facts do not support the payer route")
     require(not (any(type(r) is OrdinaryAnnualDividend for r in facts.roots)
                  and any(type(r) is VerifiedNonpayer for r in facts.roots)), "Contradictory payer/nonpayer facts")
     canonical = []
     for root in facts.roots:
         provenance = root.identity.provenance
-        provenance = replace(provenance, **{key: _timestamp(getattr(provenance, key)).isoformat()
-                             for key in ("published_at", "available_at", "captured_at")})
+        fields_to_replace = {
+            "available_at": _timestamp(provenance.available_at).isoformat(),
+            "captured_at": _timestamp(provenance.captured_at).isoformat(),
+        }
+        if type(provenance) is Provenance:
+            fields_to_replace["published_at"] = _timestamp(provenance.published_at).isoformat()
+        provenance = replace(provenance, **fields_to_replace)
         root = replace(root, identity=replace(root.identity, provenance=provenance))
         if type(root) is ProfileQualification:
             root = replace(root, excluded_structures=tuple(sorted(root.excluded_structures, key=lambda p: p.value)))
@@ -479,6 +566,11 @@ def construct_expected_return(facts: QualifiedFacts, *, mature_policy: MatureGro
     })
 
     def freshness(root):
+        provenance = root.identity.provenance
+        if type(provenance) is RealProvenance:
+            # Capture proves an upper availability bound, not publication or
+            # current freshness. Keep it usable but conservatively LOW.
+            return "LOW"
         # Historical years are evaluated against the explicit latest-series
         # endpoint, not penalized merely for being required old observations.
         if type(root) is ObservedPrice:
@@ -491,8 +583,9 @@ def construct_expected_return(facts: QualifiedFacts, *, mature_policy: MatureGro
 
     for component in er.COMPONENTS:
         ids = component_roots[component]
-        authority = _floor(*("HIGH" if root_by_id[key].identity.provenance.source_kind is SourceKind.SYNTHETIC_OFFICIAL
-                             else "LOW" for key in ids))
+        authority = _floor(*(
+            "HIGH" if root_by_id[key].identity.provenance.source_kind is SourceKind.SYNTHETIC_OFFICIAL
+            else "LOW" for key in ids))
         fresh = _floor(*(freshness(root_by_id[key]) for key in ids))
         ceiling = "HIGH" if component == "fundamental" else "LOW"
         category = _floor(authority, fresh, "HIGH", "HIGH", ceiling)
@@ -520,16 +613,25 @@ def construct_expected_return(facts: QualifiedFacts, *, mature_policy: MatureGro
         else:
             field, value, unit = "qualified_company_profile", root.profile.value, "QUALIFICATION"
         basis = getattr(root, "basis", None)
-        evidence.append(er.Evidence(identity.observation_id, field, value, unit,
-            "OFFICIAL_CURRENT_DATA" if p.source_kind is SourceKind.SYNTHETIC_OFFICIAL else "HUMAN_MANUAL",
-            p.source_reference, p.source_version, _timestamp(p.published_at).isoformat(),
+        evidence_type = er.RealEvidence if type(p) is RealProvenance else er.Evidence
+        evidence_args = (identity.observation_id, field, value, unit,
+            ("MARKET_PROVIDER" if p.source_kind is SourceKind.YAHOO_MARKET_PROVIDER
+             else "OFFICIAL_CURRENT_DATA" if p.source_kind in (SourceKind.SYNTHETIC_OFFICIAL,
+                                                                 SourceKind.SEC_CURRENT)
+             else "HUMAN_MANUAL"),
+            p.source_reference, p.source_version,
+            None if type(p) is RealProvenance else _timestamp(p.published_at).isoformat(),
             _timestamp(p.available_at).isoformat(), _timestamp(p.captured_at).isoformat(),
-            "STALE" if freshness(root) == "LOW" else "CURRENT",
-            "HIGH" if p.source_kind is SourceKind.SYNTHETIC_OFFICIAL else "LOW",
+            ("CAPTURE_BOUND" if type(p) is RealProvenance
+             else "STALE" if freshness(root) == "LOW" else "CURRENT"),
+            ("HIGH" if p.source_kind is SourceKind.SYNTHETIC_OFFICIAL else "LOW"),
             basis.currency if basis else None, basis.share_basis if basis else None,
             period.start if period else root.observed_on if type(root) is ObservedPrice else None,
             period.end if period else root.observed_on if type(root) is ObservedPrice else None,
-            getattr(root, "accounting_basis", None)))
+            getattr(root, "accounting_basis", None), ())
+        if type(p) is RealProvenance:
+            evidence_args += (p.publication_semantics.value, p.availability_semantics.value)
+        evidence.append(evidence_type(*evidence_args))
     scenarios, assumptions = [], []
     for index, scenario in enumerate(er.SCENARIOS):
         outputs = (normalization, growth_nodes[index], dividend_nodes[index], terminal_nodes[index])
@@ -546,7 +648,10 @@ def construct_expected_return(facts: QualifiedFacts, *, mature_policy: MatureGro
             refs.append(er.References(assumption_ids=(identifier,)))
         scenarios.append(er.Scenario(scenario, starting, growth_nodes[index].value, dividend_nodes[index].value,
             terminal_nodes[index].value, facts.basis.currency, facts.basis.share_basis, *refs))
-    request = er.ExpectedReturnRequest(er.EXPECTED_RETURN_SCHEMA_VERSION, er.EXPECTED_RETURN_METHODOLOGY_VERSION,
+    schema_version = (er.EXPECTED_RETURN_REAL_SCHEMA_VERSION
+                      if facts.contract_version == EXPECTED_RETURN_REAL_FACTS_CONTRACT_VERSION
+                      else er.EXPECTED_RETURN_SCHEMA_VERSION)
+    request = er.ExpectedReturnRequest(schema_version, er.EXPECTED_RETURN_METHODOLOGY_VERSION,
         as_of.isoformat(), er.SUPPORTED_PROFILE, er.SUPPORTED_METRIC, facts.basis.currency, facts.basis.share_basis,
         er.HORIZON_YEARS, float(price.value), price.identity.observation_id, tuple(scenarios), confidence,
         tuple(evidence), tuple(sorted(assumptions, key=lambda a: a.id)))

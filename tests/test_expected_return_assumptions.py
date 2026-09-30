@@ -53,6 +53,8 @@ class ConstructorTests(unittest.TestCase):
         self.assertEqual(result.status, "BUILT")
         calculator.assert_called_once_with(result.request)
         self.assertIs(type(result.request), er.ExpectedReturnRequest)
+        self.assertEqual(result.request.schema_version,
+                         er.EXPECTED_RETURN_SCHEMA_VERSION)
         self.assertEqual(result.diagnostic, er.calculate_expected_return(result.request))
         self.assertEqual(result.diagnostic.authority, "DIAGNOSTIC_ONLY")
         self.assertEqual(result.diagnostic.return_basis, "NOMINAL_PRETAX_EQUITY_CASHFLOW_IRR")
@@ -629,6 +631,7 @@ class IsolationTests(unittest.TestCase):
             if path.name in {
                 "expected_return_approved_policy_v1.py",
                 "expected_return_pr5d_bundle.py",
+                "expected_return_pr5e_adapter.py",
             }:
                 continue
             # PR4B2 adds exactly one post-decision frozen V2 consumer. Its
