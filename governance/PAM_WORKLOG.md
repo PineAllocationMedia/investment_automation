@@ -13,3 +13,11 @@
 
 - PR #79 merged and Governance Reform Phase 1 became canonical.
 - Governance Cleanup / Migration began.
+
+## 2026-09-30 — Governance Cleanup / Migration complete
+
+- PR #80 merged and Governance Cleanup / Migration completed.
+- Ambiguous legacy `ROADMAP.md` and `SYSTEM_ARCHITECTURE.md` guidance was safely archived and replaced with navigation shims.
+- No technical PAM behavior changed.
+- ChatGPT role Project/employee configuration is now the active administrative step.
+- PR5E remains the next technical chantier.

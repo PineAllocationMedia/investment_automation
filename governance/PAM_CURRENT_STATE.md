@@ -3,17 +3,17 @@
 > Two-to-five-minute operational snapshot. Refresh through Governance Sync after
 > durable state changes.
 
-- **Last Governance Sync:** Governance Reform Phase 1 canonicalized and cleanup started (2026-09-30)
+- **Last Governance Sync:** Governance Cleanup / Migration completed (2026-09-30)
 - **Current major program:** V2 evidence-qualified Expected Return foundation
-- **Active administrative chantier:** Governance Cleanup / Migration
+- **Active administrative chantier:** Configure ChatGPT role Projects/employees
 - **Canonical integration branch:** `model-v2/expected-return-challenger`
-- **Canonical cleanup-start HEAD:** `070bba373de317fc5f0eec37c775fef87ab9b499`
-- **Current status:** Governance Reform Phase 1 / PR #79 is complete and merged; cleanup/migration is in progress
-- **Latest completed administrative milestone:** Governance Reform Phase 1 / PR #79
-- **Next administrative step:** Configure ChatGPT role Projects/employees
+- **Canonical post-cleanup HEAD:** `17918d7b2648df79b8676a8cd5d70f7e4c02edf9`
+- **Current status:** Governance Reform Phase 1 / PR #79 and Governance Cleanup / Migration / PR #80 are complete and merged
+- **Latest completed administrative milestone:** Governance Cleanup / Migration / PR #80
+- **Next administrative step:** Configure ChatGPT role Projects/employees (active)
 - **Next technical chantier:** PR5E — final admission and real Expected Return adapter
-- **Technical behavior:** No new technical PAM behavior is being introduced by this cleanup
-- **Blockers:** None recorded for Governance Cleanup / Migration
+- **Technical behavior:** No technical PAM behavior changed through the governance reform/cleanup
+- **Blockers:** None recorded
 - **Pending CEO decisions:** None recorded
 
 ## Active role states
@@ -34,7 +34,6 @@
 - V1 remains frozen operational authority; V2 remains a challenger.
 - PR5D2 constructs no real PR4B1 roots and calculates no Expected Return.
 - PR5E remains required for final admission and the real-capable adapter.
-- Governance Cleanup / Migration is the active administrative chantier.
 - ChatGPT role Projects/employees are not yet configured.
 
 ## Canonical governance references
@@ -45,5 +44,5 @@
 - `DECISIONS.md`
 - `governance/roles/*.md`
 
-The HEAD above is the cleanup-start canonical state, not the future merge commit of
-this cleanup PR. Refresh it after merge through a Governance Sync.
+The HEAD above is the post-cleanup canonical state before this Governance Sync,
+not the future merge commit of this Governance Sync PR.
