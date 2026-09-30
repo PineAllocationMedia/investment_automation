@@ -10,6 +10,8 @@ class SourceAuthorityTests(unittest.TestCase):
     def setUp(self):
         self.route = s.get_source_route(s.SEC_COMPANYFACTS_LIVE_CURRENT_V1)
         self.yahoo = s.get_source_route(s.YAHOO_FINANCE_CHART_CURRENT_QUOTE_V1)
+        self.yahoo_splits = s.get_source_route(
+            s.YAHOO_FINANCE_CHART_SPLIT_HISTORY_V1)
 
     def test_exact_registered_route_and_pins(self):
         self.assertEqual(self.route.provider, "SEC")
@@ -79,6 +81,27 @@ class SourceAuthorityTests(unittest.TestCase):
     def test_string_claims_are_not_typed_authority(self):
         with self.assertRaises(s.SourceAuthorityError):
             s.permitted_claim(self.route.route_id, "SOURCE_ACQUISITION_PROVENANCE")
+
+    def test_yahoo_split_history_route_is_narrow_and_review_gated(self):
+        self.assertEqual(self.yahoo_splits.provider, "YAHOO_FINANCE")
+        self.assertEqual(
+            self.yahoo_splits.required_acquisition_contract,
+            "2026-09-29-yahoo-chart-split-history-acquisition-v1")
+        self.assertEqual(
+            self.yahoo_splits.required_capture_contract,
+            "2026-09-29-yahoo-split-history-receipt-v1")
+        self.assertEqual(
+            self.yahoo_splits.required_extraction_contract,
+            "2026-09-29-yahoo-split-history-extraction-v1")
+        self.assertEqual(
+            {grant.property for grant in self.yahoo_splits.permitted_claims},
+            {s.AuthorityProperty.SOURCE_ACQUISITION_PROVENANCE})
+        self.assertNotIn(
+            s.AuthorityProperty.SHARE_BASIS_COMPARABILITY,
+            {grant.property for grant in self.yahoo_splits.permitted_claims})
+        self.assertIs(self.yahoo_splits.license_status, s.UseStatus.UNKNOWN)
+        self.assertIs(self.yahoo_splits.use_status, s.UseStatus.REVIEW_REQUIRED)
+        self.assertIs(self.yahoo_splits.failure_policy, s.FailurePolicy.FAIL_CLOSED)
 
     def test_registry_and_records_immutable(self):
         self.assertIsInstance(s._ROUTES, tuple)

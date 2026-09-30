@@ -374,7 +374,10 @@ class IsolationTests(unittest.TestCase):
             *sorted((root / "pit_comparison").rglob("*.py")),
         )
         for path in production_paths:
-            if path == Path(g.__file__):
+            if path in {
+                Path(g.__file__),
+                root / "src" / "expected_return_approved_policy_v1.py",
+            }:
                 continue
             self.assertNotIn(
                 "expected_return_policy_governance", path.read_text(), str(path)

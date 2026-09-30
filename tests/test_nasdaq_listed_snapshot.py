@@ -259,11 +259,16 @@ class NasdaqListedDependencyTests(unittest.TestCase):
         for directory_name in ("src", "pit_comparison", "economic_facts", "scripts"):
             paths.extend((root / directory_name).rglob("*.py"))
         for path in paths:
+            if path == root / "src" / "expected_return_pr5d_bundle.py":
+                continue
             if path.stem in modules | {"sec_current_registered_listing_bridge",
                                        "sec_current_common_stock_class_bridge",
                                        "sec_temporal_common_stock_source_series",
                                        "sec_current_security_eps_qualification",
                                        "sec_current_eps_comparability_qualification",
+                                       "sec_current_verified_nonpayer",
+                                       "sec_ordinary_compounder_profile",
+                                       "sec_quote_eps_basis_bridge",
                                        "yahoo_current_quote"}:
                 continue
             for node in ast.walk(ast.parse(path.read_text())):

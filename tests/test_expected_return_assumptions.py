@@ -624,6 +624,13 @@ class IsolationTests(unittest.TestCase):
             # consume the constructor, calculator, model, runtime or V1.
             if path == Path(p.__file__).with_name("expected_return_policy_governance.py"):
                 continue
+            # PR5D2 adds the exact reviewed owner-policy artifact and its pure
+            # composite bundle. Neither calls the constructor/calculator.
+            if path.name in {
+                "expected_return_approved_policy_v1.py",
+                "expected_return_pr5d_bundle.py",
+            }:
+                continue
             # PR4B2 adds exactly one post-decision frozen V2 consumer. Its
             # branch/import boundary is separately enforced by the PIT tests.
             if path == root / "pit_comparison" / "expected_return_diagnostics.py":

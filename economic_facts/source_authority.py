@@ -13,6 +13,7 @@ import json
 SOURCE_AUTHORITY_VERSION = "2026-09-19-source-route-authority-v1"
 SEC_COMPANYFACTS_LIVE_CURRENT_V1 = "SEC_COMPANYFACTS_LIVE_CURRENT_V1"
 YAHOO_FINANCE_CHART_CURRENT_QUOTE_V1 = "YAHOO_FINANCE_CHART_CURRENT_QUOTE_V1"
+YAHOO_FINANCE_CHART_SPLIT_HISTORY_V1 = "YAHOO_FINANCE_CHART_SPLIT_HISTORY_V1"
 
 
 class AuthorityProperty(Enum):
@@ -170,6 +171,26 @@ _ROUTES = (SourceRouteProfile(
     "2026-09-28-yahoo-current-quote-extraction-v1",
     "2026-09-28-yahoo-current-quote-qualification-v1",
     "2026-09-28-yahoo-nms-nasdaqgs-usd-equity-v1",
+    True,
+    PublicationSemantics.UNKNOWN,
+    AvailabilitySemantics.CAPTURE_BOUND,
+    PITCapability.UNSUPPORTED,
+    FailurePolicy.FAIL_CLOSED,
+    UseStatus.UNKNOWN,
+    UseStatus.REVIEW_REQUIRED,
+), SourceRouteProfile(
+    YAHOO_FINANCE_CHART_SPLIT_HISTORY_V1,
+    "YAHOO_FINANCE",
+    "2026-09-29-yahoo-chart-split-history-route-v1",
+    ("US",),
+    (ClaimGrant(AuthorityProperty.SOURCE_ACQUISITION_PROVENANCE,
+                ClaimAuthority.TRUSTED_LOCAL_PROCESS, ClaimRole.PRIMARY),),
+    "2026-09-29-yahoo-split-history-extraction-v1",
+    "2026-09-29-yahoo-chart-split-history-acquisition-v1",
+    "2026-09-29-yahoo-split-history-receipt-v1",
+    "2026-09-29-yahoo-split-history-extraction-v1",
+    "2026-09-29-free-bounded-share-basis-bridge-v1",
+    "2026-09-29-exact-integral-split-events-v1",
     True,
     PublicationSemantics.UNKNOWN,
     AvailabilitySemantics.CAPTURE_BOUND,
