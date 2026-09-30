@@ -390,19 +390,21 @@ PR5D2 complete
     ↓
 Governance Reform Phase 1 complete
     ↓
-Governance Cleanup / Migration (current)
+Governance Cleanup / Migration complete
     ↓
-configure ChatGPT role Projects / employees (next)
+Configure ChatGPT role Projects/employees (current)
     ↓
 PR5E
 ```
 
 This governance sequence is an administrative prerequisite, not a replacement for
-PR5E and not an expansion of Expected Return architecture. PR5E remains the
-immediate next technical chantier; later technical stages remain in their existing
-order.
+PR5E and not an expansion of Expected Return architecture. Role configuration is
+the final administrative setup step before technical development resumes. PR5E
+remains the immediate next technical chantier; later technical stages remain in
+their existing order.
 
-No additional PR5D0x capability-architecture stage is planned in this sequence.
+No additional Expected Return architecture interlude is authorized in this
+sequence.
 
 The public SEC/free-Nasdaq source graph still lacks complete positive
 no-transformation coverage through CURRENT T. PR5C therefore uses positive
