@@ -44,6 +44,34 @@ def request_fixture(*, price=100.0, eps=10.0, growth=(0.0,) * 7,
         er.ConfidenceComponents("HIGH", "HIGH", "HIGH", "HIGH"), evidence, tuple(assumptions))
 
 
+def real_request_fixture():
+    legacy = request_fixture()
+    evidence = tuple(er.RealEvidence(
+        id=item.id,
+        field=item.field,
+        value=item.value,
+        unit=item.unit,
+        source_kind=item.source_kind,
+        source_reference=item.source_reference,
+        source_version=item.source_version,
+        published_at=None,
+        available_at=item.captured_at,
+        captured_at=item.captured_at,
+        freshness_status="CAPTURE_BOUND",
+        reliability_status=item.reliability_status,
+        currency=item.currency,
+        share_basis=item.share_basis,
+        period_start=item.period_start,
+        period_end=item.period_end,
+        accounting_basis=item.accounting_basis,
+        parent_evidence_ids=item.parent_evidence_ids,
+        publication_semantics="UNKNOWN",
+        availability_semantics="CAPTURE_BOUND",
+    ) for item in legacy.evidence)
+    return replace(legacy, schema_version=er.EXPECTED_RETURN_REAL_SCHEMA_VERSION,
+                   evidence=evidence)
+
+
 def alter_scenario(request, name="base", **changes):
     """Change both the economic value and its explicitly recorded assumption."""
     scenarios = tuple(replace(s, **changes) if s.name == name else s for s in request.scenarios)
@@ -59,6 +87,72 @@ def alter_scenario(request, name="base", **changes):
 
 def returns(request):
     return tuple(s.annualized_return for s in er.calculate_expected_return(request).scenarios)
+
+
+class ExpectedReturnSchemaSeparationTests(unittest.TestCase):
+    def test_legacy_schema_and_synthetic_behavior_remain_unchanged(self):
+        fixture = request_fixture(growth=(.1,) * 7)
+        result = er.calculate_expected_return(fixture)
+        self.assertEqual(fixture.schema_version, er.EXPECTED_RETURN_SCHEMA_VERSION)
+        self.assertEqual(result.schema_version, er.EXPECTED_RETURN_SCHEMA_VERSION)
+        self.assertAlmostEqual(result.scenarios[1].annualized_return, .1,
+                               delta=2e-14)
+
+    def test_legacy_schema_rejects_real_evidence_and_capture_bound_semantics(self):
+        legacy = request_fixture()
+        real = real_request_fixture()
+        with self.assertRaisesRegex(er.ExpectedReturnError,
+                                    "schema/evidence family mismatch"):
+            er.calculate_expected_return(replace(real,
+                schema_version=er.EXPECTED_RETURN_SCHEMA_VERSION))
+        capture_bound = replace(
+            legacy,
+            evidence=(replace(legacy.evidence[0], freshness_status="CAPTURE_BOUND"),
+                      legacy.evidence[1]),
+        )
+        with self.assertRaisesRegex(er.ExpectedReturnError,
+                                    "invalid freshness for schema"):
+            er.calculate_expected_return(capture_bound)
+
+    def test_real_schema_accepts_only_exact_capture_bound_real_family(self):
+        fixture = real_request_fixture()
+        result = er.calculate_expected_return(fixture)
+        self.assertEqual(result.schema_version,
+                         er.EXPECTED_RETURN_REAL_SCHEMA_VERSION)
+        self.assertEqual(result.status, "DEGRADED")
+        self.assertEqual(result.overall_confidence, "LOW")
+        self.assertTrue(all(type(item) is er.RealEvidence
+                            for item in result.evidence))
+        self.assertTrue(all(item.published_at is None
+                            and item.publication_semantics == "UNKNOWN"
+                            and item.availability_semantics == "CAPTURE_BOUND"
+                            and item.available_at == item.captured_at
+                            for item in result.evidence))
+
+    def test_real_schema_rejects_legacy_and_mixed_evidence_families(self):
+        legacy = request_fixture()
+        real = real_request_fixture()
+        for evidence in (legacy.evidence,
+                         (real.evidence[0], legacy.evidence[1])):
+            with self.subTest(types=tuple(type(item).__name__ for item in evidence)), \
+                    self.assertRaisesRegex(er.ExpectedReturnError,
+                                           "schema/evidence family mismatch"):
+                er.calculate_expected_return(replace(real, evidence=evidence))
+
+    def test_real_schema_rejects_non_capture_bound_semantics(self):
+        fixture = real_request_fixture()
+        changes = (
+            {"published_at": STAMP},
+            {"publication_semantics": "EXACT"},
+            {"availability_semantics": "EXACT"},
+            {"available_at": "2026-09-08T11:59:59Z"},
+            {"freshness_status": "CURRENT"},
+        )
+        for change in changes:
+            evidence = (replace(fixture.evidence[0], **change),
+                        fixture.evidence[1])
+            with self.subTest(change=change), self.assertRaises(er.ExpectedReturnError):
+                er.calculate_expected_return(replace(fixture, evidence=evidence))
 
 
 class ExpectedReturnMathematicsTests(unittest.TestCase):
@@ -159,6 +253,8 @@ class ExpectedReturnContractTests(unittest.TestCase):
         result = er.calculate_expected_return(request_fixture())
         self.assertEqual(er.EXPECTED_RETURN_METHODOLOGY_VERSION, "2026-09-08-normalized-eps-cashflow-irr-v1")
         self.assertEqual(er.EXPECTED_RETURN_SCHEMA_VERSION, "2026-09-08-expected-return-diagnostic-v1")
+        self.assertEqual(er.EXPECTED_RETURN_REAL_SCHEMA_VERSION,
+                         "2026-09-30-pr5e-real-expected-return-diagnostic-v1")
         self.assertEqual(result.authority, "DIAGNOSTIC_ONLY")
         self.assertEqual(result.status, "AVAILABLE")
         self.assertEqual(result.horizon_years, 7)

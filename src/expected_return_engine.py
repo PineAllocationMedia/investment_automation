@@ -14,6 +14,7 @@ import re
 
 EXPECTED_RETURN_METHODOLOGY_VERSION = "2026-09-08-normalized-eps-cashflow-irr-v1"
 EXPECTED_RETURN_SCHEMA_VERSION = "2026-09-08-expected-return-diagnostic-v1"
+EXPECTED_RETURN_REAL_SCHEMA_VERSION = "2026-09-30-pr5e-real-expected-return-diagnostic-v1"
 HORIZON_YEARS = 7
 SUPPORTED_PROFILE = "ORDINARY_COMPOUNDER"
 SUPPORTED_METRIC = "NORMALIZED_DILUTED_EPS"
@@ -290,7 +291,10 @@ def _value(value, label: str, *, text_allowed=False) -> None:
 
 def _validate_request(request: ExpectedReturnRequest):
     _require(type(request) is ExpectedReturnRequest, "ExpectedReturnRequest required; mappings and extra keys are not accepted")
-    _require(request.schema_version == EXPECTED_RETURN_SCHEMA_VERSION, "Unsupported schema version")
+    _require(request.schema_version in (EXPECTED_RETURN_SCHEMA_VERSION,
+                                        EXPECTED_RETURN_REAL_SCHEMA_VERSION),
+             "Unsupported schema version")
+    real_schema = request.schema_version == EXPECTED_RETURN_REAL_SCHEMA_VERSION
     _require(request.methodology_version == EXPECTED_RETURN_METHODOLOGY_VERSION, "Unsupported methodology version")
     as_of = _timestamp(request.as_of, "as_of")
     for label in ("profile", "metric"):
@@ -308,8 +312,9 @@ def _validate_request(request: ExpectedReturnRequest):
     for component in COMPONENTS:
         _require(type(getattr(request.confidence, component)) is str and getattr(request.confidence, component) in CONFIDENCE_ORDER, f"{component}: invalid confidence")
     _tuple(request.evidence, "evidence")
-    _require(all(type(item) in (Evidence, RealEvidence) for item in request.evidence),
-             "evidence: invalid record type")
+    evidence_type = RealEvidence if real_schema else Evidence
+    _require(all(type(item) is evidence_type for item in request.evidence),
+             "schema/evidence family mismatch")
     _tuple(request.assumptions, "assumptions", Assumption)
     _tuple(request.scenarios, "scenarios", Scenario)
     for scenario in request.scenarios:
@@ -327,13 +332,15 @@ def _validate_request(request: ExpectedReturnRequest):
             _text(getattr(record, field), f"evidence {record.id}.{field}")
         _value(record.value, record.id, text_allowed=True)
         _require(type(record.source_kind) is str and record.source_kind in SOURCE_KINDS, f"{record.id}: invalid evidence source kind")
-        _require(type(record.freshness_status) is str and record.freshness_status in
-                 ("CURRENT", "STALE", "UNKNOWN", "CAPTURE_BOUND"),
-                 f"{record.id}: invalid freshness")
+        freshness_values = (("CAPTURE_BOUND",) if real_schema
+                            else ("CURRENT", "STALE", "UNKNOWN"))
+        _require(type(record.freshness_status) is str
+                 and record.freshness_status in freshness_values,
+                 f"{record.id}: invalid freshness for schema")
         _require(type(record.reliability_status) is str and record.reliability_status in CONFIDENCE_ORDER, f"{record.id}: invalid reliability")
         available = _timestamp(record.available_at, record.id + ".available_at")
         captured = _timestamp(record.captured_at, record.id + ".captured_at")
-        if type(record) is Evidence:
+        if not real_schema:
             published = _timestamp(record.published_at, record.id + ".published_at")
             _require(published <= available,
                      f"{record.id}: publication cannot follow availability")
@@ -570,7 +577,7 @@ def calculate_expected_return(request: ExpectedReturnRequest) -> ExpectedReturnD
     canonical_assumptions = tuple(replace(record, supporting_evidence_ids=tuple(sorted(record.supporting_evidence_ids)))
                                   for record in sorted(request.assumptions, key=lambda row: row.id))
     return ExpectedReturnDiagnostic(
-        EXPECTED_RETURN_SCHEMA_VERSION, EXPECTED_RETURN_METHODOLOGY_VERSION,
+        request.schema_version, EXPECTED_RETURN_METHODOLOGY_VERSION,
         "UNAVAILABLE" if reasons else "AVAILABLE" if overall == "HIGH" else "DEGRADED",
         "DIAGNOSTIC_ONLY", as_of.isoformat(), HORIZON_YEARS, request.profile, request.metric,
         request.currency, request.share_basis, request.current_price, request.current_price_evidence_id,

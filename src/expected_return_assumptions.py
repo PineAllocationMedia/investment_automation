@@ -648,7 +648,10 @@ def construct_expected_return(facts: QualifiedFacts, *, mature_policy: MatureGro
             refs.append(er.References(assumption_ids=(identifier,)))
         scenarios.append(er.Scenario(scenario, starting, growth_nodes[index].value, dividend_nodes[index].value,
             terminal_nodes[index].value, facts.basis.currency, facts.basis.share_basis, *refs))
-    request = er.ExpectedReturnRequest(er.EXPECTED_RETURN_SCHEMA_VERSION, er.EXPECTED_RETURN_METHODOLOGY_VERSION,
+    schema_version = (er.EXPECTED_RETURN_REAL_SCHEMA_VERSION
+                      if facts.contract_version == EXPECTED_RETURN_REAL_FACTS_CONTRACT_VERSION
+                      else er.EXPECTED_RETURN_SCHEMA_VERSION)
+    request = er.ExpectedReturnRequest(schema_version, er.EXPECTED_RETURN_METHODOLOGY_VERSION,
         as_of.isoformat(), er.SUPPORTED_PROFILE, er.SUPPORTED_METRIC, facts.basis.currency, facts.basis.share_basis,
         er.HORIZON_YEARS, float(price.value), price.identity.observation_id, tuple(scenarios), confidence,
         tuple(evidence), tuple(sorted(assumptions, key=lambda a: a.id)))

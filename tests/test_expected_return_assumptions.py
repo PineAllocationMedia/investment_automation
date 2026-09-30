@@ -53,6 +53,8 @@ class ConstructorTests(unittest.TestCase):
         self.assertEqual(result.status, "BUILT")
         calculator.assert_called_once_with(result.request)
         self.assertIs(type(result.request), er.ExpectedReturnRequest)
+        self.assertEqual(result.request.schema_version,
+                         er.EXPECTED_RETURN_SCHEMA_VERSION)
         self.assertEqual(result.diagnostic, er.calculate_expected_return(result.request))
         self.assertEqual(result.diagnostic.authority, "DIAGNOSTIC_ONLY")
         self.assertEqual(result.diagnostic.return_basis, "NOMINAL_PRETAX_EQUITY_CASHFLOW_IRR")

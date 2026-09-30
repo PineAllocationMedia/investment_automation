@@ -116,11 +116,23 @@ PR5C values are not mutated. No rounding, discretionary normalization, adjusted
 EPS substitution, or intermediate float conversion occurs. All five exact
 periods and their upstream lineage remain bound into the admitted facts.
 
+The final conversion is also an explicit availability boundary. Conversion
+overflow, a non-finite result, or positive-source underflow to `0.0` returns
+PR5E `UNAVAILABLE` with
+`EPS_BINARY64_REPRESENTATION_UNAVAILABLE`. PR5E does not clip, saturate,
+quantize, round, or substitute another economic value.
+
 The price root comes only from PR5D2's admitted Yahoo
 `meta.regularMarketPrice` path. Its USD-per-share meaning, provider market date,
 receipt object hash, locator, and quote identity are retained. PR5E never uses
 previous close, chart close, adjusted close, bid/ask, cache, manual value, or a
 fallback provider.
+
+The exact admitted price crosses its Decimal-to-binary64 boundary once. The
+same finite and strictly-positive representability checks apply; failure returns
+PR5E `UNAVAILABLE` with
+`PRICE_BINARY64_REPRESENTATION_UNAVAILABLE`. It is not reclassified as an
+upstream source conflict or unsupported security.
 
 The nonpayer root comes only from the freshly replayed route-local two-concept
 verified-zero result. Missing dividend data never becomes nonpayer evidence and
@@ -148,6 +160,21 @@ time are not renamed as publication time. PR4A preserves the separate real
 evidence shape. Capture-bound evidence remains usable but is conservatively
 capped at `LOW` confidence and emits capture-bound warnings; a recent capture
 does not silently create `HIGH` confidence or a stronger CURRENT factual claim.
+
+PR4A schema identity is separated by evidence family:
+
+- `2026-09-08-expected-return-diagnostic-v1` remains the exact legacy
+  synthetic schema and accepts only legacy `Evidence`, including its original
+  publication/availability chronology and freshness vocabulary;
+- `2026-09-30-pr5e-real-expected-return-diagnostic-v1` is the additive PR5E
+  real schema and accepts only `RealEvidence` with `published_at=None`,
+  `publication_semantics=UNKNOWN`, `availability_semantics=CAPTURE_BOUND`, and
+  `available_at == captured_at`.
+
+Either schema rejects the other evidence family, and the real schema rejects a
+mixed legacy/real tuple. PR4B1 selects the legacy schema only for the synthetic
+facts contract and the real schema only for the PR5E real facts contract. The
+PR4A methodology version and numerical mathematics are unchanged.
 
 Synthetic PR4B1 behavior, facts contract, provenance shape, policy mechanics,
 and numerical output remain unchanged.
@@ -215,7 +242,9 @@ profile adaptation, distinct real adapters, UNKNOWN publication,
 CAPTURE_BOUND availability, deterministic no-clock `as_of`, policy
 reconstruction/hash checks, exact PR4B1 policy invocation, absence of a direct
 PR4A call, unchanged synthetic shape/behavior, consumer isolation, limitations,
-immutability, and repeated-input determinism.
+immutability, repeated-input determinism, closed legacy-versus-real PR4A schema
+separation, and closed price/EPS binary64 overflow and positive-underflow
+handling.
 
 Because `src/**` changes, the complete final change set requires `FULL_PIT`.
 Protected PIT/determinism fingerprints and `MODEL_RULES_VERSION` must remain:

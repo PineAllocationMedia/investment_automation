@@ -34,6 +34,10 @@ class PR5EAdapterError(ValueError):
     """Malformed closed PR5E request or impossible admitted representation."""
 
 
+class _Binary64Unavailable(ValueError):
+    """A positive exact source value cannot cross the PR5E binary64 boundary."""
+
+
 class PR5EStatus(StrEnum):
     REAL_EXPECTED_RETURN_ADMITTED = "REAL_EXPECTED_RETURN_ADMITTED"
     UNAVAILABLE = "UNAVAILABLE"
@@ -48,6 +52,8 @@ class PR5EReason(StrEnum):
     PR5D2_REPLAY_IDENTITY_MISMATCH = "PR5D2_REPLAY_IDENTITY_MISMATCH"
     PR5D2_SUCCESS_SHAPE_MISMATCH = "PR5D2_SUCCESS_SHAPE_MISMATCH"
     APPROVED_POLICY_IDENTITY_MISMATCH = "APPROVED_POLICY_IDENTITY_MISMATCH"
+    PRICE_BINARY64_REPRESENTATION_UNAVAILABLE = "PRICE_BINARY64_REPRESENTATION_UNAVAILABLE"
+    EPS_BINARY64_REPRESENTATION_UNAVAILABLE = "EPS_BINARY64_REPRESENTATION_UNAVAILABLE"
     PR4B1_CONSTRUCTOR_UNAVAILABLE = "PR4B1_CONSTRUCTOR_UNAVAILABLE"
 
 
@@ -182,7 +188,26 @@ def _adapt_eps(value, numerator, denominator):
         raise PR5EAdapterError("Exact Decimal and integral bridge terms required")
     if numerator <= 0 or denominator <= 0:
         raise PR5EAdapterError("Positive bridge multiplier required")
-    return float(Fraction(value) * Fraction(numerator, denominator))
+    try:
+        converted = float(Fraction(value) * Fraction(numerator, denominator))
+    except (OverflowError, ValueError) as exc:
+        raise _Binary64Unavailable from exc
+    if not math.isfinite(converted) or converted <= 0:
+        raise _Binary64Unavailable
+    return converted
+
+
+def _adapt_price(value):
+    """Convert the exact admitted price once and require positive finite binary64."""
+    if type(value) is not Decimal:
+        raise PR5EAdapterError("Exact Decimal price required")
+    try:
+        converted = float(value)
+    except (OverflowError, ValueError) as exc:
+        raise _Binary64Unavailable from exc
+    if not math.isfinite(converted) or converted <= 0:
+        raise _Binary64Unavailable
+    return converted
 
 
 def _share_basis_identity(roots):
@@ -317,6 +342,12 @@ def admit_real_expected_return_pr5e(
     security_id = roots.route_local_security_key
     share_class = roots.canonical_selected_common_class
 
+    try:
+        price_value = _adapt_price(roots.quote_price)
+    except _Binary64Unavailable:
+        return _result(PR5EStatus.UNAVAILABLE,
+                       (PR5EReason.PRICE_BINARY64_REPRESENTATION_UNAVAILABLE,),
+                       roots, share_basis=share_basis_id, as_of=as_of)
     quote_receipt = quote.quote_extraction.receipt
     price_identity = assumptions.Identity(
         _observation_id("price", (quote.semantic_id, quote.evidence_id,
@@ -333,12 +364,21 @@ def admit_real_expected_return_pr5e(
         ),
     )
     price = assumptions.ObservedPrice(
-        price_identity, float(roots.quote_price), basis,
+        price_identity, price_value, basis,
         _timestamp(roots.quote_timestamp).date().isoformat(),
     )
 
     eps_roots = []
     for decision in roots.period_decisions:
+        try:
+            eps_value = _adapt_eps(
+                decision.c3_value, roots.basis_multiplier_numerator,
+                roots.basis_multiplier_denominator,
+            )
+        except _Binary64Unavailable:
+            return _result(PR5EStatus.UNAVAILABLE,
+                           (PR5EReason.EPS_BINARY64_REPRESENTATION_UNAVAILABLE,),
+                           roots, share_basis=share_basis_id, as_of=as_of)
         observation_id = _observation_id("reported-diluted-eps", (
             bridge.upstream_comparability.semantic_id,
             bridge.upstream_comparability.evidence_id,
@@ -359,9 +399,7 @@ def admit_real_expected_return_pr5e(
             ),
         )
         eps_roots.append(assumptions.ReportedDilutedEPS(
-            identity,
-            _adapt_eps(decision.c3_value, roots.basis_multiplier_numerator,
-                       roots.basis_multiplier_denominator),
+            identity, eps_value,
             basis,
             assumptions.AnnualPeriod(decision.period_start, decision.period_end),
             roots.accounting_basis,

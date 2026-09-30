@@ -8,6 +8,7 @@ import unittest
 from unittest.mock import patch
 
 from src import expected_return_assumptions as assumptions
+from src import expected_return_engine as engine
 from src import expected_return_pr5d_bundle as pr5d2
 from src import expected_return_pr5e_adapter as pr5e
 from tests.test_expected_return_pr5d_bundle import ExpectedReturnPR5D2BundleTests
@@ -99,6 +100,10 @@ class PR5EAdmissionTests(PR5EFixtureMixin, unittest.TestCase):
             self.assertEqual(evidence.freshness_status, "CAPTURE_BOUND")
             self.assertEqual(evidence.publication_semantics, "UNKNOWN")
             self.assertEqual(evidence.availability_semantics, "CAPTURE_BOUND")
+        self.assertEqual(result.construction.request.schema_version,
+                         engine.EXPECTED_RETURN_REAL_SCHEMA_VERSION)
+        self.assertEqual(result.construction.diagnostic.schema_version,
+                         engine.EXPECTED_RETURN_REAL_SCHEMA_VERSION)
         self.assertEqual(result.construction.request.confidence.fundamental, "LOW")
         self.assertTrue(all(item.category == "LOW" for item in result.construction.confidence))
 
@@ -130,15 +135,51 @@ class PR5EAdmissionTests(PR5EFixtureMixin, unittest.TestCase):
         value = Decimal("0.1000000000000000000000000001")
         self.assertEqual(pr5e._adapt_eps(value, 2, 3),
                          float(Fraction(value) * Fraction(2, 3)))
+        self.assertEqual(pr5e._adapt_price(Decimal("123.4500")),
+                         float(Decimal("123.4500")))
         tree = ast.parse(Path(pr5e.__file__).read_text())
-        function = next(node for node in tree.body
-                        if isinstance(node, ast.FunctionDef)
-                        and node.name == "_adapt_eps")
-        float_calls = [node for node in ast.walk(function)
-                       if isinstance(node, ast.Call)
-                       and isinstance(node.func, ast.Name)
-                       and node.func.id == "float"]
-        self.assertEqual(len(float_calls), 1)
+        for name in ("_adapt_eps", "_adapt_price"):
+            function = next(node for node in tree.body
+                            if isinstance(node, ast.FunctionDef)
+                            and node.name == name)
+            float_calls = [node for node in ast.walk(function)
+                           if isinstance(node, ast.Call)
+                           and isinstance(node.func, ast.Name)
+                           and node.func.id == "float"]
+            self.assertEqual(len(float_calls), 1, name)
+
+    def test_eps_binary64_overflow_and_underflow_are_closed_unavailable(self):
+        for value in (Decimal("1e10000"), Decimal("1e-10000")):
+            decisions = list(self.built["result"].period_decisions)
+            decisions[0] = replace(decisions[0], c3_value=value)
+            changed = replace(self.built["result"],
+                              period_decisions=tuple(decisions))
+            with self.subTest(value=value), patch.object(
+                    pr5e, "assemble_expected_return_pr5d_bundle",
+                    return_value=changed):
+                result = self.call(self.request_for(changed))
+            self.assertIs(result.status, pr5e.PR5EStatus.UNAVAILABLE)
+            self.assertEqual(
+                result.reasons,
+                (pr5e.PR5EReason.EPS_BINARY64_REPRESENTATION_UNAVAILABLE,),
+            )
+            self.assertIsNone(result.qualified_facts)
+            self.assertIsNone(result.construction)
+
+    def test_price_binary64_overflow_and_underflow_are_closed_unavailable(self):
+        for value in (Decimal("1e10000"), Decimal("1e-10000")):
+            changed = replace(self.built["result"], quote_price=value)
+            with self.subTest(value=value), patch.object(
+                    pr5e, "assemble_expected_return_pr5d_bundle",
+                    return_value=changed):
+                result = self.call(self.request_for(changed))
+            self.assertIs(result.status, pr5e.PR5EStatus.UNAVAILABLE)
+            self.assertEqual(
+                result.reasons,
+                (pr5e.PR5EReason.PRICE_BINARY64_REPRESENTATION_UNAVAILABLE,),
+            )
+            self.assertIsNone(result.qualified_facts)
+            self.assertIsNone(result.construction)
 
     def test_all_closed_statuses_and_identity_conflict_precedence(self):
         cases = (
