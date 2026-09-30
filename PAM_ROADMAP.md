@@ -197,7 +197,7 @@ Existing documents remain:
 
 ---
 
-## 8. Current technical frontier — audited Real Fact Admission closure
+## 8. Current technical frontier — Stage B Expected Return completion
 
 ### Real-source chain through PR5C comparable historical EPS presentation ✅
 
@@ -251,8 +251,9 @@ basis source foundations are still missing. The reviewed immediate sequence is:
 4. **PR5D — Remaining real Expected Return roots:** controlled current price and
    quote semantics, explicit quote-to-PR5C-basis linkage, dividend/nonpayer state,
    ordinary-compounder profile and reviewed applicable ER policies.
-5. **PR5E — Final admission and real ER adapter:** closed evidence-replaying
-   admission join and real-capable typed facts into the existing PR4B1/PR4A path.
+5. **PR5E — Final admission and real ER adapter:** completed closed
+   evidence-replaying admission join and real-capable typed facts into the
+   existing PR4B1/PR4A path for the explicitly supported bounded first route.
 
 ### PR5D0A — Expected Return policy governance foundation
 
@@ -288,7 +289,7 @@ every dependent output without erasing independent research capabilities.
 
 PR5D0C adds no runtime behavior, fallback Expected Return, model rule, score,
 ranking, recommendation, allocation or admission authority. It did not itself
-unblock PR5C; PR5D remains incomplete and PR5E has not started. The supported core must remain
+unblock PR5C, complete PR5D or start PR5E. The supported core must remain
 operable without a paid financial-data subscription; paid sources may only be
 optional, separately approved coverage enhancements.
 
@@ -301,8 +302,8 @@ unresolved evidence-bearing states fail closed without retained support.
 
 It implements no dependency graph, partial-analysis assembler, research
 participation classifier, Confidence, Opportunity Set integration, source adapter,
-or downstream consumer. It changes no admission authority, does not unblock PR5C,
-does not complete PR5D, and does not start PR5E.
+or downstream consumer. It changed no admission authority, did not unblock PR5C,
+did not complete PR5D, and did not start PR5E.
 
 ### PR5D0E — Dependency Contracts
 
@@ -313,7 +314,7 @@ it accepts only `SUPPORTED` or explicitly accepts `SUPPORTED + PARTIAL`.
 
 It creates no actual analytical-output wiring, dependency evaluator, subject
 binding, assembler, research participation classifier, score, admission authority,
-or investment authority. It does not unblock PR5C, complete PR5D, or start PR5E.
+or investment authority. It did not unblock PR5C, complete PR5D, or start PR5E.
 
 ### PR5D0F — Partial Analysis Assembler
 
@@ -324,8 +325,8 @@ preserving partial and unavailable reasons, limitations, and semantic/exact
 evidence identities.
 
 It calculates no analytical value and does not aggregate whole-company research
-participation. It changes no admission or investment authority, does not unblock
-PR5C, does not complete PR5D, and does not start PR5E.
+participation. It changed no admission or investment authority, did not unblock
+PR5C, did not complete PR5D, and did not start PR5E.
 
 ### PR5D0G — Research Participation Classifier
 
@@ -336,8 +337,8 @@ availability. Only explicit profile-support `UNSUPPORTED` yields
 candidate or partial research behavior.
 
 It implements no economic output, score, Confidence, Opportunity Set, admission,
-recommendation, allocation, execution, or production authority. It does not unblock
-PR5C, complete PR5D, or start PR5E.
+recommendation, allocation, execution, or production authority. It did not unblock
+PR5C, complete PR5D, or start PR5E at that stage.
 
 ### PR5D1 — Controlled Free Current Quote Foundation
 
@@ -362,7 +363,7 @@ the route-local same-Companyfacts verified-nonpayer join, the SEC-backed
 `ORDINARY_COMPOUNDER` methodology-profile qualifier, the exact owner-approved
 0%/3%/5% mature-growth and 12x/16x/20x terminal policies, and one complete
 inspectable PR5D bundle. It constructs no PR4B1 real roots and calculates no
-Expected Return; PR5E remains the final admission and adapter.
+Expected Return; completed PR5E provides the separate final admission and adapter.
 
 Basis-bridge unavailability is a legitimate per-company state but must not become
 the dominant result for otherwise supported ordinary candidates. If it is
@@ -377,11 +378,11 @@ PR5D0D → PR5D0E → PR5D0F → PR5D0G
 COMPLETE for the current capability-foundation interlude.
 ```
 
-The immediate implementation frontier after PR5D2 is:
+PR5E completed the first bounded real route:
 
 ```text
-PR5E
-→ first real end-to-end Expected Return
+PR5D2 → PR5E final admission → real PR4B1 facts
+→ PR4B1 assumption construction → PR4A Expected Return
 ```
 
 The approved administrative interlude is complete:
@@ -395,13 +396,15 @@ Governance Cleanup / Migration complete
     ↓
 Configure ChatGPT role Projects/employees complete
     ↓
-PR5E active technical chantier
+PR5E complete
+    ↓
+Stage B — Expected Return completion active technical frontier
 ```
 
 This governance sequence was an administrative prerequisite, not a replacement for
-PR5E and not an expansion of Expected Return architecture. Role configuration is
-complete. PR5E is now the active technical chantier; its implementation has not
-started, and later technical stages remain in their existing order.
+PR5E and not an expansion of Expected Return architecture. Role configuration and
+PR5E are complete. Stage B implementation has not started, and later technical
+stages remain in their existing order.
 
 No additional Expected Return architecture interlude is authorized in this
 sequence.
@@ -409,8 +412,8 @@ sequence.
 The public SEC/free-Nasdaq source graph still lacks complete positive
 no-transformation coverage through CURRENT T. PR5C therefore uses positive
 historical five-period presentation evidence rather than silence. PR5D established
-the separate current quote-to-qualified-EPS-basis bridge, and PR5E must replay both
-before final admission. This partition does not relax the final
+the separate current quote-to-qualified-EPS-basis bridge, and PR5E now freshly
+replays both before final admission. This partition does not relax the final
 economic comparability requirement.
 
 Universal identity, universal issuer-wide class inventory, corporate-action, M&A,
@@ -419,9 +422,11 @@ prerequisites for that first route when affected cases fail closed. PR5B must st
 positively establish the supported ordinary-common participation profile and
 affirmative route-local relevant-class coverage; absence of an observed second
 class is insufficient. The broader capabilities remain roadmap requirements and
-do not disappear merely because they are deferred. The immediate frontier remains
-**Real Fact Admission**, followed by Expected Return completion and the unchanged
-pre-shadow sequence in section 9.
+do not disappear merely because they are deferred. Stage A is complete only for
+the explicitly supported bounded first CURRENT route; this is not universal or
+global Real Fact Admission completeness. The immediate frontier is **Stage B —
+Expected Return completion**, followed by the unchanged pre-shadow sequence in
+section 9.
 
 ---
 
@@ -476,7 +481,7 @@ and the full commercial UI are not prerequisites for shadow. Functional initial
 international capability, as defined below, is part of pre-shadow V2 scope.
 Inserted stages use numeric suffixes to preserve existing stage references.
 
-### Stage A — Real fact admission
+### Stage A — Real Fact Admission
 
 - controlled CURRENT acquisition and source-correspondence foundation completed
   through PR #62, with the reviewed narrow CURRENT PR5B qualification merged in
@@ -514,7 +519,9 @@ Inserted stages use numeric suffixes to preserve existing stage references.
 - PR5D2 complete for the bounded free quote-to-PR5C-basis bridge, route-local
   verified-nonpayer evidence, ordinary-compounder methodology profile,
   selected-class joins, owner-approved policies, and complete PR5D bundle;
-- PR5E final admission join and real-capable adapter into Expected Return facts;
+- PR5E completed the final admission join and real-capable adapter into Expected
+  Return facts for the explicitly supported bounded first CURRENT route, reaching
+  real PR4B1 facts, PR4B1 assumption construction and PR4A Expected Return;
 - route-specific factual authority kept separate from permitted/commercial use;
 - broader identity, action, listing, historical-PIT and international capabilities
   remain required according to their later approved scope, without blocking the
@@ -1443,46 +1450,26 @@ Do not allow all four documents to repeat the same implementation details.
 
 ## 14. Next session handoff
 
-PR5D1 now supplies the controlled free current quote foundation for one freshly
-replayed PR5B direct Nasdaq route: immutable Yahoo Chart bytes, explicit USD and
-per-share semantics, exact current price, reviewed venue identity, and distinct
-provider/capture timestamps. It deliberately does not establish the quote-to-PR5C
-basis bridge or produce a PR4B1 root.
+PR #84 merged and PR5E is complete. The explicitly supported bounded first CURRENT
+nonpayer route now runs from PR5D2 through PR5E final admission to real PR4B1 facts,
+PR4B1 assumption construction and PR4A Expected Return. The route remains
+publication-unknown/capture-bound, route-local, bounded in corporate-action coverage,
+nonpayer-only and without `HISTORICAL_AS_OF`, PIT, production, recommendation,
+allocation, execution or promotion authority.
 
-PR5D2 now establishes the explicit bounded free quote-to-PR5C-basis bridge,
-route-local verified-nonpayer evidence, ordinary-compounder methodology profile,
-owner-approved policies, and complete PR5D bundle. PR5E is the immediate frontier
-and remains the only final admission join and real-capable Expected Return adapter. The completed
-PR5D0 capability foundation grants no admission authority. Confidence and
-Opportunity Set remain later stages.
-
-The approved administrative sequence is complete: Governance Reform Phase 1,
-Governance Cleanup / Migration and ChatGPT role Projects/employees configuration.
-PR5E is now the active technical chantier, but its implementation has not started.
-The completed administrative steps do not authorize additional Expected Return
-architecture.
-
-1. verify the current V2 remote head;
-2. read the constitution and this roadmap;
-3. read `docs/contracts/v2/expected_return/EXPECTED_RETURN_PR5D1.md`, PR5C,
-   PR5D0A/PR5D0B and the relevant
-   PR4B1/PR4D1 contracts;
-4. preserve PR5D1's explicit `QUOTE_TO_PR5C_BASIS_BRIDGE_NOT_ESTABLISHED`
-   limitation and its exact-receipt replay;
-5. implement only PR5E as the active technical chantier, without another generic
-   PR5D architecture interlude;
-6. preserve every source-authority, fail-closed, global-universe and pre-shadow
-   invariant while supporting only the exact reviewed first route;
-7. preserve V1 unchanged.
+Stage A — Real Fact Admission is complete only for that bounded route; broader
+identity, international, PIT, data and licensing limitations remain. Stage B —
+Expected Return completion is the next active technical frontier and has not
+started. Preserve its approved scope and the permanent pre-shadow invariant; do
+not invent a PR number or implementation design before the next bounded Work Order.
 
 ---
 
-*Roadmap state updated on 2026-09-30 through PR5D2's complete free real-root
-bundle and the completed PR5D0D → PR5D0E → PR5D0F → PR5D0G
-capability-foundation interlude.
-Governance Reform Phase 1, Governance Cleanup / Migration and role Projects/employees
-configuration are complete. PR5E is the active technical chantier, and its
-implementation has not started.
+*Roadmap state updated on 2026-09-30 through PR5E completion for the explicitly
+supported bounded first CURRENT nonpayer route. Governance Reform Phase 1,
+Governance Cleanup / Migration and role Projects/employees configuration are
+complete. Stage B — Expected Return completion is the active technical frontier,
+and its implementation has not started.
 Later architecture stages and shadow-readiness gates remain requirements only.
 The reviewed PR5D2 Expected Return assumption policies are now pinned, but no
 investment-rule, model-rule, V1 or production-authority change is authorized

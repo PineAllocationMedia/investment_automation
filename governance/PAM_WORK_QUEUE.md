@@ -2,7 +2,7 @@
 
 ## ACTIVE
 
-- PR5E final admission + real Expected Return adapter.
+- Stage B — Expected Return completion.
 
 ## WAITING CEO
 
