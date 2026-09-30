@@ -521,7 +521,11 @@ class FilingDependencyTests(unittest.TestCase):
                                          "sec_current_security_eps_qualification.py",
                                          "sec_five_year_eps_presentation.py",
                                          "sec_current_eps_comparability_qualification.py",
-                                         "yahoo_current_quote.py"}:
+                                         "sec_current_verified_nonpayer.py",
+                                         "sec_ordinary_compounder_profile.py",
+                                         "sec_quote_eps_basis_bridge.py",
+                                         "yahoo_current_quote.py",
+                                         "expected_return_pr5d_bundle.py"}:
                         self.assertFalse(any("sec_filing_archive" in n for n in names), str(file))
 
     def test_result_contains_only_capture_and_selector_metadata(self):

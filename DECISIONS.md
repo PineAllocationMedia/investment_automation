@@ -3185,3 +3185,59 @@ PAM gains one free-core, replayable current-price foundation without a paid data
 subscription or provider fallback. No PR4B1 `ObservedPrice`, Expected Return,
 recommendation, allocation, model-rule, V1, production, deployment, or promotion
 authority is added.
+
+## 2026-09-29 - Bounded free action-aware basis bridge and first nonpayer policy route
+
+### Decision
+
+The first real Expected Return route uses a bounded free multi-source continuity
+proposition rather than a universal corporate-action absence claim or a paid
+corporate-action master feed. Successful PR5C historical basis and PR5D1 quote
+evidence are bridged across the exact presentation-acceptance to quote interval by
+a controlled supported-form SEC occurrence window through an exact retained SEC
+root-snapshot boundary, existing share-basis claim extraction, and an exact-interval
+immutable Yahoo Chart split-history response. The retained SEC graph must be a
+monotonic continuation of the exact PR5C/PR5B route inventory, its root capture
+must be at/after the controlled quote capture and at/before CURRENT, and no
+completeness through CURRENT is inferred from reference closure of that selected
+snapshot.
+
+The ordinary no-action case qualifies at multiplier `1/1` only from the complete
+composite route. Supported effective stock splits, reverse splits, and stock
+dividends qualify only through exact positive SEC/Yahoo date, ratio, lifecycle,
+class, and route agreement. Conversion, recapitalization, merger/security exchange,
+spin-off, redenomination, consolidation, other unsupported transformations, or
+missing/contradictory corroboration fail closed. Exact EPS conversion is retained
+as the rational recipe `old_units/new_units`; PR5C values are not mutated.
+Proposed or approved actions are ignored only with an exact relevant date strictly
+after the quote; otherwise their lifecycle fails closed. The final bundle also
+requires the exact same PR5C semantic/evidence qualification in every component
+and reads `US_GAAP` from the resolved PR5B EPS series.
+
+The first distribution route is only `CONTINUED_VERIFIED_NONPAYER`, joined from
+the same controlled Companyfacts receipt and exact latest period to PR5B's unique
+selected ordinary-common route. `ORDINARY_COMPOUNDER` is a methodology-applicability
+profile derived from controlled SEC SIC/description and PR5C evidence, not a
+Quality score or recommendation.
+
+### Approved policy
+
+The owner approves mature decimal-growth anchors 0%/3%/5%, stored as PR4B1 log
+anchors, and terminal P/E anchors 12x/16x/20x for the USD/US-GAAP ordinary profile
+from 2026-09-29 until explicitly superseded. The exact four-policy proposal is
+pinned by hash; callers cannot approve, tune, select, or rewrite it dynamically.
+The payer role exists only to satisfy the complete proposal contract and does not
+activate a real payer route.
+
+### Coverage response and authority boundary
+
+If the basis bridge frequently becomes the sole blocker for otherwise supported
+ordinary candidates, that is a free-data coverage engineering problem. Improve
+free source adapters or bounded reconciliation; do not weaken semantics, label the
+company economically poor, or make paid data a core requirement. Official/public
+Nasdaq action alerts are a preferred future corroboration option if observations
+justify it.
+
+PR5D2 calculates no Expected Return and constructs no PR4B1 real facts. PR5E
+remains the final admission and adapter. V1, production, deployment, shadow,
+protected identities, and `MODEL_RULES_VERSION` remain unchanged.

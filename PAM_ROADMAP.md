@@ -349,18 +349,37 @@ timestamps. Factual authority remains separate from `UNKNOWN` licensing and
 
 PR5D1 does not establish the quote-to-PR5C basis linkage, distribution root,
 ordinary-compounder profile, owner-approved policies, complete PR5D non-EPS
-bundle, PR4B1 root, or final admission. PR5D2 remains mandatory.
+bundle, PR4B1 root, or final admission. PR5D2 supplies the separate bridge and
+complete bundle without rewriting PR5D1's boundary.
+
+### PR5D2 — Complete Free Real Expected Return Roots
+
+PR5D2 adds the bounded free SEC + Yahoo action-aware quote-to-EPS basis bridge,
+with an exact inspectable SEC root-snapshot boundary and monotonic continuation
+of the PR5C/PR5B route inventory rather than a completeness claim through CURRENT,
+the route-local same-Companyfacts verified-nonpayer join, the SEC-backed
+`ORDINARY_COMPOUNDER` methodology-profile qualifier, the exact owner-approved
+0%/3%/5% mature-growth and 12x/16x/20x terminal policies, and one complete
+inspectable PR5D bundle. It constructs no PR4B1 real roots and calculates no
+Expected Return; PR5E remains the final admission and adapter.
+
+Basis-bridge unavailability is a legitimate per-company state but must not become
+the dominant result for otherwise supported ordinary candidates. If it is
+frequently the sole blocker in shadow observation, treat that as a FREE-DATA
+COVERAGE ENGINEERING PROBLEM: improve free adapters, bounded reconciliation,
+accessible filing capture, or official/public corroboration. Do not silently
+weaken identity/economic semantics, classify the company as bad, or require paid
+data for core operation. No numerical coverage threshold is established here.
 
 ```text
 PR5D0D → PR5D0E → PR5D0F → PR5D0G
 COMPLETE for the current capability-foundation interlude.
 ```
 
-The immediate implementation frontier after PR5D1 is:
+The immediate implementation frontier after PR5D2 is:
 
 ```text
-PR5D2
-→ PR5E
+PR5E
 → first real end-to-end Expected Return
 ```
 
@@ -471,9 +490,9 @@ Inserted stages use numeric suffixes to preserve existing stage references.
   Opportunity Set, admission or investment authority;
 - PR5D1 controlled free current quote foundation, establishing current observed
   USD-per-share price and selected direct-listing linkage only;
-- PR5D2 still required for the quote-to-PR5C-basis bridge, distribution root,
-  ordinary-compounder profile, selected-class joins, owner-approved policies,
-  and the complete PR5D non-EPS bundle;
+- PR5D2 complete for the bounded free quote-to-PR5C-basis bridge, route-local
+  verified-nonpayer evidence, ordinary-compounder methodology profile,
+  selected-class joins, owner-approved policies, and complete PR5D bundle;
 - PR5E final admission join and real-capable adapter into Expected Return facts;
 - route-specific factual authority kept separate from permitted/commercial use;
 - broader identity, action, listing, historical-PIT and international capabilities
@@ -1408,10 +1427,10 @@ per-share semantics, exact current price, reviewed venue identity, and distinct
 provider/capture timestamps. It deliberately does not establish the quote-to-PR5C
 basis bridge or produce a PR4B1 root.
 
-PR5D2 is the immediate implementation frontier. It must establish the explicit
-quote-to-PR5C-basis bridge, distribution root, ordinary-compounder profile,
-owner-approved policies, and complete PR5D non-EPS bundle. PR5E remains the only
-final admission join and real-capable Expected Return adapter. The completed
+PR5D2 now establishes the explicit bounded free quote-to-PR5C-basis bridge,
+route-local verified-nonpayer evidence, ordinary-compounder methodology profile,
+owner-approved policies, and complete PR5D bundle. PR5E is the immediate frontier
+and remains the only final admission join and real-capable Expected Return adapter. The completed
 PR5D0 capability foundation grants no admission authority. Confidence and
 Opportunity Set remain later stages.
 
@@ -1421,17 +1440,17 @@ Opportunity Set remain later stages.
    PR4B1/PR4D1 contracts;
 4. preserve PR5D1's explicit `QUOTE_TO_PR5C_BASIS_BRIDGE_NOT_ESTABLISHED`
    limitation and its exact-receipt replay;
-5. implement only PR5D2 before PR5E, without another generic PR5D architecture
-   interlude;
+5. implement only PR5E next, without another generic PR5D architecture interlude;
 6. preserve every source-authority, fail-closed, global-universe and pre-shadow
    invariant while supporting only the exact reviewed first route;
 7. preserve V1 unchanged.
 
 ---
 
-*Roadmap state updated on 2026-09-28 through PR5D1's controlled free current
-quote foundation and the completed PR5D0D → PR5D0E → PR5D0F → PR5D0G
-capability-foundation interlude. Immediate implementation proceeds to PR5D2 →
-PR5E. Later architecture stages and shadow-readiness gates remain
-requirements only. No investment-rule, numerical-policy or production-authority
-change is authorized here.*
+*Roadmap state updated on 2026-09-29 through PR5D2's complete free real-root
+bundle and the completed PR5D0D → PR5D0E → PR5D0F → PR5D0G
+capability-foundation interlude. Immediate implementation proceeds to PR5E.
+Later architecture stages and shadow-readiness gates remain requirements only.
+The reviewed PR5D2 Expected Return assumption policies are now pinned, but no
+investment-rule, model-rule, V1 or production-authority change is authorized
+here.*

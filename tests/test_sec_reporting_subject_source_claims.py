@@ -435,7 +435,8 @@ class SecReportingSubjectSourceDependencyTests(unittest.TestCase):
     def test_no_reverse_model_runtime_or_v1_consumers(self):
         root_dir = Path(__file__).resolve().parents[1]
         needle = "sec_reporting_subject_source_claims"
-        allowed = {"sec_current_eps_comparability_qualification.py"}
+        allowed = {"sec_current_eps_comparability_qualification.py",
+                   "sec_ordinary_compounder_profile.py"}
         for directory in ("src", "pit_comparison", "economic_facts", "scripts"):
             for path in (root_dir / directory).rglob("*.py"):
                 if path.name == "sec_reporting_subject_source_claims.py" or path.name in allowed:

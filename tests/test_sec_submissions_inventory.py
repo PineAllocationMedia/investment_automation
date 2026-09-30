@@ -289,6 +289,8 @@ class SubmissionsDependencyTests(unittest.TestCase):
                     self.assertTrue(all(alias.name.split('.')[0] in stdlib for alias in node.names))
         for directory in ("src", "pit_comparison", "economic_facts", "scripts"):
             for path in (root_dir / directory).rglob("*.py"):
+                if path == root_dir / "src" / "expected_return_pr5d_bundle.py":
+                    continue
                 if path.stem in new | {"sec_property4_temporal_dossier",
                                        "sec_property4_temporal_boundary",
                                        "sec_current_registered_listing_bridge",
@@ -298,6 +300,9 @@ class SubmissionsDependencyTests(unittest.TestCase):
                                        "sec_share_basis_source_claims",
                                        "sec_current_security_eps_qualification",
                                        "sec_current_eps_comparability_qualification",
+                                       "sec_current_verified_nonpayer",
+                                       "sec_ordinary_compounder_profile",
+                                       "sec_quote_eps_basis_bridge",
                                        "yahoo_current_quote"}:
                     continue
                 for node in ast.walk(ast.parse(path.read_text())):
