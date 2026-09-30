@@ -689,7 +689,8 @@ class RegisteredSecurityBoundaryTests(unittest.TestCase):
             qualify_security_identity(request, request, request)
 
     def test_documented_all_property_4_and_remaining_obligations_unresolved(self):
-        text = (Path(__file__).resolve().parents[1] / 'EXPECTED_RETURN_PR4D3A.md').read_text()
+        text = (Path(__file__).resolve().parents[1] / "docs" / "contracts" / "v2"
+                / "expected_return" / "EXPECTED_RETURN_PR4D3A.md").read_text()
         for obligation in ('4A', '4B', '4C', '4D', '4E', '4F', '4G', '4H'):
             self.assertIn('| ' + obligation + ' |', text)
         self.assertIn('Obligations 5–7 remain unresolved', text)

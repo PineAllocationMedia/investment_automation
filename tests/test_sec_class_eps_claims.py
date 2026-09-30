@@ -489,7 +489,8 @@ class ClassEPSBoundaryTests(unittest.TestCase):
             })
 
     def test_documented_properties_4a_through_4h_and_5_through_7_unresolved(self):
-        text = (Path(__file__).resolve().parents[1] / "EXPECTED_RETURN_PR4D3B.md").read_text()
+        text = (Path(__file__).resolve().parents[1] / "docs" / "contracts" / "v2"
+                / "expected_return" / "EXPECTED_RETURN_PR4D3B.md").read_text()
         for obligation in ("4A", "4B", "4C", "4D", "4E", "4F", "4G", "4H"):
             self.assertIn("| " + obligation + " |", text)
         self.assertIn("Obligations 5–7 remain unresolved", text)

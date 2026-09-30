@@ -500,7 +500,8 @@ class CurrentRegisteredListingBridgeDependencyTests(unittest.TestCase):
             self.assertNotIn("sec_current_registered_listing_bridge", path.read_text(), str(path))
 
     def test_contract_keeps_property4_and_obligations_unresolved(self):
-        text = (Path(__file__).resolve().parents[1] / "EXPECTED_RETURN_PR4D4C2.md").read_text()
+        text = (Path(__file__).resolve().parents[1] / "docs" / "contracts" / "v2"
+                / "expected_return" / "EXPECTED_RETURN_PR4D4C2.md").read_text()
         for property_name in ("4A", "4B", "4C", "4D", "4E", "4F", "4G", "4H"):
             self.assertIn("| " + property_name + " |", text)
         for phrase in ("Obligations 5–7 remain unresolved", "no quote currency",

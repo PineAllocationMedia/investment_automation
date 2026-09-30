@@ -426,7 +426,8 @@ class TemporalDossierBoundaryTests(unittest.TestCase):
             self.assertNotIn("sec_property4_temporal_dossier", path.read_text(), str(path))
 
     def test_contract_documents_all_unresolved_properties_and_handoff(self):
-        text = (Path(__file__).resolve().parents[1] / "EXPECTED_RETURN_PR4D4A.md").read_text()
+        text = (Path(__file__).resolve().parents[1] / "docs" / "contracts" / "v2"
+                / "expected_return" / "EXPECTED_RETURN_PR4D4A.md").read_text()
         for property_name in ("4A", "4B", "4C", "4D", "4E", "4F", "4G", "4H"):
             self.assertIn("| " + property_name + " |", text)
         for phrase in ("Obligations 5–7 remain unresolved", "acceptanceDateTime != published_at",

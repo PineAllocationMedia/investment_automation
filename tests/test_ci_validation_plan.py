@@ -50,7 +50,7 @@ class CIValidationPlanTests(unittest.TestCase):
             (
                 [
                     "analysis_capabilities/contracts.py",
-                    "CAPABILITY_CONTRACT_FOUNDATION.md",
+                    "docs/contracts/v2/capabilities/CAPABILITY_CONTRACT_FOUNDATION.md",
                 ],
                 ValidationTier.STANDARD,
             ),
