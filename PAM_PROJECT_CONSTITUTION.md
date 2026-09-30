@@ -612,6 +612,21 @@ The project owner controls:
 
 AI agents are assistants, not autonomous governors.
 
+### CEO-protected governance
+
+The Constitution, `governance/PAM_GOVERNANCE.md`,
+`governance/PAM_STRATEGY.md`, `DECISIONS.md` and all
+`governance/roles/*.md` charters are `CEO_PROTECTED`. Roles may read, criticize
+and propose amendments to them, but proposal authority is not amendment authority.
+Protected amendments require explicit CEO approval; the CEO may command an
+amendment at any time.
+
+No role may expand its own authority, amend its own charter or reinterpret a
+protected document as permission to gain new powers. The Program Manager routes
+bounded work to one primary specialist role, with the CEO retaining final
+authority. `governance/PAM_GOVERNANCE.md` is the canonical administrative
+governance model.
+
 ### Default role separation
 
 - **ChatGPT / review agents:** independent review, architecture reasoning, product reasoning,
@@ -733,27 +748,31 @@ Use this precedence:
 
 1. `PAM_PROJECT_CONSTITUTION.md`
 2. explicit owner instruction in the current task/conversation
+3. `governance/PAM_GOVERNANCE.md`
+4. `governance/PAM_STRATEGY.md`
 
 ### Level 2 — Agent operating rules
 
-3. `AGENTS.md`
+5. `AGENTS.md`
+6. the acting role's `governance/roles/*.md` charter
 
 ### Level 3 — Current project state / planned work
 
-4. `PAM_ROADMAP.md`
+7. `governance/PAM_CURRENT_STATE.md`
+8. `PAM_ROADMAP.md`
 
 ### Level 4 — Specific authoritative contracts
 
-5. `BASELINE_V1_FREEZE.md`
-6. active PR / feature contract documents such as `EXPECTED_RETURN_PR4*.md`
-7. versioned code contracts and tests
+9. `BASELINE_V1_FREEZE.md`
+10. active PR / feature contract documents such as `EXPECTED_RETURN_PR4*.md`
+11. versioned code contracts and tests
 
 ### Level 5 — Detailed decision history / operational guidance
 
-8. `DECISIONS.md`
-9. `AUDIT_GUIDE.md`
-10. `README.md`
-11. other historical audit / impact documents
+12. `DECISIONS.md`
+13. `AUDIT_GUIDE.md`
+14. `README.md`
+15. other historical audit / impact documents
 
 When documents conflict:
 

@@ -6,14 +6,21 @@
 
 ## 1. Mandatory reading order
 
-Before proposing or modifying project code:
+For substantive governed work, use minimum necessary context in this order:
 
 1. Read `PAM_PROJECT_CONSTITUTION.md`.
-2. Read `PAM_ROADMAP.md`.
-3. Read the specific active contract/specification for the chantier.
-4. Read `BASELINE_V1_FREEZE.md` if V1 or production behavior could be affected.
-5. Read relevant entries in `DECISIONS.md` when historical rationale matters.
-6. Read `AUDIT_GUIDE.md` only for V1 audit workflows.
+2. Read `governance/PAM_GOVERNANCE.md`.
+3. Read `governance/PAM_CURRENT_STATE.md`.
+4. Read the acting role's own `governance/roles/<ROLE>.md` charter.
+5. Read the assigned Work Order, when one exists.
+6. Read only the task-specific technical contracts and source documents needed.
+
+Read `governance/PAM_STRATEGY.md` when strategy, product or commercial context is
+relevant. Do not force every role to read `PAM_ROADMAP.md`, `DECISIONS.md` or
+`README.md` in full for every task. Read relevant roadmap and Decision Registry
+portions when current sequencing or historical rationale matters. Read
+`BASELINE_V1_FREEZE.md` if V1 or production behavior could be affected, and
+`AUDIT_GUIDE.md` only for V1 audit workflows.
 
 Do not use `README.md` or `AUDIT_GUIDE.md` as the sole description of PAM's long-term V2/product direction.
 
@@ -45,6 +52,11 @@ This is historical context, not a permanent expected SHA.
 ---
 
 ## 3. Role boundaries
+
+The canonical role charters and administrative authority model are in
+`governance/roles/` and `governance/PAM_GOVERNANCE.md`. Every Work Order has one
+primary responsible role. No role may expand its own authority, amend its own
+charter or merge to a canonical branch.
 
 ### Owner
 

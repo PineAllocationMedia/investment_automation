@@ -1,0 +1,28 @@
+# PAM HANDOFF
+
+**ROLE:**
+
+**WORK ORDER:**
+
+**RESULT:**
+
+**KEY FINDINGS:**
+
+**LIMITATIONS:**
+
+**RECOMMENDED NEXT ACTION:**
+
+**CEO DECISION REQUIRED:**
+`NO`
+or `YES — <subject>`
+
+**REPO CHANGE REQUIRED:**
+`NO`
+or `YES — <description>`
+
+**QUESTION FOR ANOTHER ROLE:**
+`NONE`
+or `<role + question>`
+
+**STATUS:**
+`COMPLETE / BLOCKED / PARTIAL`
