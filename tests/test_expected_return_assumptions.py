@@ -629,6 +629,7 @@ class IsolationTests(unittest.TestCase):
             if path.name in {
                 "expected_return_approved_policy_v1.py",
                 "expected_return_pr5d_bundle.py",
+                "expected_return_pr5e_adapter.py",
             }:
                 continue
             # PR4B2 adds exactly one post-decision frozen V2 consumer. Its

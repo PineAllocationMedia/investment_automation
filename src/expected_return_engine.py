@@ -89,6 +89,33 @@ class Evidence:
 
 
 @dataclass(frozen=True, slots=True)
+class RealEvidence:
+    id: str
+    field: str
+    value: float | str | tuple[float, ...]
+    unit: str
+    source_kind: str
+    source_reference: str
+    source_version: str
+    published_at: None
+    available_at: str
+    captured_at: str
+    freshness_status: str
+    reliability_status: str
+    currency: str | None = None
+    share_basis: str | None = None
+    period_start: str | None = None
+    period_end: str | None = None
+    accounting_basis: str | None = None
+    parent_evidence_ids: tuple[str, ...] = ()
+    publication_semantics: str = "UNKNOWN"
+    availability_semantics: str = "CAPTURE_BOUND"
+
+
+EvidenceRecord = Evidence | RealEvidence
+
+
+@dataclass(frozen=True, slots=True)
 class Assumption:
     id: str
     component: str
@@ -137,7 +164,7 @@ class ExpectedReturnRequest:
     current_price_evidence_id: str | None
     scenarios: tuple[Scenario, ...]
     confidence: ConfidenceComponents
-    evidence: tuple[Evidence, ...]
+    evidence: tuple[EvidenceRecord, ...]
     assumptions: tuple[Assumption, ...]
 
 
@@ -176,7 +203,7 @@ class ExpectedReturnDiagnostic:
     confidence: ConfidenceComponents
     overall_confidence: str
     scenarios: tuple[ScenarioResult, ...]
-    evidence: tuple[Evidence, ...]
+    evidence: tuple[EvidenceRecord, ...]
     assumptions: tuple[Assumption, ...]
     warnings: tuple[str, ...]
     unavailable_reasons: tuple[str, ...]
@@ -280,7 +307,9 @@ def _validate_request(request: ExpectedReturnRequest):
     _require(type(request.confidence) is ConfidenceComponents, "ConfidenceComponents required")
     for component in COMPONENTS:
         _require(type(getattr(request.confidence, component)) is str and getattr(request.confidence, component) in CONFIDENCE_ORDER, f"{component}: invalid confidence")
-    _tuple(request.evidence, "evidence", Evidence)
+    _tuple(request.evidence, "evidence")
+    _require(all(type(item) in (Evidence, RealEvidence) for item in request.evidence),
+             "evidence: invalid record type")
     _tuple(request.assumptions, "assumptions", Assumption)
     _tuple(request.scenarios, "scenarios", Scenario)
     for scenario in request.scenarios:
@@ -298,12 +327,24 @@ def _validate_request(request: ExpectedReturnRequest):
             _text(getattr(record, field), f"evidence {record.id}.{field}")
         _value(record.value, record.id, text_allowed=True)
         _require(type(record.source_kind) is str and record.source_kind in SOURCE_KINDS, f"{record.id}: invalid evidence source kind")
-        _require(type(record.freshness_status) is str and record.freshness_status in ("CURRENT", "STALE", "UNKNOWN"), f"{record.id}: invalid freshness")
+        _require(type(record.freshness_status) is str and record.freshness_status in
+                 ("CURRENT", "STALE", "UNKNOWN", "CAPTURE_BOUND"),
+                 f"{record.id}: invalid freshness")
         _require(type(record.reliability_status) is str and record.reliability_status in CONFIDENCE_ORDER, f"{record.id}: invalid reliability")
-        published = _timestamp(record.published_at, record.id + ".published_at")
         available = _timestamp(record.available_at, record.id + ".available_at")
         captured = _timestamp(record.captured_at, record.id + ".captured_at")
-        _require(published <= available <= as_of and available <= captured <= as_of, f"{record.id}: publication/availability/capture must be ordered and no later than as_of")
+        if type(record) is Evidence:
+            published = _timestamp(record.published_at, record.id + ".published_at")
+            _require(published <= available,
+                     f"{record.id}: publication cannot follow availability")
+        else:
+            _require(record.published_at is None
+                     and record.publication_semantics == "UNKNOWN"
+                     and record.availability_semantics == "CAPTURE_BOUND"
+                     and available == captured,
+                     f"{record.id}: capture-bound availability requires unknown publication and exact capture equality")
+        _require(available <= captured <= as_of,
+                 f"{record.id}: availability/capture must be ordered and no later than as_of")
         if record.currency is not None:
             _currency(record.currency, record.id + ".currency")
         for field in ("share_basis", "accounting_basis"):
@@ -472,6 +513,9 @@ def calculate_expected_return(request: ExpectedReturnRequest) -> ExpectedReturnD
                 if record.freshness_status == "STALE":
                     warnings.add("STALE_EVIDENCE:" + key)
                     levels[component] = min((levels[component], "LOW"), key=CONFIDENCE_ORDER.index)
+                elif record.freshness_status == "CAPTURE_BOUND":
+                    warnings.add("CAPTURE_BOUND_EVIDENCE:" + key)
+                    levels[component] = min((levels[component], "LOW"), key=CONFIDENCE_ORDER.index)
         return seen
 
     if request.current_price_evidence_id is not None:
@@ -518,7 +562,8 @@ def calculate_expected_return(request: ExpectedReturnRequest) -> ExpectedReturnD
         _require(outputs[0].annualized_return <= outputs[1].annualized_return <= outputs[2].annualized_return,
                  "Scenario returns cross: require bear <= base <= bull; labels are never sorted/swapped")
     canonical_evidence = tuple(replace(record,
-        published_at=_timestamp(record.published_at, record.id).isoformat(),
+        published_at=(None if type(record) is RealEvidence
+                      else _timestamp(record.published_at, record.id).isoformat()),
         available_at=_timestamp(record.available_at, record.id).isoformat(),
         captured_at=_timestamp(record.captured_at, record.id).isoformat(),
         parent_evidence_ids=tuple(sorted(record.parent_evidence_ids))) for record in sorted(request.evidence, key=lambda row: row.id))
