@@ -461,6 +461,7 @@ def qualify_sec_quote_eps_basis_bridge(
     window = ()
     if start is not None and sec_snapshot is not None:
         window = _filing_window(recent_basis, start, sec_snapshot)
+    if current_boundary is not None:
         sources = {item.accession: item for item in recent_basis.filing_universe}
         for accession in sorted({item[0] for item in window}):
             source = sources.get(accession)

@@ -14,6 +14,11 @@ from economic_facts.sec_share_basis_source_claims import (
 )
 from tests.sec_current_security_eps_qualification_fixtures import source_rows
 from tests.sec_property4_temporal_fixtures import CIK
+from tests.sec_property4_temporal_boundary_fixtures import (
+    BOUNDARY_T1,
+    capture_current,
+    current_request,
+)
 from tests.sec_share_basis_source_claims_fixtures import share_basis_filing
 from tests.sec_submissions_fixtures import row as submissions_row
 from tests.sec_submissions_fixtures import root as submissions_root
@@ -37,7 +42,7 @@ class SecQuoteEPSBasisBridgeTests(unittest.TestCase):
     def build(self, *, split_events=(), action_blocks=(), split_raw=None,
               omit_action_receipts=False, uncaptured_outside_window=False,
               recent_capture=CAPTURED_AT, drop_recent_row_index=None,
-              force_recent_inventory=False,
+              force_recent_inventory=False, offline_current=False,
               split_symbol="FICT",
               split_start_delta=0, split_end_delta=0,
               sic=3571, sic_description="Electronic Computers"):
@@ -45,7 +50,15 @@ class SecQuoteEPSBasisBridgeTests(unittest.TestCase):
             submissions_root(source_rows(), cik=CIK, sic=sic,
                              sicDescription=sic_description),
             cik=CIK, captured_at="2026-02-25T12:00:00Z")
-        comparability_request = self.comparability.build_request(parent=parent)
+        current = None
+        if offline_current:
+            current = current_request(capture_current(
+                self.comparability.current_archive,
+                boundary=BOUNDARY_T1,
+                live=False,
+            ))
+        comparability_request = self.comparability.build_request(
+            parent=parent, current=current)
         pr5c = self.comparability.qualify_request(comparability_request)
         quote_receipt = self.quote_archive._capture_live(
             chart_response(), symbol="FICT", captured_at=CAPTURED_AT)
@@ -225,6 +238,20 @@ class SecQuoteEPSBasisBridgeTests(unittest.TestCase):
              result.eps_to_quote_basis_multiplier_denominator),
             (1, 1),
         )
+
+    def test_absent_current_boundary_with_in_window_filing_fails_closed(self):
+        result = self.qualify(
+            offline_current=True,
+            action_blocks=("No corporate action occurred.",),
+        )
+        self.assertIsNot(
+            result.status, bridge.ShareBasisBridgeStatus.BASIS_BRIDGE_ESTABLISHED)
+        self.assertIn(bridge.ShareBasisBridgeReason.PR5C_NOT_ESTABLISHED,
+                      result.reasons)
+        self.assertTrue(result.filing_window_accessions)
+        self.assertIsNone(
+            result.upstream_comparability.upstream_security_eps
+            .current_authority_boundary)
 
     def test_empty_yahoo_alone_cannot_repair_wrong_interval(self):
         result = self.qualify(split_start_delta=1)
