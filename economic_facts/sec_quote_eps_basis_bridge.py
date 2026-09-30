@@ -1,4 +1,5 @@
 """Free bounded multi-source bridge from PR5C EPS basis to PR5D1 quote basis."""
+from collections import Counter
 from dataclasses import dataclass, fields, is_dataclass
 from datetime import datetime, timezone
 from decimal import Decimal
@@ -77,6 +78,12 @@ class ShareBasisBridgeReason(StrEnum):
     PRESENTATION_ACCEPTANCE_DUPLICATE = "PRESENTATION_ACCEPTANCE_DUPLICATE"
     PRESENTATION_AFTER_QUOTE = "PRESENTATION_AFTER_QUOTE"
     FILING_REFERENCE_CLOSURE_INCOMPLETE = "FILING_REFERENCE_CLOSURE_INCOMPLETE"
+    RECENT_INVENTORY_NOT_MONOTONIC_CONTINUATION = (
+        "RECENT_INVENTORY_NOT_MONOTONIC_CONTINUATION"
+    )
+    RECENT_SEC_SNAPSHOT_BEFORE_QUOTE_CAPTURE = (
+        "RECENT_SEC_SNAPSHOT_BEFORE_QUOTE_CAPTURE"
+    )
     RECENT_FILING_WINDOW_INCOMPLETE = "RECENT_FILING_WINDOW_INCOMPLETE"
     RECENT_SUBMISSIONS_CAPTURE_AFTER_BOUNDARY = "RECENT_SUBMISSIONS_CAPTURE_AFTER_BOUNDARY"
     RECENT_FILING_CAPTURE_AFTER_BOUNDARY = "RECENT_FILING_CAPTURE_AFTER_BOUNDARY"
@@ -163,6 +170,9 @@ class ShareBasisBridgeQualification:
     route_local_security_key: str | None
     presentation_acceptance_boundary: str | None
     quote_boundary: str | None
+    sec_inventory_snapshot_boundary: str | None
+    route_inventory_semantic_id: str
+    route_inventory_evidence_id: str
     filing_window_accessions: tuple[str, ...]
     considered_sec_action_claim_ids: tuple[str, ...]
     yahoo_split_history_semantic_id: str
@@ -190,6 +200,8 @@ class ShareBasisBridgeQualification:
             "security_key": self.route_local_security_key,
             "presentation_acceptance_boundary": self.presentation_acceptance_boundary,
             "quote_boundary": self.quote_boundary,
+            "sec_inventory_snapshot_boundary": self.sec_inventory_snapshot_boundary,
+            "route_inventory_semantic_id": self.route_inventory_semantic_id,
             "filing_window_accessions": self.filing_window_accessions,
             "considered_sec_action_claim_ids": self.considered_sec_action_claim_ids,
             "yahoo_split_history_semantic_id": self.yahoo_split_history_semantic_id,
@@ -204,6 +216,7 @@ class ShareBasisBridgeQualification:
         return _identity("bridge-evidence", {
             "semantic_id": self.semantic_id,
             "comparability_evidence_id": self.upstream_comparability.evidence_id,
+            "route_inventory_evidence_id": self.route_inventory_evidence_id,
             "quote_evidence_id": self.quote_evidence_id,
             "recent_share_basis_evidence_id": self.recent_share_basis_source.evidence_id,
             "yahoo_split_history_evidence_id": self.yahoo_split_history_evidence_id,
@@ -309,11 +322,28 @@ def _filing_window(assessment, start, end):
     return tuple(sorted(selected, key=lambda item: (item[0], item[1].occurrence_id)))
 
 
+def _is_monotonic_inventory_continuation(route_inventory, recent_inventory):
+    """Require the recent graph to preserve the exact PR5C route inventory."""
+    if (route_inventory.parent.cik != recent_inventory.parent.cik
+            or route_inventory.parent.endpoint != recent_inventory.parent.endpoint
+            or route_inventory.metadata_json != recent_inventory.metadata_json):
+        return False
+    route_rows = Counter(item.semantic_id for item in route_inventory.occurrences)
+    recent_rows = Counter(item.semantic_id for item in recent_inventory.occurrences)
+    if any(recent_rows[item] < count for item, count in route_rows.items()):
+        return False
+    route_references = Counter(item.fields for item in route_inventory.references)
+    recent_references = Counter(item.fields for item in recent_inventory.references)
+    return not any(recent_references[item] < count
+                   for item, count in route_references.items())
+
+
 def _classify_status(reasons):
     conflicts = {
         ShareBasisBridgeReason.REPLAY_IDENTITY_MISMATCH,
         ShareBasisBridgeReason.ROUTE_IDENTITY_MISMATCH,
         ShareBasisBridgeReason.DIRECT_LISTING_ROUTE_MISMATCH,
+        ShareBasisBridgeReason.RECENT_INVENTORY_NOT_MONOTONIC_CONTINUATION,
         ShareBasisBridgeReason.ACTION_RATIO_CONFLICT,
         ShareBasisBridgeReason.ACTION_EFFECTIVE_DATE_CONFLICT,
         ShareBasisBridgeReason.SOURCE_CONFLICT,
@@ -390,6 +420,7 @@ def qualify_sec_quote_eps_basis_bridge(
         reasons.add(ShareBasisBridgeReason.DIRECT_LISTING_ROUTE_MISMATCH)
 
     inventory = recent_basis.submissions_inventory
+    route_inventory = comparability.upstream_share_basis_source.submissions_inventory
     presentation_accession = comparability.presentation.accession
     occurrences = [item for item in inventory.occurrences
                    if dict(item.fields).get("accessionNumber") == presentation_accession]
@@ -403,12 +434,22 @@ def qualify_sec_quote_eps_basis_bridge(
         presentation_boundary = _canonical_instant(acceptance_values[0])
     start = _instant(presentation_boundary)
     quote_time = _instant(quote.provider_market_timestamp)
+    quote_capture = _instant(quote.captured_at)
     current_boundary = _instant(
         comparability.upstream_security_eps.current_authority_boundary)
+    sec_snapshot = _instant(inventory.parent.captured_at)
+    sec_snapshot_boundary = _canonical_instant(inventory.parent.captured_at)
     if start is not None and quote_time is not None and start > quote_time:
         reasons.add(ShareBasisBridgeReason.PRESENTATION_AFTER_QUOTE)
     if inventory.status is not InventoryStatus.CAPTURED_REFERENCE_CLOSURE_COMPLETE:
         reasons.add(ShareBasisBridgeReason.FILING_REFERENCE_CLOSURE_INCOMPLETE)
+    if not _is_monotonic_inventory_continuation(route_inventory, inventory):
+        reasons.add(
+            ShareBasisBridgeReason.RECENT_INVENTORY_NOT_MONOTONIC_CONTINUATION)
+    if (sec_snapshot is None or quote_capture is None
+            or sec_snapshot < quote_capture):
+        reasons.add(
+            ShareBasisBridgeReason.RECENT_SEC_SNAPSHOT_BEFORE_QUOTE_CAPTURE)
     if current_boundary is not None:
         inventory_receipts = (inventory.parent, *inventory.children)
         if any((_instant(item.captured_at) is None
@@ -418,8 +459,8 @@ def qualify_sec_quote_eps_basis_bridge(
                 ShareBasisBridgeReason.RECENT_SUBMISSIONS_CAPTURE_AFTER_BOUNDARY)
 
     window = ()
-    if start is not None and current_boundary is not None:
-        window = _filing_window(recent_basis, start, current_boundary)
+    if start is not None and sec_snapshot is not None:
+        window = _filing_window(recent_basis, start, sec_snapshot)
         sources = {item.accession: item for item in recent_basis.filing_universe}
         for accession in sorted({item[0] for item in window}):
             source = sources.get(accession)
@@ -488,6 +529,15 @@ def qualify_sec_quote_eps_basis_bridge(
                 CorporateActionLifecycle.ANNOUNCED_OR_PROPOSED_REFERENCE,
                 CorporateActionLifecycle.APPROVED_REFERENCE,
             }:
+                if action_date is None:
+                    reasons.add(ShareBasisBridgeReason.ACTION_LIFECYCLE_UNRESOLVED)
+                    continue
+                if action_date == start_date:
+                    reasons.add(
+                        ShareBasisBridgeReason.ACTION_ON_PRESENTATION_BOUNDARY_DATE)
+                    continue
+                if action_date <= quote_date:
+                    reasons.add(ShareBasisBridgeReason.ACTION_LIFECYCLE_UNRESOLVED)
                 continue
             if claim.lifecycle is CorporateActionLifecycle.UNRESOLVED_LIFECYCLE:
                 reasons.add(ShareBasisBridgeReason.ACTION_LIFECYCLE_UNRESOLVED)
@@ -578,6 +628,8 @@ def qualify_sec_quote_eps_basis_bridge(
         comparability.route_local_issuer_key if positive else None,
         comparability.route_local_security_key if positive else None,
         presentation_boundary, quote.provider_market_timestamp,
+        sec_snapshot_boundary,
+        route_inventory.semantic_id, route_inventory.evidence_id,
         tuple(sorted({item[0] for item in window})),
         tuple(sorted(set(considered))),
         split_history.semantic_id, split_history.evidence_id,

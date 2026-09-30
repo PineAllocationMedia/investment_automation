@@ -3194,8 +3194,13 @@ The first real Expected Return route uses a bounded free multi-source continuity
 proposition rather than a universal corporate-action absence claim or a paid
 corporate-action master feed. Successful PR5C historical basis and PR5D1 quote
 evidence are bridged across the exact presentation-acceptance to quote interval by
-a complete controlled supported-form SEC filing window, existing share-basis claim
-extraction, and an exact-interval immutable Yahoo Chart split-history response.
+a controlled supported-form SEC occurrence window through an exact retained SEC
+root-snapshot boundary, existing share-basis claim extraction, and an exact-interval
+immutable Yahoo Chart split-history response. The retained SEC graph must be a
+monotonic continuation of the exact PR5C/PR5B route inventory, its root capture
+must be at/after the controlled quote capture and at/before CURRENT, and no
+completeness through CURRENT is inferred from reference closure of that selected
+snapshot.
 
 The ordinary no-action case qualifies at multiplier `1/1` only from the complete
 composite route. Supported effective stock splits, reverse splits, and stock
@@ -3204,6 +3209,10 @@ class, and route agreement. Conversion, recapitalization, merger/security exchan
 spin-off, redenomination, consolidation, other unsupported transformations, or
 missing/contradictory corroboration fail closed. Exact EPS conversion is retained
 as the rational recipe `old_units/new_units`; PR5C values are not mutated.
+Proposed or approved actions are ignored only with an exact relevant date strictly
+after the quote; otherwise their lifecycle fails closed. The final bundle also
+requires the exact same PR5C semantic/evidence qualification in every component
+and reads `US_GAAP` from the resolved PR5B EPS series.
 
 The first distribution route is only `CONTINUED_VERIFIED_NONPAYER`, joined from
 the same controlled Companyfacts receipt and exact latest period to PR5B's unique

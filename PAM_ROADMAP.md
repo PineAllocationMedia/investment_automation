@@ -355,6 +355,8 @@ complete bundle without rewriting PR5D1's boundary.
 ### PR5D2 — Complete Free Real Expected Return Roots
 
 PR5D2 adds the bounded free SEC + Yahoo action-aware quote-to-EPS basis bridge,
+with an exact inspectable SEC root-snapshot boundary and monotonic continuation
+of the PR5C/PR5B route inventory rather than a completeness claim through CURRENT,
 the route-local same-Companyfacts verified-nonpayer join, the SEC-backed
 `ORDINARY_COMPOUNDER` methodology-profile qualifier, the exact owner-approved
 0%/3%/5% mature-growth and 12x/16x/20x terminal policies, and one complete

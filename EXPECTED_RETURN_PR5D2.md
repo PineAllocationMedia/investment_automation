@@ -24,11 +24,17 @@ listing agreement. The economic interval begins at the unique SEC Submissions
 provider-market timestamp. SEC acceptance remains filing-source metadata, not
 publication, public availability, or historical-PIT authority.
 
-The bridge separately replays a complete Submissions reference closure, every
-supported 10-K/10-K/A/10-Q/10-Q/A/8-K/8-K/A occurrence in the bounded filing
-window, exact controlled filing captures by the PR5B CURRENT boundary, the
-existing PR5C0B share-basis claim extractor, and an immutable exact-interval
-Yahoo Chart response using:
+The bridge separately replays a controlled Submissions reference closure that
+must be a structural monotonic continuation of the exact PR5C/PR5B route
+inventory: it may not drop or mutate an existing occurrence, replace the route
+metadata, or lose a required history reference. Its root capture must be no
+earlier than the controlled quote capture and no later than the PR5B CURRENT
+boundary. SEC occurrence coverage is claimed only through that exact retained
+root-capture boundary, not through CURRENT merely because the root was captured
+before CURRENT. Every supported 10-K/10-K/A/10-Q/10-Q/A/8-K/8-K/A occurrence
+in that bounded snapshot window requires exact controlled filing evidence by the
+PR5B CURRENT boundary. The bridge then replays the existing PR5C0B share-basis
+claim extractor and an immutable exact-interval Yahoo Chart response using:
 
 ```text
 period1=<presentation acceptance epoch>
@@ -53,7 +59,9 @@ Supported effective actions are exact stock splits, reverse splits, and stock
 dividends for the selected named common class. Each positive action requires
 exact SEC/Yahoo agreement on effective date and ratio. Unsupported transformations,
 unresolved lifecycle/date/ratio/class linkage, or missing corroboration fail
-closed. The exact reduced multiplier is:
+closed. A proposed or approved action is ignored only when controlled evidence
+provides an exact relevant date strictly after the quote boundary; a missing date
+or a date on/before the quote fails closed. The exact reduced multiplier is:
 
 ```text
 EPS_current_basis = EPS_historical_basis × old_units / new_units
@@ -115,8 +123,10 @@ change.
 
 `src/expected_return_pr5d_bundle.py` freshly replays the basis bridge, route-local
 nonpayer join, and methodology profile, reconstructs the pinned policy artifact,
-and verifies one route identity and quote-date applicability. Its closed statuses
-are `PR5D_REAL_ROOTS_ESTABLISHED`, `PR5D_ROOTS_UNAVAILABLE`,
+requires all three components to retain the exact same PR5C semantic and evidence
+identity, derives `US_GAAP` from PR5B's resolved EPS series evidence, and verifies
+one route identity and quote-date applicability. Its closed statuses are
+`PR5D_REAL_ROOTS_ESTABLISHED`, `PR5D_ROOTS_UNAVAILABLE`,
 `PR5D_ROOTS_UNSUPPORTED`, and `SOURCE_CONFLICT`.
 
 Success retains the selected route/class, all five exact PR5C period decisions,

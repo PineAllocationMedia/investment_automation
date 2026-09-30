@@ -64,6 +64,7 @@ class PR5D2BundleReason(StrEnum):
     PROFILE_NOT_ESTABLISHED = "PROFILE_NOT_ESTABLISHED"
     REPLAY_IDENTITY_MISMATCH = "REPLAY_IDENTITY_MISMATCH"
     ROUTE_IDENTITY_MISMATCH = "ROUTE_IDENTITY_MISMATCH"
+    UPSTREAM_COMPARABILITY_MISMATCH = "UPSTREAM_COMPARABILITY_MISMATCH"
     CURRENCY_OR_ACCOUNTING_BASIS_MISMATCH = "CURRENCY_OR_ACCOUNTING_BASIS_MISMATCH"
     APPROVED_POLICY_HASH_MISMATCH = "APPROVED_POLICY_HASH_MISMATCH"
     APPROVED_POLICY_NOT_APPLICABLE = "APPROVED_POLICY_NOT_APPLICABLE"
@@ -120,6 +121,7 @@ class PR5D2RealExpectedReturnRoots:
     quote_timestamp: str | None
     quote_currency: str | None
     quote_unit: str | None
+    accounting_basis: str | None
     basis_multiplier_numerator: int | None
     basis_multiplier_denominator: int | None
     reconciled_corporate_actions: tuple[ReconciledBasisAction, ...]
@@ -155,6 +157,7 @@ class PR5D2RealExpectedReturnRoots:
             "quote_timestamp": self.quote_timestamp,
             "quote_currency": self.quote_currency,
             "quote_unit": self.quote_unit,
+            "accounting_basis": self.accounting_basis,
             "basis_multiplier": (self.basis_multiplier_numerator,
                                  self.basis_multiplier_denominator),
             "actions": self.reconciled_corporate_actions,
@@ -200,6 +203,19 @@ def _identity(domain, value):
                      separators=(",", ":"), ensure_ascii=True,
                      allow_nan=False).encode("ascii")
     return hashlib.sha256(raw).hexdigest()
+
+
+def _upstream_accounting_basis(comparability):
+    """Read the accounting basis from PR5B's resolved EPS series evidence."""
+    current = (comparability.upstream_security_eps.upstream_registered_listing_bridge
+               .temporal_boundary.current_evidence)
+    series = current.resolution.series
+    if series is None:
+        return None
+    if ((series.namespace, series.concept, series.unit, series.accounting_basis)
+            != ("us-gaap", "EarningsPerShareDiluted", "USD/shares", "US_GAAP")):
+        return None
+    return series.accounting_basis
 
 
 def assemble_expected_return_pr5d_bundle(
@@ -256,8 +272,24 @@ def assemble_expected_return_pr5d_bundle(
     }
     if len(identities) != 1:
         reasons.add(PR5D2BundleReason.ROUTE_IDENTITY_MISMATCH)
+    comparabilities = (
+        bridge.upstream_comparability,
+        nonpayer.upstream_comparability,
+        profile.upstream_comparability,
+    )
+    comparability_requests = (
+        request.basis_bridge_request.comparability_request,
+        request.nonpayer_request.comparability_request,
+        request.profile_request.comparability_request,
+    )
+    if (len({item.semantic_id for item in comparabilities}) != 1
+            or len({item.evidence_id for item in comparabilities}) != 1
+            or len(set(comparability_requests)) != 1):
+        reasons.add(PR5D2BundleReason.UPSTREAM_COMPARABILITY_MISMATCH)
     quote = bridge.upstream_quote
-    if quote.currency != "USD" or profile.profile != "ORDINARY_COMPOUNDER":
+    accounting_basis = _upstream_accounting_basis(bridge.upstream_comparability)
+    if (quote.currency != "USD" or accounting_basis != "US_GAAP"
+            or profile.profile != "ORDINARY_COMPOUNDER"):
         reasons.add(PR5D2BundleReason.CURRENCY_OR_ACCOUNTING_BASIS_MISMATCH)
     if (policy.proposal_hash != OWNER_APPROVED_PROPOSAL_HASH
             or proposal.proposal_id != OWNER_APPROVED_POLICY_VERSION):
@@ -272,7 +304,7 @@ def assemble_expected_return_pr5d_bundle(
         proposal.nonpayer_distribution_policy,
     )
     if quote_date is None or not all(applicable(
-            item, currency="USD", accounting_basis="US_GAAP", as_of=quote_date)
+            item, currency="USD", accounting_basis=accounting_basis, as_of=quote_date)
             for item in policies):
         reasons.add(PR5D2BundleReason.APPROVED_POLICY_NOT_APPLICABLE)
     if (proposal.nonpayer_distribution_policy.rule
@@ -281,6 +313,7 @@ def assemble_expected_return_pr5d_bundle(
 
     conflict = (PR5D2BundleReason.REPLAY_IDENTITY_MISMATCH in reasons
                 or PR5D2BundleReason.ROUTE_IDENTITY_MISMATCH in reasons
+                or PR5D2BundleReason.UPSTREAM_COMPARABILITY_MISMATCH in reasons
                 or bridge.status is ShareBasisBridgeStatus.SOURCE_CONFLICT
                 or nonpayer.status is RouteLocalVerifiedNonpayerStatus.SOURCE_CONFLICT
                 or profile.status is OrdinaryCompounderProfileStatus.SOURCE_CONFLICT)
@@ -322,6 +355,7 @@ def assemble_expected_return_pr5d_bundle(
         quote.provider_market_timestamp if positive else None,
         quote.currency if positive else None,
         quote.unit if positive else None,
+        accounting_basis if positive else None,
         bridge.eps_to_quote_basis_multiplier_numerator if positive else None,
         bridge.eps_to_quote_basis_multiplier_denominator if positive else None,
         bridge.reconciled_actions,

@@ -36,6 +36,8 @@ class SecQuoteEPSBasisBridgeTests(unittest.TestCase):
 
     def build(self, *, split_events=(), action_blocks=(), split_raw=None,
               omit_action_receipts=False, uncaptured_outside_window=False,
+              recent_capture=CAPTURED_AT, drop_recent_row_index=None,
+              force_recent_inventory=False,
               split_symbol="FICT",
               split_start_delta=0, split_end_delta=0,
               sic=3571, sic_description="Electronic Computers"):
@@ -83,8 +85,11 @@ class SecQuoteEPSBasisBridgeTests(unittest.TestCase):
         split = split_history.extract_yahoo_split_history(
             self.split_archive, split_receipt.receipt_id)
         recent_request = comparability_request.share_basis_source_request
-        if action_blocks or uncaptured_outside_window:
+        if (action_blocks or uncaptured_outside_window
+                or drop_recent_row_index is not None or force_recent_inventory):
             recent_rows = list(source_rows())
+            if drop_recent_row_index is not None:
+                del recent_rows[drop_recent_row_index]
             action_receipts = []
             if uncaptured_outside_window:
                 recent_rows.append(submissions_row(
@@ -128,12 +133,23 @@ class SecQuoteEPSBasisBridgeTests(unittest.TestCase):
                 submissions_root(
                     recent_rows, cik=CIK, sic=sic, sicDescription=sic_description),
                 cik=CIK,
-                captured_at="2026-02-25T12:00:00Z",
+                captured_at=recent_capture,
             )
+            route_filing_ids = (
+                comparability_request.share_basis_source_request.filing_receipt_ids)
+            if drop_recent_row_index is not None:
+                recent_accessions = {
+                    dict(item)["accessionNumber"] for item in recent_rows
+                }
+                route_filing_ids = tuple(
+                    receipt_id for receipt_id in route_filing_ids
+                    if self.comparability.filing_archive.read_receipt(
+                        receipt_id).accession in recent_accessions
+                )
             recent_request = SecShareBasisSourceRequest(
                 recent_parent.receipt_id,
                 (),
-                (comparability_request.share_basis_source_request.filing_receipt_ids
+                (route_filing_ids
                  + tuple(item.receipt_id for item in action_receipts)),
             )
         recent_basis = build_sec_share_basis_source_foundation(
@@ -170,8 +186,45 @@ class SecQuoteEPSBasisBridgeTests(unittest.TestCase):
                           result.eps_to_quote_basis_multiplier_denominator), (1, 1))
         self.assertEqual(result.filing_window_accessions, ())
         self.assertEqual(result.reconciled_actions, ())
+        self.assertEqual(result.sec_inventory_snapshot_boundary, CAPTURED_AT)
+        self.assertEqual(
+            result.route_inventory_semantic_id,
+            result.upstream_comparability.upstream_share_basis_source
+            .submissions_inventory.semantic_id,
+        )
         self.assertIn("NO_UNIVERSAL_CORPORATE_ACTION_COMPLETENESS_CLAIM",
                       result.limitations)
+
+    def test_stale_detached_same_cik_inventory_cannot_establish_one_to_one(self):
+        result = self.qualify(
+            force_recent_inventory=True,
+            recent_capture="2026-02-25T11:59:59Z",
+            drop_recent_row_index=0,
+        )
+        self.assertIs(result.status, bridge.ShareBasisBridgeStatus.SOURCE_CONFLICT)
+        self.assertIn(
+            bridge.ShareBasisBridgeReason.RECENT_INVENTORY_NOT_MONOTONIC_CONTINUATION,
+            result.reasons,
+        )
+        self.assertIn(
+            bridge.ShareBasisBridgeReason.RECENT_SEC_SNAPSHOT_BEFORE_QUOTE_CAPTURE,
+            result.reasons,
+        )
+
+    def test_monotonic_controlled_newer_inventory_can_establish_one_to_one(self):
+        result = self.qualify(
+            force_recent_inventory=True,
+            recent_capture="2026-02-25T12:30:00Z",
+        )
+        self.assertIs(
+            result.status, bridge.ShareBasisBridgeStatus.BASIS_BRIDGE_ESTABLISHED)
+        self.assertEqual(result.sec_inventory_snapshot_boundary,
+                         "2026-02-25T12:30:00Z")
+        self.assertEqual(
+            (result.eps_to_quote_basis_multiplier_numerator,
+             result.eps_to_quote_basis_multiplier_denominator),
+            (1, 1),
+        )
 
     def test_empty_yahoo_alone_cannot_repair_wrong_interval(self):
         result = self.qualify(split_start_delta=1)
@@ -276,6 +329,38 @@ class SecQuoteEPSBasisBridgeTests(unittest.TestCase):
         self.assertIn(
             bridge.ShareBasisBridgeReason.ACTION_ON_PRESENTATION_BOUNDARY_DATE,
             result.reasons,
+        )
+
+    def test_approved_or_proposed_action_not_proven_future_fails_closed(self):
+        cases = (
+            ("The stockholders approved a 2-for-1 stock split of our Class A "
+             "Common Stock with an effective date of January 1, 2026."),
+            ("The Company proposed a 2-for-1 stock split of our Class A Common "
+             "Stock."),
+        )
+        for block in cases:
+            with self.subTest(block=block):
+                result = self.qualify(action_blocks=(block,))
+                self.assertIs(
+                    result.status,
+                    bridge.ShareBasisBridgeStatus.BASIS_BRIDGE_UNAVAILABLE,
+                )
+                self.assertIn(
+                    bridge.ShareBasisBridgeReason.ACTION_LIFECYCLE_UNRESOLVED,
+                    result.reasons,
+                )
+
+    def test_proposed_action_with_exact_post_quote_date_can_be_ignored(self):
+        result = self.qualify(action_blocks=(
+            "The Company proposed a 2-for-1 stock split of our Class A Common "
+            "Stock with an effective date of March 1, 2026.",
+        ))
+        self.assertIs(
+            result.status, bridge.ShareBasisBridgeStatus.BASIS_BRIDGE_ESTABLISHED)
+        self.assertEqual(
+            (result.eps_to_quote_basis_multiplier_numerator,
+             result.eps_to_quote_basis_multiplier_denominator),
+            (1, 1),
         )
 
     def test_missing_bounded_filing_or_split_history_blocks(self):
