@@ -448,8 +448,8 @@ class SecDirectSection12DescriptionDependencyTests(unittest.TestCase):
             self.assertNotIn(module_name, path.read_text(), str(path))
 
     def test_contract_preserves_property4_obligations_and_nonclaims(self):
-        text = (Path(__file__).resolve().parents[1]
-                / "EXPECTED_RETURN_PR4D4D2A.md").read_text()
+        text = (Path(__file__).resolve().parents[1] / "docs" / "contracts" / "v2"
+                / "expected_return" / "EXPECTED_RETURN_PR4D4D2A.md").read_text()
         for property_name in ("4A", "4B", "4C", "4D", "4E", "4F", "4G", "4H"):
             self.assertIn("| " + property_name + " |", text)
         for phrase in ("Obligations 5–7 remain unresolved", "direct-only",

@@ -682,8 +682,8 @@ class CurrentCommonStockClassBridgeDependencyTests(unittest.TestCase):
                 self.assertNotIn(name, {"float", "Decimal"})
 
     def test_contract_documents_nonclaims_property4_and_handoff(self):
-        text = (Path(__file__).resolve().parents[1]
-                / "EXPECTED_RETURN_PR4D4D3A.md").read_text()
+        text = (Path(__file__).resolve().parents[1] / "docs" / "contracts" / "v2"
+                / "expected_return" / "EXPECTED_RETURN_PR4D4D3A.md").read_text()
         for property_name in ("4A", "4B", "4C", "4D", "4E", "4F", "4G", "4H"):
             self.assertIn("| " + property_name + " |", text)
         for phrase in (

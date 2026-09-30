@@ -192,7 +192,7 @@ Existing documents remain:
 - `DECISIONS.md` — detailed decision log;
 - `AUDIT_GUIDE.md` — V1 audit workflow;
 - `BASELINE_V1_FREEZE.md` — V1 freeze contract;
-- `EXPECTED_RETURN_PR*.md` — feature contracts;
+- `docs/contracts/v2/expected_return/EXPECTED_RETURN_PR*.md` — feature contracts;
 - `README.md` — operational/user documentation.
 
 ---
@@ -227,7 +227,8 @@ comparability. It does not bridge a later/current quote to that basis.
 
 ### PR5A — Real Fact Admission gap review ✅
 
-`EXPECTED_RETURN_PR5A_REAL_ADMISSION_GAP_REVIEW.md` audits the actual code, tests,
+`docs/contracts/v2/expected_return/EXPECTED_RETURN_PR5A_REAL_ADMISSION_GAP_REVIEW.md`
+audits the actual code, tests,
 synthetic semantics and real-source chain at post-PR #62. It freezes one narrow
 first route and distinguishes existing sufficient evidence, immediate real
 closures, deferred requirements and optional refinements. PR5A is documentation
@@ -1466,7 +1467,8 @@ Return architecture.
 2. read the constitution and this roadmap;
 3. complete the approved governance cleanup / migration and role
    Projects/employees configuration before technical implementation resumes;
-4. read `EXPECTED_RETURN_PR5D1.md`, PR5C, PR5D0A/PR5D0B and the relevant
+4. read `docs/contracts/v2/expected_return/EXPECTED_RETURN_PR5D1.md`, PR5C,
+   PR5D0A/PR5D0B and the relevant
    PR4B1/PR4D1 contracts;
 5. preserve PR5D1's explicit `QUOTE_TO_PR5C_BASIS_BRIDGE_NOT_ESTABLISHED`
    limitation and its exact-receipt replay;
