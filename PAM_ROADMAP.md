@@ -383,6 +383,25 @@ PR5E
 → first real end-to-end Expected Return
 ```
 
+An approved administrative interlude now precedes that technical work:
+
+```text
+PR5D2 complete
+    ↓
+Governance Reform Phase 1
+    ↓
+Governance cleanup / migration
+    ↓
+configure role Projects / employees
+    ↓
+PR5E
+```
+
+This governance sequence is an administrative prerequisite, not a replacement for
+PR5E and not an expansion of Expected Return architecture. PR5E remains the
+immediate next technical chantier; later technical stages remain in their existing
+order.
+
 No additional PR5D0x capability-architecture stage is planned in this sequence.
 
 The public SEC/free-Nasdaq source graph still lacks complete positive
@@ -1434,22 +1453,33 @@ and remains the only final admission join and real-capable Expected Return adapt
 PR5D0 capability foundation grants no admission authority. Confidence and
 Opportunity Set remain later stages.
 
+Before PR5E implementation, complete the approved administrative sequence:
+Governance Reform Phase 1, governance cleanup / migration, and role
+Projects/employees configuration. These steps do not change PR5E's technical
+priority or authorize additional Expected Return architecture.
+
 1. verify the current V2 remote head;
 2. read the constitution and this roadmap;
-3. read `EXPECTED_RETURN_PR5D1.md`, PR5C, PR5D0A/PR5D0B and the relevant
+3. complete the approved governance cleanup / migration and role
+   Projects/employees configuration before technical implementation resumes;
+4. read `EXPECTED_RETURN_PR5D1.md`, PR5C, PR5D0A/PR5D0B and the relevant
    PR4B1/PR4D1 contracts;
-4. preserve PR5D1's explicit `QUOTE_TO_PR5C_BASIS_BRIDGE_NOT_ESTABLISHED`
+5. preserve PR5D1's explicit `QUOTE_TO_PR5C_BASIS_BRIDGE_NOT_ESTABLISHED`
    limitation and its exact-receipt replay;
-5. implement only PR5E next, without another generic PR5D architecture interlude;
-6. preserve every source-authority, fail-closed, global-universe and pre-shadow
+6. implement only PR5E as the next technical chantier, without another generic
+   PR5D architecture interlude;
+7. preserve every source-authority, fail-closed, global-universe and pre-shadow
    invariant while supporting only the exact reviewed first route;
-7. preserve V1 unchanged.
+8. preserve V1 unchanged.
 
 ---
 
-*Roadmap state updated on 2026-09-29 through PR5D2's complete free real-root
+*Roadmap state updated on 2026-09-30 through PR5D2's complete free real-root
 bundle and the completed PR5D0D → PR5D0E → PR5D0F → PR5D0G
-capability-foundation interlude. Immediate implementation proceeds to PR5E.
+capability-foundation interlude.
+The approved governance reform, cleanup/migration and role-configuration
+administrative interlude occurs first; immediate technical implementation then
+proceeds to PR5E, which remains the next technical chantier.
 Later architecture stages and shadow-readiness gates remain requirements only.
 The reviewed PR5D2 Expected Return assumption policies are now pinned, but no
 investment-rule, model-rule, V1 or production-authority change is authorized

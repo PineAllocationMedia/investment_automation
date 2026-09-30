@@ -3241,3 +3241,50 @@ justify it.
 PR5D2 calculates no Expected Return and constructs no PR4B1 real facts. PR5E
 remains the final admission and adapter. V1, production, deployment, shadow,
 protected identities, and `MODEL_RULES_VERSION` remain unchanged.
+
+## 2026-09-30 - Governance reform: institutional roles and shared operational memory
+
+### Decision
+
+The CEO approves Governance Reform Phase 1 and the repository-based operating
+model in `governance/`. The Constitution, Governance, Strategy, this Decision
+Registry and role charters are `CEO_PROTECTED`: roles may criticize and propose
+changes, but proposal authority is not amendment authority. Protected amendments
+require explicit CEO approval. No role may expand its own authority or amend its
+own charter.
+
+`DECISIONS.md` remains the single append-only Decision Registry. Prior decisions
+are not silently rewritten; corrections or supersessions use new linked entries.
+Only the CEO authorizes canonical merges, regardless of a role's technical-ready
+finding.
+
+Finite AI resources are governed by minimum necessary context, minimum necessary
+capability and report proportionality. Every Codex task receives exactly one model
+and one reasoning recommendation with a short reason displayed outside and
+immediately before the prompt. Every Work Order has one primary owner. The Program
+Manager normally routes work to the minimum necessary specialist, compact Handoff
+Packets replace unnecessary conversation-history transfer, and durable repository
+memory updates are batched through Governance Sync.
+
+The approved roster is Program Manager / Chief of Staff + Strategy & Innovation,
+Architecture & Audit, Data & Evidence, Data Analyst, Product & UX, Commercial &
+Compliance, Marketing & GTM, and Codex Development. The Program Manager coordinates
+Strategy & Innovation. Commercial & Compliance owns both compliance risk and
+commercial value/defensibility assessment, including whether PAM is materially
+replaceable by one or two general-AI prompts and whether persistent value supports
+real willingness to pay.
+
+### Reasoning
+
+PAM now needs compact administrative memory, explicit authority boundaries and
+efficient specialist routing without centralizing operating knowledge in large
+documents or conversation history. The reform preserves the CEO as final authority
+and prevents role existence from creating artificial autonomous activity.
+
+### Sequence and expected impact
+
+Migration comes first and cleanup second: Governance Reform Phase 1 is followed by
+a separate governance cleanup/migration audit, then ChatGPT role Project/employee
+configuration, then PR5E. This administrative interlude does not change the
+technical roadmap, investment rules, V1/V2 behavior, production authority or
+`MODEL_RULES_VERSION`; PR5E remains the next technical chantier.
