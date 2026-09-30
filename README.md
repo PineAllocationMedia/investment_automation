@@ -1,5 +1,11 @@
 # Guide très simple pour utiliser l’agent d’investissement
 
+> **Portée :** ce guide documente principalement l'utilisation opérationnelle du
+> système V1. Il n'est pas l'autorité canonique pour la vision de PAM, sa
+> gouvernance ou la feuille de route V2 actuelle. Consulter
+> `PAM_PROJECT_CONSTITUTION.md`, `governance/PAM_GOVERNANCE.md`,
+> `governance/PAM_CURRENT_STATE.md` et `PAM_ROADMAP.md` pour ces sujets.
+
 Ce dossier contient un petit programme qui lit votre portefeuille, applique vos règles d’investissement, puis crée un rapport.
 
 Vous n’avez pas besoin de savoir programmer. Il faut seulement suivre les étapes dans l’ordre.

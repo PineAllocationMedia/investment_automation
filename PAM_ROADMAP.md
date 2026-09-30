@@ -388,11 +388,11 @@ An approved administrative interlude now precedes that technical work:
 ```text
 PR5D2 complete
     ↓
-Governance Reform Phase 1
+Governance Reform Phase 1 complete
     ↓
-Governance cleanup / migration
+Governance Cleanup / Migration (current)
     ↓
-configure role Projects / employees
+configure ChatGPT role Projects / employees (next)
     ↓
 PR5E
 ```
@@ -817,7 +817,8 @@ Any recurring integrity, audit, validation or benchmark task that can be execute
 deterministically should be automated and condition-driven rather than becoming an
 owner maintenance obligation. Preserve existing V1 maintenance/runtime protection;
 future V2 shadow maintenance must use an isolated V2 path without weakening V1 guards.
-`AUDIT_GUIDE.md` stays unchanged until actual V2 audit commands/contracts exist.
+`AUDIT_GUIDE.md` remains a V1-only workflow; governance scope notices do not add
+V2 audit commands or authority.
 
 Pre-shadow validation must include the cross-market invariance, reconciliation,
 fail-closed and coverage-bias requirements in the cross-cutting program below.
@@ -1453,10 +1454,11 @@ and remains the only final admission join and real-capable Expected Return adapt
 PR5D0 capability foundation grants no admission authority. Confidence and
 Opportunity Set remain later stages.
 
-Before PR5E implementation, complete the approved administrative sequence:
-Governance Reform Phase 1, governance cleanup / migration, and role
-Projects/employees configuration. These steps do not change PR5E's technical
-priority or authorize additional Expected Return architecture.
+Before PR5E implementation, complete the remaining approved administrative
+sequence: the current Governance Cleanup / Migration, then ChatGPT role
+Projects/employees configuration. Governance Reform Phase 1 is complete. These
+steps do not change PR5E's technical priority or authorize additional Expected
+Return architecture.
 
 1. verify the current V2 remote head;
 2. read the constitution and this roadmap;
@@ -1477,8 +1479,8 @@ priority or authorize additional Expected Return architecture.
 *Roadmap state updated on 2026-09-30 through PR5D2's complete free real-root
 bundle and the completed PR5D0D → PR5D0E → PR5D0F → PR5D0G
 capability-foundation interlude.
-The approved governance reform, cleanup/migration and role-configuration
-administrative interlude occurs first; immediate technical implementation then
+Governance Reform Phase 1 is complete. The current cleanup/migration and next
+role-configuration administrative steps occur before technical implementation
 proceeds to PR5E, which remains the next technical chantier.
 Later architecture stages and shadow-readiness gates remain requirements only.
 The reviewed PR5D2 Expected Return assumption policies are now pinned, but no

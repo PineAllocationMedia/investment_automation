@@ -1,10 +1,15 @@
 # Guide d'audit — investment_automation
 
-Ce fichier est destiné à Claude ou ChatGPT pour structurer
-une session d'audit périodique du modèle. Seul Codex peut
-modifier les fichiers du projet. Claude et ChatGPT analysent,
-proposent et produisent des prompts Codex — ils n'implémentent
-jamais directement.
+> **V1 AUDIT WORKFLOW ONLY.**
+>
+> Ce guide décrit uniquement le workflow d'audit de V1. Il ne constitue pas
+> l'autorité de gouvernance de PAM ni la spécification d'architecture V2.
+> Consulter `governance/PAM_GOVERNANCE.md` pour l'autorité des rôles et
+> `governance/PAM_CURRENT_STATE.md` pour l'état administratif courant.
+
+Ce fichier structure une session d'audit périodique du modèle V1. Les participants
+suivent les rôles, pouvoirs et limites définis par la gouvernance canonique; aucun
+nom d'outil ou de modèle ne confère une autorité particulière.
 
 ---
 
@@ -160,10 +165,14 @@ DECISIONS.md :
 
 ## Gouvernance et rôles (phase de maturation)
 
-**Rôles permanents et verrouillés:**
-- Claude et ChatGPT: analyse, diagnostic, production de prompts Codex uniquement
-- Codex: seul implémenteur — toutes les modifications de fichiers passent par Codex
-- Ni Claude ni ChatGPT ne modifient aucun fichier du projet directement
+**Autorité des rôles :**
+
+- `governance/PAM_GOVERNANCE.md` et `governance/roles/*.md` définissent les rôles,
+  leurs pouvoirs et leurs limites;
+- ce guide ne confère aucune autorité particulière à Claude, ChatGPT, Codex ou à
+  tout autre outil;
+- toute modification issue d'un audit exige un Work Order et une mise en œuvre
+  explicitement autorisés.
 
 **Phase actuelle: maturation et validation**
 Le projet a transitionné de l'expansion rapide vers la validation et la

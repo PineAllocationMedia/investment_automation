@@ -8,3 +8,8 @@
 - PR5D2 established the complete free real Expected Return roots for its bounded supported route.
 - PR5E remains required for final admission and the real-capable Expected Return adapter.
 - Governance Reform Phase 1 began after the approved repository inventory.
+
+## 2026-09-30 — Governance Reform Phase 1 canonical
+
+- PR #79 merged and Governance Reform Phase 1 became canonical.
+- Governance Cleanup / Migration began.
