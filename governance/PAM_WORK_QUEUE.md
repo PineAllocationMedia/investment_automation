@@ -2,7 +2,7 @@
 
 ## ACTIVE
 
-- Configure ChatGPT role Projects/employees.
+- PR5E final admission + real Expected Return adapter.
 
 ## WAITING CEO
 
@@ -14,7 +14,7 @@ None.
 
 ## QUEUED
 
-- PR5E final admission + real Expected Return adapter.
+None.
 
 ## TRIGGER-BASED / DORMANT
 
