@@ -42,6 +42,9 @@ COMPANY_VFV_COMPARISON_BASIS_IDENTITY = (
 COMPANY_VFV_COMPARISON_BASIS_VERSION = (
     "2026-10-01-company-vfv-constant-fx-comparison-v1"
 )
+COMPANY_VFV_PROBLEM_IDENTITY_VERSION = (
+    "2026-10-01-company-vfv-problem-identity-v2"
+)
 COMPANY_VFV_COMPARISON_AUTHORITY = "RESEARCH_DIAGNOSTIC_ONLY"
 SAME_LABEL_SPREAD_SEMANTICS = (
     "SAME_LABEL_DETERMINISTIC_SCENARIO_SPREADS"
@@ -155,8 +158,8 @@ _LIMITATIONS = tuple(CompanyVFVComparisonLimitation)
 
 @dataclass(frozen=True, slots=True)
 class CompanyVFVComparisonRequest:
-    expected_company_admission_semantic_id: str
-    expected_company_admission_evidence_id: str
+    expected_company_problem_semantic_id: str
+    expected_company_problem_evidence_id: str
     expected_vfv_semantic_id: str
     expected_vfv_evidence_id: str
     expected_vfv_fx_hedge_semantic_id: str
@@ -174,7 +177,7 @@ class CompanyVFVComparisonRequest:
 class CompanyComparisonBasis:
     route_contract_version: str
     route_adapter_version: str
-    admission_semantic_id: str
+    constructor_version: str
     upstream_pr5d2_semantic_id: str
     methodology_id: str
     return_basis: str
@@ -189,6 +192,13 @@ class CompanyComparisonBasis:
     approved_proposal_hash: str
     selected_policy_hashes: tuple[tuple[str, str], ...]
     overall_confidence: str
+
+
+@dataclass(frozen=True, slots=True)
+class CompanyExpectedReturnProblemIdentity:
+    identity_representation_version: str
+    semantic_id: str
+    evidence_id: str
 
 
 @dataclass(frozen=True, slots=True)
@@ -240,6 +250,9 @@ class CompanyVFVComparisonResult:
     status: CompanyVFVComparisonStatus
     reasons: tuple[CompanyVFVComparisonReason, ...]
     authority: str
+    company_problem_identity_version: str
+    company_problem_semantic_id: str
+    company_problem_evidence_id: str
     company_admission_semantic_id: str
     company_admission_evidence_id: str
     company_basis: CompanyComparisonBasis | None
@@ -268,8 +281,10 @@ class CompanyVFVComparisonResult:
             "status": self.status,
             "reasons": self.reasons,
             "authority": self.authority,
-            "company_admission_semantic_id": (
-                self.company_admission_semantic_id),
+            "company_problem_identity_version": (
+                self.company_problem_identity_version),
+            "company_problem_semantic_id": (
+                self.company_problem_semantic_id),
             "company_basis": self.company_basis,
             "vfv_semantic_id": self.vfv_semantic_id,
             "vfv_basis": self.vfv_basis,
@@ -290,8 +305,8 @@ class CompanyVFVComparisonResult:
     def evidence_id(self) -> str:
         return _identity("company-vfv-comparison-evidence", {
             "semantic_id": self.semantic_id,
-            "company_admission_evidence_id": (
-                self.company_admission_evidence_id),
+            "company_problem_evidence_id": (
+                self.company_problem_evidence_id),
             "vfv_evidence_id": self.vfv_evidence_id,
             "vfv_fx_hedge_evidence_id": self.vfv_fx_hedge_evidence_id,
         })
@@ -342,8 +357,8 @@ def _company_basis(
     return CompanyComparisonBasis(
         company.contract_version,
         company.adapter_version,
-        company.admission_semantic_id,
-        company.pr5d2_semantic_id,
+        company.construction.constructor_version,
+        roots.semantic_id,
         diagnostic.methodology_version,
         diagnostic.return_basis,
         diagnostic.fx_basis,
@@ -360,6 +375,49 @@ def _company_basis(
         company.construction.policy_hashes,
         diagnostic.overall_confidence,
     )
+
+
+def identify_company_expected_return_problem(
+    company: pr5e.PR5EAdmissionResult,
+) -> CompanyExpectedReturnProblemIdentity:
+    """Project PR5E onto stable comparator-owned problem/evidence identities."""
+    if type(company) is not pr5e.PR5EAdmissionResult:
+        raise CompanyVFVComparatorError("Exact PR5EAdmissionResult required")
+    construction = company.construction
+    diagnostic = None if construction is None else construction.diagnostic
+    semantic = _identity("company-expected-return-problem-semantics", {
+        "identity_representation_version": (
+            COMPANY_VFV_PROBLEM_IDENTITY_VERSION),
+        "status": company.status,
+        "reasons": company.reasons,
+        "company_basis": _company_basis(company),
+        "pr5d2_semantic_id": company.upstream_pr5d2.semantic_id,
+        "pr5e_contract_version": company.contract_version,
+        "pr5e_adapter_version": company.adapter_version,
+        "construction_status": (
+            None if construction is None else construction.status),
+        "construction_reasons": (
+            () if construction is None else construction.reasons),
+        "constructor_version": (
+            None if construction is None else construction.constructor_version),
+        "diagnostic_schema_version": (
+            None if diagnostic is None else diagnostic.schema_version),
+        "diagnostic_status": (
+            None if diagnostic is None else diagnostic.status),
+        "diagnostic_authority": (
+            None if diagnostic is None else diagnostic.authority),
+        "diagnostic_metric": (
+            None if diagnostic is None else diagnostic.metric),
+        "diagnostic_unavailable_reasons": (
+            () if diagnostic is None else diagnostic.unavailable_reasons),
+        "company_limitations": company.limitations,
+    })
+    evidence = _identity("company-expected-return-problem-evidence", {
+        "semantic_id": semantic,
+        "pr5d2_evidence_id": company.upstream_pr5d2.evidence_id,
+    })
+    return CompanyExpectedReturnProblemIdentity(
+        COMPANY_VFV_PROBLEM_IDENTITY_VERSION, semantic, evidence)
 
 
 def _vfv_basis(
@@ -422,6 +480,7 @@ def _result(
     spreads: tuple[SameLabelScenarioSpread, ...] = (),
 ) -> CompanyVFVComparisonResult:
     available = status is CompanyVFVComparisonStatus.AVAILABLE
+    company_problem = identify_company_expected_return_problem(company)
     return CompanyVFVComparisonResult(
         COMPANY_VFV_COMPARISON_CONTRACT_VERSION,
         COMPANY_VFV_COMPARISON_BASIS_IDENTITY,
@@ -430,6 +489,9 @@ def _result(
         status,
         tuple(sorted(set(reasons), key=lambda item: item.value)),
         COMPANY_VFV_COMPARISON_AUTHORITY,
+        company_problem.identity_representation_version,
+        company_problem.semantic_id,
+        company_problem.evidence_id,
         company.admission_semantic_id,
         company.admission_evidence_id,
         _company_basis(company),
@@ -493,10 +555,11 @@ def compare_company_vfv_expected_returns(
             "Exact CompanyVFVComparisonRequest required")
 
     identity_reasons = []
-    if (request.expected_company_admission_semantic_id
-            != company.admission_semantic_id
-            or request.expected_company_admission_evidence_id
-            != company.admission_evidence_id):
+    company_problem = identify_company_expected_return_problem(company)
+    if (request.expected_company_problem_semantic_id
+            != company_problem.semantic_id
+            or request.expected_company_problem_evidence_id
+            != company_problem.evidence_id):
         identity_reasons.append(
             CompanyVFVComparisonReason.COMPANY_IDENTITY_MISMATCH)
     if (request.expected_vfv_semantic_id != vfv.semantic_id

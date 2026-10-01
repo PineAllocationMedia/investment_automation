@@ -1,6 +1,7 @@
 """Bounded PR5E-company versus VFV Expected Return comparator tests."""
 import ast
 from dataclasses import fields, replace
+from decimal import Decimal
 import json
 import math
 from pathlib import Path
@@ -60,11 +61,13 @@ class CompanyVFVComparatorTests(PR5EFixtureMixin, unittest.TestCase):
         company = self.company if company is None else company
         vfv = self.vfv if vfv is None else vfv
         hedge = self.hedge if hedge is None else hedge
+        company_problem = (
+            comparator.identify_company_expected_return_problem(company))
         values = {
-            "expected_company_admission_semantic_id": (
-                company.admission_semantic_id),
-            "expected_company_admission_evidence_id": (
-                company.admission_evidence_id),
+            "expected_company_problem_semantic_id": (
+                company_problem.semantic_id),
+            "expected_company_problem_evidence_id": (
+                company_problem.evidence_id),
             "expected_vfv_semantic_id": vfv.semantic_id,
             "expected_vfv_evidence_id": vfv.evidence_id,
             "expected_vfv_fx_hedge_semantic_id": hedge.semantic_id,
@@ -72,6 +75,60 @@ class CompanyVFVComparatorTests(PR5EFixtureMixin, unittest.TestCase):
         }
         values.update(changes)
         return comparator.CompanyVFVComparisonRequest(**values)
+
+    def readmit(self, *, roots=None, construction=None):
+        company = self.company
+        return pr5e._result(
+            company.status,
+            company.reasons,
+            company.upstream_pr5d2 if roots is None else roots,
+            share_basis=company.admitted_share_basis_identity,
+            as_of=company.analytical_as_of,
+            qualified_facts=company.qualified_facts,
+            construction=(company.construction if construction is None
+                          else construction),
+        )
+
+    def provenance_only_company_variant(self):
+        roots = self.company.upstream_pr5d2
+        bridge = roots.basis_bridge
+        quote = bridge.upstream_quote
+        extraction = quote.quote_extraction
+        receipt = replace(
+            extraction.receipt, captured_at="2026-09-29T18:00:00Z")
+        recaptured_extraction = replace(extraction, receipt=receipt)
+        recaptured_quote = replace(
+            quote,
+            captured_at=receipt.captured_at,
+            quote_extraction=recaptured_extraction,
+        )
+        self.assertEqual(quote.semantic_id, recaptured_quote.semantic_id)
+        self.assertNotEqual(quote.evidence_id, recaptured_quote.evidence_id)
+        recaptured_bridge = replace(
+            bridge,
+            quote_evidence_id=recaptured_quote.evidence_id,
+            upstream_quote=recaptured_quote,
+        )
+        self.assertEqual(bridge.semantic_id, recaptured_bridge.semantic_id)
+        self.assertNotEqual(bridge.evidence_id, recaptured_bridge.evidence_id)
+        upstream_evidence_ids = tuple(sorted({
+            recaptured_bridge.evidence_id,
+            recaptured_bridge.upstream_comparability.evidence_id,
+            recaptured_bridge.upstream_quote.evidence_id,
+            recaptured_bridge.recent_share_basis_source.evidence_id,
+            recaptured_bridge.yahoo_split_history.evidence_id,
+            roots.nonpayer.evidence_id,
+            roots.nonpayer.upstream_nonpayer_source.evidence_hash,
+            roots.profile.evidence_id,
+        }))
+        recaptured_roots = replace(
+            roots,
+            upstream_evidence_ids=upstream_evidence_ids,
+            basis_bridge=recaptured_bridge,
+        )
+        self.assertEqual(roots.semantic_id, recaptured_roots.semantic_id)
+        self.assertNotEqual(roots.evidence_id, recaptured_roots.evidence_id)
+        return self.readmit(roots=recaptured_roots)
 
     def compare(self, company=None, vfv=None, hedge=None, request=None):
         company = self.company if company is None else company
@@ -105,6 +162,10 @@ class CompanyVFVComparatorTests(PR5EFixtureMixin, unittest.TestCase):
         self.assertEqual(
             result.comparison_semantics,
             "SAME_LABEL_DETERMINISTIC_SCENARIO_SPREADS",
+        )
+        self.assertEqual(
+            result.company_problem_identity_version,
+            "2026-10-01-company-vfv-problem-identity-v2",
         )
         self.assertEqual(result.company_basis.quote_currency, "USD")
         self.assertEqual(result.company_basis.quote_unit, "CURRENCY_PER_SHARE")
@@ -160,8 +221,8 @@ class CompanyVFVComparatorTests(PR5EFixtureMixin, unittest.TestCase):
         names = {field.name for field in fields(
             comparator.CompanyVFVComparisonRequest)}
         self.assertEqual(names, {
-            "expected_company_admission_semantic_id",
-            "expected_company_admission_evidence_id",
+            "expected_company_problem_semantic_id",
+            "expected_company_problem_evidence_id",
             "expected_vfv_semantic_id",
             "expected_vfv_evidence_id",
             "expected_vfv_fx_hedge_semantic_id",
@@ -393,14 +454,111 @@ class CompanyVFVComparatorTests(PR5EFixtureMixin, unittest.TestCase):
         self.assertEqual(result.vfv_inherited_limitations,
                          self.vfv.inherited_limitations)
 
-    def test_deterministic_identities_and_provenance_only_evidence_change(self):
+    def test_cross_environment_admission_lineage_is_trace_only(self):
+        first = self.compare()
+        variant_construction = replace(
+            self.company.construction, lineage_hash="f" * 64)
+        variant_company = self.readmit(construction=variant_construction)
+        variant = self.compare(company=variant_company)
+        self.assertNotEqual(
+            self.company.admission_semantic_id,
+            variant_company.admission_semantic_id,
+        )
+        self.assertNotEqual(
+            self.company.admission_evidence_id,
+            variant_company.admission_evidence_id,
+        )
+        self.assertEqual(
+            first.company_problem_semantic_id,
+            variant.company_problem_semantic_id,
+        )
+        self.assertEqual(
+            first.company_problem_evidence_id,
+            variant.company_problem_evidence_id,
+        )
+        self.assertEqual(first.semantic_id, variant.semantic_id)
+        self.assertEqual(first.evidence_id, variant.evidence_id)
+
+    def test_company_provenance_only_change_changes_evidence_not_semantics(self):
+        first = self.compare()
+        recaptured_company = self.provenance_only_company_variant()
+        changed = self.compare(company=recaptured_company)
+        self.assertEqual(
+            first.company_problem_semantic_id,
+            changed.company_problem_semantic_id,
+        )
+        self.assertNotEqual(
+            first.company_problem_evidence_id,
+            changed.company_problem_evidence_id,
+        )
+        self.assertEqual(first.semantic_id, changed.semantic_id)
+        self.assertNotEqual(first.evidence_id, changed.evidence_id)
+
+    def test_material_company_problem_change_changes_semantic_identity(self):
+        first = self.compare()
+        changed_roots = replace(
+            self.company.upstream_pr5d2,
+            quote_price=self.company.upstream_pr5d2.quote_price
+            + Decimal("1.0000"),
+        )
+        self.assertNotEqual(
+            self.company.upstream_pr5d2.semantic_id,
+            changed_roots.semantic_id,
+        )
+        changed = self.compare(company=self.readmit(roots=changed_roots))
+        self.assertNotEqual(
+            first.company_problem_semantic_id,
+            changed.company_problem_semantic_id,
+        )
+        self.assertNotEqual(first.semantic_id, changed.semantic_id)
+
+    def test_deterministic_identity_pins_and_fx_identity_preservation(self):
         first = self.compare()
         repeated = self.compare()
         self.assertEqual(first.semantic_id, repeated.semantic_id)
         self.assertEqual(first.evidence_id, repeated.evidence_id)
         self.assertEqual(
+            first.company_problem_semantic_id,
+            "3f2837d650371ae66b4b08e2fdb268eb8782c1430e284b22d12974081173ccf2",
+        )
+        self.assertEqual(
+            first.company_problem_evidence_id,
+            "e037fa8049805ace18f00d8e3835920b8cfe4804d24522c68e633232f451d8e7",
+        )
+        self.assertEqual(
             first.semantic_id,
-            "5a23659e79e6027ffe8e5910059bc0e160330a7500159d018e5f495701387941",
+            "156fd61f3256c3e4d125720e4cc30d473efb0737ddab22654dfa328d1dc91ef0",
+        )
+        stable_vfv_evidence = tuple(
+            replace(
+                item,
+                artifact_receipt_id=f"{index + 1:064x}",
+                content_sha256=f"{index + 101:064x}",
+            )
+            for index, item in enumerate(self.vfv.fact_evidence)
+        )
+        identity_vfv = replace(
+            self.vfv,
+            upstream_evidence_id="e" * 64,
+            fact_evidence=stable_vfv_evidence,
+        )
+        identity_fixture = self.compare(vfv=identity_vfv)
+        self.assertEqual(first.semantic_id, identity_fixture.semantic_id)
+        self.assertEqual(
+            identity_vfv.evidence_id,
+            "b1015f9d17d69f9f753043252470be0e7fb6011f64d9e04b055abf31a190fde1",
+        )
+        self.assertEqual(
+            identity_fixture.evidence_id,
+            "a84d48db3e5831ca42ec5db69ba3700f300c632a0d824b7ed23826b3e338e0a1",
+        )
+        self.assertEqual(
+            self.hedge.semantic_id,
+            "1b16a3cab764f39fc3e74911dd813664616cedd984f55868729d45ae02724482",
+        )
+        self.assertEqual(
+            self.hedge.evidence_id,
+            "5d3badf3f403e96ca71904aa7ff23e4aa8a5790be742cabae7c8c951a65c280b",
         )
         recaptured = standard_qualification(
             content_sha256="3" * 64,

@@ -14,6 +14,9 @@ Comparator contract
 Comparison basis identity/version
 2026-10-01-company-vfv-constant-fx-comparison-v1
 
+Comparator problem-identity representation
+2026-10-01-company-vfv-problem-identity-v2
+
 Comparison semantics
 SAME_LABEL_DETERMINISTIC_SCENARIO_SPREADS
 
@@ -137,7 +140,7 @@ compare_company_vfv_expected_returns(
 
 The request pins exactly six identities:
 
-- company PR5E admission semantic/evidence IDs;
+- comparator-owned company Expected Return problem semantic/evidence IDs;
 - VFV diagnostic semantic/evidence IDs;
 - VFV FX/hedge semantic/evidence IDs.
 
@@ -192,19 +195,38 @@ penalty.
 
 ## Result and identity discipline
 
-The result carries the contract/basis identities, closed status/reasons,
-upstream semantic/evidence IDs, supported basis metadata, dated FX/hedge state,
-raw same-label spreads when available, local confidence, upstream limitations,
-comparator limitations, and deterministic `semantic_id`/`evidence_id`.
+The result carries the contract/basis identities, the separate problem-identity
+representation version, closed status/reasons, comparator-owned company problem
+semantic/evidence IDs, supported basis metadata, dated FX/hedge state, raw
+same-label spreads when available, local confidence, upstream limitations,
+comparator limitations, and deterministic `semantic_id`/`evidence_id`. PR5E
+admission semantic/evidence IDs remain visible only as trace and replay metadata.
+They do not drive either comparator identity.
 
-Semantic identity binds comparison meaning: upstream semantic identities,
-supported route/policy/basis metadata, same-label pairing, status/reasons,
-confidence, and limitations. It excludes the derived binary64 spread realization.
-Evidence identity additionally binds the exact company, VFV, and FX/hedge
-evidence identities. Therefore a one-ULP-only perturbation of a derived spread
-does not change either identity when the upstream analytical problems are
-unchanged; the raw perturbed spread remains observable. Provenance-only changes
-can change `evidence_id` without changing economic `semantic_id`.
+The comparator-owned company semantic projection binds the stable PR5D2
+semantic identity, PR5E contract and adapter versions, PR4B1 constructor
+version, company methodology/return/FX/horizon basis, quote currency and unit,
+accounting/profile/nonpayer route, approved policy and proposal identities,
+selected policy hashes, relevant confidence, and economic/analytical
+limitations. Its evidence identity binds that semantic identity plus the stable
+PR5D2 evidence identity.
+
+The company semantic projection deliberately excludes PR5E admission IDs,
+constructor lineage, raw derived growth values, raw annualized returns, capture
+timestamps and IDs, paths, and provenance-only observation IDs. This prevents
+platform-specific binary64 transcendental realizations and provenance-only
+replay state from becoming comparator economic meaning.
+
+Comparator semantic identity binds comparison meaning: the contract and basis,
+the identity-representation version, company problem semantic identity, stable
+company/VFV/FX basis metadata, same-label pairing, status/reasons, confidence,
+and limitations. It excludes raw company/VFV returns and the derived binary64
+spread realization. Comparator evidence identity additionally binds the company
+problem, VFV, and FX/hedge evidence identities. Therefore a one-ULP-only
+perturbation of a derived spread does not change either identity when the
+upstream analytical problems are unchanged; the raw perturbed spread remains
+observable. A provenance-only company or other upstream recapture can change
+`evidence_id` without changing economic `semantic_id`.
 
 ## Mandatory limitations and non-authority
 
