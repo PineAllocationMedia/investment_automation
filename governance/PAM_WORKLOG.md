@@ -74,3 +74,31 @@
   the PR as canonical merge `6812ca8264628216ba4f2350680dc1073ee9f0bb`.
 - `MODEL_RULES_VERSION` remains
   `2026-08-23-allocation-room-integrity-v7`; no model-rule change occurred.
+
+## 2026-10-01 — PR #88 standalone VFV forward Expected Return canonical
+
+- The CEO approved `PAM_VFV_FORWARD_ER_POLICY_2026_10_01_V1` with unchanged hash
+  `31dbebd0545c233c4913dad1915dfd2eb23d91481019fec078b245541ef0e645`:
+  seven-year horizon, bear/base/bull growth of 0%/3%/5%, terminal P/E of
+  12x/16x/20x, and constant-translation/no-modeled-FX-contribution basis.
+- PR #88 added the bounded standalone VFV research diagnostic from qualified
+  `CURRENT` evidence through a VFV-specific normalized-unit adapter, deterministic
+  unit-holder cash-flow problem and shared semantic-neutral IRR solver. Identity v2
+  (`2026-10-01-vfv-forward-er-root-problem-identity-v2`) binds the deterministic
+  problem, not the raw public binary64 root.
+- Architecture & Audit found and closed an ambient Decimal-context defect. CI #106
+  then exposed a one-ULP binary64 portability issue; Architecture & Audit determined
+  the raw float was not identity-bearing, and identity v2 was implemented at
+  `cb683b6265433c007f148feee1f1ac9214f3caf3`.
+- The final focused Architecture & Audit review found no technical defect but
+  returned `BLOCKED — validation evidence only` because CI #107 was still running at
+  the permitted observation point. It did not formally return `MERGE READY`.
+- CI #107 subsequently passed `FULL_PIT`: 2,764 standard tests plus 2 heavyweight
+  PIT tests, 2,766/2,766 total. The CEO merged PR #88 as
+  `10c1a2fa60188bac426b240be283c4e61060f732`, tree
+  `d12d24130244b179ac0fd88c00fa87cf2e8a6fc3`.
+- V1 remains frozen operational authority and V2 remains a research-only challenger.
+  Stage B remains active and incomplete. No comparator, FX resolution, production,
+  recommendation, allocation, execution, promotion or automatic-tuning authority
+  was granted. The next frontier belongs to Data & Evidence for VFV currency/hedging
+  comparability before architecture review of a compatible comparison basis.
