@@ -255,10 +255,14 @@ class PR5EIsolationTests(unittest.TestCase):
 
     def test_no_v1_runtime_portfolio_or_production_consumer_imports_pr5e(self):
         root = Path(pr5e.__file__).resolve().parents[1]
-        allowed = Path(pr5e.__file__).resolve()
+        allowed = {
+            Path(pr5e.__file__).resolve(),
+            Path(pr5e.__file__).with_name(
+                "company_vfv_expected_return_comparator.py").resolve(),
+        }
         for path in (root / "main.py", *sorted((root / "src").glob("*.py")),
                      *sorted((root / "pit_comparison").glob("*.py"))):
-            if path.resolve() == allowed:
+            if path.resolve() in allowed:
                 continue
             self.assertNotIn("expected_return_pr5e_adapter", path.read_text(), str(path))
 
