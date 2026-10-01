@@ -42,6 +42,9 @@ from .vfv_forward_er_policy import (
 
 
 VFV_FORWARD_ER_CONTRACT_VERSION = "2026-10-01-vfv-forward-er-diagnostic-v1"
+VFV_FORWARD_ER_IDENTITY_VERSION = (
+    "2026-10-01-vfv-forward-er-root-problem-identity-v2"
+)
 VFV_FORWARD_ER_ANALYTICAL_BASIS = "VFV_NORMALIZED_UNIT_HOLDER_CASHFLOW"
 VFV_FORWARD_ER_AUTHORITY = "RESEARCH_DIAGNOSTIC_ONLY"
 VFV_PRINCIPAL_RESULT_SEMANTICS = (
@@ -248,6 +251,32 @@ class VFVForwardERScenarioResult:
 
 
 @dataclass(frozen=True, slots=True)
+class _VFVForwardERScenarioSemanticProjection:
+    """Deterministic IRR problem specification, excluding its binary64 root."""
+    name: str
+    fundamental_growth: Decimal
+    terminal_weighted_pe: Decimal
+    normalized_initial_unit_value: Decimal
+    annual_distributions: tuple[Decimal, ...]
+    terminal_normalized_unit_value: Decimal
+    result_semantics: str
+
+
+def _scenario_semantic_projection(
+    scenario: VFVForwardERScenarioResult,
+) -> _VFVForwardERScenarioSemanticProjection:
+    return _VFVForwardERScenarioSemanticProjection(
+        scenario.name,
+        scenario.fundamental_growth,
+        scenario.terminal_weighted_pe,
+        scenario.normalized_initial_unit_value,
+        scenario.annual_distributions,
+        scenario.terminal_normalized_unit_value,
+        scenario.result_semantics,
+    )
+
+
+@dataclass(frozen=True, slots=True)
 class VFVForwardERDiagnostic:
     contract_version: str
     status: VFVForwardERStatus
@@ -275,6 +304,7 @@ class VFVForwardERDiagnostic:
     @property
     def semantic_id(self) -> str:
         return _identity("vfv-forward-er-semantics", {
+            "identity_version": VFV_FORWARD_ER_IDENTITY_VERSION,
             "contract_version": self.contract_version,
             "status": self.status,
             "reasons": self.reasons,
@@ -289,7 +319,8 @@ class VFVForwardERDiagnostic:
             "analytical_basis": self.analytical_basis,
             "factual_inputs": self.factual_inputs,
             "wrapper_expense_factor": self.wrapper_expense_factor,
-            "scenarios": self.scenarios,
+            "scenarios": tuple(_scenario_semantic_projection(scenario)
+                               for scenario in self.scenarios),
             "confidence": self.confidence,
             "inherited_limitations": self.inherited_limitations,
             "limitations": self.limitations,

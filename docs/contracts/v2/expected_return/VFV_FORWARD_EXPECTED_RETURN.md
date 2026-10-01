@@ -149,6 +149,18 @@ exact upstream evidence identity and fact-evidence records. A capture/provenance
 change therefore changes evidence identity without necessarily changing the
 economic semantic identity.
 
+Semantic identity version
+`2026-10-01-vfv-forward-er-root-problem-identity-v2` binds each scenario's
+deterministic IRR problem specification: name, growth, terminal weighted P/E,
+normalized initial unit value, annual distributions, terminal normalized unit
+value, and result semantics. It intentionally does not bind `annualized_return`.
+That public field remains the raw binary64 result of the shared solver and may
+differ at insignificant final bits across legitimate platform/libm
+implementations. This distinction is not economic rounding and does not imply
+that 17 float digits represent forecast precision. The deterministic cash-flow
+problem is the economic semantic identity; the float root is its computational
+numerical realization.
+
 ## Confidence and limitations
 
 An available result has typed local confidence:

@@ -421,7 +421,6 @@ class VFVForwardExpectedReturnTests(unittest.TestCase):
                       for row in result.scenarios),
                 tuple(row.terminal_normalized_unit_value
                       for row in result.scenarios),
-                tuple(row.annualized_return for row in result.scenarios),
                 result.semantic_id,
                 result.evidence_id,
             )
@@ -443,15 +442,95 @@ class VFVForwardExpectedReturnTests(unittest.TestCase):
                 Decimal("1.110507576606332093324562719"),
             ),
         )
+        for actual, reference in zip(
+                (row.annualized_return for row in default_result.scenarios),
+                (-0.08954559947688687,
+                 -0.025226689275521054,
+                 0.02437022559796578)):
+            self.assertTrue(math.isclose(
+                actual, reference, rel_tol=0.0, abs_tol=2e-14))
+
+    def test_identity_versions_root_problem_not_binary64_realization(self):
         self.assertEqual(
-            tuple(row.annualized_return for row in default_result.scenarios),
-            (-0.08954559947688687,
-             -0.025226689275521054,
-             0.02437022559796578),
+            vfv_er.VFV_FORWARD_ER_IDENTITY_VERSION,
+            "2026-10-01-vfv-forward-er-root-problem-identity-v2",
+        )
+        original = self.calculate()
+        original_scenario = original.scenarios[2]
+        changed_return = math.nextafter(
+            original_scenario.annualized_return, math.inf)
+        variant = replace(
+            original,
+            scenarios=(*original.scenarios[:2], replace(
+                original_scenario, annualized_return=changed_return)),
+        )
+        self.assertNotEqual(original.scenarios[2].annualized_return,
+                            variant.scenarios[2].annualized_return)
+        self.assertEqual(original.semantic_id, variant.semantic_id)
+        self.assertEqual(original.evidence_id, variant.evidence_id)
+        original_json = original.to_dict()["vfv_forward_expected_return"]
+        variant_json = variant.to_dict()["vfv_forward_expected_return"]
+        self.assertNotEqual(original_json["scenarios"][2]["annualized_return"],
+                            variant_json["scenarios"][2]["annualized_return"])
+
+    def test_identity_v2_pins_and_deterministic_inputs_remain_material(self):
+        original = self.calculate()
+        baseline = original.semantic_id
+        scenario = original.scenarios[1]
+        changed_scenarios = (
+            replace(original.scenarios[0],
+                    fundamental_growth=Decimal("0.01")),
+            replace(scenario, terminal_weighted_pe=Decimal("17")),
+            replace(original.scenarios[2], annual_distributions=(
+                Decimal("0.009"),
+                *original.scenarios[2].annual_distributions[1:])),
+        )
+        variants = (
+            replace(original, scenarios=(changed_scenarios[0],
+                                         *original.scenarios[1:])),
+            replace(original, scenarios=(original.scenarios[0],
+                                         changed_scenarios[1],
+                                         original.scenarios[2])),
+            replace(original, scenarios=(*original.scenarios[:2],
+                                         changed_scenarios[2])),
+            replace(original, wrapper_expense_factor=Decimal("0.999201")),
+            replace(original, scenarios=(original.scenarios[0], replace(
+                scenario,
+                terminal_normalized_unit_value=(
+                    scenario.terminal_normalized_unit_value
+                    + Decimal("0.0000000000000000000000000001"))),
+                original.scenarios[2])),
+            replace(original, policy_hash="0" * 64),
+            replace(original, methodology_id="changed-methodology"),
+            replace(original, factual_inputs=replace(
+                original.factual_inputs,
+                current_market_price=Decimal("193.1201"))),
+        )
+        self.assertTrue(all(item.semantic_id != baseline for item in variants))
+        with patch.object(
+                vfv_er, "VFV_FORWARD_ER_IDENTITY_VERSION",
+                "changed-identity-version"):
+            self.assertNotEqual(original.semantic_id, baseline)
+
+        # Stabilize test-only provenance tokens so both exact v2 IDs are pinned.
+        stable_evidence = tuple(
+            replace(item,
+                    artifact_receipt_id=f"{index + 1:064x}",
+                    content_sha256=f"{index + 101:064x}")
+            for index, item in enumerate(original.fact_evidence)
+        )
+        identity_fixture = replace(
+            original,
+            upstream_evidence_id="e" * 64,
+            fact_evidence=stable_evidence,
         )
         self.assertEqual(
-            default_result.semantic_id,
-            "3786bdbfb6fc9faef784186c8b028f29dfd88aba62f141d3bb462aff1ca7f06a",
+            identity_fixture.semantic_id,
+            "5a000b8246e09918222383d9a16d45360d37989f28ba2268e0a4e7f950ca6ce5",
+        )
+        self.assertEqual(
+            identity_fixture.evidence_id,
+            "b1015f9d17d69f9f753043252470be0e7fb6011f64d9e04b055abf31a190fde1",
         )
 
     def test_pr4a_numerical_result_is_unchanged_through_shared_solver(self):
