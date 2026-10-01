@@ -1,5 +1,5 @@
 from dataclasses import FrozenInstanceError, fields, replace
-from decimal import Decimal
+from decimal import Decimal, ROUND_DOWN, ROUND_HALF_EVEN, ROUND_UP, localcontext
 import ast
 import json
 import math
@@ -399,6 +399,60 @@ class VFVForwardExpectedReturnTests(unittest.TestCase):
         changed = self.calculate(changed_qualification)
         self.assertEqual(first.semantic_id, changed.semantic_id)
         self.assertNotEqual(first.evidence_id, changed.evidence_id)
+
+    def test_ambient_decimal_context_cannot_change_results_or_identities(self):
+        contexts = (
+            (6, ROUND_DOWN),
+            (28, ROUND_HALF_EVEN),
+            (50, ROUND_UP),
+        )
+        results = []
+        for precision, rounding in contexts:
+            with self.subTest(precision=precision, rounding=rounding):
+                with localcontext() as ambient:
+                    ambient.prec = precision
+                    ambient.rounding = rounding
+                    results.append(self.calculate())
+
+        def analytical_output(result):
+            return (
+                result.wrapper_expense_factor,
+                tuple(tuple(row.annual_distributions)
+                      for row in result.scenarios),
+                tuple(row.terminal_normalized_unit_value
+                      for row in result.scenarios),
+                tuple(row.annualized_return for row in result.scenarios),
+                result.semantic_id,
+                result.evidence_id,
+            )
+
+        expected = analytical_output(results[1])
+        self.assertTrue(all(analytical_output(result) == expected
+                            for result in results))
+
+        # Pin the pre-correction ordinary/default-context economics exactly.
+        default_result = results[1]
+        self.assertEqual(default_result.wrapper_expense_factor,
+                         Decimal("0.999200"))
+        self.assertEqual(
+            tuple(row.terminal_normalized_unit_value
+                  for row in default_result.scenarios),
+            (
+                Decimal("0.4735302009972995812165706118"),
+                Decimal("0.7765098915946192893485703644"),
+                Decimal("1.110507576606332093324562719"),
+            ),
+        )
+        self.assertEqual(
+            tuple(row.annualized_return for row in default_result.scenarios),
+            (-0.08954559947688687,
+             -0.025226689275521054,
+             0.02437022559796578),
+        )
+        self.assertEqual(
+            default_result.semantic_id,
+            "3786bdbfb6fc9faef784186c8b028f29dfd88aba62f141d3bb462aff1ca7f06a",
+        )
 
     def test_pr4a_numerical_result_is_unchanged_through_shared_solver(self):
         diagnostic = company_er.calculate_expected_return(request_fixture())

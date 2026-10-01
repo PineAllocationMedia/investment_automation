@@ -7,7 +7,21 @@ generic ETF model, benchmark forecast, recommendation, or executable return.
 from __future__ import annotations
 
 from dataclasses import dataclass, fields, is_dataclass
-from decimal import Decimal, InvalidOperation
+from decimal import (
+    Context,
+    Clamped,
+    Decimal,
+    DivisionByZero,
+    FloatOperation,
+    Inexact,
+    InvalidOperation,
+    Overflow,
+    ROUND_HALF_EVEN,
+    Rounded,
+    Subnormal,
+    Underflow,
+    localcontext,
+)
 from enum import Enum, StrEnum
 import hashlib
 import json
@@ -34,6 +48,44 @@ VFV_PRINCIPAL_RESULT_SEMANTICS = (
     "VFV_INSTRUMENT_ER_NET_OF_WRAPPER_EXPENSES_PRE_EXECUTION"
 )
 _HASH = re.compile(r"[0-9a-f]{64}")
+
+
+def _new_vfv_decimal_context() -> Context:
+    """Fresh code-owned context matching Python's intended default semantics.
+
+    Never clone the ambient context: caller precision, rounding, exponent range,
+    flags, and traps are not analytical inputs and cannot affect VFV results.
+    """
+    return Context(
+        prec=28,
+        rounding=ROUND_HALF_EVEN,
+        Emin=-999999,
+        Emax=999999,
+        capitals=1,
+        clamp=0,
+        flags={
+            InvalidOperation: False,
+            FloatOperation: False,
+            DivisionByZero: False,
+            Overflow: False,
+            Underflow: False,
+            Subnormal: False,
+            Inexact: False,
+            Rounded: False,
+            Clamped: False,
+        },
+        traps={
+            InvalidOperation: True,
+            FloatOperation: False,
+            DivisionByZero: True,
+            Overflow: True,
+            Underflow: False,
+            Subnormal: False,
+            Inexact: False,
+            Rounded: False,
+            Clamped: False,
+        },
+    )
 
 
 class VFVForwardERError(ValueError):
@@ -535,35 +587,38 @@ def calculate_vfv_forward_expected_return(
         )
 
     try:
-        y0 = factual.trailing_12_month_distribution_yield_percent / Decimal(100)
-        mer = factual.mer_percent / Decimal(100)
-        ter = factual.ter_percent / Decimal(100)
-        q = (Decimal(1) - mer) * (Decimal(1) - ter)
-        m0 = factual.trailing_weighted_fund_portfolio_pe
-        scenarios = []
-        for policy_scenario in policy.scenarios:
-            compounded = (Decimal(1) + policy_scenario.fundamental_growth) * q
-            distributions = tuple(
-                y0 if year == 1 else y0 * (compounded ** (year - 1))
-                for year in range(1, policy.horizon_years + 1)
-            )
-            terminal = ((compounded ** policy.horizon_years)
-                        * (policy_scenario.terminal_weighted_pe / m0))
-            annualized_return = solve_annual_cashflow_irr(
-                float(policy.normalized_initial_unit_value),
-                tuple(float(value) for value in distributions),
-                float(terminal),
-            )
-            scenarios.append(VFVForwardERScenarioResult(
-                policy_scenario.name,
-                policy_scenario.fundamental_growth,
-                policy_scenario.terminal_weighted_pe,
-                policy.normalized_initial_unit_value,
-                distributions,
-                terminal,
-                annualized_return,
-                VFV_PRINCIPAL_RESULT_SEMANTICS,
-            ))
+        with localcontext(_new_vfv_decimal_context()):
+            y0 = (factual.trailing_12_month_distribution_yield_percent
+                  / Decimal(100))
+            mer = factual.mer_percent / Decimal(100)
+            ter = factual.ter_percent / Decimal(100)
+            q = (Decimal(1) - mer) * (Decimal(1) - ter)
+            m0 = factual.trailing_weighted_fund_portfolio_pe
+            scenarios = []
+            for policy_scenario in policy.scenarios:
+                compounded = ((Decimal(1) + policy_scenario.fundamental_growth)
+                              * q)
+                distributions = tuple(
+                    y0 if year == 1 else y0 * (compounded ** (year - 1))
+                    for year in range(1, policy.horizon_years + 1)
+                )
+                terminal = ((compounded ** policy.horizon_years)
+                            * (policy_scenario.terminal_weighted_pe / m0))
+                annualized_return = solve_annual_cashflow_irr(
+                    float(policy.normalized_initial_unit_value),
+                    tuple(float(value) for value in distributions),
+                    float(terminal),
+                )
+                scenarios.append(VFVForwardERScenarioResult(
+                    policy_scenario.name,
+                    policy_scenario.fundamental_growth,
+                    policy_scenario.terminal_weighted_pe,
+                    policy.normalized_initial_unit_value,
+                    distributions,
+                    terminal,
+                    annualized_return,
+                    VFV_PRINCIPAL_RESULT_SEMANTICS,
+                ))
         if not all(math.isfinite(item.annualized_return) for item in scenarios):
             raise AnnualCashFlowIRRError("Non-finite scenario return")
         if not (scenarios[0].annualized_return <= scenarios[1].annualized_return

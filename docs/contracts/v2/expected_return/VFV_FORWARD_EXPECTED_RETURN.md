@@ -90,6 +90,13 @@ addition to, MER and TER. Required expense facts must retain supported explicit
 annual-rate/annualized-as-of-date semantics. The latest quarterly distribution
 amount is retained upstream but is never annualized or extrapolated here.
 
+All material Decimal derivations execute inside a fresh code-owned local context
+with precision 28, `ROUND_HALF_EVEN`, `Emin=-999999`, `Emax=999999`, capitals 1,
+clamp 0, and explicit invalid-operation/division-by-zero/overflow traps. This
+preserves the original default-context economics while preventing ambient caller
+or process Decimal precision, rounding, exponent, flags, or traps from becoming
+an analytical input. No presentation quantization or arbitrary rounding is added.
+
 For each fixed scenario:
 
 ```text
