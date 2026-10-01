@@ -468,7 +468,16 @@ class VFVCurrentEvidenceIsolationTests(unittest.TestCase):
         protected = [root / "main.py"]
         for directory in ("src", "pit_comparison"):
             protected.extend((root / directory).rglob("*.py"))
+        authorized_analytical_adapter = (
+            root / "src" / "vfv_forward_expected_return.py"
+        ).resolve()
         for path in protected:
+            if path.resolve() == authorized_analytical_adapter:
+                self.assertIn(
+                    "from economic_facts import vfv_current_evidence as current",
+                    path.read_text(),
+                )
+                continue
             tree = ast.parse(path.read_text())
             for node in ast.walk(tree):
                 if isinstance(node, ast.ImportFrom):
