@@ -102,3 +102,32 @@
   recommendation, allocation, execution, promotion or automatic-tuning authority
   was granted. The next frontier belongs to Data & Evidence for VFV currency/hedging
   comparability before architecture review of a compatible comparison basis.
+
+## 2026-10-01 — PR #90 bounded company-vs-VFV Expected Return comparator canonical
+
+- PR #90 added the qualified VFV material-USD-exposure / dated materially-unhedged
+  evidence prerequisite and the bounded comparator for current real PR5E company
+  Expected Return versus standalone VFV Expected Return. It supports only same-label
+  bear/base/bull company-minus-VFV spreads under
+  `2026-10-01-company-vfv-constant-fx-comparison-v1` and
+  `RESEARCH_DIAGNOSTIC_ONLY` authority.
+- Initial local validation passed, but canonical CI #109 failed one comparator
+  semantic-ID pin. Architecture & Audit classified this as a real identity-boundary
+  defect: imported PR5E `admission_semantic_id` transitively carried platform-sensitive
+  PR4B1 binary64 lineage and replay/provenance state rather than pure comparator
+  economic semantics.
+- Corrected head `a005797e4c44ba2054600ef671dcf1234094389b` introduced comparator-owned company
+  problem semantic/evidence identities and representation
+  `2026-10-01-company-vfv-problem-identity-v2`. PR5E admission IDs remain trace
+  metadata but no longer drive comparator identities.
+- Architecture & Audit's final re-review found the correction technically satisfactory
+  and returned `BLOCKED — validation evidence only` because CI #110 was still running
+  at the mandated observation; it did not formally return `MERGE READY`.
+- CI #110 subsequently passed `FULL_PIT`: 2,794 standard tests plus 2 heavyweight
+  PIT tests, 2,796/2,796 total. The CEO merged PR #90 as
+  `150105fb54d08f47eddec7b815a93d11516edfcb`, tree
+  `15e2cdfc63a02b55d9cf21252be74a1da941ec2f`.
+- Company/VFV policies and economics, protected PIT/determinism identities and
+  `MODEL_RULES_VERSION` remained unchanged. No probability, ranking, recommendation,
+  allocation, execution, production, deployment, promotion or automatic-tuning
+  authority was granted; Stage B remains active and incomplete.
