@@ -12,6 +12,10 @@ class SourceAuthorityTests(unittest.TestCase):
         self.yahoo = s.get_source_route(s.YAHOO_FINANCE_CHART_CURRENT_QUOTE_V1)
         self.yahoo_splits = s.get_source_route(
             s.YAHOO_FINANCE_CHART_SPLIT_HISTORY_V1)
+        self.vfv_product = s.get_source_route(
+            s.VANGUARD_CANADA_VFV_PRODUCT_CURRENT_V1)
+        self.vfv_document = s.get_source_route(
+            s.VANGUARD_CANADA_VFV_DOCUMENT_CURRENT_V1)
 
     def test_exact_registered_route_and_pins(self):
         self.assertEqual(self.route.provider, "SEC")
@@ -102,6 +106,45 @@ class SourceAuthorityTests(unittest.TestCase):
         self.assertIs(self.yahoo_splits.license_status, s.UseStatus.UNKNOWN)
         self.assertIs(self.yahoo_splits.use_status, s.UseStatus.REVIEW_REQUIRED)
         self.assertIs(self.yahoo_splits.failure_policy, s.FailurePolicy.FAIL_CLOSED)
+
+    def test_vanguard_vfv_routes_are_exact_narrow_and_review_gated(self):
+        common = {
+            s.AuthorityProperty.SOURCE_ACQUISITION_PROVENANCE,
+            s.AuthorityProperty.CURRENT_OBSERVED_AVAILABILITY,
+            s.AuthorityProperty.CURRENT_SNAPSHOT_SCOPE,
+        }
+        self.assertEqual(self.vfv_product.provider, "VANGUARD_CANADA")
+        self.assertEqual(self.vfv_document.provider, "VANGUARD_CANADA")
+        self.assertEqual(
+            {grant.property for grant in self.vfv_product.permitted_claims},
+            common | {
+                s.AuthorityProperty.CURRENT_OBSERVED_MARKET_PRICE,
+                s.AuthorityProperty.QUOTE_CURRENCY_AND_UNIT,
+            })
+        self.assertEqual(
+            {grant.property for grant in self.vfv_document.permitted_claims}, common)
+        for route in (self.vfv_product, self.vfv_document):
+            self.assertEqual(route.required_acquisition_contract,
+                             "2026-09-30-vanguard-vfv-current-acquisition-v1")
+            self.assertEqual(route.required_capture_contract,
+                             "2026-09-30-vanguard-vfv-artifact-receipt-v1")
+            self.assertEqual(route.required_extraction_contract,
+                             "2026-09-30-vfv-current-evidence-extraction-v1")
+            self.assertEqual(route.required_resolution_contract,
+                             "2026-09-30-vfv-current-evidence-qualification-v1")
+            self.assertTrue(route.immutable_capture_required)
+            self.assertIs(route.publication_semantics, s.PublicationSemantics.UNKNOWN)
+            self.assertIs(route.availability_semantics,
+                          s.AvailabilitySemantics.CAPTURE_BOUND)
+            self.assertIs(route.pit_capability, s.PITCapability.UNSUPPORTED)
+            self.assertIs(route.failure_policy, s.FailurePolicy.FAIL_CLOSED)
+            self.assertIs(route.license_status, s.UseStatus.UNKNOWN)
+            self.assertIs(route.use_status, s.UseStatus.REVIEW_REQUIRED)
+            self.assertNotIn(s.AuthorityProperty.FINAL_ECONOMIC_ADMISSION,
+                             {grant.property for grant in route.permitted_claims})
+        for value in ("VANGUARD_CANADA", "VFV", "9563", "www.vanguard.ca"):
+            with self.assertRaises(s.SourceAuthorityError):
+                s.get_source_route(value)
 
     def test_registry_and_records_immutable(self):
         self.assertIsInstance(s._ROUTES, tuple)
