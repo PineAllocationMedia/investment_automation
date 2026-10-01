@@ -403,19 +403,24 @@ Stage B — Expected Return completion active technical frontier
 VFV CURRENT evidence foundation complete (PR #86)
     ↓
 VFV standalone forward Expected Return complete (PR #88)
+    ↓
+VFV FX/hedge evidence prerequisite complete (PR #90)
+    ↓
+Bounded company-vs-VFV Expected Return comparator complete (PR #90)
 ```
 
 This governance sequence was an administrative prerequisite, not a replacement for
 PR5E and not an expansion of Expected Return architecture. Role configuration and
 PR5E are complete. Stage B implementation now includes the bounded VFV CURRENT
-evidence foundation and standalone VFV forward Expected Return diagnostic; Stage B
+evidence foundation, standalone VFV forward Expected Return diagnostic, qualified
+VFV FX/hedge evidence prerequisite and bounded company-vs-VFV comparator; Stage B
 remains active and incomplete, and later technical stages remain in their existing
 order.
 
 No additional pre-Stage-B Expected Return architecture interlude is authorized in
-this sequence. The next Stage B step is the Data & Evidence prerequisite for VFV
-currency/hedging comparability described below, before architecture review of a
-compatible comparison basis.
+this sequence. The immediate Stage B direction is cash-like opportunity-cost
+rate/carry and comparable executable net instrument Expected Return, with any missing
+methodology/evidence boundary reviewed before implementation.
 
 The public SEC/free-Nasdaq source graph still lacks complete positive
 no-transformation coverage through CURRENT T. PR5C therefore uses positive
@@ -586,30 +591,62 @@ and deterministic; the public root remains a raw float, while identity version
 `2026-10-01-vfv-forward-er-root-problem-identity-v2` binds the deterministic root
 problem rather than the float result.
 
-This standalone capability does not alter company policy and grants no comparator,
-FX resolution, production, recommendation, allocation, execution, V2 promotion or
-automatic-tuning authority. The evidence boundary still retains
-`NO_UNDERLYING_EXPOSURE_CURRENCY_AUTHORITY`,
-`NO_CURRENCY_HEDGE_STATUS_AUTHORITY` and `NO_FX_COMPARABILITY_AUTHORITY`; therefore
-a company-vs-VFV comparator is not authorized or positively implementable.
+This standalone capability did not by itself alter company policy or grant comparator,
+FX-resolution, production, recommendation, allocation, execution, V2-promotion or
+automatic-tuning authority. PR #90 subsequently supplied a separate qualified
+FX/hedge evidence prerequisite and bounded comparison contract without changing the
+standalone diagnostic's own authority.
+
+#### Qualified VFV FX/hedge evidence prerequisite ✅
+
+PR #90 adds the exact evidence prerequisite for the reviewed comparison: material
+underlying USD exposure and a materially-unhedged-to-CAD state at the 2026-06-30
+disclosure boundary. This meaning is capture-bound and date-bound. It is not a
+permanent hedge-policy claim, FX forecast, realized-CAD-return model or universal
+FX-comparability authority.
+
+#### Bounded company-vs-VFV Expected Return comparator ✅
+
+PR #90 makes canonical the bounded current-real route:
+
+```text
+current real PR5E company Expected Return
++ standalone VFV Expected Return
++ exact qualified VFV FX/hedge evidence
+→ same-label deterministic company-vs-VFV Expected Return spreads
+```
+
+The comparator contract is
+`2026-10-01-company-vfv-expected-return-comparator-v1`; the unchanged reviewed
+economic basis is `2026-10-01-company-vfv-constant-fx-comparison-v1`; and authority
+is `RESEARCH_DIAGNOSTIC_ONLY`. Only company bear minus VFV bear, base minus base and
+bull minus bull are supported. These spreads are not probability-weighted
+outperformance forecasts, CAD-return forecasts, rankings, recommendations or
+allocation signals.
+
+Canonical CI #109 exposed a genuine comparator identity-boundary defect rather than
+a stale pin: PR5E admission identity transitively carried platform-sensitive PR4B1
+binary64 lineage and replay/provenance state. The corrected head introduced the
+comparator-owned company problem identity representation
+`2026-10-01-company-vfv-problem-identity-v2`. PR5E admission semantic/evidence IDs
+remain trace metadata but no longer drive comparator identity. Corrected canonical
+CI #110 passed `FULL_PIT`, 2,796/2,796, before the CEO merged PR #90.
 
 The expected immediate sequence is:
 
 ```text
-standalone VFV forward Expected Return complete
-→ Data & Evidence FX/hedge prerequisite
-→ architecture review of a compatible comparison basis
-→ bounded comparator
-→ continue remaining Stage B requirements
+bounded company-vs-VFV Expected Return comparator complete
+→ cash-like opportunity-cost rate/carry
+→ comparable executable net instrument Expected Return where supportable
+→ confidence propagation
+→ explicit unsupported cases
 ```
 
-No comparator, FX-resolution or cash-like implementation starts through this
-milestone or Governance Sync.
-
-- Data & Evidence currency/hedging prerequisite and architecture review of a
-  compatible comparison basis;
-- bounded VFV forward ER comparator after those prerequisites;
-- cash-like opportunity-cost rate/carry;
+- completed: Data & Evidence currency/hedging prerequisite and reviewed compatible
+  comparison basis;
+- completed: bounded VFV forward ER comparator;
+- next: cash-like opportunity-cost rate/carry, after methodology/evidence-boundary
+  review where not already canonically specified;
 - executable net instrument Expected Return where supportable;
 - confidence propagation;
 - explicit unsupported cases.
@@ -1540,18 +1577,22 @@ identity, international, PIT, data and licensing limitations remain. Stage B —
 Expected Return completion is active and incomplete. PR #86 completed the first
 bounded VFV CURRENT evidence foundation, and PR #88 completed the reviewed standalone
 VFV forward Expected Return methodology, CEO-approved numerical policy and canonical
-research diagnostic. The immediate next direction is Data & Evidence work on VFV
-underlying-exposure currency and hedge status before architecture review of a
-compatible comparison basis. Do not start the comparator or cash-like work through
-this Governance Sync.
+research diagnostic. PR #90 completed the qualified VFV USD-exposure / dated
+materially-unhedged prerequisite and the bounded same-label company-vs-VFV Expected
+Return comparator under constant FX, including the comparator-owned company problem
+identity-v2 correction. The immediate next direction is cash-like opportunity-cost
+rate/carry and comparable executable net instrument Expected Return where supportable;
+review any missing methodology/evidence boundary before implementation. This
+Governance Sync starts no implementation.
 
 ---
 
-*Roadmap state updated on 2026-10-01 through canonical PR #88. Governance Reform
+*Roadmap state updated on 2026-10-01 through canonical PR #90. Governance Reform
 Phase 1, Governance Cleanup / Migration, role Projects/employees configuration and
 PR5E are complete. Stage B — Expected Return completion is the active technical
-frontier; its VFV CURRENT evidence-foundation and standalone forward Expected Return
-milestones are complete, while Stage B remains incomplete.
+frontier; its VFV CURRENT evidence foundation, standalone forward Expected Return,
+qualified FX/hedge prerequisite and bounded company-vs-VFV comparator milestones are
+complete, while Stage B remains incomplete.
 Later architecture stages and shadow-readiness gates remain requirements only.
 The reviewed PR5D2 Expected Return assumption policies are now pinned, but no
 investment-rule, model-rule, V1 or production-authority change is authorized
