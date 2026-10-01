@@ -52,3 +52,25 @@
   and `MODEL_RULES_VERSION` `2026-08-23-allocation-room-integrity-v7`.
 - V1 remains frozen operational authority and V2 remains a challenger. Stage B —
   Expected Return completion becomes the next active technical frontier.
+
+## 2026-10-01 — PR #86 VFV CURRENT evidence foundation canonical
+
+- The CEO merged PR #86, making the first bounded VFV CURRENT evidence foundation
+  canonical and starting Stage B implementation without completing Stage B.
+- The Vanguard Canada first-party, `CURRENT_ONLY` path implements exact-byte
+  immutable capture/replay, bounded acquisition, offline extraction and deterministic
+  qualification into typed facts with closed outcomes and provenance.
+- Historical return/CAGR values remain quarantined from qualified forward-facing
+  facts. The contract supplies no forward EPS, growth or P/E and introduced no
+  Expected Return mathematics or company-vs-VFV comparator.
+- The v1 currency surface was deliberately narrowed to CAD listed/base currency.
+  Underlying economic currency exposure and hedge status remain deferred, with no FX
+  comparability authority.
+- Architecture & Audit's initial review identified four implementation defects. The
+  corrected head `fcac39302969c066173e61d45240116b9321d582` closed all four, and
+  the corrected validation tier remained `STANDARD`.
+- Canonical GitHub evidence records `Baseline V1 CI` run #103 as successful on the
+  corrected head; no canonical test total is claimed. The CEO subsequently merged
+  the PR as canonical merge `6812ca8264628216ba4f2350680dc1073ee9f0bb`.
+- `MODEL_RULES_VERSION` remains
+  `2026-08-23-allocation-room-integrity-v7`; no model-rule change occurred.
