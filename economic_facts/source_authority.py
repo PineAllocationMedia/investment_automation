@@ -14,6 +14,8 @@ SOURCE_AUTHORITY_VERSION = "2026-09-19-source-route-authority-v1"
 SEC_COMPANYFACTS_LIVE_CURRENT_V1 = "SEC_COMPANYFACTS_LIVE_CURRENT_V1"
 YAHOO_FINANCE_CHART_CURRENT_QUOTE_V1 = "YAHOO_FINANCE_CHART_CURRENT_QUOTE_V1"
 YAHOO_FINANCE_CHART_SPLIT_HISTORY_V1 = "YAHOO_FINANCE_CHART_SPLIT_HISTORY_V1"
+VANGUARD_CANADA_VFV_PRODUCT_CURRENT_V1 = "VANGUARD_CANADA_VFV_PRODUCT_CURRENT_V1"
+VANGUARD_CANADA_VFV_DOCUMENT_CURRENT_V1 = "VANGUARD_CANADA_VFV_DOCUMENT_CURRENT_V1"
 
 
 class AuthorityProperty(Enum):
@@ -191,6 +193,52 @@ _ROUTES = (SourceRouteProfile(
     "2026-09-29-yahoo-split-history-extraction-v1",
     "2026-09-29-free-bounded-share-basis-bridge-v1",
     "2026-09-29-exact-integral-split-events-v1",
+    True,
+    PublicationSemantics.UNKNOWN,
+    AvailabilitySemantics.CAPTURE_BOUND,
+    PITCapability.UNSUPPORTED,
+    FailurePolicy.FAIL_CLOSED,
+    UseStatus.UNKNOWN,
+    UseStatus.REVIEW_REQUIRED,
+), SourceRouteProfile(
+    VANGUARD_CANADA_VFV_PRODUCT_CURRENT_V1,
+    "VANGUARD_CANADA",
+    "2026-09-30-vanguard-vfv-product-current-route-v1",
+    ("CA",),
+    tuple(ClaimGrant(p, ClaimAuthority.TRUSTED_LOCAL_PROCESS, ClaimRole.PRIMARY)
+          for p in (AuthorityProperty.SOURCE_ACQUISITION_PROVENANCE,
+                    AuthorityProperty.CURRENT_OBSERVED_AVAILABILITY,
+                    AuthorityProperty.CURRENT_SNAPSHOT_SCOPE,
+                    AuthorityProperty.CURRENT_OBSERVED_MARKET_PRICE,
+                    AuthorityProperty.QUOTE_CURRENCY_AND_UNIT)),
+    "2026-09-30-vfv-current-evidence-qualification-v1",
+    "2026-09-30-vanguard-vfv-current-acquisition-v1",
+    "2026-09-30-vanguard-vfv-artifact-receipt-v1",
+    "2026-09-30-vfv-current-evidence-extraction-v1",
+    "2026-09-30-vfv-current-evidence-qualification-v1",
+    "2026-09-30-vfv-current-evidence-foundation-v1",
+    True,
+    PublicationSemantics.UNKNOWN,
+    AvailabilitySemantics.CAPTURE_BOUND,
+    PITCapability.UNSUPPORTED,
+    FailurePolicy.FAIL_CLOSED,
+    UseStatus.UNKNOWN,
+    UseStatus.REVIEW_REQUIRED,
+), SourceRouteProfile(
+    VANGUARD_CANADA_VFV_DOCUMENT_CURRENT_V1,
+    "VANGUARD_CANADA",
+    "2026-09-30-vanguard-vfv-document-current-route-v1",
+    ("CA",),
+    tuple(ClaimGrant(p, ClaimAuthority.TRUSTED_LOCAL_PROCESS, ClaimRole.PRIMARY)
+          for p in (AuthorityProperty.SOURCE_ACQUISITION_PROVENANCE,
+                    AuthorityProperty.CURRENT_OBSERVED_AVAILABILITY,
+                    AuthorityProperty.CURRENT_SNAPSHOT_SCOPE)),
+    "2026-09-30-vfv-current-evidence-qualification-v1",
+    "2026-09-30-vanguard-vfv-current-acquisition-v1",
+    "2026-09-30-vanguard-vfv-artifact-receipt-v1",
+    "2026-09-30-vfv-current-evidence-extraction-v1",
+    "2026-09-30-vfv-current-evidence-qualification-v1",
+    "2026-09-30-vfv-current-evidence-foundation-v1",
     True,
     PublicationSemantics.UNKNOWN,
     AvailabilitySemantics.CAPTURE_BOUND,
