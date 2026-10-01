@@ -158,12 +158,17 @@ Success establishes these typed objects:
 - `VFVMarketObservation`: exact issuer daily CAD market price and optional separately
   labelled issuer daily NAV;
 - `VFVExpenseFacts`: management fee, MER and TER as separate exact percentages, with
-  explicit completed-period semantics for MER and TER;
+  their exact source-effective dates and distinct source-supported annual-rate/
+  annualized-as-of-date semantics;
 - `VFVDistributionFacts` and `VFVDistributionEvent`: exact latest event chronology and
   explicit issuer trailing-12-month yield;
-- `VFVTrailingValuation`: one provider trailing weighted P/E for the fund portfolio;
-- `VFVCurrencyExposureFacts`: CAD listing/base, explicitly evidenced USD exposure and
-  unhedged state.
+- `VFVTrailingValuation`: one provider trailing weighted P/E for the fund portfolio.
+
+The v1 currency fact boundary is exactly the directly evidenced `listed_currency =
+CAD` and `base_currency = CAD` carried by `VFVFundIdentity`. Underlying economic
+currency exposure and currency-hedge status are deferred rather than optional facts.
+No geography, underlying-vehicle domicile, product name or synthetic label may infer
+either deferred field.
 
 The reviewed positive identity is extracted and corroborated from evidence; it is
 not returned merely because the route is named VFV:
@@ -182,9 +187,11 @@ United States domicile
 ```
 
 Ticker remains a locator, not sufficient identity authority. ETF Facts is primary
-for fund/unit/ticker/exchange/current legal presentation; product-page and Factsheet
-facts corroborate where present. ISIN and underlying-vehicle semantics require
-positive retained evidence. Identity disagreement fails closed.
+for fund name, security unit type, primary listing exchange, ticker, listed currency
+and tracked economic index. Every one of those roles must be present in the ETF Facts
+extraction before provenance binding; product-page and Factsheet facts may corroborate
+but never replace missing primary evidence. ISIN and underlying-vehicle semantics
+require positive retained evidence. Identity disagreement fails closed.
 
 `tracked_economic_index` and optional `performance_series_label` are different
 fields. A CAD/NTR performance label is never relabelled as the tracked economic
@@ -192,14 +199,23 @@ index and creates no inferred tax or net-return semantics.
 
 ## Contradiction and chronology rules
 
-- same expense metric, same explicit completed period, different value is conflict;
-- different explicit periods are not conflict;
-- the most recent explicitly evidenced completed period is selected;
+- same expense metric, same explicit semantic period, different value is conflict;
+- different explicit periods or period semantics are not conflict;
+- the most recent explicitly evidenced period is selected;
+- Factsheet MER retains `ANNUALIZED_PERCENTAGE_AS_OF_DATE`; its as-of date is not
+  relabelled as a completed fund year;
+- ETF Facts MER/TER retain the distinct `ANNUAL_RATE_AS_OF_DATE` semantics;
+- annualization flags are set only when the captured source expressly supplies the
+  corresponding annualized-percentage or annual-rate semantics;
 - observations are never averaged and expenses are never arithmetically combined;
 - different market-price dates are not conflicts and archive recency is never scanned;
 - NAV never substitutes for required market price;
 - latest quarterly distribution is never annualized or extrapolated;
 - event chronology requires `ex_date <= record_date <= payment_date`;
+- `ex_date` and `record_date` cannot follow the retrieval date of the exact product
+  receipt establishing the event;
+- `payment_date` may follow retrieval only when that captured event explicitly
+  declares the scheduled payment date;
 - field-effective/document dates cannot be after their own capture date;
 - publication time remains unknown and is never inferred from a document/effective/
   page/retrieval date.
@@ -254,6 +270,13 @@ production, VFV-first-route and no-generic-benchmark limitations.
 It also states that public availability is not commercial authority, commercial
 ingestion/redistribution and S&P reuse are not authorized, use is current private
 internal research only, TMX is not a primary source, and CUSIP is not exposed.
+
+The result additionally carries
+`NO_UNDERLYING_EXPOSURE_CURRENCY_AUTHORITY`,
+`NO_CURRENCY_HEDGE_STATUS_AUTHORITY` and `NO_FX_COMPARABILITY_AUTHORITY`.
+Accordingly, CAD listing/base currency does not establish underlying economic
+currency exposure or hedge status and cannot support an FX-sensitive company-vs-VFV
+comparison or constant-FX comparability.
 
 The qualification deliberately exposes no P/B, ROE, underlying dividend yield,
 historical growth/return/CAGR/performance statistic, historical distribution growth,

@@ -36,6 +36,7 @@ def product_html(**changes):
         "management_fee": "0.08",
         "mer": "0.08",
         "ter": "0.00",
+        "expense_period_disclosure": "",
         "frequency": "Quarterly",
         "trailing_yield": "0.84",
         "trailing_date": "Aug 31 2026",
@@ -66,6 +67,7 @@ def product_html(**changes):
 <dt>Management Fee</dt><dd>{values['management_fee']}%</dd>
 <dt>Management Expense Ratio (MER)</dt><dd>{values['mer']}%</dd>
 <dt>Trading Expense Ratio (TER)</dt><dd>{values['ter']}%</dd>
+<p>{values['expense_period_disclosure']}</p>
 <dt>Distribution frequency</dt><dd>{values['frequency']}</dd>
 <dt>Benchmark</dt><dd>S&amp;P 500 (CAD NY Rate) NTR 15%</dd>
 <dt>12 month trailing yield</dt><dd>{values['trailing_yield']}%</dd><dd>({values['trailing_date']})</dd>
@@ -94,13 +96,14 @@ def etf_facts_pdf(**changes):
         "fund_name": "Vanguard S&P 500 Index ETF",
         "date": "July 16, 2026",
         "ticker": "VFV",
-        "unit": "ETF Units",
         "exchange": "TSX",
         "currency": "CAD",
         "management_fee": "0.08%",
         "mer": "0.09%",
         "ter": "0.00%",
         "period": "December 31, 2025",
+        "unit_text": "Units of the ETF are traded on an exchange.",
+        "index": "S&P 500 Index",
     }
     values.update(changes)
     return _pdf([
@@ -108,17 +111,17 @@ def etf_facts_pdf(**changes):
         values["fund_name"],
         values["date"],
         values["ticker"],
-        f"Security unit type {values['unit']}",
         f"Ticker symbol {values['ticker']}",
         f"Exchange {values['exchange']}",
         f"Currency {values['currency']}",
-        "The fund seeks to track the S&P 500 Index.",
+        f"The fund seeks to track the {values['index']}.",
         f"Management fee {values['management_fee']}",
         f"As of {values['period']}, the ETF's expenses were 0.09% of its value.",
+        "Annual rate (as a % of the ETF's value)",
         f"Management Expense Ratio (MER) {values['mer']}",
         f"Trading Expense Ratio (TER) {values['ter']}",
         "Distributions Quarterly",
-        "Units of the ETF are traded on an exchange.",
+        values["unit_text"],
     ])
 
 
@@ -134,11 +137,7 @@ def factsheet_pdf(**changes):
         "index": "S&P 500 Index",
         "mer": "0.08%",
         "mer_period": "June 30, 2026",
-        "ter": "0.00%",
-        "ter_period": "June 30, 2026",
         "pe": "25.2x",
-        "exposure": "USD",
-        "hedged": "No",
     }
     values.update(changes)
     return _pdf([
@@ -153,12 +152,11 @@ def factsheet_pdf(**changes):
         "Invests primarily in the U.S.-domiciled Vanguard S&P 500 ETF.",
         f"Management fee {values['management_fee']}",
         f"MER {values['mer']}",
-        f"MER period end {values['mer_period']}",
-        f"TER {values['ter']}",
-        f"TER period end {values['ter_period']}",
+        (f"The management expense ratio (MER) is the MER as of "
+         f"{values['mer_period']},"),
+        ("including waivers and absorptions and is expressed as an annualized "
+         "percentage of the daily average net asset value."),
         f"Weighted P/E {values['pe']}",
-        f"Underlying exposure currency {values['exposure']}",
-        f"Currency hedged {values['hedged']}",
         "Information displayed is for the U.S.-domiciled Vanguard S&P 500 ETF.",
     ])
 

@@ -102,8 +102,6 @@ class VFVFactRole(StrEnum):
     LATEST_DISTRIBUTION_PAYMENT_DATE = "LATEST_DISTRIBUTION_PAYMENT_DATE"
     TRAILING_DISTRIBUTION_YIELD = "TRAILING_DISTRIBUTION_YIELD"
     WEIGHTED_PE = "WEIGHTED_PE"
-    UNDERLYING_EXPOSURE_CURRENCY = "UNDERLYING_EXPOSURE_CURRENCY"
-    CURRENCY_HEDGED = "CURRENCY_HEDGED"
 
 
 class VFVObservationType(StrEnum):
@@ -117,7 +115,8 @@ class VFVFactUnit(StrEnum):
 
 
 class VFVExpensePeriodSemantics(StrEnum):
-    COMPLETED_FUND_YEAR = "COMPLETED_FUND_YEAR"
+    ANNUALIZED_PERCENTAGE_AS_OF_DATE = "ANNUALIZED_PERCENTAGE_AS_OF_DATE"
+    ANNUAL_RATE_AS_OF_DATE = "ANNUAL_RATE_AS_OF_DATE"
 
 
 class VFVTrailingYieldSemantics(StrEnum):
@@ -164,6 +163,11 @@ class VFVCurrentEvidenceLimitation(StrEnum):
     )
     TMX_NOT_PRIMARY_CORE_SOURCE = "TMX_NOT_PRIMARY_CORE_SOURCE"
     CUSIP_NOT_EXPOSED_BY_THIS_CONTRACT = "CUSIP_NOT_EXPOSED_BY_THIS_CONTRACT"
+    NO_UNDERLYING_EXPOSURE_CURRENCY_AUTHORITY = (
+        "NO_UNDERLYING_EXPOSURE_CURRENCY_AUTHORITY"
+    )
+    NO_CURRENCY_HEDGE_STATUS_AUTHORITY = "NO_CURRENCY_HEDGE_STATUS_AUTHORITY"
+    NO_FX_COMPARABILITY_AUTHORITY = "NO_FX_COMPARABILITY_AUTHORITY"
 
 
 _LIMITATIONS = tuple(VFVCurrentEvidenceLimitation)
@@ -200,12 +204,12 @@ class VFVExpenseFacts:
     management_fee: Decimal
     management_fee_unit: VFVFactUnit
     mer: Decimal
-    mer_period_end: str
+    mer_effective_as_of: str
     mer_period_semantics: VFVExpensePeriodSemantics
     mer_annualized: bool
     mer_unit: VFVFactUnit
     ter: Decimal
-    ter_period_end: str
+    ter_effective_as_of: str
     ter_period_semantics: VFVExpensePeriodSemantics
     ter_annualized: bool
     ter_unit: VFVFactUnit
@@ -239,15 +243,6 @@ class VFVTrailingValuation:
     weighted_pe: Decimal
     metric_subject: VFVValuationMetricSubject
     metric_semantics: VFVValuationMetricSemantics
-    field_effective_as_of: str
-
-
-@dataclass(frozen=True, slots=True)
-class VFVCurrencyExposureFacts:
-    listed_currency: str
-    base_currency: str
-    underlying_exposure_currency: str
-    currency_hedged: bool
     field_effective_as_of: str
 
 
@@ -291,7 +286,9 @@ class VFVCurrentEvidenceRequest:
 @dataclass(frozen=True, slots=True)
 class _ExpenseObservation:
     value: Decimal
-    period_end: str | None
+    effective_as_of: str | None
+    period_semantics: VFVExpensePeriodSemantics | None
+    annualized: bool | None
     artifact_family: VanguardVFVArtifactFamily
     role: VFVFactRole
 
@@ -320,9 +317,13 @@ class VFVCurrentArtifactExtraction:
     nav_date: str | None = None
     management_fee: Decimal | None = None
     mer: Decimal | None = None
-    mer_period_end: str | None = None
+    mer_effective_as_of: str | None = None
+    mer_period_semantics: VFVExpensePeriodSemantics | None = None
+    mer_annualized: bool | None = None
     ter: Decimal | None = None
-    ter_period_end: str | None = None
+    ter_effective_as_of: str | None = None
+    ter_period_semantics: VFVExpensePeriodSemantics | None = None
+    ter_annualized: bool | None = None
     distribution_frequency: str | None = None
     latest_distribution_type: str | None = None
     latest_cash_distribution: Decimal | None = None
@@ -336,9 +337,6 @@ class VFVCurrentArtifactExtraction:
     trailing_yield_date: str | None = None
     weighted_pe: Decimal | None = None
     weighted_pe_date: str | None = None
-    underlying_exposure_currency: str | None = None
-    currency_hedged: bool | None = None
-    currency_exposure_date: str | None = None
     locators: tuple[tuple[VFVFactRole, str], ...] = ()
 
     @property
@@ -379,7 +377,6 @@ class VFVCurrentEvidenceQualification:
     expenses: VFVExpenseFacts | None
     distributions: VFVDistributionFacts | None
     trailing_valuation: VFVTrailingValuation | None
-    currency_exposure: VFVCurrencyExposureFacts | None
     fact_evidence: tuple[VFVFactEvidence, ...]
     limitations: tuple[VFVCurrentEvidenceLimitation, ...]
     license_status: UseStatus
@@ -414,7 +411,6 @@ class VFVCurrentEvidenceQualification:
             "expenses": self.expenses,
             "distributions": self.distributions,
             "trailing_valuation": self.trailing_valuation,
-            "currency_exposure": self.currency_exposure,
             "limitations": self.limitations,
             "product_route_factual_hash": self.product_route_factual_hash,
             "document_route_factual_hash": self.document_route_factual_hash,
@@ -626,18 +622,22 @@ def _extract_values(receipt, text, rows=()):
     put("fund_name", ("Vanguard S&P 500 Index ETF" if
                       "Vanguard S&P 500 Index ETF" in flat else None),
         VFVFactRole.FUND_NAME)
-    ticker = _search(flat, r"\bTicker(?:\s+symbol)?\s*:?\s+([A-Z][A-Z0-9.-]{0,14})\b")
+    ticker = _search(
+        flat,
+        r"\b(?:Ticker[ \t]+symbol|Ticker(?![ \t]+symbol))"
+        r"[ \t]*:?[ \t]+([A-Z][A-Z0-9.-]{0,14})\b",
+    )
     if ticker is None and re.search(r"\(VFV\)\s+Vanguard S&P 500 Index ETF", flat):
         ticker = "VFV"
     put("ticker", ticker, VFVFactRole.TICKER)
     isin = _search(flat, r"\bISIN\s*:?\s+([A-Z]{2}[A-Z0-9]{9}[0-9])\b")
     put("isin", isin, VFVFactRole.ISIN)
-    exchange = _search(flat, r"\b(?:Exchanges?|Primary listing exchange)\s*:?\s+"
+    exchange = _search(flat, r"\b(?:Exchanges?|Primary listing exchange)[ \t]*:?[ \t]+"
                               r"(Toronto\s+Stock\s+Exchange|TSX)\b")
     if exchange is None:
         exchange = _search(
             flat,
-            r"\b(?:Exchanges?|Primary listing exchange)\s*:?\s+([^\n]+)",
+            r"\b(?:Exchanges?|Primary listing exchange)[ \t]*:?[ \t]+([^\n]+)",
         )
     if exchange == "TSX":
         exchange = "Toronto Stock Exchange"
@@ -645,7 +645,10 @@ def _extract_values(receipt, text, rows=()):
             r"Toronto\s+Stock\s+Exchange", exchange, re.IGNORECASE):
         exchange = "Toronto Stock Exchange"
     put("primary_listing_exchange", exchange, VFVFactRole.PRIMARY_LISTING_EXCHANGE)
-    listed = _search(flat, r"\b(?:Listed currencies|Listed currency|Currency)\s*:?\s+(CAD|USD)\b")
+    listed = _search(
+        flat,
+        r"\b(?:Listed currencies|Listed currency|Currency)[ \t]*:?[ \t]+(CAD|USD)\b",
+    )
     put("listed_currency", listed, VFVFactRole.LISTED_CURRENCY)
     base = _search(flat, r"\bBase currency\s*:?\s+(CAD|USD)\b")
     put("base_currency", base, VFVFactRole.BASE_CURRENCY)
@@ -708,17 +711,46 @@ def _extract_values(receipt, text, rows=()):
                         r"([0-9]+(?:\.[0-9]+)?%)")
     mer_period = _date_value(_search(flat, r"\bMER period end\s*:?\s+([^\n]+)"))
     ter_period = _date_value(_search(flat, r"\bTER period end\s*:?\s+([^\n]+)"))
-    if mer_period is None:
-        mer_period = _date_value(_search(
-            flat, r"MER is the MER as of ([A-Za-z]+\s+[0-9]{1,2},?\s+[0-9]{4})"))
+    mer_period_semantics = None
+    mer_annualized = None
+    ter_period_semantics = None
+    ter_annualized = None
+    factsheet_mer_period = _date_value(_search(
+        flat,
+        r"MER\)?[ \t]+is the MER as of "
+        r"([A-Za-z]+\s+[0-9]{1,2},?\s+[0-9]{4})",
+    ))
+    if (factsheet_mer_period is not None
+            and re.search(r"expressed as an annualized percentage", flat,
+                          re.IGNORECASE)):
+        mer_period = factsheet_mer_period
+        mer_period_semantics = (
+            VFVExpensePeriodSemantics.ANNUALIZED_PERCENTAGE_AS_OF_DATE
+        )
+        mer_annualized = True
     expense_period = _date_value(_search(
         flat, r"\bAs of ([A-Za-z]+\s+[0-9]{1,2},?\s+[0-9]{4}), the ETF's expenses"))
-    mer_period = mer_period or expense_period
-    ter_period = ter_period or expense_period
+    annual_rate = re.search(
+        r"\bAnnual rate\s*\(as a % of the ETF[’']s value\)", flat,
+        re.IGNORECASE,
+    )
+    if expense_period is not None and annual_rate:
+        if mer_period is None:
+            mer_period = expense_period
+        if ter_period is None:
+            ter_period = expense_period
+        mer_period_semantics = VFVExpensePeriodSemantics.ANNUAL_RATE_AS_OF_DATE
+        mer_annualized = True
+        ter_period_semantics = VFVExpensePeriodSemantics.ANNUAL_RATE_AS_OF_DATE
+        ter_annualized = True
     put("mer", _decimal(mer, percent=True), VFVFactRole.MER)
-    values["mer_period_end"] = mer_period
+    values["mer_effective_as_of"] = mer_period
+    values["mer_period_semantics"] = mer_period_semantics
+    values["mer_annualized"] = mer_annualized
     put("ter", _decimal(ter, percent=True), VFVFactRole.TER)
-    values["ter_period_end"] = ter_period
+    values["ter_effective_as_of"] = ter_period
+    values["ter_period_semantics"] = ter_period_semantics
+    values["ter_annualized"] = ter_annualized
 
     frequency = _search(flat, r"\bDistribution (?:frequency|schedule)\s*:?\s+([A-Za-z]+)")
     put("distribution_frequency", frequency, VFVFactRole.DISTRIBUTION_FREQUENCY)
@@ -774,13 +806,6 @@ def _extract_values(receipt, text, rows=()):
                        r"([0-9]+(?:\.[0-9]+)?x)")
     put("weighted_pe", _decimal(pe, multiple=True), VFVFactRole.WEIGHTED_PE)
     values["weighted_pe_date"] = document_date
-    exposure = _search(flat, r"\bUnderlying exposure currency\s*:?\s+(USD|CAD)\b")
-    put("underlying_exposure_currency", exposure,
-        VFVFactRole.UNDERLYING_EXPOSURE_CURRENCY)
-    hedged_raw = _search(flat, r"\bCurrency hedged\s*:?\s+(Yes|No)\b")
-    hedged = None if hedged_raw is None else hedged_raw.casefold() == "yes"
-    put("currency_hedged", hedged, VFVFactRole.CURRENCY_HEDGED)
-    values["currency_exposure_date"] = document_date
 
     locators = tuple(sorted(
         ((role, _locator(role, family)) for role in roles),
@@ -867,10 +892,12 @@ def _retrieval_date(extraction):
 
 def _select_expense(observations):
     dated = [item for item in observations if item.value is not None
-             and item.period_end is not None]
+             and item.effective_as_of is not None
+             and item.period_semantics is not None
+             and item.annualized is not None]
     if not dated:
         return None
-    return max(dated, key=lambda item: item.period_end)
+    return max(dated, key=lambda item: item.effective_as_of)
 
 
 def _fact_evidence(extraction, role, field_date):
@@ -901,7 +928,7 @@ def _blank_result(product, etf, factsheet, status, reasons, routes):
         status,
         tuple(sorted(reasons, key=lambda item: item.value)),
         VFVFactualAuthorityScope.CURRENT_ONLY,
-        None, None, None, None, None, None, None,
+        None, None, None, None, None, None,
         (),
         _LIMITATIONS,
         product_route.license_status,
@@ -954,6 +981,19 @@ def qualify_vfv_current_evidence(
     if not all(item.artifact_recognized for item in (product, etf, factsheet)):
         unavailable.add(VFVCurrentEvidenceReason.MISSING_REQUIRED_PRIMARY_ARTIFACT)
 
+    etf_primary_identity = (
+        ("fund_name", VFVFactRole.FUND_NAME),
+        ("security_unit_type", VFVFactRole.SECURITY_UNIT_TYPE),
+        ("primary_listing_exchange", VFVFactRole.PRIMARY_LISTING_EXCHANGE),
+        ("ticker", VFVFactRole.TICKER),
+        ("listed_currency", VFVFactRole.LISTED_CURRENCY),
+        ("tracked_economic_index", VFVFactRole.TRACKED_ECONOMIC_INDEX),
+    )
+    etf_locator_roles = {role for role, _locator_value in etf.locators}
+    if any(getattr(etf, name) is None or role not in etf_locator_roles
+           for name, role in etf_primary_identity):
+        unavailable.add(VFVCurrentEvidenceReason.REQUIRED_FIELD_UNAVAILABLE)
+
     identity_specs = (
         ("fund_name", "Vanguard S&P 500 Index ETF"),
         ("security_unit_type", "ETF Units"),
@@ -989,21 +1029,24 @@ def qualify_vfv_current_evidence(
         unavailable.add(VFVCurrentEvidenceReason.PRICE_UNAVAILABLE)
 
     mer_observations = tuple(
-        _ExpenseObservation(item.mer, item.mer_period_end,
+        _ExpenseObservation(item.mer, item.mer_effective_as_of,
+                            item.mer_period_semantics, item.mer_annualized,
                             item.receipt.artifact_family, VFVFactRole.MER)
         for item in (product, etf, factsheet) if item.mer is not None
     )
     ter_observations = tuple(
-        _ExpenseObservation(item.ter, item.ter_period_end,
+        _ExpenseObservation(item.ter, item.ter_effective_as_of,
+                            item.ter_period_semantics, item.ter_annualized,
                             item.receipt.artifact_family, VFVFactRole.TER)
         for item in (product, etf, factsheet) if item.ter is not None
     )
     for observations in (mer_observations, ter_observations):
-        by_date = {}
+        by_semantic_period = {}
         for item in observations:
-            if item.period_end is not None:
-                by_date.setdefault(item.period_end, set()).add(item.value)
-        if any(len(values) > 1 for values in by_date.values()):
+            if item.effective_as_of is not None and item.period_semantics is not None:
+                key = (item.effective_as_of, item.period_semantics, item.annualized)
+                by_semantic_period.setdefault(key, set()).add(item.value)
+        if any(len(values) > 1 for values in by_semantic_period.values()):
             conflicts.add(VFVCurrentEvidenceReason.SAME_METRIC_SAME_DATE_CONFLICT)
     mer_choice = _select_expense(mer_observations)
     ter_choice = _select_expense(ter_observations)
@@ -1030,10 +1073,6 @@ def qualify_vfv_current_evidence(
         unavailable.add(VFVCurrentEvidenceReason.REQUIRED_FIELD_UNAVAILABLE)
     if factsheet.weighted_pe is None or factsheet.weighted_pe_date is None:
         unavailable.add(VFVCurrentEvidenceReason.REQUIRED_FIELD_UNAVAILABLE)
-    if (factsheet.underlying_exposure_currency is None
-            or factsheet.currency_hedged is None):
-        unsupported.add(
-            VFVCurrentEvidenceReason.REQUIRED_FIELD_UNSUPPORTED_BY_REVIEWED_FREE_SOURCE)
 
     chronology = False
     dated_fields = (
@@ -1043,10 +1082,10 @@ def qualify_vfv_current_evidence(
         (etf.document_date, etf),
         (factsheet.document_date, factsheet),
         (factsheet.weighted_pe_date, factsheet),
-        (mer_choice.period_end if mer_choice else None,
+        (mer_choice.effective_as_of if mer_choice else None,
          {item.receipt.artifact_family: item for item in (product, etf, factsheet)}.get(
              mer_choice.artifact_family) if mer_choice else product),
-        (ter_choice.period_end if ter_choice else None,
+        (ter_choice.effective_as_of if ter_choice else None,
          {item.receipt.artifact_family: item for item in (product, etf, factsheet)}.get(
              ter_choice.artifact_family) if ter_choice else product),
     )
@@ -1057,8 +1096,18 @@ def qualify_vfv_current_evidence(
             chronology = True
     event_dates = tuple(_as_date(value) for value in (
         product.latest_ex_date, product.latest_record_date, product.latest_payment_date))
-    if all(event_dates) and not (event_dates[0] <= event_dates[1] <= event_dates[2]):
-        chronology = True
+    if all(event_dates):
+        product_retrieved = _retrieval_date(product)
+        payment_explicit = (
+            VFVFactRole.LATEST_DISTRIBUTION_PAYMENT_DATE
+            in {role for role, _locator_value in product.locators}
+        )
+        if (not (event_dates[0] <= event_dates[1] <= event_dates[2])
+                or product_retrieved is None
+                or event_dates[0] > product_retrieved
+                or event_dates[1] > product_retrieved
+                or (event_dates[2] > product_retrieved and not payment_explicit)):
+            chronology = True
     if chronology:
         conflicts.add(VFVCurrentEvidenceReason.FIELD_CHRONOLOGY_INVALID)
 
@@ -1095,14 +1144,14 @@ def qualify_vfv_current_evidence(
         management_source.management_fee,
         VFVFactUnit.PERCENT,
         mer_choice.value,
-        mer_choice.period_end,
-        VFVExpensePeriodSemantics.COMPLETED_FUND_YEAR,
-        True,
+        mer_choice.effective_as_of,
+        mer_choice.period_semantics,
+        mer_choice.annualized,
         VFVFactUnit.PERCENT,
         ter_choice.value,
-        ter_choice.period_end,
-        VFVExpensePeriodSemantics.COMPLETED_FUND_YEAR,
-        True,
+        ter_choice.effective_as_of,
+        ter_choice.period_semantics,
+        ter_choice.annualized,
         VFVFactUnit.PERCENT,
     )
     event = VFVDistributionEvent(
@@ -1130,14 +1179,6 @@ def qualify_vfv_current_evidence(
         VFVValuationMetricSemantics.PROVIDER_TRAILING_WEIGHTED_P_E,
         factsheet.weighted_pe_date,
     )
-    exposure = VFVCurrencyExposureFacts(
-        identity.listed_currency,
-        identity.base_currency,
-        factsheet.underlying_exposure_currency,
-        factsheet.currency_hedged,
-        factsheet.currency_exposure_date,
-    )
-
     evidence_sources = {
         VFVFactRole.FUND_NAME: (etf, etf.document_date),
         VFVFactRole.SECURITY_UNIT_TYPE: (etf, etf.document_date),
@@ -1153,8 +1194,8 @@ def qualify_vfv_current_evidence(
         VFVFactRole.MARKET_PRICE: (product, product.market_price_date),
         VFVFactRole.MANAGEMENT_FEE: (management_source,
                                      management_source.document_date),
-        VFVFactRole.MER: (mer_source, mer_choice.period_end),
-        VFVFactRole.TER: (ter_source, ter_choice.period_end),
+        VFVFactRole.MER: (mer_source, mer_choice.effective_as_of),
+        VFVFactRole.TER: (ter_source, ter_choice.effective_as_of),
         VFVFactRole.DISTRIBUTION_FREQUENCY: (product, None),
         VFVFactRole.LATEST_DISTRIBUTION_TYPE: (product, product.latest_ex_date),
         VFVFactRole.LATEST_CASH_DISTRIBUTION: (product, product.latest_ex_date),
@@ -1166,9 +1207,6 @@ def qualify_vfv_current_evidence(
         VFVFactRole.LATEST_DISTRIBUTION_PAYMENT_DATE: (product, product.latest_payment_date),
         VFVFactRole.TRAILING_DISTRIBUTION_YIELD: (product, product.trailing_yield_date),
         VFVFactRole.WEIGHTED_PE: (factsheet, factsheet.weighted_pe_date),
-        VFVFactRole.UNDERLYING_EXPOSURE_CURRENCY: (
-            factsheet, factsheet.currency_exposure_date),
-        VFVFactRole.CURRENCY_HEDGED: (factsheet, factsheet.currency_exposure_date),
     }
     if product.nav is not None:
         evidence_sources[VFVFactRole.NAV] = (product, product.nav_date)
@@ -1196,7 +1234,6 @@ def qualify_vfv_current_evidence(
         expenses,
         distributions,
         valuation,
-        exposure,
         fact_evidence,
         _LIMITATIONS,
         product_route.license_status,

@@ -78,12 +78,21 @@ class VFVCurrentEvidenceTests(unittest.TestCase):
         result = self.qualify()
         self.assertEqual(result.expenses.management_fee, Decimal("0.08"))
         self.assertEqual(result.expenses.mer, Decimal("0.08"))
-        self.assertEqual(result.expenses.mer_period_end, "2026-06-30")
+        self.assertEqual(result.expenses.mer_effective_as_of, "2026-06-30")
+        self.assertIs(
+            result.expenses.mer_period_semantics,
+            evidence.VFVExpensePeriodSemantics.ANNUALIZED_PERCENTAGE_AS_OF_DATE,
+        )
         self.assertEqual(result.expenses.ter, Decimal("0.00"))
-        self.assertEqual(result.expenses.ter_period_end, "2026-06-30")
+        self.assertEqual(result.expenses.ter_effective_as_of, "2025-12-31")
+        self.assertIs(
+            result.expenses.ter_period_semantics,
+            evidence.VFVExpensePeriodSemantics.ANNUAL_RATE_AS_OF_DATE,
+        )
         self.assertTrue(result.expenses.mer_annualized)
         self.assertTrue(result.expenses.ter_annualized)
-        self.assertNotEqual(result.expenses.mer_period_end, "2025-12-31")
+        self.assertNotIn("COMPLETED_FUND_YEAR",
+                         {item.value for item in evidence.VFVExpensePeriodSemantics})
         source = inspect.getsource(evidence.qualify_vfv_current_evidence)
         self.assertNotIn("management_fee +", source)
         self.assertNotIn("mer +", source)
@@ -106,19 +115,29 @@ class VFVCurrentEvidenceTests(unittest.TestCase):
         self.assertNotIn("annualized_latest_distribution", {
             field.name for field in fields(evidence.VFVDistributionFacts)})
 
-    def test_trailing_fund_portfolio_pe_and_currency_exposure_only(self):
+    def test_trailing_fund_portfolio_pe_and_currency_boundary(self):
         result = self.qualify()
         self.assertEqual(result.trailing_valuation.weighted_pe, Decimal("25.2"))
         self.assertIs(result.trailing_valuation.metric_subject,
                       evidence.VFVValuationMetricSubject.FUND_PORTFOLIO)
         self.assertIs(result.trailing_valuation.metric_semantics,
                       evidence.VFVValuationMetricSemantics.PROVIDER_TRAILING_WEIGHTED_P_E)
-        self.assertEqual(result.currency_exposure, evidence.VFVCurrencyExposureFacts(
-            "CAD", "CAD", "USD", False, "2026-08-31"))
+        self.assertEqual(result.identity.listed_currency, "CAD")
+        self.assertEqual(result.identity.base_currency, "CAD")
+        self.assertFalse(hasattr(evidence, "VFVCurrencyExposureFacts"))
+        self.assertNotIn("currency_exposure", {
+            field.name for field in fields(evidence.VFVCurrentEvidenceQualification)})
+        self.assertTrue({
+            "underlying_exposure_currency", "currency_hedged",
+            "currency_exposure_date",
+        }.isdisjoint({
+            field.name for field in fields(evidence.VFVCurrentArtifactExtraction)}))
+        self.assertTrue({
+            "UNDERLYING_EXPOSURE_CURRENCY", "CURRENCY_HEDGED",
+        }.isdisjoint({role.value for role in evidence.VFVFactRole}))
         forbidden = {"forward_pe", "terminal_pe", "fair_value_multiple", "fx_forecast",
                      "fx_expected_return", "currency_adjusted_expected_return"}
         for record in (evidence.VFVTrailingValuation,
-                       evidence.VFVCurrencyExposureFacts,
                        evidence.VFVCurrentEvidenceQualification):
             self.assertTrue(forbidden.isdisjoint({field.name for field in fields(record)}))
 
@@ -145,13 +164,28 @@ class VFVCurrentEvidenceTests(unittest.TestCase):
         self.assertIn(evidence.VFVCurrentEvidenceReason.PRICE_UNAVAILABLE, result.reasons)
         self.assertIsNone(result.market_observation)
 
-    def test_ticker_alone_or_missing_primary_identity_cannot_qualify(self):
-        minimal = factsheet_pdf(
-            fund_name="Unrelated document", isin="", exchange="Other", currency="USD")
-        result = self.qualify(factsheet_raw=minimal)
-        self.assertIs(result.status, evidence.VFVCurrentEvidenceStatus.SOURCE_CONFLICT)
-        self.assertIn(evidence.VFVCurrentEvidenceReason.IDENTITY_MISMATCH, result.reasons)
-        self.assertIsNone(result.identity)
+    def test_each_etf_facts_primary_identity_role_is_required_before_provenance(self):
+        cases = (
+            {"fund_name": "Unrelated document"},
+            {"unit_text": ""},
+            {"exchange": ""},
+            {"ticker": ""},
+            {"currency": ""},
+            {"index": ""},
+        )
+        for index, changes in enumerate(cases):
+            with self.subTest(changes=changes):
+                result = self.qualify(
+                    root=self.root.parent / f"primary-{index}",
+                    etf_raw=etf_facts_pdf(**changes),
+                )
+                self.assertIs(result.status,
+                              evidence.VFVCurrentEvidenceStatus.UNAVAILABLE)
+                self.assertIn(
+                    evidence.VFVCurrentEvidenceReason.REQUIRED_FIELD_UNAVAILABLE,
+                    result.reasons,
+                )
+                self.assertEqual(result.fact_evidence, ())
 
     def test_wrong_isin_ticker_or_exchange_is_source_conflict(self):
         cases = (
@@ -175,22 +209,37 @@ class VFVCurrentEvidenceTests(unittest.TestCase):
         self.assertEqual(result.reasons,
                          (evidence.VFVCurrentEvidenceReason.TRACKED_INDEX_DISAGREEMENT,))
 
-    def test_same_expense_metric_same_date_conflicts_but_different_period_does_not(self):
-        conflict = self.qualify(etf_raw=etf_facts_pdf(period="June 30, 2026"))
+    def test_same_expense_metric_same_semantic_period_conflicts(self):
+        disclosure = (
+            "As of June 30, 2026, the ETF's expenses were 0.10% of its value. "
+            "Annual rate (as a % of the ETF's value)"
+        )
+        conflict = self.qualify(
+            product_raw=product_html(
+                mer="0.10", expense_period_disclosure=disclosure),
+            etf_raw=etf_facts_pdf(period="June 30, 2026"),
+        )
         self.assertIs(conflict.status, evidence.VFVCurrentEvidenceStatus.SOURCE_CONFLICT)
         self.assertIn(evidence.VFVCurrentEvidenceReason.SAME_METRIC_SAME_DATE_CONFLICT,
                       conflict.reasons)
-        self.assertIs(self.qualify().status, evidence.VFVCurrentEvidenceStatus.AVAILABLE)
+
+    def test_same_metric_different_explicit_period_semantics_is_not_conflict(self):
+        result = self.qualify(etf_raw=etf_facts_pdf(period="June 30, 2026"))
+        self.assertIs(result.status, evidence.VFVCurrentEvidenceStatus.AVAILABLE)
+        self.assertNotIn(
+            evidence.VFVCurrentEvidenceReason.SAME_METRIC_SAME_DATE_CONFLICT,
+            result.reasons,
+        )
 
     def test_ambiguous_expense_period_is_unavailable_and_never_averaged(self):
         result = self.qualify(
             etf_raw=etf_facts_pdf(period="unknown"),
-            factsheet_raw=factsheet_pdf(mer_period="unknown", ter_period="unknown"))
+            factsheet_raw=factsheet_pdf(mer_period="unknown"))
         self.assertIs(result.status, evidence.VFVCurrentEvidenceStatus.UNAVAILABLE)
         self.assertIn(evidence.VFVCurrentEvidenceReason.EXPENSE_PERIOD_AMBIGUOUS,
                       result.reasons)
 
-    def test_distribution_and_field_chronology_fail_closed(self):
+    def test_distribution_order_and_field_chronology_fail_closed(self):
         distribution = self.qualify(product_raw=product_html(
             ex_date="Oct 08 2026", record_date="Oct 07 2026",
             payment_date="Oct 06 2026"))
@@ -202,17 +251,38 @@ class VFVCurrentEvidenceTests(unittest.TestCase):
         self.assertIs(future_price.status,
                       evidence.VFVCurrentEvidenceStatus.SOURCE_CONFLICT)
 
-    def test_unsupported_source_structure_and_free_source_field_are_distinct(self):
+    def test_future_distribution_ex_and_record_dates_fail_closed(self):
+        future_ex = self.qualify(product_raw=product_html(
+            ex_date="Oct 01 2026", record_date="Oct 01 2026",
+            payment_date="Oct 06 2026"))
+        self.assertIs(future_ex.status, evidence.VFVCurrentEvidenceStatus.SOURCE_CONFLICT)
+        self.assertIn(evidence.VFVCurrentEvidenceReason.FIELD_CHRONOLOGY_INVALID,
+                      future_ex.reasons)
+        future_record = self.qualify(product_raw=product_html(
+            ex_date="Sep 28 2026", record_date="Oct 01 2026",
+            payment_date="Oct 06 2026"))
+        self.assertIs(future_record.status,
+                      evidence.VFVCurrentEvidenceStatus.SOURCE_CONFLICT)
+        self.assertIn(evidence.VFVCurrentEvidenceReason.FIELD_CHRONOLOGY_INVALID,
+                      future_record.reasons)
+
+    def test_explicit_future_payment_and_current_or_historical_events_are_allowed(self):
+        future_payment = self.qualify()
+        self.assertIs(future_payment.status, evidence.VFVCurrentEvidenceStatus.AVAILABLE)
+        self.assertGreater(
+            future_payment.distributions.latest_event.payment_date,
+            future_payment.product_extraction.receipt.retrieved_at[:10],
+        )
+        historical = self.qualify(product_raw=product_html(
+            ex_date="Aug 28 2026", record_date="Aug 28 2026",
+            payment_date="Sep 05 2026"))
+        self.assertIs(historical.status, evidence.VFVCurrentEvidenceStatus.AVAILABLE)
+
+    def test_unsupported_source_structure_is_distinct(self):
         structure = self.qualify(factsheet_raw=b"%PDF-1.7\nnot a complete pdf")
         self.assertIs(structure.status, evidence.VFVCurrentEvidenceStatus.UNSUPPORTED)
         self.assertIn(evidence.VFVCurrentEvidenceReason.SOURCE_STRUCTURE_UNSUPPORTED,
                       structure.reasons)
-        field = self.qualify(factsheet_raw=factsheet_pdf(exposure="", hedged=""))
-        self.assertIs(field.status, evidence.VFVCurrentEvidenceStatus.UNSUPPORTED)
-        self.assertIn(
-            evidence.VFVCurrentEvidenceReason.
-            REQUIRED_FIELD_UNSUPPORTED_BY_REVIEWED_FREE_SOURCE,
-            field.reasons)
 
     def test_expected_semantic_or_evidence_mismatch_is_source_conflict(self):
         for key in ("expected_product_semantic_id", "expected_etf_facts_evidence_id",
@@ -227,7 +297,7 @@ class VFVCurrentEvidenceTests(unittest.TestCase):
     def test_all_four_statuses_and_reason_mapping_are_closed(self):
         available = self.qualify()
         unavailable = self.qualify(product_raw=product_html(market_price="missing"))
-        unsupported = self.qualify(factsheet_raw=factsheet_pdf(exposure=""))
+        unsupported = self.qualify(factsheet_raw=b"%PDF-1.7\nnot a complete pdf")
         conflict = self.qualify(request_changes={"expected_product_evidence_id": "0" * 64})
         self.assertEqual({item.status for item in (
             available, unavailable, unsupported, conflict)},
@@ -302,6 +372,9 @@ class VFVCurrentEvidenceTests(unittest.TestCase):
             "NO_EXECUTION_OR_PRODUCTION_AUTHORITY", "NO_GENERIC_BENCHMARK_AUTHORITY",
             "NO_COMMERCIAL_INGESTION_OR_REDISTRIBUTION_AUTHORITY",
             "S_AND_P_REUSE_AUTHORITY_NOT_ESTABLISHED",
+            "NO_UNDERLYING_EXPOSURE_CURRENCY_AUTHORITY",
+            "NO_CURRENCY_HEDGE_STATUS_AUTHORITY",
+            "NO_FX_COMPARABILITY_AUTHORITY",
         }
         self.assertTrue(required <= {item.value for item in result.limitations})
 
@@ -316,7 +389,7 @@ class VFVCurrentEvidenceTests(unittest.TestCase):
         records = (
             evidence.VFVFundIdentity, evidence.VFVMarketObservation,
             evidence.VFVExpenseFacts, evidence.VFVDistributionFacts,
-            evidence.VFVTrailingValuation, evidence.VFVCurrencyExposureFacts,
+            evidence.VFVTrailingValuation,
             evidence.VFVCurrentEvidenceQualification,
             evidence.VFVCurrentEvidenceRequest,
         )
