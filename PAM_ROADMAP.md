@@ -401,17 +401,21 @@ PR5E complete
 Stage B — Expected Return completion active technical frontier
     ↓
 VFV CURRENT evidence foundation complete (PR #86)
+    ↓
+VFV standalone forward Expected Return complete (PR #88)
 ```
 
 This governance sequence was an administrative prerequisite, not a replacement for
 PR5E and not an expansion of Expected Return architecture. Role configuration and
-PR5E are complete. Stage B implementation has started through its first bounded VFV
-CURRENT evidence foundation; Stage B remains active and incomplete, and later
-technical stages remain in their existing order.
+PR5E are complete. Stage B implementation now includes the bounded VFV CURRENT
+evidence foundation and standalone VFV forward Expected Return diagnostic; Stage B
+remains active and incomplete, and later technical stages remain in their existing
+order.
 
 No additional pre-Stage-B Expected Return architecture interlude is authorized in
-this sequence. The next Stage B step is the bounded methodology/policy review
-described below, not another evidence-acquisition implementation by default.
+this sequence. The next Stage B step is the Data & Evidence prerequisite for VFV
+currency/hedging comparability described below, before architecture review of a
+compatible comparison basis.
 
 The public SEC/free-Nasdaq source graph still lacks complete positive
 no-transformation coverage through CURRENT T. PR5C therefore uses positive
@@ -550,24 +554,63 @@ cost, PIT, `HISTORICAL_AS_OF`, or commercial/production authority. Its currency
 boundary expressly retains `NO_UNDERLYING_EXPOSURE_CURRENCY_AUTHORITY`,
 `NO_CURRENCY_HEDGE_STATUS_AUTHORITY` and `NO_FX_COMPARABILITY_AUTHORITY`.
 
-The expected immediate sequence is planning direction, not implemented or pre-approved
-numerical policy:
+#### Standalone VFV forward Expected Return ✅
+
+PR #88 completes the bounded standalone VFV forward Expected Return methodology,
+CEO numerical-policy approval and canonical research diagnostic. The approved
+policy is `PAM_VFV_FORWARD_ER_POLICY_2026_10_01_V1`, hash
+`31dbebd0545c233c4913dad1915dfd2eb23d91481019fec078b245541ef0e645`,
+with methodology `2026-10-01-vfv-normalized-unit-cashflow-irr-v1`, seven-year
+horizon, bear/base/bull growth of 0%/3%/5%, and terminal P/E of 12x/16x/20x.
+
+The canonical path is:
 
 ```text
-VFV CURRENT evidence foundation complete
-→ bounded VFV forward-ER methodology / numerical-policy review
-→ required CEO approval if that proposal introduces new owner-controlled economic assumptions
-→ bounded VFV forward-ER + comparator implementation
+qualified VFV CURRENT evidence
+→ fixed CEO policy
+→ VFV-specific normalized-unit adapter
+→ deterministic unit-holder cash-flow problem
+→ shared semantic-neutral IRR solver
+→ standalone VFV research diagnostic
+```
+
+The return basis is `NOMINAL_PRE_HOLDER_TAX_UNIT_HOLDER_CASHFLOW_IRR`; the principal
+result is `VFV_INSTRUMENT_ER_NET_OF_WRAPPER_EXPENSES_PRE_EXECUTION`; and the FX
+basis is `CONSTANT_TRANSLATION_NO_FX_CONTRIBUTION_MODELED`. The implementation uses
+`V0 = 1`, treats weighted trailing P/E as `M0` rather than ETF earnings, starts
+unit-holder cash flow from trailing distributions, and applies wrapper drag once as
+`q = (1 - MER)(1 - TER)` while keeping management fee visible without double-counting
+it. It produces neither benchmark ER nor executable-net ER. Local Stage-B confidence
+is `LOW` without an Expected Return haircut. The Decimal problem path is code-owned
+and deterministic; the public root remains a raw float, while identity version
+`2026-10-01-vfv-forward-er-root-problem-identity-v2` binds the deterministic root
+problem rather than the float result.
+
+This standalone capability does not alter company policy and grants no comparator,
+FX resolution, production, recommendation, allocation, execution, V2 promotion or
+automatic-tuning authority. The evidence boundary still retains
+`NO_UNDERLYING_EXPOSURE_CURRENCY_AUTHORITY`,
+`NO_CURRENCY_HEDGE_STATUS_AUTHORITY` and `NO_FX_COMPARABILITY_AUTHORITY`; therefore
+a company-vs-VFV comparator is not authorized or positively implementable.
+
+The expected immediate sequence is:
+
+```text
+standalone VFV forward Expected Return complete
+→ Data & Evidence FX/hedge prerequisite
+→ architecture review of a compatible comparison basis
+→ bounded comparator
 → continue remaining Stage B requirements
 ```
 
-No growth rate, terminal valuation, distribution or FX methodology is selected here.
-No cash-like implementation starts through this milestone or Governance Sync.
+No comparator, FX-resolution or cash-like implementation starts through this
+milestone or Governance Sync.
 
-- robust current forward ER inputs;
-- bear/base/bull assumptions;
-- VFV forward ER comparator;
-- cash-like opportunity-cost rate/carry and comparable executable net instrument ER;
+- Data & Evidence currency/hedging prerequisite and architecture review of a
+  compatible comparison basis;
+- bounded VFV forward ER comparator after those prerequisites;
+- cash-like opportunity-cost rate/carry;
+- executable net instrument Expected Return where supportable;
 - confidence propagation;
 - explicit unsupported cases.
 
@@ -1494,20 +1537,21 @@ allocation, execution or promotion authority.
 
 Stage A — Real Fact Admission is complete only for that bounded route; broader
 identity, international, PIT, data and licensing limitations remain. Stage B —
-Expected Return completion is active and incomplete. PR #86 started its implementation
-and completed the first bounded VFV CURRENT evidence foundation under the limitations
-recorded above. The immediate next direction is a bounded VFV forward-ER methodology/
-numerical-policy review before any ER/comparator implementation; do not invent the
-policy, begin cash-like work or bypass required CEO approval for a concrete proposal
-that introduces owner-controlled economic assumptions.
+Expected Return completion is active and incomplete. PR #86 completed the first
+bounded VFV CURRENT evidence foundation, and PR #88 completed the reviewed standalone
+VFV forward Expected Return methodology, CEO-approved numerical policy and canonical
+research diagnostic. The immediate next direction is Data & Evidence work on VFV
+underlying-exposure currency and hedge status before architecture review of a
+compatible comparison basis. Do not start the comparator or cash-like work through
+this Governance Sync.
 
 ---
 
-*Roadmap state updated on 2026-10-01 through canonical PR #86. Governance Reform
+*Roadmap state updated on 2026-10-01 through canonical PR #88. Governance Reform
 Phase 1, Governance Cleanup / Migration, role Projects/employees configuration and
 PR5E are complete. Stage B — Expected Return completion is the active technical
-frontier; its first bounded VFV CURRENT evidence-foundation milestone is complete,
-while Stage B remains incomplete.
+frontier; its VFV CURRENT evidence-foundation and standalone forward Expected Return
+milestones are complete, while Stage B remains incomplete.
 Later architecture stages and shadow-readiness gates remain requirements only.
 The reviewed PR5D2 Expected Return assumption policies are now pinned, but no
 investment-rule, model-rule, V1 or production-authority change is authorized
