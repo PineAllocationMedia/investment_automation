@@ -11,6 +11,8 @@ from datetime import date, datetime, timezone
 import math
 import re
 
+from .annual_cashflow_irr import AnnualCashFlowIRRError, solve_annual_cashflow_irr
+
 
 EXPECTED_RETURN_METHODOLOGY_VERSION = "2026-09-08-normalized-eps-cashflow-irr-v1"
 EXPECTED_RETURN_SCHEMA_VERSION = "2026-09-08-expected-return-diagnostic-v1"
@@ -452,35 +454,17 @@ def _canonical_refs(refs):
 
 
 def _solve_return(price: float, dividends: tuple[float, ...], terminal: float) -> float:
-    # Solve in log gross-return space. Log-sum-exp avoids overflowing discounted
-    # cash flows near -100%, and never needs a speculative financial upper bound.
-    cash = [(year, math.log(value)) for year, value in enumerate(dividends, 1) if value > 0]
-    cash.append((HORIZON_YEARS, math.log(terminal)))
-    log_price = math.log(price)
-    def residual(log_gross):
-        terms = [log_cash - year * log_gross for year, log_cash in cash]
-        peak = max(terms)
-        return peak + math.log(math.fsum(math.exp(term - peak) for term in terms)) - log_price
-    lower = math.log1p(math.nextafter(-1.0, 0.0))
-    upper = math.log(float.fromhex("0x1.fffffffffffffp+1023"))
-    if residual(lower) < 0 or residual(upper) > 0:
-        raise ExpectedReturnNumericalError("Root is outside representable annual-return range")
-    for _ in range(_MAX_ITERATIONS):
-        midpoint = lower + (upper - lower) / 2
-        error = residual(midpoint)
-        if error > 0:
-            lower = midpoint
-        else:
-            upper = midpoint
-        if upper - lower <= _ROOT_TOLERANCE * max(1.0, abs(midpoint)):
-            try:
-                result = math.expm1(midpoint)
-            except OverflowError as exc:
-                raise ExpectedReturnNumericalError("Unrepresentable annualized return") from exc
-            if not math.isfinite(result) or result <= -1 or abs(residual(math.log1p(result))) > _RESIDUAL_TOLERANCE:
-                raise ExpectedReturnNumericalError("Returned root fails representability/NPV residual check")
-            return result
-    raise ExpectedReturnNumericalError("IRR bisection did not converge")
+    try:
+        return solve_annual_cashflow_irr(
+            price,
+            dividends,
+            terminal,
+            max_iterations=_MAX_ITERATIONS,
+            root_tolerance=_ROOT_TOLERANCE,
+            residual_tolerance=_RESIDUAL_TOLERANCE,
+        )
+    except AnnualCashFlowIRRError as exc:
+        raise ExpectedReturnNumericalError(str(exc)) from exc
 
 
 def calculate_expected_return(request: ExpectedReturnRequest) -> ExpectedReturnDiagnostic:

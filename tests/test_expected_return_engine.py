@@ -523,7 +523,10 @@ class ExpectedReturnContractTests(unittest.TestCase):
         tree = ast.parse(Path(er.__file__).read_text())
         imports = {node.module for node in ast.walk(tree) if isinstance(node, ast.ImportFrom)}
         imports.update(alias.name for node in ast.walk(tree) if isinstance(node, ast.Import) for alias in node.names)
-        self.assertEqual(imports, {"__future__", "dataclasses", "datetime", "math", "re"})
+        self.assertEqual(imports, {
+            "__future__", "annual_cashflow_irr", "dataclasses", "datetime",
+            "math", "re",
+        })
         forbidden_calls = {"now", "today", "open", "read_text", "getenv", "environ", "random"}
         for node in ast.walk(tree):
             if isinstance(node, ast.Call):
