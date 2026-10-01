@@ -399,15 +399,19 @@ Configure ChatGPT role Projects/employees complete
 PR5E complete
     ↓
 Stage B — Expected Return completion active technical frontier
+    ↓
+VFV CURRENT evidence foundation complete (PR #86)
 ```
 
 This governance sequence was an administrative prerequisite, not a replacement for
 PR5E and not an expansion of Expected Return architecture. Role configuration and
-PR5E are complete. Stage B implementation has not started, and later technical
-stages remain in their existing order.
+PR5E are complete. Stage B implementation has started through its first bounded VFV
+CURRENT evidence foundation; Stage B remains active and incomplete, and later
+technical stages remain in their existing order.
 
-No additional Expected Return architecture interlude is authorized in this
-sequence.
+No additional pre-Stage-B Expected Return architecture interlude is authorized in
+this sequence. The next Stage B step is the bounded methodology/policy review
+described below, not another evidence-acquisition implementation by default.
 
 The public SEC/free-Nasdaq source graph still lacks complete positive
 no-transformation coverage through CURRENT T. PR5C therefore uses positive
@@ -528,6 +532,37 @@ Inserted stages use numeric suffixes to preserve existing stage references.
   first safe CURRENT route when unsupported cases fail closed.
 
 ### Stage B — Expected Return completion
+
+#### VFV CURRENT evidence foundation ✅
+
+PR #86 is the first completed Stage B implementation milestone. It establishes one
+Vanguard first-party VFV route with exact immutable capture, bounded acquisition,
+offline extraction, deterministic qualification, typed provenance and closed
+outcomes. Its qualified `CURRENT_ONLY` facts cover current issuer market observation;
+fund identity, listing and tracked-index facts; separate management fee, MER and TER
+semantics; current distribution facts; trailing fund-portfolio P/E; and CAD listed/
+base currency.
+
+The milestone does not establish underlying economic currency exposure, hedge status,
+FX comparability, forward earnings/growth/P/E, VFV forward Expected Return,
+company-vs-VFV comparison, executable net instrument economics, cash-like opportunity
+cost, PIT, `HISTORICAL_AS_OF`, or commercial/production authority. Its currency
+boundary expressly retains `NO_UNDERLYING_EXPOSURE_CURRENCY_AUTHORITY`,
+`NO_CURRENCY_HEDGE_STATUS_AUTHORITY` and `NO_FX_COMPARABILITY_AUTHORITY`.
+
+The expected immediate sequence is planning direction, not implemented or pre-approved
+numerical policy:
+
+```text
+VFV CURRENT evidence foundation complete
+→ bounded VFV forward-ER methodology / numerical-policy review
+→ required CEO approval if that proposal introduces new owner-controlled economic assumptions
+→ bounded VFV forward-ER + comparator implementation
+→ continue remaining Stage B requirements
+```
+
+No growth rate, terminal valuation, distribution or FX methodology is selected here.
+No cash-like implementation starts through this milestone or Governance Sync.
 
 - robust current forward ER inputs;
 - bear/base/bull assumptions;
@@ -1459,17 +1494,20 @@ allocation, execution or promotion authority.
 
 Stage A — Real Fact Admission is complete only for that bounded route; broader
 identity, international, PIT, data and licensing limitations remain. Stage B —
-Expected Return completion is the next active technical frontier and has not
-started. Preserve its approved scope and the permanent pre-shadow invariant; do
-not invent a PR number or implementation design before the next bounded Work Order.
+Expected Return completion is active and incomplete. PR #86 started its implementation
+and completed the first bounded VFV CURRENT evidence foundation under the limitations
+recorded above. The immediate next direction is a bounded VFV forward-ER methodology/
+numerical-policy review before any ER/comparator implementation; do not invent the
+policy, begin cash-like work or bypass required CEO approval for a concrete proposal
+that introduces owner-controlled economic assumptions.
 
 ---
 
-*Roadmap state updated on 2026-09-30 through PR5E completion for the explicitly
-supported bounded first CURRENT nonpayer route. Governance Reform Phase 1,
-Governance Cleanup / Migration and role Projects/employees configuration are
-complete. Stage B — Expected Return completion is the active technical frontier,
-and its implementation has not started.
+*Roadmap state updated on 2026-10-01 through canonical PR #86. Governance Reform
+Phase 1, Governance Cleanup / Migration, role Projects/employees configuration and
+PR5E are complete. Stage B — Expected Return completion is the active technical
+frontier; its first bounded VFV CURRENT evidence-foundation milestone is complete,
+while Stage B remains incomplete.
 Later architecture stages and shadow-readiness gates remain requirements only.
 The reviewed PR5D2 Expected Return assumption policies are now pinned, but no
 investment-rule, model-rule, V1 or production-authority change is authorized
