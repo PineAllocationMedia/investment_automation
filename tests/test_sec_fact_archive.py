@@ -271,7 +271,9 @@ class SecArchiveTests(unittest.TestCase):
         for file in files:
             if file in {
                     checkout / "src" / "expected_return_pr5d_bundle.py",
-                    checkout / "src" / "vfv_forward_expected_return.py"}:
+                    checkout / "src" / "vfv_forward_expected_return.py",
+                    checkout / "src" /
+                    "company_vfv_expected_return_comparator.py"}:
                 continue
             for node in ast.walk(ast.parse(file.read_text())):
                 if isinstance(node, ast.Import):

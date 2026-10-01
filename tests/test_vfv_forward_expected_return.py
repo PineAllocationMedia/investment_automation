@@ -561,7 +561,12 @@ class VFVForwardExpectedReturnTests(unittest.TestCase):
                                      fields(vfv_er.VFVForwardERRequest)})
         root = Path(vfv_er.__file__).resolve().parents[1]
         adapter = Path(vfv_er.__file__).resolve()
-        allowed = {adapter, Path(policy_module.__file__).resolve()}
+        allowed = {
+            adapter,
+            Path(policy_module.__file__).resolve(),
+            adapter.with_name(
+                "company_vfv_expected_return_comparator.py").resolve(),
+        }
         for path in (root / "main.py", *sorted((root / "src").glob("*.py")),
                      *sorted((root / "pit_comparison").glob("*.py"))):
             if path.resolve() in allowed:
