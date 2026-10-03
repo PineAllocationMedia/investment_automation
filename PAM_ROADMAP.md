@@ -407,20 +407,23 @@ VFV standalone forward Expected Return complete (PR #88)
 VFV FX/hedge evidence prerequisite complete (PR #90)
     ↓
 Bounded company-vs-VFV Expected Return comparator complete (PR #90)
+    ↓
+Source-neutral CASH_LIKE_CURRENT_CARRY Slice A complete (PR #92)
 ```
 
 This governance sequence was an administrative prerequisite, not a replacement for
 PR5E and not an expansion of Expected Return architecture. Role configuration and
 PR5E are complete. Stage B implementation now includes the bounded VFV CURRENT
 evidence foundation, standalone VFV forward Expected Return diagnostic, qualified
-VFV FX/hedge evidence prerequisite and bounded company-vs-VFV comparator; Stage B
-remains active and incomplete, and later technical stages remain in their existing
-order.
+VFV FX/hedge evidence prerequisite, bounded company-vs-VFV comparator and the
+source-neutral current nominal cash-like carry Slice A foundation; Stage B remains
+active and incomplete, and later technical stages remain in their existing order.
 
 No additional pre-Stage-B Expected Return architecture interlude is authorized in
-this sequence. The immediate Stage B direction is cash-like opportunity-cost
-rate/carry and comparable executable net instrument Expected Return, with any missing
-methodology/evidence boundary reviewed before implementation.
+this sequence. The immediate Stage B direction is B1 — executable-entry evidence
+foundation and closed failure states. B2 numeric seven-year entry-execution-net
+transformation remains unsupported until qualified executable quote authority exists;
+this B2 evidence blocker does not prevent B1 foundation work.
 
 The public SEC/free-Nasdaq source graph still lacks complete positive
 no-transformation coverage through CURRENT T. PR5C therefore uses positive
@@ -632,12 +635,36 @@ comparator-owned company problem identity representation
 remain trace metadata but no longer drive comparator identity. Corrected canonical
 CI #110 passed `FULL_PIT`, 2,796/2,796, before the CEO merged PR #90.
 
+#### Cash-like current-carry foundation ✅
+
+PR #92 makes canonical the source-neutral `CASH_LIKE_CURRENT_CARRY` Slice A
+contract for current nominal carry under the first bounded settled-cash-balance
+profile. It preserves exact Decimal rate/currency/semantic meaning, deterministic
+semantic/evidence identities and closed fail-safe qualification. Positively evidenced
+zero remains zero; missing evidence never becomes zero.
+
+Architecture & Audit found one A-class chronology defect in the initial head. The
+corrected head separates absolute UTC instant comparison for complete timestamps from
+the calendar date represented by `retrieved_at` in its supplied original offset for
+date-only `effective_date`. Closed-result precedence is programming-contract error,
+then `SOURCE_CONFLICT > UNSUPPORTED > UNAVAILABLE > AVAILABLE`. Final review returned
+`MERGE READY`, CI #113 succeeded and the CEO merged PR #92 as
+`679e6dda95989d9bb4b34cfc186e801f84bc823b`.
+
+Authority is CURRENT/capture-bound only. This milestone adds no PIT,
+`HISTORICAL_AS_OF`, provider acquisition route, owner-specific live cash fact,
+seven-year cash Expected Return, company/VFV-versus-cash comparison, reserve
+activation/release logic, recommendation, allocation, execution, production or
+deployment authority. Current cash carry remains distinct from both seven-year cash
+Expected Return and later opportunity-cost comparison.
+
 The expected immediate sequence is:
 
 ```text
 bounded company-vs-VFV Expected Return comparator complete
-→ cash-like opportunity-cost rate/carry
-→ comparable executable net instrument Expected Return where supportable
+→ Slice A current carry complete
+→ B1 executable-entry evidence foundation and closed failure states
+→ B2 numeric executable-net transformation only when evidence support exists
 → confidence propagation
 → explicit unsupported cases
 ```
@@ -645,9 +672,11 @@ bounded company-vs-VFV Expected Return comparator complete
 - completed: Data & Evidence currency/hedging prerequisite and reviewed compatible
   comparison basis;
 - completed: bounded VFV forward ER comparator;
-- next: cash-like opportunity-cost rate/carry, after methodology/evidence-boundary
-  review where not already canonically specified;
-- executable net instrument Expected Return where supportable;
+- completed: source-neutral `CASH_LIKE_CURRENT_CARRY` Slice A for one bounded
+  settled-cash-balance profile;
+- next: B1 executable-entry evidence foundation and closed failure states;
+- B2 numeric seven-year entry-execution-net transformation only when qualified
+  executable quote evidence supports it; no positive numeric route currently exists;
 - confidence propagation;
 - explicit unsupported cases.
 
@@ -1580,19 +1609,29 @@ VFV forward Expected Return methodology, CEO-approved numerical policy and canon
 research diagnostic. PR #90 completed the qualified VFV USD-exposure / dated
 materially-unhedged prerequisite and the bounded same-label company-vs-VFV Expected
 Return comparator under constant FX, including the comparator-owned company problem
-identity-v2 correction. The immediate next direction is cash-like opportunity-cost
-rate/carry and comparable executable net instrument Expected Return where supportable;
-review any missing methodology/evidence boundary before implementation. This
-Governance Sync starts no implementation.
+identity-v2 correction. PR #92 completed the source-neutral current nominal
+`CASH_LIKE_CURRENT_CARRY` Slice A foundation for the first bounded
+settled-cash-balance profile. Current cash carry is not seven-year cash Expected
+Return and is not an opportunity-cost comparison.
+
+The immediate next direction is B1 — executable-entry evidence foundation and
+closed failure states. No qualified free/first-party executable bid/ask route or
+positive numeric executable route is established; informational quotes do not gain
+executable authority. B2 numeric seven-year entry-execution-net transformation
+therefore remains blocked on qualified executable quote evidence without blocking B1.
+This Governance Sync starts neither B1 nor B2 implementation.
 
 ---
 
-*Roadmap state updated on 2026-10-01 through canonical PR #90. Governance Reform
+*Roadmap state updated on 2026-10-03 through canonical PR #92. Governance Reform
 Phase 1, Governance Cleanup / Migration, role Projects/employees configuration and
 PR5E are complete. Stage B — Expected Return completion is the active technical
 frontier; its VFV CURRENT evidence foundation, standalone forward Expected Return,
-qualified FX/hedge prerequisite and bounded company-vs-VFV comparator milestones are
-complete, while Stage B remains incomplete.
+qualified FX/hedge prerequisite, bounded company-vs-VFV comparator and source-neutral
+cash-like current-carry Slice A milestones are complete, while Stage B remains
+incomplete. B1 executable-entry evidence foundation is next; B2 numeric
+entry-execution-net transformation remains unsupported until qualified executable
+quote evidence exists.
 Later architecture stages and shadow-readiness gates remain requirements only.
 The reviewed PR5D2 Expected Return assumption policies are now pinned, but no
 investment-rule, model-rule, V1 or production-authority change is authorized

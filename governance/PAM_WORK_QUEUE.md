@@ -10,13 +10,20 @@
     FX/hedge evidence prerequisite and reviewed constant-FX comparison basis.
   - Complete substep: canonical bounded current-real company-vs-VFV Expected Return
     comparator, including comparator-owned company problem identity v2.
-  - Immediate next direction: cash-like opportunity-cost rate/carry and comparable
-    executable net instrument Expected Return where supportable.
-  - Before implementation, review and canonically specify any missing methodology
-    and evidence boundary for that next requirement.
+  - Complete substep: canonical source-neutral `CASH_LIKE_CURRENT_CARRY` Slice A
+    foundation for current nominal carry under the first bounded settled-cash-balance
+    profile.
+  - Immediate next direction: B1 — executable-entry evidence foundation and closed
+    failure states, including qualified commission, settlement, eligibility,
+    transaction-currency/FX-cost and executable-quote authority requirements where
+    supportable.
+  - B2 — numeric seven-year entry-execution-net transformation is deferred/blocked
+    until qualified executable quote authority exists. Informational displayed quotes
+    do not establish that authority. This B2 blocker does not prevent B1 foundation
+    work.
   - Remaining later Stage B requirements include confidence propagation and explicit
     unsupported cases.
-  - No current technical blocker or pending CEO decision is recorded.
+  - No pending CEO decision is recorded.
   - No Codex implementation task is active after this Governance Sync.
 
 ## WAITING CEO
