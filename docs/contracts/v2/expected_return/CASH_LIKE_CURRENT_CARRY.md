@@ -133,6 +133,24 @@ Retrieval never substitutes for publication or economic effective time. An
 effective date after retrieval, publication timestamp after retrieval, or maturity
 before effective date is a `SOURCE_CONFLICT / CHRONOLOGY_CONFLICT`.
 
+An offset-aware retrieval timestamp retains two distinct chronology views:
+
+1. its absolute instant, normalized to UTC only for timestamp-versus-timestamp
+   comparison; and
+2. the calendar date represented by the timestamp in its supplied original offset,
+   before UTC normalization.
+
+A date-only `effective_date` is compared with the second view. For example,
+`2026-10-01T23:30:00-04:00` represents calendar date `2026-10-01` even though its
+UTC instant falls on `2026-10-02`; an `effective_date` of `2026-10-02` therefore
+conflicts. Conversely, UTC conversion cannot make a same-represented-calendar-day
+effective date appear to be in the future for a positive offset. No source,
+provider, machine-local or ambient timezone is invented.
+
+Publication timestamp versus retrieval timestamp remains an absolute-instant
+comparison after offset normalization. Maturity date versus effective date remains
+a direct comparison of the two explicit date-only values.
+
 Freshness is an explicit qualification input. V1 requires
 `CURRENT_SAME_RUN_CAPTURE`; it defines no universal day-count TTL. Future adapters
 may establish their evidence-class freshness rules without changing the economic
@@ -162,8 +180,21 @@ A positive result requires all of the following:
 14. `UNKNOWN` publication semantics and `CAPTURE_BOUND` availability for V1; and
 15. consistent chronology.
 
-Conflict takes precedence over unsupported, which takes precedence over unavailable.
-No partially qualified economic fact is emitted.
+Closed-result precedence is exact:
+
+```text
+malformed programming contract -> CashLikeCurrentCarryError
+
+otherwise:
+SOURCE_CONFLICT > UNSUPPORTED > UNAVAILABLE > AVAILABLE
+```
+
+Any established source contradiction therefore wins over unsupported or missing
+semantics. Absent conflict, any unsupported material semantic wins over missing
+evidence. Absent conflict or unsupported state, missing evidence produces
+`UNAVAILABLE`. `AVAILABLE` exists only when none of the preceding conditions apply.
+Malformed typed/programming inputs never become an economic status. No partially
+qualified economic fact is emitted.
 
 ## Closed statuses and reasons
 

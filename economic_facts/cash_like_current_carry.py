@@ -206,7 +206,13 @@ def _parse_date(value: object, label: str) -> date:
     return parsed
 
 
-def _parse_timestamp(value: object, label: str) -> datetime:
+@dataclass(frozen=True, slots=True)
+class _ParsedTimestamp:
+    instant_utc: datetime
+    represented_calendar_date: date
+
+
+def _parse_timestamp(value: object, label: str) -> _ParsedTimestamp:
     _require_text(value, label)
     try:
         parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
@@ -216,7 +222,10 @@ def _parse_timestamp(value: object, label: str) -> datetime:
     if parsed.tzinfo is None or parsed.utcoffset() is None:
         raise CashLikeCurrentCarryError(
             f"{label}: offset-aware ISO timestamp required")
-    return parsed.astimezone(timezone.utc)
+    return _ParsedTimestamp(
+        instant_utc=parsed.astimezone(timezone.utc),
+        represented_calendar_date=parsed.date(),
+    )
 
 
 def _require_optional_enum(value: object, enum_type: type[Enum], label: str) -> None:
@@ -562,11 +571,12 @@ def qualify_cash_like_current_carry(
     retrieved = _parse_timestamp(receipt.retrieved_at, "retrieved_at")
     if (claim.effective_date is not None
             and _parse_date(claim.effective_date, "effective_date")
-            > retrieved.date()):
+            > retrieved.represented_calendar_date):
         conflicts.add(CashLikeCurrentCarryReason.CHRONOLOGY_CONFLICT)
     if (receipt.publication_timestamp is not None
             and _parse_timestamp(receipt.publication_timestamp,
-                                 "publication_timestamp") > retrieved):
+                                 "publication_timestamp").instant_utc
+            > retrieved.instant_utc):
         conflicts.add(CashLikeCurrentCarryReason.CHRONOLOGY_CONFLICT)
     if (claim.maturity_date is not None and claim.effective_date is not None
             and _parse_date(claim.maturity_date, "maturity_date")

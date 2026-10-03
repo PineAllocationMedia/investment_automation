@@ -159,14 +159,38 @@ class CashLikeCurrentCarryTests(unittest.TestCase):
             result.reasons,
         )
 
-    def test_unsupported_balance_or_instrument_form_fails_closed(self):
-        result = qualify(claim=standard_claim(
-            balance_form=carry.CashLikeBalanceForm.CASH_LIKE_INSTRUMENT))
-        self.assertIs(result.status, carry.CashLikeCurrentCarryStatus.UNSUPPORTED)
-        self.assertIn(
-            carry.CashLikeCurrentCarryReason.ACCOUNT_BALANCE_FORM_UNSUPPORTED,
-            result.reasons,
+    def test_material_unsupported_semantic_families_fail_closed(self):
+        cases = (
+            ({"balance_form": carry.CashLikeBalanceForm.CASH_LIKE_INSTRUMENT},
+             carry.CashLikeCurrentCarryReason.
+             ACCOUNT_BALANCE_FORM_UNSUPPORTED),
+            ({"rate_type": carry.CashLikeRateType.OTHER},
+             carry.CashLikeCurrentCarryReason.RATE_SEMANTICS_UNSUPPORTED),
+            ({"rate_unit": carry.CashLikeRateUnit.OTHER},
+             carry.CashLikeCurrentCarryReason.RATE_SEMANTICS_UNSUPPORTED),
+            ({"accrual_semantics": carry.CashLikeAccrualSemantics.OTHER},
+             carry.CashLikeCurrentCarryReason.ACCRUAL_SEMANTICS_UNSUPPORTED),
+            ({"payment_semantics": carry.CashLikePaymentSemantics.OTHER},
+             carry.CashLikeCurrentCarryReason.PAYMENT_SEMANTICS_UNSUPPORTED),
+            ({"compounding_semantics":
+              carry.CashLikeCompoundingSemantics.OTHER},
+             carry.CashLikeCurrentCarryReason.
+             COMPOUNDING_OR_DAY_COUNT_UNSUPPORTED),
+            ({"day_count_semantics": carry.CashLikeDayCountSemantics.OTHER},
+             carry.CashLikeCurrentCarryReason.
+             COMPOUNDING_OR_DAY_COUNT_UNSUPPORTED),
+            ({"effective_semantics": carry.CashLikeEffectiveSemantics.OTHER},
+             carry.CashLikeCurrentCarryReason.
+             EFFECTIVE_AS_OF_SEMANTICS_UNSUPPORTED),
+            ({"term_semantics": carry.CashLikeTermSemantics.FIXED_MATURITY},
+             carry.CashLikeCurrentCarryReason.TERM_PROFILE_UNSUPPORTED),
         )
+        for changes, reason in cases:
+            with self.subTest(changes=changes):
+                result = qualify(claim=standard_claim(**changes))
+                self.assertIs(
+                    result.status, carry.CashLikeCurrentCarryStatus.UNSUPPORTED)
+                self.assertIn(reason, result.reasons)
 
     def test_unsettled_or_unestablished_applicability_fails_closed(self):
         for state in (
@@ -250,6 +274,69 @@ class CashLikeCurrentCarryTests(unittest.TestCase):
             carry.CashLikeCurrentCarryStatus.SOURCE_CONFLICT,
         )
 
+    def test_date_only_effective_chronology_uses_supplied_negative_offset_date(self):
+        result = qualify(
+            claim=standard_claim(effective_date="2026-10-02"),
+            retrieved_at="2026-10-01T23:30:00-04:00",
+        )
+        self.assertIs(
+            result.status, carry.CashLikeCurrentCarryStatus.SOURCE_CONFLICT)
+        self.assertEqual(
+            result.reasons,
+            (carry.CashLikeCurrentCarryReason.CHRONOLOGY_CONFLICT,),
+        )
+
+    def test_date_only_effective_chronology_uses_supplied_positive_offset_date(self):
+        result = qualify(
+            claim=standard_claim(effective_date="2026-10-02"),
+            retrieved_at="2026-10-02T00:30:00+14:00",
+        )
+        self.assertIs(result.status, carry.CashLikeCurrentCarryStatus.AVAILABLE)
+
+    def test_timestamp_chronology_still_compares_absolute_instants(self):
+        result = qualify(
+            retrieved_at="2026-10-01T23:30:00-04:00",
+            publication_timestamp="2026-10-02T04:00:00+00:00",
+        )
+        self.assertIs(
+            result.status, carry.CashLikeCurrentCarryStatus.SOURCE_CONFLICT)
+        self.assertEqual(
+            result.reasons,
+            (carry.CashLikeCurrentCarryReason.CHRONOLOGY_CONFLICT,),
+        )
+
+    def test_closed_result_precedence_is_conflict_then_unsupported_then_unavailable(self):
+        conflict = qualify(
+            claim=standard_claim(
+                effective_date="2026-10-02",
+                rate_type=carry.CashLikeRateType.OTHER,
+                rate=None,
+            ),
+        )
+        unsupported = qualify(claim=standard_claim(
+            rate_type=carry.CashLikeRateType.OTHER,
+            rate=None,
+        ))
+        unavailable = qualify(claim=standard_claim(rate=None))
+        self.assertIs(
+            conflict.status, carry.CashLikeCurrentCarryStatus.SOURCE_CONFLICT)
+        self.assertEqual(
+            conflict.reasons,
+            (carry.CashLikeCurrentCarryReason.CHRONOLOGY_CONFLICT,),
+        )
+        self.assertIs(
+            unsupported.status, carry.CashLikeCurrentCarryStatus.UNSUPPORTED)
+        self.assertEqual(
+            unsupported.reasons,
+            (carry.CashLikeCurrentCarryReason.RATE_SEMANTICS_UNSUPPORTED,),
+        )
+        self.assertIs(
+            unavailable.status, carry.CashLikeCurrentCarryStatus.UNAVAILABLE)
+        self.assertEqual(
+            unavailable.reasons,
+            (carry.CashLikeCurrentCarryReason.RATE_UNAVAILABLE,),
+        )
+
     def test_equivalent_recapture_preserves_semantics_and_changes_evidence(self):
         first = qualify()
         second = qualify(
@@ -260,6 +347,17 @@ class CashLikeCurrentCarryTests(unittest.TestCase):
         )
         self.assertEqual(first.semantic_id, second.semantic_id)
         self.assertNotEqual(first.evidence_id, second.evidence_id)
+
+    def test_positive_synthetic_identity_fixture_is_pinned(self):
+        result = qualify()
+        self.assertEqual(
+            result.semantic_id,
+            "fdfbc14181d04b3f2cf0c99750c070bddabdc4c2e07f888206882c8f1274263b",
+        )
+        self.assertEqual(
+            result.evidence_id,
+            "af7ccec49a2735de85ec07319612c042efef8c9986fbe94075393933a73b5dbf",
+        )
 
     def test_changed_rate_currency_or_rate_semantics_changes_semantic_identity(self):
         baseline = qualify().semantic_id
