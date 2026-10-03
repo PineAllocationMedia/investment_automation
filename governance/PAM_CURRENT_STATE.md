@@ -3,32 +3,32 @@
 > Two-to-five-minute operational snapshot. Refresh through Governance Sync after
 > durable state changes.
 
-- **Last Governance Sync:** Post-PR #90 bounded company-vs-VFV Expected Return
-  comparator milestone recorded (2026-10-01)
+- **Last Governance Sync:** Post-PR #92 source-neutral cash-like current-carry
+  milestone recorded (2026-10-03)
 - **Current major program:** V2 evidence-qualified Expected Return foundation
 - **Active technical frontier:** Stage B — Expected Return completion
 - **Canonical integration branch:** `model-v2/expected-return-challenger`
-- **Canonical verified pre-this-sync HEAD:** `150105fb54d08f47eddec7b815a93d11516edfcb`
-- **Canonical verified tree:** `15e2cdfc63a02b55d9cf21252be74a1da941ec2f`
-- **Current status:** Stage B implementation is active and incomplete. PR #90 is
-  merged and canonical, including the bounded company-vs-VFV Expected Return
-  comparator and its corrected comparator-owned company problem identity-v2 boundary.
-- **Latest completed technical milestone:** current real PR5E company Expected Return
-  + standalone VFV Expected Return + exact qualified VFV FX/hedge evidence →
-  same-label deterministic company-vs-VFV Expected Return spreads under the reviewed
-  constant-FX comparison basis
+- **Canonical verified pre-this-sync HEAD:** `679e6dda95989d9bb4b34cfc186e801f84bc823b`
+- **Canonical verified tree:** `71be1bd048b4d25e09a4807b7b9e2ba387d784ba`
+- **Current status:** Stage B implementation is active and incomplete. PR #92 is
+  merged and canonical, establishing the bounded source-neutral
+  `CASH_LIKE_CURRENT_CARRY` Slice A foundation.
+- **Latest completed technical milestone:** canonical source-neutral current nominal
+  cash-like carry contract for the first bounded settled-cash-balance profile, with
+  exact Decimal semantics, fail-closed qualification and deterministic
+  semantic/evidence identities
 - **Technical frontier:** Stage A — Real Fact Admission is complete for its
   explicitly supported first bounded CURRENT route; Stage B — Expected Return
   completion is active and incomplete
-- **Immediate technical frontier:** cash-like opportunity-cost rate/carry and
-  comparable executable net instrument Expected Return, with methodology/evidence
-  boundary review required before implementation where not already canonical
+- **Immediate technical frontier:** B1 — executable-entry evidence foundation and
+  closed failure states; no positive numeric executable route is yet established
 - **Comparator availability:** Canonical only for the bounded current real route under
   `2026-10-01-company-vfv-constant-fx-comparison-v1`, with
   `RESEARCH_DIAGNOSTIC_ONLY` authority
 - **Approved VFV policy:** `PAM_VFV_FORWARD_ER_POLICY_2026_10_01_V1`, hash
   `31dbebd0545c233c4913dad1915dfd2eb23d91481019fec078b245541ef0e645`
-- **Blockers:** No current technical blocker recorded
+- **Blockers:** B2 positive numeric seven-year entry-execution-net transformation
+  lacks qualified executable quote authority. This does not block B1 foundation work.
 - **Pending CEO decisions:** None recorded
 
 ## Active role states
@@ -82,6 +82,16 @@
   Only company bear minus VFV bear, base minus base and bull minus bull are supported.
   These are not probability-weighted forecasts, rankings, recommendations,
   allocations or actual-CAD-return forecasts.
+- The canonical cash-like current-carry foundation is source-neutral and limited to
+  current nominal carry for one bounded settled-cash-balance profile. It preserves
+  positively evidenced zero and never converts missing rate/currency/semantics to
+  zero. Its authority is CURRENT/capture-bound only, with no PIT,
+  `HISTORICAL_AS_OF`, provider acquisition, owner-specific live fact, seven-year
+  cash Expected Return, company/VFV-versus-cash comparison, reserve policy,
+  recommendation, allocation, execution, production or deployment authority.
+- No qualified free/first-party executable bid/ask route is established. Displayed
+  informational quotes do not become executable authority, and numeric entry
+  friction remains unavailable without qualified executable quote evidence.
 - All seven conversational PAM role Projects/employees are configured. Codex
   Development remains `ACTIVE BY TASK`, not an autonomous conversational employee.
 
@@ -93,5 +103,5 @@
 - `DECISIONS.md`
 - `governance/roles/*.md`
 
-The HEAD/tree above are the verified canonical state after PR #90 and before this
+The HEAD/tree above are the verified canonical state after PR #92 and before this
 Governance Sync, not the future merge commit of this Governance Sync PR.

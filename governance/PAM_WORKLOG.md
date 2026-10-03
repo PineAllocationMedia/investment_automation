@@ -131,3 +131,27 @@
   `MODEL_RULES_VERSION` remained unchanged. No probability, ranking, recommendation,
   allocation, execution, production, deployment, promotion or automatic-tuning
   authority was granted; Stage B remains active and incomplete.
+
+## 2026-10-03 — PR #92 cash-like current-carry foundation canonical
+
+- PR #92 implemented the source-neutral `CASH_LIKE_CURRENT_CARRY` Slice A contract
+  for current nominal carry under the first bounded settled-cash-balance profile,
+  with exact Decimal semantics, fail-closed qualification and deterministic
+  semantic/evidence identities.
+- Architecture & Audit found one A-class chronology defect: UTC normalization could
+  assign the wrong calendar semantics to date-only `effective_date`. The bounded
+  correction on head `0d38b89e0974bfa74cc0969523541f4b7892d169` separated absolute
+  UTC instant comparison from the calendar date represented in the supplied offset.
+- Architecture & Audit returned `MERGE READY` after GitHub Baseline V1 CI #113
+  completed successfully. Corrected local validation passed 28 targeted, 51 adjacent,
+  2,822 `STANDARD` and 2 heavyweight PIT tests covering 64 equivalence cases.
+- The CEO merged PR #92 as `679e6dda95989d9bb4b34cfc186e801f84bc823b`,
+  tree `71be1bd048b4d25e09a4807b7b9e2ba387d784ba`.
+- Authority remains CURRENT/capture-bound only, with no PIT, `HISTORICAL_AS_OF`,
+  provider acquisition, owner-specific live fact, seven-year cash Expected Return,
+  cash comparison, reserve policy, recommendation, allocation, execution, production
+  or deployment authority. Protected identities and `MODEL_RULES_VERSION` remain
+  unchanged.
+- Stage B remains active and incomplete. B1 executable-entry evidence foundation is
+  next; B2 numeric executable-net transformation remains blocked on qualified
+  executable quote authority without blocking B1.
