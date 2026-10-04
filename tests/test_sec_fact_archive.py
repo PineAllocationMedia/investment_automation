@@ -271,6 +271,8 @@ class SecArchiveTests(unittest.TestCase):
         bounded_projection = checkout / "src" / "bounded_confidence_projection.py"
         explicit_unsupported_case = (
             checkout / "src" / "explicit_unsupported_case.py")
+        five_period_eps_consistency = (
+            checkout / "src" / "five_period_eps_consistency.py")
         for file in files:
             if file in {
                     checkout / "src" / "expected_return_pr5d_bundle.py",
@@ -278,7 +280,8 @@ class SecArchiveTests(unittest.TestCase):
                     checkout / "src" /
                     "company_vfv_expected_return_comparator.py",
                     bounded_projection,
-                    explicit_unsupported_case}:
+                    explicit_unsupported_case,
+                    five_period_eps_consistency}:
                 continue
             for node in ast.walk(ast.parse(file.read_text())):
                 if isinstance(node, ast.Import):
