@@ -619,8 +619,12 @@ class IsolationTests(unittest.TestCase):
 
     def test_only_reviewed_diagnostic_sidecar_consumes_constructor(self):
         root = Path(a.__file__).resolve().parents[1]
+        bounded_projection = root / "src" / "bounded_confidence_projection.py"
         for path in (root / "main.py", *sorted((root / "src").rglob("*.py")), *sorted((root / "pit_comparison").rglob("*.py"))):
             if path in (Path(a.__file__), Path(p.__file__)):
+                continue
+            # Reviewed pure Stage-B consumer of existing confidence semantics.
+            if path == bounded_projection:
                 continue
             # PR5D0A adds one pure proposal-only policy consumer. It does not
             # consume the constructor, calculator, model, runtime or V1.
