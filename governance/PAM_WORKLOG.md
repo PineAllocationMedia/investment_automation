@@ -188,3 +188,29 @@
   for qualification of a real executable-entry evidence route where supportable. B2
   remains blocked until real qualified executable quote and execution-cost evidence
   sufficiently supports its numeric transformation boundary.
+
+## 2026-10-04 — Real executable-entry investigation and Stage B progression defined
+
+- Data & Evidence completed the real executable-entry route investigation with
+  `PARTIAL ROUTE ONLY`. Bounded transaction-currency, zero-commission and regular-way
+  `T_PLUS_1` facts can be supported independently, but no complete positive B1 route
+  is currently supportable.
+- The unresolved dependency classes are: no reviewed qualified
+  `EXECUTABLE_BID_ASK` source with an exact quote-event timestamp; no authorized
+  current evidence for `SETTLED_AND_AVAILABLE` funding with exact funding currency;
+  and, for cross-currency routes, no exact pre-entry FX execution-cost evidence.
+  Informational/current-observed bid/ask remains informational; no proxy spread,
+  guessed friction, inferred funding or guessed FX cost is authorized.
+- Architecture & Audit returned `PROGRESSION DEFINED`. B2 numeric executable-net
+  Expected Return is currently `UNAVAILABLE / DEFERRED`: it remains an open
+  capability gap, not a Stage B sequencing blocker, and may be revisited only when
+  genuinely new qualified evidence appears.
+- Confidence applies to uncertainty inside an available analysis; capability state
+  determines whether the analysis exists. Absent B2 numeric capability therefore has
+  no numeric executable-net result and confidence `NONE / NOT APPLICABLE`; partial,
+  unavailable or unsupported capability must not become a numeric confidence haircut
+  or guessed low-confidence result.
+- The immediate Stage B frontier is bounded confidence propagation for already
+  available canonical analyses, followed by explicit unsupported-case handling. This
+  Governance Sync implements neither confidence propagation nor B2 and creates no
+  provider-specific broker policy, investment-rule change or new authority.
