@@ -3,32 +3,33 @@
 > Two-to-five-minute operational snapshot. Refresh through Governance Sync after
 > durable state changes.
 
-- **Last Governance Sync:** Post-PR #92 source-neutral cash-like current-carry
-  milestone recorded (2026-10-03)
+- **Last Governance Sync:** Post-PR #94 source-neutral executable-entry evidence
+  milestone recorded (2026-10-04)
 - **Current major program:** V2 evidence-qualified Expected Return foundation
 - **Active technical frontier:** Stage B — Expected Return completion
 - **Canonical integration branch:** `model-v2/expected-return-challenger`
-- **Canonical verified pre-this-sync HEAD:** `679e6dda95989d9bb4b34cfc186e801f84bc823b`
-- **Canonical verified tree:** `71be1bd048b4d25e09a4807b7b9e2ba387d784ba`
-- **Current status:** Stage B implementation is active and incomplete. PR #92 is
+- **Canonical verified pre-this-sync HEAD:** `6a2cc7fd96f008dbdd05d9a5fdc80480a6694fd9`
+- **Canonical verified tree:** `e60a91445f7b229aff92e1161c524882ceb9a635`
+- **Current status:** Stage B implementation is active and incomplete. PR #94 is
   merged and canonical, establishing the bounded source-neutral
-  `CASH_LIKE_CURRENT_CARRY` Slice A foundation.
-- **Latest completed technical milestone:** canonical source-neutral current nominal
-  cash-like carry contract for the first bounded settled-cash-balance profile, with
-  exact Decimal semantics, fail-closed qualification and deterministic
-  semantic/evidence identities
+  `EXECUTABLE_ENTRY_EVIDENCE` B1 foundation and closed failure states.
+- **Latest completed technical milestone:** canonical source-neutral CURRENT/
+  capture-bound executable-entry evidence contract, with independent partial facts,
+  exact Decimal commission and executable-quote semantics, fail-closed qualification
+  and deterministic semantic/evidence identities
 - **Technical frontier:** Stage A — Real Fact Admission is complete for its
   explicitly supported first bounded CURRENT route; Stage B — Expected Return
   completion is active and incomplete
-- **Immediate technical frontier:** B1 — executable-entry evidence foundation and
-  closed failure states; no positive numeric executable route is yet established
+- **Immediate technical frontier:** Data & Evidence qualification of a real
+  executable-entry evidence route where supportable; no such positive real route is
+  yet established
 - **Comparator availability:** Canonical only for the bounded current real route under
   `2026-10-01-company-vfv-constant-fx-comparison-v1`, with
   `RESEARCH_DIAGNOSTIC_ONLY` authority
 - **Approved VFV policy:** `PAM_VFV_FORWARD_ER_POLICY_2026_10_01_V1`, hash
   `31dbebd0545c233c4913dad1915dfd2eb23d91481019fec078b245541ef0e645`
 - **Blockers:** B2 positive numeric seven-year entry-execution-net transformation
-  lacks qualified executable quote authority. This does not block B1 foundation work.
+  remains blocked on real qualified executable quote and execution-cost evidence.
 - **Pending CEO decisions:** None recorded
 
 ## Active role states
@@ -89,9 +90,22 @@
   `HISTORICAL_AS_OF`, provider acquisition, owner-specific live fact, seven-year
   cash Expected Return, company/VFV-versus-cash comparison, reserve policy,
   recommendation, allocation, execution, production or deployment authority.
+- The canonical B1 executable-entry evidence foundation is source-neutral and
+  CURRENT/capture-bound only. It binds opaque execution-context and target-instrument
+  scope, preserves independent eligibility, settled-funding, commission, settlement,
+  currency-path and executable-quote dimensions, preserves qualified partial facts,
+  treats exact zero commission as valid, requires bounded
+  `POST_TRADE_REGULAR_WAY / T_PLUS_1`, establishes only same-currency
+  `FX_NOT_REQUIRED_SAME_CURRENCY`, and fails cross-currency paths closed without
+  qualified FX execution-cost evidence. Synthetic `AVAILABLE` fixtures prove
+  mechanics only.
 - No qualified free/first-party executable bid/ask route is established. Displayed
-  informational quotes do not become executable authority, and numeric entry
-  friction remains unavailable without qualified executable quote evidence.
+  informational/current-observed quotes do not become executable authority. B1 adds
+  no provider/broker adapter, live owner-specific fact, order construction/submission,
+  execution authority, aggregate friction, executable-net Expected Return, B2,
+  recommendation, allocation, production, deployment or V2 promotion. A real
+  positive executable quote still requires a separately reviewed authenticated source
+  route/adapter.
 - All seven conversational PAM role Projects/employees are configured. Codex
   Development remains `ACTIVE BY TASK`, not an autonomous conversational employee.
 
@@ -103,5 +117,5 @@
 - `DECISIONS.md`
 - `governance/roles/*.md`
 
-The HEAD/tree above are the verified canonical state after PR #92 and before this
+The HEAD/tree above are the verified canonical state after PR #94 and before this
 Governance Sync, not the future merge commit of this Governance Sync PR.

@@ -155,3 +155,36 @@
 - Stage B remains active and incomplete. B1 executable-entry evidence foundation is
   next; B2 numeric executable-net transformation remains blocked on qualified
   executable quote authority without blocking B1.
+
+## 2026-10-04 — PR #94 executable-entry evidence B1 canonical
+
+- PR #94 implemented the source-neutral `EXECUTABLE_ENTRY_EVIDENCE` B1 contract and
+  closed qualifier for one bounded CURRENT/capture-bound purchase-entry evidence
+  context. It preserves independent eligibility, funding, commission, settlement,
+  currency-path and executable-quote dimensions and retains qualified partial facts
+  when another required dimension is unavailable.
+- Architecture & Audit classified the implementation and executable-quote contract
+  boundary as `C — expected behavior`. Its high-attention typed executable-quote
+  authority was accepted only as a synthetic/future contract: informational or
+  current-observed quotes are not executable quotes, and no positive real route was
+  established. Final review returned `MERGE READY`.
+- Exact reviewed head `c1290cc10a1480125707791f04811b3b704ab0c2` passed 31
+  targeted, 137 adjacent and 2,853/2,853 `STANDARD` tests. The protected 64-scenario
+  PIT fingerprint remained
+  `f1e73b27b80e41d96ff5e0fe990b482bad71b7220db0b5bd6a2f470d72786166`;
+  determinism remained
+  `f8457910665391e39c234274cae4c029802c681211eebc7dba986a63000876f1`;
+  and `MODEL_RULES_VERSION` remained
+  `2026-08-23-allocation-room-integrity-v7`. GitHub Baseline V1 CI #115 completed
+  successfully.
+- The CEO merged PR #94 as `6a2cc7fd96f008dbdd05d9a5fdc80480a6694fd9`,
+  tree `e60a91445f7b229aff92e1161c524882ceb9a635`.
+- B1 grants no real executable quote route, provider/broker adapter, live
+  owner-specific fact, order construction/submission, execution authority, aggregate
+  friction, executable-net Expected Return, B2, recommendation, allocation,
+  production, deployment or V2 promotion authority. Synthetic `AVAILABLE` fixtures
+  prove mechanics only.
+- Stage B remains active and incomplete. The next frontier belongs to Data & Evidence
+  for qualification of a real executable-entry evidence route where supportable. B2
+  remains blocked until real qualified executable quote and execution-cost evidence
+  sufficiently supports its numeric transformation boundary.
