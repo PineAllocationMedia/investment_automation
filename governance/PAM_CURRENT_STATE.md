@@ -3,25 +3,25 @@
 > Two-to-five-minute operational snapshot. Refresh through Governance Sync after
 > durable state changes.
 
-- **Last Governance Sync:** Real executable-entry route investigation and Stage B
-  sequencing decision recorded (2026-10-04)
+- **Last Governance Sync:** PR #97 bounded confidence propagation recorded as
+  canonical and the next Stage B frontier advanced (2026-10-04)
 - **Current major program:** V2 evidence-qualified Expected Return foundation
 - **Active technical frontier:** Stage B — Expected Return completion
 - **Canonical integration branch:** `model-v2/expected-return-challenger`
-- **Canonical verified pre-this-sync HEAD:** `485e4a615b464c9fc27b54eda404d13b1d65b21d`
-- **Canonical verified tree:** `24edc3303b632c002b8034d35733cfdceff25c51`
-- **Current status:** Stage B implementation is active and incomplete. PR #94 is
-  merged and canonical, establishing the bounded source-neutral
-  `EXECUTABLE_ENTRY_EVIDENCE` B1 foundation and closed failure states.
-- **Latest completed technical milestone:** canonical source-neutral CURRENT/
-  capture-bound executable-entry evidence contract, with independent partial facts,
-  exact Decimal commission and executable-quote semantics, fail-closed qualification
-  and deterministic semantic/evidence identities
+- **Canonical verified pre-this-sync HEAD:** `608b321cbd5b136bcf1a7637ea8ca9a92bbd381f`
+- **Canonical verified tree:** `f4b5399f7667f83266968ac89bfd276ae07146f9`
+- **Current status:** Stage B implementation is active and incomplete. PR #97 is
+  merged and canonical, establishing bounded confidence propagation for the four
+  approved canonical analytical surfaces.
+- **Latest completed technical milestone:** versioned immutable
+  `BoundedConfidenceProjection`, preserving capability/confidence separation,
+  native categorical confidence or bounded evidence context, upstream identities
+  and `CONFIDENCE_PROJECTION_ONLY` authority without analytical numeric output
 - **Technical frontier:** Stage A — Real Fact Admission is complete for its
   explicitly supported first bounded CURRENT route; Stage B — Expected Return
   completion is active and incomplete
-- **Immediate technical frontier:** bounded confidence propagation for currently
-  available canonical analytical outputs
+- **Immediate technical frontier:** explicit unsupported-case handling; Architecture
+  & Audit must define the bounded contract before Codex implementation
 - **Comparator availability:** Canonical only for the bounded current real route under
   `2026-10-01-company-vfv-constant-fx-comparison-v1`, with
   `RESEARCH_DIAGNOSTIC_ONLY` authority
@@ -124,14 +124,15 @@
   APPLICABLE`; `PARTIAL`, `UNAVAILABLE`, `UNSUPPORTED`, missing execution evidence
   and authority limitations must not become numeric confidence haircuts or a guessed
   low-confidence executable-net result.
-- The next bounded confidence slice may consume only already-qualified canonical
-  outputs, including where contractually appropriate company Expected Return,
-  standalone VFV Expected Return, the company-vs-VFV comparator and the cash-like
-  CURRENT carry fact. It must preserve their numeric values, availability/status,
-  semantic/evidence identities and authority boundaries. LOW confidence does not
-  automatically haircut Expected Return, and cash-like CURRENT carry must not become
-  seven-year cash Expected Return. Explicit unsupported-case handling follows this
-  bounded slice.
+- The canonical bounded confidence projection consumes exactly company Expected
+  Return, standalone VFV Expected Return, the company-vs-VFV comparator and cash-like
+  CURRENT carry qualification. It preserves capability state and existing native
+  confidence where present, uses `EVIDENCE_CONTEXT_ONLY` for cash current carry and
+  `NOT_APPLICABLE` for non-available analyses, and produces no analytical numeric
+  output or Expected Return haircut. Its authority is
+  `CONFIDENCE_PROJECTION_ONLY`; it grants no recommendation, ranking, allocation,
+  sizing, execution, production or V2-promotion authority. This is local Stage-B
+  propagation, not the future full Stage E Confidence architecture.
 - All seven conversational PAM role Projects/employees are configured. Codex
   Development remains `ACTIVE BY TASK`, not an autonomous conversational employee.
 
@@ -143,5 +144,5 @@
 - `DECISIONS.md`
 - `governance/roles/*.md`
 
-The HEAD/tree above are the verified canonical state after PR #94 and before this
+The HEAD/tree above are the verified canonical state after PR #97 and before this
 Governance Sync, not the future merge commit of this Governance Sync PR.

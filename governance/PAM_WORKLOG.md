@@ -214,3 +214,29 @@
   available canonical analyses, followed by explicit unsupported-case handling. This
   Governance Sync implements neither confidence propagation nor B2 and creates no
   provider-specific broker policy, investment-rule change or new authority.
+
+## 2026-10-04 — PR #97 bounded confidence propagation canonical
+
+- The CEO merged PR #97 as `608b321cbd5b136bcf1a7637ea8ca9a92bbd381f`,
+  tree `f4b5399f7667f83266968ac89bfd276ae07146f9`; reviewed PR head was
+  `da5f662da865c4b3b2b0e0a09cc2fcabac73031e`.
+- Architecture & Audit classified the bounded projection behavior as
+  `C — expected behavior`. Local `FULL_PIT` passed 2,877/2,877, and GitHub Baseline
+  V1 CI #118 completed successfully.
+- The canonical immutable `BoundedConfidenceProjection` covers exact company
+  Expected Return, VFV forward Expected Return, company-vs-VFV comparator and
+  cash-like current-carry qualification surfaces. It preserves capability/confidence
+  separation, native categorical confidence where present, `EVIDENCE_CONTEXT_ONLY`
+  for cash current carry, `NOT_APPLICABLE` for non-available outputs and deterministic
+  semantic/evidence identities.
+- Authority is `CONFIDENCE_PROJECTION_ONLY`: no analytical numeric output, Expected
+  Return haircut, B2, recommendation, ranking, allocation, sizing, execution,
+  production or V2-promotion authority was added. This is local Stage-B confidence
+  propagation only, not the future full Stage E Confidence architecture.
+- The bounded confidence milestone is complete. Stage B remains active and incomplete;
+  explicit unsupported-case handling is the immediate next frontier, with Architecture
+  & Audit to define its bounded contract before Codex implementation. B2 remains
+  `UNAVAILABLE / DEFERRED`, trigger-based and not a Stage B sequencing blocker.
+- `scripts/run_isolated_tests.py` has pre-existing incomplete materialization of the
+  tracked `docs/` and `analysis_capabilities/` directories. This remains validation-
+  harness debt outside PR #97 implementation scope; no cleanup task is queued.
