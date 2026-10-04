@@ -24,10 +24,12 @@
     Stage B sequencing blocker. Revisit is trigger-based only on genuinely new
     qualified executable-quote, settled-funding and, where applicable, FX execution-
     cost evidence.
-  - Immediate next active direction: bounded confidence propagation for already
-    available canonical analytical outputs. Capability absence must not become a
-    numeric confidence haircut or a guessed low-confidence output.
-  - Explicit unsupported-case handling follows the bounded confidence slice.
+  - Complete substep: canonical bounded confidence propagation for company Expected
+    Return, VFV forward Expected Return, the company-vs-VFV comparator and cash-like
+    current carry, with `CONFIDENCE_PROJECTION_ONLY` authority and no analytical
+    numeric output.
+  - Immediate next active direction: explicit unsupported-case handling. Architecture
+    & Audit must first define the bounded contract; no implementation is active.
   - No pending CEO decision is recorded.
   - No Codex implementation task is active after this Governance Sync.
 

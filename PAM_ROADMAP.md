@@ -416,9 +416,9 @@ Real executable-entry route investigation complete — PARTIAL ONLY
     ↓
 B2 numeric executable-net currently UNAVAILABLE / DEFERRED
     ↓
-Bounded confidence propagation for available canonical analyses
+Bounded confidence propagation for available canonical analyses ✅
     ↓
-Explicit unsupported-case handling
+Explicit unsupported-case handling ← NEXT
 ```
 
 This governance sequence was an administrative prerequisite, not a replacement for
@@ -427,18 +427,19 @@ PR5E are complete. Stage B implementation now includes the bounded VFV CURRENT
 evidence foundation, standalone VFV forward Expected Return diagnostic, qualified
 VFV FX/hedge evidence prerequisite, bounded company-vs-VFV comparator and the
 source-neutral current nominal cash-like carry Slice A and executable-entry evidence
-B1 foundations; Stage B remains active and incomplete, and later technical stages
-remain in their existing order.
+B1 foundations, plus bounded confidence propagation for four canonical analytical
+surfaces; Stage B remains active and incomplete, and later technical stages remain
+in their existing order.
 
 No additional pre-Stage-B Expected Return architecture interlude is authorized in
 this sequence. B1 and the real-route investigation are complete; the investigation
 found `PARTIAL ROUTE ONLY`. B2 numeric executable-net Expected Return is currently
 `UNAVAILABLE / DEFERRED`: it remains an open capability gap but is no longer a Stage
-B sequencing blocker. The immediate Stage B direction is bounded confidence
-propagation for already available canonical analyses, followed by explicit
-unsupported-case handling. B2 may be revisited only if genuinely new qualified
-executable-quote, settled-funding and, where applicable, FX execution-cost evidence
-appears.
+B sequencing blocker. Bounded confidence propagation is complete; the immediate
+Stage B direction is explicit unsupported-case handling, whose contract must be
+defined by Architecture & Audit before implementation. B2 may be revisited only if
+genuinely new qualified executable-quote, settled-funding and, where applicable, FX
+execution-cost evidence appears.
 
 The public SEC/free-Nasdaq source graph still lacks complete positive
 no-transformation coverage through CURRENT T. PR5C therefore uses positive
@@ -701,6 +702,26 @@ friction, executable-net Expected Return, B2, recommendation, allocation, produc
 deployment or V2 promotion authority. A real positive executable quote still requires
 a separately reviewed authenticated source route/adapter.
 
+#### Bounded confidence propagation ✅
+
+PR #97 makes canonical the versioned immutable `BoundedConfidenceProjection` for
+exact company Expected Return, VFV forward Expected Return, company-vs-VFV comparator
+and cash-like current-carry qualification inputs. It preserves capability state,
+upstream status/reasons and semantic/evidence identities. Existing native categorical
+confidence remains native; cash current carry uses `EVIDENCE_CONTEXT_ONLY`; and
+unavailable, unsupported or conflicted outputs use `NOT_APPLICABLE` rather than a
+guessed confidence value.
+
+The projection has `CONFIDENCE_PROJECTION_ONLY` authority and no analytical numeric
+output. It does not haircut Expected Return or grant recommendation, ranking,
+allocation, sizing, execution, production or V2-promotion authority. This milestone
+is local Stage-B confidence propagation only, not the future full Stage E Confidence
+architecture. Architecture & Audit classified the reviewed behavior as
+`C — expected behavior`; local `FULL_PIT` passed 2,877/2,877 and GitHub Baseline V1
+CI #118 completed successfully before the CEO merged PR #97 as
+`608b321cbd5b136bcf1a7637ea8ca9a92bbd381f`, tree
+`f4b5399f7667f83266968ac89bfd276ae07146f9`.
+
 The expected immediate sequence is:
 
 ```text
@@ -709,8 +730,8 @@ bounded company-vs-VFV Expected Return comparator complete
 → B1 executable-entry evidence foundation complete
 → real executable-entry route investigation complete — PARTIAL ONLY
 → B2 numeric executable-net currently UNAVAILABLE / DEFERRED
-→ bounded confidence propagation for available canonical analyses
-→ explicit unsupported-case handling
+→ bounded confidence propagation for available canonical analyses ✅
+→ explicit unsupported-case handling ← NEXT
 → B2 revisited only when genuinely new qualified evidence exists
 ```
 
@@ -726,19 +747,21 @@ bounded company-vs-VFV Expected Return comparator complete
 - B2 numeric seven-year entry-execution-net transformation remains an open capability
   gap and is currently `UNAVAILABLE / DEFERRED`; no positive real or numeric
   executable route currently exists, and B2 is not a Stage B sequencing blocker;
-- next: bounded confidence propagation for already available canonical analyses;
-- then: explicit unsupported-case handling;
+- completed: bounded confidence propagation for the four approved canonical
+  analytical surfaces;
+- next: explicit unsupported-case handling, after Architecture & Audit defines its
+  bounded contract;
 - revisit B2 only when genuinely new qualified evidence exists.
 
 Confidence applies to uncertainty inside an available analysis. Capability state
 determines whether that analysis exists at all. Therefore unavailable B2 capability
 means numeric executable-net Expected Return is absent and confidence for that absent
 analysis is `NONE / NOT APPLICABLE`; it must not become a guessed numeric result with
-LOW confidence. The bounded confidence slice may consume only already-qualified
-canonical outputs and must preserve company Expected Return, standalone VFV Expected
-Return and company-vs-VFV comparator numbers unchanged. Cash-like current carry may
-receive confidence treatment only as a CURRENT carry fact and must not become
-seven-year cash Expected Return.
+LOW confidence. The completed bounded confidence slice consumes only already-qualified
+canonical outputs and preserves company Expected Return, standalone VFV Expected
+Return and company-vs-VFV comparator numbers unchanged. Cash-like current carry
+receives only CURRENT evidence context and does not become seven-year cash Expected
+Return.
 
 ### Stage C — Quality
 
@@ -1689,25 +1712,25 @@ Informational/current-observed bid/ask remains informational.
 
 B2 numeric executable-net Expected Return is currently `UNAVAILABLE / DEFERRED`.
 It remains an open capability gap, is no longer a Stage B sequencing blocker, and may
-be revisited only when genuinely new qualified evidence appears. The immediate Stage
-B frontier is bounded confidence propagation for currently available canonical
-analyses, followed by explicit unsupported-case handling. This Governance Sync does
-not implement confidence propagation or B2.
+be revisited only when genuinely new qualified evidence appears. Bounded confidence
+propagation for the four approved canonical analytical surfaces is complete. The
+immediate Stage B frontier is explicit unsupported-case handling; this Governance
+Sync records that next direction but does not define or implement its architecture.
 
 ---
 
-*Roadmap state updated on 2026-10-04 through the completed real executable-entry
-route investigation and Architecture & Audit sequencing decision. Governance Reform
+*Roadmap state updated on 2026-10-04 through canonical PR #97 bounded confidence
+propagation. Governance Reform
 Phase 1, Governance Cleanup / Migration, role Projects/employees configuration and
 PR5E are complete. Stage B — Expected Return completion is the active technical
 frontier; its VFV CURRENT evidence foundation, standalone forward Expected Return,
 qualified FX/hedge prerequisite, bounded company-vs-VFV comparator and source-neutral
-cash-like current-carry Slice A and executable-entry evidence B1 milestones are
-complete, while Stage B remains incomplete. The real-route investigation concluded
-`PARTIAL ROUTE ONLY`; B2 numeric executable-net is currently `UNAVAILABLE / DEFERRED`
-and is an open capability gap rather than a sequencing blocker. Bounded confidence
-propagation for available canonical analyses is next, followed by explicit
-unsupported-case handling; B2 is revisited only when genuinely new qualified
+cash-like current-carry Slice A, executable-entry evidence B1 and bounded confidence
+propagation milestones are complete, while Stage B remains incomplete. The real-route
+investigation concluded `PARTIAL ROUTE ONLY`; B2 numeric executable-net is currently
+`UNAVAILABLE / DEFERRED` and is an open capability gap rather than a sequencing
+blocker. Explicit unsupported-case handling is next, after Architecture & Audit
+defines its bounded contract; B2 is revisited only when genuinely new qualified
 evidence exists.
 Later architecture stages and shadow-readiness gates remain requirements only.
 The reviewed PR5D2 Expected Return assumption policies are now pinned, but no
