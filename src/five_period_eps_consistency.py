@@ -12,6 +12,10 @@ from enum import Enum, StrEnum
 import hashlib
 import json
 
+from economic_facts.sec_current_eps_comparability_qualification import (
+    ComparableEPSPeriodDecision,
+    PeriodOutcome,
+)
 import economic_facts.sec_ordinary_compounder_profile as upstream
 
 
@@ -323,7 +327,8 @@ def _validate_established_profile(
     periods = comparability.period_decisions
     if (type(periods) is not tuple
             or len(periods) != 5
-            or any(not is_dataclass(period) for period in periods)):
+            or any(type(period) is not ComparableEPSPeriodDecision
+                   for period in periods)):
         raise FivePeriodEPSConsistencyError(
             "Exactly five canonical period decisions required"
         )
@@ -335,8 +340,7 @@ def _validate_established_profile(
             "Period endpoints must be strictly ordered and distinct"
         )
     for period in periods:
-        if (not isinstance(period.outcome, Enum)
-                or period.outcome.value != "EXACT_MATCH"
+        if (period.outcome is not PeriodOutcome.EXACT_MATCH
                 or period.reasons != ()):
             raise FivePeriodEPSConsistencyError(
                 "Every period must be an exact comparable match"

@@ -2,8 +2,9 @@
 import ast
 import builtins
 from collections import UserDict
-from dataclasses import FrozenInstanceError, fields, replace
+from dataclasses import FrozenInstanceError, dataclass, fields, replace
 from decimal import Decimal
+from enum import Enum
 import json
 import os
 from pathlib import Path
@@ -274,6 +275,52 @@ class FivePeriodEPSConsistencyTests(unittest.TestCase):
             with self.subTest(value=value), self.assertRaises(
                     consistency.FivePeriodEPSConsistencyError):
                 self.analyze(value)
+
+    def test_foreign_dataclass_period_cannot_masquerade_as_canonical(self):
+        @dataclass(frozen=True)
+        class ForeignPeriodDecision:
+            period_end: str
+            outcome: object
+            reasons: tuple
+            c3_value: Decimal
+            presented_value: Decimal
+
+        periods = list(self.available.upstream_comparability.period_decisions)
+        canonical = periods[2]
+        periods[2] = ForeignPeriodDecision(
+            canonical.period_end,
+            canonical.outcome,
+            canonical.reasons,
+            canonical.c3_value,
+            canonical.presented_value,
+        )
+        value = replace(
+            self.available,
+            upstream_comparability=replace(
+                self.available.upstream_comparability,
+                period_decisions=tuple(periods),
+            ),
+        )
+        with self.assertRaises(consistency.FivePeriodEPSConsistencyError):
+            self.analyze(value)
+
+    def test_foreign_exact_match_enum_cannot_masquerade_as_canonical(self):
+        class ForeignPeriodOutcome(Enum):
+            EXACT_MATCH = "EXACT_MATCH"
+
+        periods = list(self.available.upstream_comparability.period_decisions)
+        periods[2] = replace(
+            periods[2], outcome=ForeignPeriodOutcome.EXACT_MATCH
+        )
+        value = replace(
+            self.available,
+            upstream_comparability=replace(
+                self.available.upstream_comparability,
+                period_decisions=tuple(periods),
+            ),
+        )
+        with self.assertRaises(consistency.FivePeriodEPSConsistencyError):
+            self.analyze(value)
 
     def test_malformed_nonfinite_float_and_missing_eps_fail_closed(self):
         for malformed in (
@@ -551,6 +598,7 @@ class FivePeriodEPSConsistencyTests(unittest.TestCase):
             "enum",
             "hashlib",
             "json",
+            "economic_facts.sec_current_eps_comparability_qualification",
             "economic_facts.sec_ordinary_compounder_profile",
         }
         for node in ast.walk(tree):
