@@ -612,10 +612,13 @@ class CompanyVFVComparatorTests(PR5EFixtureMixin, unittest.TestCase):
         allowed = Path(comparator.__file__).resolve()
         bounded_projection = allowed.with_name(
             "bounded_confidence_projection.py").resolve()
+        explicit_unsupported_case = allowed.with_name(
+            "explicit_unsupported_case.py").resolve()
         for path in (
                 root / "main.py", *sorted((root / "src").glob("*.py")),
                 *sorted((root / "pit_comparison").glob("*.py"))):
-            if path.resolve() in {allowed, bounded_projection}:
+            if path.resolve() in {
+                    allowed, bounded_projection, explicit_unsupported_case}:
                 continue
             self.assertNotIn(
                 "company_vfv_expected_return_comparator", path.read_text(),
