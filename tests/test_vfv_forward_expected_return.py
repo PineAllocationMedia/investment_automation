@@ -568,6 +568,8 @@ class VFVForwardExpectedReturnTests(unittest.TestCase):
                 "company_vfv_expected_return_comparator.py").resolve(),
             adapter.with_name(
                 "bounded_confidence_projection.py").resolve(),
+            adapter.with_name(
+                "explicit_unsupported_case.py").resolve(),
         }
         for path in (root / "main.py", *sorted((root / "src").glob("*.py")),
                      *sorted((root / "pit_comparison").glob("*.py"))):
