@@ -197,7 +197,7 @@ Existing documents remain:
 
 ---
 
-## 8. Current technical frontier — Stage B Expected Return completion
+## 8. Current program gate — bounded Stage B complete; CEO transition decision pending
 
 ### Real-source chain through PR5C comparable historical EPS presentation ✅
 
@@ -398,7 +398,7 @@ Configure ChatGPT role Projects/employees complete
     ↓
 PR5E complete
     ↓
-Stage B — Expected Return completion active technical frontier
+Stage B — Expected Return bounded sequence
     ↓
 VFV CURRENT evidence foundation complete (PR #86)
     ↓
@@ -418,28 +418,36 @@ B2 numeric executable-net currently UNAVAILABLE / DEFERRED
     ↓
 Bounded confidence propagation for available canonical analyses ✅
     ↓
-Explicit unsupported-case handling ← NEXT
+Explicit unsupported-case handling ✅
+    ↓
+Stage B bounded sequence COMPLETE within the currently approved supported scope
+    ↓
+CEO transition decision
+    ↓
+Stage C — Quality only if authorized
 ```
 
 This governance sequence was an administrative prerequisite, not a replacement for
 PR5E and not an expansion of Expected Return architecture. Role configuration and
 PR5E are complete. Stage B implementation now includes the bounded VFV CURRENT
 evidence foundation, standalone VFV forward Expected Return diagnostic, qualified
-VFV FX/hedge evidence prerequisite, bounded company-vs-VFV comparator and the
-source-neutral current nominal cash-like carry Slice A and executable-entry evidence
-B1 foundations, plus bounded confidence propagation for four canonical analytical
-surfaces; Stage B remains active and incomplete, and later technical stages remain
-in their existing order.
+VFV FX/hedge evidence prerequisite, bounded company-vs-VFV comparator, source-neutral
+current nominal cash-like carry Slice A and executable-entry evidence B1 foundations,
+bounded confidence propagation and explicit non-available-case handling for four
+canonical analytical surfaces. Stage B — Expected Return is complete within the
+currently approved bounded supported scope. No new technical chantier is active,
+and later technical stages remain in their existing order pending the CEO transition
+decision.
 
 No additional pre-Stage-B Expected Return architecture interlude is authorized in
 this sequence. B1 and the real-route investigation are complete; the investigation
 found `PARTIAL ROUTE ONLY`. B2 numeric executable-net Expected Return is currently
 `UNAVAILABLE / DEFERRED`: it remains an open capability gap but is no longer a Stage
-B sequencing blocker. Bounded confidence propagation is complete; the immediate
-Stage B direction is explicit unsupported-case handling, whose contract must be
-defined by Architecture & Audit before implementation. B2 may be revisited only if
-genuinely new qualified executable-quote, settled-funding and, where applicable, FX
-execution-cost evidence appears.
+B sequencing blocker. Bounded confidence propagation and explicit unsupported-case
+handling are complete. B2 may be revisited only if genuinely new qualified executable-
+quote, settled-funding and, where applicable, FX execution-cost evidence appears.
+Stage C — Quality is not started and may begin only if the CEO authorizes transition
+from the completed bounded Stage-B sequence.
 
 The public SEC/free-Nasdaq source graph still lacks complete positive
 no-transformation coverage through CURRENT T. PR5C therefore uses positive
@@ -456,9 +464,10 @@ affirmative route-local relevant-class coverage; absence of an observed second
 class is insufficient. The broader capabilities remain roadmap requirements and
 do not disappear merely because they are deferred. Stage A is complete only for
 the explicitly supported bounded first CURRENT route; this is not universal or
-global Real Fact Admission completeness. The immediate frontier is **Stage B —
-Expected Return completion**, followed by the unchanged pre-shadow sequence in
-section 9.
+global Real Fact Admission completeness. Stage B is complete only within its
+currently approved bounded supported scope. The immediate program gate is the CEO
+decision to authorize or defer transition to Stage C — Quality; the unchanged pre-
+shadow sequence remains in section 9.
 
 ---
 
@@ -722,7 +731,27 @@ CI #118 completed successfully before the CEO merged PR #97 as
 `608b321cbd5b136bcf1a7637ea8ca9a92bbd381f`, tree
 `f4b5399f7667f83266968ac89bfd276ae07146f9`.
 
-The expected immediate sequence is:
+#### Explicit non-available-case handling ✅
+
+PR #99 makes canonical the immutable deterministic `StageBNonAvailableCase` for
+exact company Expected Return, VFV forward Expected Return, company-vs-VFV comparator
+and cash-like current-carry inputs. Available analyses produce no non-available case.
+For already-established non-available analyses, `UNAVAILABLE`, `UNSUPPORTED` and
+`SOURCE_CONFLICT` remain distinct, with exact native reasons and canonical upstream
+semantic/evidence identities.
+
+Architecture & Audit found no technical defect and determined that the bounded
+contract was satisfied. Local `FULL_PIT` passed 2,895/2,895, GitHub Baseline V1 CI
+#120 completed successfully, and the CEO merged reviewed head
+`bfb431911b63ded983f558234c3e5ef552a055a6` as
+`30cc0aaf95d2b8aa2ba1a2d51bad4859e2aa587f`, tree
+`a624be6a51906563ed987f9f38ece0e1ad8302da`.
+
+Authority is `CAPABILITY_STATUS_EXPLANATION_ONLY`. The object has no confidence
+field or analytical numeric output, excludes B1 and B2, and grants no recommendation,
+ranking, allocation, sizing, execution, production or V2-promotion authority.
+
+The completed bounded sequence and transition gate are:
 
 ```text
 bounded company-vs-VFV Expected Return comparator complete
@@ -731,8 +760,10 @@ bounded company-vs-VFV Expected Return comparator complete
 → real executable-entry route investigation complete — PARTIAL ONLY
 → B2 numeric executable-net currently UNAVAILABLE / DEFERRED
 → bounded confidence propagation for available canonical analyses ✅
-→ explicit unsupported-case handling ← NEXT
-→ B2 revisited only when genuinely new qualified evidence exists
+→ explicit unsupported-case handling ✅
+→ Stage B bounded sequence COMPLETE
+→ CEO transition decision
+→ Stage C — Quality only if authorized
 ```
 
 - completed: Data & Evidence currency/hedging prerequisite and reviewed compatible
@@ -749,8 +780,12 @@ bounded company-vs-VFV Expected Return comparator complete
   executable route currently exists, and B2 is not a Stage B sequencing blocker;
 - completed: bounded confidence propagation for the four approved canonical
   analytical surfaces;
-- next: explicit unsupported-case handling, after Architecture & Audit defines its
-  bounded contract;
+- completed: explicit unsupported-case handling for the same four exact analytical
+  surfaces under explanation-only authority;
+- complete: Stage B — Expected Return bounded sequence within the currently approved
+  supported scope;
+- waiting CEO: authorize or defer transition to Stage C — Quality; Stage C is not
+  started and no implementation is queued;
 - revisit B2 only when genuinely new qualified evidence exists.
 
 Confidence applies to uncertainty inside an available analysis. Capability state
@@ -764,6 +799,10 @@ receives only CURRENT evidence context and does not become seven-year cash Expec
 Return.
 
 ### Stage C — Quality
+
+Status: not started. Transition from completed bounded Stage B requires explicit CEO
+authorization; this roadmap update does not activate Stage C or authorize Quality
+implementation.
 
 Build transparent, evidence-backed measures for topics such as:
 
@@ -1686,21 +1725,15 @@ allocation, execution or promotion authority.
 
 Stage A — Real Fact Admission is complete only for that bounded route; broader
 identity, international, PIT, data and licensing limitations remain. Stage B —
-Expected Return completion is active and incomplete. PR #86 completed the first
-bounded VFV CURRENT evidence foundation, and PR #88 completed the reviewed standalone
-VFV forward Expected Return methodology, CEO-approved numerical policy and canonical
-research diagnostic. PR #90 completed the qualified VFV USD-exposure / dated
-materially-unhedged prerequisite and the bounded same-label company-vs-VFV Expected
-Return comparator under constant FX, including the comparator-owned company problem
-identity-v2 correction. PR #92 completed the source-neutral current nominal
-`CASH_LIKE_CURRENT_CARRY` Slice A foundation for the first bounded
-settled-cash-balance profile. Current cash carry is not seven-year cash Expected
-Return and is not an opportunity-cost comparison. PR #94 completed the source-neutral
+Expected Return is complete within the currently approved bounded supported scope.
+PR #86 completed the first bounded VFV CURRENT evidence foundation; PR #88 completed
+the reviewed standalone VFV forward Expected Return methodology, CEO-approved
+numerical policy and canonical research diagnostic; PR #90 completed the qualified
+VFV USD-exposure / dated materially-unhedged prerequisite and bounded same-label
+company-vs-VFV comparator; PR #92 completed source-neutral current nominal
+`CASH_LIKE_CURRENT_CARRY` Slice A; and PR #94 completed the source-neutral
 `EXECUTABLE_ENTRY_EVIDENCE` B1 foundation and closed failure states for one bounded
-CURRENT/capture-bound context, including independent partial facts, exact Decimal
-commission and executable-quote semantics, `POST_TRADE_REGULAR_WAY / T_PLUS_1`,
-same-currency `FX_NOT_REQUIRED_SAME_CURRENCY`, deterministic identities and closed
-precedence. Synthetic `AVAILABLE` fixtures prove mechanics only.
+CURRENT/capture-bound context. Synthetic `AVAILABLE` fixtures prove mechanics only.
 
 The real executable-entry route investigation is complete with `PARTIAL ROUTE ONLY`.
 Bounded transaction-currency, zero-commission and regular-way `T_PLUS_1` facts can
@@ -1711,28 +1744,33 @@ currency routes—exact pre-entry FX execution-cost evidence remain absent.
 Informational/current-observed bid/ask remains informational.
 
 B2 numeric executable-net Expected Return is currently `UNAVAILABLE / DEFERRED`.
-It remains an open capability gap, is no longer a Stage B sequencing blocker, and may
-be revisited only when genuinely new qualified evidence appears. Bounded confidence
-propagation for the four approved canonical analytical surfaces is complete. The
-immediate Stage B frontier is explicit unsupported-case handling; this Governance
-Sync records that next direction but does not define or implement its architecture.
+It remains an open capability gap, trigger-based and dormant, is not permanently
+unsupported and is not a blocker to bounded Stage-B completion. It may be revisited
+only when genuinely new qualified executable-quote, settled-funding and, where
+applicable, FX execution-cost evidence appears. PR #97 completed bounded confidence
+propagation for the four approved canonical analytical surfaces. PR #99 completed
+explicit non-available-case handling for those same surfaces under
+`CAPABILITY_STATUS_EXPLANATION_ONLY` authority, with no confidence field, analytical
+numeric output, B1 or B2 capability, or recommendation/allocation/execution authority.
+
+No new technical chantier is active. Stage C — Quality is not started. The next
+program decision belongs to the CEO: authorize or defer transition from completed
+bounded Stage B to Stage C. V2 architecture remains incomplete and shadow cannot
+begin.
 
 ---
 
-*Roadmap state updated on 2026-10-04 through canonical PR #97 bounded confidence
-propagation. Governance Reform
+*Roadmap state updated on 2026-10-04 through canonical PR #99 explicit non-available-
+case handling. Governance Reform
 Phase 1, Governance Cleanup / Migration, role Projects/employees configuration and
-PR5E are complete. Stage B — Expected Return completion is the active technical
-frontier; its VFV CURRENT evidence foundation, standalone forward Expected Return,
-qualified FX/hedge prerequisite, bounded company-vs-VFV comparator and source-neutral
-cash-like current-carry Slice A, executable-entry evidence B1 and bounded confidence
-propagation milestones are complete, while Stage B remains incomplete. The real-route
-investigation concluded `PARTIAL ROUTE ONLY`; B2 numeric executable-net is currently
-`UNAVAILABLE / DEFERRED` and is an open capability gap rather than a sequencing
-blocker. Explicit unsupported-case handling is next, after Architecture & Audit
-defines its bounded contract; B2 is revisited only when genuinely new qualified
-evidence exists.
-Later architecture stages and shadow-readiness gates remain requirements only.
+PR5E are complete. Stage B — Expected Return is complete within the currently
+approved bounded supported scope, including bounded confidence propagation and
+explicit unsupported-case handling. The real-route investigation concluded `PARTIAL
+ROUTE ONLY`; B2 numeric executable-net remains `UNAVAILABLE / DEFERRED`, trigger-
+based and dormant, and is an open capability gap rather than a bounded-sequence
+blocker. No new technical chantier is active. Stage C — Quality remains not started
+pending the CEO transition decision. Later architecture stages and shadow-readiness
+gates remain requirements only, and shadow cannot begin.
 The reviewed PR5D2 Expected Return assumption policies are now pinned, but no
 investment-rule, model-rule, V1 or production-authority change is authorized
 here.*

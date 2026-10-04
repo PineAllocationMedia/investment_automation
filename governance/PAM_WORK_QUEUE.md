@@ -2,40 +2,20 @@
 
 ## ACTIVE
 
-- Stage B — Expected Return completion (`ACTIVE`, incomplete).
-  - Complete substep: first bounded VFV CURRENT evidence foundation.
-  - Complete substep: reviewed standalone methodology, CEO-approved numerical policy
-    and canonical standalone VFV forward Expected Return diagnostic.
-  - Complete substep: qualified VFV USD-exposure / dated materially-unhedged
-    FX/hedge evidence prerequisite and reviewed constant-FX comparison basis.
-  - Complete substep: canonical bounded current-real company-vs-VFV Expected Return
-    comparator, including comparator-owned company problem identity v2.
-  - Complete substep: canonical source-neutral `CASH_LIKE_CURRENT_CARRY` Slice A
-    foundation for current nominal carry under the first bounded settled-cash-balance
-    profile.
-  - Complete substep: canonical source-neutral `EXECUTABLE_ENTRY_EVIDENCE` B1
-    foundation and closed failure states, preserving independent partial facts and
-    exact CURRENT/capture-bound Decimal semantics.
-  - Complete substep: Data & Evidence real executable-entry route qualification
-    investigation. Result: `PARTIAL ROUTE ONLY`; no complete positive B1 route is
-    currently supportable.
-  - B2 — numeric seven-year entry-execution-net transformation remains an open
-    capability gap and is currently `UNAVAILABLE / DEFERRED`, but it is no longer a
-    Stage B sequencing blocker. Revisit is trigger-based only on genuinely new
-    qualified executable-quote, settled-funding and, where applicable, FX execution-
-    cost evidence.
-  - Complete substep: canonical bounded confidence propagation for company Expected
-    Return, VFV forward Expected Return, the company-vs-VFV comparator and cash-like
-    current carry, with `CONFIDENCE_PROJECTION_ONLY` authority and no analytical
-    numeric output.
-  - Immediate next active direction: explicit unsupported-case handling. Architecture
-    & Audit must first define the bounded contract; no implementation is active.
-  - No pending CEO decision is recorded.
-  - No Codex implementation task is active after this Governance Sync.
+None. No technical chantier is active pending the CEO transition decision.
+
+## COMPLETED
+
+- Stage B — Expected Return: bounded sequence complete within the currently approved
+  supported scope.
+  - PR #99 completed explicit non-available-case handling after bounded confidence
+    propagation for the four approved analytical surfaces.
+  - Completion does not imply universal Expected Return, issuer/security or B2
+    coverage, production authority, V2 promotion or shadow readiness.
 
 ## WAITING CEO
 
-None.
+- Authorize or defer transition to Stage C — Quality.
 
 ## WAITING EXTERNAL / TOOL
 
@@ -49,4 +29,6 @@ None.
 
 - Revisit B2 numeric executable-net Expected Return only if genuinely new qualified
   executable-quote, settled-funding and, where applicable, FX execution-cost evidence
-  appears. No autonomous monitoring task is authorized.
+  appears. It remains `UNAVAILABLE / DEFERRED`, an open capability gap, not
+  permanently unsupported and not a blocker to the bounded Stage-B completion.
+  No autonomous monitoring or queued implementation task is authorized.

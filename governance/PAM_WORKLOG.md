@@ -240,3 +240,27 @@
 - `scripts/run_isolated_tests.py` has pre-existing incomplete materialization of the
   tracked `docs/` and `analysis_capabilities/` directories. This remains validation-
   harness debt outside PR #97 implementation scope; no cleanup task is queued.
+
+## 2026-10-04 — PR #99 explicit non-available-case handling canonical
+
+- The CEO merged PR #99 as `30cc0aaf95d2b8aa2ba1a2d51bad4859e2aa587f`,
+  tree `a624be6a51906563ed987f9f38ece0e1ad8302da`; reviewed PR head was
+  `bfb431911b63ded983f558234c3e5ef552a055a6`.
+- Architecture & Audit found no technical defect and determined that the bounded
+  contract was satisfied. Local `FULL_PIT` passed 2,895/2,895, and GitHub Baseline
+  V1 CI #120 completed successfully on the exact reviewed head.
+- The immutable deterministic `StageBNonAvailableCase` covers exact company Expected
+  Return, VFV forward Expected Return, company-vs-VFV comparator and cash-like current-
+  carry inputs. Available analyses produce no non-available case; `UNAVAILABLE`,
+  `UNSUPPORTED` and `SOURCE_CONFLICT` remain distinct with exact native reasons and
+  canonical upstream semantic/evidence identities.
+- Authority is `CAPABILITY_STATUS_EXPLANATION_ONLY`: there is no confidence field,
+  analytical numeric output, B1 or B2 capability, recommendation, ranking,
+  allocation, execution, production or V2-promotion authority.
+- Stage B — Expected Return is now complete within the currently approved bounded
+  supported scope. B2 numeric executable-net Expected Return remains `UNAVAILABLE /
+  DEFERRED`, open, trigger-based and dormant; it is not permanently unsupported and
+  is not a blocker to this bounded completion.
+- Stage C — Quality was not automatically activated. The next program decision
+  belongs to the CEO: authorize or defer transition from completed bounded Stage B
+  to Stage C.
