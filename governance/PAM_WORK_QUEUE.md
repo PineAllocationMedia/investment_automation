@@ -2,7 +2,10 @@
 
 ## ACTIVE
 
-None. No technical chantier is active pending the CEO transition decision.
+- Stage C — Quality (`ACTIVE`).
+  - Immediate next substep: Architecture & Audit defines the first bounded Quality
+    contract before implementation.
+  - No Quality methodology, scoring formula or Codex implementation task is active.
 
 ## COMPLETED
 
@@ -15,7 +18,7 @@ None. No technical chantier is active pending the CEO transition decision.
 
 ## WAITING CEO
 
-- Authorize or defer transition to Stage C — Quality.
+None.
 
 ## WAITING EXTERNAL / TOOL
 

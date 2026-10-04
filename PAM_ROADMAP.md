@@ -197,7 +197,7 @@ Existing documents remain:
 
 ---
 
-## 8. Current program gate — bounded Stage B complete; CEO transition decision pending
+## 8. Current technical frontier — Stage C Quality
 
 ### Real-source chain through PR5C comparable historical EPS presentation ✅
 
@@ -420,11 +420,13 @@ Bounded confidence propagation for available canonical analyses ✅
     ↓
 Explicit unsupported-case handling ✅
     ↓
-Stage B bounded sequence COMPLETE within the currently approved supported scope
+Stage B bounded sequence COMPLETE within the currently approved supported scope ✅
     ↓
-CEO transition decision
+CEO transition authorization ✅
     ↓
-Stage C — Quality only if authorized
+Stage C — Quality ACTIVE
+    ↓
+First bounded Quality contract — Architecture & Audit NEXT
 ```
 
 This governance sequence was an administrative prerequisite, not a replacement for
@@ -435,9 +437,11 @@ VFV FX/hedge evidence prerequisite, bounded company-vs-VFV comparator, source-ne
 current nominal cash-like carry Slice A and executable-entry evidence B1 foundations,
 bounded confidence propagation and explicit non-available-case handling for four
 canonical analytical surfaces. Stage B — Expected Return is complete within the
-currently approved bounded supported scope. No new technical chantier is active,
-and later technical stages remain in their existing order pending the CEO transition
-decision.
+currently approved bounded supported scope. The CEO explicitly authorized transition
+to Stage C — Quality, which is now the active technical stage. Architecture & Audit
+must define the first bounded Quality contract before implementation; no Quality
+methodology or implementation is yet approved. Later technical stages remain in
+their existing order.
 
 No additional pre-Stage-B Expected Return architecture interlude is authorized in
 this sequence. B1 and the real-route investigation are complete; the investigation
@@ -446,8 +450,9 @@ found `PARTIAL ROUTE ONLY`. B2 numeric executable-net Expected Return is current
 B sequencing blocker. Bounded confidence propagation and explicit unsupported-case
 handling are complete. B2 may be revisited only if genuinely new qualified executable-
 quote, settled-funding and, where applicable, FX execution-cost evidence appears.
-Stage C — Quality is not started and may begin only if the CEO authorizes transition
-from the completed bounded Stage-B sequence.
+Stage C — Quality is active for Architecture & Audit contract definition only. No
+Quality scoring formula, implementation, recommendation, ranking, allocation or
+execution authority is created by this activation.
 
 The public SEC/free-Nasdaq source graph still lacks complete positive
 no-transformation coverage through CURRENT T. PR5C therefore uses positive
@@ -465,9 +470,9 @@ class is insufficient. The broader capabilities remain roadmap requirements and
 do not disappear merely because they are deferred. Stage A is complete only for
 the explicitly supported bounded first CURRENT route; this is not universal or
 global Real Fact Admission completeness. Stage B is complete only within its
-currently approved bounded supported scope. The immediate program gate is the CEO
-decision to authorize or defer transition to Stage C — Quality; the unchanged pre-
-shadow sequence remains in section 9.
+currently approved bounded supported scope. The immediate technical frontier is
+Architecture & Audit definition of the first bounded Stage-C Quality contract; the
+unchanged pre-shadow sequence remains in section 9.
 
 ---
 
@@ -761,9 +766,10 @@ bounded company-vs-VFV Expected Return comparator complete
 → B2 numeric executable-net currently UNAVAILABLE / DEFERRED
 → bounded confidence propagation for available canonical analyses ✅
 → explicit unsupported-case handling ✅
-→ Stage B bounded sequence COMPLETE
-→ CEO transition decision
-→ Stage C — Quality only if authorized
+→ Stage B bounded sequence COMPLETE ✅
+→ CEO transition authorization ✅
+→ Stage C — Quality ACTIVE
+→ first bounded Quality contract — Architecture & Audit NEXT
 ```
 
 - completed: Data & Evidence currency/hedging prerequisite and reviewed compatible
@@ -784,8 +790,9 @@ bounded company-vs-VFV Expected Return comparator complete
   surfaces under explanation-only authority;
 - complete: Stage B — Expected Return bounded sequence within the currently approved
   supported scope;
-- waiting CEO: authorize or defer transition to Stage C — Quality; Stage C is not
-  started and no implementation is queued;
+- authorized: CEO transition from completed bounded Stage B to Stage C — Quality;
+- active: Stage C — Quality, with Architecture & Audit definition of the first
+  bounded contract next and no implementation task active;
 - revisit B2 only when genuinely new qualified evidence exists.
 
 Confidence applies to uncertainty inside an available analysis. Capability state
@@ -800,9 +807,10 @@ Return.
 
 ### Stage C — Quality
 
-Status: not started. Transition from completed bounded Stage B requires explicit CEO
-authorization; this roadmap update does not activate Stage C or authorize Quality
-implementation.
+Status: `ACTIVE`. The CEO authorized transition from completed bounded Stage B.
+Architecture & Audit definition of the first bounded Quality contract is next. No
+Quality methodology, threshold, weight, formula, composite score or implementation
+is approved by this activation.
 
 Build transparent, evidence-backed measures for topics such as:
 
@@ -1753,24 +1761,27 @@ explicit non-available-case handling for those same surfaces under
 `CAPABILITY_STATUS_EXPLANATION_ONLY` authority, with no confidence field, analytical
 numeric output, B1 or B2 capability, or recommendation/allocation/execution authority.
 
-No new technical chantier is active. Stage C — Quality is not started. The next
-program decision belongs to the CEO: authorize or defer transition from completed
-bounded Stage B to Stage C. V2 architecture remains incomplete and shadow cannot
-begin.
+PR #100 canonically recorded the bounded Stage-B completion. The CEO subsequently
+authorized transition to Stage C — Quality, which is now active. The next technical
+action is one Architecture & Audit Work Order defining the first bounded Quality
+contract before implementation. No Quality methodology, scoring formula or Codex
+implementation is active. V2 architecture remains incomplete and shadow cannot begin.
 
 ---
 
-*Roadmap state updated on 2026-10-04 through canonical PR #99 explicit non-available-
-case handling. Governance Reform
+*Roadmap state updated on 2026-10-04 through canonical PR #100 bounded Stage-B
+completion and the subsequent CEO authorization to transition to Stage C — Quality.
+Governance Reform
 Phase 1, Governance Cleanup / Migration, role Projects/employees configuration and
 PR5E are complete. Stage B — Expected Return is complete within the currently
 approved bounded supported scope, including bounded confidence propagation and
 explicit unsupported-case handling. The real-route investigation concluded `PARTIAL
 ROUTE ONLY`; B2 numeric executable-net remains `UNAVAILABLE / DEFERRED`, trigger-
 based and dormant, and is an open capability gap rather than a bounded-sequence
-blocker. No new technical chantier is active. Stage C — Quality remains not started
-pending the CEO transition decision. Later architecture stages and shadow-readiness
-gates remain requirements only, and shadow cannot begin.
+blocker. Stage C — Quality is active, with Architecture & Audit definition of the
+first bounded Quality contract next and no implementation yet authorized. Later
+architecture stages and shadow-readiness gates remain requirements only, and shadow
+cannot begin.
 The reviewed PR5D2 Expected Return assumption policies are now pinned, but no
 investment-rule, model-rule, V1 or production-authority change is authorized
 here.*
