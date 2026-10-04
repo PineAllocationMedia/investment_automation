@@ -409,6 +409,8 @@ VFV FX/hedge evidence prerequisite complete (PR #90)
 Bounded company-vs-VFV Expected Return comparator complete (PR #90)
     ↓
 Source-neutral CASH_LIKE_CURRENT_CARRY Slice A complete (PR #92)
+    ↓
+Source-neutral EXECUTABLE_ENTRY_EVIDENCE B1 complete (PR #94)
 ```
 
 This governance sequence was an administrative prerequisite, not a replacement for
@@ -416,14 +418,16 @@ PR5E and not an expansion of Expected Return architecture. Role configuration an
 PR5E are complete. Stage B implementation now includes the bounded VFV CURRENT
 evidence foundation, standalone VFV forward Expected Return diagnostic, qualified
 VFV FX/hedge evidence prerequisite, bounded company-vs-VFV comparator and the
-source-neutral current nominal cash-like carry Slice A foundation; Stage B remains
-active and incomplete, and later technical stages remain in their existing order.
+source-neutral current nominal cash-like carry Slice A and executable-entry evidence
+B1 foundations; Stage B remains active and incomplete, and later technical stages
+remain in their existing order.
 
 No additional pre-Stage-B Expected Return architecture interlude is authorized in
-this sequence. The immediate Stage B direction is B1 — executable-entry evidence
-foundation and closed failure states. B2 numeric seven-year entry-execution-net
-transformation remains unsupported until qualified executable quote authority exists;
-this B2 evidence blocker does not prevent B1 foundation work.
+this sequence. B1 is complete. The immediate Stage B direction belongs to Data &
+Evidence for qualification of a real executable-entry evidence route where
+supportable. B2 numeric seven-year entry-execution-net transformation remains
+unsupported and unauthorized until real qualified executable quote and execution-
+cost evidence sufficiently supports its transformation boundary.
 
 The public SEC/free-Nasdaq source graph still lacks complete positive
 no-transformation coverage through CURRENT T. PR5C therefore uses positive
@@ -658,12 +662,41 @@ activation/release logic, recommendation, allocation, execution, production or
 deployment authority. Current cash carry remains distinct from both seven-year cash
 Expected Return and later opportunity-cost comparison.
 
+#### Executable-entry evidence B1 foundation ✅
+
+PR #94 makes canonical the source-neutral `EXECUTABLE_ENTRY_EVIDENCE` B1 contract
+for one bounded CURRENT/capture-bound potentially executable purchase-entry context.
+It binds opaque execution-context and target-instrument scope, preserves independent
+eligibility, settled-funding, commission, settlement, currency-path and executable-
+quote dimensions, and retains qualified partial facts when another required
+dimension is unavailable. Exact zero commission remains valid; missing commission
+never becomes zero. The first bounded settlement profile is
+`POST_TRADE_REGULAR_WAY / T_PLUS_1`. Same-currency routes establish only
+`FX_NOT_REQUIRED_SAME_CURRENCY`; cross-currency routes fail closed without qualified
+FX execution-cost evidence. Closed precedence is
+`SOURCE_CONFLICT > UNSUPPORTED > UNAVAILABLE > AVAILABLE`.
+
+Architecture & Audit classified the implementation and its high-attention typed
+executable-quote authority boundary as `C — expected behavior` and returned
+`MERGE READY`. Informational/current-observed quotes do not become executable quotes;
+synthetic `AVAILABLE` fixtures prove mechanics only. GitHub Baseline V1 CI #115
+completed successfully, and the CEO merged PR #94 as
+`6a2cc7fd96f008dbdd05d9a5fdc80480a6694fd9`, tree
+`e60a91445f7b229aff92e1161c524882ceb9a635`.
+
+B1 establishes no real executable quote route, provider/broker adapter, live owner-
+specific facts, order construction/submission, execution authority, aggregate
+friction, executable-net Expected Return, B2, recommendation, allocation, production,
+deployment or V2 promotion authority. A real positive executable quote still requires
+a separately reviewed authenticated source route/adapter.
+
 The expected immediate sequence is:
 
 ```text
 bounded company-vs-VFV Expected Return comparator complete
 → Slice A current carry complete
-→ B1 executable-entry evidence foundation and closed failure states
+→ B1 executable-entry evidence foundation complete
+→ real executable-entry evidence route qualification
 → B2 numeric executable-net transformation only when evidence support exists
 → confidence propagation
 → explicit unsupported cases
@@ -674,9 +707,13 @@ bounded company-vs-VFV Expected Return comparator complete
 - completed: bounded VFV forward ER comparator;
 - completed: source-neutral `CASH_LIKE_CURRENT_CARRY` Slice A for one bounded
   settled-cash-balance profile;
-- next: B1 executable-entry evidence foundation and closed failure states;
-- B2 numeric seven-year entry-execution-net transformation only when qualified
-  executable quote evidence supports it; no positive numeric route currently exists;
+- completed: source-neutral `EXECUTABLE_ENTRY_EVIDENCE` B1 foundation and closed
+  failure states;
+- next owner/direction: Data & Evidence qualification of a real executable-entry
+  evidence route where supportable;
+- B2 numeric seven-year entry-execution-net transformation remains unauthorized and
+  blocked until real qualified executable quote and execution-cost evidence supports
+  it; no positive real or numeric executable route currently exists;
 - confidence propagation;
 - explicit unsupported cases.
 
@@ -1612,26 +1649,34 @@ Return comparator under constant FX, including the comparator-owned company prob
 identity-v2 correction. PR #92 completed the source-neutral current nominal
 `CASH_LIKE_CURRENT_CARRY` Slice A foundation for the first bounded
 settled-cash-balance profile. Current cash carry is not seven-year cash Expected
-Return and is not an opportunity-cost comparison.
+Return and is not an opportunity-cost comparison. PR #94 completed the source-neutral
+`EXECUTABLE_ENTRY_EVIDENCE` B1 foundation and closed failure states for one bounded
+CURRENT/capture-bound context, including independent partial facts, exact Decimal
+commission and executable-quote semantics, `POST_TRADE_REGULAR_WAY / T_PLUS_1`,
+same-currency `FX_NOT_REQUIRED_SAME_CURRENCY`, deterministic identities and closed
+precedence. Synthetic `AVAILABLE` fixtures prove mechanics only.
 
-The immediate next direction is B1 — executable-entry evidence foundation and
-closed failure states. No qualified free/first-party executable bid/ask route or
-positive numeric executable route is established; informational quotes do not gain
+The immediate next direction belongs to Data & Evidence for qualification of a real
+executable-entry evidence route where supportable. No qualified real executable
+bid/ask route, provider/broker adapter, live owner-specific route or positive numeric
+executable route is established; informational/current-observed quotes do not gain
 executable authority. B2 numeric seven-year entry-execution-net transformation
-therefore remains blocked on qualified executable quote evidence without blocking B1.
-This Governance Sync starts neither B1 nor B2 implementation.
+remains unauthorized and blocked until real qualified executable quote and execution-
+cost evidence sufficiently supports its transformation boundary. This Governance
+Sync starts neither real-route implementation nor B2.
 
 ---
 
-*Roadmap state updated on 2026-10-03 through canonical PR #92. Governance Reform
+*Roadmap state updated on 2026-10-04 through canonical PR #94. Governance Reform
 Phase 1, Governance Cleanup / Migration, role Projects/employees configuration and
 PR5E are complete. Stage B — Expected Return completion is the active technical
 frontier; its VFV CURRENT evidence foundation, standalone forward Expected Return,
 qualified FX/hedge prerequisite, bounded company-vs-VFV comparator and source-neutral
-cash-like current-carry Slice A milestones are complete, while Stage B remains
-incomplete. B1 executable-entry evidence foundation is next; B2 numeric
-entry-execution-net transformation remains unsupported until qualified executable
-quote evidence exists.
+cash-like current-carry Slice A and executable-entry evidence B1 milestones are
+complete, while Stage B remains incomplete. Data & Evidence qualification of a real
+executable-entry evidence route is next; B2 numeric entry-execution-net transformation
+remains unsupported and unauthorized until real qualified executable quote and
+execution-cost evidence exists.
 Later architecture stages and shadow-readiness gates remain requirements only.
 The reviewed PR5D2 Expected Return assumption policies are now pinned, but no
 investment-rule, model-rule, V1 or production-authority change is authorized
