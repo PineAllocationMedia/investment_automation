@@ -3,19 +3,18 @@
 > Two-to-five-minute operational snapshot. Refresh through Governance Sync after
 > durable state changes.
 
-- **Last Governance Sync:** PR #99 explicit non-available-case handling recorded as
-  canonical and the currently approved bounded Stage-B sequence recorded complete
-  (2026-10-04)
-- **Current major program:** V2 architecture progression; bounded Stage B complete
-  pending the CEO transition decision
-- **Active technical frontier:** None pending the CEO Stage B → Stage C transition
-  decision
+- **Last Governance Sync:** PR #100 recorded the currently approved bounded Stage-B
+  sequence complete and was merged canonically; the CEO has now authorized transition
+  to Stage C — Quality (2026-10-04)
+- **Current major program:** Stage C — Quality
+- **Active technical frontier:** Stage C — Quality contract definition
 - **Canonical integration branch:** `model-v2/expected-return-challenger`
-- **Canonical verified pre-this-sync HEAD:** `30cc0aaf95d2b8aa2ba1a2d51bad4859e2aa587f`
-- **Canonical verified tree:** `a624be6a51906563ed987f9f38ece0e1ad8302da`
+- **Canonical verified pre-this-sync HEAD:** `a653102931e79a3fbfa2fcbcb85a576aa50da9df`
+- **Canonical verified tree:** `a832657de84fdd52003136db973772fb9b015a61`
 - **Current status:** Stage B — Expected Return is complete within the currently
-  approved bounded supported scope. PR #99 is merged and canonical, establishing
-  explicit handling for already-established non-available analytical states.
+  approved bounded supported scope. The CEO explicitly authorized transition to
+  Stage C — Quality, which is now active. No Quality methodology, contract or
+  implementation yet exists.
 - **Latest completed technical milestone:** versioned immutable
   `StageBNonAvailableCase`, preserving exact `UNAVAILABLE`, `UNSUPPORTED` and
   `SOURCE_CONFLICT` states, native reasons and upstream semantic/evidence identities
@@ -23,9 +22,9 @@
 - **Technical frontier:** Stage A — Real Fact Admission is complete for its
   explicitly supported first bounded CURRENT route; Stage B — Expected Return is
   complete within the currently approved bounded supported scope; Stage C — Quality
-  is not started
-- **Immediate technical frontier:** None. The CEO must authorize or defer transition
-  from completed bounded Stage B to Stage C — Quality.
+  is active
+- **Immediate technical frontier:** Architecture & Audit defines the first bounded
+  Quality contract before any implementation.
 - **Comparator availability:** Canonical only for the bounded current real route under
   `2026-10-01-company-vfv-constant-fx-comparison-v1`, with
   `RESEARCH_DIAGNOSTIC_ONLY` authority
@@ -35,8 +34,7 @@
   gap, currently `UNAVAILABLE / DEFERRED`, trigger-based and dormant, and may be
   revisited only if genuinely new qualified executable-quote, settled-funding and,
   where applicable, FX execution-cost evidence appears.
-- **Pending CEO decisions:** Authorize or defer transition from completed bounded
-  Stage B to Stage C — Quality
+- **Pending CEO decisions:** None recorded for the Stage B → Stage C transition
 
 ## Active role states
 
@@ -147,6 +145,11 @@
   `CAPABILITY_STATUS_EXPLANATION_ONLY`; it has no confidence field or analytical
   numeric output, excludes B1 and B2, and grants no recommendation, ranking,
   allocation, sizing, execution, production or V2-promotion authority.
+- Stage C activation authorizes Architecture & Audit to define the first bounded
+  Quality contract only. No Quality capability, methodology, threshold, weight,
+  formula, composite score or implementation is approved or represented as existing.
+  Quality must remain transparent and evidence-backed and grants no recommendation,
+  ranking, allocation, execution, production, deployment or V2-promotion authority.
 - All seven conversational PAM role Projects/employees are configured. Codex
   Development remains `ACTIVE BY TASK`, not an autonomous conversational employee.
 
@@ -158,5 +161,5 @@
 - `DECISIONS.md`
 - `governance/roles/*.md`
 
-The HEAD/tree above are the verified canonical state after PR #99 and before this
+The HEAD/tree above are the verified canonical state after PR #100 and before this
 Governance Sync, not the future merge commit of this Governance Sync PR.

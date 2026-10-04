@@ -264,3 +264,20 @@
 - Stage C — Quality was not automatically activated. The next program decision
   belongs to the CEO: authorize or defer transition from completed bounded Stage B
   to Stage C.
+
+## 2026-10-04 — Stage C — Quality transition authorized
+
+- PR #100 canonicalized completion of the currently approved bounded Stage-B
+  Expected Return sequence as merge commit
+  `a653102931e79a3fbfa2fcbcb85a576aa50da9df`, tree
+  `a832657de84fdd52003136db973772fb9b015a61`.
+- The CEO explicitly authorized transition from completed bounded Stage B to
+  Stage C — Quality. Stage C is now the active V2 technical stage.
+- The immediate next action is one Architecture & Audit Work Order defining the first
+  bounded Quality contract before implementation. This authorization approves no
+  Quality methodology, threshold, weight, formula, composite score or implementation.
+- B2 numeric executable-net Expected Return remains `UNAVAILABLE / DEFERRED`, an
+  open capability gap that is trigger-based and dormant, not permanently unsupported,
+  and revisitable only on genuinely new qualified evidence.
+- V2 remains a challenger. No production, recommendation, ranking, allocation,
+  execution, deployment or V2-promotion authority was created.
