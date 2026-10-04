@@ -3,13 +3,13 @@
 > Two-to-five-minute operational snapshot. Refresh through Governance Sync after
 > durable state changes.
 
-- **Last Governance Sync:** Post-PR #94 source-neutral executable-entry evidence
-  milestone recorded (2026-10-04)
+- **Last Governance Sync:** Real executable-entry route investigation and Stage B
+  sequencing decision recorded (2026-10-04)
 - **Current major program:** V2 evidence-qualified Expected Return foundation
 - **Active technical frontier:** Stage B — Expected Return completion
 - **Canonical integration branch:** `model-v2/expected-return-challenger`
-- **Canonical verified pre-this-sync HEAD:** `6a2cc7fd96f008dbdd05d9a5fdc80480a6694fd9`
-- **Canonical verified tree:** `e60a91445f7b229aff92e1161c524882ceb9a635`
+- **Canonical verified pre-this-sync HEAD:** `485e4a615b464c9fc27b54eda404d13b1d65b21d`
+- **Canonical verified tree:** `24edc3303b632c002b8034d35733cfdceff25c51`
 - **Current status:** Stage B implementation is active and incomplete. PR #94 is
   merged and canonical, establishing the bounded source-neutral
   `EXECUTABLE_ENTRY_EVIDENCE` B1 foundation and closed failure states.
@@ -20,16 +20,16 @@
 - **Technical frontier:** Stage A — Real Fact Admission is complete for its
   explicitly supported first bounded CURRENT route; Stage B — Expected Return
   completion is active and incomplete
-- **Immediate technical frontier:** Data & Evidence qualification of a real
-  executable-entry evidence route where supportable; no such positive real route is
-  yet established
+- **Immediate technical frontier:** bounded confidence propagation for currently
+  available canonical analytical outputs
 - **Comparator availability:** Canonical only for the bounded current real route under
   `2026-10-01-company-vfv-constant-fx-comparison-v1`, with
   `RESEARCH_DIAGNOSTIC_ONLY` authority
 - **Approved VFV policy:** `PAM_VFV_FORWARD_ER_POLICY_2026_10_01_V1`, hash
   `31dbebd0545c233c4913dad1915dfd2eb23d91481019fec078b245541ef0e645`
-- **Blockers:** B2 positive numeric seven-year entry-execution-net transformation
-  remains blocked on real qualified executable quote and execution-cost evidence.
+- **Blockers:** None for current Stage B sequencing. B2 remains an open capability
+  gap, currently `UNAVAILABLE / DEFERRED`, and may be revisited only if genuinely
+  new qualified executable-quote, funding and, where applicable, FX evidence appears.
 - **Pending CEO decisions:** None recorded
 
 ## Active role states
@@ -106,6 +106,32 @@
   recommendation, allocation, production, deployment or V2 promotion. A real
   positive executable quote still requires a separately reviewed authenticated source
   route/adapter.
+- The completed real executable-entry investigation found `PARTIAL ROUTE ONLY`.
+  Real evidence supports some independent B1 dimensions, including bounded
+  transaction-currency, zero-commission and regular-way `T_PLUS_1` facts, but no
+  complete positive B1 route. No reviewed source establishes qualified
+  `EXECUTABLE_BID_ASK` with an exact quote-event timestamp; no authorized current
+  evidence establishes the execution context's `SETTLED_AND_AVAILABLE` funding and
+  exact funding currency; and cross-currency routes additionally lack exact pre-entry
+  FX execution-cost evidence. Informational/current-observed bid/ask remains
+  informational. No proxy spread, guessed friction, inferred funding or guessed FX
+  cost is authorized.
+- B2 numeric executable-net Expected Return is currently `UNAVAILABLE / DEFERRED`.
+  It is an open capability gap, not a Stage B sequencing blocker and not permanently
+  unsupported. Confidence applies to uncertainty inside an available analysis;
+  capability state determines whether the analysis exists. Accordingly, numeric
+  executable-net Expected Return is absent and its confidence is `NONE / NOT
+  APPLICABLE`; `PARTIAL`, `UNAVAILABLE`, `UNSUPPORTED`, missing execution evidence
+  and authority limitations must not become numeric confidence haircuts or a guessed
+  low-confidence executable-net result.
+- The next bounded confidence slice may consume only already-qualified canonical
+  outputs, including where contractually appropriate company Expected Return,
+  standalone VFV Expected Return, the company-vs-VFV comparator and the cash-like
+  CURRENT carry fact. It must preserve their numeric values, availability/status,
+  semantic/evidence identities and authority boundaries. LOW confidence does not
+  automatically haircut Expected Return, and cash-like CURRENT carry must not become
+  seven-year cash Expected Return. Explicit unsupported-case handling follows this
+  bounded slice.
 - All seven conversational PAM role Projects/employees are configured. Codex
   Development remains `ACTIVE BY TASK`, not an autonomous conversational employee.
 
