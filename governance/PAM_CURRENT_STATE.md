@@ -3,28 +3,27 @@
 > Two-to-five-minute operational snapshot. Refresh through Governance Sync after
 > durable state changes.
 
-- **Last Governance Sync:** PR #100 recorded the currently approved bounded Stage-B
-  sequence complete and was merged canonically; the CEO has now authorized transition
-  to Stage C — Quality (2026-10-04)
+- **Last Governance Sync:** PR #102 canonically established the first bounded
+  Stage-C Quality diagnostic after Architecture & Audit review and successful
+  exact-head CI (2026-10-04)
 - **Current major program:** Stage C — Quality
-- **Active technical frontier:** Stage C — Quality contract definition
+- **Active technical frontier:** next bounded Stage-C Quality contract definition
 - **Canonical integration branch:** `model-v2/expected-return-challenger`
-- **Canonical verified pre-this-sync HEAD:** `a653102931e79a3fbfa2fcbcb85a576aa50da9df`
-- **Canonical verified tree:** `a832657de84fdd52003136db973772fb9b015a61`
-- **Current status:** Stage B — Expected Return is complete within the currently
-  approved bounded supported scope. The CEO explicitly authorized transition to
-  Stage C — Quality, which is now active. No Quality methodology, contract or
-  implementation yet exists.
-- **Latest completed technical milestone:** versioned immutable
-  `StageBNonAvailableCase`, preserving exact `UNAVAILABLE`, `UNSUPPORTED` and
-  `SOURCE_CONFLICT` states, native reasons and upstream semantic/evidence identities
-  under `CAPABILITY_STATUS_EXPLANATION_ONLY` authority
+- **Canonical verified pre-this-sync HEAD:** `1309d4e9925aa01df32568d2602223c2e0ff1566`
+- **Canonical verified tree:** `fec28577b032478239640c8e5f412164e151eda7`
+- **Current status:** Stage C — Quality is `ACTIVE / INCOMPLETE`. Its first bounded
+  slice is complete and canonical; no later Quality dimension or composite Quality
+  score has been selected or implemented.
+- **Latest completed technical milestone:** immutable deterministic
+  `FivePeriodEPSConsistencyResult` for
+  `FIVE_PERIOD_DILUTED_EPS_DIRECTIONAL_CONSISTENCY`, under
+  `QUALITY_EPS_CONSISTENCY_DIAGNOSTIC_ONLY` authority
 - **Technical frontier:** Stage A — Real Fact Admission is complete for its
   explicitly supported first bounded CURRENT route; Stage B — Expected Return is
   complete within the currently approved bounded supported scope; Stage C — Quality
   is active
-- **Immediate technical frontier:** Architecture & Audit defines the first bounded
-  Quality contract before any implementation.
+- **Immediate technical frontier:** Architecture & Audit defines exactly one next
+  bounded Stage-C Quality contract before implementation.
 - **Comparator availability:** Canonical only for the bounded current real route under
   `2026-10-01-company-vfv-constant-fx-comparison-v1`, with
   `RESEARCH_DIAGNOSTIC_ONLY` authority
@@ -34,7 +33,7 @@
   gap, currently `UNAVAILABLE / DEFERRED`, trigger-based and dormant, and may be
   revisited only if genuinely new qualified executable-quote, settled-funding and,
   where applicable, FX execution-cost evidence appears.
-- **Pending CEO decisions:** None recorded for the Stage B → Stage C transition
+- **Pending CEO decisions:** None
 
 ## Active role states
 
@@ -145,11 +144,17 @@
   `CAPABILITY_STATUS_EXPLANATION_ONLY`; it has no confidence field or analytical
   numeric output, excludes B1 and B2, and grants no recommendation, ranking,
   allocation, sizing, execution, production or V2-promotion authority.
-- Stage C activation authorizes Architecture & Audit to define the first bounded
-  Quality contract only. No Quality capability, methodology, threshold, weight,
-  formula, composite score or implementation is approved or represented as existing.
-  Quality must remain transparent and evidence-backed and grants no recommendation,
-  ranking, allocation, execution, production, deployment or V2-promotion authority.
+- The first bounded Stage-C Quality slice is canonical. It reports four exact Decimal
+  transitions across five already-qualified comparable annual diluted-EPS periods as
+  `INCREASED`, `UNCHANGED` or `DECREASED`. It is a transparent historical diagnostic
+  only, not overall Quality, a composite score or cross-sector comparison. It grants
+  no ROIC/profit-margin, cash-conversion, balance-sheet, capital-allocation, dilution,
+  moat, Durability/persistence, Expected Return, confidence, recommendation, ranking,
+  allocation, sizing, execution, production, deployment, V2-promotion,
+  `HISTORICAL_AS_OF` or PIT authority.
+- Stage C remains active and incomplete. Architecture & Audit must inspect evidence
+  readiness and define exactly one next bounded Quality contract before any further
+  Codex implementation is queued; no next Quality dimension is selected here.
 - All seven conversational PAM role Projects/employees are configured. Codex
   Development remains `ACTIVE BY TASK`, not an autonomous conversational employee.
 

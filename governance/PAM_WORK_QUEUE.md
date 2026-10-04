@@ -2,10 +2,12 @@
 
 ## ACTIVE
 
-- Stage C — Quality (`ACTIVE`).
-  - Immediate next substep: Architecture & Audit defines the first bounded Quality
-    contract before implementation.
-  - No Quality methodology, scoring formula or Codex implementation task is active.
+- Stage C — Quality (`ACTIVE / INCOMPLETE`).
+  - Complete / canonical: first bounded slice,
+    `FIVE_PERIOD_DILUTED_EPS_DIRECTIONAL_CONSISTENCY`.
+  - Immediate next substep: Architecture & Audit defines exactly one next bounded
+    Quality contract before implementation.
+  - No next Quality dimension, scoring formula or Codex implementation task is queued.
 
 ## COMPLETED
 
