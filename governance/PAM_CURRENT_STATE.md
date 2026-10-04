@@ -3,34 +3,40 @@
 > Two-to-five-minute operational snapshot. Refresh through Governance Sync after
 > durable state changes.
 
-- **Last Governance Sync:** PR #97 bounded confidence propagation recorded as
-  canonical and the next Stage B frontier advanced (2026-10-04)
-- **Current major program:** V2 evidence-qualified Expected Return foundation
-- **Active technical frontier:** Stage B — Expected Return completion
+- **Last Governance Sync:** PR #99 explicit non-available-case handling recorded as
+  canonical and the currently approved bounded Stage-B sequence recorded complete
+  (2026-10-04)
+- **Current major program:** V2 architecture progression; bounded Stage B complete
+  pending the CEO transition decision
+- **Active technical frontier:** None pending the CEO Stage B → Stage C transition
+  decision
 - **Canonical integration branch:** `model-v2/expected-return-challenger`
-- **Canonical verified pre-this-sync HEAD:** `608b321cbd5b136bcf1a7637ea8ca9a92bbd381f`
-- **Canonical verified tree:** `f4b5399f7667f83266968ac89bfd276ae07146f9`
-- **Current status:** Stage B implementation is active and incomplete. PR #97 is
-  merged and canonical, establishing bounded confidence propagation for the four
-  approved canonical analytical surfaces.
+- **Canonical verified pre-this-sync HEAD:** `30cc0aaf95d2b8aa2ba1a2d51bad4859e2aa587f`
+- **Canonical verified tree:** `a624be6a51906563ed987f9f38ece0e1ad8302da`
+- **Current status:** Stage B — Expected Return is complete within the currently
+  approved bounded supported scope. PR #99 is merged and canonical, establishing
+  explicit handling for already-established non-available analytical states.
 - **Latest completed technical milestone:** versioned immutable
-  `BoundedConfidenceProjection`, preserving capability/confidence separation,
-  native categorical confidence or bounded evidence context, upstream identities
-  and `CONFIDENCE_PROJECTION_ONLY` authority without analytical numeric output
+  `StageBNonAvailableCase`, preserving exact `UNAVAILABLE`, `UNSUPPORTED` and
+  `SOURCE_CONFLICT` states, native reasons and upstream semantic/evidence identities
+  under `CAPABILITY_STATUS_EXPLANATION_ONLY` authority
 - **Technical frontier:** Stage A — Real Fact Admission is complete for its
-  explicitly supported first bounded CURRENT route; Stage B — Expected Return
-  completion is active and incomplete
-- **Immediate technical frontier:** explicit unsupported-case handling; Architecture
-  & Audit must define the bounded contract before Codex implementation
+  explicitly supported first bounded CURRENT route; Stage B — Expected Return is
+  complete within the currently approved bounded supported scope; Stage C — Quality
+  is not started
+- **Immediate technical frontier:** None. The CEO must authorize or defer transition
+  from completed bounded Stage B to Stage C — Quality.
 - **Comparator availability:** Canonical only for the bounded current real route under
   `2026-10-01-company-vfv-constant-fx-comparison-v1`, with
   `RESEARCH_DIAGNOSTIC_ONLY` authority
 - **Approved VFV policy:** `PAM_VFV_FORWARD_ER_POLICY_2026_10_01_V1`, hash
   `31dbebd0545c233c4913dad1915dfd2eb23d91481019fec078b245541ef0e645`
-- **Blockers:** None for current Stage B sequencing. B2 remains an open capability
-  gap, currently `UNAVAILABLE / DEFERRED`, and may be revisited only if genuinely
-  new qualified executable-quote, funding and, where applicable, FX evidence appears.
-- **Pending CEO decisions:** None recorded
+- **Blockers:** None for bounded Stage-B completion. B2 remains an open capability
+  gap, currently `UNAVAILABLE / DEFERRED`, trigger-based and dormant, and may be
+  revisited only if genuinely new qualified executable-quote, settled-funding and,
+  where applicable, FX execution-cost evidence appears.
+- **Pending CEO decisions:** Authorize or defer transition from completed bounded
+  Stage B to Stage C — Quality
 
 ## Active role states
 
@@ -133,6 +139,14 @@
   `CONFIDENCE_PROJECTION_ONLY`; it grants no recommendation, ranking, allocation,
   sizing, execution, production or V2-promotion authority. This is local Stage-B
   propagation, not the future full Stage E Confidence architecture.
+- The canonical explicit non-available-case adapter consumes the same four exact
+  analytical surfaces and returns no case for an available analysis. For an already-
+  established non-available analysis, it preserves the exact distinction among
+  `UNAVAILABLE`, `UNSUPPORTED` and `SOURCE_CONFLICT`, native reasons and upstream
+  semantic/evidence identities. Its authority is
+  `CAPABILITY_STATUS_EXPLANATION_ONLY`; it has no confidence field or analytical
+  numeric output, excludes B1 and B2, and grants no recommendation, ranking,
+  allocation, sizing, execution, production or V2-promotion authority.
 - All seven conversational PAM role Projects/employees are configured. Codex
   Development remains `ACTIVE BY TASK`, not an autonomous conversational employee.
 
@@ -144,5 +158,5 @@
 - `DECISIONS.md`
 - `governance/roles/*.md`
 
-The HEAD/tree above are the verified canonical state after PR #97 and before this
+The HEAD/tree above are the verified canonical state after PR #99 and before this
 Governance Sync, not the future merge commit of this Governance Sync PR.
