@@ -426,7 +426,9 @@ CEO transition authorization ✅
     ↓
 Stage C — Quality ACTIVE
     ↓
-First bounded Quality contract — Architecture & Audit NEXT
+Five-period diluted-EPS directional consistency ✅
+    ↓
+Next bounded Quality contract — Architecture & Audit NEXT
 ```
 
 This governance sequence was an administrative prerequisite, not a replacement for
@@ -438,10 +440,12 @@ current nominal cash-like carry Slice A and executable-entry evidence B1 foundat
 bounded confidence propagation and explicit non-available-case handling for four
 canonical analytical surfaces. Stage B — Expected Return is complete within the
 currently approved bounded supported scope. The CEO explicitly authorized transition
-to Stage C — Quality, which is now the active technical stage. Architecture & Audit
-must define the first bounded Quality contract before implementation; no Quality
-methodology or implementation is yet approved. Later technical stages remain in
-their existing order.
+to Stage C — Quality, which is now the active technical stage. The first bounded
+Quality slice, `FIVE_PERIOD_DILUTED_EPS_DIRECTIONAL_CONSISTENCY`, is canonical.
+Stage C remains active and incomplete. Architecture & Audit must inspect current
+evidence readiness and define exactly one next bounded Quality contract before any
+further implementation; no next dimension is selected here. Later technical stages
+remain in their existing order.
 
 No additional pre-Stage-B Expected Return architecture interlude is authorized in
 this sequence. B1 and the real-route investigation are complete; the investigation
@@ -450,9 +454,9 @@ found `PARTIAL ROUTE ONLY`. B2 numeric executable-net Expected Return is current
 B sequencing blocker. Bounded confidence propagation and explicit unsupported-case
 handling are complete. B2 may be revisited only if genuinely new qualified executable-
 quote, settled-funding and, where applicable, FX execution-cost evidence appears.
-Stage C — Quality is active for Architecture & Audit contract definition only. No
-Quality scoring formula, implementation, recommendation, ranking, allocation or
-execution authority is created by this activation.
+Stage C — Quality is active and incomplete. Its first bounded diagnostic is complete;
+no composite Quality score, next-dimension implementation, recommendation, ranking,
+allocation or execution authority is created by that milestone.
 
 The public SEC/free-Nasdaq source graph still lacks complete positive
 no-transformation coverage through CURRENT T. PR5C therefore uses positive
@@ -471,8 +475,8 @@ do not disappear merely because they are deferred. Stage A is complete only for
 the explicitly supported bounded first CURRENT route; this is not universal or
 global Real Fact Admission completeness. Stage B is complete only within its
 currently approved bounded supported scope. The immediate technical frontier is
-Architecture & Audit definition of the first bounded Stage-C Quality contract; the
-unchanged pre-shadow sequence remains in section 9.
+Architecture & Audit definition of exactly one next bounded Stage-C Quality contract;
+the unchanged pre-shadow sequence remains in section 9.
 
 ---
 
@@ -769,7 +773,8 @@ bounded company-vs-VFV Expected Return comparator complete
 → Stage B bounded sequence COMPLETE ✅
 → CEO transition authorization ✅
 → Stage C — Quality ACTIVE
-→ first bounded Quality contract — Architecture & Audit NEXT
+→ five-period diluted-EPS directional consistency ✅
+→ next bounded Quality contract — Architecture & Audit NEXT
 ```
 
 - completed: Data & Evidence currency/hedging prerequisite and reviewed compatible
@@ -791,8 +796,10 @@ bounded company-vs-VFV Expected Return comparator complete
 - complete: Stage B — Expected Return bounded sequence within the currently approved
   supported scope;
 - authorized: CEO transition from completed bounded Stage B to Stage C — Quality;
-- active: Stage C — Quality, with Architecture & Audit definition of the first
-  bounded contract next and no implementation task active;
+- complete / canonical: first bounded Stage-C Quality slice,
+  `FIVE_PERIOD_DILUTED_EPS_DIRECTIONAL_CONSISTENCY`;
+- active / incomplete: Stage C — Quality, with Architecture & Audit to define
+  exactly one next bounded contract and no implementation task active;
 - revisit B2 only when genuinely new qualified evidence exists.
 
 Confidence applies to uncertainty inside an available analysis. Capability state
@@ -807,10 +814,27 @@ Return.
 
 ### Stage C — Quality
 
-Status: `ACTIVE`. The CEO authorized transition from completed bounded Stage B.
-Architecture & Audit definition of the first bounded Quality contract is next. No
-Quality methodology, threshold, weight, formula, composite score or implementation
-is approved by this activation.
+Status: `ACTIVE / INCOMPLETE`. The CEO authorized transition from completed bounded
+Stage B. The first bounded slice,
+`FIVE_PERIOD_DILUTED_EPS_DIRECTIONAL_CONSISTENCY`, is complete and canonical. Its
+immutable `FivePeriodEPSConsistencyResult` consumes the exact bounded
+ordinary-compounder qualification and embedded qualified five-period comparable
+diluted-EPS evidence. For `AVAILABLE` analyses it reports exactly four adjacent
+`INCREASED`, `UNCHANGED` or `DECREASED` transitions using exact Decimal subtraction.
+Its authority is `QUALITY_EPS_CONSISTENCY_DIAGNOSTIC_ONLY`.
+
+This first slice is a transparent historical diagnostic dimension only. It creates
+no composite Quality score, overall Quality grade, cross-sector comparability,
+ROIC/profit-margin, cash-conversion, balance-sheet, capital-allocation, dilution or
+moat claim, Durability/persistence claim, Expected Return adjustment, confidence
+substitution, recommendation, ranking, allocation, sizing, execution, production,
+V2-promotion, `HISTORICAL_AS_OF` or PIT authority. V1 remains frozen operational
+authority and V2 remains a challenger.
+
+Architecture & Audit definition of exactly one next bounded Quality contract is next.
+The specialist must inspect current evidence readiness before recommending that
+slice. This roadmap does not select the next Quality dimension or queue a Codex
+implementation task. Avoid creating one opaque magic score.
 
 Build transparent, evidence-backed measures for topics such as:
 
@@ -1762,15 +1786,17 @@ explicit non-available-case handling for those same surfaces under
 numeric output, B1 or B2 capability, or recommendation/allocation/execution authority.
 
 PR #100 canonically recorded the bounded Stage-B completion. The CEO subsequently
-authorized transition to Stage C — Quality, which is now active. The next technical
-action is one Architecture & Audit Work Order defining the first bounded Quality
-contract before implementation. No Quality methodology, scoring formula or Codex
-implementation is active. V2 architecture remains incomplete and shadow cannot begin.
+authorized transition to Stage C — Quality. PR #102 then canonically established
+`FIVE_PERIOD_DILUTED_EPS_DIRECTIONAL_CONSISTENCY` as the first bounded Quality slice.
+Stage C remains active and incomplete. The next technical action is one Architecture
+& Audit Work Order defining exactly one next bounded Quality contract after inspecting
+evidence readiness. No next Quality dimension, scoring formula or Codex implementation
+task is selected. V2 architecture remains incomplete and shadow cannot begin.
 
 ---
 
-*Roadmap state updated on 2026-10-04 through canonical PR #100 bounded Stage-B
-completion and the subsequent CEO authorization to transition to Stage C — Quality.
+*Roadmap state updated on 2026-10-04 through canonical PR #102 and the first bounded
+Stage-C Quality slice.
 Governance Reform
 Phase 1, Governance Cleanup / Migration, role Projects/employees configuration and
 PR5E are complete. Stage B — Expected Return is complete within the currently
@@ -1778,10 +1804,10 @@ approved bounded supported scope, including bounded confidence propagation and
 explicit unsupported-case handling. The real-route investigation concluded `PARTIAL
 ROUTE ONLY`; B2 numeric executable-net remains `UNAVAILABLE / DEFERRED`, trigger-
 based and dormant, and is an open capability gap rather than a bounded-sequence
-blocker. Stage C — Quality is active, with Architecture & Audit definition of the
-first bounded Quality contract next and no implementation yet authorized. Later
-architecture stages and shadow-readiness gates remain requirements only, and shadow
-cannot begin.
+blocker. Stage C — Quality is active and incomplete; its first bounded slice is
+complete and canonical, with Architecture & Audit to define exactly one next bounded
+Quality contract and no implementation yet authorized. Later architecture stages and
+shadow-readiness gates remain requirements only, and shadow cannot begin.
 The reviewed PR5D2 Expected Return assumption policies are now pinned, but no
 investment-rule, model-rule, V1 or production-authority change is authorized
 here.*
