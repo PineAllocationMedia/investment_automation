@@ -259,6 +259,8 @@ class PR5EIsolationTests(unittest.TestCase):
             Path(pr5e.__file__).resolve(),
             Path(pr5e.__file__).with_name(
                 "company_vfv_expected_return_comparator.py").resolve(),
+            Path(pr5e.__file__).with_name(
+                "bounded_confidence_projection.py").resolve(),
         }
         for path in (root / "main.py", *sorted((root / "src").glob("*.py")),
                      *sorted((root / "pit_comparison").glob("*.py"))):

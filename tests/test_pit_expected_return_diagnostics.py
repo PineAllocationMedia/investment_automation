@@ -225,8 +225,11 @@ class PITExpectedReturnContractTests(unittest.TestCase):
             self.assertFalse(any(name.split('.')[0] in {"requests","urllib","yfinance","os","pathlib","subprocess","socket"} for name in imports))
             for term in ("MarketDataFetcher", "OfficialDataFetcher", "CanadianDataFetcher", "research_loader", "datetime.now", "open(", "read_text", "read_bytes", "bundle.get", "trailing_eps", "forward_eps", "fair_value", "dividend_yield", "payout_ratio"):
                 self.assertNotIn(term,source)
+        bounded_projection = code/"src/bounded_confidence_projection.py"
         for file in [code/"main.py",code/"pit_comparison/adapter.py",*list((code/"src").glob("*.py"))]:
             if file.name.startswith("expected_return_"): continue
+            # Reviewed pure Stage-B consumer of canonical ER confidence only.
+            if file == bounded_projection: continue
             for term in ("diagnostic_result", "expected_return_diagnostic", "expected_return_inputs", "construct_expected_return", "expected_return_assumptions", "expected_return_engine", "expected_return_policy"):
                 self.assertNotIn(term,file.read_text(),str(file))
         self.assertNotIn("from src",(code/"pit_comparison/bundle.py").read_text())

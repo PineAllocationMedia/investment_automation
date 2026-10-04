@@ -535,12 +535,16 @@ class ExpectedReturnContractTests(unittest.TestCase):
 
     def test_no_existing_investment_path_imports_new_module(self):
         root = Path(er.__file__).resolve().parents[1]
+        bounded_projection = root / "src" / "bounded_confidence_projection.py"
         for path in (root / "main.py", *sorted((root / "src").glob("*.py")),
                      *sorted((root / "pit_comparison").glob("*.py"))):
             if path == root / "src" / "expected_return_engine.py":
                 continue
             if path == root / "src" / "expected_return_assumptions.py":
                 self.assertIn("from . import expected_return_engine as er", path.read_text())
+                continue
+            # Reviewed pure Stage-B confidence projection; read-only semantics.
+            if path == bounded_projection:
                 continue
             # PR4B2 diagnostic transport is the sole additional harness consumer;
             # test_frozen_model_imports_only_in_v2_branch guards its import scope.
