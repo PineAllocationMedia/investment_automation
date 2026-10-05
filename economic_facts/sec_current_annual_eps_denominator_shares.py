@@ -10,6 +10,7 @@ from decimal import Decimal
 from enum import Enum, StrEnum
 import hashlib
 import json
+import re
 
 from .sec_archive import ArchiveError, CaptureReceipt, SecArchive
 from .sec_current_eps_comparability_qualification import (
@@ -81,6 +82,7 @@ class CurrentAnnualEPSDenominatorSharesReason(StrEnum):
     COMPETING_DILUTED_DENOMINATOR_VALUES = (
         "COMPETING_DILUTED_DENOMINATOR_VALUES"
     )
+    COMMON_FILING_METADATA_CONFLICT = "COMMON_FILING_METADATA_CONFLICT"
     DILUTED_SHARES_BELOW_BASIC_SHARES = "DILUTED_SHARES_BELOW_BASIC_SHARES"
 
 
@@ -236,12 +238,7 @@ def _canonical(value):
     if isinstance(value, Enum):
         return value.value
     if type(value) is Decimal:
-        parts = value.as_tuple()
-        return {
-            "sign": parts.sign,
-            "digits": list(parts.digits),
-            "exponent": parts.exponent,
-        }
+        return _canonical_decimal(value)
     if is_dataclass(value):
         return {
             field.name: _canonical(getattr(value, field.name))
@@ -256,6 +253,25 @@ def _canonical(value):
     raise CurrentAnnualEPSDenominatorSharesError(
         "Unsupported denominator-share identity value"
     )
+
+
+def _canonical_decimal(value):
+    """Project equal finite base-ten values identically without rounding."""
+    if not value.is_finite():
+        raise CurrentAnnualEPSDenominatorSharesError(
+            "Finite Decimal identity value required"
+        )
+    sign, digits, exponent = value.as_tuple()
+    digits = list(digits)
+    if not any(digits):
+        return {"sign": 0, "digits": [0], "exponent": 0}
+    if exponent > 0:
+        digits.extend([0] * exponent)
+        exponent = 0
+    while exponent < 0 and digits[-1] == 0:
+        digits.pop()
+        exponent += 1
+    return {"sign": sign, "digits": digits, "exponent": exponent}
 
 
 def _identity(domain, value):
@@ -331,6 +347,55 @@ def _validate_profile_shape(profile):
     return comparability
 
 
+def _validate_established_profile(profile, comparability):
+    security = comparability.upstream_security_eps
+    subject_cik = comparability.upstream_reporting_subject_source.source_cik
+    if (
+        profile.profile != upstream.PROFILE
+        or profile.reasons != ()
+        or type(profile.source_cik) is not str
+        or re.fullmatch(r"[0-9]{10}", profile.source_cik) is None
+        or profile.source_cik != subject_cik
+        or type(profile.sic) is not int
+        or not 100 <= profile.sic <= 9999
+        or type(profile.sic_description) is not str
+        or not profile.sic_description
+        or profile.sic_description != profile.sic_description.strip()
+        or not _is_hash(profile.metadata_semantic_id)
+        or not _is_hash(profile.metadata_evidence_id)
+    ):
+        raise CurrentAnnualEPSDenominatorSharesError(
+            "Contradictory established ordinary-compounder profile"
+        )
+    if (
+        len(profile.decisions) != len(upstream.UnsupportedStructure)
+        or any(
+            type(item) is not upstream.MethodProfileDecision
+            or type(item.profile) is not upstream.UnsupportedStructure
+            or item.profile is not expected
+            or type(item.decision) is not upstream.ProfileDecisionValue
+            or item.decision is not upstream.ProfileDecisionValue.EXCLUDED
+            for item, expected in zip(
+                profile.decisions, tuple(upstream.UnsupportedStructure), strict=True
+            )
+        )
+    ):
+        raise CurrentAnnualEPSDenominatorSharesError(
+            "Established profile requires the canonical excluded decision inventory"
+        )
+    if (
+        comparability.outcome is not ComparabilityOutcome.COMPARABLE_REAL_EPS_ESTABLISHED
+        or comparability.reasons != ()
+        or not _is_hash(comparability.route_local_issuer_key)
+        or not _is_hash(comparability.route_local_security_key)
+        or comparability.route_local_issuer_key != security.route_local_issuer_key
+        or comparability.route_local_security_key != security.route_local_security_key
+    ):
+        raise CurrentAnnualEPSDenominatorSharesError(
+            "Established profile requires canonical established comparability"
+        )
+
+
 def _target_period(comparability, *, require_established):
     periods = comparability.period_decisions
     if (
@@ -346,12 +411,27 @@ def _target_period(comparability, *, require_established):
                 "Established profile requires comparable annual periods"
             )
         return None, None
+    try:
+        period_dates = tuple(
+            (date.fromisoformat(item.period_start), date.fromisoformat(item.period_end))
+            for item in periods
+        )
+    except (TypeError, ValueError) as exc:
+        raise CurrentAnnualEPSDenominatorSharesError(
+            "Canonical annual period dates required"
+        ) from exc
     ordered = tuple(sorted(periods, key=lambda item: item.period_end))
     if require_established and (
         comparability.outcome is not ComparabilityOutcome.COMPARABLE_REAL_EPS_ESTABLISHED
         or comparability.reasons != ()
         or len(ordered) != 5
         or ordered != periods
+        or len({item.period_end for item in periods}) != 5
+        or any(
+            prior_start >= current_start or prior_end >= current_end
+            for (prior_start, prior_end), (current_start, current_end)
+            in zip(period_dates, period_dates[1:])
+        )
         or any(
             item.outcome is not PeriodOutcome.EXACT_MATCH
             or item.reasons != ()
@@ -367,13 +447,7 @@ def _target_period(comparability, *, require_established):
             "Contradictory established comparability"
         )
     latest = ordered[-1]
-    try:
-        start = date.fromisoformat(latest.period_start)
-        end = date.fromisoformat(latest.period_end)
-    except (TypeError, ValueError) as exc:
-        raise CurrentAnnualEPSDenominatorSharesError(
-            "Canonical annual period dates required"
-        ) from exc
+    start, end = period_dates[-1]
     if start > end:
         raise CurrentAnnualEPSDenominatorSharesError(
             "Canonical annual period order required"
@@ -561,6 +635,8 @@ def qualify_sec_current_annual_eps_denominator_shares(
         profile.status is upstream.OrdinaryCompounderProfileStatus.
         ORDINARY_COMPOUNDER_PROFILE_ESTABLISHED
     )
+    if established:
+        _validate_established_profile(profile, comparability)
     period_start, period_end = _target_period(
         comparability, require_established=established
     )
@@ -584,20 +660,6 @@ def qualify_sec_current_annual_eps_denominator_shares(
     if not established:
         raise CurrentAnnualEPSDenominatorSharesError(
             "Unknown ordinary-compounder profile state"
-        )
-    if (
-        profile.profile != upstream.PROFILE
-        or profile.reasons != ()
-        or len(profile.decisions) != len(upstream.UnsupportedStructure)
-        or tuple(item.profile for item in profile.decisions)
-            != tuple(upstream.UnsupportedStructure)
-        or any(
-            item.decision is not upstream.ProfileDecisionValue.EXCLUDED
-            for item in profile.decisions
-        )
-    ):
-        raise CurrentAnnualEPSDenominatorSharesError(
-            "Contradictory established ordinary-compounder profile"
         )
     if route_conflict or receipt is None or issuer_key is None or security_key is None:
         return _result(
@@ -672,31 +734,6 @@ def qualify_sec_current_annual_eps_denominator_shares(
         )
     )
 
-    conflicts = []
-    basic_values = {row.value for row in basic_rows}
-    diluted_values = {row.value for row in diluted_rows}
-    if len(basic_values) > 1:
-        conflicts.append(
-            CurrentAnnualEPSDenominatorSharesReason.
-            COMPETING_BASIC_DENOMINATOR_VALUES
-        )
-    if len(diluted_values) > 1:
-        conflicts.append(
-            CurrentAnnualEPSDenominatorSharesReason.
-            COMPETING_DILUTED_DENOMINATOR_VALUES
-        )
-    if conflicts:
-        return _result(
-            profile,
-            comparability,
-            status=CurrentAnnualEPSDenominatorSharesStatus.SOURCE_CONFLICT,
-            reasons=conflicts,
-            period_start=period_start,
-            period_end=period_end,
-            source_cik=source_cik,
-            receipt=receipt,
-        )
-
     unavailable = []
     if not all_basic:
         unavailable.append(
@@ -766,6 +803,58 @@ def qualify_sec_current_annual_eps_denominator_shares(
             receipt=receipt,
         )
 
+    paired_basic_rows = tuple(
+        row for row in basic_rows if row.accession in common
+    )
+    paired_diluted_rows = tuple(
+        row for row in diluted_rows if row.accession in common
+    )
+    metadata_conflict = any(
+        len({getattr(row, field) for row in paired_basic_rows + paired_diluted_rows
+             if row.accession == accession}) != 1
+        for accession in common
+        for field in ("form", "filed", "fy")
+    )
+    if metadata_conflict:
+        return _result(
+            profile,
+            comparability,
+            status=CurrentAnnualEPSDenominatorSharesStatus.SOURCE_CONFLICT,
+            reasons=(
+                CurrentAnnualEPSDenominatorSharesReason.
+                COMMON_FILING_METADATA_CONFLICT,
+            ),
+            period_start=period_start,
+            period_end=period_end,
+            source_cik=source_cik,
+            receipt=receipt,
+        )
+
+    conflicts = []
+    basic_values = {row.value for row in paired_basic_rows}
+    diluted_values = {row.value for row in paired_diluted_rows}
+    if len(basic_values) > 1:
+        conflicts.append(
+            CurrentAnnualEPSDenominatorSharesReason.
+            COMPETING_BASIC_DENOMINATOR_VALUES
+        )
+    if len(diluted_values) > 1:
+        conflicts.append(
+            CurrentAnnualEPSDenominatorSharesReason.
+            COMPETING_DILUTED_DENOMINATOR_VALUES
+        )
+    if conflicts:
+        return _result(
+            profile,
+            comparability,
+            status=CurrentAnnualEPSDenominatorSharesStatus.SOURCE_CONFLICT,
+            reasons=conflicts,
+            period_start=period_start,
+            period_end=period_end,
+            source_cik=source_cik,
+            receipt=receipt,
+        )
+
     basic = next(iter(basic_values))
     diluted = next(iter(diluted_values))
     if diluted < basic:
@@ -784,12 +873,10 @@ def qualify_sec_current_annual_eps_denominator_shares(
         )
 
     selected_basic = tuple(
-        row for row in basic_rows
-        if row.accession in common and row.value == basic
+        row for row in paired_basic_rows if row.value == basic
     )
     selected_diluted = tuple(
-        row for row in diluted_rows
-        if row.accession in common and row.value == diluted
+        row for row in paired_diluted_rows if row.value == diluted
     )
     filings = _supporting_filings(selected_basic, selected_diluted, common)
     return _result(

@@ -89,14 +89,23 @@ comparability chain. An established pair requires all of the following:
 - rows are `10-K` or `10-K/A` annual `FY` presentations;
 - both rows match the canonical latest period exactly;
 - at least one filing accession supports both concepts;
-- all admissible values for basic shares agree;
-- all admissible values for diluted shares agree; and
+- each common accession has coherent intrinsic `form`, `filed` and `fy`
+  metadata across its basic and diluted rows;
+- all basic values across admissible common paired filing presentations agree;
+- all diluted values across admissible common paired filing presentations
+  agree; and
 - diluted weighted-average shares are greater than or equal to basic
   weighted-average shares.
 
 The qualifier never averages, rounds, interpolates or arbitrarily chooses among
-competing values. The `diluted >= basic` rule is an accounting/evidence
-coherence invariant only; it is not an investment-policy threshold.
+competing values. Conflict analysis is restricted to admissible common paired
+filing presentations. An orphan single-concept observation from an accession
+that does not support both concepts does not invalidate an otherwise coherent
+pair and is excluded from selected observations and supporting filing
+provenance. A common accession with contradictory intrinsic `form`, `filed` or
+`fy` metadata is `SOURCE_CONFLICT`; `frame` equality is not required. The
+`diluted >= basic` rule is an accounting/evidence coherence invariant only; it
+is not an investment-policy threshold.
 
 ## Capability states
 
@@ -184,9 +193,12 @@ same economic meaning + new valid evidence recapture
 → different evidence_id
 ```
 
-A changed value, period, status, reason, concept, unit or route meaning changes
-`semantic_id`. Identity projection uses exact `Decimal` structure and never
-binary64.
+A changed numeric value, period, status, reason, concept, unit or route meaning
+changes `semantic_id`. Exact base-ten numeric value is semantic; lexical Decimal
+scale and equivalent exponent/trailing-zero representations are evidence
+representation only. Therefore `100`, `100.0`, `100.00` and `1E+2` have one
+semantic numeric representation. Canonicalization is deterministic,
+context-independent, non-rounding and never uses binary64.
 
 ## Closed limitations
 

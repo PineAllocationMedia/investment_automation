@@ -3,6 +3,7 @@ import ast
 from collections import UserDict
 from dataclasses import FrozenInstanceError, fields, replace
 from decimal import Decimal
+from enum import StrEnum
 import inspect
 import json
 from pathlib import Path
@@ -30,6 +31,7 @@ from tests.sec_eps_denominator_shares_fixtures import (
     duplicate_same_value_payload,
     mismatched_period_payload,
     no_common_accession_payload,
+    orphan_basic_conflict_payload,
     quarterly_payload,
     wrong_unit_payload,
 )
@@ -161,6 +163,60 @@ class SecCurrentAnnualEPSDenominatorSharesTests(unittest.TestCase):
             qualifier.CurrentAnnualEPSDenominatorSharesError
         ):
             self.qualify(replace(self.available, status="FUTURE_STATE"))
+
+    def test_reconstructed_established_profile_requires_canonical_metadata(self):
+        cases = (
+            replace(self.available, sic=None),
+            replace(self.available, sic=True),
+            replace(self.available, sic_description=""),
+            replace(self.available, sic_description=" Electronic Computers "),
+            replace(self.available, metadata_semantic_id=None),
+            replace(self.available, metadata_semantic_id="bad"),
+            replace(self.available, metadata_evidence_id=None),
+            replace(self.available, metadata_evidence_id="bad"),
+        )
+        for reconstructed in cases:
+            with self.subTest(reconstructed=reconstructed), self.assertRaises(
+                qualifier.CurrentAnnualEPSDenominatorSharesError
+            ):
+                self.qualify(reconstructed)
+
+    def test_foreign_equal_string_enums_cannot_masquerade_as_profile_decisions(self):
+        class ForeignUnsupportedStructure(StrEnum):
+            BANK = "BANK"
+
+        decisions = list(self.available.decisions)
+        decisions[0] = replace(
+            decisions[0], profile=ForeignUnsupportedStructure.BANK
+        )
+        reconstructed = replace(self.available, decisions=tuple(decisions))
+        with self.assertRaises(
+            qualifier.CurrentAnnualEPSDenominatorSharesError
+        ):
+            self.qualify(reconstructed)
+
+    def test_established_periods_require_distinct_strict_chronology(self):
+        periods = list(self.available.upstream_comparability.period_decisions)
+        duplicate = periods.copy()
+        duplicate[2] = replace(
+            duplicate[2],
+            period_start=duplicate[1].period_start,
+            period_end=duplicate[1].period_end,
+        )
+        non_strict = periods.copy()
+        non_strict[1], non_strict[2] = non_strict[2], non_strict[1]
+        for malformed in (duplicate, non_strict):
+            reconstructed = replace(
+                self.available,
+                upstream_comparability=replace(
+                    self.available.upstream_comparability,
+                    period_decisions=tuple(malformed),
+                ),
+            )
+            with self.subTest(malformed=malformed), self.assertRaises(
+                qualifier.CurrentAnnualEPSDenominatorSharesError
+            ):
+                self.qualify(reconstructed)
 
     def test_only_exact_reviewed_namespace_and_concepts_are_extracted(self):
         substitutes = (
@@ -367,6 +423,60 @@ class SecCurrentAnnualEPSDenominatorSharesTests(unittest.TestCase):
         self.assertIsNone(result.basic_weighted_average_shares)
         self.assertIsNone(result.diluted_weighted_average_shares)
 
+    def test_orphan_single_concept_conflict_does_not_poison_coherent_pair(self):
+        result = self.qualify(self.profile_for(orphan_basic_conflict_payload()))
+        self.assertIs(
+            result.status,
+            qualifier.CurrentAnnualEPSDenominatorSharesStatus.
+            PAIRED_EPS_DENOMINATOR_SHARES_ESTABLISHED,
+        )
+        self.assertEqual(result.basic_weighted_average_shares,
+                         Decimal(BASIC_VALUE))
+        self.assertEqual(result.diluted_weighted_average_shares,
+                         Decimal(DILUTED_VALUE))
+        self.assertEqual(result.supporting_accessions,
+                         ("0000000000-25-000001",))
+        self.assertEqual(len(result.supporting_filings), 1)
+        self.assertTrue(all(
+            "000099" not in item.accession
+            for item in result.supporting_filings
+        ))
+
+    def test_common_accession_requires_coherent_intrinsic_filing_metadata(self):
+        cases = (
+            ({"form": "10-K/A"}, "form"),
+            ({"filed": "2025-02-02"}, "filed"),
+            ({"fy": 2025}, "fy"),
+        )
+        for changes, field in cases:
+            payload = companyfacts_payload(
+                basic_rows=[denominator_row(BASIC_VALUE)],
+                diluted_rows=[denominator_row(DILUTED_VALUE, **changes)],
+            )
+            result = self.qualify(self.profile_for(payload))
+            with self.subTest(field=field):
+                self.assertIs(
+                    result.status,
+                    qualifier.CurrentAnnualEPSDenominatorSharesStatus.
+                    SOURCE_CONFLICT,
+                )
+                self.assertEqual(
+                    result.reasons,
+                    (qualifier.CurrentAnnualEPSDenominatorSharesReason.
+                     COMMON_FILING_METADATA_CONFLICT,),
+                )
+
+    def test_frame_variation_is_not_a_filing_metadata_conflict(self):
+        payload = companyfacts_payload(
+            basic_rows=[denominator_row(BASIC_VALUE, frame="CY2024")],
+            diluted_rows=[denominator_row(DILUTED_VALUE, frame=None)],
+        )
+        self.assertIs(
+            self.qualify(self.profile_for(payload)).status,
+            qualifier.CurrentAnnualEPSDenominatorSharesStatus.
+            PAIRED_EPS_DENOMINATOR_SHARES_ESTABLISHED,
+        )
+
     def test_diluted_below_basic_is_accounting_source_conflict(self):
         result = self.qualify(self.profile_for(diluted_below_basic_payload()))
         self.assertIs(
@@ -381,11 +491,10 @@ class SecCurrentAnnualEPSDenominatorSharesTests(unittest.TestCase):
 
     def test_foreign_cik_and_foreign_archive_fail_closed(self):
         foreign_profile = replace(self.available, source_cik="0000000001")
-        result = self.qualify(foreign_profile)
-        self.assertIs(
-            result.status,
-            qualifier.CurrentAnnualEPSDenominatorSharesStatus.SOURCE_CONFLICT,
-        )
+        with self.assertRaises(
+            qualifier.CurrentAnnualEPSDenominatorSharesError
+        ):
+            self.qualify(foreign_profile)
         with tempfile.TemporaryDirectory() as temporary:
             foreign_archive = SecArchive(Path(temporary).resolve() / "archive")
             detached = self.qualify(archive=foreign_archive)
@@ -460,6 +569,65 @@ class SecCurrentAnnualEPSDenominatorSharesTests(unittest.TestCase):
         self.assertNotEqual(baseline.semantic_id, changed_period.semantic_id)
         self.assertNotEqual(baseline.semantic_id, unavailable.semantic_id)
         self.assertNotEqual(unavailable.semantic_id, reason_changed.semantic_id)
+
+    def test_equivalent_decimal_values_have_one_semantic_representation(self):
+        baseline = self.qualify()
+        variants = tuple(
+            replace(
+                baseline,
+                basic_weighted_average_shares=value,
+                diluted_weighted_average_shares=value,
+            )
+            for value in (
+                Decimal("100"), Decimal("100.0"), Decimal("100.00"),
+                Decimal("1E+2"),
+            )
+        )
+        self.assertEqual(
+            {item.semantic_id for item in variants},
+            {variants[0].semantic_id},
+        )
+        self.assertEqual(
+            qualifier._canonical(Decimal("100")),
+            qualifier._canonical(Decimal("100.00")),
+        )
+        self.assertEqual(
+            qualifier._canonical(Decimal("100")),
+            qualifier._canonical(Decimal("1E+2")),
+        )
+        self.assertEqual(
+            qualifier._canonical(Decimal("0")),
+            qualifier._canonical(Decimal("-0.000")),
+        )
+        changed = replace(
+            variants[0],
+            basic_weighted_average_shares=Decimal("100.01"),
+            diluted_weighted_average_shares=Decimal("100.01"),
+        )
+        self.assertNotEqual(variants[0].semantic_id, changed.semantic_id)
+
+    def test_reversed_equivalent_source_evidence_order_preserves_semantic_id(self):
+        profile = self.profile_for(companyfacts_payload(
+            basic_rows=[
+                denominator_row(BASIC_VALUE),
+                denominator_row(BASIC_VALUE),
+            ],
+            diluted_rows=[
+                denominator_row(DILUTED_VALUE),
+                denominator_row(DILUTED_VALUE),
+            ],
+        ))
+        result = self.qualify(profile)
+        reversed_evidence = replace(
+            result,
+            selected_basic_observation_ids=tuple(
+                reversed(result.selected_basic_observation_ids)
+            ),
+            selected_diluted_observation_ids=tuple(
+                reversed(result.selected_diluted_observation_ids)
+            ),
+        )
+        self.assertEqual(result.semantic_id, reversed_evidence.semantic_id)
 
     def test_evidence_only_recapture_preserves_semantics_and_changes_evidence(self):
         first = self.qualify()

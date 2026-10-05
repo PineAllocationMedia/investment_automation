@@ -165,6 +165,18 @@ def conflicting_values_payload():
     )
 
 
+def orphan_basic_conflict_payload():
+    return companyfacts_payload(
+        basic_rows=[
+            denominator_row(BASIC_VALUE, accession=LATEST_ACCESSION),
+            denominator_row(BASIC_VALUE + 1, accession=SECOND_ACCESSION),
+        ],
+        diluted_rows=[
+            denominator_row(DILUTED_VALUE, accession=LATEST_ACCESSION),
+        ],
+    )
+
+
 def diluted_below_basic_payload():
     return companyfacts_payload(
         basic_rows=[denominator_row(BASIC_VALUE)],
