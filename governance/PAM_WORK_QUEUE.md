@@ -5,9 +5,15 @@
 - Stage C — Quality (`ACTIVE / INCOMPLETE`).
   - Complete / canonical: first bounded slice,
     `FIVE_PERIOD_DILUTED_EPS_DIRECTIONAL_CONSISTENCY`.
-  - Immediate next substep: Architecture & Audit defines exactly one next bounded
-    Quality contract before implementation.
-  - No next Quality dimension, scoring formula or Codex implementation task is queued.
+  - Complete / canonical: current-annual paired basic/diluted EPS-denominator evidence
+    foundation, `CURRENT_ANNUAL_EPS_DENOMINATOR_SHARES_QUALIFICATION`, under
+    `QUALITY_DILUTION_EPS_DENOMINATOR_EVIDENCE_ONLY` authority.
+  - Immediate next substep: exactly one Architecture & Audit task determines whether
+    the evidence supports a truthful threshold-free dilution analytical diagnostic;
+    otherwise it may select exactly one other bounded Stage-C Quality slice based on
+    evidence readiness.
+  - No dilution diagnostic, scoring formula, other Quality implementation or Codex
+    implementation task is queued. Avoid creating one opaque magic score.
 
 ## COMPLETED
 
