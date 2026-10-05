@@ -8,12 +8,14 @@
   - Complete / canonical: current-annual paired basic/diluted EPS-denominator evidence
     foundation, `CURRENT_ANNUAL_EPS_DENOMINATOR_SHARES_QUALIFICATION`, under
     `QUALITY_DILUTION_EPS_DENOMINATOR_EVIDENCE_ONLY` authority.
-  - Immediate next substep: exactly one Architecture & Audit task determines whether
-    the evidence supports a truthful threshold-free dilution analytical diagnostic;
-    otherwise it may select exactly one other bounded Stage-C Quality slice based on
-    evidence readiness.
-  - No dilution diagnostic, scoring formula, other Quality implementation or Codex
-    implementation task is queued. Avoid creating one opaque magic score.
+  - Complete / canonical: bounded threshold-free
+    `CURRENT_ANNUAL_EPS_DENOMINATOR_DILUTION` diagnostic under
+    `QUALITY_DILUTION_EPS_DENOMINATOR_DIAGNOSTIC_ONLY` authority.
+  - Immediate next substep: exactly one Architecture & Audit task inspects canonical
+    evidence readiness and selects/defines exactly one next bounded Stage-C Quality
+    contract.
+  - No next Quality dimension, aggregate Quality score, scoring formula or Codex
+    implementation task is selected or queued.
 
 ## COMPLETED
 

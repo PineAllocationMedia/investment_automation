@@ -430,6 +430,8 @@ Five-period diluted-EPS directional consistency ✅
     ↓
 Current annual paired basic/diluted EPS-denominator evidence foundation ✅
     ↓
+Current annual EPS-denominator dilution diagnostic ✅
+    ↓
 Next bounded Quality analytical contract — Architecture & Audit NEXT
 ```
 
@@ -444,11 +446,11 @@ canonical analytical surfaces. Stage B — Expected Return is complete within th
 currently approved bounded supported scope. The CEO explicitly authorized transition
 to Stage C — Quality, which is now the active technical stage. The first bounded
 Quality slice, `FIVE_PERIOD_DILUTED_EPS_DIRECTIONAL_CONSISTENCY`, is canonical. The
-paired current-annual basic/diluted EPS-denominator evidence foundation is also
+paired current-annual basic/diluted EPS-denominator evidence foundation and bounded
+threshold-free `CURRENT_ANNUAL_EPS_DENOMINATOR_DILUTION` diagnostic are also
 canonical. Stage C remains active and incomplete. Architecture & Audit must now
-determine whether that evidence supports one truthful threshold-free dilution
-analytical diagnostic; if not, it may select exactly one other bounded Stage-C
-Quality slice based on evidence readiness. No implementation is authorized here.
+inspect canonical evidence readiness and select/define exactly one next bounded
+Stage-C Quality contract. No implementation is authorized here.
 Later technical stages remain in their existing order.
 
 No additional pre-Stage-B Expected Return architecture interlude is authorized in
@@ -458,10 +460,10 @@ found `PARTIAL ROUTE ONLY`. B2 numeric executable-net Expected Return is current
 B sequencing blocker. Bounded confidence propagation and explicit unsupported-case
 handling are complete. B2 may be revisited only if genuinely new qualified executable-
 quote, settled-funding and, where applicable, FX execution-cost evidence appears.
-Stage C — Quality is active and incomplete. Its first bounded diagnostic and first
-dilution evidence foundation are complete; no dilution diagnostic, composite Quality
-score, next-dimension implementation, recommendation, ranking, allocation or
-execution authority is created by those milestones.
+Stage C — Quality is active and incomplete. Its first bounded diagnostic, first
+dilution evidence foundation and bounded dilution diagnostic are complete. No
+composite Quality score, next-dimension implementation, recommendation, ranking,
+allocation or execution authority is created by those milestones.
 
 The public SEC/free-Nasdaq source graph still lacks complete positive
 no-transformation coverage through CURRENT T. PR5C therefore uses positive
@@ -479,11 +481,11 @@ class is insufficient. The broader capabilities remain roadmap requirements and
 do not disappear merely because they are deferred. Stage A is complete only for
 the explicitly supported bounded first CURRENT route; this is not universal or
 global Real Fact Admission completeness. Stage B is complete only within its
-currently approved bounded supported scope. The immediate technical frontier is one
-Architecture & Audit task to determine whether the canonical evidence supports a
-truthful threshold-free dilution analytical diagnostic; otherwise it may select
-exactly one other bounded Stage-C Quality slice based on evidence readiness. The
-unchanged pre-shadow sequence remains in section 9.
+currently approved bounded supported scope. The immediate technical frontier is
+exactly one Architecture & Audit task to inspect canonical evidence readiness and
+select/define one next bounded Stage-C Quality contract. No next Quality dimension
+or Codex implementation task is selected here. The unchanged pre-shadow sequence
+remains in section 9.
 
 ---
 
@@ -782,6 +784,7 @@ bounded company-vs-VFV Expected Return comparator complete
 → Stage C — Quality ACTIVE
 → five-period diluted-EPS directional consistency ✅
 → current annual paired basic/diluted EPS-denominator evidence foundation ✅
+→ current annual EPS-denominator dilution diagnostic ✅
 → next bounded Quality analytical contract — Architecture & Audit NEXT
 ```
 
@@ -808,6 +811,9 @@ bounded company-vs-VFV Expected Return comparator complete
   `FIVE_PERIOD_DILUTED_EPS_DIRECTIONAL_CONSISTENCY`;
 - complete / canonical: current-annual paired basic/diluted EPS-denominator evidence
   foundation under `QUALITY_DILUTION_EPS_DENOMINATOR_EVIDENCE_ONLY` authority;
+- complete / canonical: bounded threshold-free
+  `CURRENT_ANNUAL_EPS_DENOMINATOR_DILUTION` diagnostic under
+  `QUALITY_DILUTION_EPS_DENOMINATOR_DIAGNOSTIC_ONLY` authority;
 - active / incomplete: Stage C — Quality, with Architecture & Audit to evaluate
   exactly one next bounded analytical contract and no implementation task active;
 - revisit B2 only when genuinely new qualified evidence exists.
@@ -851,12 +857,25 @@ paired basic and diluted weighted-average shares in unit `shares`, with authorit
 no dilution diagnostic, threshold, score, grade, trend, recommendation or downstream
 investment authority.
 
+The bounded threshold-free analytical diagnostic,
+`CURRENT_ANNUAL_EPS_DENOMINATOR_DILUTION`, is complete and canonical. Its immutable
+`CurrentAnnualEPSDenominatorDilutionResult` exposes the exact reduced integer ratio
+`(D - B) / B`, with canonical zero `0 / 1`, where `B` and `D` are the qualified
+basic and diluted weighted-average denominators for one annual reporting period. Its
+states are exactly `AVAILABLE`, `UNAVAILABLE`, `UNSUPPORTED` and `SOURCE_CONFLICT`,
+and its authority is `QUALITY_DILUTION_EPS_DENOMINATOR_DIAGNOSTIC_ONLY`.
+
+The diagnostic describes the incremental weighted-average denominator effect
+recognized in diluted-EPS accounting. It does not establish historical realized
+shareholder dilution, shares-outstanding change, SBC issuance, issuance attribution,
+repurchase effectiveness, capital-allocation quality, historical dilution trend,
+total diluted-EPS impact or a Quality score. It is independent of the five-period
+EPS-direction diagnostic, and no aggregation between Quality dimensions exists.
+
 Architecture & Audit evaluation of exactly one next bounded analytical Quality
-contract is next. It must determine whether the canonical denominator evidence
-supports a truthful threshold-free dilution diagnostic. If it does not, Architecture
-& Audit may select exactly one other bounded Stage-C Quality slice based on evidence
-readiness. This roadmap queues no Codex implementation task. Avoid creating one
-opaque magic score.
+contract is next. It must first inspect canonical evidence readiness, then select and
+define exactly one bounded contract. This roadmap selects no next Quality dimension
+and queues no Codex implementation task. Avoid creating one opaque magic score.
 
 Build transparent, evidence-backed measures for topics such as:
 
@@ -1811,17 +1830,18 @@ PR #100 canonically recorded the bounded Stage-B completion. The CEO subsequentl
 authorized transition to Stage C — Quality. PR #102 then canonically established
 `FIVE_PERIOD_DILUTED_EPS_DIRECTIONAL_CONSISTENCY` as the first bounded Quality slice.
 PR #104 then canonically established the paired current-annual basic/diluted
-EPS-denominator evidence foundation. Stage C remains active and incomplete. The next
-technical action is one Architecture & Audit Work Order evaluating whether that
-evidence supports a truthful threshold-free dilution diagnostic; otherwise it may
-select exactly one other bounded Quality slice based on evidence readiness. No Codex
-implementation task is selected. V2 architecture remains incomplete and shadow
-cannot begin.
+EPS-denominator evidence foundation. PR #106 then canonically established the bounded
+threshold-free `CURRENT_ANNUAL_EPS_DENOMINATOR_DILUTION` diagnostic under
+`QUALITY_DILUTION_EPS_DENOMINATOR_DIAGNOSTIC_ONLY` authority. Stage C remains active
+and incomplete. The next technical action is one Architecture & Audit Work Order to
+inspect canonical evidence readiness and select/define exactly one next bounded
+Quality contract. No next Quality dimension or Codex implementation task is selected.
+V2 architecture remains incomplete and shadow cannot begin.
 
 ---
 
-*Roadmap state updated on 2026-10-04 through canonical PR #104 and the first bounded
-Stage-C dilution evidence foundation.
+*Roadmap state updated on 2026-10-05 through canonical PR #106 and the bounded
+current-annual EPS-denominator dilution diagnostic.
 Governance Reform
 Phase 1, Governance Cleanup / Migration, role Projects/employees configuration and
 PR5E are complete. Stage B — Expected Return is complete within the currently
@@ -1829,11 +1849,11 @@ approved bounded supported scope, including bounded confidence propagation and
 explicit unsupported-case handling. The real-route investigation concluded `PARTIAL
 ROUTE ONLY`; B2 numeric executable-net remains `UNAVAILABLE / DEFERRED`, trigger-
 based and dormant, and is an open capability gap rather than a bounded-sequence
-blocker. Stage C — Quality is active and incomplete; its first bounded diagnostic and
-first dilution evidence foundation are complete and canonical, with Architecture &
-Audit to evaluate exactly one next bounded analytical contract and no implementation
-yet authorized. Later architecture stages and
-shadow-readiness gates remain requirements only, and shadow cannot begin.
+blocker. Stage C — Quality is active and incomplete; its two bounded analytical
+diagnostics and first dilution evidence foundation are complete and canonical, with
+Architecture & Audit to inspect evidence readiness and select/define exactly one next
+bounded analytical contract and no implementation yet authorized. Later architecture
+stages and shadow-readiness gates remain requirements only, and shadow cannot begin.
 The reviewed PR5D2 Expected Return assumption policies are now pinned, but no
 investment-rule, model-rule, V1 or production-authority change is authorized
 here.*
