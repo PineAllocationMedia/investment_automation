@@ -388,3 +388,51 @@
   Architecture & Audit task to inspect evidence readiness and select/define exactly
   one next bounded Quality contract. No Codex implementation is queued. B2 remains
   `UNAVAILABLE / DEFERRED` and `TRIGGER-BASED / DORMANT`.
+
+## 2026-10-05 — PR #108 current-annual OCF/net-income evidence foundation canonical
+
+- The CEO merged PR #108 as `ba77d25712b46f7ac293d7b27e00572a3f74c73f`,
+  tree `019c12d22f574419f18ff9d2128176c436f6ba2e`; the reviewed corrected
+  implementation head was `0ad3992eed5547201238e61d0342e4e522fd32bf`.
+- PR #108 canonically established
+  `CURRENT_ANNUAL_OPERATING_CASH_FLOW_NET_INCOME_QUALIFICATION` and immutable
+  `CurrentAnnualOperatingCashFlowNetIncomeQualification`. It preserves a coherent
+  common-filing pair of reported
+  `us-gaap:NetCashProvidedByUsedInOperatingActivities` and
+  `us-gaap:NetIncomeLoss` in exact unit `USD`. Its states are
+  `PAIRED_OPERATING_CASH_FLOW_NET_INCOME_ESTABLISHED`, `EVIDENCE_UNAVAILABLE`,
+  `EVIDENCE_UNSUPPORTED` and `SOURCE_CONFLICT`, under
+  `QUALITY_CASH_CONVERSION_EVIDENCE_ONLY` authority.
+- Initial Architecture & Audit review found one Class-A trust-boundary defect: the
+  downstream generic profile validator incorrectly treated the upstream valid-SIC
+  range `100..9999` as a generic source-shape requirement. Canonical upstream source
+  truth can preserve a present out-of-range exact integer SIC in a legitimate
+  non-established profile carrying `SIC_MISSING_OR_INVALID` and structural decisions.
+  The bounded correction accepts any exact non-null integer at generic shape
+  validation, retains the valid-range invariant for established profiles, proves
+  real-factory `sic=10000` non-established projection and continues to reject a
+  reconstructed established out-of-range profile. Final focused rereview returned
+  `MERGE READY` with no remaining Class-A finding. The durable lesson is that
+  source-shape admissibility and source-level validity classification are distinct
+  trust-boundary concepts.
+- Codex reported 26 focused, 71 adjacent trust-boundary/profile and 3,018
+  `STANDARD` tests passing, plus compilation and Git checks. Architecture & Audit
+  independently inspected the correction but did not independently rerun those local
+  suites. Exact-head GitHub CI #134 was independently observed `completed / success`
+  for `0ad3992eed5547201238e61d0342e4e522fd32bf`. The protected PIT fingerprint
+  `f1e73b27b80e41d96ff5e0fe990b482bad71b7220db0b5bd6a2f470d72786166`,
+  determinism fingerprint
+  `f8457910665391e39c234274cae4c029802c681211eebc7dba986a63000876f1` and
+  `MODEL_RULES_VERSION` `2026-08-23-allocation-room-integrity-v7` were unchanged.
+- This is CURRENT evidence concerning one historical annual reporting period, not
+  `HISTORICAL_AS_OF` or PIT evidence. It creates no cash-conversion ratio or
+  conclusion, accruals-quality, free-cash-flow, capex, working-capital-causality,
+  profitability-quality, historical-trend, cross-sector, Durability, Confidence,
+  Expected Return, recommendation, ranking, allocation, sizing, production,
+  deployment or V2-promotion authority.
+- Stage C remains `ACTIVE / INCOMPLETE`. Its two analytical diagnostics and two
+  evidence foundations are canonical. The sole immediate frontier is one Architecture
+  & Audit task to determine whether the new evidence supports a separate truthful,
+  bounded, threshold-free cash-conversion analytical contract; no formula is presumed
+  and no Codex implementation is queued. B2 remains `UNAVAILABLE / DEFERRED` and
+  `TRIGGER-BASED / DORMANT`.
