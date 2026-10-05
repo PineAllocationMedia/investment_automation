@@ -222,6 +222,59 @@ class SecCurrentAnnualOperatingCashFlowNetIncomeTests(unittest.TestCase):
             ):
                 self.qualify(profile)
 
+    def test_factory_out_of_range_integer_sic_projects_capability_state(self):
+        _, profile = capture_profile(
+            self.fixture,
+            sic=10000,
+            description="Out of Range Industry",
+        )
+        self.assertIs(
+            profile.status,
+            profile_module.OrdinaryCompounderProfileStatus.PROFILE_UNAVAILABLE,
+        )
+        self.assertIn(
+            profile_module.ProfileReason.SIC_MISSING_OR_INVALID,
+            profile.reasons,
+        )
+        self.assertEqual(profile.sic, 10000)
+        self.assertEqual(len(profile.decisions), len(profile_module.UnsupportedStructure))
+
+        result = self.qualify(profile)
+        projected = {
+            profile_module.OrdinaryCompounderProfileStatus.PROFILE_UNAVAILABLE: (
+                qualifier.CurrentAnnualOperatingCashFlowNetIncomeStatus.
+                EVIDENCE_UNAVAILABLE,
+                qualifier.CurrentAnnualOperatingCashFlowNetIncomeReason.
+                UPSTREAM_PROFILE_UNAVAILABLE,
+            ),
+            profile_module.OrdinaryCompounderProfileStatus.PROFILE_UNSUPPORTED: (
+                qualifier.CurrentAnnualOperatingCashFlowNetIncomeStatus.
+                EVIDENCE_UNSUPPORTED,
+                qualifier.CurrentAnnualOperatingCashFlowNetIncomeReason.
+                UPSTREAM_PROFILE_UNSUPPORTED,
+            ),
+            profile_module.OrdinaryCompounderProfileStatus.SOURCE_CONFLICT: (
+                qualifier.CurrentAnnualOperatingCashFlowNetIncomeStatus.SOURCE_CONFLICT,
+                qualifier.CurrentAnnualOperatingCashFlowNetIncomeReason.
+                UPSTREAM_SOURCE_CONFLICT,
+            ),
+        }
+        expected_status, expected_reason = projected[profile.status]
+        self.assertIs(result.status, expected_status)
+        self.assertEqual(result.reasons, (expected_reason,))
+        self.assertIsNone(result.operating_cash_flow)
+        self.assertIsNone(result.net_income)
+        self.assertEqual(result.selected_operating_cash_flow_observation_ids, ())
+        self.assertEqual(result.selected_net_income_observation_ids, ())
+        self.assertEqual(result.supporting_accessions, ())
+        self.assertEqual(result.supporting_filings, ())
+
+        for invalid_sic in ("10000", 10000.0, True):
+            with self.subTest(invalid_sic=invalid_sic), self.assertRaises(
+                qualifier.CurrentAnnualOperatingCashFlowNetIncomeError
+            ):
+                self.qualify(replace(profile, sic=invalid_sic))
+
     def test_established_profile_and_period_chain_must_remain_canonical(self):
         periods = list(self.available.upstream_comparability.period_decisions)
         periods[2] = replace(
@@ -232,6 +285,7 @@ class SecCurrentAnnualOperatingCashFlowNetIncomeTests(unittest.TestCase):
         cases = (
             replace(self.available, metadata_semantic_id=None),
             replace(self.available, sic_description=" Electronic Computers "),
+            replace(self.available, sic=10000),
             replace(
                 self.available,
                 upstream_comparability=replace(

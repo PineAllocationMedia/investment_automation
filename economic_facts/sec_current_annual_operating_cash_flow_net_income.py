@@ -398,6 +398,10 @@ def _validate_profile_shape(profile):
         raise CurrentAnnualOperatingCashFlowNetIncomeError(
             "Canonical ordinary-compounder profile details required"
         )
+    if profile.sic is not None and type(profile.sic) is not int:
+        raise CurrentAnnualOperatingCashFlowNetIncomeError(
+            "Canonical ordinary-compounder SIC value required"
+        )
     _validate_profile_state_reasons(profile)
     comparability = profile.upstream_comparability
     if type(comparability) is not RealEPSComparabilityQualification:
@@ -433,9 +437,6 @@ def _validate_profile_shape(profile):
             profile.status is upstream.OrdinaryCompounderProfileStatus.
             ORDINARY_COMPOUNDER_PROFILE_ESTABLISHED
         ) != (profile.profile == upstream.PROFILE)
-        or (profile.sic is not None and (
-            type(profile.sic) is not int or not 100 <= profile.sic <= 9999
-        ))
         or (profile.sic_description is not None and (
             type(profile.sic_description) is not str
             or not profile.sic_description
@@ -495,6 +496,7 @@ def _validate_established_profile(profile, comparability):
         profile.profile != upstream.PROFILE
         or profile.reasons != ()
         or type(profile.sic) is not int
+        or not 100 <= profile.sic <= 9999
         or type(profile.sic_description) is not str
         or any(
             item.decision is not upstream.ProfileDecisionValue.EXCLUDED
