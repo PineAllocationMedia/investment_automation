@@ -3,38 +3,46 @@
 > Two-to-five-minute operational snapshot. Refresh through Governance Sync after
 > durable state changes.
 
-- **Last Governance Sync:** PR #106 canonically established the current-annual
-  EPS-denominator dilution diagnostic after final Architecture & Audit rereview and
-  successful exact-head CI (2026-10-05)
+- **Last Governance Sync:** PR #108 canonically established the current-annual
+  operating-cash-flow/net-income evidence foundation after bounded SIC trust-boundary
+  correction, final Architecture & Audit rereview and successful exact-head CI
+  (2026-10-05)
 - **Current major program:** Stage C — Quality
-- **Active technical frontier:** Architecture & Audit evaluation of exactly one next
-  bounded Stage-C Quality analytical contract
+- **Active technical frontier:** exactly one Architecture & Audit evaluation of
+  whether the canonical paired OCF/net-income evidence supports a separate truthful,
+  bounded, threshold-free cash-conversion analytical contract
 - **Canonical integration branch:** `model-v2/expected-return-challenger`
-- **Canonical verified pre-this-sync HEAD:** `e2faa572f1805ff425635911cd5497f2a17365f6`
-- **Canonical verified tree:** `34026f6500fcdcc573cc83163883172f683b42e1`
-- **Current status:** Stage C — Quality is `ACTIVE / INCOMPLETE`. Its first bounded
-  diagnostic, its first dilution-evidence foundation and its bounded threshold-free
-  dilution diagnostic are complete and canonical. No later Quality dimension or
-  composite Quality score has been selected or implemented.
+- **Canonical verified pre-this-sync HEAD:** `ba77d25712b46f7ac293d7b27e00572a3f74c73f`
+- **Canonical verified tree:** `019c12d22f574419f18ff9d2128176c436f6ba2e`
+- **Current status:** Stage C — Quality is `ACTIVE / INCOMPLETE`. Its two bounded
+  analytical diagnostics and two bounded evidence foundations are complete and
+  canonical. No composite Quality score or aggregation is authorized.
+- **Canonical Stage-C diagnostics:**
+  `FIVE_PERIOD_DILUTED_EPS_DIRECTIONAL_CONSISTENCY` and
+  `CURRENT_ANNUAL_EPS_DENOMINATOR_DILUTION`
+- **Canonical Stage-C evidence foundations:**
+  `CURRENT_ANNUAL_EPS_DENOMINATOR_SHARES_QUALIFICATION` and
+  `CURRENT_ANNUAL_OPERATING_CASH_FLOW_NET_INCOME_QUALIFICATION`
 - **Latest completed technical milestone:**
-  `CURRENT_ANNUAL_EPS_DENOMINATOR_DILUTION` and immutable
-  `CurrentAnnualEPSDenominatorDilutionResult`, reporting exact-rational
-  `(D - B) / B` under `QUALITY_DILUTION_EPS_DENOMINATOR_DIAGNOSTIC_ONLY` authority
+  PR #108, `CURRENT_ANNUAL_OPERATING_CASH_FLOW_NET_INCOME_QUALIFICATION` and
+  immutable `CurrentAnnualOperatingCashFlowNetIncomeQualification`, preserving the
+  exact paired reported US-GAAP OCF and net-income facts in `USD` under
+  `QUALITY_CASH_CONVERSION_EVIDENCE_ONLY` authority
 - **Technical frontier:** Stage A — Real Fact Admission is complete for its
   explicitly supported first bounded CURRENT route; Stage B — Expected Return is
   complete within the currently approved bounded supported scope; Stage C — Quality
   is active
-- **Immediate technical frontier:** exactly one Architecture & Audit task inspects
-  canonical evidence readiness and selects/defines one next bounded Stage-C Quality
-  contract. No next Quality dimension is selected here and no Codex implementation
-  task is queued.
+- **Immediate technical frontier:** exactly one Architecture & Audit task inspects the
+  demonstrated canonical OCF/net-income evidence semantics and determines whether
+  they support one truthful, bounded, threshold-free cash-conversion analytical
+  contract. No formula is presumed and no Codex implementation task is queued.
 - **Comparator availability:** Canonical only for the bounded current real route under
   `2026-10-01-company-vfv-constant-fx-comparison-v1`, with
   `RESEARCH_DIAGNOSTIC_ONLY` authority
 - **Approved VFV policy:** `PAM_VFV_FORWARD_ER_POLICY_2026_10_01_V1`, hash
   `31dbebd0545c233c4913dad1915dfd2eb23d91481019fec078b245541ef0e645`
 - **Blockers:** None for bounded Stage-B completion. B2 remains an open capability
-  gap, currently `UNAVAILABLE / DEFERRED`, trigger-based and dormant, and may be
+  gap, currently `UNAVAILABLE / DEFERRED` and `TRIGGER-BASED / DORMANT`, and may be
   revisited only if genuinely new qualified executable-quote, settled-funding and,
   where applicable, FX execution-cost evidence appears.
 - **Pending CEO decisions:** None
@@ -172,9 +180,24 @@
   realized shareholder dilution, shares-outstanding change, issuance attribution,
   capital-allocation quality, a historical trend, total diluted-EPS impact or a
   Quality score. It is independent of the five-period EPS-direction diagnostic.
-- Stage C remains active and incomplete. Architecture & Audit must inspect evidence
-  readiness and evaluate exactly one next bounded analytical Quality contract before
-  any further Codex implementation is queued. Avoid creating one opaque magic score.
+- The canonical
+  `CURRENT_ANNUAL_OPERATING_CASH_FLOW_NET_INCOME_QUALIFICATION` evidence foundation
+  preserves one coherent paired annual SEC Companyfacts presentation of reported
+  `us-gaap:NetCashProvidedByUsedInOperatingActivities` and
+  `us-gaap:NetIncomeLoss` in exact unit `USD`. Its exact states are
+  `PAIRED_OPERATING_CASH_FLOW_NET_INCOME_ESTABLISHED`, `EVIDENCE_UNAVAILABLE`,
+  `EVIDENCE_UNSUPPORTED` and `SOURCE_CONFLICT`, and its authority is
+  `QUALITY_CASH_CONVERSION_EVIDENCE_ONLY`. It is CURRENT evidence concerning one
+  historical annual reporting period, not `HISTORICAL_AS_OF` or PIT evidence. It
+  creates no cash-conversion ratio or conclusion, accruals-quality, free-cash-flow,
+  capex, working-capital-causality, profitability-quality or historical-trend claim,
+  and no cross-sector, Durability, Confidence, Expected Return, recommendation,
+  ranking, allocation, sizing, production, deployment or V2-promotion authority.
+- Stage C remains active and incomplete. Architecture & Audit must evaluate whether
+  this demonstrated evidence supports one separate truthful bounded threshold-free
+  cash-conversion analytical contract; it may conclude that no such contract is yet
+  supportable. No diagnostic formula, aggregate Quality score or Codex implementation
+  task is selected here.
 - All seven conversational PAM role Projects/employees are configured. Codex
   Development remains `ACTIVE BY TASK`, not an autonomous conversational employee.
 
@@ -186,5 +209,5 @@
 - `DECISIONS.md`
 - `governance/roles/*.md`
 
-The HEAD/tree above are the verified canonical state after PR #106 and before this
+The HEAD/tree above are the verified canonical state after PR #108 and before this
 Governance Sync, not the future merge commit of this Governance Sync PR.

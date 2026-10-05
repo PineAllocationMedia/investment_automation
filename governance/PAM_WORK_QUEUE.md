@@ -11,11 +11,16 @@
   - Complete / canonical: bounded threshold-free
     `CURRENT_ANNUAL_EPS_DENOMINATOR_DILUTION` diagnostic under
     `QUALITY_DILUTION_EPS_DENOMINATOR_DIAGNOSTIC_ONLY` authority.
-  - Immediate next substep: exactly one Architecture & Audit task inspects canonical
-    evidence readiness and selects/defines exactly one next bounded Stage-C Quality
-    contract.
-  - No next Quality dimension, aggregate Quality score, scoring formula or Codex
-    implementation task is selected or queued.
+  - Complete / canonical: paired current-annual reported operating-cash-flow and
+    net-income evidence foundation,
+    `CURRENT_ANNUAL_OPERATING_CASH_FLOW_NET_INCOME_QUALIFICATION`, under
+    `QUALITY_CASH_CONVERSION_EVIDENCE_ONLY` authority.
+  - Immediate next substep: exactly one Architecture & Audit task inspects the new
+    canonical evidence semantics and determines whether they support a truthful,
+    bounded, threshold-free cash-conversion analytical contract.
+  - No diagnostic formula is presumed. No diagnostic implementation, next Quality
+    dimension, aggregate Quality score, scoring formula or Codex implementation task
+    is selected or queued.
 
 ## COMPLETED
 
