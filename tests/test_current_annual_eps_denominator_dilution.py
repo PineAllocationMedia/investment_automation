@@ -316,6 +316,225 @@ class CurrentAnnualEPSDenominatorDilutionTests(unittest.TestCase):
                     dilution.CurrentAnnualEPSDenominatorDilutionError):
                 self.analyze(value)
 
+    def test_established_supporting_provenance_is_an_exact_partition(self):
+        filing = self.available.supporting_filings[0]
+        second_accession = "0000000000-25-000002"
+        second_filing = replace(filing, accession=second_accession)
+        extra_id = "0" * 64
+        basic_with_extra = tuple(sorted(
+            self.available.selected_basic_observation_ids + (extra_id,)
+        ))
+        filing_basic_with_extra = tuple(sorted(
+            filing.basic_observation_ids + (extra_id,)
+        ))
+        cross_concept_filing = replace(
+            filing,
+            diluted_observation_ids=filing.basic_observation_ids,
+        )
+        cases = (
+            replace(
+                self.available,
+                supporting_filings=(replace(
+                    filing, forms=("10-K", "10-K/A")
+                ),),
+            ),
+            replace(
+                self.available,
+                supporting_filings=(replace(
+                    filing, filed_dates=("2025-02-01", "2025-02-02")
+                ),),
+            ),
+            replace(
+                self.available,
+                supporting_accessions=(filing.accession, second_accession),
+                supporting_filings=(filing, second_filing),
+            ),
+            replace(
+                self.available,
+                supporting_accessions=(filing.accession, second_accession),
+                supporting_filings=(filing, second_filing),
+            ),
+            replace(
+                self.available,
+                selected_diluted_observation_ids=(
+                    self.available.selected_basic_observation_ids
+                ),
+                supporting_filings=(cross_concept_filing,),
+            ),
+            replace(
+                self.available,
+                supporting_filings=(replace(
+                    filing, basic_observation_ids=filing_basic_with_extra
+                ),),
+            ),
+            replace(
+                self.available,
+                selected_basic_observation_ids=basic_with_extra,
+            ),
+        )
+        labels = (
+            "two forms",
+            "two filed dates",
+            "basic ID reused across accessions",
+            "diluted ID reused across accessions",
+            "basic/diluted concept overlap",
+            "extra filing-level basic ID",
+            "missing filing-level basic ID",
+        )
+        for label, value in zip(labels, cases, strict=True):
+            if label == "basic ID reused across accessions":
+                value = replace(
+                    value,
+                    supporting_filings=(
+                        filing,
+                        replace(second_filing, diluted_observation_ids=(
+                            "1" * 64,
+                        )),
+                    ),
+                    selected_diluted_observation_ids=tuple(sorted(
+                        filing.diluted_observation_ids + ("1" * 64,)
+                    )),
+                )
+            elif label == "diluted ID reused across accessions":
+                value = replace(
+                    value,
+                    supporting_filings=(
+                        filing,
+                        replace(second_filing, basic_observation_ids=(
+                            "2" * 64,
+                        )),
+                    ),
+                    selected_basic_observation_ids=tuple(sorted(
+                        filing.basic_observation_ids + ("2" * 64,)
+                    )),
+                )
+            with self.subTest(case=label), self.assertRaises(
+                    dilution.CurrentAnnualEPSDenominatorDilutionError):
+                self.analyze(value)
+
+    def test_non_available_status_reason_and_profile_paths_are_canonical(self):
+        denominator_reason = upstream.CurrentAnnualEPSDenominatorSharesReason
+        denominator_status = upstream.CurrentAnnualEPSDenominatorSharesStatus
+        profile_status = profile_module.OrdinaryCompounderProfileStatus
+        profile_reason = profile_module.ProfileReason
+        cases = (
+            replace(
+                self.unavailable,
+                reasons=(denominator_reason.UPSTREAM_PROFILE_UNSUPPORTED,),
+                upstream_profile_status=profile_status.PROFILE_UNSUPPORTED,
+                upstream_profile_reasons=(
+                    profile_reason.UNSUPPORTED_SIC_PROFILE,
+                ),
+            ),
+            replace(
+                self.unavailable,
+                reasons=(denominator_reason.SOURCE_CIK_CONFLICT,),
+                upstream_profile_status=(
+                    profile_status.ORDINARY_COMPOUNDER_PROFILE_ESTABLISHED
+                ),
+                upstream_profile_reasons=(),
+            ),
+            replace(
+                self.unsupported,
+                reasons=(
+                    denominator_reason.BASIC_DENOMINATOR_SHARES_UNAVAILABLE,
+                ),
+            ),
+            replace(
+                self.source_conflict,
+                reasons=(denominator_reason.NO_COMMON_ANNUAL_FILING_ACCESSION,),
+            ),
+            replace(
+                self.unavailable,
+                upstream_profile_status=profile_status.PROFILE_UNSUPPORTED,
+                upstream_profile_reasons=(
+                    profile_reason.UNSUPPORTED_SIC_PROFILE,
+                ),
+            ),
+            replace(
+                self.unsupported,
+                upstream_profile_status=profile_status.PROFILE_UNAVAILABLE,
+                upstream_profile_reasons=(
+                    profile_reason.SIC_MISSING_OR_INVALID,
+                ),
+            ),
+            replace(
+                self.source_conflict,
+                upstream_profile_status=(
+                    profile_status.ORDINARY_COMPOUNDER_PROFILE_ESTABLISHED
+                ),
+                upstream_profile_reasons=(),
+            ),
+            replace(
+                self.unavailable,
+                reasons=(
+                    denominator_reason.BASIC_DENOMINATOR_SHARES_UNAVAILABLE,
+                ),
+            ),
+            replace(
+                self.source_conflict,
+                reasons=(denominator_reason.SOURCE_CIK_CONFLICT,),
+            ),
+            replace(
+                self.unavailable,
+                reasons=(
+                    denominator_reason.BASIC_DENOMINATOR_SHARES_UNAVAILABLE,
+                ),
+                upstream_profile_status=(
+                    profile_status.ORDINARY_COMPOUNDER_PROFILE_ESTABLISHED
+                ),
+                upstream_profile_reasons=(
+                    profile_reason.SIC_MISSING_OR_INVALID,
+                ),
+            ),
+            replace(
+                self.source_conflict,
+                reasons=(denominator_reason.SOURCE_CIK_CONFLICT,),
+                upstream_profile_status=(
+                    profile_status.ORDINARY_COMPOUNDER_PROFILE_ESTABLISHED
+                ),
+                upstream_profile_reasons=(
+                    profile_reason.REPLAY_IDENTITY_MISMATCH,
+                ),
+            ),
+        )
+        labels = (
+            "unavailable with unsupported reason",
+            "unavailable with conflict reason",
+            "unsupported with unavailable reason",
+            "conflict with unavailable reason",
+            "profile-unavailable reason with unsupported profile",
+            "profile-unsupported reason with unavailable profile",
+            "profile-conflict reason with established profile",
+            "local unavailable with non-established profile",
+            "local conflict with non-established profile",
+            "local unavailable with native profile reasons",
+            "local conflict with native profile reasons",
+        )
+        for label, value in zip(labels, cases, strict=True):
+            with self.subTest(case=label), self.assertRaises(
+                    dilution.CurrentAnnualEPSDenominatorDilutionError):
+                self.analyze(value)
+
+        multi_reason_conflict = replace(
+            self.source_conflict,
+            status=denominator_status.SOURCE_CONFLICT,
+            reasons=(
+                denominator_reason.COMPETING_BASIC_DENOMINATOR_VALUES,
+                denominator_reason.COMPETING_DILUTED_DENOMINATOR_VALUES,
+            ),
+            upstream_profile_status=(
+                profile_status.ORDINARY_COMPOUNDER_PROFILE_ESTABLISHED
+            ),
+            upstream_profile_reasons=(),
+        )
+        result = self.analyze(multi_reason_conflict)
+        self.assertIs(
+            result.status,
+            dilution.CurrentAnnualEPSDenominatorDilutionStatus.SOURCE_CONFLICT,
+        )
+        self.assertIsNone(result.incremental_denominator_ratio)
+
     def test_non_established_states_cannot_smuggle_numeric_or_partial_output(self):
         cases = (
             replace(

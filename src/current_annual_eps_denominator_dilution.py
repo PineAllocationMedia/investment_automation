@@ -280,12 +280,12 @@ def _validate_supporting_filing(
             or type(filing.accession) is not str
             or _ACCESSION_PATTERN.fullmatch(filing.accession) is None
             or type(filing.forms) is not tuple
-            or not filing.forms
+            or len(filing.forms) != 1
             or any(type(item) is not str or item not in ("10-K", "10-K/A")
                    for item in filing.forms)
             or filing.forms != tuple(sorted(set(filing.forms)))
             or type(filing.filed_dates) is not tuple
-            or not filing.filed_dates
+            or len(filing.filed_dates) != 1
             or filing.filed_dates != tuple(sorted(set(filing.filed_dates)))
             or any(not _valid_period(item, item)
                    for item in filing.filed_dates)
@@ -303,6 +303,51 @@ def _validate_supporting_filing(
                    for item in filing.diluted_observation_ids)):
         raise CurrentAnnualEPSDenominatorDilutionError(
             "Canonical established supporting filing required"
+        )
+
+
+def _validate_profile_state_reasons(qualification, upstream) -> None:
+    profile_upstream = upstream.upstream
+    status = qualification.upstream_profile_status
+    reasons = qualification.upstream_profile_reasons
+    reason = profile_upstream.ProfileReason
+    if reasons != tuple(sorted(set(reasons), key=lambda item: item.value)):
+        raise CurrentAnnualEPSDenominatorDilutionError(
+            "Canonical native profile reasons required"
+        )
+    unavailable_reasons = frozenset({
+        reason.PR5C_NOT_ESTABLISHED,
+        reason.SIC_MISSING_OR_INVALID,
+        reason.SIC_DESCRIPTION_MISSING_OR_INVALID,
+        reason.POSITIVE_FIVE_PERIOD_ROUTE_NOT_ESTABLISHED,
+        reason.REPORTING_SUBJECT_STABILITY_NOT_ESTABLISHED,
+        reason.MIXED_STRUCTURE_UNRESOLVED,
+    })
+    if status is (
+            profile_upstream.OrdinaryCompounderProfileStatus.
+            ORDINARY_COMPOUNDER_PROFILE_ESTABLISHED):
+        coherent = reasons == ()
+    elif status is (
+            profile_upstream.OrdinaryCompounderProfileStatus.
+            PROFILE_UNAVAILABLE):
+        coherent = bool(reasons) and set(reasons) <= unavailable_reasons
+    elif status is (
+            profile_upstream.OrdinaryCompounderProfileStatus.
+            PROFILE_UNSUPPORTED):
+        coherent = (
+            reason.UNSUPPORTED_SIC_PROFILE in reasons
+            and reason.REPLAY_IDENTITY_MISMATCH not in reasons
+        )
+    elif status is profile_upstream.OrdinaryCompounderProfileStatus.SOURCE_CONFLICT:
+        coherent = (
+            reason.REPLAY_IDENTITY_MISMATCH in reasons
+            and reason.UNSUPPORTED_SIC_PROFILE not in reasons
+        )
+    else:
+        coherent = False
+    if not coherent:
+        raise CurrentAnnualEPSDenominatorDilutionError(
+            "Canonical native profile status/reasons required"
         )
 
 
@@ -349,6 +394,7 @@ def _validate_shape(
         raise CurrentAnnualEPSDenominatorDilutionError(
             "Canonical native profile state required"
         )
+    _validate_profile_state_reasons(qualification, upstream)
     if (any(not _valid_optional_hash(value) for value in (
             qualification.route_local_issuer_key,
             qualification.route_local_security_key,
@@ -448,11 +494,22 @@ def _validate_established(
         )
     for filing in filings:
         _validate_supporting_filing(filing, upstream)
+    flattened_basic_ids = tuple(
+        observation_id
+        for filing in filings
+        for observation_id in filing.basic_observation_ids
+    )
+    flattened_diluted_ids = tuple(
+        observation_id
+        for filing in filings
+        for observation_id in filing.diluted_observation_ids
+    )
     if (tuple(item.accession for item in filings) != accessions
-            or set().union(*(set(item.basic_observation_ids)
-                             for item in filings)) != set(basic_ids)
-            or set().union(*(set(item.diluted_observation_ids)
-                             for item in filings)) != set(diluted_ids)):
+            or set(basic_ids) & set(diluted_ids)
+            or len(flattened_basic_ids) != len(set(flattened_basic_ids))
+            or len(flattened_diluted_ids) != len(set(flattened_diluted_ids))
+            or tuple(sorted(flattened_basic_ids)) != basic_ids
+            or tuple(sorted(flattened_diluted_ids)) != diluted_ids):
         raise CurrentAnnualEPSDenominatorDilutionError(
             "Coherent established denominator provenance required"
         )
@@ -461,6 +518,7 @@ def _validate_established(
 
 def _validate_non_established(
     qualification,
+    upstream,
 ) -> None:
     if (not qualification.reasons
             or qualification.basic_weighted_average_shares is not None
@@ -471,6 +529,82 @@ def _validate_non_established(
             or qualification.supporting_filings != ()):
         raise CurrentAnnualEPSDenominatorDilutionError(
             "Canonical non-established denominator qualification required"
+        )
+    status = qualification.status
+    reasons = qualification.reasons
+    reason = upstream.CurrentAnnualEPSDenominatorSharesReason
+    upstream_status = upstream.CurrentAnnualEPSDenominatorSharesStatus
+    profile_status = upstream.upstream.OrdinaryCompounderProfileStatus
+    unavailable_reasons = frozenset({
+        reason.UPSTREAM_PROFILE_UNAVAILABLE,
+        reason.BASIC_DENOMINATOR_SHARES_UNAVAILABLE,
+        reason.DILUTED_DENOMINATOR_SHARES_UNAVAILABLE,
+        reason.EXACT_SHARES_UNIT_UNAVAILABLE,
+        reason.FINITE_POSITIVE_BASIC_VALUE_UNAVAILABLE,
+        reason.FINITE_POSITIVE_DILUTED_VALUE_UNAVAILABLE,
+        reason.EXACT_ANNUAL_PERIOD_PRESENTATION_UNAVAILABLE,
+        reason.NO_COMMON_ANNUAL_FILING_ACCESSION,
+    })
+    local_unavailable_reasons = unavailable_reasons - {
+        reason.UPSTREAM_PROFILE_UNAVAILABLE
+    }
+    conflict_reasons = frozenset({
+        reason.UPSTREAM_SOURCE_CONFLICT,
+        reason.CANONICAL_ROUTE_IDENTITY_CONFLICT,
+        reason.CAPTURE_REPLAY_CONFLICT,
+        reason.SOURCE_CIK_CONFLICT,
+        reason.COMPETING_BASIC_DENOMINATOR_VALUES,
+        reason.COMPETING_DILUTED_DENOMINATOR_VALUES,
+        reason.COMMON_FILING_METADATA_CONFLICT,
+        reason.DILUTED_SHARES_BELOW_BASIC_SHARES,
+    })
+    local_conflict_reasons = conflict_reasons - {
+        reason.UPSTREAM_SOURCE_CONFLICT
+    }
+    reason_set = set(reasons)
+    if status is upstream_status.EVIDENCE_UNAVAILABLE:
+        if not reason_set <= unavailable_reasons:
+            coherent = False
+        elif reason.UPSTREAM_PROFILE_UNAVAILABLE in reason_set:
+            coherent = (
+                reasons == (reason.UPSTREAM_PROFILE_UNAVAILABLE,)
+                and qualification.upstream_profile_status is
+                profile_status.PROFILE_UNAVAILABLE
+            )
+        else:
+            coherent = (
+                reason_set <= local_unavailable_reasons
+                and qualification.upstream_profile_status is
+                profile_status.ORDINARY_COMPOUNDER_PROFILE_ESTABLISHED
+                and qualification.upstream_profile_reasons == ()
+            )
+    elif status is upstream_status.EVIDENCE_UNSUPPORTED:
+        coherent = (
+            reasons == (reason.UPSTREAM_PROFILE_UNSUPPORTED,)
+            and qualification.upstream_profile_status is
+            profile_status.PROFILE_UNSUPPORTED
+        )
+    elif status is upstream_status.SOURCE_CONFLICT:
+        if not reason_set <= conflict_reasons:
+            coherent = False
+        elif reason.UPSTREAM_SOURCE_CONFLICT in reason_set:
+            coherent = (
+                reasons == (reason.UPSTREAM_SOURCE_CONFLICT,)
+                and qualification.upstream_profile_status is
+                profile_status.SOURCE_CONFLICT
+            )
+        else:
+            coherent = (
+                reason_set <= local_conflict_reasons
+                and qualification.upstream_profile_status is
+                profile_status.ORDINARY_COMPOUNDER_PROFILE_ESTABLISHED
+                and qualification.upstream_profile_reasons == ()
+            )
+    else:
+        coherent = False
+    if not coherent:
+        raise CurrentAnnualEPSDenominatorDilutionError(
+            "Canonical non-established status/reason/profile path required"
         )
 
 
@@ -528,7 +662,7 @@ def analyze_current_annual_eps_denominator_dilution(
         basic, diluted = _validate_established(qualification, upstream)
         ratio = _ratio_from_decimals(basic, diluted)
     else:
-        _validate_non_established(qualification)
+        _validate_non_established(qualification, upstream)
     upstream_semantic_id, upstream_evidence_id = _upstream_identities(
         qualification
     )
