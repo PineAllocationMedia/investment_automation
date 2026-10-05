@@ -3,27 +3,32 @@
 > Two-to-five-minute operational snapshot. Refresh through Governance Sync after
 > durable state changes.
 
-- **Last Governance Sync:** PR #102 canonically established the first bounded
-  Stage-C Quality diagnostic after Architecture & Audit review and successful
-  exact-head CI (2026-10-04)
+- **Last Governance Sync:** PR #104 canonically established the current-annual paired
+  basic/diluted EPS-denominator evidence foundation after corrected Architecture &
+  Audit rereview and successful exact-head CI (2026-10-04)
 - **Current major program:** Stage C — Quality
-- **Active technical frontier:** next bounded Stage-C Quality contract definition
+- **Active technical frontier:** Architecture & Audit evaluation of exactly one next
+  bounded Stage-C Quality analytical contract
 - **Canonical integration branch:** `model-v2/expected-return-challenger`
-- **Canonical verified pre-this-sync HEAD:** `1309d4e9925aa01df32568d2602223c2e0ff1566`
-- **Canonical verified tree:** `fec28577b032478239640c8e5f412164e151eda7`
+- **Canonical verified pre-this-sync HEAD:** `2f55abac3411957d922fd716aa23279eae408bb9`
+- **Canonical verified tree:** `222acf5cabf79df86c00a4ad4fd1b309ec202341`
 - **Current status:** Stage C — Quality is `ACTIVE / INCOMPLETE`. Its first bounded
-  slice is complete and canonical; no later Quality dimension or composite Quality
-  score has been selected or implemented.
-- **Latest completed technical milestone:** immutable deterministic
-  `FivePeriodEPSConsistencyResult` for
-  `FIVE_PERIOD_DILUTED_EPS_DIRECTIONAL_CONSISTENCY`, under
-  `QUALITY_EPS_CONSISTENCY_DIAGNOSTIC_ONLY` authority
+  diagnostic and its first dilution-evidence foundation are complete and canonical;
+  no dilution diagnostic, later Quality dimension or composite Quality score has
+  been selected or implemented.
+- **Latest completed technical milestone:** immutable
+  `CurrentAnnualEPSDenominatorSharesQualification` for
+  `CURRENT_ANNUAL_EPS_DENOMINATOR_SHARES_QUALIFICATION`, preserving paired basic and
+  diluted weighted-average shares in unit `shares`, under
+  `QUALITY_DILUTION_EPS_DENOMINATOR_EVIDENCE_ONLY` authority
 - **Technical frontier:** Stage A — Real Fact Admission is complete for its
   explicitly supported first bounded CURRENT route; Stage B — Expected Return is
   complete within the currently approved bounded supported scope; Stage C — Quality
   is active
-- **Immediate technical frontier:** Architecture & Audit defines exactly one next
-  bounded Stage-C Quality contract before implementation.
+- **Immediate technical frontier:** one Architecture & Audit task determines whether
+  the canonical evidence supports a truthful threshold-free dilution analytical
+  diagnostic; otherwise it may select exactly one other bounded Stage-C Quality
+  slice based on evidence readiness. No Codex implementation task is queued.
 - **Comparator availability:** Canonical only for the bounded current real route under
   `2026-10-01-company-vfv-constant-fx-comparison-v1`, with
   `RESEARCH_DIAGNOSTIC_ONLY` authority
@@ -152,9 +157,16 @@
   moat, Durability/persistence, Expected Return, confidence, recommendation, ranking,
   allocation, sizing, execution, production, deployment, V2-promotion,
   `HISTORICAL_AS_OF` or PIT authority.
+- The canonical current-annual dilution evidence foundation preserves paired basic
+  and diluted weighted-average share denominators in unit `shares`. Its exact states
+  are `PAIRED_EPS_DENOMINATOR_SHARES_ESTABLISHED`, `EVIDENCE_UNAVAILABLE`,
+  `EVIDENCE_UNSUPPORTED` and `SOURCE_CONFLICT`, and its authority is
+  `QUALITY_DILUTION_EPS_DENOMINATOR_EVIDENCE_ONLY`. It creates no
+  dilution diagnostic, threshold, score, grade, trend or downstream investment
+  authority.
 - Stage C remains active and incomplete. Architecture & Audit must inspect evidence
-  readiness and define exactly one next bounded Quality contract before any further
-  Codex implementation is queued; no next Quality dimension is selected here.
+  readiness and evaluate exactly one next bounded analytical Quality contract before
+  any further Codex implementation is queued. Avoid creating one opaque magic score.
 - All seven conversational PAM role Projects/employees are configured. Codex
   Development remains `ACTIVE BY TASK`, not an autonomous conversational employee.
 
@@ -166,5 +178,5 @@
 - `DECISIONS.md`
 - `governance/roles/*.md`
 
-The HEAD/tree above are the verified canonical state after PR #100 and before this
+The HEAD/tree above are the verified canonical state after PR #104 and before this
 Governance Sync, not the future merge commit of this Governance Sync PR.

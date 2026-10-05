@@ -313,3 +313,37 @@
   contract-definition task after inspecting evidence readiness; no next Quality
   dimension or Codex implementation task is selected here. B2 remains
   `TRIGGER-BASED / DORMANT`.
+
+## 2026-10-04 — PR #104 current-annual dilution evidence foundation canonical
+
+- The CEO merged PR #104 as `2f55abac3411957d922fd716aa23279eae408bb9`,
+  tree `222acf5cabf79df86c00a4ad4fd1b309ec202341`; the reviewed corrected PR head
+  was `408b7b64b1925d351f29e6083379d3bead4d9059`.
+- PR #104 canonically established
+  `CURRENT_ANNUAL_EPS_DENOMINATOR_SHARES_QUALIFICATION` and immutable
+  `CurrentAnnualEPSDenominatorSharesQualification`. It preserves paired basic and
+  diluted weighted-average shares in unit `shares`, with exact states
+  `PAIRED_EPS_DENOMINATOR_SHARES_ESTABLISHED`, `EVIDENCE_UNAVAILABLE`,
+  `EVIDENCE_UNSUPPORTED` and `SOURCE_CONFLICT`, under
+  `QUALITY_DILUTION_EPS_DENOMINATOR_EVIDENCE_ONLY` authority.
+- Architecture & Audit identified four Class-A issues: paired conflict-domain
+  enforcement, Decimal canonicalization, filing-metadata coherence and established-
+  profile validation. The corrected head resolved all four; rereview returned
+  `MERGE READY`.
+- Corrected local validation passed 37 focused tests, 175 targeted/adjacent tests and
+  2,963 `STANDARD` tests. Exact-head Baseline V1 CI #127 completed successfully. The
+  protected PIT fingerprint remained
+  `f1e73b27b80e41d96ff5e0fe990b482bad71b7220db0b5bd6a2f470d72786166`, the
+  determinism fingerprint remained
+  `f8457910665391e39c234274cae4c029802c681211eebc7dba986a63000876f1`, and
+  `MODEL_RULES_VERSION` remained `2026-08-23-allocation-room-integrity-v7`.
+- This is an evidence foundation only and creates no authority expansion. It creates
+  no dilution diagnostic, threshold,
+  composite Quality score, recommendation, ranking, allocation, sizing, execution,
+  production or V2-promotion authority.
+- Stage C — Quality remains `ACTIVE / INCOMPLETE`: its first diagnostic and first
+  dilution-evidence foundation are canonical. The immediate next work is exactly one
+  Architecture & Audit task to determine whether this evidence supports a truthful
+  threshold-free dilution analytical diagnostic; otherwise it may select exactly one
+  other bounded Stage-C Quality slice based on evidence readiness. No Codex
+  implementation task is queued. B2 remains `TRIGGER-BASED / DORMANT`.
