@@ -347,3 +347,44 @@
   threshold-free dilution analytical diagnostic; otherwise it may select exactly one
   other bounded Stage-C Quality slice based on evidence readiness. No Codex
   implementation task is queued. B2 remains `TRIGGER-BASED / DORMANT`.
+
+## 2026-10-05 — PR #106 current-annual EPS-denominator dilution diagnostic canonical
+
+- The CEO merged PR #106 as `e2faa572f1805ff425635911cd5497f2a17365f6`,
+  tree `34026f6500fcdcc573cc83163883172f683b42e1`; the reviewed implementation head
+  was `d392b89675d90d64b2141c1c28aaba6b9bef169c`.
+- PR #106 canonically established `CURRENT_ANNUAL_EPS_DENOMINATOR_DILUTION`,
+  immutable `CurrentAnnualEPSDenominatorDilutionResult` and public analytical value
+  `EPSDenominatorDilutionRatio`. It reports exact reduced integer rational
+  `(D - B) / B`, where `B` and `D` are the qualified basic and diluted weighted-
+  average denominators; canonical zero is `0 / 1`. Its states are `AVAILABLE`,
+  `UNAVAILABLE`, `UNSUPPORTED` and `SOURCE_CONFLICT`, under exact authority
+  `QUALITY_DILUTION_EPS_DENOMINATOR_DIAGNOSTIC_ONLY`.
+- Independent review initially found Class-A supporting-filing provenance and
+  non-available status/reason/profile trust-boundary issues. The first correction
+  closed supporting provenance and denominator-level mapping. Focused rereview then
+  exposed profile-reason canonicality; re-adjudication against the live upstream
+  factory prevented an overbroad `SIC_MISSING_OR_INVALID` prohibition and narrowed
+  the correction to decision-derived reasons with missing/invalid description and
+  the factory-impossible combination of `PROFILE_UNAVAILABLE` with
+  `POSITIVE_FIVE_PERIOD_ROUTE_NOT_ESTABLISHED`. Final Architecture & Audit rereview
+  returned `MERGE READY` with no remaining Class-A finding.
+- Codex reported 29/29 focused, 155/155 adjacent/isolation and 2,994/2,994
+  `FULL_PIT` tests passing, plus Git integrity checks. Architecture & Audit reviewed
+  the exact correction surfaces but did not independently rerun those local suites.
+  Exact-head GitHub CI #131 was independently observed `completed / success` for
+  `d392b89675d90d64b2141c1c28aaba6b9bef169c`. The protected PIT fingerprint
+  `f1e73b27b80e41d96ff5e0fe990b482bad71b7220db0b5bd6a2f470d72786166`,
+  determinism fingerprint
+  `f8457910665391e39c234274cae4c029802c681211eebc7dba986a63000876f1` and
+  `MODEL_RULES_VERSION` `2026-08-23-allocation-room-integrity-v7` were unchanged.
+- The diagnostic measures only the incremental weighted-average denominator effect
+  recognized in diluted-EPS accounting for one qualified annual reporting period.
+  It creates no realized shareholder-dilution, shares-outstanding, issuance,
+  repurchase-effectiveness, capital-allocation, trend, total diluted-EPS, aggregate
+  Quality, Expected Return, Confidence, portfolio or other authority expansion.
+- Stage C remains `ACTIVE / INCOMPLETE`. Its two analytical diagnostics and paired
+  denominator evidence foundation are canonical. The sole immediate frontier is one
+  Architecture & Audit task to inspect evidence readiness and select/define exactly
+  one next bounded Quality contract. No Codex implementation is queued. B2 remains
+  `UNAVAILABLE / DEFERRED` and `TRIGGER-BASED / DORMANT`.

@@ -3,32 +3,31 @@
 > Two-to-five-minute operational snapshot. Refresh through Governance Sync after
 > durable state changes.
 
-- **Last Governance Sync:** PR #104 canonically established the current-annual paired
-  basic/diluted EPS-denominator evidence foundation after corrected Architecture &
-  Audit rereview and successful exact-head CI (2026-10-04)
+- **Last Governance Sync:** PR #106 canonically established the current-annual
+  EPS-denominator dilution diagnostic after final Architecture & Audit rereview and
+  successful exact-head CI (2026-10-05)
 - **Current major program:** Stage C — Quality
 - **Active technical frontier:** Architecture & Audit evaluation of exactly one next
   bounded Stage-C Quality analytical contract
 - **Canonical integration branch:** `model-v2/expected-return-challenger`
-- **Canonical verified pre-this-sync HEAD:** `2f55abac3411957d922fd716aa23279eae408bb9`
-- **Canonical verified tree:** `222acf5cabf79df86c00a4ad4fd1b309ec202341`
+- **Canonical verified pre-this-sync HEAD:** `e2faa572f1805ff425635911cd5497f2a17365f6`
+- **Canonical verified tree:** `34026f6500fcdcc573cc83163883172f683b42e1`
 - **Current status:** Stage C — Quality is `ACTIVE / INCOMPLETE`. Its first bounded
-  diagnostic and its first dilution-evidence foundation are complete and canonical;
-  no dilution diagnostic, later Quality dimension or composite Quality score has
-  been selected or implemented.
-- **Latest completed technical milestone:** immutable
-  `CurrentAnnualEPSDenominatorSharesQualification` for
-  `CURRENT_ANNUAL_EPS_DENOMINATOR_SHARES_QUALIFICATION`, preserving paired basic and
-  diluted weighted-average shares in unit `shares`, under
-  `QUALITY_DILUTION_EPS_DENOMINATOR_EVIDENCE_ONLY` authority
+  diagnostic, its first dilution-evidence foundation and its bounded threshold-free
+  dilution diagnostic are complete and canonical. No later Quality dimension or
+  composite Quality score has been selected or implemented.
+- **Latest completed technical milestone:**
+  `CURRENT_ANNUAL_EPS_DENOMINATOR_DILUTION` and immutable
+  `CurrentAnnualEPSDenominatorDilutionResult`, reporting exact-rational
+  `(D - B) / B` under `QUALITY_DILUTION_EPS_DENOMINATOR_DIAGNOSTIC_ONLY` authority
 - **Technical frontier:** Stage A — Real Fact Admission is complete for its
   explicitly supported first bounded CURRENT route; Stage B — Expected Return is
   complete within the currently approved bounded supported scope; Stage C — Quality
   is active
-- **Immediate technical frontier:** one Architecture & Audit task determines whether
-  the canonical evidence supports a truthful threshold-free dilution analytical
-  diagnostic; otherwise it may select exactly one other bounded Stage-C Quality
-  slice based on evidence readiness. No Codex implementation task is queued.
+- **Immediate technical frontier:** exactly one Architecture & Audit task inspects
+  canonical evidence readiness and selects/defines one next bounded Stage-C Quality
+  contract. No next Quality dimension is selected here and no Codex implementation
+  task is queued.
 - **Comparator availability:** Canonical only for the bounded current real route under
   `2026-10-01-company-vfv-constant-fx-comparison-v1`, with
   `RESEARCH_DIAGNOSTIC_ONLY` authority
@@ -164,6 +163,15 @@
   `QUALITY_DILUTION_EPS_DENOMINATOR_EVIDENCE_ONLY`. It creates no
   dilution diagnostic, threshold, score, grade, trend or downstream investment
   authority.
+- The canonical `CURRENT_ANNUAL_EPS_DENOMINATOR_DILUTION` diagnostic reports the
+  exact reduced rational `(D - B) / B`, with canonical zero `0 / 1`, for one qualified
+  annual reporting period. Its exact states are `AVAILABLE`, `UNAVAILABLE`,
+  `UNSUPPORTED` and `SOURCE_CONFLICT`, and its authority is
+  `QUALITY_DILUTION_EPS_DENOMINATOR_DIAGNOSTIC_ONLY`. It measures the incremental
+  weighted-average denominator effect recognized in diluted-EPS accounting, not
+  realized shareholder dilution, shares-outstanding change, issuance attribution,
+  capital-allocation quality, a historical trend, total diluted-EPS impact or a
+  Quality score. It is independent of the five-period EPS-direction diagnostic.
 - Stage C remains active and incomplete. Architecture & Audit must inspect evidence
   readiness and evaluate exactly one next bounded analytical Quality contract before
   any further Codex implementation is queued. Avoid creating one opaque magic score.
@@ -178,5 +186,5 @@
 - `DECISIONS.md`
 - `governance/roles/*.md`
 
-The HEAD/tree above are the verified canonical state after PR #104 and before this
+The HEAD/tree above are the verified canonical state after PR #106 and before this
 Governance Sync, not the future merge commit of this Governance Sync PR.
