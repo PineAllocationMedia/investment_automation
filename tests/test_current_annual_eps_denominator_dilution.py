@@ -535,6 +535,90 @@ class CurrentAnnualEPSDenominatorDilutionTests(unittest.TestCase):
         )
         self.assertIsNone(result.incremental_denominator_ratio)
 
+    def test_impossible_profile_reason_provenance_is_rejected(self):
+        profile_status = profile_module.OrdinaryCompounderProfileStatus
+        profile_reason = profile_module.ProfileReason
+        cases = (
+            replace(
+                self.unsupported,
+                upstream_profile_reasons=(
+                    profile_reason.SIC_DESCRIPTION_MISSING_OR_INVALID,
+                    profile_reason.UNSUPPORTED_SIC_PROFILE,
+                ),
+            ),
+            replace(
+                self.unavailable,
+                upstream_profile_reasons=(
+                    profile_reason.MIXED_STRUCTURE_UNRESOLVED,
+                    profile_reason.SIC_DESCRIPTION_MISSING_OR_INVALID,
+                ),
+            ),
+            replace(
+                self.source_conflict,
+                upstream_profile_reasons=(
+                    profile_reason.REPLAY_IDENTITY_MISMATCH,
+                    profile_reason.REPORTING_SUBJECT_STABILITY_NOT_ESTABLISHED,
+                    profile_reason.SIC_DESCRIPTION_MISSING_OR_INVALID,
+                ),
+            ),
+            replace(
+                self.unavailable,
+                upstream_profile_status=profile_status.PROFILE_UNAVAILABLE,
+                upstream_profile_reasons=(
+                    profile_reason.POSITIVE_FIVE_PERIOD_ROUTE_NOT_ESTABLISHED,
+                ),
+            ),
+        )
+        labels = (
+            "description missing with unsupported decision",
+            "description missing with mixed-structure decision",
+            "description missing with reporting-subject decision",
+            "unavailable with positive-route failure",
+        )
+        for label, value in zip(labels, cases, strict=True):
+            with self.subTest(case=label), self.assertRaises(
+                    dilution.CurrentAnnualEPSDenominatorDilutionError):
+                self.analyze(value)
+
+    def test_canonical_sic_missing_profile_reason_shapes_remain_accepted(self):
+        profile_status = profile_module.OrdinaryCompounderProfileStatus
+        profile_reason = profile_module.ProfileReason
+        cases = (
+            replace(
+                self.unsupported,
+                upstream_profile_status=profile_status.PROFILE_UNSUPPORTED,
+                upstream_profile_reasons=(
+                    profile_reason.SIC_MISSING_OR_INVALID,
+                    profile_reason.UNSUPPORTED_SIC_PROFILE,
+                ),
+            ),
+            replace(
+                self.unavailable,
+                upstream_profile_status=profile_status.PROFILE_UNAVAILABLE,
+                upstream_profile_reasons=(
+                    profile_reason.SIC_MISSING_OR_INVALID,
+                ),
+            ),
+            replace(
+                self.source_conflict,
+                upstream_profile_status=profile_status.SOURCE_CONFLICT,
+                upstream_profile_reasons=(
+                    profile_reason.REPLAY_IDENTITY_MISMATCH,
+                    profile_reason.SIC_MISSING_OR_INVALID,
+                ),
+            ),
+        )
+        expected = (
+            dilution.CurrentAnnualEPSDenominatorDilutionStatus.UNSUPPORTED,
+            dilution.CurrentAnnualEPSDenominatorDilutionStatus.UNAVAILABLE,
+            dilution.CurrentAnnualEPSDenominatorDilutionStatus.SOURCE_CONFLICT,
+        )
+        for value, expected_status in zip(cases, expected, strict=True):
+            with self.subTest(status=expected_status):
+                result = self.analyze(value)
+                self.assertIs(result.status, expected_status)
+                self.assertIsNone(result.incremental_denominator_ratio)
+
     def test_non_established_states_cannot_smuggle_numeric_or_partial_output(self):
         cases = (
             replace(

@@ -323,6 +323,12 @@ def _validate_profile_state_reasons(qualification, upstream) -> None:
         reason.REPORTING_SUBJECT_STABILITY_NOT_ESTABLISHED,
         reason.MIXED_STRUCTURE_UNRESOLVED,
     })
+    decision_derived_reasons = frozenset({
+        reason.POSITIVE_FIVE_PERIOD_ROUTE_NOT_ESTABLISHED,
+        reason.REPORTING_SUBJECT_STABILITY_NOT_ESTABLISHED,
+        reason.MIXED_STRUCTURE_UNRESOLVED,
+        reason.UNSUPPORTED_SIC_PROFILE,
+    })
     if status is (
             profile_upstream.OrdinaryCompounderProfileStatus.
             ORDINARY_COMPOUNDER_PROFILE_ESTABLISHED):
@@ -344,6 +350,13 @@ def _validate_profile_state_reasons(qualification, upstream) -> None:
             and reason.UNSUPPORTED_SIC_PROFILE not in reasons
         )
     else:
+        coherent = False
+    if (reason.SIC_DESCRIPTION_MISSING_OR_INVALID in reasons
+            and set(reasons) & decision_derived_reasons):
+        coherent = False
+    if (status is
+            profile_upstream.OrdinaryCompounderProfileStatus.PROFILE_UNAVAILABLE
+            and reason.POSITIVE_FIVE_PERIOD_ROUTE_NOT_ESTABLISHED in reasons):
         coherent = False
     if not coherent:
         raise CurrentAnnualEPSDenominatorDilutionError(
