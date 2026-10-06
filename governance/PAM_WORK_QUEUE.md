@@ -22,6 +22,16 @@
     dimension, aggregate Quality score, scoring formula or Codex implementation task
     is selected or queued.
 
+- Blossom audience-growth initiative (`ACTIVE`).
+  - Primary owner: Marketing & GTM.
+  - Account: `@therealpam`.
+  - Objective: build a credible, engaging finance/investing audience; PAM promotion is secondary.
+  - Public-facing copy is English by default.
+  - Current-event content requires fresh reliable verification where material.
+  - Human/CEO approval is required before publication.
+  - Wealthsimple affiliation remains accessory and subject to Commercial & Compliance boundaries.
+  - No autonomous posting, personalized investment advice, invented PAM capability or hidden affiliate promotion is authorized.
+
 ## COMPLETED
 
 - Stage B — Expected Return: bounded sequence complete within the currently approved
