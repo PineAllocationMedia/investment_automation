@@ -8,6 +8,7 @@
   correction, final Architecture & Audit rereview and successful exact-head CI
   (2026-10-05)
 - **Current major program:** Stage C — Quality
+- **Parallel CEO-approved GTM initiative:** bounded Blossom audience-growth mandate for `@therealpam`, owned by Marketing & GTM; audience value first, PAM promotion secondary, human approval required before publication
 - **Active technical frontier:** exactly one Architecture & Audit evaluation of
   whether the canonical paired OCF/net-income evidence supports a separate truthful,
   bounded, threshold-free cash-conversion analytical contract
@@ -57,7 +58,7 @@
 | Data Analyst | `WATCH` |
 | Product & UX | `WATCH` |
 | Commercial & Compliance | `WATCH` |
-| Marketing & GTM | `DORMANT` |
+| Marketing & GTM | `ACTIVE — BLOSSOM ONLY` |
 | Codex Development | `ACTIVE BY TASK` |
 
 ## Material current limitations
