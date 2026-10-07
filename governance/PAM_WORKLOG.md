@@ -436,3 +436,36 @@
   bounded, threshold-free cash-conversion analytical contract; no formula is presumed
   and no Codex implementation is queued. B2 remains `UNAVAILABLE / DEFERRED` and
   `TRIGGER-BASED / DORMANT`.
+
+## 2026-10-07 — PR #111 current-annual OCF/positive-net-income diagnostic canonical
+
+- The CEO merged PR #111 as `65e02371239473cb72ea9e93e1d84d7ffac1ff3f`;
+  reviewed head was `53851631b48f8afd22ffb1019ff5a9c8d857c3c3`.
+- PR #111 canonically established `CURRENT_ANNUAL_OCF_TO_POSITIVE_NET_INCOME`,
+  immutable `CurrentAnnualOCFToPositiveNetIncomeResult` and exact OCF / Net Income
+  analysis only for strictly positive reported net income, under
+  `QUALITY_CURRENT_ANNUAL_OCF_NET_INCOME_RELATIONSHIP_DIAGNOSTIC_ONLY` authority.
+- Architecture & Audit review drove Class-A trust-boundary tightening, removal of
+  evidence-contaminated upstream identity from decisive analytical semantics and
+  correction of capture-bound opaque route keys to traceability-only identity inputs.
+  Final rereview returned `MERGE READY`; exact-head CI succeeded before CEO merge.
+- Codex final `FULL_PIT` passed 3,055/3,055. Protected PIT/determinism fingerprints
+  and `MODEL_RULES_VERSION` remained unchanged. The diagnostic adds no good/bad,
+  aggregate Quality, investment, execution, production, deployment or V2-promotion
+  authority.
+
+## 2026-10-07 — PR #112 deterministic PAM local preflight canonical
+
+- The CEO merged PR #112 as `8ade3d3abc22689dee6f535bcab5bba9addfa4a5`;
+  reviewed head was `c886c1dfde9fbce876f62482e5e97bb1503b0199`.
+- PR #112 established Development Workflow Automation v1 through
+  `./pam_preflight --base <ref-or-sha>`: one deterministic local orchestration surface
+  over the existing validation planner, tiers, discovered runner and Git-integrity
+  controls for an exact committed candidate.
+- Three Class-A defects were corrected: arbitrary-base tier downgrade, mutable-
+  worktree exact-HEAD TOCTOU and major/minor-only Python pinning. Final Architecture &
+  Audit rereview returned `MERGE READY`, and exact-head CI #142 succeeded.
+- Final preflight / `FULL_PIT` passed 3,087/3,087, with PIT equivalence 64/64.
+  Protected PIT/determinism fingerprints and `MODEL_RULES_VERSION` remained unchanged.
+  No validation-policy, governance, investment, merge, deployment, production or
+  V2-promotion authority was expanded.

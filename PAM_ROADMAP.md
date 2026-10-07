@@ -434,7 +434,11 @@ Current annual EPS-denominator dilution diagnostic ✅
     ↓
 Current annual paired operating-cash-flow/net-income evidence foundation ✅
     ↓
-Possible separate cash-conversion analytical contract — Architecture & Audit NEXT
+Current annual OCF-to-positive-net-income diagnostic ✅
+    ↓
+Development Workflow Automation / deterministic pam_preflight ✅ (cross-cutting)
+    ↓
+Next bounded Quality slice — Architecture & Audit selection/definition NEXT
 ```
 
 This governance sequence was an administrative prerequisite, not a replacement for
@@ -453,11 +457,15 @@ threshold-free `CURRENT_ANNUAL_EPS_DENOMINATOR_DILUTION` diagnostic are also
 canonical. PR #108 additionally established
 `CURRENT_ANNUAL_OPERATING_CASH_FLOW_NET_INCOME_QUALIFICATION`, preserving one
 coherent paired annual SEC Companyfacts presentation of reported operating cash flow
-and net income in `USD` under `QUALITY_CASH_CONVERSION_EVIDENCE_ONLY`. This fourth
-milestone is evidence only, not an analytical diagnostic. Stage C remains active and
-incomplete. Architecture & Audit must now inspect those demonstrated evidence
-semantics and determine whether they support one separate truthful, bounded,
-threshold-free cash-conversion analytical contract. No formula is presumed and no
+and net income in `USD` under `QUALITY_CASH_CONVERSION_EVIDENCE_ONLY`. PR #111 then
+established the threshold-free `CURRENT_ANNUAL_OCF_TO_POSITIVE_NET_INCOME`
+diagnostic under
+`QUALITY_CURRENT_ANNUAL_OCF_NET_INCOME_RELATIONSHIP_DIAGNOSTIC_ONLY` authority.
+PR #112 separately established deterministic `pam_preflight` as a cross-cutting
+development-workflow milestone; it is not part of Quality economics. Stage C remains
+active and incomplete. Architecture & Audit must next inspect current Stage-C
+evidence/capability readiness and select/define exactly one next truthful bounded
+Quality contract. It may select an evidence foundation first. No next dimension or
 implementation is authorized here.
 Later technical stages remain in their existing order.
 
@@ -468,12 +476,10 @@ found `PARTIAL ROUTE ONLY`. B2 numeric executable-net Expected Return is current
 B sequencing blocker. Bounded confidence propagation and explicit unsupported-case
 handling are complete. B2 may be revisited only if genuinely new qualified executable-
 quote, settled-funding and, where applicable, FX execution-cost evidence appears.
-Stage C — Quality is active and incomplete. Its first bounded diagnostic, first
-dilution evidence foundation, bounded dilution diagnostic and paired OCF/net-income
-evidence foundation are complete. The OCF/net-income foundation creates no
-cash-conversion conclusion. No composite Quality score, aggregation, next-dimension
-implementation, recommendation, ranking, allocation or execution authority is
-created by those milestones.
+Stage C — Quality is active and incomplete. Its three bounded diagnostics and two
+evidence foundations are complete. No composite Quality score, aggregation,
+next-dimension implementation, recommendation, ranking, allocation or execution
+authority is created by those milestones.
 
 The public SEC/free-Nasdaq source graph still lacks complete positive
 no-transformation coverage through CURRENT T. PR5C therefore uses positive
@@ -492,11 +498,11 @@ do not disappear merely because they are deferred. Stage A is complete only for
 the explicitly supported bounded first CURRENT route; this is not universal or
 global Real Fact Admission completeness. Stage B is complete only within its
 currently approved bounded supported scope. The immediate technical frontier is
-exactly one Architecture & Audit task to inspect the canonical OCF/net-income
-evidence semantics and determine whether they support a separate truthful bounded
-threshold-free cash-conversion analytical contract. It may find that no such
-diagnostic is yet supportable. No diagnostic formula, next Quality dimension or
-Codex implementation task is selected here. The unchanged pre-shadow sequence
+exactly one Architecture & Audit Work Order to inspect current Stage-C
+evidence/capability readiness and select/define exactly one next truthful bounded
+Quality contract. It may select an evidence foundation first if the next useful
+analytical dimension lacks sufficient canonical evidence. No next Quality dimension
+or Codex implementation task is selected here. The unchanged pre-shadow sequence
 remains in section 9.
 
 ---
@@ -798,7 +804,9 @@ bounded company-vs-VFV Expected Return comparator complete
 → current annual paired basic/diluted EPS-denominator evidence foundation ✅
 → current annual EPS-denominator dilution diagnostic ✅
 → current annual paired operating-cash-flow/net-income evidence foundation ✅
-→ possible separate cash-conversion analytical contract — Architecture & Audit NEXT
+→ current annual OCF-to-positive-net-income diagnostic ✅
+→ Development Workflow Automation / deterministic pam_preflight ✅ (cross-cutting)
+→ next bounded Quality slice — Architecture & Audit selection/definition NEXT
 ```
 
 - completed: Data & Evidence currency/hedging prerequisite and reviewed compatible
@@ -832,9 +840,14 @@ bounded company-vs-VFV Expected Return comparator complete
   reported `us-gaap:NetCashProvidedByUsedInOperatingActivities` and
   `us-gaap:NetIncomeLoss` facts in `USD` under
   `QUALITY_CASH_CONVERSION_EVIDENCE_ONLY` authority;
-- active / incomplete: Stage C — Quality, with Architecture & Audit to determine
-  whether that evidence supports one separate truthful bounded threshold-free
-  cash-conversion analytical contract and no implementation task active;
+- complete / canonical: bounded threshold-free
+  `CURRENT_ANNUAL_OCF_TO_POSITIVE_NET_INCOME` diagnostic under
+  `QUALITY_CURRENT_ANNUAL_OCF_NET_INCOME_RELATIONSHIP_DIAGNOSTIC_ONLY` authority;
+- complete / canonical cross-cutting workflow milestone: deterministic
+  `pam_preflight`, separate from Quality economics;
+- active / incomplete: Stage C — Quality, with exactly one Architecture & Audit
+  evidence-readiness / next-contract-selection Work Order next and no implementation
+  task active;
 - revisit B2 only when genuinely new qualified evidence exists.
 
 Confidence applies to uncertainty inside an available analysis. Capability state
@@ -910,13 +923,28 @@ evidence concerning one historical annual reporting period, not
 `HISTORICAL_AS_OF` or PIT evidence, and does not imply what PAM knew at fiscal-period
 end or filing time.
 
-Architecture & Audit evaluation of one possible separate cash-conversion analytical
-contract is next. It must first inspect the demonstrated canonical evidence semantics
-and determine whether they support a truthful bounded threshold-free diagnostic. No
-formula, including OCF divided by net income, is presumed; Architecture & Audit may
-find that no truthful bounded diagnostic is yet supportable. This roadmap selects no
-next Quality dimension, creates no Quality aggregate and queues no Codex
-implementation task.
+The bounded threshold-free analytical diagnostic,
+`CURRENT_ANNUAL_OCF_TO_POSITIVE_NET_INCOME`, is complete and canonical. Its immutable
+`CurrentAnnualOCFToPositiveNetIncomeResult` reports the exact rational OCF / Net
+Income relationship only when reported net income is strictly positive. Signed OCF
+is allowed; zero or negative net income is `NOT_APPLICABLE`. Its authority is
+`QUALITY_CURRENT_ANNUAL_OCF_NET_INCOME_RELATIONSHIP_DIAGNOSTIC_ONLY`.
+
+This diagnostic creates no good/bad Quality conclusion, accruals-quality conclusion,
+historical cash-conversion trend, cross-sector comparison or composite Quality score.
+It remains CURRENT only, with no PIT, `HISTORICAL_AS_OF`, Expected Return, Confidence,
+recommendation, ranking, allocation, sizing, execution, production, deployment or
+V2-promotion authority. Legitimate evidence recapture or later CURRENT capture with
+unchanged economics preserves analytical semantic identity while evidence identity
+changes; capture-bound opaque route keys remain traceability fields rather than
+decisive analytical semantics.
+
+Exactly one Architecture & Audit evidence-readiness / next-contract-selection Work
+Order is next. It must inspect current Stage-C evidence/capability readiness and
+select/define exactly one next truthful bounded Quality contract, and may select an
+evidence foundation first if the next useful analytical dimension lacks sufficient
+canonical evidence. This roadmap selects no next Quality dimension, creates no
+Quality aggregate and queues no Codex implementation task.
 
 Build transparent, evidence-backed measures for topics such as:
 
@@ -1876,16 +1904,21 @@ threshold-free `CURRENT_ANNUAL_EPS_DENOMINATOR_DILUTION` diagnostic under
 `QUALITY_DILUTION_EPS_DENOMINATOR_DIAGNOSTIC_ONLY` authority. PR #108 then
 canonically established the paired current-annual reported operating-cash-flow and
 net-income evidence foundation under `QUALITY_CASH_CONVERSION_EVIDENCE_ONLY`
-authority. Stage C remains active and incomplete. The next technical action is one
-Architecture & Audit Work Order to inspect that demonstrated evidence and determine
-whether it supports a separate truthful bounded threshold-free cash-conversion
-analytical contract. No formula, next Quality dimension or Codex implementation task
-is selected. V2 architecture remains incomplete and shadow cannot begin.
+authority. PR #111 then canonically established the bounded threshold-free
+`CURRENT_ANNUAL_OCF_TO_POSITIVE_NET_INCOME` diagnostic. PR #112 separately
+established deterministic `pam_preflight` as a cross-cutting development-workflow
+milestone. Stage C remains active and incomplete. The next technical action is one
+Architecture & Audit Work Order to inspect current Stage-C evidence/capability
+readiness and select/define exactly one next truthful bounded Quality contract. It may
+select an evidence foundation first. No next Quality dimension or Codex
+implementation task is selected. V2 architecture remains incomplete and shadow
+cannot begin.
 
 ---
 
-*Roadmap state updated on 2026-10-05 through canonical PR #108 and the bounded
-current-annual operating-cash-flow/net-income evidence foundation.
+*Roadmap state updated on 2026-10-07 through canonical PR #112, including the PR #111
+current-annual OCF-to-positive-net-income diagnostic and cross-cutting deterministic
+`pam_preflight` workflow milestone.
 Governance Reform
 Phase 1, Governance Cleanup / Migration, role Projects/employees configuration and
 PR5E are complete. Stage B — Expected Return is complete within the currently
@@ -1893,12 +1926,11 @@ approved bounded supported scope, including bounded confidence propagation and
 explicit unsupported-case handling. The real-route investigation concluded `PARTIAL
 ROUTE ONLY`; B2 numeric executable-net remains `UNAVAILABLE / DEFERRED`, trigger-
 based and dormant, and is an open capability gap rather than a bounded-sequence
-blocker. Stage C — Quality is active and incomplete; its two bounded analytical
-diagnostics and two evidence foundations are complete and canonical, with
-Architecture & Audit to inspect the OCF/net-income evidence semantics and determine
-whether they support one separate cash-conversion analytical contract. No formula or
-implementation is yet authorized. Later architecture stages and shadow-readiness
-gates remain requirements only, and shadow cannot begin.
+blocker. Stage C — Quality is active and incomplete; its three bounded analytical
+diagnostics and two evidence foundations are complete and canonical. Exactly one
+Architecture & Audit evidence-readiness / next-contract-selection Work Order is next;
+no next Quality dimension or Codex implementation is selected. Later architecture
+stages and shadow-readiness gates remain requirements only, and shadow cannot begin.
 The reviewed PR5D2 Expected Return assumption policies are now pinned, but no
 investment-rule, model-rule, V1 or production-authority change is authorized
 here.*
