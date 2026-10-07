@@ -5,10 +5,12 @@ from __future__ import annotations
 import argparse
 import ast
 from dataclasses import dataclass
+import os
 from pathlib import Path
 import re
 import subprocess
 import sys
+import tempfile
 from typing import Callable, Sequence
 
 
@@ -102,6 +104,7 @@ def _run(
     step: str,
     runner: Runner = subprocess.run,
     capture: bool = True,
+    environment: dict[str, str] | None = None,
 ) -> subprocess.CompletedProcess[bytes]:
     try:
         result = runner(
@@ -111,6 +114,7 @@ def _run(
             stdout=subprocess.PIPE if capture else None,
             stderr=subprocess.PIPE if capture else None,
             check=False,
+            env=environment,
         )
     except OSError as exc:
         raise PreflightError(step, f"unable to execute {command[0]}: {exc}") from exc
@@ -340,6 +344,8 @@ def run_python_validation(
     runner: Runner = subprocess.run,
 ) -> None:
     python = sys.executable
+    environment = os.environ.copy()
+    environment["TMPDIR"] = str(Path(tempfile.gettempdir()).resolve())
     print("PAM_PREFLIGHT_STEP=fast-validation-checks", flush=True)
     _run(
         (python, "-m", "unittest", "-q", *FAST_TEST_MODULES),
@@ -347,6 +353,7 @@ def run_python_validation(
         step="fast-validation-checks",
         runner=runner,
         capture=False,
+        environment=environment,
     )
     print("PAM_PREFLIGHT_STEP=compile", flush=True)
     _run(
@@ -355,6 +362,7 @@ def run_python_validation(
         step="compile",
         runner=runner,
         capture=False,
+        environment=environment,
     )
     print("PAM_PREFLIGHT_STEP=discovered-suite", flush=True)
     _run(
@@ -363,6 +371,7 @@ def run_python_validation(
         step="discovered-suite",
         runner=runner,
         capture=False,
+        environment=environment,
     )
 
 

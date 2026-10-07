@@ -43,7 +43,9 @@ The implementation stops at the first failed required control:
 8. extract protected identities from their canonical static source and test
    assertions;
 9. for non-documentation tiers, require the repository's Python major/minor and
-   locked dependency environment;
+   locked dependency environment, then expose the physical resolved temporary
+   directory to validation subprocesses so symlink-guarded tests see the same
+   filesystem location on macOS;
 10. run the planner, runner and preflight unit tests as fast self-checks;
 11. compile the same reviewed Python locations compiled by CI;
 12. execute `STANDARD` or `FULL_PIT` through

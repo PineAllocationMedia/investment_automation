@@ -172,6 +172,20 @@ class PamPreflightTests(unittest.TestCase):
         self.assertEqual(raised.exception.step, "discovered-suite")
         self.assertEqual(len(calls), 3)
 
+    def test_python_validation_uses_physical_temp_root(self):
+        environments = []
+
+        def successful_runner(command, **kwargs):
+            environments.append(kwargs["env"])
+            return subprocess.CompletedProcess(command, 0, b"", b"")
+
+        plan = pam_preflight.select_plan(["economic_facts/fact.py"])
+        with contextlib.redirect_stdout(io.StringIO()):
+            pam_preflight.run_python_validation(Path.cwd(), plan, runner=successful_runner)
+        expected = str(Path(tempfile.gettempdir()).resolve())
+        self.assertEqual(len(environments), 3)
+        self.assertTrue(all(environment["TMPDIR"] == expected for environment in environments))
+
     def test_protected_integrity_is_extracted_from_canonical_surfaces(self):
         repo = self.temporary_repository()
         self.assertEqual(
