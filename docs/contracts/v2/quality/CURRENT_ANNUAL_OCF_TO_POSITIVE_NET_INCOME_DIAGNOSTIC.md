@@ -62,6 +62,55 @@ For established upstream evidence, the analyzer requires:
 Contradictory supposedly-canonical objects and unknown future upstream states
 are programming-contract errors.
 
+### Exact non-established upstream families
+
+Non-established acceptance mirrors the upstream qualifier's sequential returns;
+it is not generic subset validation.
+
+- A mapped upstream profile state has exactly one reason:
+  `UPSTREAM_PROFILE_UNAVAILABLE`, `UPSTREAM_PROFILE_UNSUPPORTED` or
+  `UPSTREAM_SOURCE_CONFLICT`, paired with the matching native profile state.
+- Preliminary `EVIDENCE_UNAVAILABLE` reasons are exactly the ordered,
+  deduplicated result of at most one OCF-side reason and at most one net-income-
+  side reason. The OCF side can emit
+  `OPERATING_CASH_FLOW_UNAVAILABLE`, `EXACT_USD_UNIT_UNAVAILABLE`,
+  `FINITE_OPERATING_CASH_FLOW_VALUE_UNAVAILABLE` or
+  `EXACT_ANNUAL_PERIOD_PRESENTATION_UNAVAILABLE`. The net-income side can emit
+  `NET_INCOME_UNAVAILABLE`, `EXACT_USD_UNIT_UNAVAILABLE`,
+  `FINITE_NET_INCOME_VALUE_UNAVAILABLE` or
+  `EXACT_ANNUAL_PERIOD_PRESENTATION_UNAVAILABLE`.
+- `NO_COMMON_ANNUAL_FILING_ACCESSION` is a separate singleton later return. It
+  cannot coexist with a preliminary unavailable reason.
+- Local singleton conflict returns are exactly
+  `CANONICAL_ROUTE_IDENTITY_CONFLICT`, `CAPTURE_REPLAY_CONFLICT`,
+  `SOURCE_CIK_CONFLICT` and `COMMON_FILING_METADATA_CONFLICT`.
+- Competing-value conflict is exactly OCF-only, net-income-only or both
+  competing-value reasons together. It cannot coexist with an earlier conflict.
+
+This rejects reconstructed combinations that sequential control flow cannot
+emit, including preliminary unavailability plus no-common-accession and replay
+conflict plus source-CIK conflict.
+
+### State-specific context and lexical form
+
+Route-local issuer/security keys are either both canonical hashes or both
+absent. Receipt-derived fields—receipt ID, object hash, captured-at and source
+locator—are either all canonical and present or all absent. Partial receipt
+surfaces are impossible.
+
+Mapped profile states may legitimately originate before route or period
+establishment and therefore are not forced to carry later context. Local
+unavailable and post-route conflict returns require the exact route, period,
+source and receipt context necessarily present at those return points. The
+route-identity-conflict return requires route, period and source context and may
+be the point at which receipt context is absent.
+
+All source CIKs are exact ten-digit strings. Period and filing dates must equal
+their `date.isoformat()` representation. Capture timestamps must equal the UTC
+`Z` form emitted by `CaptureReceipt` canonicalization, including canonical
+fractional-second representation. Merely parseable offsets, basic-format dates
+or noncanonical fractional forms are rejected.
+
 ## Capability states and reasons
 
 The diagnostic defines exactly:

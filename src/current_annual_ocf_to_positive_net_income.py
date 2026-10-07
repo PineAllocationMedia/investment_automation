@@ -8,7 +8,7 @@ forecasting, or downstream action.
 from __future__ import annotations
 
 from dataclasses import dataclass, fields, is_dataclass
-from datetime import date, datetime
+from datetime import date, datetime, timezone
 from decimal import Decimal
 from enum import Enum, StrEnum
 from math import gcd
@@ -257,10 +257,6 @@ def _is_hash(value) -> bool:
     )
 
 
-def _valid_optional_hash(value) -> bool:
-    return value is None or _is_hash(value)
-
-
 def _valid_optional_nonempty_string(value) -> bool:
     return value is None or (
         type(value) is str and bool(value) and value == value.strip()
@@ -270,13 +266,19 @@ def _valid_optional_nonempty_string(value) -> bool:
 def _valid_optional_timestamp(value) -> bool:
     if value is None:
         return True
-    if not _valid_optional_nonempty_string(value):
+    if (
+        not _valid_optional_nonempty_string(value)
+        or not value.endswith("Z")
+    ):
         return False
     try:
-        parsed = datetime.fromisoformat(value)
-    except ValueError:
+        parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
+        canonical = (
+            parsed.astimezone(timezone.utc).isoformat().replace("+00:00", "Z")
+        )
+    except (ValueError, OverflowError):
         return False
-    return parsed.tzinfo is not None
+    return parsed.tzinfo is not None and canonical == value
 
 
 def _valid_period(start, end) -> bool:
@@ -285,9 +287,15 @@ def _valid_period(start, end) -> bool:
     if type(start) is not str or type(end) is not str:
         return False
     try:
-        return date.fromisoformat(start) <= date.fromisoformat(end)
+        parsed_start = date.fromisoformat(start)
+        parsed_end = date.fromisoformat(end)
     except ValueError:
         return False
+    return (
+        parsed_start.isoformat() == start
+        and parsed_end.isoformat() == end
+        and parsed_start <= parsed_end
+    )
 
 
 def _canonical_upstream_module(qualification):
@@ -465,16 +473,32 @@ def _validate_shape(qualification, upstream) -> None:
             "Canonical native profile state required"
         )
     _validate_profile_state_reasons(qualification, upstream)
-    if (
-        any(
-            not _valid_optional_hash(value)
-            for value in (
-                qualification.route_local_issuer_key,
-                qualification.route_local_security_key,
-                qualification.capture_receipt_id,
-                qualification.source_object_hash,
-            )
+    route_values = (
+        qualification.route_local_issuer_key,
+        qualification.route_local_security_key,
+    )
+    route_absent = all(value is None for value in route_values)
+    route_present = all(_is_hash(value) for value in route_values)
+    receipt_values = (
+        qualification.capture_receipt_id,
+        qualification.source_object_hash,
+        qualification.captured_at,
+        qualification.capture_source_locator,
+    )
+    receipt_absent = all(value is None for value in receipt_values)
+    receipt_present = (
+        _is_hash(qualification.capture_receipt_id)
+        and _is_hash(qualification.source_object_hash)
+        and _valid_optional_timestamp(qualification.captured_at)
+        and qualification.captured_at is not None
+        and _valid_optional_nonempty_string(
+            qualification.capture_source_locator
         )
+        and qualification.capture_source_locator is not None
+    )
+    if (
+        not (route_absent or route_present)
+        or not (receipt_absent or receipt_present)
         or any(
             not _is_hash(value)
             for value in (
@@ -484,24 +508,82 @@ def _validate_shape(qualification, upstream) -> None:
                 qualification.upstream_comparability_evidence_id,
             )
         )
-        or (
-            qualification.source_cik is not None
-            and (
-                type(qualification.source_cik) is not str
-                or re.fullmatch(r"[0-9]{10}", qualification.source_cik) is None
-            )
-        )
+        or type(qualification.source_cik) is not str
+        or re.fullmatch(r"[0-9]{10}", qualification.source_cik) is None
         or not _valid_period(
             qualification.period_start, qualification.period_end
-        )
-        or not _valid_optional_timestamp(qualification.captured_at)
-        or not _valid_optional_nonempty_string(
-            qualification.capture_source_locator
         )
     ):
         raise CurrentAnnualOCFToPositiveNetIncomeError(
             "Canonical OCF/net-income identity and route context required"
         )
+
+
+def _has_route_context(qualification) -> bool:
+    return (
+        _is_hash(qualification.route_local_issuer_key)
+        and _is_hash(qualification.route_local_security_key)
+        and qualification.period_start is not None
+        and qualification.period_end is not None
+    )
+
+
+def _has_receipt_context(qualification) -> bool:
+    return (
+        _is_hash(qualification.capture_receipt_id)
+        and _is_hash(qualification.source_object_hash)
+        and qualification.captured_at is not None
+        and qualification.capture_source_locator is not None
+    )
+
+
+def _preliminary_unavailable_reason_families(reason) -> frozenset[tuple]:
+    operating_cash_flow_paths = (
+        None,
+        reason.OPERATING_CASH_FLOW_UNAVAILABLE,
+        reason.EXACT_USD_UNIT_UNAVAILABLE,
+        reason.FINITE_OPERATING_CASH_FLOW_VALUE_UNAVAILABLE,
+        reason.EXACT_ANNUAL_PERIOD_PRESENTATION_UNAVAILABLE,
+    )
+    net_income_paths = (
+        None,
+        reason.NET_INCOME_UNAVAILABLE,
+        reason.EXACT_USD_UNIT_UNAVAILABLE,
+        reason.FINITE_NET_INCOME_VALUE_UNAVAILABLE,
+        reason.EXACT_ANNUAL_PERIOD_PRESENTATION_UNAVAILABLE,
+    )
+    return frozenset(
+        tuple(sorted(
+            {
+                item
+                for item in (operating_reason, net_income_reason)
+                if item is not None
+            },
+            key=lambda item: item.value,
+        ))
+        for operating_reason in operating_cash_flow_paths
+        for net_income_reason in net_income_paths
+        if operating_reason is not None or net_income_reason is not None
+    )
+
+
+def _local_conflict_reason_families(reason) -> frozenset[tuple]:
+    competing_both = tuple(sorted(
+        (
+            reason.COMPETING_OPERATING_CASH_FLOW_VALUES,
+            reason.COMPETING_NET_INCOME_VALUES,
+        ),
+        key=lambda item: item.value,
+    ))
+    return frozenset({
+        (reason.CANONICAL_ROUTE_IDENTITY_CONFLICT,),
+        (reason.CAPTURE_REPLAY_CONFLICT,),
+        (reason.SOURCE_CIK_CONFLICT,),
+        (reason.COMMON_FILING_METADATA_CONFLICT,),
+        (reason.COMPETING_OPERATING_CASH_FLOW_VALUES,),
+        (reason.COMPETING_NET_INCOME_VALUES,),
+        competing_both,
+    })
 
 
 def _upstream_identities(qualification) -> tuple[str, str]:
@@ -621,48 +703,27 @@ def _validate_non_established(qualification, upstream) -> None:
     reason = upstream.CurrentAnnualOperatingCashFlowNetIncomeReason
     upstream_status = upstream.CurrentAnnualOperatingCashFlowNetIncomeStatus
     profile_status = upstream.upstream.OrdinaryCompounderProfileStatus
-    unavailable_reasons = frozenset({
-        reason.UPSTREAM_PROFILE_UNAVAILABLE,
-        reason.OPERATING_CASH_FLOW_UNAVAILABLE,
-        reason.NET_INCOME_UNAVAILABLE,
-        reason.EXACT_USD_UNIT_UNAVAILABLE,
-        reason.FINITE_OPERATING_CASH_FLOW_VALUE_UNAVAILABLE,
-        reason.FINITE_NET_INCOME_VALUE_UNAVAILABLE,
-        reason.EXACT_ANNUAL_PERIOD_PRESENTATION_UNAVAILABLE,
-        reason.NO_COMMON_ANNUAL_FILING_ACCESSION,
+    preliminary_unavailable = _preliminary_unavailable_reason_families(reason)
+    local_unavailable = preliminary_unavailable | frozenset({
+        (reason.NO_COMMON_ANNUAL_FILING_ACCESSION,),
     })
-    local_unavailable_reasons = unavailable_reasons - {
-        reason.UPSTREAM_PROFILE_UNAVAILABLE
-    }
-    conflict_reasons = frozenset({
-        reason.UPSTREAM_SOURCE_CONFLICT,
-        reason.CANONICAL_ROUTE_IDENTITY_CONFLICT,
-        reason.CAPTURE_REPLAY_CONFLICT,
-        reason.SOURCE_CIK_CONFLICT,
-        reason.COMPETING_OPERATING_CASH_FLOW_VALUES,
-        reason.COMPETING_NET_INCOME_VALUES,
-        reason.COMMON_FILING_METADATA_CONFLICT,
-    })
-    local_conflict_reasons = conflict_reasons - {
-        reason.UPSTREAM_SOURCE_CONFLICT
-    }
-    reason_set = set(reasons)
+    local_conflicts = _local_conflict_reason_families(reason)
+    route_context = _has_route_context(qualification)
+    receipt_context = _has_receipt_context(qualification)
     if status is upstream_status.EVIDENCE_UNAVAILABLE:
-        if not reason_set <= unavailable_reasons:
-            coherent = False
-        elif reason.UPSTREAM_PROFILE_UNAVAILABLE in reason_set:
+        if reasons == (reason.UPSTREAM_PROFILE_UNAVAILABLE,):
             coherent = (
-                reasons == (reason.UPSTREAM_PROFILE_UNAVAILABLE,)
-                and qualification.upstream_profile_status is
+                qualification.upstream_profile_status is
                 profile_status.PROFILE_UNAVAILABLE
             )
         else:
             coherent = (
-                bool(reason_set)
-                and reason_set <= local_unavailable_reasons
+                reasons in local_unavailable
                 and qualification.upstream_profile_status is
                 profile_status.ORDINARY_COMPOUNDER_PROFILE_ESTABLISHED
                 and qualification.upstream_profile_reasons == ()
+                and route_context
+                and receipt_context
             )
     elif status is upstream_status.EVIDENCE_UNSUPPORTED:
         coherent = (
@@ -671,21 +732,22 @@ def _validate_non_established(qualification, upstream) -> None:
             profile_status.PROFILE_UNSUPPORTED
         )
     elif status is upstream_status.SOURCE_CONFLICT:
-        if not reason_set <= conflict_reasons:
-            coherent = False
-        elif reason.UPSTREAM_SOURCE_CONFLICT in reason_set:
+        if reasons == (reason.UPSTREAM_SOURCE_CONFLICT,):
             coherent = (
-                reasons == (reason.UPSTREAM_SOURCE_CONFLICT,)
-                and qualification.upstream_profile_status is
+                qualification.upstream_profile_status is
                 profile_status.SOURCE_CONFLICT
             )
         else:
             coherent = (
-                bool(reason_set)
-                and reason_set <= local_conflict_reasons
+                reasons in local_conflicts
                 and qualification.upstream_profile_status is
                 profile_status.ORDINARY_COMPOUNDER_PROFILE_ESTABLISHED
                 and qualification.upstream_profile_reasons == ()
+                and route_context
+                and (
+                    receipt_context
+                    or reasons == (reason.CANONICAL_ROUTE_IDENTITY_CONFLICT,)
+                )
             )
     else:
         coherent = False
