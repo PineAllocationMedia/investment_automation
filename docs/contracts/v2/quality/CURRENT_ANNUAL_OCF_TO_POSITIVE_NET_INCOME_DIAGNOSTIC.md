@@ -232,7 +232,7 @@ The result `semantic_id` binds:
 - contract and methodology versions;
 - analysis kind, analytical state and analytical reasons;
 - native upstream state and reasons;
-- route-local issuer/security keys and source CIK;
+- stable route-context presence and source CIK;
 - annual period;
 - a PR-#111-local stable analytical-input semantic fingerprint;
 - the reduced signed rational pair when available;
@@ -241,9 +241,10 @@ The result `semantic_id` binds:
 
 The local analytical-input fingerprint binds the canonical upstream contract,
 qualifier and evidence-kind semantics; native upstream and profile states and
-reasons; route, source-CIK and annual-period context; accounting namespace,
-basis, concepts and unit; and, for an established pair, the exact finite OCF and
-net-income values represented as reduced integer rationals. Consequently,
+reasons; a closed route-context-present/absent state; source-CIK and annual-
+period context; accounting namespace, basis, concepts and unit; and, for an
+established pair, the exact finite OCF and net-income values represented as
+reduced integer rationals. Consequently,
 different exact OCF/net-income fact pairs remain distinct even when they reduce
 to the same reported ratio. `NOT_APPLICABLE` results also bind their established
 exact OCF and zero or negative net-income inputs.
@@ -258,10 +259,22 @@ for traceability. The upstream semantic ID is not a decisive input to analytical
 semantic identity because its current canonical chain may contain evidence-
 bearing support identities.
 
+The public `route_local_issuer_key` and `route_local_security_key` likewise
+remain exact, validated traceability fields. Their opaque values are capture-
+bound: legitimate advancement of the CURRENT capture boundary can change them
+without changing issuer-level OCF/net-income economics. Their values therefore
+do not participate directly or indirectly in analytical semantic identity. Only
+the validated fact that route context is present or absent participates where
+that state distinction is relevant. Stable issuer-level distinction comes from
+source CIK, period, accounting semantics, capability state and exact economics,
+not from a share-class route hash.
+
 The local analytical fingerprint excludes capture receipt IDs, source-object
 hashes, capture timestamps, source locators, observation IDs, upstream evidence
-IDs, supporting-filing evidence identities and other evidence-only provenance.
-Therefore a legitimate evidence recapture cannot change analytical semantics.
+IDs, supporting-filing evidence identities, opaque route-local key values and
+other evidence-only provenance. Therefore a legitimate evidence recapture or
+CURRENT boundary advancement without economic change cannot change analytical
+semantics.
 
 The result `evidence_id` binds exactly:
 

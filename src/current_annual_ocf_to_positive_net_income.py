@@ -154,6 +154,11 @@ class _StableAnalyticalInputCarrier:
     __slots__ = ("_analytical_input_semantic_fingerprint",)
 
 
+class _RouteContextState(StrEnum):
+    ROUTE_CONTEXT_PRESENT = "ROUTE_CONTEXT_PRESENT"
+    ROUTE_CONTEXT_ABSENT = "ROUTE_CONTEXT_ABSENT"
+
+
 @dataclass(frozen=True, slots=True)
 class CurrentAnnualOCFToPositiveNetIncomeResult(
     _StableAnalyticalInputCarrier
@@ -202,8 +207,6 @@ class CurrentAnnualOCFToPositiveNetIncomeResult(
                 "reasons": self.reasons,
                 "upstream_status": self.upstream_status,
                 "upstream_reasons": self.upstream_reasons,
-                "route_local_issuer_key": self.route_local_issuer_key,
-                "route_local_security_key": self.route_local_security_key,
                 "source_cik": self.source_cik,
                 "period_start": self.period_start,
                 "period_end": self.period_end,
@@ -278,6 +281,20 @@ def _exact_decimal_semantics(value: Decimal | None):
     return {"numerator": numerator, "denominator": denominator}
 
 
+def _route_context_state(qualification) -> _RouteContextState:
+    route_values = (
+        qualification.route_local_issuer_key,
+        qualification.route_local_security_key,
+    )
+    if all(value is None for value in route_values):
+        return _RouteContextState.ROUTE_CONTEXT_ABSENT
+    if all(_is_hash(value) for value in route_values):
+        return _RouteContextState.ROUTE_CONTEXT_PRESENT
+    raise CurrentAnnualOCFToPositiveNetIncomeError(
+        "Canonical paired route context required"
+    )
+
+
 def _analytical_input_semantic_fingerprint(
     qualification,
     *,
@@ -299,8 +316,7 @@ def _analytical_input_semantic_fingerprint(
             "upstream_reasons": qualification.reasons,
             "upstream_profile_status": qualification.upstream_profile_status,
             "upstream_profile_reasons": qualification.upstream_profile_reasons,
-            "route_local_issuer_key": qualification.route_local_issuer_key,
-            "route_local_security_key": qualification.route_local_security_key,
+            "route_context_state": _route_context_state(qualification),
             "source_cik": qualification.source_cik,
             "period_start": qualification.period_start,
             "period_end": qualification.period_end,

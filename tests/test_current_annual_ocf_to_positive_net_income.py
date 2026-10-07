@@ -43,6 +43,7 @@ from tests.sec_operating_cash_flow_net_income_fixtures import (
 )
 from tests.sec_property4_temporal_boundary_fixtures import (
     BOUNDARY_T1,
+    BOUNDARY_T2,
     current_request,
 )
 from tests.sec_property4_temporal_fixtures import CIK
@@ -1027,6 +1028,97 @@ class CurrentAnnualOCFToPositiveNetIncomeTests(unittest.TestCase):
         self.assertEqual(first.semantic_id, recaptured.semantic_id)
         self.assertNotEqual(first.evidence_id, recaptured.evidence_id)
 
+    def test_later_current_boundary_factory_recapture_preserves_semantics(
+        self,
+    ):
+        first = self.analyze()
+        later_fixture = (
+            comparability_tests.SecCurrentEPSComparabilityTests(
+                methodName="runTest"
+            )
+        )
+        later_fixture.setUp()
+        self.addCleanup(later_fixture.doCleanups)
+        _, later_profile = capture_profile(
+            later_fixture,
+            captured_at=BOUNDARY_T2,
+        )
+        later_upstream = (
+            upstream.qualify_sec_current_annual_operating_cash_flow_net_income(
+                later_fixture.current_archive,
+                later_profile,
+            )
+        )
+        for field_name in (
+            "source_cik",
+            "period_start",
+            "period_end",
+            "accounting_namespace",
+            "accounting_basis",
+            "operating_cash_flow_concept",
+            "net_income_concept",
+            "unit",
+            "operating_cash_flow",
+            "net_income",
+        ):
+            with self.subTest(field_name=field_name):
+                self.assertEqual(
+                    getattr(self.available, field_name),
+                    getattr(later_upstream, field_name),
+                )
+        self.assertNotEqual(
+            self.available.route_local_issuer_key,
+            later_upstream.route_local_issuer_key,
+        )
+        self.assertNotEqual(
+            self.available.route_local_security_key,
+            later_upstream.route_local_security_key,
+        )
+        self.assertNotEqual(
+            self.available.capture_receipt_id,
+            later_upstream.capture_receipt_id,
+        )
+        self.assertNotEqual(
+            self.available.captured_at,
+            later_upstream.captured_at,
+        )
+        self.assertNotEqual(
+            self.available.semantic_id,
+            later_upstream.semantic_id,
+        )
+        self.assertNotEqual(
+            self.available.evidence_id,
+            later_upstream.evidence_id,
+        )
+
+        later = self.analyze(later_upstream)
+        self.assertEqual(
+            first.route_local_issuer_key,
+            self.available.route_local_issuer_key,
+        )
+        self.assertEqual(
+            first.route_local_security_key,
+            self.available.route_local_security_key,
+        )
+        self.assertEqual(
+            later.route_local_issuer_key,
+            later_upstream.route_local_issuer_key,
+        )
+        self.assertEqual(
+            later.route_local_security_key,
+            later_upstream.route_local_security_key,
+        )
+        self.assertEqual(
+            later.upstream_qualification_semantic_id,
+            later_upstream.semantic_id,
+        )
+        self.assertEqual(
+            later.upstream_qualification_evidence_id,
+            later_upstream.evidence_id,
+        )
+        self.assertEqual(first.semantic_id, later.semantic_id)
+        self.assertNotEqual(first.evidence_id, later.evidence_id)
+
     def test_same_ratio_different_economics_changes_analytical_semantics(self):
         first = self.analyze(self.with_values("100", "80"))
         same_ratio_different_economics = self.analyze(
@@ -1058,11 +1150,7 @@ class CurrentAnnualOCFToPositiveNetIncomeTests(unittest.TestCase):
             ),
             replace(
                 self.with_values("100", "80"),
-                route_local_issuer_key="0" * 64,
-            ),
-            replace(
-                self.with_values("100", "80"),
-                route_local_security_key="1" * 64,
+                source_cik="0000000001",
             ),
         )
         for qualification in cases:
@@ -1071,6 +1159,23 @@ class CurrentAnnualOCFToPositiveNetIncomeTests(unittest.TestCase):
                     first.semantic_id,
                     self.analyze(qualification).semantic_id,
                 )
+
+    def test_route_presence_not_opaque_route_values_drives_semantics(self):
+        present = self.analyze(self.unavailable)
+        changed_keys = self.analyze(replace(
+            self.unavailable,
+            route_local_issuer_key="0" * 64,
+            route_local_security_key="1" * 64,
+        ))
+        absent = self.analyze(replace(
+            self.unavailable,
+            route_local_issuer_key=None,
+            route_local_security_key=None,
+        ))
+        self.assertEqual(present.semantic_id, changed_keys.semantic_id)
+        self.assertNotEqual(present.semantic_id, absent.semantic_id)
+        self.assertEqual(changed_keys.route_local_issuer_key, "0" * 64)
+        self.assertEqual(changed_keys.route_local_security_key, "1" * 64)
 
     def test_not_applicable_semantics_bind_exact_economic_inputs(self):
         cases = (
