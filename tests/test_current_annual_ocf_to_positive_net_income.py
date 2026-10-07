@@ -941,7 +941,9 @@ class CurrentAnnualOCFToPositiveNetIncomeTests(unittest.TestCase):
         self.assertNotIn("operating_cash_flow", payload)
         self.assertNotIn("net_income", payload)
 
-    def test_result_identity_binds_upstream_semantics_and_evidence(self):
+    def test_genuine_factory_recapture_preserves_analytical_semantics_only(
+        self,
+    ):
         first = self.analyze()
         recapture_fixture = (
             comparability_tests.SecCurrentEPSComparabilityTests(
@@ -961,48 +963,72 @@ class CurrentAnnualOCFToPositiveNetIncomeTests(unittest.TestCase):
                 recaptured_profile,
             )
         )
+        self.assertEqual(
+            self.available.operating_cash_flow,
+            factory_recaptured_upstream.operating_cash_flow,
+        )
+        self.assertEqual(
+            self.available.net_income,
+            factory_recaptured_upstream.net_income,
+        )
+        self.assertEqual(
+            self.available.period_start,
+            factory_recaptured_upstream.period_start,
+        )
+        self.assertEqual(
+            self.available.period_end,
+            factory_recaptured_upstream.period_end,
+        )
+        self.assertEqual(
+            self.available.route_local_issuer_key,
+            factory_recaptured_upstream.route_local_issuer_key,
+        )
+        self.assertEqual(
+            self.available.route_local_security_key,
+            factory_recaptured_upstream.route_local_security_key,
+        )
+        self.assertNotEqual(
+            self.available.capture_receipt_id,
+            factory_recaptured_upstream.capture_receipt_id,
+        )
+        self.assertNotEqual(
+            self.available.source_object_hash,
+            factory_recaptured_upstream.source_object_hash,
+        )
+        self.assertNotEqual(
+            self.available.semantic_id,
+            factory_recaptured_upstream.semantic_id,
+        )
         self.assertNotEqual(
             self.available.evidence_id,
             factory_recaptured_upstream.evidence_id,
         )
-        recaptured_upstream = replace(
-            self.available,
-            upstream_profile_evidence_id=(
-                factory_recaptured_upstream.upstream_profile_evidence_id
-            ),
-            upstream_comparability_evidence_id=(
-                factory_recaptured_upstream.
-                upstream_comparability_evidence_id
-            ),
-            capture_receipt_id=factory_recaptured_upstream.capture_receipt_id,
-            source_object_hash=factory_recaptured_upstream.source_object_hash,
-            captured_at=factory_recaptured_upstream.captured_at,
-            capture_source_locator=(
-                factory_recaptured_upstream.capture_source_locator
-            ),
-            selected_operating_cash_flow_observation_ids=(
-                factory_recaptured_upstream.
-                selected_operating_cash_flow_observation_ids
-            ),
-            selected_net_income_observation_ids=(
-                factory_recaptured_upstream.
-                selected_net_income_observation_ids
-            ),
-            supporting_accessions=(
-                factory_recaptured_upstream.supporting_accessions
-            ),
-            supporting_filings=factory_recaptured_upstream.supporting_filings,
-        )
-        recaptured = self.analyze(recaptured_upstream)
+        recaptured = self.analyze(factory_recaptured_upstream)
         self.assertEqual(
-            self.available.semantic_id, recaptured_upstream.semantic_id
+            first.upstream_qualification_semantic_id,
+            self.available.semantic_id,
+        )
+        self.assertEqual(
+            first.upstream_qualification_evidence_id,
+            self.available.evidence_id,
+        )
+        self.assertEqual(
+            recaptured.upstream_qualification_semantic_id,
+            factory_recaptured_upstream.semantic_id,
+        )
+        self.assertEqual(
+            recaptured.upstream_qualification_evidence_id,
+            factory_recaptured_upstream.evidence_id,
         )
         self.assertNotEqual(
-            self.available.evidence_id, recaptured_upstream.evidence_id
+            first.upstream_qualification_semantic_id,
+            recaptured.upstream_qualification_semantic_id,
         )
         self.assertEqual(first.semantic_id, recaptured.semantic_id)
         self.assertNotEqual(first.evidence_id, recaptured.evidence_id)
 
+    def test_same_ratio_different_economics_changes_analytical_semantics(self):
+        first = self.analyze(self.with_values("100", "80"))
         same_ratio_different_economics = self.analyze(
             self.with_values("200", "160")
         )
@@ -1019,6 +1045,53 @@ class CurrentAnnualOCFToPositiveNetIncomeTests(unittest.TestCase):
         self.assertNotEqual(
             first.semantic_id, same_ratio_different_economics.semantic_id
         )
+
+    def test_analytical_semantics_bind_each_material_economic_context(self):
+        first = self.analyze(self.with_values("100", "80"))
+        cases = (
+            self.with_values("101", "80"),
+            self.with_values("100", "81"),
+            replace(
+                self.with_values("100", "80"),
+                period_start="2023-01-01",
+                period_end="2023-12-31",
+            ),
+            replace(
+                self.with_values("100", "80"),
+                route_local_issuer_key="0" * 64,
+            ),
+            replace(
+                self.with_values("100", "80"),
+                route_local_security_key="1" * 64,
+            ),
+        )
+        for qualification in cases:
+            with self.subTest(qualification=qualification):
+                self.assertNotEqual(
+                    first.semantic_id,
+                    self.analyze(qualification).semantic_id,
+                )
+
+    def test_not_applicable_semantics_bind_exact_economic_inputs(self):
+        cases = (
+            (("100", "0"), ("200", "0")),
+            (("100", "-20"), ("100", "-40")),
+        )
+        for left_values, right_values in cases:
+            with self.subTest(left=left_values, right=right_values):
+                left = self.analyze(self.with_values(*left_values))
+                right = self.analyze(self.with_values(*right_values))
+                self.assertIs(
+                    left.status,
+                    diagnostic.CurrentAnnualOCFToPositiveNetIncomeStatus.
+                    NOT_APPLICABLE,
+                )
+                self.assertIs(
+                    right.status,
+                    diagnostic.CurrentAnnualOCFToPositiveNetIncomeStatus.
+                    NOT_APPLICABLE,
+                )
+                self.assertNotEqual(left.semantic_id, right.semantic_id)
 
     def test_result_serialization_and_immutability_are_deterministic(self):
         result = self.analyze()

@@ -150,8 +150,14 @@ class OperatingCashFlowToNetIncomeRatio:
         object.__setattr__(self, "denominator", denominator // divisor)
 
 
+class _StableAnalyticalInputCarrier:
+    __slots__ = ("_analytical_input_semantic_fingerprint",)
+
+
 @dataclass(frozen=True, slots=True)
-class CurrentAnnualOCFToPositiveNetIncomeResult:
+class CurrentAnnualOCFToPositiveNetIncomeResult(
+    _StableAnalyticalInputCarrier
+):
     contract_version: str
     methodology_version: str
     analysis_kind: CurrentAnnualOCFToPositiveNetIncomeAnalysisKind
@@ -174,6 +180,18 @@ class CurrentAnnualOCFToPositiveNetIncomeResult:
 
     @property
     def semantic_id(self) -> str:
+        try:
+            analytical_input_semantic_fingerprint = (
+                self._analytical_input_semantic_fingerprint
+            )
+        except AttributeError as exc:
+            raise CurrentAnnualOCFToPositiveNetIncomeError(
+                "Stable analytical-input semantics required"
+            ) from exc
+        if not _is_hash(analytical_input_semantic_fingerprint):
+            raise CurrentAnnualOCFToPositiveNetIncomeError(
+                "Canonical analytical-input semantic fingerprint required"
+            )
         return _identity(
             "current-annual-ocf-to-positive-net-income-semantics",
             {
@@ -189,8 +207,8 @@ class CurrentAnnualOCFToPositiveNetIncomeResult:
                 "source_cik": self.source_cik,
                 "period_start": self.period_start,
                 "period_end": self.period_end,
-                "upstream_qualification_semantic_id": (
-                    self.upstream_qualification_semantic_id
+                "analytical_input_semantic_fingerprint": (
+                    analytical_input_semantic_fingerprint
                 ),
                 "operating_cash_flow_to_net_income_ratio": (
                     self.operating_cash_flow_to_net_income_ratio
@@ -247,6 +265,62 @@ def _identity(domain: str, value) -> str:
         allow_nan=False,
     )
     return hashlib.sha256((domain + "\0" + payload).encode("utf-8")).hexdigest()
+
+
+def _exact_decimal_semantics(value: Decimal | None):
+    if value is None:
+        return None
+    if type(value) is not Decimal or not value.is_finite():
+        raise CurrentAnnualOCFToPositiveNetIncomeError(
+            "Exact finite analytical Decimal required"
+        )
+    numerator, denominator = value.as_integer_ratio()
+    return {"numerator": numerator, "denominator": denominator}
+
+
+def _analytical_input_semantic_fingerprint(
+    qualification,
+    *,
+    status,
+    reasons,
+) -> str:
+    return _identity(
+        "current-annual-ocf-to-positive-net-income-input-semantics",
+        {
+            "contract_version": CONTRACT_VERSION,
+            "methodology_version": METHODOLOGY_VERSION,
+            "analysis_kind": _ANALYSIS_KIND,
+            "status": status,
+            "reasons": reasons,
+            "upstream_contract_version": qualification.contract_version,
+            "upstream_qualifier_version": qualification.qualifier_version,
+            "upstream_evidence_kind": qualification.evidence_kind,
+            "upstream_status": qualification.status,
+            "upstream_reasons": qualification.reasons,
+            "upstream_profile_status": qualification.upstream_profile_status,
+            "upstream_profile_reasons": qualification.upstream_profile_reasons,
+            "route_local_issuer_key": qualification.route_local_issuer_key,
+            "route_local_security_key": qualification.route_local_security_key,
+            "source_cik": qualification.source_cik,
+            "period_start": qualification.period_start,
+            "period_end": qualification.period_end,
+            "accounting_namespace": qualification.accounting_namespace,
+            "accounting_basis": qualification.accounting_basis,
+            "operating_cash_flow_concept": (
+                qualification.operating_cash_flow_concept
+            ),
+            "net_income_concept": qualification.net_income_concept,
+            "unit": qualification.unit,
+            "operating_cash_flow": _exact_decimal_semantics(
+                qualification.operating_cash_flow
+            ),
+            "net_income": _exact_decimal_semantics(
+                qualification.net_income
+            ),
+            "upstream_authority": qualification.authority,
+            "upstream_limitations": qualification.limitations,
+        },
+    )
 
 
 def _is_hash(value) -> bool:
@@ -834,7 +908,14 @@ def analyze_current_annual_ocf_to_positive_net_income(
     upstream_semantic_id, upstream_evidence_id = _upstream_identities(
         qualification
     )
-    return CurrentAnnualOCFToPositiveNetIncomeResult(
+    analytical_input_semantic_fingerprint = (
+        _analytical_input_semantic_fingerprint(
+            qualification,
+            status=status,
+            reasons=reasons,
+        )
+    )
+    result = CurrentAnnualOCFToPositiveNetIncomeResult(
         CONTRACT_VERSION,
         METHODOLOGY_VERSION,
         _ANALYSIS_KIND,
@@ -853,3 +934,9 @@ def analyze_current_annual_ocf_to_positive_net_income(
         _AUTHORITY,
         _LIMITATIONS,
     )
+    object.__setattr__(
+        result,
+        "_analytical_input_semantic_fingerprint",
+        analytical_input_semantic_fingerprint,
+    )
+    return result

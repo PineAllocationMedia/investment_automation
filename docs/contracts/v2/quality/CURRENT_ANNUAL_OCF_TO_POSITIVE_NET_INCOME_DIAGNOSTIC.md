@@ -234,13 +234,34 @@ The result `semantic_id` binds:
 - native upstream state and reasons;
 - route-local issuer/security keys and source CIK;
 - annual period;
-- upstream qualification `semantic_id`;
+- a PR-#111-local stable analytical-input semantic fingerprint;
 - the reduced signed rational pair when available;
 - authority; and
 - limitations.
 
-Binding the upstream semantic identity distinguishes different exact OCF/net-
-income fact pairs even if they reduce to the same ratio.
+The local analytical-input fingerprint binds the canonical upstream contract,
+qualifier and evidence-kind semantics; native upstream and profile states and
+reasons; route, source-CIK and annual-period context; accounting namespace,
+basis, concepts and unit; and, for an established pair, the exact finite OCF and
+net-income values represented as reduced integer rationals. Consequently,
+different exact OCF/net-income fact pairs remain distinct even when they reduce
+to the same reported ratio. `NOT_APPLICABLE` results also bind their established
+exact OCF and zero or negative net-income inputs.
+
+For `UNAVAILABLE`, `UNSUPPORTED` and `SOURCE_CONFLICT`, the fingerprint binds
+only the stable canonical state and context available on that path. It does not
+invent absent economic facts.
+
+The public `upstream_qualification_semantic_id` and
+`upstream_qualification_evidence_id` remain the exact actual upstream identities
+for traceability. The upstream semantic ID is not a decisive input to analytical
+semantic identity because its current canonical chain may contain evidence-
+bearing support identities.
+
+The local analytical fingerprint excludes capture receipt IDs, source-object
+hashes, capture timestamps, source locators, observation IDs, upstream evidence
+IDs, supporting-filing evidence identities and other evidence-only provenance.
+Therefore a legitimate evidence recapture cannot change analytical semantics.
 
 The result `evidence_id` binds exactly:
 
