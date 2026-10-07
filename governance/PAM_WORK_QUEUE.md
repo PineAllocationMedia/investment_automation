@@ -15,12 +15,15 @@
     net-income evidence foundation,
     `CURRENT_ANNUAL_OPERATING_CASH_FLOW_NET_INCOME_QUALIFICATION`, under
     `QUALITY_CASH_CONVERSION_EVIDENCE_ONLY` authority.
-  - Immediate next substep: exactly one Architecture & Audit task inspects the new
-    canonical evidence semantics and determines whether they support a truthful,
-    bounded, threshold-free cash-conversion analytical contract.
-  - No diagnostic formula is presumed. No diagnostic implementation, next Quality
-    dimension, aggregate Quality score, scoring formula or Codex implementation task
-    is selected or queued.
+  - Complete / canonical: bounded threshold-free
+    `CURRENT_ANNUAL_OCF_TO_POSITIVE_NET_INCOME` diagnostic under
+    `QUALITY_CURRENT_ANNUAL_OCF_NET_INCOME_RELATIONSHIP_DIAGNOSTIC_ONLY` authority.
+  - Immediate next substep: exactly one Architecture & Audit evidence-readiness /
+    next-contract-selection Work Order to inspect current Stage-C capability and
+    select/define exactly one next truthful bounded Quality contract. It may select
+    an evidence foundation first.
+  - No next Quality dimension, aggregate Quality score, scoring formula or Codex
+    implementation task is selected or queued.
 
 - Blossom audience-growth initiative (`ACTIVE`).
   - Primary owner: Marketing & GTM.
@@ -33,6 +36,11 @@
   - No autonomous posting, personalized investment advice, invented PAM capability or hidden affiliate promotion is authorized.
 
 ## COMPLETED
+
+- Development Workflow Automation v1 / deterministic `pam_preflight` is a completed
+  cross-cutting workflow milestone. It preserves the canonical validation tiers and
+  validates one exact committed candidate without granting governance or technical
+  authority.
 
 - Stage B — Expected Return: bounded sequence complete within the currently approved
   supported scope.

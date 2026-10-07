@@ -3,40 +3,43 @@
 > Two-to-five-minute operational snapshot. Refresh through Governance Sync after
 > durable state changes.
 
-- **Last Governance Sync:** PR #108 canonically established the current-annual
-  operating-cash-flow/net-income evidence foundation after bounded SIC trust-boundary
-  correction, final Architecture & Audit rereview and successful exact-head CI
-  (2026-10-05)
+- **Last Governance Sync:** records canonical PR #111, the current-annual
+  OCF-to-positive-net-income diagnostic, and canonical PR #112, Development Workflow
+  Automation v1 through deterministic `pam_preflight` (2026-10-07)
 - **Current major program:** Stage C — Quality
 - **Parallel CEO-approved GTM initiative:** bounded Blossom audience-growth mandate for `@therealpam`, owned by Marketing & GTM; audience value first, PAM promotion secondary, human approval required before publication
-- **Active technical frontier:** exactly one Architecture & Audit evaluation of
-  whether the canonical paired OCF/net-income evidence supports a separate truthful,
-  bounded, threshold-free cash-conversion analytical contract
+- **Active technical frontier:** exactly one Architecture & Audit Work Order to
+  inspect current Stage-C evidence/capability readiness and select/define exactly one
+  next truthful bounded Quality contract
 - **Canonical integration branch:** `model-v2/expected-return-challenger`
-- **Canonical verified pre-this-sync HEAD:** `ba77d25712b46f7ac293d7b27e00572a3f74c73f`
-- **Canonical verified tree:** `019c12d22f574419f18ff9d2128176c436f6ba2e`
-- **Current status:** Stage C — Quality is `ACTIVE / INCOMPLETE`. Its two bounded
+- **Canonical verified pre-this-sync HEAD:** `8ade3d3abc22689dee6f535bcab5bba9addfa4a5`
+- **Canonical verified tree:** `d42b2089d3392e22765eb26fc1decf4c578401d0`
+- **Current status:** Stage C — Quality is `ACTIVE / INCOMPLETE`. Its three bounded
   analytical diagnostics and two bounded evidence foundations are complete and
   canonical. No composite Quality score or aggregation is authorized.
 - **Canonical Stage-C diagnostics:**
   `FIVE_PERIOD_DILUTED_EPS_DIRECTIONAL_CONSISTENCY` and
-  `CURRENT_ANNUAL_EPS_DENOMINATOR_DILUTION`
+  `CURRENT_ANNUAL_EPS_DENOMINATOR_DILUTION` and
+  `CURRENT_ANNUAL_OCF_TO_POSITIVE_NET_INCOME`
 - **Canonical Stage-C evidence foundations:**
   `CURRENT_ANNUAL_EPS_DENOMINATOR_SHARES_QUALIFICATION` and
   `CURRENT_ANNUAL_OPERATING_CASH_FLOW_NET_INCOME_QUALIFICATION`
 - **Latest completed technical milestone:**
-  PR #108, `CURRENT_ANNUAL_OPERATING_CASH_FLOW_NET_INCOME_QUALIFICATION` and
-  immutable `CurrentAnnualOperatingCashFlowNetIncomeQualification`, preserving the
-  exact paired reported US-GAAP OCF and net-income facts in `USD` under
-  `QUALITY_CASH_CONVERSION_EVIDENCE_ONLY` authority
+  PR #111, `CURRENT_ANNUAL_OCF_TO_POSITIVE_NET_INCOME` and immutable
+  `CurrentAnnualOCFToPositiveNetIncomeResult`, reporting exact OCF / Net Income only
+  when reported net income is strictly positive under
+  `QUALITY_CURRENT_ANNUAL_OCF_NET_INCOME_RELATIONSHIP_DIAGNOSTIC_ONLY` authority
+- **Latest completed workflow/infrastructure milestone:** PR #112, Development
+  Workflow Automation v1 through `./pam_preflight --base <ref-or-sha>`
 - **Technical frontier:** Stage A — Real Fact Admission is complete for its
   explicitly supported first bounded CURRENT route; Stage B — Expected Return is
   complete within the currently approved bounded supported scope; Stage C — Quality
   is active
-- **Immediate technical frontier:** exactly one Architecture & Audit task inspects the
-  demonstrated canonical OCF/net-income evidence semantics and determines whether
-  they support one truthful, bounded, threshold-free cash-conversion analytical
-  contract. No formula is presumed and no Codex implementation task is queued.
+- **Immediate technical frontier:** exactly one Architecture & Audit Work Order
+  inspects current Stage-C evidence/capability readiness and selects/defines exactly
+  one next truthful bounded Quality contract. It may select an evidence foundation
+  first if the next useful analytical dimension lacks sufficient canonical evidence.
+  No next dimension is selected and no Codex implementation task is queued.
 - **Comparator availability:** Canonical only for the bounded current real route under
   `2026-10-01-company-vfv-constant-fx-comparison-v1`, with
   `RESEARCH_DIAGNOSTIC_ONLY` authority
@@ -194,11 +197,32 @@
   capex, working-capital-causality, profitability-quality or historical-trend claim,
   and no cross-sector, Durability, Confidence, Expected Return, recommendation,
   ranking, allocation, sizing, production, deployment or V2-promotion authority.
-- Stage C remains active and incomplete. Architecture & Audit must evaluate whether
-  this demonstrated evidence supports one separate truthful bounded threshold-free
-  cash-conversion analytical contract; it may conclude that no such contract is yet
-  supportable. No diagnostic formula, aggregate Quality score or Codex implementation
-  task is selected here.
+- The canonical `CURRENT_ANNUAL_OCF_TO_POSITIVE_NET_INCOME` diagnostic reports the
+  exact rational OCF / Net Income relationship only when reported net income is
+  strictly positive. Signed OCF is allowed; zero or negative net income produces
+  `NOT_APPLICABLE`. The diagnostic is threshold-free and creates no good/bad Quality,
+  accruals-quality, historical-trend, cross-sector or composite-Quality conclusion.
+  It is CURRENT only, with no PIT, `HISTORICAL_AS_OF`, Expected Return, Confidence,
+  recommendation, ranking, allocation, sizing, execution, production, deployment or
+  V2-promotion authority. Legitimate evidence recapture or later CURRENT capture with
+  unchanged economics preserves analytical semantic identity while evidence identity
+  changes; capture-bound opaque route keys remain traceability fields, not decisive
+  analytical semantics.
+- Canonical Development Workflow Automation v1 provides one deterministic local
+  orchestration surface through `./pam_preflight --base <ref-or-sha>`. It reuses the
+  canonical validation planner and preserves `DOCS_ONLY / STANDARD / FULL_PIT`; the
+  supplied base must equal the fixed trusted local V2 target, the complete
+  `--no-renames` base-to-HEAD diff is classified without caller tier downgrade, and
+  the exact committed candidate is validated in a disposable detached worktree with
+  final integrity revalidation. Applicable tiers require the exact `.python-version`
+  patch and locked dependencies. Machine-readable output observes protected
+  identities but authorizes no changes. The command performs no network repair or
+  fetch and grants no merge, deployment, investment, production or V2-promotion
+  authority.
+- Stage C remains active and incomplete. Exactly one Architecture & Audit Work Order
+  must inspect current evidence/capability readiness and select/define exactly one
+  next truthful bounded Quality contract; it may select an evidence foundation first.
+  No next Quality dimension, aggregate score or Codex implementation task is selected.
 - All seven conversational PAM role Projects/employees are configured. Codex
   Development remains `ACTIVE BY TASK`, not an autonomous conversational employee.
 
@@ -210,5 +234,5 @@
 - `DECISIONS.md`
 - `governance/roles/*.md`
 
-The HEAD/tree above are the verified canonical state after PR #108 and before this
+The HEAD/tree above are the verified canonical state after PR #112 and before this
 Governance Sync, not the future merge commit of this Governance Sync PR.
