@@ -35,6 +35,7 @@ class SyntheticRepository:
         self.root = root
         git(root, "init", "-q")
         self.write("README.md", "base\n")
+        self.write(".python-version", "3.12.13\n")
         self.write("src/model_version.py", 'MODEL_RULES_VERSION = "rules-v1"\n')
         self.write(
             "tests/test_pit_adapter_equivalence.py",
@@ -52,6 +53,7 @@ class SyntheticRepository:
         )
         self.commit("base")
         self.base = self.sha()
+        self.set_trusted(self.base)
 
     def write(self, relative: str, content: str) -> None:
         path = self.root / relative
@@ -64,6 +66,9 @@ class SyntheticRepository:
 
     def sha(self) -> str:
         return git(self.root, "rev-parse", "HEAD").stdout.decode().strip()
+
+    def set_trusted(self, revision: str) -> None:
+        git(self.root, "update-ref", pam_preflight.TRUSTED_INTEGRATION_REF, revision)
 
 
 class PamPreflightTests(unittest.TestCase):
@@ -85,6 +90,53 @@ class PamPreflightTests(unittest.TestCase):
         self.assertNotEqual(code, 0)
         self.assertEqual(state.base_sha, "UNRESOLVED")
         self.assertEqual(error.step, "base")
+
+    def test_trusted_target_equal_to_supplied_base_is_accepted(self):
+        repo = self.temporary_repository()
+        supplied, trusted = pam_preflight.require_trusted_base(repo.root, repo.base)
+        self.assertEqual((supplied, trusted), (repo.base, repo.base))
+
+    def test_valid_supplied_commit_different_from_trusted_target_is_rejected(self):
+        repo = self.temporary_repository()
+        repo.write("later.md", "later\n")
+        repo.commit("later")
+        with self.assertRaises(pam_preflight.PreflightError) as raised:
+            pam_preflight.require_trusted_base(repo.root, repo.sha())
+        self.assertEqual(raised.exception.step, "base-trust")
+
+    def test_sensitive_ancestor_cannot_be_selected_to_downgrade_later_docs(self):
+        repo = self.temporary_repository()
+        repo.write("src/sensitive.py", "SENSITIVE = True\n")
+        repo.commit("sensitive source")
+        sensitive_sha = repo.sha()
+        repo.write("later.md", "later docs\n")
+        repo.commit("later docs")
+        with patch("scripts.pam_preflight.plan_validation") as planner:
+            code, state, error = pam_preflight.execute(sensitive_sha, root=repo.root)
+        self.assertNotEqual(code, 0)
+        self.assertEqual(state.status, "FAIL")
+        self.assertEqual(error.step, "base-trust")
+        planner.assert_not_called()
+
+    def test_missing_trusted_integration_ref_fails_closed(self):
+        repo = self.temporary_repository()
+        git(repo.root, "update-ref", "-d", pam_preflight.TRUSTED_INTEGRATION_REF)
+        with self.assertRaises(pam_preflight.PreflightError) as raised:
+            pam_preflight.require_trusted_base(repo.root, repo.base)
+        self.assertEqual(raised.exception.step, "trusted-target")
+
+    def test_unresolvable_trusted_integration_ref_fails_closed(self):
+        repo = self.temporary_repository()
+        git(repo.root, "update-ref", "-d", pam_preflight.TRUSTED_INTEGRATION_REF)
+        git(
+            repo.root,
+            "symbolic-ref",
+            pam_preflight.TRUSTED_INTEGRATION_REF,
+            "refs/heads/missing-trusted-target",
+        )
+        with self.assertRaises(pam_preflight.PreflightError) as raised:
+            pam_preflight.require_trusted_base(repo.root, repo.base)
+        self.assertEqual(raised.exception.step, "trusted-target")
 
     def test_empty_diff_fails_toward_full_pit(self):
         repo = self.temporary_repository()
@@ -200,10 +252,150 @@ class PamPreflightTests(unittest.TestCase):
             pam_preflight.extract_protected_integrity(repo.root)
         self.assertEqual(raised.exception.step, "protected-integrity")
 
+    def test_exact_python_version_is_accepted(self):
+        repo = self.temporary_repository()
+        repo.write("requirements.lock", "synthetic==1\n")
+        with patch(
+            "scripts.pam_preflight.dependency_environment",
+            return_value={"dependency_status": "MATCH"},
+        ):
+            pam_preflight.verify_python_environment(
+                repo.root, version_info=(3, 12, 13)
+            )
+
+    def test_same_python_major_minor_with_wrong_patch_is_rejected(self):
+        repo = self.temporary_repository()
+        with self.assertRaisesRegex(pam_preflight.PreflightError, "3.12.13"):
+            pam_preflight.verify_python_environment(
+                repo.root, version_info=(3, 12, 14)
+            )
+
+    def test_wrong_python_minor_is_rejected(self):
+        repo = self.temporary_repository()
+        with self.assertRaisesRegex(pam_preflight.PreflightError, "3.12.13"):
+            pam_preflight.verify_python_environment(
+                repo.root, version_info=(3, 13, 13)
+            )
+
+    def test_malformed_non_exact_python_pin_is_rejected(self):
+        repo = self.temporary_repository()
+        for malformed in ("3.12\n", "03.12.13\n", "3.12.13.1\n"):
+            with self.subTest(malformed=malformed):
+                repo.write(".python-version", malformed)
+                with self.assertRaisesRegex(pam_preflight.PreflightError, "major.minor.patch"):
+                    pam_preflight.verify_python_environment(
+                        repo.root, version_info=(3, 12, 13)
+                    )
+
+    def test_original_head_change_during_validation_prevents_pass(self):
+        repo = self.temporary_repository()
+        repo.write("economic_facts/fact.py", "VALUE = 1\n")
+        repo.commit("ordinary candidate")
+
+        def mutate_original(_validation_root, _plan, *, runner):
+            repo.write("late.md", "late commit\n")
+            repo.commit("concurrent commit")
+
+        with patch("scripts.pam_preflight.verify_python_environment"), patch(
+            "scripts.pam_preflight.run_python_validation", side_effect=mutate_original
+        ):
+            code, state, error = pam_preflight.execute(repo.base, root=repo.root)
+        self.assertNotEqual(code, 0)
+        self.assertEqual(state.status, "FAIL")
+        self.assertEqual(error.step, "final-source-head")
+
+    def test_original_dirty_change_during_validation_prevents_pass(self):
+        repo = self.temporary_repository()
+        repo.write("economic_facts/fact.py", "VALUE = 1\n")
+        repo.commit("ordinary candidate")
+
+        def dirty_original(_validation_root, _plan, *, runner):
+            repo.write("untracked-during-validation.md", "dirty\n")
+
+        with patch("scripts.pam_preflight.verify_python_environment"), patch(
+            "scripts.pam_preflight.run_python_validation", side_effect=dirty_original
+        ):
+            code, state, error = pam_preflight.execute(repo.base, root=repo.root)
+        self.assertNotEqual(code, 0)
+        self.assertEqual(state.status, "FAIL")
+        self.assertEqual(error.step, "final-source-clean")
+
+    def test_detached_candidate_head_mismatch_prevents_pass(self):
+        repo = self.temporary_repository()
+        repo.write("candidate.md", "candidate\n")
+        repo.commit("candidate")
+        original_create = pam_preflight.create_detached_worktree
+
+        def create_wrong_candidate(root, _candidate_sha, *, runner):
+            return original_create(root, repo.base, runner=runner)
+
+        with patch(
+            "scripts.pam_preflight.create_detached_worktree",
+            side_effect=create_wrong_candidate,
+        ):
+            code, state, error = pam_preflight.execute(repo.base, root=repo.root)
+        self.assertNotEqual(code, 0)
+        self.assertEqual(state.status, "FAIL")
+        self.assertEqual(error.step, "detached-candidate")
+
+    def test_detached_candidate_dirty_change_prevents_pass(self):
+        repo = self.temporary_repository()
+        repo.write("economic_facts/fact.py", "VALUE = 1\n")
+        repo.commit("ordinary candidate")
+
+        def dirty_detached(validation_root, _plan, *, runner):
+            (validation_root / "README.md").write_text("dirty detached\n", encoding="utf-8")
+
+        with patch("scripts.pam_preflight.verify_python_environment"), patch(
+            "scripts.pam_preflight.run_python_validation", side_effect=dirty_detached
+        ):
+            code, state, error = pam_preflight.execute(repo.base, root=repo.root)
+        self.assertNotEqual(code, 0)
+        self.assertEqual(state.status, "FAIL")
+        self.assertEqual(error.step, "final-detached-candidate-clean")
+
+    def test_successful_exact_head_validation_preserves_original_branch(self):
+        repo = self.temporary_repository()
+        repo.write("candidate.md", "candidate docs\n")
+        repo.commit("candidate docs")
+        branch_before = git(repo.root, "symbolic-ref", "--short", "HEAD").stdout
+        head_before = repo.sha()
+        code, state, error = pam_preflight.execute(repo.base, root=repo.root)
+        branch_after = git(repo.root, "symbolic-ref", "--short", "HEAD").stdout
+        worktrees = git(repo.root, "worktree", "list", "--porcelain").stdout.decode()
+        self.assertEqual((code, error), (0, None))
+        self.assertEqual(state.status, "PASS")
+        self.assertEqual(state.head_sha, head_before)
+        self.assertEqual(repo.sha(), head_before)
+        self.assertEqual(branch_after, branch_before)
+        self.assertEqual(worktrees.count("worktree "), 1)
+
+    def test_worktree_cleanup_failure_prevents_pass(self):
+        repo = self.temporary_repository()
+        repo.write("candidate.md", "candidate docs\n")
+        repo.commit("candidate docs")
+        original_remove = pam_preflight.remove_detached_worktree
+
+        def remove_then_report_failure(root, worktree, temporary, *, runner):
+            original_remove(root, worktree, temporary, runner=runner)
+            raise pam_preflight.PreflightError(
+                "worktree-cleanup", "synthetic cleanup failure"
+            )
+
+        with patch(
+            "scripts.pam_preflight.remove_detached_worktree",
+            side_effect=remove_then_report_failure,
+        ):
+            code, state, error = pam_preflight.execute(repo.base, root=repo.root)
+        self.assertNotEqual(code, 0)
+        self.assertEqual(state.status, "FAIL")
+        self.assertEqual(error.step, "worktree-cleanup")
+
     def test_summary_order_and_output_are_deterministic(self):
         state = pam_preflight.PreflightState(
             status="PASS",
             base_sha="a" * 40,
+            trusted_target_sha="a" * 40,
             head_sha="b" * 40,
             git_clean="true",
             tier="FULL_PIT",

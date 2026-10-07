@@ -2,7 +2,9 @@
 set -eu
 
 repository_root=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
-if [ -x "$repository_root/.venv/bin/python" ]; then
+if [ -n "${PAM_PREFLIGHT_PYTHON:-}" ]; then
+    python="$PAM_PREFLIGHT_PYTHON"
+elif [ -x "$repository_root/.venv/bin/python" ]; then
     python="$repository_root/.venv/bin/python"
 else
     python=python3

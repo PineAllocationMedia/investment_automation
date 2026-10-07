@@ -25,9 +25,11 @@ from src.dependency_reproducibility import dependency_environment  # noqa: E402
 
 FULL_SHA = re.compile(r"[0-9a-f]{40}")
 FINGERPRINT = re.compile(r"[0-9a-f]{64}")
+TRUSTED_INTEGRATION_REF = "refs/remotes/origin/model-v2/expected-return-challenger"
 SUMMARY_KEYS = (
     "PAM_PREFLIGHT_STATUS",
     "PAM_PREFLIGHT_BASE_SHA",
+    "PAM_PREFLIGHT_TRUSTED_TARGET_SHA",
     "PAM_PREFLIGHT_HEAD_SHA",
     "PAM_PREFLIGHT_GIT_CLEAN",
     "CI_VALIDATION_TIER",
@@ -64,6 +66,7 @@ class PreflightError(RuntimeError):
 class PreflightState:
     status: str = "FAIL"
     base_sha: str = "UNRESOLVED"
+    trusted_target_sha: str = "UNRESOLVED"
     head_sha: str = "UNRESOLVED"
     git_clean: str = "false"
     tier: str = "UNRESOLVED"
@@ -80,6 +83,7 @@ class PreflightState:
                 (
                     self.status,
                     self.base_sha,
+                    self.trusted_target_sha,
                     self.head_sha,
                     self.git_clean,
                     self.tier,
@@ -172,18 +176,44 @@ def resolve_commit(root: Path, revision: str, *, label: str, runner: Runner = su
     return sha
 
 
-def require_clean_git(root: Path, *, runner: Runner = subprocess.run) -> None:
+def require_clean_git(
+    root: Path,
+    *,
+    step: str = "git-clean",
+    runner: Runner = subprocess.run,
+) -> None:
     status = _git_bytes(
         root,
         "status",
         "--porcelain=v1",
         "-z",
         "--untracked-files=all",
-        step="git-clean",
+        step=step,
         runner=runner,
     )
     if status:
-        raise PreflightError("git-clean", "tracked, staged, or untracked changes are present")
+        raise PreflightError(step, "tracked, staged, or untracked changes are present")
+
+
+def require_trusted_base(
+    root: Path,
+    supplied_base: str,
+    *,
+    runner: Runner = subprocess.run,
+) -> tuple[str, str]:
+    trusted_sha = resolve_commit(
+        root,
+        TRUSTED_INTEGRATION_REF,
+        label="trusted-target",
+        runner=runner,
+    )
+    supplied_sha = resolve_commit(root, supplied_base, label="base", runner=runner)
+    if supplied_sha != trusted_sha:
+        raise PreflightError(
+            "base-trust",
+            "supplied base does not equal the trusted local V2 integration target",
+        )
+    return supplied_sha, trusted_sha
 
 
 def changed_paths(
@@ -315,19 +345,23 @@ def extract_protected_integrity(root: Path) -> tuple[str, str, str]:
     return model_rules, pit, determinism
 
 
-def verify_python_environment(root: Path) -> None:
+def verify_python_environment(
+    root: Path,
+    *,
+    version_info: Sequence[int] = sys.version_info,
+) -> None:
     try:
         pinned = (root / ".python-version").read_text(encoding="utf-8").strip()
     except OSError as exc:
         raise PreflightError("python-environment", f"unable to read .python-version: {exc}") from exc
-    match = re.fullmatch(r"(\d+)\.(\d+)(?:\.\d+)?", pinned)
+    match = re.fullmatch(r"(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)", pinned)
     if not match:
-        raise PreflightError("python-environment", "invalid .python-version")
-    expected_major_minor = (int(match.group(1)), int(match.group(2)))
-    if sys.version_info[:2] != expected_major_minor:
+        raise PreflightError("python-environment", ".python-version must be exact major.minor.patch")
+    expected = tuple(int(match.group(index)) for index in range(1, 4))
+    if tuple(version_info[:3]) != expected:
         raise PreflightError(
             "python-environment",
-            f"Python {expected_major_minor[0]}.{expected_major_minor[1]} is required",
+            f"Python {'.'.join(map(str, expected))} is required",
         )
     environment = dependency_environment(root / "requirements.lock")
     if environment.get("dependency_status") != "MATCH":
@@ -335,6 +369,86 @@ def verify_python_environment(root: Path) -> None:
             "python-environment",
             "locked dependency environment does not match requirements.lock",
         )
+
+
+def create_detached_worktree(
+    root: Path,
+    candidate_sha: str,
+    *,
+    runner: Runner = subprocess.run,
+) -> tuple[Path, tempfile.TemporaryDirectory[str]]:
+    temporary = tempfile.TemporaryDirectory(
+        prefix="pam-preflight-worktree-",
+        dir=str(Path(tempfile.gettempdir()).resolve()),
+    )
+    worktree = Path(temporary.name) / "candidate"
+    try:
+        _git_bytes(
+            root,
+            "worktree",
+            "add",
+            "--detach",
+            str(worktree),
+            candidate_sha,
+            step="worktree-create",
+            runner=runner,
+        )
+    except BaseException:
+        temporary.cleanup()
+        raise
+    return worktree, temporary
+
+
+def remove_detached_worktree(
+    root: Path,
+    worktree: Path,
+    temporary: tempfile.TemporaryDirectory[str],
+    *,
+    runner: Runner = subprocess.run,
+) -> None:
+    cleanup_error: PreflightError | None = None
+    try:
+        _git_bytes(
+            root,
+            "worktree",
+            "remove",
+            "--force",
+            str(worktree),
+            step="worktree-cleanup",
+            runner=runner,
+        )
+    except PreflightError as exc:
+        cleanup_error = exc
+    try:
+        temporary.cleanup()
+    except OSError as exc:
+        if cleanup_error is None:
+            cleanup_error = PreflightError("worktree-cleanup", f"temporary cleanup failed: {exc}")
+    if cleanup_error is not None:
+        raise cleanup_error
+
+
+def verify_exact_worktree(
+    root: Path,
+    candidate_sha: str,
+    *,
+    label: str,
+    runner: Runner = subprocess.run,
+) -> None:
+    actual_sha = resolve_commit(root, "HEAD", label=f"{label}-head", runner=runner)
+    if actual_sha != candidate_sha:
+        raise PreflightError(label, "worktree HEAD does not equal the resolved candidate HEAD")
+    detached = _git_bytes(
+        root,
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD",
+        step=label,
+        runner=runner,
+    ).decode("ascii", errors="strict").strip()
+    if detached != "HEAD":
+        raise PreflightError(label, "validation worktree is not detached")
+    require_clean_git(root, step=f"{label}-clean", runner=runner)
 
 
 def run_python_validation(
@@ -391,7 +505,9 @@ def execute(
         if not base:
             raise PreflightError("base", "--base is required")
         verify_repository(root, runner=runner)
-        state.base_sha = resolve_commit(root, base, label="base", runner=runner)
+        state.base_sha, state.trusted_target_sha = require_trusted_base(
+            root, base, runner=runner
+        )
         state.head_sha = resolve_commit(root, "HEAD", label="head", runner=runner)
         require_clean_git(root, runner=runner)
         state.git_clean = "true"
@@ -404,14 +520,59 @@ def execute(
         for path in plan.changed_files:
             print(f"PAM_PREFLIGHT_CHANGED_FILE={path}", flush=True)
         run_git_integrity(root, state.base_sha, state.head_sha, runner=runner)
-        (
-            state.model_rules_version,
-            state.pit_fingerprint,
-            state.determinism_fingerprint,
-        ) = extract_protected_integrity(root)
-        if plan.tier.name != "DOCS_ONLY":
-            verify_python_environment(root)
-            run_python_validation(root, plan, runner=runner)
+        worktree: Path | None = None
+        temporary: tempfile.TemporaryDirectory[str] | None = None
+        validation_error: BaseException | None = None
+        cleanup_error: PreflightError | None = None
+        try:
+            worktree, temporary = create_detached_worktree(
+                root, state.head_sha, runner=runner
+            )
+            verify_exact_worktree(
+                worktree,
+                state.head_sha,
+                label="detached-candidate",
+                runner=runner,
+            )
+            (
+                state.model_rules_version,
+                state.pit_fingerprint,
+                state.determinism_fingerprint,
+            ) = extract_protected_integrity(worktree)
+            if plan.tier.name != "DOCS_ONLY":
+                verify_python_environment(worktree)
+                run_python_validation(worktree, plan, runner=runner)
+
+            final_head = resolve_commit(root, "HEAD", label="final-head", runner=runner)
+            if final_head != state.head_sha:
+                raise PreflightError(
+                    "final-source-head",
+                    "original repository HEAD changed during validation",
+                )
+            require_clean_git(root, step="final-source-clean", runner=runner)
+            verify_exact_worktree(
+                worktree,
+                state.head_sha,
+                label="final-detached-candidate",
+                runner=runner,
+            )
+        except BaseException as exc:
+            validation_error = exc
+        finally:
+            if worktree is not None and temporary is not None:
+                try:
+                    remove_detached_worktree(root, worktree, temporary, runner=runner)
+                except PreflightError as exc:
+                    cleanup_error = exc
+        if cleanup_error is not None:
+            if validation_error is not None:
+                raise PreflightError(
+                    "worktree-cleanup",
+                    f"{cleanup_error}; validation also failed: {validation_error}",
+                ) from validation_error
+            raise cleanup_error
+        if validation_error is not None:
+            raise validation_error
         state.status = "PASS"
         return 0, state, None
     except PreflightError as exc:
