@@ -457,12 +457,15 @@ macroeconomic authorities and other legally usable sources.
 Licensing and permitted use are first-class concerns. A technically accessible source
 is not automatically commercially usable.
 
-PAM's supported core system must remain operable without a paid financial-data
-subscription. Paid sources may later extend coverage only as optional, separately
-approved enhancements; no paid provider, premium market-data API or commercial
-corporate-action feed may become a hidden prerequisite for core operation. Narrower
-free/public/official coverage must remain explicit rather than being repaired with
-guessed facts. Commercial licensing remains a separate decision.
+PAM V2's supported external financial-data architecture operates under a hard `$0`
+external-data-cost constraint. Paid financial-data subscriptions, premium market-
+data APIs, paid corporate-action feeds and other paid external financial-data sources
+are outside the supported V2 plan unless a future explicit CEO decision supersedes
+this constraint. Narrower free/public/official coverage must remain explicit rather
+than being repaired with guessed facts. Licensing, permitted use and commercial
+redistribution remain separate first-class constraints; free access does not imply
+unrestricted commercial use. This rule concerns external financial-data acquisition
+and provider cost, not infrastructure, hosting, broker or transaction costs.
 
 ---
 

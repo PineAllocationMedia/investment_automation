@@ -3,19 +3,20 @@
 > Two-to-five-minute operational snapshot. Refresh through Governance Sync after
 > durable state changes.
 
-- **Last Governance Sync:** records canonical PR #111, the current-annual
-  OCF-to-positive-net-income diagnostic, and canonical PR #112, Development Workflow
-  Automation v1 through deterministic `pam_preflight` (2026-10-07)
+- **Last Governance Sync:** records canonical PR #115 replay-provenance v2, canonical
+  PR #114 current-annual revenue/operating-income evidence, the hard `$0` external-
+  data-cost constraint, durable storage/memory discipline, the Shadow Audit Export
+  Bridge requirement and same-or-easier V2 operator UX (2026-10-08)
 - **Current major program:** Stage C — Quality
 - **Parallel CEO-approved GTM initiative:** bounded Blossom audience-growth mandate for `@therealpam`, owned by Marketing & GTM; audience value first, PAM promotion secondary, human approval required before publication
 - **Active technical frontier:** exactly one Architecture & Audit Work Order to
   inspect current Stage-C evidence/capability readiness and select/define exactly one
   next truthful bounded Quality contract
 - **Canonical integration branch:** `model-v2/expected-return-challenger`
-- **Canonical verified pre-this-sync HEAD:** `8ade3d3abc22689dee6f535bcab5bba9addfa4a5`
-- **Canonical verified tree:** `d42b2089d3392e22765eb26fc1decf4c578401d0`
+- **Canonical verified pre-this-sync HEAD:** `992e641583ab62187054a1fdb77411b720e03e9f`
+- **Canonical verified tree:** `c459e3b9e102dc5235c6ba31e4c57463b031c57d`
 - **Current status:** Stage C — Quality is `ACTIVE / INCOMPLETE`. Its three bounded
-  analytical diagnostics and two bounded evidence foundations are complete and
+  analytical diagnostics and three bounded evidence foundations are complete and
   canonical. No composite Quality score or aggregation is authorized.
 - **Canonical Stage-C diagnostics:**
   `FIVE_PERIOD_DILUTED_EPS_DIRECTIONAL_CONSISTENCY` and
@@ -23,12 +24,16 @@
   `CURRENT_ANNUAL_OCF_TO_POSITIVE_NET_INCOME`
 - **Canonical Stage-C evidence foundations:**
   `CURRENT_ANNUAL_EPS_DENOMINATOR_SHARES_QUALIFICATION` and
-  `CURRENT_ANNUAL_OPERATING_CASH_FLOW_NET_INCOME_QUALIFICATION`
+  `CURRENT_ANNUAL_OPERATING_CASH_FLOW_NET_INCOME_QUALIFICATION` and
+  `CURRENT_ANNUAL_REVENUE_OPERATING_INCOME_QUALIFICATION`
 - **Latest completed technical milestone:**
-  PR #111, `CURRENT_ANNUAL_OCF_TO_POSITIVE_NET_INCOME` and immutable
-  `CurrentAnnualOCFToPositiveNetIncomeResult`, reporting exact OCF / Net Income only
-  when reported net income is strictly positive under
-  `QUALITY_CURRENT_ANNUAL_OCF_NET_INCOME_RELATIONSHIP_DIAGNOSTIC_ONLY` authority
+  PR #114, `CURRENT_ANNUAL_REVENUE_OPERATING_INCOME_QUALIFICATION`, preserving exact
+  paired annual reported revenue and operating income in `USD` under
+  `QUALITY_PROFITABILITY_EVIDENCE_ONLY` authority, with no operating-margin or
+  profitability-quality conclusion
+- **Latest completed shared trust-boundary infrastructure:** PR #115,
+  ordinary-compounder profile contract v2 with preserved expected comparability
+  semantic/evidence identities and independently authenticated replay mismatch
 - **Latest completed workflow/infrastructure milestone:** PR #112, Development
   Workflow Automation v1 through `./pam_preflight --base <ref-or-sha>`
 - **Technical frontier:** Stage A — Real Fact Admission is complete for its
@@ -67,6 +72,10 @@
 ## Material current limitations
 
 - V1 remains frozen operational authority; V2 remains a challenger.
+- The supported V2 plan has a hard `$0` external financial-data-cost constraint.
+  Paid external financial-data sources are outside the plan unless a future explicit
+  CEO decision supersedes it. Free access does not waive licensing, permitted-use or
+  commercial-redistribution constraints.
 - Expected Return remains diagnostic/challenger functionality. It grants no
   production, recommendation, allocation, execution, deployment or promotion authority.
 - The supported real route is bounded, route-local and nonpayer-only. Payer support
@@ -208,6 +217,15 @@
   unchanged economics preserves analytical semantic identity while evidence identity
   changes; capture-bound opaque route keys remain traceability fields, not decisive
   analytical semantics.
+- Canonical PR #115 established ordinary-compounder profile contract v2. It preserves
+  expected comparability semantic/evidence replay identities, authenticates replay
+  mismatch expected-vs-actual and supports migrated canonical consumers without
+  changing methodology, economic values or investment authority.
+- The canonical `CURRENT_ANNUAL_REVENUE_OPERATING_INCOME_QUALIFICATION` foundation
+  preserves one paired common-filing presentation of exact annual reported revenue
+  and operating income in `USD` under `QUALITY_PROFITABILITY_EVIDENCE_ONLY`. It is
+  CURRENT evidence only and creates no operating-margin calculation, profitability-
+  quality conclusion, Quality score or investment authority.
 - Canonical Development Workflow Automation v1 provides one deterministic local
   orchestration surface through `./pam_preflight --base <ref-or-sha>`. It reuses the
   canonical validation planner and preserves `DOCS_ONLY / STANDARD / FULL_PIT`; the
@@ -234,5 +252,5 @@
 - `DECISIONS.md`
 - `governance/roles/*.md`
 
-The HEAD/tree above are the verified canonical state after PR #112 and before this
+The HEAD/tree above are the verified canonical state after PR #114 and before this
 Governance Sync, not the future merge commit of this Governance Sync PR.

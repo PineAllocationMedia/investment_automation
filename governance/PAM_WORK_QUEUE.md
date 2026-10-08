@@ -18,6 +18,10 @@
   - Complete / canonical: bounded threshold-free
     `CURRENT_ANNUAL_OCF_TO_POSITIVE_NET_INCOME` diagnostic under
     `QUALITY_CURRENT_ANNUAL_OCF_NET_INCOME_RELATIONSHIP_DIAGNOSTIC_ONLY` authority.
+  - Complete / canonical: paired current-annual reported revenue and operating-
+    income evidence foundation,
+    `CURRENT_ANNUAL_REVENUE_OPERATING_INCOME_QUALIFICATION`, under
+    `QUALITY_PROFITABILITY_EVIDENCE_ONLY` authority.
   - Immediate next substep: exactly one Architecture & Audit evidence-readiness /
     next-contract-selection Work Order to inspect current Stage-C capability and
     select/define exactly one next truthful bounded Quality contract. It may select

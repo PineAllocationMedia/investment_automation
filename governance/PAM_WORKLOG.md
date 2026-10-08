@@ -469,3 +469,36 @@
   Protected PIT/determinism fingerprints and `MODEL_RULES_VERSION` remained unchanged.
   No validation-policy, governance, investment, merge, deployment, production or
   V2-promotion authority was expanded.
+
+## 2026-10-08 — PR #115 ordinary-compounder replay provenance v2 canonical
+
+- The CEO merged PR #115 as `6c5efa4379d6eec8135fc7572521bc5d9a336bc2`;
+  reviewed head was `4234980fb505b7a9c7a03b3b90c4a8ab32045613`.
+- The ordinary-compounder profile contract v2 preserves expected comparability
+  semantic/evidence replay identities and authenticates replay mismatch independently.
+  Canonical EPS-denominator and OCF/NI consumers were migrated.
+- No economic methodology, investment rule, authority, V1, production or deployment
+  change was introduced.
+
+## 2026-10-08 — PR #114 revenue/operating-income evidence canonical
+
+- The CEO merged PR #114 as `992e641583ab62187054a1fdb77411b720e03e9f`;
+  reviewed final head was `b1f28fa4fb356c82f63a7ee0c42acc642d577538`.
+- PR #114 established `CURRENT_ANNUAL_REVENUE_OPERATING_INCOME_QUALIFICATION`,
+  preserving exact paired annual reported revenue and operating income in `USD` under
+  `QUALITY_PROFITABILITY_EVIDENCE_ONLY` authority.
+- Canonical v2 replay authentication closed the final trust-boundary issue. The
+  foundation calculates no operating margin, profitability-quality conclusion or
+  Quality score and grants no investment authority.
+
+## 2026-10-08 — Accumulated post-PR114 Governance Sync decisions
+
+- Canonized the hard `$0` external financial-data-cost constraint and superseded only
+  earlier paid-source optionality clauses; licensing/use constraints remain separate.
+- Recorded immutable-capture, hash/dedup, reference, compact snapshot/delta and
+  lossless-compression storage/memory discipline.
+- Added the pre-shadow Shadow Audit Export Bridge requirement and same-or-easier V2
+  operator UX principle, including reduced routine manual calibration burden without
+  autonomous tuning.
+- Preserved the existing Stage K2 Persistent Decision / Thesis Memory → Stage L
+  Decision Delta & Attribution → Stage L1 Outcome Evaluation sequence.
