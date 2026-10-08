@@ -22,6 +22,10 @@
     income evidence foundation,
     `CURRENT_ANNUAL_REVENUE_OPERATING_INCOME_QUALIFICATION`, under
     `QUALITY_PROFITABILITY_EVIDENCE_ONLY` authority.
+  - Complete / canonical: bounded descriptive
+    `CURRENT_ANNUAL_OPERATING_INCOME_TO_POSITIVE_REVENUE` diagnostic under
+    `QUALITY_CURRENT_ANNUAL_OPERATING_INCOME_TO_POSITIVE_REVENUE_DIAGNOSTIC_ONLY`
+    authority.
   - Immediate next substep: exactly one Architecture & Audit evidence-readiness /
     next-contract-selection Work Order to inspect current Stage-C capability and
     select/define exactly one next truthful bounded Quality contract. It may select
@@ -45,6 +49,10 @@
   cross-cutting workflow milestone. It preserves the canonical validation tiers and
   validates one exact committed candidate without granting governance or technical
   authority.
+
+- Baseline V1 CI FULL_PIT runtime-capacity correction is complete / canonical. PR
+  #118 raised the job timeout from 30 to 60 minutes without changing validation
+  semantics or granting technical, model or investment authority.
 
 - Stage B — Expected Return: bounded sequence complete within the currently approved
   supported scope.
