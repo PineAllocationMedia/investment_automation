@@ -63,9 +63,13 @@ class SecCurrentAnnualRevenueOperatingIncomeTests(unittest.TestCase):
             sic=6021,
             description="National Commercial Banks",
         )
-        _, cls.source_conflict = capture_profile(
+        _, cls.semantic_replay_conflict = capture_profile(
             cls.fixture,
             expected_comparability_semantic_id="0" * 64,
+        )
+        _, cls.evidence_replay_conflict = capture_profile(
+            cls.fixture,
+            expected_comparability_evidence_id="0" * 64,
         )
 
     @classmethod
@@ -192,7 +196,13 @@ class SecCurrentAnnualRevenueOperatingIncomeTests(unittest.TestCase):
                 UPSTREAM_PROFILE_UNSUPPORTED,
             ),
             (
-                self.source_conflict,
+                self.semantic_replay_conflict,
+                qualifier.CurrentAnnualRevenueOperatingIncomeStatus.SOURCE_CONFLICT,
+                qualifier.CurrentAnnualRevenueOperatingIncomeReason.
+                UPSTREAM_SOURCE_CONFLICT,
+            ),
+            (
+                self.evidence_replay_conflict,
                 qualifier.CurrentAnnualRevenueOperatingIncomeStatus.SOURCE_CONFLICT,
                 qualifier.CurrentAnnualRevenueOperatingIncomeReason.
                 UPSTREAM_SOURCE_CONFLICT,
@@ -209,6 +219,90 @@ class SecCurrentAnnualRevenueOperatingIncomeTests(unittest.TestCase):
                 self.assertEqual(result.selected_operating_income_observation_ids, ())
                 self.assertEqual(result.supporting_accessions, ())
                 self.assertEqual(result.supporting_filings, ())
+
+    def test_replay_provenance_is_authenticated_expected_vs_actual(self):
+        comparability = self.available.upstream_comparability
+        self.assertEqual(
+            self.available.expected_comparability_semantic_id,
+            comparability.semantic_id,
+        )
+        self.assertEqual(
+            self.available.expected_comparability_evidence_id,
+            comparability.evidence_id,
+        )
+        self.assertNotIn(
+            profile_module.ProfileReason.REPLAY_IDENTITY_MISMATCH,
+            self.available.reasons,
+        )
+        for profile in (
+            self.semantic_replay_conflict,
+            self.evidence_replay_conflict,
+        ):
+            with self.subTest(profile=profile):
+                actual = profile.upstream_comparability
+                self.assertTrue(
+                    profile.expected_comparability_semantic_id
+                    != actual.semantic_id
+                    or profile.expected_comparability_evidence_id
+                    != actual.evidence_id
+                )
+                self.assertIs(
+                    profile.status,
+                    profile_module.OrdinaryCompounderProfileStatus.SOURCE_CONFLICT,
+                )
+                self.assertIn(
+                    profile_module.ProfileReason.REPLAY_IDENTITY_MISMATCH,
+                    profile.reasons,
+                )
+                result = self.qualify(profile)
+                self.assertIs(
+                    result.status,
+                    qualifier.CurrentAnnualRevenueOperatingIncomeStatus.
+                    SOURCE_CONFLICT,
+                )
+                self.assertEqual(
+                    result.reasons,
+                    (
+                        qualifier.CurrentAnnualRevenueOperatingIncomeReason.
+                        UPSTREAM_SOURCE_CONFLICT,
+                    ),
+                )
+
+    def test_fabricated_replay_conflict_and_expected_id_mutation_are_rejected(self):
+        fabricated = replace(
+            self.available,
+            status=profile_module.OrdinaryCompounderProfileStatus.SOURCE_CONFLICT,
+            profile=None,
+            reasons=(profile_module.ProfileReason.REPLAY_IDENTITY_MISMATCH,),
+        )
+        mutations = (
+            fabricated,
+            replace(
+                self.available,
+                expected_comparability_semantic_id="0" * 64,
+            ),
+            replace(
+                self.available,
+                expected_comparability_evidence_id="0" * 64,
+            ),
+        )
+        for profile in mutations:
+            with self.subTest(profile=profile), self.assertRaises(
+                qualifier.CurrentAnnualRevenueOperatingIncomeError
+            ):
+                self.qualify(profile)
+
+    def test_v1_profile_contract_is_rejected_without_migration(self):
+        legacy = replace(
+            self.available,
+            contract_version=(
+                "2026-09-29-sec-ordinary-compounder-method-profile-v1"
+            ),
+        )
+        with self.assertRaises(
+            qualifier.CurrentAnnualRevenueOperatingIncomeError
+        ):
+            self.qualify(legacy)
 
     def test_factory_impossible_reconstructed_profile_states_are_rejected(self):
         impossible = (

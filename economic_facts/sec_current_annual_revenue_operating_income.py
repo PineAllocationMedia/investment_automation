@@ -414,7 +414,11 @@ def _factory_reachable_profile(profile, comparability):
     reasons = set()
     if comparability.outcome is not ComparabilityOutcome.COMPARABLE_REAL_EPS_ESTABLISHED:
         reasons.add(reason.PR5C_NOT_ESTABLISHED)
-    if reason.REPLAY_IDENTITY_MISMATCH in profile.reasons:
+    replay_mismatch = (
+        profile.expected_comparability_semantic_id != comparability.semantic_id
+        or profile.expected_comparability_evidence_id != comparability.evidence_id
+    )
+    if replay_mismatch:
         reasons.add(reason.REPLAY_IDENTITY_MISMATCH)
 
     sic, description, metadata_semantic_id, metadata_evidence_id = (
@@ -559,6 +563,8 @@ def _factory_reachable_profile(profile, comparability):
         comparability,
         metadata_semantic_id,
         metadata_evidence_id,
+        profile.expected_comparability_semantic_id,
+        profile.expected_comparability_evidence_id,
     )
 
 
@@ -608,6 +614,8 @@ def _validate_profile_shape(profile):
     if any(not _is_hash(value) for value in (
         profile.semantic_id,
         profile.evidence_id,
+        profile.expected_comparability_semantic_id,
+        profile.expected_comparability_evidence_id,
         comparability.semantic_id,
         comparability.evidence_id,
     )):

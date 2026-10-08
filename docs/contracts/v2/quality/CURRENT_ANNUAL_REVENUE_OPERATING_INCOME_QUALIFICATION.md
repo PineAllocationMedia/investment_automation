@@ -45,6 +45,12 @@ Subclasses, mappings, dictionaries and duck-typed substitutes are rejected.
 The caller cannot provide a CIK, period, receipt, accession, raw value,
 qualification state, route identity or detached comparability object.
 
+The profile must use upstream contract
+`2026-10-07-sec-ordinary-compounder-method-profile-v2`. That contract preserves
+the expected comparability semantic and evidence identities supplied to the
+upstream replay. A v1 profile lacks this authenticated replay provenance and is
+rejected without migration or autofill.
+
 Issuer and security context, source CIK, latest annual period and Companyfacts
 receipt are derived from the profile's canonical embedded comparability and
 security evidence graph. The qualifier rereads only the exact immutable object
@@ -77,6 +83,8 @@ following:
 
 - the upstream profile is exactly established and its canonical state/reason
   surface is coherent;
+- the upstream profile's expected comparability semantic and evidence identities
+  exactly match the actual embedded comparability identities;
 - the embedded comparability is exactly established and coherent;
 - the five canonical period decisions remain exact, positive diluted-EPS
   matches in strict chronological order;
@@ -131,6 +139,20 @@ identity alone does not make an impossible reconstruction canonical. The
 validation is deliberately bounded: it checks the canonical state/reason,
 metadata, decision-inventory, identity and established-comparability surfaces
 needed here without reimplementing the upstream factory.
+
+Replay mismatch is authenticated directly from the preserved expected identities:
+
+```text
+expected comparability semantic ID != actual comparability semantic ID
+OR
+expected comparability evidence ID != actual comparability evidence ID
+→ REPLAY_IDENTITY_MISMATCH
+```
+
+The reconstructed profile preserves both expected IDs and must equal the supplied
+profile exactly. A reason-only `SOURCE_CONFLICT` projection with matching expected
+and actual IDs, or an expected-ID mutation without the corresponding canonical
+status and reason, is a contract error.
 
 Reasons are closed and deterministically ordered:
 
@@ -205,6 +227,10 @@ observation evidence or supporting-filing provenance.
 - receipt/object identity and capture provenance;
 - selected observation evidence identities; and
 - supporting accession/filing provenance.
+
+The expected replay IDs are not direct economic-semantic fields of this result.
+They affect evidence distinction through the canonical upstream profile
+`evidence_id`.
 
 Therefore:
 
