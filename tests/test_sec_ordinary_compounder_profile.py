@@ -1,3 +1,4 @@
+from dataclasses import replace
 from decimal import Decimal
 import inspect
 import unittest
@@ -20,8 +21,15 @@ class OrdinaryCompounderProfileTests(unittest.TestCase):
         self.bridge_fixture.setUp()
         self.addCleanup(self.bridge_fixture.doCleanups)
 
-    def qualify(self, *, sic=3571, description="Electronic Computers",
-                filings=None, current=None, metadata_changes=None):
+    def comparability_context(
+        self,
+        *,
+        sic=3571,
+        description="Electronic Computers",
+        filings=None,
+        current=None,
+        metadata_changes=None,
+    ):
         metadata_changes = {} if metadata_changes is None else metadata_changes
         parent = self.bridge_fixture.comparability.submissions_archive._capture_live(
             submissions_root(
@@ -33,8 +41,39 @@ class OrdinaryCompounderProfileTests(unittest.TestCase):
         comparability_request = self.bridge_fixture.comparability.build_request(
             parent=parent, filings=filings, current=current)
         pr5c = self.bridge_fixture.comparability.qualify_request(comparability_request)
+        return comparability_request, pr5c
+
+    def qualify(
+        self,
+        *,
+        sic=3571,
+        description="Electronic Computers",
+        filings=None,
+        current=None,
+        metadata_changes=None,
+        expected_comparability_semantic_id=None,
+        expected_comparability_evidence_id=None,
+    ):
+        comparability_request, pr5c = self.comparability_context(
+            sic=sic,
+            description=description,
+            filings=filings,
+            current=current,
+            metadata_changes=metadata_changes,
+        )
         request = profile.SecOrdinaryCompounderProfileRequest(
-            comparability_request, pr5c.semantic_id, pr5c.evidence_id)
+            comparability_request,
+            (
+                pr5c.semantic_id
+                if expected_comparability_semantic_id is None
+                else expected_comparability_semantic_id
+            ),
+            (
+                pr5c.evidence_id
+                if expected_comparability_evidence_id is None
+                else expected_comparability_evidence_id
+            ),
+        )
         return profile.qualify_sec_ordinary_compounder_profile(
             self.bridge_fixture.comparability.current_archive,
             self.bridge_fixture.comparability.submissions_archive,
@@ -45,6 +84,10 @@ class OrdinaryCompounderProfileTests(unittest.TestCase):
 
     def test_normal_operating_sic_establishes_methodology_profile(self):
         result = self.qualify()
+        self.assertEqual(
+            result.contract_version,
+            "2026-10-07-sec-ordinary-compounder-method-profile-v2",
+        )
         self.assertIs(result.status,
                       profile.OrdinaryCompounderProfileStatus.ORDINARY_COMPOUNDER_PROFILE_ESTABLISHED)
         self.assertEqual(result.profile, "ORDINARY_COMPOUNDER")
@@ -52,6 +95,95 @@ class OrdinaryCompounderProfileTests(unittest.TestCase):
         self.assertTrue(all(item.decision is profile.ProfileDecisionValue.EXCLUDED
                             for item in result.decisions))
         self.assertIn("NO_QUALITY_SCORE", result.limitations)
+        self.assertEqual(
+            result.expected_comparability_semantic_id,
+            result.upstream_comparability.semantic_id,
+        )
+        self.assertEqual(
+            result.expected_comparability_evidence_id,
+            result.upstream_comparability.evidence_id,
+        )
+        self.assertNotIn(
+            profile.ProfileReason.REPLAY_IDENTITY_MISMATCH,
+            result.reasons,
+        )
+
+    def test_replay_mismatch_is_authenticated_for_each_expected_identity(self):
+        cases = (
+            ("0" * 64, None),
+            (None, "1" * 64),
+            ("0" * 64, "1" * 64),
+        )
+        for expected_semantic, expected_evidence in cases:
+            result = self.qualify(
+                expected_comparability_semantic_id=expected_semantic,
+                expected_comparability_evidence_id=expected_evidence,
+            )
+            with self.subTest(
+                expected_semantic=expected_semantic,
+                expected_evidence=expected_evidence,
+            ):
+                self.assertIs(
+                    result.status,
+                    profile.OrdinaryCompounderProfileStatus.SOURCE_CONFLICT,
+                )
+                self.assertEqual(
+                    result.reasons,
+                    (profile.ProfileReason.REPLAY_IDENTITY_MISMATCH,),
+                )
+                self.assertEqual(
+                    result.expected_comparability_semantic_id,
+                    (
+                        result.upstream_comparability.semantic_id
+                        if expected_semantic is None
+                        else expected_semantic
+                    ),
+                )
+                self.assertEqual(
+                    result.expected_comparability_evidence_id,
+                    (
+                        result.upstream_comparability.evidence_id
+                        if expected_evidence is None
+                        else expected_evidence
+                    ),
+                )
+
+    def test_expected_replay_identity_construction_is_exact_and_closed(self):
+        comparability_request, pr5c = self.comparability_context()
+        invalid_values = (None, 0, "A" * 64, "0" * 63)
+        for field in (
+            "expected_comparability_semantic_id",
+            "expected_comparability_evidence_id",
+        ):
+            for invalid in invalid_values:
+                values = {
+                    "expected_comparability_semantic_id": pr5c.semantic_id,
+                    "expected_comparability_evidence_id": pr5c.evidence_id,
+                }
+                values[field] = invalid
+                with self.subTest(field=field, invalid=invalid), self.assertRaises(
+                    profile.OrdinaryCompounderProfileError
+                ):
+                    profile.SecOrdinaryCompounderProfileRequest(
+                        comparability_request,
+                        values["expected_comparability_semantic_id"],
+                        values["expected_comparability_evidence_id"],
+                    )
+
+        canonical = self.qualify()
+        with self.assertRaises(profile.OrdinaryCompounderProfileError):
+            replace(canonical, expected_comparability_semantic_id="A" * 64)
+
+    def test_expected_replay_provenance_is_evidence_not_direct_semantics(self):
+        no_mismatch = self.qualify()
+        first = self.qualify(expected_comparability_semantic_id="0" * 64)
+        second = self.qualify(expected_comparability_semantic_id="1" * 64)
+        self.assertEqual(first.upstream_comparability, second.upstream_comparability)
+        self.assertEqual(first.status, second.status)
+        self.assertEqual(first.reasons, second.reasons)
+        self.assertEqual(first.semantic_id, second.semantic_id)
+        self.assertNotEqual(first.evidence_id, second.evidence_id)
+        self.assertNotEqual(no_mismatch.semantic_id, first.semantic_id)
 
     def test_reviewed_special_structure_sic_families_are_unsupported(self):
         cases = (

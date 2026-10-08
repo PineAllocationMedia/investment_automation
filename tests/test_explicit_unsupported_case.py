@@ -381,8 +381,8 @@ class ExplicitUnsupportedCaseTests(PR5EFixtureMixin, unittest.TestCase):
         )
         expected = {
             explicit_case.StageBAnalysisKind.COMPANY_EXPECTED_RETURN: (
-                "bd2d88f15cf19dcfa722be9bc3de7cae6c9684531b0c34f475e257aa2699af8c",
-                "da021884d1898521574d43b5bf7742586887838d3525dfaca255151dbb72b005",
+                "6200b76daced34e0c53430f271afae0341cc37b2ce4ffd56886a1b4fcfeccc9a",
+                "fa018b959e734d384112e4f99c5798bc690057ab8e93c2e2691402547f466962",
             ),
             explicit_case.StageBAnalysisKind.VFV_FORWARD_EXPECTED_RETURN: (
                 "809fb6605983dcc73539d5253844d7614f6ca57804251196a4342f760d1d5048",
@@ -390,8 +390,8 @@ class ExplicitUnsupportedCaseTests(PR5EFixtureMixin, unittest.TestCase):
             ),
             explicit_case.StageBAnalysisKind.
             COMPANY_VFV_EXPECTED_RETURN_COMPARATOR: (
-                "0b98fbfba2b6720d5604b8db74d5fa95c72deac01a475a2d75385c56ee26dcca",
-                "7d927d9f745e683f6e82e6d868e5e8b1cbf4ca0895461d1060cf4f32096fe678",
+                "eaf7594d58ff0db0f836240e993bac71e96640a6b0c2cd233bb0d031f1a6c7d1",
+                "db5bd19bdf94db07cc5a4fd7f6890849e1e7bf1649c55c52b40c6168d9b9f5e7",
             ),
             explicit_case.StageBAnalysisKind.CASH_LIKE_CURRENT_CARRY: (
                 "6bcf0abe3b20acdedb9b513795ffb873d46c336f0a7b19147e165afa6d2c7eb8",

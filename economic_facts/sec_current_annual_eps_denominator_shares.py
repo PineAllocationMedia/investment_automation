@@ -335,6 +335,24 @@ def _validate_profile_shape(profile):
         raise CurrentAnnualEPSDenominatorSharesError(
             "Canonical comparability contract required"
         )
+    if (
+        not _is_hash(profile.expected_comparability_semantic_id)
+        or not _is_hash(profile.expected_comparability_evidence_id)
+    ):
+        raise CurrentAnnualEPSDenominatorSharesError(
+            "Canonical expected comparability replay identities required"
+        )
+    replay_mismatch = (
+        profile.expected_comparability_semantic_id != comparability.semantic_id
+        or profile.expected_comparability_evidence_id != comparability.evidence_id
+    )
+    replay_reason_present = (
+        upstream.ProfileReason.REPLAY_IDENTITY_MISMATCH in profile.reasons
+    )
+    if replay_mismatch != replay_reason_present:
+        raise CurrentAnnualEPSDenominatorSharesError(
+            "Authenticated comparability replay mismatch required"
+        )
     if any(not _is_hash(value) for value in (
         profile.semantic_id,
         profile.evidence_id,

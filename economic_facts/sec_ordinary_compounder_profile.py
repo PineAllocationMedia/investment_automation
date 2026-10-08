@@ -19,7 +19,7 @@ from .sec_reporting_subject_source_claims import ReportingSubjectClaimKind
 from .sec_submissions_archive import SecSubmissionsArchive
 from .sec_ticker_exchange_archive import SecTickerExchangeArchive
 
-CONTRACT_VERSION = "2026-09-29-sec-ordinary-compounder-method-profile-v1"
+CONTRACT_VERSION = "2026-10-07-sec-ordinary-compounder-method-profile-v2"
 QUALIFIER_VERSION = "2026-09-29-closed-sec-sic-profile-exclusions-v1"
 PROFILE = "ORDINARY_COMPOUNDER"
 _HASH = re.compile(r"[0-9a-f]{64}")
@@ -118,6 +118,18 @@ class OrdinaryCompounderMethodProfileQualification:
     upstream_comparability: RealEPSComparabilityQualification
     metadata_semantic_id: str | None
     metadata_evidence_id: str | None
+    expected_comparability_semantic_id: str
+    expected_comparability_evidence_id: str
+
+    def __post_init__(self):
+        for value in (
+            self.expected_comparability_semantic_id,
+            self.expected_comparability_evidence_id,
+        ):
+            if type(value) is not str or _HASH.fullmatch(value) is None:
+                raise OrdinaryCompounderProfileError(
+                    "Exact expected PR5C replay identities required"
+                )
 
     @property
     def semantic_id(self):
@@ -142,6 +154,12 @@ class OrdinaryCompounderMethodProfileQualification:
             "semantic_id": self.semantic_id,
             "comparability_evidence_id": self.upstream_comparability.evidence_id,
             "metadata_evidence_id": self.metadata_evidence_id,
+            "expected_comparability_semantic_id": (
+                self.expected_comparability_semantic_id
+            ),
+            "expected_comparability_evidence_id": (
+                self.expected_comparability_evidence_id
+            ),
         })
 
 
@@ -338,4 +356,6 @@ def qualify_sec_ordinary_compounder_profile(
         sic, description, tuple(decisions),
         tuple(sorted(reasons, key=lambda item: item.value)), LIMITATIONS,
         comparability, metadata_semantic_id, metadata_evidence_id,
+        request.expected_comparability_semantic_id,
+        request.expected_comparability_evidence_id,
     )

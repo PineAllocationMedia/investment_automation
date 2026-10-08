@@ -519,15 +519,15 @@ class CompanyVFVComparatorTests(PR5EFixtureMixin, unittest.TestCase):
         self.assertEqual(first.evidence_id, repeated.evidence_id)
         self.assertEqual(
             first.company_problem_semantic_id,
-            "3f2837d650371ae66b4b08e2fdb268eb8782c1430e284b22d12974081173ccf2",
+            "3c6997f6f581f0d27898c45bd4de9a352ffb2216d5c812df6e856431f42986b0",
         )
         self.assertEqual(
             first.company_problem_evidence_id,
-            "e037fa8049805ace18f00d8e3835920b8cfe4804d24522c68e633232f451d8e7",
+            "f328f26e3007d514f966eaf13b7c922ec9cfd48f80ef557b057ccd3ccbb4c123",
         )
         self.assertEqual(
             first.semantic_id,
-            "156fd61f3256c3e4d125720e4cc30d473efb0737ddab22654dfa328d1dc91ef0",
+            "a4ecfa0fb19a433dde20415c15b1c16b31f49a1fde243c7d2df8b6896bd06c2e",
         )
         stable_vfv_evidence = tuple(
             replace(
@@ -550,7 +550,7 @@ class CompanyVFVComparatorTests(PR5EFixtureMixin, unittest.TestCase):
         )
         self.assertEqual(
             identity_fixture.evidence_id,
-            "a84d48db3e5831ca42ec5db69ba3700f300c632a0d824b7ed23826b3e338e0a1",
+            "0a17d2d786221f195dee244955036a71c18b4ed8f24efade8ed5eac071aabdcc",
         )
         self.assertEqual(
             self.hedge.semantic_id,

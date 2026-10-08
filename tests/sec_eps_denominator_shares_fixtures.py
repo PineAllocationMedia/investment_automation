@@ -184,8 +184,16 @@ def diluted_below_basic_payload():
     )
 
 
-def capture_profile(comparability_fixture, payload=None, *, reverse=False,
-                    sic=3571, description="Electronic Computers"):
+def capture_profile(
+    comparability_fixture,
+    payload=None,
+    *,
+    reverse=False,
+    sic=3571,
+    description="Electronic Computers",
+    expected_comparability_semantic_id=None,
+    expected_comparability_evidence_id=None,
+):
     """Build the real synthetic canonical route around one Companyfacts object."""
     payload = coherent_pair_payload() if payload is None else payload
     receipt = comparability_fixture.current_archive._capture_live(
@@ -205,7 +213,17 @@ def capture_profile(comparability_fixture, payload=None, *, reverse=False,
     request = comparability_fixture.build_request(parent=parent, current=current)
     comparability = comparability_fixture.qualify_request(request)
     profile_request = profile_module.SecOrdinaryCompounderProfileRequest(
-        request, comparability.semantic_id, comparability.evidence_id
+        request,
+        (
+            comparability.semantic_id
+            if expected_comparability_semantic_id is None
+            else expected_comparability_semantic_id
+        ),
+        (
+            comparability.evidence_id
+            if expected_comparability_evidence_id is None
+            else expected_comparability_evidence_id
+        ),
     )
     profile = profile_module.qualify_sec_ordinary_compounder_profile(
         comparability_fixture.current_archive,
