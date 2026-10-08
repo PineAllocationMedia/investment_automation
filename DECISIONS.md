@@ -3288,3 +3288,65 @@ a separate governance cleanup/migration audit, then ChatGPT role Project/employe
 configuration, then PR5E. This administrative interlude does not change the
 technical roadmap, investment rules, V1/V2 behavior, production authority or
 `MODEL_RULES_VERSION`; PR5E remains the next technical chantier.
+
+## 2026-10-08 — Hard `$0` external financial-data-cost constraint
+
+### Decision
+
+PAM V2 uses a hard `$0` external financial-data-cost constraint until explicitly
+superseded by the CEO. No paid financial-data subscription, premium market-data API,
+paid corporate-action feed or other paid external financial-data source is part of
+the supported V2 plan.
+
+This constraint concerns external financial-data acquisition and provider cost. It
+does not mean zero infrastructure or hosting cost, zero broker cost or zero
+transaction cost. Licensing, permitted use and commercial redistribution remain
+separate first-class constraints; free-of-charge access does not imply unrestricted
+commercial use.
+
+### Supersession
+
+This decision supersedes only the clauses in the 2026-09-28 capability-based partial-
+analysis and free-core PR5C decisions that permitted future paid data as an optional
+coverage enhancement. Their fail-closed evidence rules, free/public-source
+preference, licensing/use restrictions, capability-based partial analysis, source-
+neutral architecture and coverage-honesty requirements remain in force.
+
+### Expected impact
+
+Future coverage gaps are engineering or capability limitations to address through
+free/public/official sources, bounded reconciliation or explicit `UNAVAILABLE` /
+`UNSUPPORTED` states. They are not a trigger to purchase data, fabricate coverage or
+weaken semantics. This changes no investment rule, model authority, V1 behavior,
+production authority or V2 challenger status.
+
+## 2026-10-08 — Durable evidence storage and analytical-memory discipline
+
+### Decision
+
+PAM will preserve audit-critical source evidence while avoiding repeated storage of
+identical raw payloads. The durable direction is:
+
+```text
+raw evidence
+→ immutable capture once
+→ hash / dedup
+→ references rather than repeated copies
+→ compact structured analytical snapshots
+→ deltas where possible
+→ lossless compression for bulky archives
+```
+
+Raw evidence archives, analytical memory, decision/thesis history, audit indexes or
+manifests, and human reports remain conceptually distinct. Analytical state should
+prefer compact structured snapshots, deltas and references to immutable evidence;
+bulky durable archives may use lossless compression. Audit-critical source evidence
+must not be discarded merely to save space, and historical decisions must remain
+inspectable.
+
+### Expected impact
+
+Later implementation contracts may select schemas, storage engines and operational
+mechanics. This decision selects none. It changes no analytical methodology,
+investment rule, source authority, V1 behavior, production authority or V2 promotion
+status.

@@ -28,9 +28,15 @@ are already commercially mature.
 
 ## Free-core strategy
 
-Core supported PAM operation must remain possible without required paid financial-
-data subscriptions. Optional approved commercial data may later improve coverage.
-Narrow, truthful free coverage is preferable to fake universal coverage.
+The supported V2 plan operates under a hard `$0` external financial-data-cost
+constraint unless a future explicit CEO decision supersedes it. Paid financial-data
+subscriptions, premium market-data APIs, paid corporate-action feeds and other paid
+external financial-data sources are outside that plan. Narrow, truthful
+free/public/official coverage is preferable to fake universal coverage. Licensing,
+permitted use and commercial redistribution remain separate constraints; free access
+does not imply unrestricted commercial use. This rule does not claim that every
+globally useful dataset is available for free and does not apply to infrastructure,
+hosting, broker or transaction costs.
 
 ## Commercial extraction
 

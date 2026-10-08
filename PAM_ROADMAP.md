@@ -289,9 +289,10 @@ every dependent output without erasing independent research capabilities.
 
 PR5D0C adds no runtime behavior, fallback Expected Return, model rule, score,
 ranking, recommendation, allocation or admission authority. It did not itself
-unblock PR5C, complete PR5D or start PR5E. The supported core must remain
-operable without a paid financial-data subscription; paid sources may only be
-optional, separately approved coverage enhancements.
+unblock PR5C, complete PR5D or start PR5E. The supported V2 plan operates under a
+hard `$0` external financial-data-cost constraint unless a future explicit CEO
+decision supersedes it. Coverage gaps remain explicit capability limits to address
+through free/public/official sources or bounded reconciliation, never guessed facts.
 
 ### PR5D0D — Capability Contract Foundation
 
@@ -436,6 +437,8 @@ Current annual paired operating-cash-flow/net-income evidence foundation ✅
     ↓
 Current annual OCF-to-positive-net-income diagnostic ✅
     ↓
+Current annual paired revenue/operating-income evidence foundation ✅
+    ↓
 Development Workflow Automation / deterministic pam_preflight ✅ (cross-cutting)
     ↓
 Next bounded Quality slice — Architecture & Audit selection/definition NEXT
@@ -462,8 +465,15 @@ established the threshold-free `CURRENT_ANNUAL_OCF_TO_POSITIVE_NET_INCOME`
 diagnostic under
 `QUALITY_CURRENT_ANNUAL_OCF_NET_INCOME_RELATIONSHIP_DIAGNOSTIC_ONLY` authority.
 PR #112 separately established deterministic `pam_preflight` as a cross-cutting
-development-workflow milestone; it is not part of Quality economics. Stage C remains
-active and incomplete. Architecture & Audit must next inspect current Stage-C
+development-workflow milestone; it is not part of Quality economics. PR #115 then
+canonically established ordinary-compounder replay-provenance v2, preserving expected
+comparability semantic/evidence identities and enabling independent replay-mismatch
+authentication without changing methodology or investment authority. PR #114 then
+established `CURRENT_ANNUAL_REVENUE_OPERATING_INCOME_QUALIFICATION`, preserving exact
+paired annual reported revenue and operating income in `USD` under
+`QUALITY_PROFITABILITY_EVIDENCE_ONLY` authority. It calculates no operating margin or
+profitability-quality conclusion. Stage C remains active and incomplete. Architecture
+& Audit must next inspect current Stage-C
 evidence/capability readiness and select/define exactly one next truthful bounded
 Quality contract. It may select an evidence foundation first. No next dimension or
 implementation is authorized here.
@@ -476,7 +486,7 @@ found `PARTIAL ROUTE ONLY`. B2 numeric executable-net Expected Return is current
 B sequencing blocker. Bounded confidence propagation and explicit unsupported-case
 handling are complete. B2 may be revisited only if genuinely new qualified executable-
 quote, settled-funding and, where applicable, FX execution-cost evidence appears.
-Stage C — Quality is active and incomplete. Its three bounded diagnostics and two
+Stage C — Quality is active and incomplete. Its three bounded diagnostics and three
 evidence foundations are complete. No composite Quality score, aggregation,
 next-dimension implementation, recommendation, ranking, allocation or execution
 authority is created by those milestones.
@@ -805,6 +815,7 @@ bounded company-vs-VFV Expected Return comparator complete
 → current annual EPS-denominator dilution diagnostic ✅
 → current annual paired operating-cash-flow/net-income evidence foundation ✅
 → current annual OCF-to-positive-net-income diagnostic ✅
+→ current annual paired revenue/operating-income evidence foundation ✅
 → Development Workflow Automation / deterministic pam_preflight ✅ (cross-cutting)
 → next bounded Quality slice — Architecture & Audit selection/definition NEXT
 ```
@@ -843,6 +854,11 @@ bounded company-vs-VFV Expected Return comparator complete
 - complete / canonical: bounded threshold-free
   `CURRENT_ANNUAL_OCF_TO_POSITIVE_NET_INCOME` diagnostic under
   `QUALITY_CURRENT_ANNUAL_OCF_NET_INCOME_RELATIONSHIP_DIAGNOSTIC_ONLY` authority;
+- complete / canonical:
+  `CURRENT_ANNUAL_REVENUE_OPERATING_INCOME_QUALIFICATION`, preserving paired exact
+  reported `us-gaap:RevenueFromContractWithCustomerExcludingAssessedTax` and
+  `us-gaap:OperatingIncomeLoss` facts in `USD` under
+  `QUALITY_PROFITABILITY_EVIDENCE_ONLY` authority;
 - complete / canonical cross-cutting workflow milestone: deterministic
   `pam_preflight`, separate from Quality economics;
 - active / incomplete: Stage C — Quality, with exactly one Architecture & Audit
@@ -938,6 +954,16 @@ V2-promotion authority. Legitimate evidence recapture or later CURRENT capture w
 unchanged economics preserves analytical semantic identity while evidence identity
 changes; capture-bound opaque route keys remain traceability fields rather than
 decisive analytical semantics.
+
+The current-annual profitability evidence foundation,
+`CURRENT_ANNUAL_REVENUE_OPERATING_INCOME_QUALIFICATION`, is complete and canonical.
+Its immutable `CurrentAnnualRevenueOperatingIncomeQualification` preserves one
+coherent common-filing presentation of exact reported
+`us-gaap:RevenueFromContractWithCustomerExcludingAssessedTax` and
+`us-gaap:OperatingIncomeLoss` for the canonical latest annual period in exact unit
+`USD`, under `QUALITY_PROFITABILITY_EVIDENCE_ONLY` authority. It is CURRENT evidence
+only. It calculates no operating margin and creates no profitability-quality
+conclusion, historical trend, composite Quality score or investment authority.
 
 Exactly one Architecture & Audit evidence-readiness / next-contract-selection Work
 Order is next. It must inspect current Stage-C evidence/capability readiness and
@@ -1063,6 +1089,15 @@ Cash-like yields, broker costs, FX assumptions, account capabilities and instrum
 eligibility are time-sensitive evidence. Stale or unavailable values must remain
 explicit and must not silently become zero cost or current truth.
 
+Preserve audit-critical source evidence through immutable capture, content hashing
+and deduplication rather than repeated raw copies. Analytical memory should prefer
+compact structured snapshots, deltas where possible and references to immutable
+evidence. Bulky durable archives may use lossless compression. Keep raw evidence
+archives, analytical memory, decision/thesis history, audit indexes/manifests and
+human reports conceptually separate. Audit-critical evidence is not discarded merely
+to save space. Exact implementation schemas, engines and vendors require later
+contracts.
+
 ### Stage J — Portfolio State Integrity
 
 Reconcile economic ownership through transactions, cash, dividends, splits,
@@ -1169,6 +1204,9 @@ Future reserve memory should preserve amount, currency, instrument/form, reason,
 mode, decision date, relevant ER comparison, Confidence, benchmark state,
 broker/FX assumptions, estimated net carry and review/release state. Historical
 decisions retain the mode and assumptions actually used.
+Analytical memory should preferentially retain compact structured snapshots and
+deltas, with references to immutable source evidence, instead of duplicating raw
+source payloads. Historical decisions must remain inspectable.
 
 ### Stage L — Decision Delta & Attribution
 
@@ -1242,6 +1280,28 @@ fail-closed and coverage-bias requirements in the cross-cutting program below.
 It must also include the benchmark-first/reserve scenarios and anti-market-timing,
 anti-churn and transition-path audits in the reserve program below.
 
+#### Shadow Audit Export Bridge
+
+Before long-duration shadow, implement a separately reviewed controlled bridge:
+
+```text
+Chromebook V2 shadow outputs
+→ controlled analytical audit bundle
+→ immutable/versioned/hash-addressed export
+→ durable external archive
+```
+
+This is a controlled analytical/audit export, not a replica of the Chromebook
+filesystem. Google Drive is the primary destination for bulky compressed audit
+archives and bundles. GitHub retains schemas, contracts, hashes, manifests, indexes
+and code-level audit definitions; it is not the bulky raw archive, and Google Drive
+does not become code authority. Where appropriate, exports should use versioned
+manifests, hashes, deduplication, delta/reference chains and lossless compression.
+The bridge grants no V2 production authority or automatic promotion. It should later
+allow the Data Analyst to consume longitudinal exported analytical history and allow
+Architecture & Audit to verify exported evidence and manifests. Its implementation
+contract comes later.
+
 ### Stage N1 — Validation Firewall
 
 Maintain explicit boundaries between research/development, retrospective validation,
@@ -1260,6 +1320,10 @@ automatically learning from the model's own latest recommendations. Acceptance a
 promotion require explicit review. Preserve V1's `PROPOSAL_ONLY` safety philosophy:
 no self-modifying investment model or automatic threshold optimization from live
 outcomes.
+Manual proxy/model calibration should not remain a routine owner workflow where the
+architecture can internalize the same process deterministically, version it and
+expose it for audit and review. This does not authorize autonomous tuning, silent
+parameter changes, automatic promotion or removal of required human approval.
 Reserve activation/release margins, persistence and hysteresis require a separate
 reviewed investment-rule contract, validation, calibration and owner approval.
 
@@ -1337,15 +1401,25 @@ amount, review/release state, activation frequency, duration and FX round trips.
 Before commercialization, establish source/provider identity, permitted use,
 redistribution/display rights where relevant, retention, provenance, licensing
 constraints, attribution, geographic/product limitations, replacement/deprecation
-and paid-vs-free dependency risk. Keep factual authority separate from legal or
-permitted-use authority. PR4D2C and existing source contracts do not universally
-license Nasdaq or other provider data.
+and compliance with the hard `$0` external financial-data-cost constraint. Keep
+factual authority separate from legal or permitted-use authority. PR4D2C and existing
+source contracts do not universally license Nasdaq or other provider data.
 The Global/Market Capability Registry must represent permitted-use and commercial-use
 status dimensionally; registry membership must never grant evidence authority.
 
 ### Stage P — Compact Report Information Architecture & UX
 
 The compact HTML report is the owner's primary post-analysis human interface.
+
+> **V2 must be same-or-easier to operate than V1 for the owner.**
+
+Analytical sophistication must not create proportional operator burden. Routine
+portfolio maintenance, refreshing or dropping approved research evidence, and normal
+capital confirmation or analysis invocation should remain simple. Complexity belongs
+behind the interface where it can be deterministic and auditable; richer compact
+reporting must not require the owner to maintain new technical state manually. If the
+engine becomes materially more advanced but the normal operator workflow becomes
+materially more complex, the UX has failed.
 
 > Compact means consolidated, not information-poor.
 
@@ -1836,9 +1910,8 @@ Unless explicitly revisited:
 - Markowitz/covariance optimizer;
 - opaque machine-learning stock picker with no explanation;
 - fragile full DCF as the default ER engine;
-- paid-data dependency before the free/official architecture is understood;
-- any paid financial-data subscription becoming mandatory for supported core
-  operation;
+- any paid external financial-data source entering the supported V2 plan without a
+  future explicit CEO decision superseding the hard `$0` constraint;
 - broad global ingestion without evidence/licensing qualification.
 
 ---
@@ -1907,8 +1980,13 @@ net-income evidence foundation under `QUALITY_CASH_CONVERSION_EVIDENCE_ONLY`
 authority. PR #111 then canonically established the bounded threshold-free
 `CURRENT_ANNUAL_OCF_TO_POSITIVE_NET_INCOME` diagnostic. PR #112 separately
 established deterministic `pam_preflight` as a cross-cutting development-workflow
-milestone. Stage C remains active and incomplete. The next technical action is one
-Architecture & Audit Work Order to inspect current Stage-C evidence/capability
+milestone. PR #115 canonically established shared ordinary-compounder replay-
+provenance v2 infrastructure. PR #114 then canonically established
+`CURRENT_ANNUAL_REVENUE_OPERATING_INCOME_QUALIFICATION` under
+`QUALITY_PROFITABILITY_EVIDENCE_ONLY`, without an operating-margin calculation or
+profitability-quality conclusion. Stage C remains active and incomplete. The next
+technical action is exactly one Architecture & Audit Work Order to inspect current
+Stage-C evidence/capability
 readiness and select/define exactly one next truthful bounded Quality contract. It may
 select an evidence foundation first. No next Quality dimension or Codex
 implementation task is selected. V2 architecture remains incomplete and shadow
@@ -1916,9 +1994,9 @@ cannot begin.
 
 ---
 
-*Roadmap state updated on 2026-10-07 through canonical PR #112, including the PR #111
-current-annual OCF-to-positive-net-income diagnostic and cross-cutting deterministic
-`pam_preflight` workflow milestone.
+*Roadmap state updated on 2026-10-08 through canonical PR #115 and PR #114, including
+ordinary-compounder replay-provenance v2 and the current-annual revenue/operating-
+income evidence foundation.
 Governance Reform
 Phase 1, Governance Cleanup / Migration, role Projects/employees configuration and
 PR5E are complete. Stage B — Expected Return is complete within the currently
@@ -1927,7 +2005,7 @@ explicit unsupported-case handling. The real-route investigation concluded `PART
 ROUTE ONLY`; B2 numeric executable-net remains `UNAVAILABLE / DEFERRED`, trigger-
 based and dormant, and is an open capability gap rather than a bounded-sequence
 blocker. Stage C — Quality is active and incomplete; its three bounded analytical
-diagnostics and two evidence foundations are complete and canonical. Exactly one
+diagnostics and three evidence foundations are complete and canonical. Exactly one
 Architecture & Audit evidence-readiness / next-contract-selection Work Order is next;
 no next Quality dimension or Codex implementation is selected. Later architecture
 stages and shadow-readiness gates remain requirements only, and shadow cannot begin.
