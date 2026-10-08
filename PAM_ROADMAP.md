@@ -439,7 +439,11 @@ Current annual OCF-to-positive-net-income diagnostic ✅
     ↓
 Current annual paired revenue/operating-income evidence foundation ✅
     ↓
+Current annual operating-income-to-positive-revenue diagnostic ✅
+    ↓
 Development Workflow Automation / deterministic pam_preflight ✅ (cross-cutting)
+    ↓
+Baseline V1 CI FULL_PIT runtime ceiling 60 minutes ✅ (cross-cutting)
     ↓
 Next bounded Quality slice — Architecture & Audit selection/definition NEXT
 ```
@@ -472,8 +476,13 @@ authentication without changing methodology or investment authority. PR #114 the
 established `CURRENT_ANNUAL_REVENUE_OPERATING_INCOME_QUALIFICATION`, preserving exact
 paired annual reported revenue and operating income in `USD` under
 `QUALITY_PROFITABILITY_EVIDENCE_ONLY` authority. It calculates no operating margin or
-profitability-quality conclusion. Stage C remains active and incomplete. Architecture
-& Audit must next inspect current Stage-C
+profitability-quality conclusion. PR #117 then established the bounded descriptive
+`CURRENT_ANNUAL_OPERATING_INCOME_TO_POSITIVE_REVENUE` diagnostic under
+`QUALITY_CURRENT_ANNUAL_OPERATING_INCOME_TO_POSITIVE_REVENUE_DIAGNOSTIC_ONLY`
+authority. PR #118 separately raised the Baseline V1 CI `FULL_PIT` runtime ceiling
+from 30 to 60 minutes without changing validation semantics; the higher ceiling does
+not guarantee every future run will finish. Stage C remains active and incomplete.
+Architecture & Audit must next inspect current Stage-C
 evidence/capability readiness and select/define exactly one next truthful bounded
 Quality contract. It may select an evidence foundation first. No next dimension or
 implementation is authorized here.
@@ -486,7 +495,7 @@ found `PARTIAL ROUTE ONLY`. B2 numeric executable-net Expected Return is current
 B sequencing blocker. Bounded confidence propagation and explicit unsupported-case
 handling are complete. B2 may be revisited only if genuinely new qualified executable-
 quote, settled-funding and, where applicable, FX execution-cost evidence appears.
-Stage C — Quality is active and incomplete. Its three bounded diagnostics and three
+Stage C — Quality is active and incomplete. Its four bounded diagnostics and three
 evidence foundations are complete. No composite Quality score, aggregation,
 next-dimension implementation, recommendation, ranking, allocation or execution
 authority is created by those milestones.
@@ -816,7 +825,9 @@ bounded company-vs-VFV Expected Return comparator complete
 → current annual paired operating-cash-flow/net-income evidence foundation ✅
 → current annual OCF-to-positive-net-income diagnostic ✅
 → current annual paired revenue/operating-income evidence foundation ✅
+→ current annual operating-income-to-positive-revenue diagnostic ✅
 → Development Workflow Automation / deterministic pam_preflight ✅ (cross-cutting)
+→ Baseline V1 CI FULL_PIT runtime ceiling 60 minutes ✅ (cross-cutting)
 → next bounded Quality slice — Architecture & Audit selection/definition NEXT
 ```
 
@@ -859,8 +870,15 @@ bounded company-vs-VFV Expected Return comparator complete
   reported `us-gaap:RevenueFromContractWithCustomerExcludingAssessedTax` and
   `us-gaap:OperatingIncomeLoss` facts in `USD` under
   `QUALITY_PROFITABILITY_EVIDENCE_ONLY` authority;
+- complete / canonical: bounded descriptive
+  `CURRENT_ANNUAL_OPERATING_INCOME_TO_POSITIVE_REVENUE` diagnostic under
+  `QUALITY_CURRENT_ANNUAL_OPERATING_INCOME_TO_POSITIVE_REVENUE_DIAGNOSTIC_ONLY`
+  authority;
 - complete / canonical cross-cutting workflow milestone: deterministic
   `pam_preflight`, separate from Quality economics;
+- complete / canonical cross-cutting workflow-capacity correction: Baseline V1 CI
+  `FULL_PIT` runtime ceiling raised from 30 to 60 minutes with validation semantics
+  unchanged;
 - active / incomplete: Stage C — Quality, with exactly one Architecture & Audit
   evidence-readiness / next-contract-selection Work Order next and no implementation
   task active;
@@ -964,6 +982,23 @@ coherent common-filing presentation of exact reported
 `USD`, under `QUALITY_PROFITABILITY_EVIDENCE_ONLY` authority. It is CURRENT evidence
 only. It calculates no operating margin and creates no profitability-quality
 conclusion, historical trend, composite Quality score or investment authority.
+
+The bounded descriptive analytical diagnostic,
+`CURRENT_ANNUAL_OPERATING_INCOME_TO_POSITIVE_REVENUE`, is complete and canonical
+under contract version
+`2026-10-08-current-annual-operating-income-to-positive-revenue-diagnostic-v1`.
+It reports the exact rational relationship of qualified reported
+`us-gaap:OperatingIncomeLoss` to qualified reported
+`us-gaap:RevenueFromContractWithCustomerExcludingAssessedTax` for one annual period
+only when the revenue denominator is strictly positive. Zero or negative revenue is
+`NOT_APPLICABLE`. Its authority is
+`QUALITY_CURRENT_ANNUAL_OPERATING_INCOME_TO_POSITIVE_REVENUE_DIAGNOSTIC_ONLY`.
+
+The diagnostic makes no profitability judgment or universally comparable operating-
+margin claim and establishes no historical trend, Quality aggregate, grade or
+ranking, Durability, Expected Return, Confidence, recommendation, allocation,
+execution, production, deployment, V2-promotion, `HISTORICAL_AS_OF` or PIT
+authority. No aggregation between the four canonical Quality diagnostics exists.
 
 Exactly one Architecture & Audit evidence-readiness / next-contract-selection Work
 Order is next. It must inspect current Stage-C evidence/capability readiness and
@@ -1984,7 +2019,11 @@ milestone. PR #115 canonically established shared ordinary-compounder replay-
 provenance v2 infrastructure. PR #114 then canonically established
 `CURRENT_ANNUAL_REVENUE_OPERATING_INCOME_QUALIFICATION` under
 `QUALITY_PROFITABILITY_EVIDENCE_ONLY`, without an operating-margin calculation or
-profitability-quality conclusion. Stage C remains active and incomplete. The next
+profitability-quality conclusion. PR #118 then canonically raised the Baseline V1 CI
+job timeout from 30 to 60 minutes without changing validation semantics, and PR #117
+canonically established
+`CURRENT_ANNUAL_OPERATING_INCOME_TO_POSITIVE_REVENUE` under diagnostic-only
+authority. Stage C remains active and incomplete. The next
 technical action is exactly one Architecture & Audit Work Order to inspect current
 Stage-C evidence/capability
 readiness and select/define exactly one next truthful bounded Quality contract. It may
@@ -1994,9 +2033,9 @@ cannot begin.
 
 ---
 
-*Roadmap state updated on 2026-10-08 through canonical PR #115 and PR #114, including
-ordinary-compounder replay-provenance v2 and the current-annual revenue/operating-
-income evidence foundation.
+*Roadmap state updated on 2026-10-08 through canonical PR #118 and PR #117, including
+the Baseline V1 CI `FULL_PIT` runtime-capacity correction and the current-annual
+operating-income-to-positive-revenue diagnostic.
 Governance Reform
 Phase 1, Governance Cleanup / Migration, role Projects/employees configuration and
 PR5E are complete. Stage B — Expected Return is complete within the currently
@@ -2004,7 +2043,7 @@ approved bounded supported scope, including bounded confidence propagation and
 explicit unsupported-case handling. The real-route investigation concluded `PARTIAL
 ROUTE ONLY`; B2 numeric executable-net remains `UNAVAILABLE / DEFERRED`, trigger-
 based and dormant, and is an open capability gap rather than a bounded-sequence
-blocker. Stage C — Quality is active and incomplete; its three bounded analytical
+blocker. Stage C — Quality is active and incomplete; its four bounded analytical
 diagnostics and three evidence foundations are complete and canonical. Exactly one
 Architecture & Audit evidence-readiness / next-contract-selection Work Order is next;
 no next Quality dimension or Codex implementation is selected. Later architecture

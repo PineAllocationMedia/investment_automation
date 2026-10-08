@@ -3,39 +3,45 @@
 > Two-to-five-minute operational snapshot. Refresh through Governance Sync after
 > durable state changes.
 
-- **Last Governance Sync:** records canonical PR #115 replay-provenance v2, canonical
-  PR #114 current-annual revenue/operating-income evidence, the hard `$0` external-
-  data-cost constraint, durable storage/memory discipline, the Shadow Audit Export
-  Bridge requirement and same-or-easier V2 operator UX (2026-10-08)
+- **Last Governance Sync:** records canonical PR #118 Baseline V1 CI FULL_PIT runtime-
+  capacity correction and canonical PR #117 current-annual operating-income-to-
+  positive-revenue diagnostic, while preserving the hard `$0` external-data-cost
+  constraint, durable storage/memory discipline, the Shadow Audit Export Bridge
+  requirement and same-or-easier V2 operator UX (2026-10-08)
 - **Current major program:** Stage C — Quality
 - **Parallel CEO-approved GTM initiative:** bounded Blossom audience-growth mandate for `@therealpam`, owned by Marketing & GTM; audience value first, PAM promotion secondary, human approval required before publication
 - **Active technical frontier:** exactly one Architecture & Audit Work Order to
   inspect current Stage-C evidence/capability readiness and select/define exactly one
   next truthful bounded Quality contract
 - **Canonical integration branch:** `model-v2/expected-return-challenger`
-- **Canonical verified pre-this-sync HEAD:** `992e641583ab62187054a1fdb77411b720e03e9f`
-- **Canonical verified tree:** `c459e3b9e102dc5235c6ba31e4c57463b031c57d`
-- **Current status:** Stage C — Quality is `ACTIVE / INCOMPLETE`. Its three bounded
+- **Canonical verified pre-this-sync HEAD:** `53eef289bd3e854c51323dde4160b820a1195c4e`
+- **Canonical verified tree:** `383bef33d58bdd9922b01ec822dd6cb4995f8d20`
+- **Current status:** Stage C — Quality is `ACTIVE / INCOMPLETE`. Its four bounded
   analytical diagnostics and three bounded evidence foundations are complete and
   canonical. No composite Quality score or aggregation is authorized.
 - **Canonical Stage-C diagnostics:**
   `FIVE_PERIOD_DILUTED_EPS_DIRECTIONAL_CONSISTENCY` and
   `CURRENT_ANNUAL_EPS_DENOMINATOR_DILUTION` and
-  `CURRENT_ANNUAL_OCF_TO_POSITIVE_NET_INCOME`
+  `CURRENT_ANNUAL_OCF_TO_POSITIVE_NET_INCOME` and
+  `CURRENT_ANNUAL_OPERATING_INCOME_TO_POSITIVE_REVENUE`
 - **Canonical Stage-C evidence foundations:**
   `CURRENT_ANNUAL_EPS_DENOMINATOR_SHARES_QUALIFICATION` and
   `CURRENT_ANNUAL_OPERATING_CASH_FLOW_NET_INCOME_QUALIFICATION` and
   `CURRENT_ANNUAL_REVENUE_OPERATING_INCOME_QUALIFICATION`
-- **Latest completed technical milestone:**
-  PR #114, `CURRENT_ANNUAL_REVENUE_OPERATING_INCOME_QUALIFICATION`, preserving exact
-  paired annual reported revenue and operating income in `USD` under
-  `QUALITY_PROFITABILITY_EVIDENCE_ONLY` authority, with no operating-margin or
-  profitability-quality conclusion
+- **Latest completed technical milestone:** PR #117,
+  `CURRENT_ANNUAL_OPERATING_INCOME_TO_POSITIVE_REVENUE`, reporting the exact bounded
+  relationship between qualified annual operating income and strictly positive
+  qualified annual revenue under
+  `QUALITY_CURRENT_ANNUAL_OPERATING_INCOME_TO_POSITIVE_REVENUE_DIAGNOSTIC_ONLY`
+  authority, with no profitability judgment or universally comparable operating-
+  margin claim
 - **Latest completed shared trust-boundary infrastructure:** PR #115,
   ordinary-compounder profile contract v2 with preserved expected comparability
   semantic/evidence identities and independently authenticated replay mismatch
-- **Latest completed workflow/infrastructure milestone:** PR #112, Development
-  Workflow Automation v1 through `./pam_preflight --base <ref-or-sha>`
+- **Latest completed workflow/runtime-capacity correction:** PR #118 raised the
+  Baseline V1 CI job timeout from 30 to 60 minutes without changing validation
+  semantics; Development Workflow Automation v1 remains canonical through
+  `./pam_preflight --base <ref-or-sha>`
 - **Technical frontier:** Stage A — Real Fact Admission is complete for its
   explicitly supported first bounded CURRENT route; Stage B — Expected Return is
   complete within the currently approved bounded supported scope; Stage C — Quality
@@ -226,6 +232,16 @@
   and operating income in `USD` under `QUALITY_PROFITABILITY_EVIDENCE_ONLY`. It is
   CURRENT evidence only and creates no operating-margin calculation, profitability-
   quality conclusion, Quality score or investment authority.
+- The canonical `CURRENT_ANNUAL_OPERATING_INCOME_TO_POSITIVE_REVENUE` diagnostic
+  reports the exact rational relationship of qualified reported
+  `us-gaap:OperatingIncomeLoss` to qualified reported
+  `us-gaap:RevenueFromContractWithCustomerExcludingAssessedTax` for one annual period
+  only when the revenue denominator is strictly positive. Zero or negative revenue is
+  `NOT_APPLICABLE`. It is descriptive only and establishes no profitability judgment,
+  universally comparable operating margin, historical trend, Quality aggregate,
+  grade or ranking, Durability, Expected Return, Confidence, recommendation,
+  allocation, execution, production, deployment, V2-promotion, `HISTORICAL_AS_OF`
+  or PIT authority.
 - Canonical Development Workflow Automation v1 provides one deterministic local
   orchestration surface through `./pam_preflight --base <ref-or-sha>`. It reuses the
   canonical validation planner and preserves `DOCS_ONLY / STANDARD / FULL_PIT`; the
@@ -237,6 +253,12 @@
   identities but authorizes no changes. The command performs no network repair or
   fetch and grants no merge, deployment, investment, production or V2-promotion
   authority.
+- Canonical PR #118 raised the Baseline V1 CI job timeout from 30 to 60 minutes as a
+  workflow-capacity correction. Triggers, permissions, concurrency, cancellation,
+  validation planning and tiers, PIT pins, Python, dependencies and test commands
+  remain unchanged. The higher ceiling does not guarantee that every future
+  `FULL_PIT` execution will complete within 60 minutes and grants no technical,
+  model, investment or authority expansion.
 - Stage C remains active and incomplete. Exactly one Architecture & Audit Work Order
   must inspect current evidence/capability readiness and select/define exactly one
   next truthful bounded Quality contract; it may select an evidence foundation first.
@@ -252,5 +274,5 @@
 - `DECISIONS.md`
 - `governance/roles/*.md`
 
-The HEAD/tree above are the verified canonical state after PR #114 and before this
+The HEAD/tree above are the verified canonical state after PR #117 and before this
 Governance Sync, not the future merge commit of this Governance Sync PR.

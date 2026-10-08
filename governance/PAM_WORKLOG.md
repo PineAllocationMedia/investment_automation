@@ -502,3 +502,40 @@
   autonomous tuning.
 - Preserved the existing Stage K2 Persistent Decision / Thesis Memory → Stage L
   Decision Delta & Attribution → Stage L1 Outcome Evaluation sequence.
+
+## 2026-10-08 — PR #118 CI FULL_PIT runtime capacity correction canonical
+
+- PR #118 reviewed head `f4f7723dadf56fb86656a200f8676b34bfe64ad1` merged as
+  `6aaa8f66c550f85983aed0d28f799bfa7c627627`, tree
+  `f259ec16b9baf67cd3ef2c1e51ae2f1ddbcdd1bc`.
+- The exact one-file `.github/workflows/ci.yml` change raised the Baseline V1 CI job
+  timeout from 30 to 60 minutes. Triggers, permissions, concurrency, cancellation,
+  validation planning and tiers, PIT pins, Python, dependencies and test commands
+  remained unchanged; 60 minutes does not guarantee every future `FULL_PIT` run.
+- Exact-head local `FULL_PIT` passed 3,140 tests under Python 3.12.13; GitHub Baseline
+  V1 CI #150 completed successfully. Protected PIT/determinism identities and
+  `MODEL_RULES_VERSION` remained unchanged. No technical, model, investment or
+  authority expansion was introduced.
+
+## 2026-10-08 — PR #117 operating-income / positive-revenue diagnostic canonical
+
+- PR #117 final reviewed/rebased head `643bf120a89c7866e1a5f5ec7dbe0f49228fc73c`
+  merged as `53eef289bd3e854c51323dde4160b820a1195c4e`, tree
+  `383bef33d58bdd9922b01ec822dd6cb4995f8d20`; Architecture & Audit returned
+  `MERGE READY`, and the three contract/implementation/test files remained byte-for-
+  byte identical through the conflict-free rebase onto canonical PR #118.
+- `CURRENT_ANNUAL_OPERATING_INCOME_TO_POSITIVE_REVENUE`, under
+  `QUALITY_CURRENT_ANNUAL_OPERATING_INCOME_TO_POSITIVE_REVENUE_DIAGNOSTIC_ONLY`
+  authority, reports only the exact rational relationship between qualified reported
+  annual operating income and strictly positive qualified reported annual revenue.
+  It creates no profitability judgment, universal operating-margin claim, historical
+  trend, aggregate Quality, investment or operational authority.
+- Exact rebased-head validation passed 35/35 focused tests, 138/138 combined focused/
+  adjacent tests and 3,175/3,175 `FULL_PIT` tests, including heavyweight PIT, under
+  Python 3.12.13; GitHub Baseline V1 CI #151 completed successfully. Protected PIT/
+  determinism identities and `MODEL_RULES_VERSION` remained unchanged.
+- Stage C now has four canonical diagnostics and three canonical evidence foundations
+  and remains `ACTIVE / INCOMPLETE`. The sole immediate technical frontier is one
+  Architecture & Audit evidence-readiness / next-contract-selection Work Order to
+  select/define exactly one next truthful bounded Quality contract, optionally an
+  evidence foundation first. No next dimension or Codex implementation is queued.
