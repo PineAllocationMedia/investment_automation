@@ -33,10 +33,9 @@ class CurrentAnnualEPSDenominatorDilutionTests(unittest.TestCase):
         _, unsupported_profile = capture_profile(
             cls.fixture, sic=6021, description="National Commercial Banks"
         )
-        source_conflict_profile = replace(
-            cls.available_profile,
-            status=profile_module.OrdinaryCompounderProfileStatus.SOURCE_CONFLICT,
-            reasons=(profile_module.ProfileReason.REPLAY_IDENTITY_MISMATCH,),
+        _, source_conflict_profile = capture_profile(
+            cls.fixture,
+            expected_comparability_semantic_id="0" * 64,
         )
         cls.available = cls.qualify(cls.available_profile)
         cls.unavailable = cls.qualify(unavailable_profile)
@@ -808,24 +807,24 @@ class CurrentAnnualEPSDenominatorDilutionTests(unittest.TestCase):
         )
         expected = (
             (
-                "da39895afa5a8089725a0a04d0ea957d2e3705bc77567c7aef5ebd4ca186b150",
-                "808dd6acfe7d9a70313379a16b3b9ef5951df45db229fce71260e023a846f7de",
+                "8b0da13ee82c6aaecaaed4efabe25500553e463124db526f9a3d8c57d5906a18",
+                "ec757ad7cadab699fa09880789bb37e12fa841c0d8d85a4a2d66441f75fdb6ac",
             ),
             (
-                "cfb847259ac5452ccb87719fd1e43e0f9b5a5f4d35fd8e521db3a01936d0e2c1",
-                "0686bc67ccaf8fe8635042f7902fdb2d12f18978b1e375713e2aabb4bf47c561",
+                "19c688e430e56b35d3a778dd5c916b1aec4c4afce45ea55a37d45a5713c702be",
+                "2d98ad02d0de50f7a7dcf5de7ea093aa7a89d7f6981b928ed2fbedf31a4d1f4b",
             ),
             (
-                "79c133752e23e7b9bcae37245339710757a48009dd03c6ad3abb207503cd2ccf",
-                "8612a6faca0d1d36139fc70c4152757293e097cafa0e4e1ed54954a840e8d135",
+                "07eb2edc8c20e28f4c970b2980c5bbd4214aa01a5016d305e6bb210ca10c26ed",
+                "889a6c794e466a2e27877414bc55360eea5e8b894bc3342c7314d386e5707bc6",
             ),
             (
-                "02f733b0252da5ced461b6d6489e2713915406ffb352653e642c5c649fb44a7a",
-                "b93b7a1fc5c9e750c2001cd6d80169485f81e572271301fb823f01dd5ea7b1dd",
+                "d8d3dd22b4f2046e8de34b0c345f5658d0001caccabf4b25e6b780d4a95649c5",
+                "20b236a2f5deb852bd23f4ae87f6b5ccaf10529457a5d82e00c8cd6da3d9e6a9",
             ),
             (
-                "a58aab452f7ca6bd37048750a33876ea9e0110c1cf32b3e18f5aa99d9355c086",
-                "5b8e6f94826f10f31742eac1166a9c815d2985731218ab6e638ec57c1e1b5b1c",
+                "ed6423a5cf657b4f23f62b1a26f687ef8664941b140cf6f293bfcbd926eea71b",
+                "7b8ec8406d91b30a3b38242ee91ac8d5d33b847766cb65cecddb90447b18f638",
             ),
         )
         for result, (semantic_id, evidence_id) in zip(

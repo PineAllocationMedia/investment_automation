@@ -229,6 +229,8 @@ def capture_profile(
     captured_at=BOUNDARY_T1,
     sic=3571,
     description="Electronic Computers",
+    expected_comparability_semantic_id=None,
+    expected_comparability_evidence_id=None,
 ):
     """Build the canonical synthetic route around one Companyfacts object."""
     payload = coherent_pair_payload() if payload is None else payload
@@ -252,8 +254,16 @@ def capture_profile(
     comparability = comparability_fixture.qualify_request(request)
     profile_request = profile_module.SecOrdinaryCompounderProfileRequest(
         request,
-        comparability.semantic_id,
-        comparability.evidence_id,
+        (
+            comparability.semantic_id
+            if expected_comparability_semantic_id is None
+            else expected_comparability_semantic_id
+        ),
+        (
+            comparability.evidence_id
+            if expected_comparability_evidence_id is None
+            else expected_comparability_evidence_id
+        ),
     )
     profile = profile_module.qualify_sec_ordinary_compounder_profile(
         comparability_fixture.current_archive,

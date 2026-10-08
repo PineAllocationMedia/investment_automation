@@ -407,8 +407,8 @@ class BoundedConfidenceProjectionTests(PR5EFixtureMixin, unittest.TestCase):
         expected = {
             projection.BoundedConfidenceAnalysisKind.COMPANY_EXPECTED_RETURN:
                 (
-                    "f461d62d1901b5ebf9765cd7cebc4b42259f9fefaf9868cda9d08b4349464968",
-                    "6569c6d106d07727c0d7343dfd8d4a20c458c6445550d77028d085d837a1e0b0",
+                    "391ef27aa2748186e27d0405e33727de6d4a5d0662223742e52da2cdf6073715",
+                    "5570fc124e22edf203c6ac257f14425aaa88c1867d8c30e41a4b49473cc130c8",
                 ),
             projection.BoundedConfidenceAnalysisKind.VFV_FORWARD_EXPECTED_RETURN:
                 (
@@ -418,8 +418,8 @@ class BoundedConfidenceProjectionTests(PR5EFixtureMixin, unittest.TestCase):
             projection.BoundedConfidenceAnalysisKind.
             COMPANY_VFV_EXPECTED_RETURN_COMPARATOR:
                 (
-                    "f0a466ce2e58c29b47c9dbbd8d9b19e32515b37106313004cc7672966a2a5f3a",
-                    "6f330ed765ca4a8baf37fdc8971350bb1f9a0e74c78fecfe05504d9681cadd67",
+                    "de6259ef251d439d1ebb2e5681abe022e6768d3a5c7dc9fcb59c7c806cc02a91",
+                    "a91e57674eaa9c06954d0862b93b338c3e8345cf00c082a9322cba13a22a1739",
                 ),
             projection.BoundedConfidenceAnalysisKind.CASH_LIKE_CURRENT_CARRY:
                 (

@@ -57,11 +57,9 @@ class SecCurrentAnnualOperatingCashFlowNetIncomeTests(unittest.TestCase):
             sic=6021,
             description="National Commercial Banks",
         )
-        cls.source_conflict = replace(
-            cls.available,
-            status=profile_module.OrdinaryCompounderProfileStatus.SOURCE_CONFLICT,
-            profile=None,
-            reasons=(profile_module.ProfileReason.REPLAY_IDENTITY_MISMATCH,),
+        _, cls.source_conflict = capture_profile(
+            cls.fixture,
+            expected_comparability_evidence_id="0" * 64,
         )
 
     @classmethod
@@ -183,6 +181,71 @@ class SecCurrentAnnualOperatingCashFlowNetIncomeTests(unittest.TestCase):
                 self.assertEqual(result.selected_net_income_observation_ids, ())
                 self.assertEqual(result.supporting_accessions, ())
                 self.assertEqual(result.supporting_filings, ())
+
+    def test_genuine_replay_conflict_is_authenticated_and_projected(self):
+        self.assertIs(
+            self.source_conflict.status,
+            profile_module.OrdinaryCompounderProfileStatus.SOURCE_CONFLICT,
+        )
+        self.assertEqual(
+            self.source_conflict.reasons,
+            (profile_module.ProfileReason.REPLAY_IDENTITY_MISMATCH,),
+        )
+        self.assertEqual(
+            self.source_conflict.expected_comparability_semantic_id,
+            self.source_conflict.upstream_comparability.semantic_id,
+        )
+        self.assertNotEqual(
+            self.source_conflict.expected_comparability_evidence_id,
+            self.source_conflict.upstream_comparability.evidence_id,
+        )
+        result = self.qualify(self.source_conflict)
+        self.assertIs(
+            result.status,
+            qualifier.CurrentAnnualOperatingCashFlowNetIncomeStatus.SOURCE_CONFLICT,
+        )
+
+    def test_fabricated_replay_conflict_is_rejected(self):
+        fabricated = replace(
+            self.available,
+            status=profile_module.OrdinaryCompounderProfileStatus.SOURCE_CONFLICT,
+            profile=None,
+            reasons=(profile_module.ProfileReason.REPLAY_IDENTITY_MISMATCH,),
+        )
+        self.assertEqual(
+            fabricated.expected_comparability_semantic_id,
+            fabricated.upstream_comparability.semantic_id,
+        )
+        self.assertEqual(
+            fabricated.expected_comparability_evidence_id,
+            fabricated.upstream_comparability.evidence_id,
+        )
+        with self.assertRaises(
+            qualifier.CurrentAnnualOperatingCashFlowNetIncomeError
+        ):
+            self.qualify(fabricated)
+
+    def test_expected_replay_mutation_without_state_update_is_rejected(self):
+        mutated = replace(
+            self.available,
+            expected_comparability_semantic_id="0" * 64,
+        )
+        with self.assertRaises(
+            qualifier.CurrentAnnualOperatingCashFlowNetIncomeError
+        ):
+            self.qualify(mutated)
+
+    def test_v1_profile_contract_is_rejected(self):
+        old = replace(
+            self.available,
+            contract_version=(
+                "2026-09-29-sec-ordinary-compounder-method-profile-v1"
+            ),
+        )
+        with self.assertRaises(
+            qualifier.CurrentAnnualOperatingCashFlowNetIncomeError
+        ):
+            self.qualify(old)
 
     def test_factory_impossible_reconstructed_profile_states_are_rejected(self):
         impossible = (

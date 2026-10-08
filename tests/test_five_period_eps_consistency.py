@@ -35,11 +35,8 @@ class FivePeriodEPSConsistencyTests(unittest.TestCase):
         cls.unsupported = cls.profile_fixture.qualify(
             sic=6021, description="National Commercial Banks"
         )
-        cls.source_conflict = replace(
-            cls.available,
-            status=profile_module.OrdinaryCompounderProfileStatus.
-            SOURCE_CONFLICT,
-            reasons=(profile_module.ProfileReason.REPLAY_IDENTITY_MISMATCH,),
+        cls.source_conflict = cls.profile_fixture.qualify(
+            expected_comparability_semantic_id="0" * 64,
         )
 
     @classmethod
@@ -467,23 +464,23 @@ class FivePeriodEPSConsistencyTests(unittest.TestCase):
         cases = (
             (
                 mixed,
-                "a4de2ef8875c308d4e6e0306802093fb7224c3c58fefad919d1cacfa53220566",
-                "00c77f54f6004b7559bd0993e2e11fbee7ef9888dfb40f6787c4355ec6d0cd97",
+                "af768e8390d2f64f02e9111bc198724aa77b27a8ceb36dda4a4b5bd928d59533",
+                "24f5a8163c22e421f2b152b131ee610c1029d28225f1d857ef6fa029963e6403",
             ),
             (
                 self.analyze(self.unavailable),
-                "3283f811af8359a287d70c663584fd8a0d51a60bf2317807eb0ff09b32650d18",
-                "8305a484df7eb1f3a1ea483b6ed10bdebc20ab68b7bc48cf87368dfa316fbea2",
+                "92c5b14781d3468594dcc5783913f57bc94c85a582ac1673900a5092d09e64aa",
+                "d41a1e07642fdbeb00d18eba3a1df3d9ca8669532014e2fd6a812418c38edd3f",
             ),
             (
                 self.analyze(self.unsupported),
-                "71a5e2b16fc20020c6bdd1ddcf25fadd952340f96df47718a60d0315164e51d2",
-                "5005bdb5630327337151e0559f6e7fb31011294dc6f1329e607946622d41a7ee",
+                "430c01a2b390ab8f4c7c7d1421ab08672b23f3fe04246e6732f3a7d9541d5bca",
+                "e0671aaf3aa1cdb6d712abf7947c2a755fab2c3f9ef9b7a18304320cf7bc3ead",
             ),
             (
                 self.analyze(self.source_conflict),
-                "5d8ce99f445586bf058b96f8c87bc03b81657ce9f70dc85f421334fad3d5c1f2",
-                "d9f3e8088c7f6c08f9da46be2762b03d2d57082aa9a8c24b267e60c6709b2f4a",
+                "7ea98f9b64826c2a8d0c58b4e2cf374245421acfd031b3715dbd463c506fcc2c",
+                "43f60e21457b4b54698a29a052c9c527c19fa3d6de651e6fb29d690cd2496274",
             ),
         )
         for result, semantic_id, evidence_id in cases:

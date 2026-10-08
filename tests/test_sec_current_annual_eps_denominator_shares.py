@@ -54,10 +54,9 @@ class SecCurrentAnnualEPSDenominatorSharesTests(unittest.TestCase):
             sic=6021,
             description="National Commercial Banks",
         )
-        cls.source_conflict = replace(
-            cls.available,
-            status=profile_module.OrdinaryCompounderProfileStatus.SOURCE_CONFLICT,
-            reasons=(profile_module.ProfileReason.REPLAY_IDENTITY_MISMATCH,),
+        _, cls.source_conflict = capture_profile(
+            cls.fixture,
+            expected_comparability_semantic_id="0" * 64,
         )
 
     @classmethod
@@ -157,6 +156,71 @@ class SecCurrentAnnualEPSDenominatorSharesTests(unittest.TestCase):
                 self.assertIs(result.status, status)
                 self.assertIsNone(result.basic_weighted_average_shares)
                 self.assertIsNone(result.diluted_weighted_average_shares)
+
+    def test_genuine_replay_conflict_is_authenticated_and_projected(self):
+        self.assertIs(
+            self.source_conflict.status,
+            profile_module.OrdinaryCompounderProfileStatus.SOURCE_CONFLICT,
+        )
+        self.assertEqual(
+            self.source_conflict.reasons,
+            (profile_module.ProfileReason.REPLAY_IDENTITY_MISMATCH,),
+        )
+        self.assertNotEqual(
+            self.source_conflict.expected_comparability_semantic_id,
+            self.source_conflict.upstream_comparability.semantic_id,
+        )
+        self.assertEqual(
+            self.source_conflict.expected_comparability_evidence_id,
+            self.source_conflict.upstream_comparability.evidence_id,
+        )
+        result = self.qualify(self.source_conflict)
+        self.assertIs(
+            result.status,
+            qualifier.CurrentAnnualEPSDenominatorSharesStatus.SOURCE_CONFLICT,
+        )
+
+    def test_fabricated_replay_conflict_is_rejected(self):
+        fabricated = replace(
+            self.available,
+            status=profile_module.OrdinaryCompounderProfileStatus.SOURCE_CONFLICT,
+            profile=None,
+            reasons=(profile_module.ProfileReason.REPLAY_IDENTITY_MISMATCH,),
+        )
+        self.assertEqual(
+            fabricated.expected_comparability_semantic_id,
+            fabricated.upstream_comparability.semantic_id,
+        )
+        self.assertEqual(
+            fabricated.expected_comparability_evidence_id,
+            fabricated.upstream_comparability.evidence_id,
+        )
+        with self.assertRaises(
+            qualifier.CurrentAnnualEPSDenominatorSharesError
+        ):
+            self.qualify(fabricated)
+
+    def test_expected_replay_mutation_without_state_update_is_rejected(self):
+        mutated = replace(
+            self.available,
+            expected_comparability_evidence_id="0" * 64,
+        )
+        with self.assertRaises(
+            qualifier.CurrentAnnualEPSDenominatorSharesError
+        ):
+            self.qualify(mutated)
+
+    def test_v1_profile_contract_is_rejected(self):
+        old = replace(
+            self.available,
+            contract_version=(
+                "2026-09-29-sec-ordinary-compounder-method-profile-v1"
+            ),
+        )
+        with self.assertRaises(
+            qualifier.CurrentAnnualEPSDenominatorSharesError
+        ):
+            self.qualify(old)
 
     def test_unknown_future_profile_state_fails_programming_contract(self):
         with self.assertRaises(
@@ -752,20 +816,20 @@ class SecCurrentAnnualEPSDenominatorSharesTests(unittest.TestCase):
         )
         expected = (
             (
-                "c2cbcf83d214d9f060f15063c376f9923a0ca0a2e8ee4f23cd8926f2a325d8e3",
-                "79719e4b56414f065dee4b60f7fa5fc254813e22a8271b49c3fb605fae98a109",
+                "b947644797cea4252f420d059107b113a5da6bec4efd6b7abde44986c2409096",
+                "5a507cfbb0771260f8b8d5368d488d2859bc2202ada6c27d0b8fe3984e8580f6",
             ),
             (
-                "874f435abcf60a1af1f0192f629376c15e42d98403897a0837e0a7cca8f679cf",
-                "b62335d6f3d276c20fa45c465bd7c9ce2916952ae8ad7fb03834894451492f46",
+                "0bce0315a396ebb7a85f1decb15176ef8ec4f06fea0cf8dccba27db009e4ba3d",
+                "65b4985b7464d4fd3f070b4d8e0d8ada144f48ff7154172f1ece07421a582fd7",
             ),
             (
-                "b63119f0c685335955b889fc5c6661575ca5583fabe11fb9096d6727d5853317",
-                "52a2972efe563340fefe7c83d235fa30e8dacb5fd3c160b07cc03959a3f043e0",
+                "af71b35679077f8b30e06a22ca961bfcfc5fa5e62ce1af5215442151e22d08db",
+                "3add0704659e03b82e244884bcee85c385746f09054d79e70eaf9e1571a96c84",
             ),
             (
-                "53d14bcb38640d1e6527145e6c3eeeb27e3b761eb1855f09e7dc3d5bb0c75dc4",
-                "3ab67fc302a06d7e6c8eae18e0a940777a584c49f83f0c061d884647c7a06d63",
+                "e19661d711b2a67321054d9f0056fa71645ef67f0e0bc3a91b511431b1aba2ff",
+                "2be72640253d93524b100880fa670fe65723d37aa9c358b4a4278d14f0a9f096",
             ),
         )
         for result, (semantic_id, evidence_id) in zip(cases, expected, strict=True):
