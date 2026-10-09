@@ -3,6 +3,8 @@
 ## ACTIVE
 
 - Stage C — Quality (`ACTIVE / INCOMPLETE`).
+  - Five bounded analytical diagnostics and five bounded evidence foundations are
+    complete / canonical; no composite or aggregate Quality conclusion is authorized.
   - Complete / canonical: first bounded slice,
     `FIVE_PERIOD_DILUTED_EPS_DIRECTIONAL_CONSISTENCY`.
   - Complete / canonical: current-annual paired basic/diluted EPS-denominator evidence
@@ -30,6 +32,17 @@
     foundation, `CURRENT_ANNUAL_ASSETS_LIABILITIES_QUALIFICATION`, under
     `QUALITY_BALANCE_SHEET_EVIDENCE_ONLY` authority. It performs no arithmetic and
     creates no ratio, balance-sheet conclusion or Quality score.
+  - Complete / canonical: bounded descriptive
+    `CURRENT_ANNUAL_LIABILITIES_TO_POSITIVE_ASSETS` diagnostic under
+    `QUALITY_CURRENT_ANNUAL_LIABILITIES_TO_POSITIVE_ASSETS_DIAGNOSTIC_ONLY`
+    authority. It reports only the exact signed rational liabilities / strictly
+    positive assets relationship and creates no debt, leverage, liquidity, solvency,
+    balance-sheet-strength, Quality, scoring, ranking or investment judgment.
+  - Complete / canonical: current-annual exact PPE-acquisition cash-payments evidence
+    foundation, `CURRENT_ANNUAL_PPE_ACQUISITION_CASH_PAYMENTS_QUALIFICATION`, under
+    `QUALITY_PPE_ACQUISITION_CASH_PAYMENTS_EVIDENCE_ONLY` authority. It creates no
+    universal capex, maintenance/growth capex, free-cash-flow, owner-earnings,
+    reinvestment, Quality-score or investment judgment.
   - Immediate next substep: exactly one Architecture & Audit evidence-readiness /
     next-contract-selection Work Order to inspect current Stage-C capability and
     select/define exactly one next truthful bounded Quality contract. It may select

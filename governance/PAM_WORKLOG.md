@@ -573,3 +573,29 @@
   software/model/inference fees for this initiative absent separate CEO approval,
   licensing/provenance requirements, the Shadow Audit Export Bridge and same-or-
   easier eventual V2 operation remain unchanged.
+
+## 2026-10-09 — PR #122 diagnostic and PR #123 PPE evidence canonical
+
+- The CEO merged PR #122 as `6fd8c9358e7866ce3338a5703e6d1f56f2fd93a8`,
+  making `CURRENT_ANNUAL_LIABILITIES_TO_POSITIVE_ASSETS` canonical under
+  `QUALITY_CURRENT_ANNUAL_LIABILITIES_TO_POSITIVE_ASSETS_DIAGNOSTIC_ONLY` authority.
+  It reports only the exact signed rational liabilities / strictly positive assets
+  relationship and creates no debt, leverage, liquidity, solvency, balance-sheet-
+  strength, Quality, scoring, ranking or investment judgment.
+- The CEO merged PR #123 final reviewed head
+  `8da0680a0c8b6cc4d1dee98d5d4079ed379872fa` as
+  `829566e5d412aa4f82435642486f6328417fe8af`, making
+  `CURRENT_ANNUAL_PPE_ACQUISITION_CASH_PAYMENTS_QUALIFICATION` canonical under
+  `QUALITY_PPE_ACQUISITION_CASH_PAYMENTS_EVIDENCE_ONLY` authority. It preserves exact
+  `us-gaap:PaymentsToAcquirePropertyPlantAndEquipment` in `USD` for the canonical
+  latest annual duration and creates no universal capex, maintenance/growth capex,
+  free-cash-flow, owner-earnings, reinvestment, Quality-score or investment judgment.
+- PR #123 included the required factory-reachability correction; independent rereview
+  cleared it. GitHub Baseline V1 CI #157 completed successfully on the corrected final
+  head; GitHub also records successful Baseline V1 CI for PR #122.
+- Stage C remains `ACTIVE / INCOMPLETE`, now with five canonical bounded diagnostics
+  and five canonical bounded evidence foundations. Exactly one Architecture & Audit
+  evidence-readiness / next-contract-selection review is next; no next Quality
+  contract or Codex implementation is selected. Neither milestone creates aggregate
+  Quality, recommendation, ranking, allocation, execution, production, deployment or
+  V2-promotion authority.
