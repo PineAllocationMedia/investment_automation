@@ -3,44 +3,47 @@
 > Two-to-five-minute operational snapshot. Refresh through Governance Sync after
 > durable state changes.
 
-- **Last Governance Sync:** records canonical PR #120 current-annual assets/liabilities
-  evidence qualification and CEO approval to preserve nine evaluated technology
-  opportunities as `PARKED`, without implementation authority or changed Stage-C
-  sequencing (2026-10-09)
+- **Last Governance Sync:** records canonical PR #122 current-annual liabilities /
+  positive-assets diagnostic and PR #123 current-annual PPE-acquisition cash-payments
+  evidence qualification, without policy, capability-authority or Stage-C sequencing
+  expansion (2026-10-09)
 - **Current major program:** Stage C — Quality
 - **Parallel CEO-approved GTM initiative:** bounded Blossom audience-growth mandate for `@therealpam`, owned by Marketing & GTM; audience value first, PAM promotion secondary, human approval required before publication
 - **Active technical frontier:** exactly one Architecture & Audit Work Order to
   inspect current Stage-C evidence/capability readiness and select/define exactly one
   next truthful bounded Quality contract
 - **Canonical integration branch:** `model-v2/expected-return-challenger`
-- **Canonical verified pre-this-sync HEAD:** `5c8fb065caaa39e91d6d9b86ae6e1ba9c185565d`
-- **Canonical verified tree:** `5f88bb401b01c0142706590a6e2475f840355c3b`
-- **Current status:** Stage C — Quality is `ACTIVE / INCOMPLETE`. Its four bounded
-  analytical diagnostics and four bounded evidence foundations are complete and
+- **Canonical verified pre-this-sync HEAD:** `829566e5d412aa4f82435642486f6328417fe8af`
+- **Canonical verified tree:** `c042c83c27cd879b0dfcd9a457e95808c2b00ece`
+- **Current status:** Stage C — Quality is `ACTIVE / INCOMPLETE`. Its five bounded
+  analytical diagnostics and five bounded evidence foundations are complete and
   canonical. No composite Quality score or aggregation is authorized.
 - **Canonical Stage-C diagnostics:**
   `FIVE_PERIOD_DILUTED_EPS_DIRECTIONAL_CONSISTENCY` and
   `CURRENT_ANNUAL_EPS_DENOMINATOR_DILUTION` and
   `CURRENT_ANNUAL_OCF_TO_POSITIVE_NET_INCOME` and
-  `CURRENT_ANNUAL_OPERATING_INCOME_TO_POSITIVE_REVENUE`
+  `CURRENT_ANNUAL_OPERATING_INCOME_TO_POSITIVE_REVENUE` and
+  `CURRENT_ANNUAL_LIABILITIES_TO_POSITIVE_ASSETS`
 - **Canonical Stage-C evidence foundations:**
   `CURRENT_ANNUAL_EPS_DENOMINATOR_SHARES_QUALIFICATION` and
   `CURRENT_ANNUAL_OPERATING_CASH_FLOW_NET_INCOME_QUALIFICATION` and
   `CURRENT_ANNUAL_REVENUE_OPERATING_INCOME_QUALIFICATION` and
-  `CURRENT_ANNUAL_ASSETS_LIABILITIES_QUALIFICATION`
-- **Latest completed technical milestone:** PR #120,
-  `CURRENT_ANNUAL_ASSETS_LIABILITIES_QUALIFICATION`, preserving one coherent paired
-  annual SEC Companyfacts presentation of exact `us-gaap:Assets` and
-  `us-gaap:Liabilities` in `USD` under `QUALITY_BALANCE_SHEET_EVIDENCE_ONLY`
-  authority. It performs no arithmetic and establishes no ratio, leverage,
-  liquidity, solvency, balance-sheet-strength or Quality conclusion.
-- **Latest completed Stage-C analytical diagnostic:** PR #117,
-  `CURRENT_ANNUAL_OPERATING_INCOME_TO_POSITIVE_REVENUE`, reporting the exact bounded
-  relationship between qualified annual operating income and strictly positive
-  qualified annual revenue under
-  `QUALITY_CURRENT_ANNUAL_OPERATING_INCOME_TO_POSITIVE_REVENUE_DIAGNOSTIC_ONLY`
-  authority, with no profitability judgment or universally comparable operating-
-  margin claim
+  `CURRENT_ANNUAL_ASSETS_LIABILITIES_QUALIFICATION` and
+  `CURRENT_ANNUAL_PPE_ACQUISITION_CASH_PAYMENTS_QUALIFICATION`
+- **Latest completed technical milestone:** PR #123,
+  `CURRENT_ANNUAL_PPE_ACQUISITION_CASH_PAYMENTS_QUALIFICATION`, preserving exact
+  `us-gaap:PaymentsToAcquirePropertyPlantAndEquipment` in `USD` for the canonical
+  latest annual duration under
+  `QUALITY_PPE_ACQUISITION_CASH_PAYMENTS_EVIDENCE_ONLY` authority. It establishes no
+  universal capex, maintenance/growth capex, free-cash-flow, owner-earnings,
+  reinvestment, Quality-score or investment conclusion.
+- **Latest completed Stage-C analytical diagnostic:** PR #122,
+  `CURRENT_ANNUAL_LIABILITIES_TO_POSITIVE_ASSETS`, reporting the exact signed rational
+  relationship between qualified annual liabilities and strictly positive qualified
+  annual assets under
+  `QUALITY_CURRENT_ANNUAL_LIABILITIES_TO_POSITIVE_ASSETS_DIAGNOSTIC_ONLY` authority,
+  with no debt, leverage, liquidity, solvency, balance-sheet-strength, Quality,
+  scoring, ranking or investment conclusion
 - **Latest completed shared trust-boundary infrastructure:** PR #115,
   ordinary-compounder profile contract v2 with preserved expected comparability
   semantic/evidence identities and independently authenticated replay mismatch
@@ -263,6 +266,19 @@
   annual reporting date, not `HISTORICAL_AS_OF` or PIT evidence. It performs no
   arithmetic and creates no liabilities/assets, debt, leverage, liquidity,
   solvency, balance-sheet-strength, cross-issuer, Quality-score or investment claim.
+- The canonical `CURRENT_ANNUAL_LIABILITIES_TO_POSITIVE_ASSETS` diagnostic reports
+  the exact signed rational liabilities / assets relationship only when qualified
+  reported assets are strictly positive. It is bounded and descriptive under
+  `QUALITY_CURRENT_ANNUAL_LIABILITIES_TO_POSITIVE_ASSETS_DIAGNOSTIC_ONLY` authority.
+  It creates no debt, leverage, liquidity, solvency, balance-sheet-strength, Quality,
+  scoring, ranking or investment judgment.
+- The canonical `CURRENT_ANNUAL_PPE_ACQUISITION_CASH_PAYMENTS_QUALIFICATION`
+  foundation preserves exact
+  `us-gaap:PaymentsToAcquirePropertyPlantAndEquipment` in `USD` for the canonical
+  latest annual duration under
+  `QUALITY_PPE_ACQUISITION_CASH_PAYMENTS_EVIDENCE_ONLY` authority. It is evidence
+  only and creates no universal capex, maintenance/growth capex, free-cash-flow,
+  owner-earnings, reinvestment, Quality-score or investment judgment.
 - A six-document SEC exploratory SQLite FTS5/BM25 pilot completed on MacBook and
   reported reproducible indexing and offline retrieval. Independent review verified
   package integrity and recalculated document-level measurements, but passage-level
@@ -287,7 +303,7 @@
   remain unchanged. The higher ceiling does not guarantee that every future
   `FULL_PIT` execution will complete within 60 minutes and grants no technical,
   model, investment or authority expansion.
-- Stage C remains active and incomplete. Its four diagnostics and four evidence
+- Stage C remains active and incomplete. Its five diagnostics and five evidence
   foundations are canonical. Exactly one Architecture & Audit Work Order
   must inspect current evidence/capability readiness and select/define exactly one
   next truthful bounded Quality contract; it may select an evidence foundation first.
@@ -303,5 +319,5 @@
 - `DECISIONS.md`
 - `governance/roles/*.md`
 
-The HEAD/tree above are the verified canonical state after PR #117 and before this
+The HEAD/tree above are the verified canonical state after PR #123 and before this
 Governance Sync, not the future merge commit of this Governance Sync PR.
