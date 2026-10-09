@@ -539,3 +539,37 @@
   Architecture & Audit evidence-readiness / next-contract-selection Work Order to
   select/define exactly one next truthful bounded Quality contract, optionally an
   evidence foundation first. No next dimension or Codex implementation is queued.
+
+## 2026-10-09 — PR #120 assets/liabilities evidence and technology opportunities recorded
+
+- The CEO merged PR #120 as `5c8fb065caaa39e91d6d9b86ae6e1ba9c185565d`,
+  tree `5f88bb401b01c0142706590a6e2475f840355c3b`, making
+  `CURRENT_ANNUAL_ASSETS_LIABILITIES_QUALIFICATION` canonical under exact
+  `QUALITY_BALANCE_SHEET_EVIDENCE_ONLY` authority.
+- The foundation preserves one coherent paired annual SEC Companyfacts presentation
+  of exact `us-gaap:Assets` and `us-gaap:Liabilities` in `USD`. It performs no
+  arithmetic and creates no ratio, debt, leverage, liquidity, solvency, balance-sheet-
+  strength, cross-issuer, Quality-score, investment, production or PIT authority.
+- Stage C remains `ACTIVE / INCOMPLETE`, now with four canonical diagnostics and four
+  canonical evidence foundations. Its existing next-contract-selection sequence is
+  unchanged: exactly one Architecture & Audit Work Order selects/defines exactly one
+  next truthful bounded Quality contract. No next dimension, aggregate score or Codex
+  implementation task is selected.
+- The CEO approved preservation and periodic reconsideration of nine evaluated
+  technology opportunities in the Opportunity Backlog: SQLite FTS5/BM25, Hypothesis,
+  MiniLM-L3, GLEIF, OpenFIGI, DuckDB/Parquet, FRED/ALFRED, conditional FinBERT/
+  TinyBERT/spaCy, and targeted improvements to existing OCR/Tesseract capabilities.
+  Every entry is `PARKED`, not `PROMOTED`; this is not implementation, roadmap,
+  spending, production or automatic-activation authority.
+- The six-document SEC exploratory FTS5/BM25 pilot completed on MacBook and reported
+  reproducible indexing and offline retrieval. Independent review verified package
+  integrity and recalculated document-level measurements. Passage relevance is not
+  independently human-validated; human review remains blocked; Chromebook
+  compatibility is `NOT VERIFIED`; source-location and issuer-scoping limitations
+  remain unresolved; and no FTS5 implementation exists in canonical PAM. Exploratory
+  document hit rates are not recorded as validated retrieval recall.
+- V1 frozen operational authority, V2 challenger status, existing roadmap/sequencing,
+  hard-zero recurring external financial-data expenditure, zero additional recurring
+  software/model/inference fees for this initiative absent separate CEO approval,
+  licensing/provenance requirements, the Shadow Audit Export Bridge and same-or-
+  easier eventual V2 operation remain unchanged.

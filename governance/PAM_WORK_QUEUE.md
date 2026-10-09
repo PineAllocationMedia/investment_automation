@@ -26,6 +26,10 @@
     `CURRENT_ANNUAL_OPERATING_INCOME_TO_POSITIVE_REVENUE` diagnostic under
     `QUALITY_CURRENT_ANNUAL_OPERATING_INCOME_TO_POSITIVE_REVENUE_DIAGNOSTIC_ONLY`
     authority.
+  - Complete / canonical: paired current-annual exact Assets/Liabilities evidence
+    foundation, `CURRENT_ANNUAL_ASSETS_LIABILITIES_QUALIFICATION`, under
+    `QUALITY_BALANCE_SHEET_EVIDENCE_ONLY` authority. It performs no arithmetic and
+    creates no ratio, balance-sheet conclusion or Quality score.
   - Immediate next substep: exactly one Architecture & Audit evidence-readiness /
     next-contract-selection Work Order to inspect current Stage-C capability and
     select/define exactly one next truthful bounded Quality contract. It may select
@@ -72,6 +76,9 @@ None.
 ## QUEUED
 
 None.
+
+The evaluated technology opportunities are `PARKED` in
+`PAM_OPPORTUNITY_BACKLOG.md`; none is a queued Work Order or implementation task.
 
 ## TRIGGER-BASED / DORMANT
 

@@ -3,21 +3,20 @@
 > Two-to-five-minute operational snapshot. Refresh through Governance Sync after
 > durable state changes.
 
-- **Last Governance Sync:** records canonical PR #118 Baseline V1 CI FULL_PIT runtime-
-  capacity correction and canonical PR #117 current-annual operating-income-to-
-  positive-revenue diagnostic, while preserving the hard `$0` external-data-cost
-  constraint, durable storage/memory discipline, the Shadow Audit Export Bridge
-  requirement and same-or-easier V2 operator UX (2026-10-08)
+- **Last Governance Sync:** records canonical PR #120 current-annual assets/liabilities
+  evidence qualification and CEO approval to preserve nine evaluated technology
+  opportunities as `PARKED`, without implementation authority or changed Stage-C
+  sequencing (2026-10-09)
 - **Current major program:** Stage C — Quality
 - **Parallel CEO-approved GTM initiative:** bounded Blossom audience-growth mandate for `@therealpam`, owned by Marketing & GTM; audience value first, PAM promotion secondary, human approval required before publication
 - **Active technical frontier:** exactly one Architecture & Audit Work Order to
   inspect current Stage-C evidence/capability readiness and select/define exactly one
   next truthful bounded Quality contract
 - **Canonical integration branch:** `model-v2/expected-return-challenger`
-- **Canonical verified pre-this-sync HEAD:** `53eef289bd3e854c51323dde4160b820a1195c4e`
-- **Canonical verified tree:** `383bef33d58bdd9922b01ec822dd6cb4995f8d20`
+- **Canonical verified pre-this-sync HEAD:** `5c8fb065caaa39e91d6d9b86ae6e1ba9c185565d`
+- **Canonical verified tree:** `5f88bb401b01c0142706590a6e2475f840355c3b`
 - **Current status:** Stage C — Quality is `ACTIVE / INCOMPLETE`. Its four bounded
-  analytical diagnostics and three bounded evidence foundations are complete and
+  analytical diagnostics and four bounded evidence foundations are complete and
   canonical. No composite Quality score or aggregation is authorized.
 - **Canonical Stage-C diagnostics:**
   `FIVE_PERIOD_DILUTED_EPS_DIRECTIONAL_CONSISTENCY` and
@@ -27,8 +26,15 @@
 - **Canonical Stage-C evidence foundations:**
   `CURRENT_ANNUAL_EPS_DENOMINATOR_SHARES_QUALIFICATION` and
   `CURRENT_ANNUAL_OPERATING_CASH_FLOW_NET_INCOME_QUALIFICATION` and
-  `CURRENT_ANNUAL_REVENUE_OPERATING_INCOME_QUALIFICATION`
-- **Latest completed technical milestone:** PR #117,
+  `CURRENT_ANNUAL_REVENUE_OPERATING_INCOME_QUALIFICATION` and
+  `CURRENT_ANNUAL_ASSETS_LIABILITIES_QUALIFICATION`
+- **Latest completed technical milestone:** PR #120,
+  `CURRENT_ANNUAL_ASSETS_LIABILITIES_QUALIFICATION`, preserving one coherent paired
+  annual SEC Companyfacts presentation of exact `us-gaap:Assets` and
+  `us-gaap:Liabilities` in `USD` under `QUALITY_BALANCE_SHEET_EVIDENCE_ONLY`
+  authority. It performs no arithmetic and establishes no ratio, leverage,
+  liquidity, solvency, balance-sheet-strength or Quality conclusion.
+- **Latest completed Stage-C analytical diagnostic:** PR #117,
   `CURRENT_ANNUAL_OPERATING_INCOME_TO_POSITIVE_REVENUE`, reporting the exact bounded
   relationship between qualified annual operating income and strictly positive
   qualified annual revenue under
@@ -82,6 +88,14 @@
   Paid external financial-data sources are outside the plan unless a future explicit
   CEO decision supersedes it. Free access does not waive licensing, permitted-use or
   commercial-redistribution constraints.
+- The parked technology initiative has a hard `$0` additional recurring software,
+  model or inference-fee constraint unless the CEO separately approves an exception.
+  Preservation in the Opportunity Backlog is not implementation or spending authority.
+- Licensing, permitted use, provenance and commercial-redistribution review remain
+  mandatory for every future source or technology activation.
+- The pre-shadow Shadow Audit Export Bridge remains required, and eventual V2
+  operation must be same-or-easier than V1 for the owner. Neither safeguard is
+  changed by the parked technology opportunities.
 - Expected Return remains diagnostic/challenger functionality. It grants no
   production, recommendation, allocation, execution, deployment or promotion authority.
 - The supported real route is bounded, route-local and nonpayer-only. Payer support
@@ -242,6 +256,20 @@
   grade or ranking, Durability, Expected Return, Confidence, recommendation,
   allocation, execution, production, deployment, V2-promotion, `HISTORICAL_AS_OF`
   or PIT authority.
+- The canonical `CURRENT_ANNUAL_ASSETS_LIABILITIES_QUALIFICATION` foundation
+  preserves one coherent paired annual SEC Companyfacts presentation of exact
+  `us-gaap:Assets` and `us-gaap:Liabilities` in `USD` under
+  `QUALITY_BALANCE_SHEET_EVIDENCE_ONLY`. It is CURRENT evidence about one historical
+  annual reporting date, not `HISTORICAL_AS_OF` or PIT evidence. It performs no
+  arithmetic and creates no liabilities/assets, debt, leverage, liquidity,
+  solvency, balance-sheet-strength, cross-issuer, Quality-score or investment claim.
+- A six-document SEC exploratory SQLite FTS5/BM25 pilot completed on MacBook and
+  reported reproducible indexing and offline retrieval. Independent review verified
+  package integrity and recalculated document-level measurements, but passage-level
+  relevance has not been independently human-validated and human-review work remains
+  blocked. Chromebook compatibility is `NOT VERIFIED`; source-location and issuer-
+  scoping limitations remain unresolved. No canonical PAM FTS5 implementation exists,
+  and exploratory document hit rates are not validated retrieval recall.
 - Canonical Development Workflow Automation v1 provides one deterministic local
   orchestration surface through `./pam_preflight --base <ref-or-sha>`. It reuses the
   canonical validation planner and preserves `DOCS_ONLY / STANDARD / FULL_PIT`; the
@@ -259,7 +287,8 @@
   remain unchanged. The higher ceiling does not guarantee that every future
   `FULL_PIT` execution will complete within 60 minutes and grants no technical,
   model, investment or authority expansion.
-- Stage C remains active and incomplete. Exactly one Architecture & Audit Work Order
+- Stage C remains active and incomplete. Its four diagnostics and four evidence
+  foundations are canonical. Exactly one Architecture & Audit Work Order
   must inspect current evidence/capability readiness and select/define exactly one
   next truthful bounded Quality contract; it may select an evidence foundation first.
   No next Quality dimension, aggregate score or Codex implementation task is selected.
