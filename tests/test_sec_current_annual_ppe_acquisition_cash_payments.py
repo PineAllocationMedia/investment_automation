@@ -15,7 +15,13 @@ from economic_facts import sec_ppe_acquisition_cash_payments as extraction
 from economic_facts import sec_ordinary_compounder_profile as profile_module
 from economic_facts.sec_archive import ArchiveError, SecArchive
 from tests import test_sec_current_eps_comparability_qualification as comparability_tests
+from tests import test_sec_ordinary_compounder_profile as profile_tests
+from tests.sec_current_security_eps_qualification_fixtures import (
+    VALUES,
+    companyfacts_rows,
+)
 from tests.sec_filing_fixtures import raw
+from tests.sec_five_year_eps_presentation_fixtures import five_year_table
 from tests.sec_ppe_acquisition_cash_payments_fixtures import (
     LATEST_ACCESSION,
     PPE_ACQUISITION_CASH_PAYMENTS_VALUE,
@@ -73,6 +79,16 @@ class SecCurrentAnnualPPEAcquisitionCashPaymentsTests(unittest.TestCase):
             captured_at=captured_at,
         )[1]
 
+    @staticmethod
+    def replace_decision(profile, structure, **changes):
+        return replace(
+            profile,
+            decisions=tuple(
+                replace(item, **changes) if item.profile is structure else item
+                for item in profile.decisions
+            ),
+        )
+
     def extract(self, payload, *, content=None):
         with tempfile.TemporaryDirectory() as temporary:
             archive = SecArchive(Path(temporary).resolve() / "archive")
@@ -125,6 +141,11 @@ class SecCurrentAnnualPPEAcquisitionCashPaymentsTests(unittest.TestCase):
                     )
 
     def test_establishes_exact_reported_value_without_analysis(self):
+        self.assertIs(
+            self.available.status,
+            profile_module.OrdinaryCompounderProfileStatus.
+            ORDINARY_COMPOUNDER_PROFILE_ESTABLISHED,
+        )
         result = self.qualify()
         self.assertIs(
             result.status,
@@ -248,6 +269,180 @@ class SecCurrentAnnualPPEAcquisitionCashPaymentsTests(unittest.TestCase):
                 qualifier.CurrentAnnualPPEAcquisitionCashPaymentsError
             ):
                 self.qualify(profile)
+
+    def test_unsupported_bank_profile_cannot_be_forged_into_established(self):
+        bank = next(
+            item for item in self.unsupported.decisions
+            if item.profile is profile_module.UnsupportedStructure.BANK
+        )
+        self.assertIs(
+            self.unsupported.status,
+            profile_module.OrdinaryCompounderProfileStatus.PROFILE_UNSUPPORTED,
+        )
+        self.assertIs(
+            bank.decision,
+            profile_module.ProfileDecisionValue.NOT_EXCLUDED,
+        )
+        forged = self.replace_decision(
+            self.unsupported,
+            profile_module.UnsupportedStructure.BANK,
+            decision=profile_module.ProfileDecisionValue.EXCLUDED,
+            reason="SEC_SIC_PROFILE_EXCLUDED:6021:National Commercial Banks",
+        )
+        forged = replace(
+            forged,
+            status=(
+                profile_module.OrdinaryCompounderProfileStatus.
+                ORDINARY_COMPOUNDER_PROFILE_ESTABLISHED
+            ),
+            profile=profile_module.PROFILE,
+            reasons=(),
+        )
+        with self.assertRaises(
+            qualifier.CurrentAnnualPPEAcquisitionCashPaymentsError
+        ):
+            self.qualify(forged)
+
+    def test_profile_reasons_require_their_exact_factory_conditions(self):
+        fabricated = (
+            profile_module.ProfileReason.PR5C_NOT_ESTABLISHED,
+            profile_module.ProfileReason.SIC_MISSING_OR_INVALID,
+            profile_module.ProfileReason.SIC_DESCRIPTION_MISSING_OR_INVALID,
+            profile_module.ProfileReason.
+            REPORTING_SUBJECT_STABILITY_NOT_ESTABLISHED,
+            profile_module.ProfileReason.MIXED_STRUCTURE_UNRESOLVED,
+        )
+        for reason in fabricated:
+            forged = replace(
+                self.available,
+                status=(
+                    profile_module.OrdinaryCompounderProfileStatus.
+                    PROFILE_UNAVAILABLE
+                ),
+                profile=None,
+                reasons=(reason,),
+            )
+            with self.subTest(reason=reason), self.assertRaises(
+                qualifier.CurrentAnnualPPEAcquisitionCashPaymentsError
+            ):
+                self.qualify(forged)
+
+    def test_unsupported_reason_requires_reachable_structural_decision(self):
+        forged = replace(
+            self.available,
+            status=(
+                profile_module.OrdinaryCompounderProfileStatus.
+                PROFILE_UNSUPPORTED
+            ),
+            profile=None,
+            reasons=(profile_module.ProfileReason.UNSUPPORTED_SIC_PROFILE,),
+        )
+        self.assertTrue(all(
+            item.decision is profile_module.ProfileDecisionValue.EXCLUDED
+            for item in forged.decisions
+        ))
+        with self.assertRaises(
+            qualifier.CurrentAnnualPPEAcquisitionCashPaymentsError
+        ):
+            self.qualify(forged)
+
+    def test_structural_decision_semantics_and_support_are_factory_exact(self):
+        cases = (
+            self.replace_decision(
+                self.available,
+                profile_module.UnsupportedStructure.BANK,
+                decision=profile_module.ProfileDecisionValue.NOT_EXCLUDED,
+            ),
+            self.replace_decision(
+                self.available,
+                profile_module.UnsupportedStructure.REIT,
+                reason="SEC_SIC_PROFILE_MATCH:3571:Electronic Computers",
+            ),
+            self.replace_decision(
+                self.available,
+                profile_module.UnsupportedStructure.TURNAROUND,
+                supporting_semantic_ids=("0" * 64,),
+            ),
+            self.replace_decision(
+                self.available,
+                profile_module.UnsupportedStructure.LOSS_MAKING,
+                supporting_evidence_ids=("0" * 64,),
+            ),
+        )
+        for profile in cases:
+            with self.subTest(profile=profile), self.assertRaises(
+                qualifier.CurrentAnnualPPEAcquisitionCashPaymentsError
+            ):
+                self.qualify(profile)
+
+    def test_genuine_turnaround_loss_and_mixed_states_are_preserved(self):
+        factory = profile_tests.OrdinaryCompounderProfileTests(
+            methodName="runTest"
+        )
+        factory.setUp()
+        self.addCleanup(factory.doCleanups)
+        transition = factory.qualify(
+            filings=factory.bridge_fixture.comparability.filings(claims=(
+                "Old Fiction was the predecessor, and New Fiction became the successor.",
+            )),
+        )
+        mixed = factory.qualify(
+            filings=factory.bridge_fixture.comparability.filings(claims=(
+                "These are combined financial statements.",
+            )),
+        )
+        rows = companyfacts_rows()
+        for row in rows:
+            if row["fy"] == 2024:
+                row["val"] = -1
+        values = dict(VALUES)
+        values[2024] = Decimal("-1")
+        loss_making = factory.qualify(
+            current=factory.bridge_fixture.comparability.current(rows=rows),
+            filings=factory.bridge_fixture.comparability.filings(
+                table=five_year_table(values=values),
+                value_overrides={2024: Decimal("-1")},
+            ),
+        )
+        archive = factory.bridge_fixture.comparability.current_archive
+        cases = (
+            (
+                transition,
+                profile_module.OrdinaryCompounderProfileStatus.PROFILE_UNAVAILABLE,
+                profile_module.ProfileReason.
+                REPORTING_SUBJECT_STABILITY_NOT_ESTABLISHED,
+                qualifier.CurrentAnnualPPEAcquisitionCashPaymentsStatus.
+                EVIDENCE_UNAVAILABLE,
+            ),
+            (
+                mixed,
+                profile_module.OrdinaryCompounderProfileStatus.PROFILE_UNAVAILABLE,
+                profile_module.ProfileReason.MIXED_STRUCTURE_UNRESOLVED,
+                qualifier.CurrentAnnualPPEAcquisitionCashPaymentsStatus.
+                EVIDENCE_UNAVAILABLE,
+            ),
+            (
+                loss_making,
+                profile_module.OrdinaryCompounderProfileStatus.PROFILE_UNSUPPORTED,
+                profile_module.ProfileReason.
+                POSITIVE_FIVE_PERIOD_ROUTE_NOT_ESTABLISHED,
+                qualifier.CurrentAnnualPPEAcquisitionCashPaymentsStatus.
+                EVIDENCE_UNSUPPORTED,
+            ),
+        )
+        for profile, upstream_status, upstream_reason, local_status in cases:
+            with self.subTest(upstream_status=upstream_status):
+                self.assertIs(profile.status, upstream_status)
+                self.assertIn(upstream_reason, profile.reasons)
+                result = (
+                    qualifier.
+                    qualify_sec_current_annual_ppe_acquisition_cash_payments(
+                        archive,
+                        profile,
+                    )
+                )
+                self.assertIs(result.status, local_status)
+                self.assertIsNone(result.ppe_acquisition_cash_payments)
 
     def test_established_profile_and_period_chain_must_remain_canonical(self):
         periods = list(self.available.upstream_comparability.period_decisions)
@@ -666,19 +861,39 @@ class SecCurrentAnnualPPEAcquisitionCashPaymentsTests(unittest.TestCase):
 
     def test_legitimate_recapture_preserves_semantics_and_changes_evidence(self):
         first = self.qualify()
-        second = replace(
-            first,
-            upstream_profile_semantic_id="9" * 64,
-            upstream_comparability_semantic_id="8" * 64,
-            upstream_profile_evidence_id="f" * 64,
-            upstream_comparability_evidence_id="e" * 64,
-            capture_receipt_id="d" * 64,
-            source_object_hash="c" * 64,
-            captured_at="2025-03-02T12:00:00Z",
-            selected_observation_ids=("b" * 64,),
+        recapture_fixture = comparability_tests.SecCurrentEPSComparabilityTests(
+            methodName="runTest"
         )
-        self.assertEqual(first.semantic_id, second.semantic_id)
-        self.assertNotEqual(first.evidence_id, second.evidence_id)
+        recapture_fixture.setUp()
+        self.addCleanup(recapture_fixture.doCleanups)
+        _, recaptured_profile = capture_profile(
+            recapture_fixture,
+            reverse=True,
+            captured_at=BOUNDARY_T1,
+        )
+        recaptured = (
+            qualifier.qualify_sec_current_annual_ppe_acquisition_cash_payments(
+                recapture_fixture.current_archive,
+                recaptured_profile,
+            )
+        )
+        self.assertEqual(
+            first.ppe_acquisition_cash_payments,
+            recaptured.ppe_acquisition_cash_payments,
+        )
+        self.assertEqual(first.source_cik, recaptured.source_cik)
+        self.assertEqual(first.period_start, recaptured.period_start)
+        self.assertEqual(first.period_end, recaptured.period_end)
+        self.assertEqual(first.semantic_id, recaptured.semantic_id)
+        self.assertNotEqual(first.evidence_id, recaptured.evidence_id)
+        self.assertNotEqual(
+            first.capture_receipt_id,
+            recaptured.capture_receipt_id,
+        )
+        self.assertNotEqual(
+            first.source_object_hash,
+            recaptured.source_object_hash,
+        )
         changed_value = replace(
             first,
             ppe_acquisition_cash_payments=(
