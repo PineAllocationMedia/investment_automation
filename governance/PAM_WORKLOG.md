@@ -599,3 +599,51 @@
   contract or Codex implementation is selected. Neither milestone creates aggregate
   Quality, recommendation, ranking, allocation, execution, production, deployment or
   V2-promotion authority.
+
+## 2026-10-10 — PR #125 OCF correction and PR #126 sixth Quality diagnostic canonical
+
+- PR #125 feature head `39005aa6f53be1820b274efe09d7231137857b26` merged as
+  `0aa74e8ad66bee7c1c3ae33754dcbadb3edb916f`. It made the existing
+  `CURRENT_ANNUAL_OPERATING_CASH_FLOW_NET_INCOME_QUALIFICATION` reconstruct the
+  canonical ordinary-compounder factory projection and require equality with the
+  supplied profile, rejecting factory-impossible states, structural decisions,
+  reasons and supporting identities while preserving genuine established,
+  unsupported, unavailable and conflict projections. It changed no economic facts,
+  source rules, contract version, methodology or
+  `QUALITY_CASH_CONVERSION_EVIDENCE_ONLY` authority and is not a sixth evidence
+  foundation.
+- PR #126 feature head `cb14188989a6b38abe4da7777f6b9539eaa7aaf8` merged as
+  `0c85180c83032d90774ff101cca9d5d6298522d7`, tree
+  `8e08ded91ebcb261d5d20ecc3ec8b6e7920c953d`. It canonically established
+  `CURRENT_ANNUAL_OCF_LESS_PPE_ACQUISITION_CASH_PAYMENTS` under contract
+  `2026-10-09-current-annual-ocf-less-ppe-acquisition-cash-payments-diagnostic-v1`,
+  methodology `2026-10-09-exact-base-ten-ocf-minus-ppe-cash-payments-v1` and
+  `QUALITY_CURRENT_ANNUAL_OCF_LESS_PPE_ACQUISITION_CASH_PAYMENTS_DIAGNOSTIC_ONLY`
+  authority. The diagnostic reports exact signed qualified annual OCF minus exact
+  signed qualified annual PP&E acquisition cash payments only for compatible issuer,
+  period, accounting semantics and coherent common selected annual filing provenance.
+- PR #126 intentionally excludes net income and capture-dependent upstream identities
+  from analytical `semantic_id` while retaining actual upstream provenance in
+  evidence identity, supporting legitimate independent recapture without shared
+  receipts or upstream semantic IDs. It creates no universal free cash flow, owner
+  earnings, distributable cash, total capex/reinvestment, Quality judgment, ranking,
+  recommendation or investment authority and is not an evidence foundation.
+- Architecture & Audit independently returned `MERGE READY` for both PRs. Codex
+  reported local PR #125 `STANDARD` validation at 3,281/3,281 tests and PR #126
+  `FULL_PIT` validation at 3,302/3,302 tests, including two heavyweight PIT tests;
+  these totals are implementer-reported local evidence. Independently observed GitHub
+  Baseline V1 CI #159 for PR #125 and #160 for PR #126 both completed successfully.
+- The OCF/net-income evidence foundation retains a pre-existing identity-contract
+  defect: authentic unchanged-economic recapture can change its `semantic_id`
+  because upstream comparability/profile semantic identities incorporate evidence-
+  derived information. PR #125 did not introduce, change or fix that behavior. PR
+  #126 isolates its analytical semantics from the affected identifiers and was
+  independently cleared; the debt is not a blocker and no redesign Work Order is
+  activated.
+- Stage C remains `ACTIVE / INCOMPLETE` with six canonical diagnostics and five
+  canonical evidence foundations. Exactly one new, separate Architecture & Audit
+  evidence-readiness / next-contract-selection Work Order is next. It may select an
+  evidence foundation first; no seventh diagnostic, sixth evidence foundation,
+  aggregate Quality object or Codex implementation task is predetermined. V1 frozen
+  authority, V2 challenger status, B2 `UNAVAILABLE / DEFERRED`, Blossom scope and all
+  investment/production safeguards remain unchanged.
