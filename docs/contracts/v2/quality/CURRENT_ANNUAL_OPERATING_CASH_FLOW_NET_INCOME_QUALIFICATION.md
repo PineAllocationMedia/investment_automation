@@ -3,7 +3,7 @@
 ## Contract identity
 
 - Contract version:
-  `2026-10-05-current-annual-operating-cash-flow-net-income-qualification-v1`
+  `2026-10-10-current-annual-operating-cash-flow-net-income-qualification-v2`
 - Qualifier version:
   `2026-10-05-paired-common-filing-exact-decimal-usd-qualification-v1`
 - Evidence kind:
@@ -179,37 +179,72 @@ accessions or masquerade as evidence for both concepts.
 
 ## Identity
 
+### Version boundary
+
+The legacy contract
+`2026-10-05-current-annual-operating-cash-flow-net-income-qualification-v1`
+bound actual route-local issuer/security keys and upstream profile/comparability
+semantic IDs into `semantic_id`. Those upstream IDs can be capture-sensitive;
+therefore genuine recapture could change the legacy semantic ID with unchanged
+qualified economics. This was an identity-contract defect, not evidence of
+incorrect accounting values.
+
+The v2 contract corrects only the semantic/evidence projection. The qualifier
+methodology remains
+`2026-10-05-paired-common-filing-exact-decimal-usd-qualification-v1`.
+Previously produced v1 semantic and evidence IDs remain version-scoped legacy
+identities. They must not be silently equated to v2 IDs. No cache migration,
+persistence rewrite, bulk requalification or dual-version execution is provided
+or authorized.
+
+### v2 economic semantics
+
 `semantic_id` binds:
 
-- versions, evidence kind, capability state and reasons;
-- native profile state and reasons;
-- route identities and source CIK;
-- upstream profile/comparability semantic identities;
-- exact period, namespace, accounting basis, concepts and unit;
-- canonical exact numeric values when established; and
-- authority and limitations.
+- contract and qualifier versions, evidence kind, native capability state and
+  closed reasons;
+- native upstream profile capability state and reasons;
+- issuer and security route-context presence/absence, represented separately as
+  booleans, and source CIK;
+- exact annual start/end, namespace, accounting basis, concepts and reviewed unit;
+- canonical exact OCF and Net Income values when established; and
+- authority and the complete limitation inventory.
 
-It does not independently bind incidental archive paths, temporary filenames,
-capture timestamps, receipts, object hashes or selected observation evidence.
+Actual route keys and upstream profile/comparability semantic or evidence IDs
+are excluded. So are receipts, object hashes, timestamps, locators, observation
+IDs, accessions and supporting-filing provenance. No indirectly capture-sensitive
+identifier substitutes for these fields. Missing route context stays distinct
+from present context. Non-established outcomes preserve their true state,
+reasons and available context, with both numeric facts absent.
 
-`evidence_id` binds the semantic identity plus:
+### v2 evidence provenance
 
-- upstream profile/comparability evidence identities;
-- receipt/object identity and capture provenance;
-- selected observation evidence identities; and
-- supporting accession/filing provenance.
+`evidence_id` binds the corrected semantic identity plus:
 
-Therefore, with unchanged upstream semantics:
+- actual route-local issuer/security keys;
+- upstream profile/comparability semantic **and** evidence identities;
+- receipt/object identity, capture timestamp and source locator;
+- selected OCF and Net Income observation identities; and
+- supporting accessions and full filing metadata.
+
+All existing public provenance fields remain exposed. Evidence is neither
+removed nor suppressed to obtain semantic stability.
 
 ```text
-same economics + legitimate recapture
+same qualified economics + authentic independent or later CURRENT recapture
 → same semantic_id
-→ different evidence_id
+→ different evidence_id when provenance changes
+
+changed qualified OCF or Net Income
+→ different semantic_id
 ```
 
 Equivalent finite Decimal forms such as `100`, `100.0`, `100.00` and `1E+2`
 have one semantic numeric representation. Canonicalization is deterministic,
-context-independent, non-rounding and never binary64.
+context-independent, non-rounding and never binary64. Signed values are
+preserved and all exact zero forms have one representation. Both absolute
+accounting amounts are bound independently: equal prospective OCF/NI ratios
+from different absolute pairs do not collapse to one semantic identity.
 
 ## Authority and limitations
 

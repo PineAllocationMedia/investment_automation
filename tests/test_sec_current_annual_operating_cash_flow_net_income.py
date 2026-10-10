@@ -2,7 +2,7 @@
 import ast
 from collections import UserDict
 from dataclasses import FrozenInstanceError, fields, replace
-from decimal import Decimal
+from decimal import Decimal, localcontext
 import json
 from pathlib import Path
 import socket
@@ -41,7 +41,7 @@ from tests.sec_operating_cash_flow_net_income_fixtures import (
     orphan_operating_cash_flow_conflict_payload,
     wrong_unit_payload,
 )
-from tests.sec_property4_temporal_boundary_fixtures import BOUNDARY_T1
+from tests.sec_property4_temporal_boundary_fixtures import BOUNDARY_T1, BOUNDARY_T2
 from tests.sec_property4_temporal_fixtures import CIK
 
 
@@ -972,6 +972,216 @@ class SecCurrentAnnualOperatingCashFlowNetIncomeTests(unittest.TestCase):
         )
         self.assertEqual(observation.value, Decimal(precise))
         self.assertIs(type(observation.value), Decimal)
+
+    def native_recapture(self, *, captured_at=BOUNDARY_T1, **changes):
+        fixture = comparability_tests.SecCurrentEPSComparabilityTests(
+            methodName="runTest"
+        )
+        fixture.setUp()
+        self.addCleanup(fixture.doCleanups)
+        _, profile = capture_profile(
+            fixture, reverse=True, captured_at=captured_at, **changes
+        )
+        return qualifier.qualify_sec_current_annual_operating_cash_flow_net_income(
+            fixture.current_archive, profile
+        )
+
+    def numeric_pair(self, operating, income):
+        # Inject exact JSON numeric tokens before native capture, never float values.
+        payload = companyfacts_payload(
+            operating_cash_flow_rows=[financial_row(987654321001)],
+            net_income_rows=[financial_row(987654321002)],
+        )
+        content = raw(payload).replace(b"987654321001", operating.encode()).replace(
+            b"987654321002", income.encode()
+        )
+        with patch(
+            "tests.sec_operating_cash_flow_net_income_fixtures.raw",
+            return_value=content,
+        ):
+            return self.qualify(self.profile_for(payload))
+
+    def test_authentic_independent_and_later_recapture_identity_v2(self):
+        first = self.qualify()
+        for timestamp in (BOUNDARY_T1, BOUNDARY_T2):
+            with self.subTest(captured_at=timestamp):
+                second = self.native_recapture(captured_at=timestamp)
+                for field in (
+                    "contract_version", "qualifier_version", "evidence_kind",
+                    "status", "reasons", "upstream_profile_status",
+                    "upstream_profile_reasons", "source_cik", "period_start",
+                    "period_end", "accounting_namespace", "accounting_basis",
+                    "operating_cash_flow_concept", "net_income_concept", "unit",
+                    "operating_cash_flow", "net_income", "authority", "limitations",
+                ):
+                    self.assertEqual(getattr(first, field), getattr(second, field))
+                for field in (
+                    "capture_receipt_id", "source_object_hash",
+                    "upstream_profile_semantic_id", "upstream_profile_evidence_id",
+                    "upstream_comparability_semantic_id",
+                    "upstream_comparability_evidence_id",
+                    "selected_operating_cash_flow_observation_ids",
+                    "selected_net_income_observation_ids",
+                ):
+                    self.assertNotEqual(getattr(first, field), getattr(second, field))
+                for field in ("route_local_issuer_key", "route_local_security_key"):
+                    if timestamp == BOUNDARY_T1:
+                        self.assertEqual(getattr(first, field), getattr(second, field))
+                    else:
+                        self.assertNotEqual(getattr(first, field), getattr(second, field))
+                self.assertEqual(first.semantic_id, second.semantic_id)
+                self.assertNotEqual(first.evidence_id, second.evidence_id)
+                self.assertEqual(second.to_dict(), second.to_dict())
+
+    def test_native_numeric_changes_and_equal_ratio_absolute_pairs_are_distinct(self):
+        baseline = self.numeric_pair("100", "80")
+        cases = (("101", "80"), ("100", "81"), ("200", "160"))
+        for operating, income in cases:
+            with self.subTest(operating=operating, income=income):
+                changed = self.numeric_pair(operating, income)
+                self.assertIs(changed.status, baseline.status)
+                self.assertEqual(changed.reasons, baseline.reasons)
+                self.assertEqual(changed.operating_cash_flow, Decimal(operating))
+                self.assertEqual(changed.net_income, Decimal(income))
+                self.assertNotEqual(baseline.semantic_id, changed.semantic_id)
+                self.assertNotEqual(baseline.evidence_id, changed.evidence_id)
+        # 100/80 and 200/160 are exactly the same ratio, but different facts.
+        self.assertEqual(100 * 160, 200 * 80)
+
+    def test_native_equivalent_decimal_spellings_signed_zero_and_context(self):
+        for spellings in (
+            ("100", "100.0", "100.00", "1E+2"),
+            ("-100", "-100.0", "-1E+2"),
+            ("0", "0.00", "-0.0", "0E+2"),
+        ):
+            baseline = self.numeric_pair(spellings[0], spellings[0])
+            for spelling in spellings[1:]:
+                with self.subTest(spelling=spelling), localcontext() as context:
+                    context.prec = 1
+                    context.Emax = 1
+                    context.Emin = -1
+                    result = self.numeric_pair(spelling, spelling)
+                    self.assertIs(result.status, baseline.status)
+                    self.assertEqual(result.operating_cash_flow, Decimal(spelling))
+                    self.assertEqual(result.net_income, Decimal(spelling))
+                    self.assertEqual(baseline.semantic_id, result.semantic_id)
+                    self.assertNotEqual(baseline.evidence_id, result.evidence_id)
+
+    def test_native_non_established_recapture_preserves_states_without_facts(self):
+        configurations = (
+            {"sic": None, "description": None},
+            {"sic": 6021, "description": "National Commercial Banks"},
+            {"expected_comparability_evidence_id": "0" * 64},
+            {"payload": missing_operating_cash_flow_payload()},
+            {"payload": missing_net_income_payload()},
+            {"payload": conflicting_operating_cash_flow_payload()},
+            {"payload": conflicting_net_income_payload()},
+        )
+        semantic_ids = []
+        for changes in configurations:
+            with self.subTest(changes=changes):
+                _, profile = capture_profile(self.fixture, **changes)
+                first = self.qualify(profile)
+                second = self.native_recapture(captured_at=BOUNDARY_T2, **changes)
+                self.assertEqual(first.status, second.status)
+                self.assertEqual(first.reasons, second.reasons)
+                self.assertEqual(first.semantic_id, second.semantic_id)
+                self.assertNotEqual(first.evidence_id, second.evidence_id)
+                for result in (first, second):
+                    self.assertIsNone(result.operating_cash_flow)
+                    self.assertIsNone(result.net_income)
+                    self.assertEqual(result.selected_operating_cash_flow_observation_ids, ())
+                    self.assertEqual(result.selected_net_income_observation_ids, ())
+                    self.assertEqual(result.supporting_filings, ())
+                semantic_ids.append(first.semantic_id)
+        self.assertEqual(len(set(semantic_ids)), len(configurations))
+
+    def test_legitimate_missing_route_context_is_preserved_in_semantics(self):
+        from tests.sec_current_registered_listing_bridge_fixtures import sec_snapshot
+
+        with patch.object(
+            comparability_tests, "sec_snapshot", return_value=sec_snapshot(cik=124)
+        ):
+            absent = self.native_recapture()
+        self.assertIs(
+            absent.status,
+            qualifier.CurrentAnnualOperatingCashFlowNetIncomeStatus.EVIDENCE_UNAVAILABLE,
+        )
+        self.assertIsNone(absent.route_local_issuer_key)
+        self.assertIsNone(absent.route_local_security_key)
+        self.assertIsNone(absent.operating_cash_flow)
+        self.assertIsNone(absent.net_income)
+        # Projection-only isolation: presence must matter even with equal state/reasons.
+        present_projection = replace(
+            absent, route_local_issuer_key="a" * 64, route_local_security_key="b" * 64
+        )
+        self.assertNotEqual(absent.semantic_id, present_projection.semantic_id)
+
+    def test_each_provenance_field_is_evidence_only_in_v2_projection(self):
+        first = self.qualify()
+        changes = {
+            "route_local_issuer_key": "a" * 64,
+            "route_local_security_key": "b" * 64,
+            "upstream_profile_semantic_id": "c" * 64,
+            "upstream_comparability_semantic_id": "d" * 64,
+            "upstream_profile_evidence_id": "e" * 64,
+            "upstream_comparability_evidence_id": "f" * 64,
+            "capture_receipt_id": "1" * 64,
+            "source_object_hash": "2" * 64,
+            "captured_at": BOUNDARY_T2,
+            "capture_source_locator": "fixture:another-capture",
+            "selected_operating_cash_flow_observation_ids": ("3" * 64,),
+            "selected_net_income_observation_ids": ("4" * 64,),
+            "supporting_accessions": (SECOND_ACCESSION,),
+            "supporting_filings": (replace(
+                first.supporting_filings[0], filed_dates=("2025-02-02",)
+            ),),
+        }
+        # Field-isolation probes supplement, rather than replace, native recapture.
+        for field, value in changes.items():
+            with self.subTest(field=field):
+                changed = replace(first, **{field: value})
+                self.assertEqual(first.semantic_id, changed.semantic_id)
+                self.assertNotEqual(first.evidence_id, changed.evidence_id)
+
+    def test_v1_and_v2_identity_domains_and_contract_versions_are_explicit(self):
+        result = self.qualify()
+        legacy_version = (
+            "2026-10-05-current-annual-operating-cash-flow-net-income-qualification-v1"
+        )
+        self.assertEqual(result.contract_version, (
+            "2026-10-10-current-annual-operating-cash-flow-net-income-qualification-v2"
+        ))
+        self.assertEqual(result.qualifier_version, (
+            "2026-10-05-paired-common-filing-exact-decimal-usd-qualification-v1"
+        ))
+        legacy = replace(result, contract_version=legacy_version)
+        self.assertNotEqual(result.semantic_id, legacy.semantic_id)
+        self.assertNotEqual(result.evidence_id, legacy.evidence_id)
+        # Reconstruct only the documented old hash projection, not a legacy engine.
+        legacy_fields = (
+            "contract_version", "qualifier_version", "evidence_kind", "status",
+            "reasons", "upstream_profile_status", "upstream_profile_reasons",
+            "route_local_issuer_key", "route_local_security_key", "source_cik",
+            "upstream_profile_semantic_id", "upstream_comparability_semantic_id",
+            "period_start", "period_end", "accounting_namespace", "accounting_basis",
+            "operating_cash_flow_concept", "net_income_concept", "unit",
+            "operating_cash_flow", "net_income", "authority", "limitations",
+        )
+        old_semantic_id = qualifier._identity(
+            "current-annual-operating-cash-flow-net-income-semantics",
+            {field: getattr(legacy, field) for field in legacy_fields},
+        )
+        self.assertNotEqual(result.semantic_id, old_semantic_id)
+        contract = (Path(__file__).resolve().parents[1] / "docs" / "contracts" /
+                    "v2" / "quality" /
+                    "CURRENT_ANNUAL_OPERATING_CASH_FLOW_NET_INCOME_QUALIFICATION.md")
+        # The isolation runner intentionally copies no nested contract documents.
+        if contract.exists():
+            text = contract.read_text()
+            self.assertIn(result.contract_version, text)
+            self.assertIn(result.qualifier_version, text)
+            self.assertIn(legacy_version, text)
 
     def test_identity_projection_preserves_semantics_and_changes_evidence(self):
         first = self.qualify()

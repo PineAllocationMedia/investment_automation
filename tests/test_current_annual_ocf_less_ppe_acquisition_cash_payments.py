@@ -475,7 +475,9 @@ class CurrentAnnualOCFLessPPEAcquisitionCashPaymentsTests(unittest.TestCase):
             self.ocf_available.upstream_profile_semantic_id,
             ocf.upstream_profile_semantic_id,
         )
-        self.assertNotEqual(self.ocf_available.semantic_id, ocf.semantic_id)
+        # OCF contract v2 preserves economic semantics under genuine recapture.
+        self.assertEqual(self.ocf_available.semantic_id, ocf.semantic_id)
+        self.assertNotEqual(self.ocf_available.evidence_id, ocf.evidence_id)
         self.assertNotEqual(
             self.ocf_available.capture_receipt_id, ocf.capture_receipt_id
         )
