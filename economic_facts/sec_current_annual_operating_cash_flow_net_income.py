@@ -32,7 +32,7 @@ from . import sec_ordinary_compounder_profile as upstream
 
 
 CONTRACT_VERSION = (
-    "2026-10-05-current-annual-operating-cash-flow-net-income-qualification-v1"
+    "2026-10-10-current-annual-operating-cash-flow-net-income-qualification-v2"
 )
 QUALIFIER_VERSION = (
     "2026-10-05-paired-common-filing-exact-decimal-usd-qualification-v1"
@@ -194,13 +194,13 @@ class CurrentAnnualOperatingCashFlowNetIncomeQualification:
                 "reasons": self.reasons,
                 "upstream_profile_status": self.upstream_profile_status,
                 "upstream_profile_reasons": self.upstream_profile_reasons,
-                "route_local_issuer_key": self.route_local_issuer_key,
-                "route_local_security_key": self.route_local_security_key,
-                "source_cik": self.source_cik,
-                "upstream_profile_semantic_id": self.upstream_profile_semantic_id,
-                "upstream_comparability_semantic_id": (
-                    self.upstream_comparability_semantic_id
+                "route_local_issuer_context_present": (
+                    self.route_local_issuer_key is not None
                 ),
+                "route_local_security_context_present": (
+                    self.route_local_security_key is not None
+                ),
+                "source_cik": self.source_cik,
                 "period_start": self.period_start,
                 "period_end": self.period_end,
                 "accounting_namespace": self.accounting_namespace,
@@ -221,6 +221,12 @@ class CurrentAnnualOperatingCashFlowNetIncomeQualification:
             "current-annual-operating-cash-flow-net-income-evidence",
             {
                 "semantic_id": self.semantic_id,
+                "route_local_issuer_key": self.route_local_issuer_key,
+                "route_local_security_key": self.route_local_security_key,
+                "upstream_profile_semantic_id": self.upstream_profile_semantic_id,
+                "upstream_comparability_semantic_id": (
+                    self.upstream_comparability_semantic_id
+                ),
                 "upstream_profile_evidence_id": self.upstream_profile_evidence_id,
                 "upstream_comparability_evidence_id": (
                     self.upstream_comparability_evidence_id

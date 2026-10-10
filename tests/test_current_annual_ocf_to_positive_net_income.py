@@ -996,7 +996,8 @@ class CurrentAnnualOCFToPositiveNetIncomeTests(unittest.TestCase):
             self.available.source_object_hash,
             factory_recaptured_upstream.source_object_hash,
         )
-        self.assertNotEqual(
+        # OCF contract v2 keeps economic semantics stable across native recapture.
+        self.assertEqual(
             self.available.semantic_id,
             factory_recaptured_upstream.semantic_id,
         )
@@ -1021,7 +1022,7 @@ class CurrentAnnualOCFToPositiveNetIncomeTests(unittest.TestCase):
             recaptured.upstream_qualification_evidence_id,
             factory_recaptured_upstream.evidence_id,
         )
-        self.assertNotEqual(
+        self.assertEqual(
             first.upstream_qualification_semantic_id,
             recaptured.upstream_qualification_semantic_id,
         )
@@ -1082,7 +1083,8 @@ class CurrentAnnualOCFToPositiveNetIncomeTests(unittest.TestCase):
             self.available.captured_at,
             later_upstream.captured_at,
         )
-        self.assertNotEqual(
+        # OCF contract v2 excludes the changed capture-bound route keys.
+        self.assertEqual(
             self.available.semantic_id,
             later_upstream.semantic_id,
         )
