@@ -3,7 +3,7 @@
 ## ACTIVE
 
 - Stage C — Quality (`ACTIVE / INCOMPLETE`).
-  - Six bounded analytical diagnostics and five bounded evidence foundations are
+  - Seven bounded analytical diagnostics and six bounded evidence foundations are
     complete / canonical; no composite or aggregate Quality conclusion is authorized.
   - Complete / canonical: first bounded slice,
     `FIVE_PERIOD_DILUTED_EPS_DIRECTIONAL_CONSISTENCY`.
@@ -54,14 +54,33 @@
     authority. It reports exact signed qualified annual OCF minus qualified annual
     PP&E acquisition cash payments only for coherent shared filing economics. It is
     not universal free cash flow, owner earnings, distributable cash, total capex,
-    total reinvestment, a Quality judgment or a sixth evidence foundation.
-  - Immediate next substep: one new, separate Architecture & Audit evidence-readiness /
-    next-contract-selection Work Order to inspect current Stage-C capability and
-    select/define exactly one next truthful bounded Quality contract. It may select
-    an evidence foundation first.
-  - No seventh diagnostic, sixth evidence foundation, next Quality dimension,
-    aggregate Quality score, scoring formula or Codex implementation task is selected
-    or queued.
+    total reinvestment, a Quality judgment or an evidence foundation.
+  - Complete / canonical: PR #128's
+    `CURRENT_ANNUAL_OPENING_CLOSING_ASSETS_QUALIFICATION`, under
+    `QUALITY_OPENING_CLOSING_ASSETS_EVIDENCE_ONLY` authority. It establishes exact
+    annual opening/closing `us-gaap:Assets` from a coherent common SEC filing
+    presentation, with authentic provenance and adjacent annual dates. It performs
+    no average-assets calculation, ROA, ROIC or Quality judgment.
+  - Complete / canonical: PR #129's
+    `CURRENT_ANNUAL_OPERATING_INCOME_TO_POSITIVE_TWO_POINT_AVERAGE_ASSETS`, under
+    `QUALITY_CURRENT_ANNUAL_OPERATING_INCOME_TO_POSITIVE_TWO_POINT_AVERAGE_ASSETS_DIAGNOSTIC_ONLY`
+    authority. It reports an exact signed rational relationship of qualified annual
+    Operating Income to the arithmetic mean of qualified opening/closing Assets
+    when both endpoints are positive. The two-point average is an analytical
+    approximation, not ROIC, normalized ROA, a Quality score, historical trend or
+    investment recommendation.
+  - Unresolved completion concerns: the pre-existing OCF/net-income qualification
+    semantic-identity contract mismatch under genuine recapture, and lack of
+    demonstrated real-issuer applicability across the capability families proposed
+    for Stage-C completion. Neither is resolved by PR #128 or PR #129.
+  - Exactly one next proposed action: read-only Architecture & Audit assessment of
+    Stage-C exit readiness after PR #129, considering both concerns and determining
+    the smallest next legitimate bounded action. Suggested exit gates remain
+    advisory, not CEO-ratified canonical policy.
+  - No OCF implementation, real-data campaign, eighth diagnostic, new foundation,
+    aggregate Quality score or Stage-D transition is preselected. No specialist
+    implementation task is active or queued; no automatic implementation authority
+    is granted.
 
 - Blossom audience-growth initiative (`ACTIVE`).
   - Primary owner: Marketing & GTM.

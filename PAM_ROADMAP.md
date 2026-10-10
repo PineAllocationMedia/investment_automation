@@ -501,16 +501,21 @@ and PR #123 established
 `QUALITY_PPE_ACQUISITION_CASH_PAYMENTS_EVIDENCE_ONLY` authority. PR #125 then made
 the existing OCF/net-income foundation enforce exact ordinary-compounder factory
 reachability without changing facts, source rules, contract version, methodology or
-`QUALITY_CASH_CONVERSION_EVIDENCE_ONLY` authority. It is a correction, not a sixth
+`QUALITY_CASH_CONVERSION_EVIDENCE_ONLY` authority. It is a correction, not another
 evidence foundation. PR #126 established
 `CURRENT_ANNUAL_OCF_LESS_PPE_ACQUISITION_CASH_PAYMENTS`, reporting exact signed
 qualified annual OCF minus qualified annual PP&E acquisition cash payments under
 `QUALITY_CURRENT_ANNUAL_OCF_LESS_PPE_ACQUISITION_CASH_PAYMENTS_DIAGNOSTIC_ONLY`
-authority. Stage C remains active and incomplete.
-Architecture & Audit must next inspect current Stage-C
-evidence/capability readiness and select/define exactly one next truthful bounded
-Quality contract. It may select an evidence foundation first. No next dimension or
-implementation is authorized here.
+authority. PR #128 established the sixth evidence foundation,
+`CURRENT_ANNUAL_OPENING_CLOSING_ASSETS_QUALIFICATION`, under
+`QUALITY_OPENING_CLOSING_ASSETS_EVIDENCE_ONLY`. PR #129 established the seventh
+diagnostic, `CURRENT_ANNUAL_OPERATING_INCOME_TO_POSITIVE_TWO_POINT_AVERAGE_ASSETS`,
+under
+`QUALITY_CURRENT_ANNUAL_OPERATING_INCOME_TO_POSITIVE_TWO_POINT_AVERAGE_ASSETS_DIAGNOSTIC_ONLY`.
+Stage C remains active and incomplete. Exactly one next proposed read-only
+Architecture & Audit assessment evaluates exit readiness and the smallest next
+legitimate bounded action, considering the unresolved OCF identity defect and
+real-issuer applicability evidence. No implementation is authorized here.
 Later technical stages remain in their existing order.
 
 No additional pre-Stage-B Expected Return architecture interlude is authorized in
@@ -520,7 +525,7 @@ found `PARTIAL ROUTE ONLY`. B2 numeric executable-net Expected Return is current
 B sequencing blocker. Bounded confidence propagation and explicit unsupported-case
 handling are complete. B2 may be revisited only if genuinely new qualified executable-
 quote, settled-funding and, where applicable, FX execution-cost evidence appears.
-Stage C — Quality is active and incomplete. Its six bounded diagnostics and five
+Stage C — Quality is active and incomplete. Its seven bounded diagnostics and six
 evidence foundations are complete. No composite Quality score, aggregation,
 next-dimension implementation, recommendation, ranking, allocation or execution
 authority is created by those milestones.
@@ -542,11 +547,12 @@ do not disappear merely because they are deferred. Stage A is complete only for
 the explicitly supported bounded first CURRENT route; this is not universal or
 global Real Fact Admission completeness. Stage B is complete only within its
 currently approved bounded supported scope. The immediate technical frontier is
-exactly one Architecture & Audit Work Order to inspect current Stage-C
-evidence/capability readiness and select/define exactly one next truthful bounded
-Quality contract. It may select an evidence foundation first if the next useful
-analytical dimension lacks sufficient canonical evidence. No next Quality dimension
-or Codex implementation task is selected here. The unchanged pre-shadow sequence
+exactly one next proposed read-only Architecture & Audit assessment of Stage-C
+exit readiness after PR #129, considering the unresolved OCF integrity defect and
+real-issuer applicability evidence, to determine the smallest next legitimate
+bounded action. No OCF implementation, real-data campaign, eighth diagnostic,
+new foundation or Stage-D transition is preselected; no automatic implementation
+authority is granted. The unchanged pre-shadow sequence
 remains in section 9.
 
 ---
@@ -856,9 +862,11 @@ bounded company-vs-VFV Expected Return comparator complete
 → current annual PPE-acquisition cash-payments evidence foundation ✅
 → OCF/net-income ordinary-compounder factory-reachability correction ✅
 → current annual OCF less PPE-acquisition cash-payments diagnostic ✅
+→ current annual opening/closing Assets evidence foundation ✅
+→ current annual Operating Income/two-point-average-Assets diagnostic ✅
 → Development Workflow Automation / deterministic pam_preflight ✅ (cross-cutting)
 → Baseline V1 CI FULL_PIT runtime ceiling 60 minutes ✅ (cross-cutting)
-→ next bounded Quality slice — Architecture & Audit selection/definition NEXT
+→ Stage-C exit readiness — one read-only Architecture & Audit assessment PROPOSED
 ```
 
 - completed: Data & Evidence currency/hedging prerequisite and reviewed compatible
@@ -927,15 +935,24 @@ bounded company-vs-VFV Expected Return comparator complete
   authority, reporting exact signed qualified annual OCF minus exact signed qualified
   annual PP&E acquisition cash payments for compatible issuer, period, accounting
   semantics and coherent common selected annual filing provenance;
+- complete / canonical: PR #128's
+  `CURRENT_ANNUAL_OPENING_CLOSING_ASSETS_QUALIFICATION`, preserving exact annual
+  opening/closing `us-gaap:Assets` from a coherent common SEC filing presentation,
+  authentic provenance and adjacent dates under
+  `QUALITY_OPENING_CLOSING_ASSETS_EVIDENCE_ONLY` authority;
+- complete / canonical: PR #129's
+  `CURRENT_ANNUAL_OPERATING_INCOME_TO_POSITIVE_TWO_POINT_AVERAGE_ASSETS`, reporting
+  an exact signed rational relationship to the arithmetic mean of two positive
+  qualified Assets endpoints, an analytical approximation, under
+  `QUALITY_CURRENT_ANNUAL_OPERATING_INCOME_TO_POSITIVE_TWO_POINT_AVERAGE_ASSETS_DIAGNOSTIC_ONLY`;
 - complete / canonical cross-cutting workflow milestone: deterministic
   `pam_preflight`, separate from Quality economics;
 - complete / canonical cross-cutting workflow-capacity correction: Baseline V1 CI
   `FULL_PIT` runtime ceiling raised from 30 to 60 minutes with validation semantics
   unchanged;
-- active / incomplete: Stage C — Quality, with six diagnostics and five evidence
-  foundations canonical, and exactly one new, separate Architecture & Audit
-  evidence-readiness / next-contract-selection Work Order next and no implementation
-  task active;
+- active / incomplete: Stage C — Quality, with seven diagnostics and six evidence
+  foundations canonical, and exactly one next proposed read-only Architecture &
+  Audit exit-readiness assessment after PR #129; no implementation task is active;
 - revisit B2 only when genuinely new qualified evidence exists.
 
 Confidence applies to uncertainty inside an available analysis. Capability state
@@ -1111,18 +1128,36 @@ capture-dependent upstream identities, while evidence identity retains actual
 upstream provenance. Legitimate independent recapture therefore does not require
 identical receipts or upstream semantic identities. This is not universal free cash
 flow, owner earnings, distributable cash, total capex or total reinvestment, and it
-creates no Quality judgment, ranking, recommendation, investment authority or sixth
+creates no Quality judgment, ranking, recommendation, investment authority or an
 evidence foundation.
 
-No aggregation between the six canonical Quality diagnostics exists.
+The sixth canonical evidence foundation, PR #128's
+`CURRENT_ANNUAL_OPENING_CLOSING_ASSETS_QUALIFICATION`, preserves exact annual
+opening/closing `us-gaap:Assets` in `USD` from a coherent common SEC filing
+presentation, with authentic provenance and opening date adjacent to annual start.
+Its authority is `QUALITY_OPENING_CLOSING_ASSETS_EVIDENCE_ONLY`. It performs no
+average-assets calculation, ROA, ROIC or Quality judgment.
 
-Exactly one Architecture & Audit evidence-readiness / next-contract-selection Work
-Order is next. It must inspect current Stage-C evidence/capability readiness and
-select/define exactly one next truthful bounded Quality contract, and may select an
-evidence foundation first if the next useful analytical dimension lacks sufficient
-canonical evidence. This roadmap selects no seventh diagnostic, sixth evidence
-foundation or next Quality dimension, creates no Quality aggregate and queues no
-Codex implementation task.
+The seventh canonical diagnostic, PR #129's
+`CURRENT_ANNUAL_OPERATING_INCOME_TO_POSITIVE_TWO_POINT_AVERAGE_ASSETS`, reports
+an exact signed rational relationship between qualified annual Operating Income
+and the arithmetic mean of qualified opening/closing Assets when both endpoints
+are positive. Its authority is
+`QUALITY_CURRENT_ANNUAL_OPERATING_INCOME_TO_POSITIVE_TWO_POINT_AVERAGE_ASSETS_DIAGNOSTIC_ONLY`.
+The two-point average is an analytical approximation, not ROIC, normalized ROA,
+a Quality score, historical trend or investment recommendation.
+
+No aggregation between the seven canonical Quality diagnostics exists.
+
+Exactly one next proposed read-only Architecture & Audit assessment will evaluate
+Stage-C exit readiness after PR #129 and determine the smallest next legitimate
+bounded action, considering the unresolved OCF/net-income semantic-identity defect
+under genuine recapture and the lack of demonstrated real-issuer applicability
+across the capability families proposed for Stage-C completion. Neither concern
+is resolved. Suggested Stage-C exit gates remain advisory, not CEO-ratified
+canonical policy. No OCF implementation, real-data campaign, eighth diagnostic,
+new foundation, aggregate Quality score or Stage-D transition is preselected;
+no automatic implementation authority is granted.
 
 Build transparent, evidence-backed measures for topics such as:
 
@@ -2150,21 +2185,24 @@ authority. PR #125 then corrected exact ordinary-compounder factory reachability
 the existing OCF/net-income foundation without changing its economics, version,
 methodology or authority. PR #126 canonically established
 `CURRENT_ANNUAL_OCF_LESS_PPE_ACQUISITION_CASH_PAYMENTS` under diagnostic-only
-authority. These milestones create no composite or aggregate Quality conclusion and
-authorize no next contract automatically. Stage C remains active and incomplete. The
-next
-technical action is exactly one Architecture & Audit Work Order to inspect current
-Stage-C evidence/capability
-readiness and select/define exactly one next truthful bounded Quality contract. It may
-select an evidence foundation first. No next Quality dimension or Codex
-implementation task is selected. V2 architecture remains incomplete and shadow
+authority. PR #128 canonically established
+`CURRENT_ANNUAL_OPENING_CLOSING_ASSETS_QUALIFICATION` under evidence-only authority,
+and PR #129 canonically established
+`CURRENT_ANNUAL_OPERATING_INCOME_TO_POSITIVE_TWO_POINT_AVERAGE_ASSETS` under
+diagnostic-only authority. These milestones create no composite or aggregate
+Quality conclusion and authorize no next implementation automatically. Stage C
+remains active and incomplete. Exactly one next proposed read-only Architecture &
+Audit assessment evaluates exit readiness after PR #129 and determines the smallest
+next legitimate bounded action, considering unresolved OCF integrity and
+real-issuer applicability evidence. No implementation or Stage-D transition is
+preselected. V2 architecture remains incomplete and shadow
 cannot begin.
 
 ---
 
-*Roadmap state updated on 2026-10-10 through canonical PR #125 and PR #126, including
-the OCF/net-income factory-reachability correction and current-annual OCF less PP&E
-acquisition cash-payments diagnostic.
+*Roadmap state updated on 2026-10-10 through canonical PR #128 and PR #129, including
+the opening/closing Assets evidence foundation and Operating Income/two-point-
+average-Assets diagnostic.
 Governance Reform
 Phase 1, Governance Cleanup / Migration, role Projects/employees configuration and
 PR5E are complete. Stage B — Expected Return is complete within the currently
@@ -2172,10 +2210,12 @@ approved bounded supported scope, including bounded confidence propagation and
 explicit unsupported-case handling. The real-route investigation concluded `PARTIAL
 ROUTE ONLY`; B2 numeric executable-net remains `UNAVAILABLE / DEFERRED`, trigger-
 based and dormant, and is an open capability gap rather than a bounded-sequence
-blocker. Stage C — Quality is active and incomplete; its six bounded analytical
-diagnostics and five evidence foundations are complete and canonical. Exactly one
-Architecture & Audit evidence-readiness / next-contract-selection Work Order is next;
-no next Quality dimension or Codex implementation is selected. Later architecture
+blocker. Stage C — Quality is active and incomplete; its seven bounded analytical
+diagnostics and six evidence foundations are complete and canonical. Exactly one
+next proposed read-only Architecture & Audit exit-readiness assessment considers the
+unresolved OCF identity defect and real-issuer applicability evidence. Exit gates
+remain advisory, not CEO-ratified policy; no implementation or Stage-D transition
+is selected. Later architecture
 stages and shadow-readiness gates remain requirements only, and shadow cannot begin.
 The reviewed PR5D2 Expected Return assumption policies are now pinned, but no
 investment-rule, model-rule, V1 or production-authority change is authorized

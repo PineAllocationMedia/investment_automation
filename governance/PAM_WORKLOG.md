@@ -647,3 +647,47 @@
   aggregate Quality object or Codex implementation task is predetermined. V1 frozen
   authority, V2 challenger status, B2 `UNAVAILABLE / DEFERRED`, Blossom scope and all
   investment/production safeguards remain unchanged.
+
+
+## 2026-10-10 — PR #128 sixth Stage-C evidence foundation canonical
+
+- Reviewed feature head `c1fd4141ae9f2b4b5f33166e7277065769612285` merged as
+  `d78cfcef4ed2a0b325882853534c8f3d0b5f7ccf`, tree
+  `d0daff7aa0811a96a6d3527cdfaeb61ecc937448`.
+- Canonical `CURRENT_ANNUAL_OPENING_CLOSING_ASSETS_QUALIFICATION` establishes exact
+  opening/closing annual `us-gaap:Assets` from a coherent common SEC filing
+  presentation, authentic provenance and adjacent dates, under
+  `QUALITY_OPENING_CLOSING_ASSETS_EVIDENCE_ONLY` authority. It performs no
+  average-assets calculation, ROA, ROIC or Quality judgment.
+- GitHub records the merge on 2026-10-10 and required CI completed successfully.
+  The owner's Governance Sync Work Order confirms independent `MERGE READY`
+  clearance before the separate CEO merge decision.
+
+## 2026-10-10 — PR #129 seventh Stage-C diagnostic canonical
+
+- Reviewed feature head `d66c053a765301ffb66af510a673af68b51b6f0f` merged as
+  `288bab62c579e1a814833802f89b9671d5d24074`, tree
+  `c02794ca4cad319e03e3fa4a0e8b8f82775099e2`.
+- Canonical `CURRENT_ANNUAL_OPERATING_INCOME_TO_POSITIVE_TWO_POINT_AVERAGE_ASSETS`
+  reports an exact signed rational relationship between qualified annual Operating
+  Income and the arithmetic mean of qualified opening/closing Assets when both
+  endpoints are positive, under
+  `QUALITY_CURRENT_ANNUAL_OPERATING_INCOME_TO_POSITIVE_TWO_POINT_AVERAGE_ASSETS_DIAGNOSTIC_ONLY`.
+  The two-point average is an analytical approximation, not ROIC, normalized ROA,
+  a Quality score, historical trend or investment recommendation.
+- GitHub records the merge on 2026-10-10 and required CI completed successfully.
+  The owner's Governance Sync Work Order confirms independent `MERGE READY`
+  clearance before the separate CEO merge decision.
+- Stage C remains `ACTIVE / INCOMPLETE`: seven canonical bounded diagnostics and
+  six canonical evidence foundations. The pre-existing OCF/net-income qualification
+  semantic-identity contract mismatch under genuine recapture and lack of
+  demonstrated real-issuer applicability across the capability families proposed
+  for Stage-C completion remain unresolved. Suggested Architecture & Audit exit
+  gates are advisory, not CEO-ratified canonical policy.
+- Exactly one next proposed read-only Architecture & Audit exit-readiness assessment
+  after PR #129 will determine the smallest next legitimate bounded action,
+  considering both concerns. No OCF implementation, real-data campaign, eighth
+  diagnostic, new foundation, aggregate Quality score or Stage-D transition is
+  preselected; no automatic implementation authority or active specialist task is
+  created. Existing Blossom scope, V1 frozen authority, V2 challenger status and
+  all CEO decision boundaries remain unchanged.
