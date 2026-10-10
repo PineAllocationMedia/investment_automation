@@ -396,8 +396,9 @@ def _metadata(value):
             _source_require(set(item) <= {"mailing", "business"})
             for address in item.values():
                 _keys(address, MAX_COLUMNS)
-                for field in address.values():
-                    _source_require(field is None or type(field) is str)
+                for name, field in address.items():
+                    _source_require(field is None or type(field) is str or
+                                    (name == "isForeignLocation" and type(field) is int))
                     _scalar(field)
         elif key == "formerNames":
             _source_require(type(item) is list and len(item) <= MAX_METADATA_ITEMS)

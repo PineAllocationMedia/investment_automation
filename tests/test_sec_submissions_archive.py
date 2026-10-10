@@ -36,6 +36,36 @@ class SubmissionsArchiveTests(unittest.TestCase):
         self.assertEqual(receipt.byte_length, len(raw))
         self.assertEqual(self.archive.read_receipt(receipt.receipt_id), receipt)
 
+    def test_foreign_location_reviewed_types_and_integer_boundaries(self):
+        bound = 2**63 - 1
+        for branch in ("mailing", "business"):
+            for value in (None, "0", "foreign", 0, 1, 7, -7, bound, -bound):
+                with self.subTest(branch=branch, value=value):
+                    raw = root(addresses={branch: {"isForeignLocation": value}})
+                    receipt = self.capture(raw)
+                    self.assertEqual(self.archive.read_object(receipt), raw)
+                    self.assertEqual(self.archive.read_receipt(receipt.receipt_id), receipt)
+                    self.assertEqual(receipt.content_sha256, hashlib.sha256(raw).hexdigest())
+                    self.assertEqual(receipt.byte_length, len(raw))
+
+    def test_unreviewed_address_types_publish_nothing(self):
+        bound = 2**63 - 1
+        cases = [("isForeignLocation", value) for value in
+                 (bound + 1, -bound - 1, True, False, 0.0, 7.0, [], {})]
+        cases += [(name, 7) for name in
+                  ("city", "street1", "zipCode", "stateOrCountry", "other",
+                   "IsForeignLocation", "isForeignLocation ")]
+        for branch in ("mailing", "business"):
+            for name, value in cases:
+                with self.subTest(branch=branch, name=name, value=value):
+                    with self.assertRaises(a.UnsupportedSubmissionsStructure):
+                        self.capture(root(addresses={branch: {name: value}}))
+                    self.assertFalse(self.root.exists())
+        for branch in ("other", "Mailing"):
+            with self.subTest(branch=branch), self.assertRaises(a.UnsupportedSubmissionsStructure):
+                self.capture(root(addresses={branch: {"isForeignLocation": 7}}))
+            self.assertFalse(self.root.exists())
+
     def test_canonical_root_endpoint(self):
         self.assertEqual(a.endpoint_for(CIK), "https://data.sec.gov/submissions/CIK0000000123.json")
 

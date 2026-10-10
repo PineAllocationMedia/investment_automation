@@ -170,8 +170,13 @@ No rows are silently truncated or deduplicated.
 
 Root entity metadata is retained as canonical JSON. Unknown scalar metadata is
 accepted. Reviewed nested shapes are string arrays `tickers`/`exchanges`, an
-`addresses` object with mailing/business scalar-string objects, and `formerNames`
-entries containing exactly string `name`, `from`, `to`. Other nested extensions
+`addresses` object with mailing/business string-or-null fields, and `formerNames`
+entries containing exactly string `name`, `from`, `to`. The optional exact field
+`addresses.{mailing,business}.isForeignLocation` additionally accepts an exact JSON
+integer (`type(value) is int`) satisfying `abs(value) <= 2**63 - 1`; booleans and
+floats remain rejected. No `{0,1}` enumeration is imposed. Accepted integers remain
+opaque source metadata, preserved without coercion or interpretation. All other
+address-field type rules remain unchanged. Other nested extensions
 require future review; retained names/tickers/exchanges convey no identity proof.
 
 Each history reference retains its parent receipt ID, original position and all

@@ -238,6 +238,29 @@ else:
         return a.acquire_sec_submissions_history(archive_root=self.root,
                                                 parent_receipt_id=parent.receipt_id, history_filename=filename)
 
+    def test_foreign_location_fixture_acquisition_publishes_exact_immutable_bytes(self):
+        raw = root(addresses={"mailing": {"isForeignLocation": 7},
+                              "business": {"isForeignLocation": -7}})
+        self.transport.return_value = Response(raw)
+        result = self.acquire()
+        archive = SecSubmissionsArchive(self.root)
+        self.assertEqual(archive.read_object(result.receipt), raw)
+        self.assertEqual(archive.read_receipt(result.receipt.receipt_id), result.receipt)
+        self.assertEqual(len(list((self.root / "receipts").iterdir())), 1)
+        self.assertEqual(len(list((self.root / "objects").iterdir())), 1)
+        self.transport.return_value = Response(raw)
+        self.assertEqual(self.acquire().receipt, result.receipt)
+        self.assertEqual(archive.read_object(result.receipt), raw)
+
+    def test_foreign_location_rejections_publish_no_receipt_or_object(self):
+        for branch in ("mailing", "business"):
+            for name, value in (("isForeignLocation", True), ("isForeignLocation", False),
+                                ("isForeignLocation", 1.0), ("isForeignLocation", 2**63),
+                                ("isForeignLocation", -(2**63)), ("city", 1)):
+                with self.subTest(branch=branch, name=name, value=value):
+                    self.transport.return_value = Response(root(addresses={branch: {name: value}}))
+                    self.fail(R.UNSUPPORTED_STRUCTURE)
+
     def test_exact_request_headers_bytes_and_chronology(self):
         self.wall.side_effect = [NOW, NOW + timedelta(seconds=1), NOW + timedelta(seconds=2)]
         result = self.acquire()
