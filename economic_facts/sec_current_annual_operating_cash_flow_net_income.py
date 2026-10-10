@@ -375,6 +375,166 @@ def _validate_profile_state_reasons(profile):
         )
 
 
+def _factory_reachable_profile(profile, comparability):
+    """Rebuild the exact upstream projection consumed by this qualifier."""
+    reason = upstream.ProfileReason
+    reasons = set()
+    if comparability.outcome is not ComparabilityOutcome.COMPARABLE_REAL_EPS_ESTABLISHED:
+        reasons.add(reason.PR5C_NOT_ESTABLISHED)
+    replay_mismatch = (
+        profile.expected_comparability_semantic_id != comparability.semantic_id
+        or profile.expected_comparability_evidence_id != comparability.evidence_id
+    )
+    if replay_mismatch:
+        reasons.add(reason.REPLAY_IDENTITY_MISMATCH)
+
+    sic, description, metadata_semantic_id, metadata_evidence_id = (
+        upstream._sic_metadata(comparability)
+    )
+    if sic is None or not 100 <= sic <= 9999:
+        reasons.add(reason.SIC_MISSING_OR_INVALID)
+    if description is None:
+        reasons.add(reason.SIC_DESCRIPTION_MISSING_OR_INVALID)
+
+    decisions = []
+    if sic is not None and description is not None:
+        support_semantics = tuple(value for value in (
+            metadata_semantic_id,
+            comparability.historical_reporting_subject.qualified_subject_identity,
+            comparability.semantic_id,
+        ) if value is not None)
+        support_evidence = tuple(value for value in (
+            metadata_evidence_id,
+            comparability.evidence_id,
+        ) if value is not None)
+        flags = upstream._structural_flags(sic, description)
+        mixed_signal = any(
+            claim.kind is upstream.ReportingSubjectClaimKind.
+            COMBINED_FINANCIAL_STATEMENTS_REFERENCE
+            for claim in comparability.upstream_reporting_subject_source.explicit_claims
+        )
+        for structure in tuple(upstream.UnsupportedStructure)[:10]:
+            detected = flags[structure]
+            unresolved_mixed = (
+                structure is upstream.UnsupportedStructure.MIXED_CONGLOMERATE
+                and mixed_signal
+                and not detected
+            )
+            decisions.append(upstream.MethodProfileDecision(
+                structure,
+                (
+                    upstream.ProfileDecisionValue.NOT_EXCLUDED
+                    if detected
+                    else upstream.ProfileDecisionValue.UNRESOLVED
+                    if unresolved_mixed
+                    else upstream.ProfileDecisionValue.EXCLUDED
+                ),
+                (
+                    f"SEC_SIC_PROFILE_MATCH:{sic}:{description}"
+                    if detected
+                    else "COMBINED_FINANCIAL_STATEMENTS_REQUIRE_MIXED_STRUCTURE_RESOLUTION"
+                    if unresolved_mixed
+                    else f"SEC_SIC_PROFILE_EXCLUDED:{sic}:{description}"
+                ),
+                support_semantics,
+                support_evidence,
+            ))
+        positive = (
+            len(comparability.period_decisions) == 5
+            and all(item.c3_value > 0 for item in comparability.period_decisions)
+        )
+        subject_stable = (
+            comparability.historical_reporting_subject.qualified_subject_identity
+            is not None
+        )
+        decisions.extend((
+            upstream.MethodProfileDecision(
+                upstream.UnsupportedStructure.TURNAROUND,
+                (
+                    upstream.ProfileDecisionValue.EXCLUDED
+                    if positive and subject_stable
+                    else upstream.ProfileDecisionValue.UNRESOLVED
+                ),
+                (
+                    "STABLE_POSITIVE_FIVE_PERIOD_REPORTING_SUBJECT_ROUTE"
+                    if positive and subject_stable
+                    else "TURNAROUND_EXCLUSION_NOT_ESTABLISHED"
+                ),
+                support_semantics,
+                support_evidence,
+            ),
+            upstream.MethodProfileDecision(
+                upstream.UnsupportedStructure.LOSS_MAKING,
+                (
+                    upstream.ProfileDecisionValue.EXCLUDED
+                    if positive
+                    else upstream.ProfileDecisionValue.NOT_EXCLUDED
+                ),
+                (
+                    "ALL_FIVE_QUALIFIED_DILUTED_EPS_PERIODS_STRICTLY_POSITIVE"
+                    if positive
+                    else "POSITIVE_FIVE_PERIOD_ROUTE_NOT_ESTABLISHED"
+                ),
+                support_semantics,
+                support_evidence,
+            ),
+        ))
+        if not positive:
+            reasons.add(reason.POSITIVE_FIVE_PERIOD_ROUTE_NOT_ESTABLISHED)
+        if not subject_stable:
+            reasons.add(reason.REPORTING_SUBJECT_STABILITY_NOT_ESTABLISHED)
+        if any(
+            item.profile is upstream.UnsupportedStructure.MIXED_CONGLOMERATE
+            and item.decision is upstream.ProfileDecisionValue.UNRESOLVED
+            for item in decisions
+        ):
+            reasons.add(reason.MIXED_STRUCTURE_UNRESOLVED)
+
+    if reason.REPLAY_IDENTITY_MISMATCH in reasons:
+        status = upstream.OrdinaryCompounderProfileStatus.SOURCE_CONFLICT
+    elif decisions and any(
+        item.decision is upstream.ProfileDecisionValue.NOT_EXCLUDED
+        for item in decisions
+    ):
+        reasons.add(reason.UNSUPPORTED_SIC_PROFILE)
+        status = upstream.OrdinaryCompounderProfileStatus.PROFILE_UNSUPPORTED
+    elif (
+        reasons
+        or len(decisions) != len(upstream.UnsupportedStructure)
+        or any(
+            item.decision is not upstream.ProfileDecisionValue.EXCLUDED
+            for item in decisions
+        )
+    ):
+        status = upstream.OrdinaryCompounderProfileStatus.PROFILE_UNAVAILABLE
+    else:
+        status = (
+            upstream.OrdinaryCompounderProfileStatus.
+            ORDINARY_COMPOUNDER_PROFILE_ESTABLISHED
+        )
+
+    return upstream.OrdinaryCompounderMethodProfileQualification(
+        upstream.CONTRACT_VERSION,
+        upstream.QUALIFIER_VERSION,
+        status,
+        upstream.PROFILE if status is (
+            upstream.OrdinaryCompounderProfileStatus.
+            ORDINARY_COMPOUNDER_PROFILE_ESTABLISHED
+        ) else None,
+        comparability.upstream_reporting_subject_source.source_cik,
+        sic,
+        description,
+        tuple(decisions),
+        tuple(sorted(reasons, key=lambda item: item.value)),
+        upstream.LIMITATIONS,
+        comparability,
+        metadata_semantic_id,
+        metadata_evidence_id,
+        profile.expected_comparability_semantic_id,
+        profile.expected_comparability_evidence_id,
+    )
+
+
 def _validate_profile_shape(profile):
     if (
         profile.contract_version != upstream.CONTRACT_VERSION
@@ -504,6 +664,10 @@ def _validate_profile_shape(profile):
     elif profile.decisions != ():
         raise CurrentAnnualOperatingCashFlowNetIncomeError(
             "Profile decisions require canonical SIC metadata"
+        )
+    if profile != _factory_reachable_profile(profile, comparability):
+        raise CurrentAnnualOperatingCashFlowNetIncomeError(
+            "Factory-impossible ordinary-compounder profile projection"
         )
     return comparability
 
