@@ -108,6 +108,28 @@ class OrdinaryCompounderProfileTests(unittest.TestCase):
             result.reasons,
         )
 
+    def test_foreign_location_metadata_does_not_change_sic_structure_decisions(self):
+        cases = ((3571, "Electronic Computers"),
+                 (6021, "National Commercial Banks"),
+                 (3571, "Real Estate Investment Trusts"))
+        for sic, description in cases:
+            baseline = self.qualify(sic=sic, description=description)
+            for branch in ("mailing", "business"):
+                for value in (None, "foreign", 7, -(2**63 - 1)):
+                    with self.subTest(sic=sic, description=description, branch=branch, value=value):
+                        result = self.qualify(
+                            sic=sic, description=description,
+                            metadata_changes={"addresses": {branch: {"isForeignLocation": value}}})
+                        self.assertEqual(result.sic, baseline.sic)
+                        self.assertEqual(result.sic_description, baseline.sic_description)
+                        self.assertEqual(result.status, baseline.status)
+                        self.assertEqual(result.reasons, baseline.reasons)
+                        self.assertEqual(
+                            [(item.profile, item.decision, item.reason) for item in result.decisions],
+                            [(item.profile, item.decision, item.reason) for item in baseline.decisions])
+                        self.assertEqual(result.contract_version, baseline.contract_version)
+                        self.assertEqual(result.qualifier_version, baseline.qualifier_version)
+
     def test_replay_mismatch_is_authenticated_for_each_expected_identity(self):
         cases = (
             ("0" * 64, None),

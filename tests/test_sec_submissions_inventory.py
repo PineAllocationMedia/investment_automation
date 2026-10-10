@@ -158,6 +158,28 @@ class SubmissionsInventoryTests(unittest.TestCase):
         self.assertEqual(left.children[0].captured_at, T2)
         self.assertEqual(right.children[0].captured_at, "2026-09-21T12:00:00Z")
 
+    def test_foreign_location_integer_metadata_replay_and_recapture(self):
+        addresses = {"mailing": {"isForeignLocation": 7},
+                     "business": {"isForeignLocation": -(2**63 - 1)}}
+        old = self.parent(addresses=addresses)
+        new = self.parent(addresses=addresses, captured_at=T2)
+        left, right = self.replay(old), self.replay(new)
+        self.assertEqual(left, self.replay(old))
+        self.assertEqual(left.metadata_json, right.metadata_json)
+        self.assertEqual(left.semantic_id, right.semantic_id)
+        self.assertNotEqual(left.evidence_id, right.evidence_id)
+        self.assertNotEqual(old.receipt_id, new.receipt_id)
+        for branch, fields in addresses.items():
+            value = json.loads(left.metadata_json)["addresses"][branch]["isForeignLocation"]
+            self.assertIs(type(value), int)
+            self.assertEqual(value, fields["isForeignLocation"])
+        string_addresses = {branch: {"isForeignLocation": str(fields["isForeignLocation"])}
+                            for branch, fields in addresses.items()}
+        string_result = self.replay(self.parent(addresses=string_addresses))
+        self.assertNotEqual(left.metadata_json, string_result.metadata_json)
+        self.assertNotEqual(left.semantic_id, string_result.semantic_id)
+        self.assertNotEqual(left.evidence_id, string_result.evidence_id)
+
     def test_domain_separated_identities(self):
         result = self.replay(self.parent())
         occurrence = result.occurrences[0]
