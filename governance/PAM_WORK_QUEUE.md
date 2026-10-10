@@ -3,7 +3,7 @@
 ## ACTIVE
 
 - Stage C — Quality (`ACTIVE / INCOMPLETE`).
-  - Five bounded analytical diagnostics and five bounded evidence foundations are
+  - Six bounded analytical diagnostics and five bounded evidence foundations are
     complete / canonical; no composite or aggregate Quality conclusion is authorized.
   - Complete / canonical: first bounded slice,
     `FIVE_PERIOD_DILUTED_EPS_DIRECTIONAL_CONSISTENCY`.
@@ -17,6 +17,11 @@
     net-income evidence foundation,
     `CURRENT_ANNUAL_OPERATING_CASH_FLOW_NET_INCOME_QUALIFICATION`, under
     `QUALITY_CASH_CONVERSION_EVIDENCE_ONLY` authority.
+  - Completed prerequisite correction: PR #125 made that existing OCF/net-income
+    foundation enforce exact ordinary-compounder factory reachability. It added no
+    foundation and changed no facts, methodology, version or authority. Its
+    pre-existing capture-dependent upstream semantic-identity limitation remains
+    identified technical debt; no redesign Work Order is active.
   - Complete / canonical: bounded threshold-free
     `CURRENT_ANNUAL_OCF_TO_POSITIVE_NET_INCOME` diagnostic under
     `QUALITY_CURRENT_ANNUAL_OCF_NET_INCOME_RELATIONSHIP_DIAGNOSTIC_ONLY` authority.
@@ -43,12 +48,20 @@
     `QUALITY_PPE_ACQUISITION_CASH_PAYMENTS_EVIDENCE_ONLY` authority. It creates no
     universal capex, maintenance/growth capex, free-cash-flow, owner-earnings,
     reinvestment, Quality-score or investment judgment.
-  - Immediate next substep: exactly one Architecture & Audit evidence-readiness /
+  - Complete / canonical: PR #126's
+    `CURRENT_ANNUAL_OCF_LESS_PPE_ACQUISITION_CASH_PAYMENTS` diagnostic under
+    `QUALITY_CURRENT_ANNUAL_OCF_LESS_PPE_ACQUISITION_CASH_PAYMENTS_DIAGNOSTIC_ONLY`
+    authority. It reports exact signed qualified annual OCF minus qualified annual
+    PP&E acquisition cash payments only for coherent shared filing economics. It is
+    not universal free cash flow, owner earnings, distributable cash, total capex,
+    total reinvestment, a Quality judgment or a sixth evidence foundation.
+  - Immediate next substep: one new, separate Architecture & Audit evidence-readiness /
     next-contract-selection Work Order to inspect current Stage-C capability and
     select/define exactly one next truthful bounded Quality contract. It may select
     an evidence foundation first.
-  - No next Quality dimension, aggregate Quality score, scoring formula or Codex
-    implementation task is selected or queued.
+  - No seventh diagnostic, sixth evidence foundation, next Quality dimension,
+    aggregate Quality score, scoring formula or Codex implementation task is selected
+    or queued.
 
 - Blossom audience-growth initiative (`ACTIVE`).
   - Primary owner: Marketing & GTM.
