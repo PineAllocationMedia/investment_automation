@@ -231,6 +231,39 @@ Do not modify unrelated code because it is nearby.
 
 ---
 
+## 9.1 OPEN-SOURCE REUSE BEFORE BUILD
+
+Before designing a substantive new capability, infrastructure component, parser,
+analytical engine, reporting feature or comparable software system, perform a
+lightweight open-source prior-art check. When applicable, complete this review
+before implementation authorization, not after implementation has begun.
+
+- Search credible pre-existing free/open-source solutions, prioritizing GitHub
+  and authoritative project repositories; normally compare at most three relevant
+  candidates. Verify the actual repositories, current licenses, maintained
+  versions, documentation, compatibility, basic test/maintenance signals and
+  relevant security concerns.
+- Consider reuse as a dependency, adaptation as a component, safe study of design
+  patterns, or rejection. Prefer suitable permissive licenses; assess GPL/AGPL,
+  unclear, proprietary, dual-licensed or commercially restricted candidates before
+  incorporation. Software licensing is separate from underlying data licensing
+  and source-use restrictions. Preserve applicable copyright, license,
+  attribution, NOTICE and modification obligations.
+- Substantive implementation Work Orders must include a compact
+  `OPEN-SOURCE REUSE ASSESSMENT` with candidate links and a `REUSE / ADAPT / BUILD`
+  recommendation. Trivial bug fixes, pure documentation, isolated contract
+  corrections or work without a meaningful reusable component may instead give
+  a brief `NOT APPLICABLE` justification.
+- If no credible candidates or no network access exist, report the limitation;
+  never invent search results. Keep the assessment proportional to the chantier,
+  avoiding generic research campaigns and unnecessary implementation delay.
+- The assessment grants no automatic authority to adopt dependencies, copy code,
+  accept license risk or change architecture. Preserve PAM evidence provenance,
+  immutable capture, qualification contracts, reproducibility and source-authority
+  boundaries. This requirement does not require redoing completed chantiers.
+
+---
+
 ## 10. Validation defaults
 
 Use the repository's pinned Python / locked dependencies and isolated test runner.
