@@ -263,6 +263,8 @@ class PR5EIsolationTests(unittest.TestCase):
                 "bounded_confidence_projection.py").resolve(),
             Path(pr5e.__file__).with_name(
                 "explicit_unsupported_case.py").resolve(),
+            Path(pr5e.__file__).with_name(
+                "expected_return_pr5e_audit_export.py").resolve(),
         }
         for path in (root / "main.py", *sorted((root / "src").glob("*.py")),
                      *sorted((root / "pit_comparison").glob("*.py"))):
