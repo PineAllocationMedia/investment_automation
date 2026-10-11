@@ -514,8 +514,31 @@ under
 `QUALITY_CURRENT_ANNUAL_OPERATING_INCOME_TO_POSITIVE_TWO_POINT_AVERAGE_ASSETS_DIAGNOSTIC_ONLY`.
 Stage C remains active and incomplete. Exactly one next proposed read-only
 Architecture & Audit assessment evaluates exit readiness and the smallest next
-legitimate bounded action, considering the unresolved OCF identity defect and
-real-issuer applicability evidence. No implementation is authorized here.
+legitimate bounded action, considering PR #131's corrected OCF contract and the
+remaining real-issuer applicability evidence gap. No implementation is authorized here.
+
+PR #131 corrected the existing OCF/net-income identity contract within v2 without
+adding a capability. PR #132 (`1aae1be7a444f054ee3eb58bf357496cc8be5e74`) preserves
+string/null support and accepts bounded exact integers only in
+`addresses.mailing.isForeignLocation` and `addresses.business.isForeignLocation`;
+values remain opaque, without boolean coercion or an invented enumeration.
+Unrelated fields and source, extraction, qualification, receipt, profile and
+investment-authority boundaries are unchanged. No real-issuer qualification
+campaign or new analytical capability was established.
+
+PR #133 (`5f1594b156ad25e4bb22b6de6d3239cf93d525c4`) established the proportionate
+Existing Technology & Resource Reuse Gate in `AGENTS.md`, covering credible relevant
+ecosystems and licensing/commercial-use, reliability, security, integration and
+hardware checks. Credible adoption candidates must explicitly satisfy zero mandatory
+incremental external expenditure for acquisition, integration and operation;
+unverifiable cost compliance is `UNKNOWN`, and paid adoption requires an explicit
+CEO exception. Monetary cost, developer effort and legally permitted commercial use
+remain separate. The owner-reported Chromebook/Linux
+[execution-environment profile](docs/operations/PAM_EXECUTION_ENVIRONMENTS.md) is a
+planning reference, not a benchmark or established V2 runtime compatibility; unknown
+capacities remain UNKNOWN. No installation, spending, deployment, production or
+investment authority was granted.
+
 Later technical stages remain in their existing order.
 
 No additional pre-Stage-B Expected Return architecture interlude is authorized in
@@ -548,8 +571,8 @@ the explicitly supported bounded first CURRENT route; this is not universal or
 global Real Fact Admission completeness. Stage B is complete only within its
 currently approved bounded supported scope. The immediate technical frontier is
 exactly one next proposed read-only Architecture & Audit assessment of Stage-C
-exit readiness after PR #129, considering the unresolved OCF integrity defect and
-real-issuer applicability evidence, to determine the smallest next legitimate
+exit readiness after PR #133, considering the corrected OCF contract and remaining
+real-issuer applicability evidence gap, to determine the smallest next legitimate
 bounded action. No OCF implementation, real-data campaign, eighth diagnostic,
 new foundation or Stage-D transition is preselected; no automatic implementation
 authority is granted. The unchanged pre-shadow sequence
@@ -952,7 +975,7 @@ bounded company-vs-VFV Expected Return comparator complete
   unchanged;
 - active / incomplete: Stage C — Quality, with seven diagnostics and six evidence
   foundations canonical, and exactly one next proposed read-only Architecture &
-  Audit exit-readiness assessment after PR #129; no implementation task is active;
+  Audit exit-readiness assessment after PR #133; no implementation task is active;
 - revisit B2 only when genuinely new qualified evidence exists.
 
 Confidence applies to uncertainty inside an available analysis. Capability state
@@ -1037,13 +1060,15 @@ source rules, contract version, methodology or
 `QUALITY_CASH_CONVERSION_EVIDENCE_ONLY` authority and did not add an evidence
 foundation.
 
-A pre-existing identity-contract limitation remains identified technical debt: the
-OCF/net-income evidence foundation can change its `semantic_id` under authentic
-unchanged-economic recapture because upstream comparability/profile semantic
-identities contain evidence-derived information. PR #125 neither introduced nor
-fixed that behavior, and no redesign is activated. PR #126 isolates its own
-analytical semantic identity from those affected upstream identifiers, was
-independently cleared and is not blocked by this limitation.
+PR #131 (`dedd7300ca644888a6c1f67d43aae2745aee81dc`) corrected the previously
+identified OCF/net-income semantic/evidence identity defect with contract
+`2026-10-10-current-annual-operating-cash-flow-net-income-qualification-v2`.
+Authentic same-economics recapture preserves semantic identity within v2 while
+evidence identity retains actual provenance. v1 identities remain version-scoped
+legacy identities; no migration, persistence rewrite or bulk requalification was
+provided. Synthetic regressions prove mechanics, not real-issuer applicability;
+methodology, facts, qualification safeguards and investment authority are unchanged.
+Stage-C capability counts are unchanged.
 
 The bounded threshold-free analytical diagnostic,
 `CURRENT_ANNUAL_OCF_TO_POSITIVE_NET_INCOME`, is complete and canonical. Its immutable
@@ -1150,12 +1175,12 @@ a Quality score, historical trend or investment recommendation.
 No aggregation between the seven canonical Quality diagnostics exists.
 
 Exactly one next proposed read-only Architecture & Audit assessment will evaluate
-Stage-C exit readiness after PR #129 and determine the smallest next legitimate
-bounded action, considering the unresolved OCF/net-income semantic-identity defect
-under genuine recapture and the lack of demonstrated real-issuer applicability
-across the capability families proposed for Stage-C completion. Neither concern
-is resolved. Suggested Stage-C exit gates remain advisory, not CEO-ratified
-canonical policy. No OCF implementation, real-data campaign, eighth diagnostic,
+Stage-C exit readiness after PR #133 and determine the smallest next legitimate
+bounded action, considering the corrected OCF identity contract and remaining lack
+of demonstrated real-issuer applicability across the capability families proposed
+for Stage-C completion. The OCF defect was corrected through PR #131; applicability
+remains an open maturity concern. Suggested Stage-C exit gates remain advisory,
+not CEO-ratified canonical policy. No OCF implementation, real-data campaign, eighth diagnostic,
 new foundation, aggregate Quality score or Stage-D transition is preselected;
 no automatic implementation authority is granted.
 
@@ -2192,17 +2217,17 @@ and PR #129 canonically established
 diagnostic-only authority. These milestones create no composite or aggregate
 Quality conclusion and authorize no next implementation automatically. Stage C
 remains active and incomplete. Exactly one next proposed read-only Architecture &
-Audit assessment evaluates exit readiness after PR #129 and determines the smallest
-next legitimate bounded action, considering unresolved OCF integrity and
-real-issuer applicability evidence. No implementation or Stage-D transition is
+Audit assessment evaluates exit readiness after PR #133 and determines the smallest
+next legitimate bounded action, considering the corrected OCF contract and remaining
+real-issuer applicability evidence gap. No implementation or Stage-D transition is
 preselected. V2 architecture remains incomplete and shadow
 cannot begin.
 
 ---
 
-*Roadmap state updated on 2026-10-10 through canonical PR #128 and PR #129, including
-the opening/closing Assets evidence foundation and Operating Income/two-point-
-average-Assets diagnostic.
+*Roadmap state updated on 2026-10-11 through canonical PR #131, #132 and #133,
+including OCF identity correction, bounded SEC Submissions compatibility and the
+technology/resource reuse gate with execution-environment planning reference.
 Governance Reform
 Phase 1, Governance Cleanup / Migration, role Projects/employees configuration and
 PR5E are complete. Stage B — Expected Return is complete within the currently
@@ -2213,7 +2238,7 @@ based and dormant, and is an open capability gap rather than a bounded-sequence
 blocker. Stage C — Quality is active and incomplete; its seven bounded analytical
 diagnostics and six evidence foundations are complete and canonical. Exactly one
 next proposed read-only Architecture & Audit exit-readiness assessment considers the
-unresolved OCF identity defect and real-issuer applicability evidence. Exit gates
+corrected OCF contract and remaining real-issuer applicability evidence gap. Exit gates
 remain advisory, not CEO-ratified policy; no implementation or Stage-D transition
 is selected. Later architecture
 stages and shadow-readiness gates remain requirements only, and shadow cannot begin.

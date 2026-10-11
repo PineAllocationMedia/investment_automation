@@ -19,9 +19,13 @@
     `QUALITY_CASH_CONVERSION_EVIDENCE_ONLY` authority.
   - Completed prerequisite correction: PR #125 made that existing OCF/net-income
     foundation enforce exact ordinary-compounder factory reachability. It added no
-    foundation and changed no facts, methodology, version or authority. Its
-    pre-existing capture-dependent upstream semantic-identity limitation remains
-    identified technical debt; no redesign Work Order is active.
+    foundation and changed no facts, methodology, version or authority.
+  - Complete / canonical correction: PR #131 corrected that foundation's identity
+    contract with `2026-10-10-current-annual-operating-cash-flow-net-income-qualification-v2`.
+    Authentic same-economics recapture preserves semantic identity within v2;
+    evidence identity retains actual provenance. v1 identities remain version-scoped
+    legacy identities. No migration, persistence rewrite, bulk requalification,
+    real-issuer applicability or investment authority was established.
   - Complete / canonical: bounded threshold-free
     `CURRENT_ANNUAL_OCF_TO_POSITIVE_NET_INCOME` diagnostic under
     `QUALITY_CURRENT_ANNUAL_OCF_NET_INCOME_RELATIONSHIP_DIAGNOSTIC_ONLY` authority.
@@ -69,12 +73,12 @@
     when both endpoints are positive. The two-point average is an analytical
     approximation, not ROIC, normalized ROA, a Quality score, historical trend or
     investment recommendation.
-  - Unresolved completion concerns: the pre-existing OCF/net-income qualification
-    semantic-identity contract mismatch under genuine recapture, and lack of
-    demonstrated real-issuer applicability across the capability families proposed
-    for Stage-C completion. Neither is resolved by PR #128 or PR #129.
+  - Remaining completion concern: lack of demonstrated real-issuer applicability
+    across the capability families proposed for Stage-C completion. The previously
+    identified OCF/net-income identity defect was corrected through PR #131.
   - Exactly one next proposed action: read-only Architecture & Audit assessment of
-    Stage-C exit readiness after PR #129, considering both concerns and determining
+    Stage-C exit readiness after PR #133, considering the corrected contract and
+    remaining applicability evidence gap, and determining
     the smallest next legitimate bounded action. Suggested exit gates remain
     advisory, not CEO-ratified canonical policy.
   - No OCF implementation, real-data campaign, eighth diagnostic, new foundation,
@@ -93,6 +97,24 @@
   - No autonomous posting, personalized investment advice, invented PAM capability or hidden affiliate promotion is authorized.
 
 ## COMPLETED
+
+- PR #132 SEC Submissions compatibility correction is canonical: bounded exact
+  integers in `addresses.mailing.isForeignLocation` and
+  `addresses.business.isForeignLocation`, with existing string/null support,
+  opaque values and unchanged qualification/source/receipt/profile authority.
+  No real-issuer qualification campaign or new analytical capability was established.
+
+- PR #133 Existing Technology & Resource Reuse Gate and execution-environment
+  reference are canonical. Proportionate relevant-ecosystem discovery includes
+  licensing/commercial-use, security, reliability, integration, hardware and cost
+  checks. Every credible adoption candidate needs explicit cost-compliance status
+  for the default zero mandatory incremental external acquisition/integration/
+  operation cost; unverifiable compliance is UNKNOWN, not assumed compliant.
+  Paid adoption requires an explicit CEO exception.
+  Monetary cost, developer effort and commercial rights remain distinct. The
+  owner-reported Chromebook/Linux profile is planning evidence, not a benchmark
+  or established V2 compatibility; unknown hardware remains UNKNOWN. No spending,
+  installation, deployment, production or investment authority was granted.
 
 - Development Workflow Automation v1 / deterministic `pam_preflight` is a completed
   cross-cutting workflow milestone. It preserves the canonical validation tiers and
