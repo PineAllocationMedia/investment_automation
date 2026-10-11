@@ -3,19 +3,20 @@
 > Two-to-five-minute operational snapshot. Refresh through Governance Sync after
 > durable state changes.
 
-- **Governance snapshot:** records the CEO's 2026-10-11 Option A Stage-C authentic
-  positive Quality exit-evidence decision; this Governance Sync is pending merge.
-  Canonical PR #131–133 corrections and workflow improvements remain recorded.
-  No technical implementation, investment methodology or source authority changes.
+- **Governance snapshot:** PR #135's Option A Stage-C authentic-positive exit
+  requirement is canonical. This pending Governance Sync records the CEO's
+  2026-10-11 sequencing decision to preserve PR5C v1 and suspend proposed
+  multi-filing EPS comparability development. No methodology or source authority changes.
 - **Current major program:** Stage C — Quality
 - **Parallel CEO-approved GTM initiative:** bounded Blossom audience-growth mandate for `@therealpam`, owned by Marketing & GTM; audience value first, PAM promotion secondary, human approval required before publication
-- **Proposed technical frontier:** one read-only evidence-feasibility and issuer-
-  selection preflight owned by Data & Evidence, to identify one objectively selected
-  real issuer and minimum source evidence before separate acquisition authorization.
-  This action is proposed only; no issuer, acquisition or implementation is activated.
+- **Current technical frontier:** the bounded evidence-feasibility investigations
+  are complete with no demonstrated positive native Quality chain. PR5C v1 remains
+  unchanged; proposed multi-filing EPS comparability development is suspended.
+  The immediate next technical implementation chantier remains unselected. No
+  replacement workstream or further exploratory issuer acquisition is authorized.
 - **Canonical integration branch:** `model-v2/expected-return-challenger`
-- **Canonical verified pre-this-sync HEAD:** `d7050310d119a9aad04cf9e2149ca1a8f2416e44`
-- **Canonical verified tree:** `a42fbb3adcde93cdad59a9791a8b209ab0f8b0d4`
+- **Canonical verified pre-this-sync HEAD:** `e64adaf018cf1f292b4126137ca5b94a9c2394f5`
+- **Canonical verified tree:** `45399b1b2c6718d722fbc71c36dd78b3577575cd`
 - **Current status:** Stage C — Quality is `ACTIVE / INCOMPLETE`. Its seven bounded
   analytical diagnostics and six bounded evidence foundations are complete and
   canonical. No composite Quality score or aggregation is authorized.
@@ -364,22 +365,34 @@
   remain unchanged. The higher ceiling does not guarantee that every future
   `FULL_PIT` execution will complete within 60 minutes and grants no technical,
   model, investment or authority expansion.
-- Reported evidence in the owner-supplied Work Order: Architecture & Audit found
-  no new material implementation defect; PR #131's OCF identity correction remains
-  closed within its contract. Codex reported authentic Nasdaq Listed and Microsoft
-  Companyfacts captures, durable preservation and independent-process offline
-  integrity/replay verification. Microsoft C3 returned
-  `UNAVAILABLE / INSUFFICIENT_FILING_IDENTITY` under the existing PR4C3 cross-form identity rule,
-  not an identified implementation defect. No Microsoft Quality foundation or
-  diagnostic was executed. These execution reports and specialist findings are
-  attributed evidence, not independently rerun repository tests in this sync.
+- Completed investigation findings, attributed to execution/specialist handoffs
+  supplied in the authorized Work Order, not independently rerun by this sync:
+  Microsoft native PR4C3 returned `UNAVAILABLE / INSUFFICIENT_FILING_IDENTITY`.
+  Amazon authentic Companyfacts capture and native PR4C3 returned
+  `UNAVAILABLE / UNRESOLVED_VALUE_CONFLICT`; filing-local evidence strongly supports
+  a 2022 stock-split/reporting-precision explanation, but establishes no authorized
+  reconciliation. Amgen/Meta documentary preflight returned `NO_CREDIBLE_CANDIDATE`:
+  no exact five-period PR5C presentation was identified and neither issuer underwent
+  native qualification. Architecture & Audit's final multi-filing proof-adequacy
+  verdict was `NOT_YET_DEFENSIBLE`. No contract defect requiring immediate
+  correction was established.
+- Missing multi-filing guarantees remain affirmative cross-filing reporting-subject
+  continuity, affirmative cross-filing share-basis equivalence and sufficient bounded
+  filing-version/event coverage. Immutable captures and filing-local claims do not
+  establish these economic qualifications.
+- CEO sequencing decision (2026-10-11): preserve PR5C v1 unchanged and suspend the
+  proposed multi-filing EPS comparability development while retaining strict source
+  and economic qualification. Revisit only if materially new authenticated evidence
+  or a separate CEO-authorized scope decision warrants reconsideration. This is
+  neither an investment-model policy amendment nor permanent rejection of
+  multi-filing analysis. Further exploratory issuer acquisitions require a separate
+  justified decision; no acquisition or implementation Work Order is activated.
 - Stage C remains `ACTIVE / INCOMPLETE`, with seven diagnostics and six foundations.
-  Positive authentic Quality applicability remains unestablished. The CEO-approved
-  exit condition is recorded in `DECISIONS.md`; no broader suggested exit checklist
-  is ratified. Data & Evidence's read-only feasibility/issuer-selection preflight
-  remains proposed only. No additional acquisition, new issuer validation,
-  implementation, composite Quality score, Stage-D activation or shadow/production
-  authority is granted.
+  Positive authentic Quality applicability remains unestablished. The existing
+  CEO-approved authentic-positive exit criterion remains necessary before closure
+  may be considered; closure and Stage-D activation remain separate CEO decisions.
+  PR4C3, PR5B and PR5C contracts, V1 frozen authority and V2 challenger status remain
+  unchanged; no new Quality, historical/PIT, shadow or production authority is granted.
 - All seven conversational PAM role Projects/employees are configured. Codex
   Development remains `ACTIVE BY TASK`, not an autonomous conversational employee.
 
@@ -391,5 +404,5 @@
 - `DECISIONS.md`
 - `governance/roles/*.md`
 
-The HEAD/tree above are the verified canonical state after PR #134 and before this
+The HEAD/tree above are the verified canonical state after PR #135 and before this
 Governance Sync, not the future merge commit of this Governance Sync PR.

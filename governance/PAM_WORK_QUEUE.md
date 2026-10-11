@@ -81,17 +81,13 @@
     created; synthetic tests/acquisition alone are insufficient. Closure and Stage-D
     transition remain separate CEO decisions. Other suggested exit criteria remain
     advisory; positive authentic Quality applicability is still unestablished.
-  - Owner-supplied Work Order reports no new material implementation defect from
-    Architecture & Audit and PR #131's OCF correction closed within its contract.
-    Codex-reported authentic Nasdaq/Microsoft captures passed durable preservation
-    and offline replay, but Microsoft C3 returned
-    `UNAVAILABLE / INSUFFICIENT_FILING_IDENTITY` under the existing PR4C3 cross-form rule. No
-    Microsoft Quality foundation/diagnostic was executed. These reports are not
-    independent repository-test execution by this Governance Sync.
-  - Exactly one next proposed action, owned by Data & Evidence: read-only evidence-
-    feasibility and issuer-selection preflight to identify one objectively selected
-    real issuer and minimum source evidence before separate acquisition authorization.
-    This action is not activated here; no issuer or acquisition campaign is preapproved.
+  - Evidence-feasibility investigations are complete; findings are summarized under
+    COMPLETED below. No positive authentic contract-valid Quality chain is established.
+  - CEO sequencing decision (2026-10-11): preserve PR5C v1 unchanged and suspend
+    proposed multi-filing EPS comparability development; strict source/economic
+    qualification requirements remain unchanged. No further exploratory issuer
+    acquisition without a separate justified decision. The immediate next technical
+    implementation chantier remains unselected; no replacement workstream is activated.
   - No OCF implementation, real-data campaign, eighth diagnostic, new foundation,
     aggregate Quality score or Stage-D transition is preselected. No specialist
     implementation task is active or queued; no automatic implementation authority
@@ -108,6 +104,19 @@
   - No autonomous posting, personalized investment advice, invented PAM capability or hidden affiliate promotion is authorized.
 
 ## COMPLETED
+
+- Stage-C evidence-feasibility investigation (reported handoffs; not rerun by this
+  governance sync): Microsoft native PR4C3 `UNAVAILABLE / INSUFFICIENT_FILING_IDENTITY`;
+  Amazon authentic Companyfacts capture and PR4C3
+  `UNAVAILABLE / UNRESOLVED_VALUE_CONFLICT`. Filing-local evidence strongly supports
+  a 2022 stock-split/reporting-precision explanation, not authorized reconciliation.
+  Amgen/Meta documentary preflight: `NO_CREDIBLE_CANDIDATE`; no exact five-period
+  PR5C presentation identified and no native qualification executed for either.
+  Architecture & Audit: final multi-filing verdict `NOT_YET_DEFENSIBLE`; no contract
+  defect requiring immediate correction established. Captures/filing-local claims
+  do not prove cross-filing reporting-subject continuity, share-basis equivalence
+  or sufficient bounded filing-version/event coverage. Investigation completion is
+  not Stage-C completion or positive Quality qualification.
 
 - PR #132 SEC Submissions compatibility correction is canonical: bounded exact
   integers in `addresses.mailing.isForeignLocation` and
@@ -165,3 +174,9 @@ The evaluated technology opportunities are `PARKED` in
   appears. It remains `UNAVAILABLE / DEFERRED`, an open capability gap, not
   permanently unsupported and not a blocker to the bounded Stage-B completion.
   No autonomous monitoring or queued implementation task is authorized.
+
+- Proposed multi-filing EPS comparability development is `SUSPENDED` by the CEO's
+  2026-10-11 sequencing decision. PR5C v1 remains unchanged. Reconsideration requires
+  materially new authenticated evidence or a separate CEO-authorized scope decision;
+  this is not permanent rejection or an investment-model policy amendment. No
+  autonomous monitoring, new acquisition or queued implementation is authorized.
