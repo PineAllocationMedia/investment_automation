@@ -136,7 +136,8 @@ Focused tests cover deterministic native export across independent processes,
 semantic/evidence separation, all native states, malformed/corrupt/missing content,
 unsupported versions, duplicate keys, external-anchor mismatch, offline operation,
 explicit authority boundaries and preservation of inputs/source archive bytes.
-Existing PR5E tests remain unchanged. Required tier: FULL_PIT plus canonical
+The existing PR5E import-isolation test permits this one new bounded consumer;
+V1/runtime/production imports remain forbidden. Required tier: FULL_PIT plus canonical
 `./pam_preflight --base 27f7d66012c65f4be09d3801dcc09cef85f8f52d`, protected PIT and
 determinism fingerprints, unchanged MODEL_RULES_VERSION and Git integrity checks.
 
