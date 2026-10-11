@@ -691,3 +691,56 @@
   preselected; no automatic implementation authority or active specialist task is
   created. Existing Blossom scope, V1 frozen authority, V2 challenger status and
   all CEO decision boundaries remain unchanged.
+
+
+## 2026-10-10 — PR #131 OCF semantic/evidence identity correction canonical
+
+- [PR #131](https://github.com/PineAllocationMedia/investment_automation/pull/131)
+  merged as `dedd7300ca644888a6c1f67d43aae2745aee81dc` (GitHub-verified merge date).
+- Contract `2026-10-10-current-annual-operating-cash-flow-net-income-qualification-v2`
+  preserves semantic identity for authentic same-economics recapture within v2;
+  evidence identity retains actual provenance. This corrects the defect recorded
+  in earlier entries, which remain historical records.
+- v1 identities remain version-scoped legacy identities. No migration, persistence
+  rewrite or bulk requalification was supplied. Synthetic regressions prove mechanics,
+  not real-issuer applicability. No capability, methodology or investment authority
+  was added; Stage-C counts remain seven diagnostics and six evidence foundations.
+
+## 2026-10-10 — PR #132 bounded SEC Submissions compatibility canonical
+
+- [PR #132](https://github.com/PineAllocationMedia/investment_automation/pull/132)
+  merged as `1aae1be7a444f054ee3eb58bf357496cc8be5e74` (GitHub-verified merge date).
+- Existing string/null support remains; only `addresses.mailing.isForeignLocation`
+  and `addresses.business.isForeignLocation` additionally accept exact integers
+  bounded by `abs(value) <= 2**63 - 1`, without boolean interpretation, an invented
+  enumeration or extension to unrelated fields.
+- Source, extraction, qualification, receipt, profile and investment-authority
+  boundaries remain unchanged. This source compatibility correction established
+  no real-issuer qualification campaign or analytical capability.
+
+## 2026-10-11 — PR #133 technology/resource reuse workflow canonical
+
+- [PR #133](https://github.com/PineAllocationMedia/investment_automation/pull/133)
+  merged as `5f1594b156ad25e4bb22b6de6d3239cf93d525c4`, tree
+  `91e521a803572502608e5a9aea8180b1afd2ccdb` (GitHub-verified merge date).
+- `AGENTS.md` now requires proportionate existing-technology/resource assessment
+  before applicable implementation authorization, covering relevant credible
+  ecosystems, licensing/commercial use, reliability, security, integration and
+  hardware fit. The CEO-approved default is zero mandatory incremental external
+  expenditure for acquisition, integration and operation. Each credible adoption
+  candidate needs explicit cost-compliance status; unverifiable compliance is
+  `UNKNOWN`, and paid adoption requires an explicit CEO exception. Monetary cost,
+  development effort and legally permitted commercial use remain distinct.
+- The owner-reported Chromebook/Linux
+  [execution-environment reference](../docs/operations/PAM_EXECUTION_ENVIRONMENTS.md)
+  preserves unknown capacities and provides planning facts, not a benchmark or
+  established Chromebook V2 compatibility. No installation, spending, deployment,
+  production or investment authority was granted.
+- Stage C remains `ACTIVE / INCOMPLETE`: seven bounded diagnostics, six evidence
+  foundations, no composite Quality score or Stage-D transition. PR #131 corrected
+  the earlier OCF identity defect; demonstrated real-issuer applicability across
+  proposed completion capability families remains an open maturity concern.
+  Exactly one next read-only Architecture & Audit exit-readiness assessment remains
+  proposed, not performed or completed; suggested exit gates remain advisory, not
+  CEO-ratified policy. Blossom scope, B2 trigger-based dormancy, V1 frozen authority
+  and V2 challenger status remain unchanged.

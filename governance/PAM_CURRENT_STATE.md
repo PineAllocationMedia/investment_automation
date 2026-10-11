@@ -3,18 +3,18 @@
 > Two-to-five-minute operational snapshot. Refresh through Governance Sync after
 > durable state changes.
 
-- **Last Governance Sync:** records canonical PR #128 opening/closing Assets evidence
-  foundation and PR #129 Operating Income/two-point-average-Assets diagnostic,
-  without policy, capability-authority or Stage-C completion-criteria changes
-  (2026-10-10)
+- **Governance snapshot:** records canonical PR #131 OCF identity correction,
+  PR #132 SEC Submissions compatibility and PR #133 technology/resource reuse gate
+  and execution-environment reference (2026-10-11; this sync is pending merge).
+  No governance-policy, capability-authority or Stage-C exit-criteria change.
 - **Current major program:** Stage C — Quality
 - **Parallel CEO-approved GTM initiative:** bounded Blossom audience-growth mandate for `@therealpam`, owned by Marketing & GTM; audience value first, PAM promotion secondary, human approval required before publication
 - **Proposed technical frontier:** exactly one read-only Architecture & Audit
-  Stage-C exit-readiness assessment after PR #129, to determine the smallest next
+  Stage-C exit-readiness assessment after PR #133, to determine the smallest next
   legitimate bounded action; no specialist implementation task is activated
 - **Canonical integration branch:** `model-v2/expected-return-challenger`
-- **Canonical verified pre-this-sync HEAD:** `288bab62c579e1a814833802f89b9671d5d24074`
-- **Canonical verified tree:** `c02794ca4cad319e03e3fa4a0e8b8f82775099e2`
+- **Canonical verified pre-this-sync HEAD:** `5f1594b156ad25e4bb22b6de6d3239cf93d525c4`
+- **Canonical verified tree:** `91e521a803572502608e5a9aea8180b1afd2ccdb`
 - **Current status:** Stage C — Quality is `ACTIVE / INCOMPLETE`. Its seven bounded
   analytical diagnostics and six bounded evidence foundations are complete and
   canonical. No composite Quality score or aggregation is authorized.
@@ -47,11 +47,15 @@
   opening/closing annual `us-gaap:Assets` observations from a coherent common SEC
   filing presentation, with authentic provenance and adjacent annual dates. It
   performs no average-assets calculation, ROA, ROIC or Quality judgment.
-- **Latest completed OCF trust-boundary correction:** PR #125 made the existing
-  `CURRENT_ANNUAL_OPERATING_CASH_FLOW_NET_INCOME_QUALIFICATION` enforce exact
-  ordinary-compounder factory reachability without changing economic facts, source
-  rules, contract version, methodology or `QUALITY_CASH_CONVERSION_EVIDENCE_ONLY`
-  authority. It is a correction to an existing foundation, not another foundation.
+- **Latest completed OCF identity correction:** PR #131 corrected the existing
+  foundation's semantic/evidence identity contract within v2; PR #125's exact
+  ordinary-compounder factory-reachability safeguard remains unchanged. No new
+  evidence foundation, economic fact, methodology or investment authority was added.
+- **Latest completed source compatibility correction:** PR #132 accepts bounded
+  exact integers only in the two SEC Submissions address `isForeignLocation` fields.
+- **Latest completed development-workflow improvement:** PR #133 established the
+  expanded technology/resource reuse gate, zero-mandatory-external-cost default and
+  owner-reported Chromebook/Linux execution-environment planning reference.
 - **Latest completed shared trust-boundary infrastructure:** PR #115,
   ordinary-compounder profile contract v2 with preserved expected comparability
   semantic/evidence identities and independently authenticated replay mismatch
@@ -64,8 +68,8 @@
   complete within the currently approved bounded supported scope; Stage C — Quality
   is active
 - **Immediate proposed frontier:** one read-only Architecture & Audit assessment
-  of Stage-C exit readiness after PR #129, considering the OCF semantic-identity
-  defect under genuine recapture and real-issuer applicability evidence. It will
+  of Stage-C exit readiness after PR #133, considering the corrected OCF contract
+  and remaining real-issuer applicability evidence gap. It will
   determine the smallest next legitimate bounded action; no implementation,
   campaign, eighth diagnostic, new foundation or Stage-D transition is preselected.
 - **Comparator availability:** Canonical only for the bounded current real route under
@@ -244,13 +248,32 @@
   unsupported, unavailable and conflict projections remain supported. PR #125
   changed no facts, source rules, version, methodology or authority and did not add
   an evidence foundation.
-- A pre-existing OCF-foundation identity-contract defect remains identified technical
-  debt: authentic unchanged-economic recapture can change that foundation's
-  `semantic_id` because upstream comparability/profile semantic identities contain
-  evidence-derived information. PR #125 neither introduced nor fixed this behavior.
-  No redesign is activated. PR #126 isolates its own analytical semantics from the
-  affected upstream identifiers, was independently cleared and is not blocked by
-  this limitation.
+- Canonical PR #131 (`dedd7300ca644888a6c1f67d43aae2745aee81dc`) corrected the
+  OCF/net-income identity defect with contract
+  `2026-10-10-current-annual-operating-cash-flow-net-income-qualification-v2`.
+  Authentic same-economics recapture preserves semantic identity within v2 while
+  evidence identity retains actual provenance. v1 identities remain version-scoped
+  legacy identities; no migration, persistence rewrite or bulk requalification was
+  supplied. Synthetic regressions establish mechanics, not real-issuer applicability.
+- Canonical PR #132 (`1aae1be7a444f054ee3eb58bf357496cc8be5e74`) preserves existing
+  string/null support and accepts exact integers bounded by `abs(value) <= 2**63 - 1`
+  only in `addresses.mailing.isForeignLocation` and
+  `addresses.business.isForeignLocation`. Values remain opaque, without boolean
+  coercion or an invented enumeration; unrelated fields and source, extraction,
+  qualification, receipt, profile and investment-authority boundaries are unchanged.
+  It established no real-issuer qualification campaign or analytical capability.
+- Canonical PR #133 (`5f1594b156ad25e4bb22b6de6d3239cf93d525c4`) established the
+  proportionate Existing Technology & Resource Reuse Gate in `AGENTS.md`: relevant
+  ecosystems, licensing/commercial-use, reliability, security, integration and
+  hardware checks before applicable implementation authorization. Every credible
+  adoption candidate must have explicit zero-mandatory-incremental-external-cost
+  compliance for acquisition, integration and operation; unverifiable compliance is
+  `UNKNOWN`, and paid adoption requires an explicit CEO exception. Monetary cost,
+  developer effort and commercial-use permission remain distinct. The owner-reported
+  [execution-environment profile](../docs/operations/PAM_EXECUTION_ENVIRONMENTS.md)
+  is a planning reference, not a benchmark or proven Chromebook V2 compatibility;
+  unknown capacities remain UNKNOWN. No installation, spending, deployment,
+  production or investment authority was granted.
 - The canonical `CURRENT_ANNUAL_OCF_TO_POSITIVE_NET_INCOME` diagnostic reports the
   exact rational OCF / Net Income relationship only when reported net income is
   strictly positive. Signed OCF is allowed; zero or negative net income produces
@@ -338,11 +361,10 @@
   `FULL_PIT` execution will complete within 60 minutes and grants no technical,
   model, investment or authority expansion.
 - Stage C remains `ACTIVE / INCOMPLETE`, with seven canonical diagnostics and six
-  canonical evidence foundations. The OCF/net-income qualification semantic-identity
-  contract mismatch under genuine recapture and lack of demonstrated real-issuer
-  applicability across the capability families proposed for completion remain
-  unresolved maturity concerns. Architecture & Audit's suggested exit gates remain
-  advisory, not CEO-ratified canonical policy. Exactly one next proposed read-only
+  canonical evidence foundations. PR #131 corrected the OCF identity defect;
+  demonstrated real-issuer applicability across the capability families proposed
+  for completion remains an open maturity concern. Architecture & Audit's suggested
+  exit gates remain advisory, not CEO-ratified canonical policy. Exactly one next proposed read-only
   exit-readiness assessment will determine the smallest next legitimate bounded
   action; no specialist work or automatic implementation authority is activated.
 - All seven conversational PAM role Projects/employees are configured. Codex
@@ -356,5 +378,5 @@
 - `DECISIONS.md`
 - `governance/roles/*.md`
 
-The HEAD/tree above are the verified canonical state after PR #129 and before this
+The HEAD/tree above are the verified canonical state after PR #133 and before this
 Governance Sync, not the future merge commit of this Governance Sync PR.
