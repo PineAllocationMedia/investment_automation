@@ -231,6 +231,86 @@ Do not modify unrelated code because it is nearby.
 
 ---
 
+## 9.1 EXISTING TECHNOLOGY & RESOURCE REUSE BEFORE BUILD
+
+Before designing or implementing a substantive new capability, technical component,
+parser, analytical engine, data workflow, reporting feature, infrastructure service
+or comparable system, perform a proportionate pre-existing technology/resource
+assessment. When applicable, complete it before implementation authorization.
+
+- Search only relevant ecosystems: GitHub and authoritative source repositories,
+  Hugging Face models/datasets/components, PyPI or conda-forge packages, public,
+  institutional or standards-based resources, existing algorithms, libraries,
+  APIs, tools and other credible free resources. Do not search every platform
+  automatically; normally compare no more than three credible candidates.
+- Verify actual sources, current licenses and maintained versions. Assess functional
+  suitability, reliability/correctness evidence, maintenance/releases, version
+  compatibility, documentation/tests, security and supply-chain concerns,
+  performance, integration/maintenance complexity and total cost of ownership.
+  Separate vendor claims from independently verified characteristics. Consider
+  dependency reuse, component adaptation, safe study of design patterns or rejection;
+  build custom solutions when necessary.
+- Independently check source-code and model architecture/code licenses, model
+  weights licenses, dataset licenses/provenance, redistribution/modification rights,
+  commercial-use permission, access restrictions, acceptable-use conditions and
+  applicable terms. Software licensing is separate from data licensing and
+  source-use restrictions. Free download does not imply open-source licensing or
+  commercial-use permission. Prefer suitable permissive licenses; assess GPL/AGPL,
+  custom, proprietary, dual-licensed, non-commercial, unclear or commercially
+  restricted resources before incorporation. Preserve copyright, license,
+  attribution, NOTICE and modification obligations. Material licensing or
+  commercial-use uncertainty requires Commercial & Compliance review; the CEO
+  retains material legal-risk and commercialization authority.
+- Consult [PAM execution environments](docs/operations/PAM_EXECUTION_ENVIRONMENTS.md).
+  When relevant, assess CPU architecture/instruction sets and processing demand,
+  peak/sustained RAM, swap assumptions, GPU/accelerators, installation/dependency
+  footprint, model weights/download size, caches/temporary storage, runtime/Python
+  compatibility, execution time, operational overhead and continuing API, hosting,
+  cloud or external-service costs. Preserve PAM's approved cost constraints;
+  this assessment grants no spending exception. Distinguish development-Mac
+  compatibility, plausible Chromebook/Linux compatibility, separately authorized
+  external-compute requirements and compatibility not established. Mac success
+  does not establish Chromebook compatibility; unknown capacities remain UNKNOWN.
+- By default, any technology/resource recommended for adoption must be obtainable,
+  integrable and operational without mandatory incremental external financial
+  expenditure, unless the CEO explicitly authorizes an exception before adoption.
+  Check acquisition/licensing costs, mandatory subscriptions/access fees, API charges,
+  usage limits and paid-tier dependencies, purchased integration software/services
+  or additional hardware, hosting/cloud/storage/external compute and other operating
+  expenses, recurring fees, renewals and mandatory upgrades. An advertised free tier
+  is insufficient when realistic intended use requires paid access. Open-source
+  availability proves neither zero-cost operation nor commercial-use permission;
+  assess commercial use, modification, distribution and redistribution rights
+  separately from monetary cost, and hardware fit against PAM's existing environments.
+  Explicitly state whether each credible candidate meets this default; unverified
+  cost compatibility is `UNKNOWN`, never assumed compliant. Candidates requiring
+  mandatory spending cannot be recommended for adoption under the default gate;
+  reject them or escalate for an explicit CEO exception. Never invent free
+  alternatives or verification evidence. Developer effort, maintenance complexity
+  and execution time are non-cash costs that remain important selection criteria.
+  This default grants no spending/adoption authority or exception to PAM's existing
+  `$0` external financial-data-cost constraint; it does not ban future paid
+  infrastructure/services separately authorized by the CEO.
+- Substantive implementation Work Orders must include a compact
+  `EXISTING TECHNOLOGY & RESOURCE REUSE ASSESSMENT`: candidate names/source links,
+  licensing/commercial-use status, technical/hardware fit, major limitations/risks,
+  a `REUSE / ADAPT / BUILD` recommendation and concise rationale. Trivial bug fixes,
+  pure documentation, isolated contract corrections or work without a meaningful
+  reusable component may give a brief justified `NOT APPLICABLE` instead.
+- If no credible candidates, internet access or required verification are available,
+  report the limitation. Never invent candidates/results or claim an unperformed
+  search. Keep the assessment lightweight and proportional; avoid broad research,
+  excessive bureaucracy and unnecessary implementation delay. No retroactive
+  reevaluation of completed chantiers is required.
+- The assessment grants no automatic permission to install dependencies, copy code,
+  download/execute model weights, introduce external APIs, accept licensing risk,
+  change architecture or financial methodology, expand source authority, relax
+  qualification, merge or deploy. Preserve immutable capture, exact evidence
+  provenance, qualification contracts, security boundaries, reproducibility,
+  deterministic analytical contracts, V1 frozen authority and V2 challenger status.
+
+---
+
 ## 10. Validation defaults
 
 Use the repository's pinned Python / locked dependencies and isolated test runner.
