@@ -73,14 +73,25 @@
     when both endpoints are positive. The two-point average is an analytical
     approximation, not ROIC, normalized ROA, a Quality score, historical trend or
     investment recommendation.
-  - Remaining completion concern: lack of demonstrated real-issuer applicability
-    across the capability families proposed for Stage-C completion. The previously
-    identified OCF/net-income identity defect was corrected through PR #131.
-  - Exactly one next proposed action: read-only Architecture & Audit assessment of
-    Stage-C exit readiness after PR #133, considering the corrected contract and
-    remaining applicability evidence gap, and determining
-    the smallest next legitimate bounded action. Suggested exit gates remain
-    advisory, not CEO-ratified canonical policy.
+  - CEO-approved necessary exit condition (2026-10-11, Option A): at least one
+    authentic positive contract-valid existing Quality chain, from immutable source
+    evidence through valid native upstream qualification and an established evidence
+    foundation to its associated native `AVAILABLE` diagnostic, with provenance/replay.
+    No universal issuer-count threshold or all-thirteen-capabilities requirement is
+    created; synthetic tests/acquisition alone are insufficient. Closure and Stage-D
+    transition remain separate CEO decisions. Other suggested exit criteria remain
+    advisory; positive authentic Quality applicability is still unestablished.
+  - Owner-supplied Work Order reports no new material implementation defect from
+    Architecture & Audit and PR #131's OCF correction closed within its contract.
+    Codex-reported authentic Nasdaq/Microsoft captures passed durable preservation
+    and offline replay, but Microsoft C3 returned
+    `UNAVAILABLE / INSUFFICIENT_FILING_IDENTITY` under the existing PR4C3 cross-form rule. No
+    Microsoft Quality foundation/diagnostic was executed. These reports are not
+    independent repository-test execution by this Governance Sync.
+  - Exactly one next proposed action, owned by Data & Evidence: read-only evidence-
+    feasibility and issuer-selection preflight to identify one objectively selected
+    real issuer and minimum source evidence before separate acquisition authorization.
+    This action is not activated here; no issuer or acquisition campaign is preapproved.
   - No OCF implementation, real-data campaign, eighth diagnostic, new foundation,
     aggregate Quality score or Stage-D transition is preselected. No specialist
     implementation task is active or queued; no automatic implementation authority

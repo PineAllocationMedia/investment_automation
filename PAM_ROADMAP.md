@@ -512,10 +512,11 @@ authority. PR #128 established the sixth evidence foundation,
 diagnostic, `CURRENT_ANNUAL_OPERATING_INCOME_TO_POSITIVE_TWO_POINT_AVERAGE_ASSETS`,
 under
 `QUALITY_CURRENT_ANNUAL_OPERATING_INCOME_TO_POSITIVE_TWO_POINT_AVERAGE_ASSETS_DIAGNOSTIC_ONLY`.
-Stage C remains active and incomplete. Exactly one next proposed read-only
-Architecture & Audit assessment evaluates exit readiness and the smallest next
-legitimate bounded action, considering PR #131's corrected OCF contract and the
-remaining real-issuer applicability evidence gap. No implementation is authorized here.
+Stage C remains active and incomplete. The CEO's 2026-10-11 Option A requires a
+positive authentic contract-valid existing Quality chain before closure may be
+considered. The next proposed technical action is a read-only evidence-feasibility
+and issuer-selection preflight owned by Data & Evidence; no acquisition or
+implementation is authorized here.
 
 PR #131 corrected the existing OCF/net-income identity contract within v2 without
 adding a capability. PR #132 (`1aae1be7a444f054ee3eb58bf357496cc8be5e74`) preserves
@@ -570,10 +571,9 @@ do not disappear merely because they are deferred. Stage A is complete only for
 the explicitly supported bounded first CURRENT route; this is not universal or
 global Real Fact Admission completeness. Stage B is complete only within its
 currently approved bounded supported scope. The immediate technical frontier is
-exactly one next proposed read-only Architecture & Audit assessment of Stage-C
-exit readiness after PR #133, considering the corrected OCF contract and remaining
-real-issuer applicability evidence gap, to determine the smallest next legitimate
-bounded action. No OCF implementation, real-data campaign, eighth diagnostic,
+one proposed read-only evidence-feasibility and issuer-selection preflight owned
+by Data & Evidence, to identify one objectively selected real issuer and minimum
+source evidence before separate acquisition authorization. No OCF implementation, real-data campaign, eighth diagnostic,
 new foundation or Stage-D transition is preselected; no automatic implementation
 authority is granted. The unchanged pre-shadow sequence
 remains in section 9.
@@ -889,7 +889,8 @@ bounded company-vs-VFV Expected Return comparator complete
 → current annual Operating Income/two-point-average-Assets diagnostic ✅
 → Development Workflow Automation / deterministic pam_preflight ✅ (cross-cutting)
 → Baseline V1 CI FULL_PIT runtime ceiling 60 minutes ✅ (cross-cutting)
-→ Stage-C exit readiness — one read-only Architecture & Audit assessment PROPOSED
+→ Stage-C authentic positive Quality exit evidence REQUIRED (CEO Option A)
+→ Data & Evidence feasibility/issuer-selection preflight PROPOSED (not activated)
 ```
 
 - completed: Data & Evidence currency/hedging prerequisite and reviewed compatible
@@ -974,8 +975,9 @@ bounded company-vs-VFV Expected Return comparator complete
   `FULL_PIT` runtime ceiling raised from 30 to 60 minutes with validation semantics
   unchanged;
 - active / incomplete: Stage C — Quality, with seven diagnostics and six evidence
-  foundations canonical, and exactly one next proposed read-only Architecture &
-  Audit exit-readiness assessment after PR #133; no implementation task is active;
+  foundations canonical; CEO-approved authentic positive Quality exit evidence is
+  required, and Data & Evidence's read-only feasibility/issuer-selection preflight
+  is proposed only; no implementation or acquisition task is activated;
 - revisit B2 only when genuinely new qualified evidence exists.
 
 Confidence applies to uncertainty inside an available analysis. Capability state
@@ -1174,15 +1176,37 @@ a Quality score, historical trend or investment recommendation.
 
 No aggregation between the seven canonical Quality diagnostics exists.
 
-Exactly one next proposed read-only Architecture & Audit assessment will evaluate
-Stage-C exit readiness after PR #133 and determine the smallest next legitimate
-bounded action, considering the corrected OCF identity contract and remaining lack
-of demonstrated real-issuer applicability across the capability families proposed
-for Stage-C completion. The OCF defect was corrected through PR #131; applicability
-remains an open maturity concern. Suggested Stage-C exit gates remain advisory,
-not CEO-ratified canonical policy. No OCF implementation, real-data campaign, eighth diagnostic,
-new foundation, aggregate Quality score or Stage-D transition is preselected;
-no automatic implementation authority is granted.
+The CEO approved Option A on 2026-10-11: Stage C requires at least one authentic,
+positive, contract-valid demonstration of the existing Quality evidence-to-analysis
+chain before closure may be considered. The minimum consists of authentic immutable
+source evidence, valid native upstream qualification, an existing established
+Quality evidence foundation and an associated native `AVAILABLE` diagnostic, with
+verifiable provenance and replay. See the append-only decision in `DECISIONS.md`.
+
+This is a necessary exit condition, not automatic completion authority. It creates
+no universal issuer-count threshold and does not require all thirteen capabilities
+to be AVAILABLE for the same issuer. Synthetic tests and source acquisition alone
+do not satisfy it. The CEO retains closure and Stage-D transition decisions;
+existing investment methodology and source qualification contracts are unchanged.
+No other suggested exit checklist is ratified.
+
+The owner-supplied Work Order reports Architecture & Audit found no new material
+implementation defect and PR #131's OCF identity correction remains closed within
+its contract. Codex reported authentic Nasdaq Listed and Microsoft Companyfacts
+captures, durable preservation and independent-process offline integrity/replay
+verification. Microsoft C3 returned `UNAVAILABLE / INSUFFICIENT_FILING_IDENTITY`
+under the existing PR4C3 cross-form rule, not an identified implementation defect.
+No Microsoft Quality foundation or diagnostic was executed. These execution reports
+and specialist findings are attributed evidence, not independently rerun repository
+tests in this Governance Sync. Positive authentic Quality applicability remains
+unestablished.
+
+The next proposed technical action is a read-only evidence-feasibility and issuer-
+selection preflight owned by Data & Evidence, to identify one objectively selected
+real issuer and minimum source evidence before separate acquisition authorization.
+This action is not activated here. No issuer, additional acquisition, implementation,
+eighth diagnostic, new foundation, composite Quality score, Stage-D transition or
+shadow/production authority is preapproved.
 
 Build transparent, evidence-backed measures for topics such as:
 
@@ -2216,18 +2240,18 @@ and PR #129 canonically established
 `CURRENT_ANNUAL_OPERATING_INCOME_TO_POSITIVE_TWO_POINT_AVERAGE_ASSETS` under
 diagnostic-only authority. These milestones create no composite or aggregate
 Quality conclusion and authorize no next implementation automatically. Stage C
-remains active and incomplete. Exactly one next proposed read-only Architecture &
-Audit assessment evaluates exit readiness after PR #133 and determines the smallest
-next legitimate bounded action, considering the corrected OCF contract and remaining
-real-issuer applicability evidence gap. No implementation or Stage-D transition is
-preselected. V2 architecture remains incomplete and shadow
+remains active and incomplete. The CEO-approved authentic positive Quality exit
+condition is necessary, not automatic closure authority. Data & Evidence's read-only
+evidence-feasibility and issuer-selection preflight is proposed only; no issuer,
+acquisition, implementation or Stage-D transition is preapproved. V2 architecture remains incomplete and shadow
 cannot begin.
 
 ---
 
 *Roadmap state updated on 2026-10-11 through canonical PR #131, #132 and #133,
 including OCF identity correction, bounded SEC Submissions compatibility and the
-technology/resource reuse gate with execution-environment planning reference.
+technology/resource reuse gate with execution-environment planning reference;
+this sync records the CEO's 2026-10-11 authentic positive Quality exit condition.
 Governance Reform
 Phase 1, Governance Cleanup / Migration, role Projects/employees configuration and
 PR5E are complete. Stage B — Expected Return is complete within the currently
@@ -2236,11 +2260,11 @@ explicit unsupported-case handling. The real-route investigation concluded `PART
 ROUTE ONLY`; B2 numeric executable-net remains `UNAVAILABLE / DEFERRED`, trigger-
 based and dormant, and is an open capability gap rather than a bounded-sequence
 blocker. Stage C — Quality is active and incomplete; its seven bounded analytical
-diagnostics and six evidence foundations are complete and canonical. Exactly one
-next proposed read-only Architecture & Audit exit-readiness assessment considers the
-corrected OCF contract and remaining real-issuer applicability evidence gap. Exit gates
-remain advisory, not CEO-ratified policy; no implementation or Stage-D transition
-is selected. Later architecture
+diagnostics and six evidence foundations are complete and canonical. Authentic
+positive contract-valid Quality exit evidence is now a CEO-approved necessary
+condition; it remains unestablished. Data & Evidence's read-only feasibility/issuer-
+selection preflight is proposed only. No broader exit checklist, issuer, acquisition,
+implementation or Stage-D transition is approved. Later architecture
 stages and shadow-readiness gates remain requirements only, and shadow cannot begin.
 The reviewed PR5D2 Expected Return assumption policies are now pinned, but no
 investment-rule, model-rule, V1 or production-authority change is authorized

@@ -3350,3 +3350,26 @@ Later implementation contracts may select schemas, storage engines and operation
 mechanics. This decision selects none. It changes no analytical methodology,
 investment rule, source authority, V1 behavior, production authority or V2 promotion
 status.
+
+
+## 2026-10-11 — Stage-C authentic positive Quality exit evidence (Option A)
+
+### Decision
+
+The CEO selected Option A:
+
+> Stage C — Quality requires at least one authentic, positive, contract-valid demonstration of the existing Quality evidence-to-analysis chain before Stage C can be closed.
+
+The minimal positive demonstration consists of authentic immutable source evidence,
+valid native upstream qualification, an existing established Quality evidence
+foundation and an associated native `AVAILABLE` analytical diagnostic, with
+verifiable provenance and replay.
+
+### Boundaries
+
+This is a necessary exit condition, not automatic completion authority. It creates
+no universal issuer-count threshold and does not require all thirteen existing
+capabilities to be AVAILABLE for the same issuer. Synthetic tests and successful
+source acquisition alone do not satisfy it. The CEO retains the later Stage-C
+closure and Stage-D transition decisions. Existing investment methodology and
+source qualification contracts remain unchanged.
