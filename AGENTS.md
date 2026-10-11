@@ -271,6 +271,26 @@ assessment. When applicable, complete it before implementation authorization.
   compatibility, plausible Chromebook/Linux compatibility, separately authorized
   external-compute requirements and compatibility not established. Mac success
   does not establish Chromebook compatibility; unknown capacities remain UNKNOWN.
+- By default, any technology/resource recommended for adoption must be obtainable,
+  integrable and operational without mandatory incremental external financial
+  expenditure, unless the CEO explicitly authorizes an exception before adoption.
+  Check acquisition/licensing costs, mandatory subscriptions/access fees, API charges,
+  usage limits and paid-tier dependencies, purchased integration software/services
+  or additional hardware, hosting/cloud/storage/external compute and other operating
+  expenses, recurring fees, renewals and mandatory upgrades. An advertised free tier
+  is insufficient when realistic intended use requires paid access. Open-source
+  availability proves neither zero-cost operation nor commercial-use permission;
+  assess commercial use, modification, distribution and redistribution rights
+  separately from monetary cost, and hardware fit against PAM's existing environments.
+  Explicitly state whether each credible candidate meets this default; unverified
+  cost compatibility is `UNKNOWN`, never assumed compliant. Candidates requiring
+  mandatory spending cannot be recommended for adoption under the default gate;
+  reject them or escalate for an explicit CEO exception. Never invent free
+  alternatives or verification evidence. Developer effort, maintenance complexity
+  and execution time are non-cash costs that remain important selection criteria.
+  This default grants no spending/adoption authority or exception to PAM's existing
+  `$0` external financial-data-cost constraint; it does not ban future paid
+  infrastructure/services separately authorized by the CEO.
 - Substantive implementation Work Orders must include a compact
   `EXISTING TECHNOLOGY & RESOURCE REUSE ASSESSMENT`: candidate names/source links,
   licensing/commercial-use status, technical/hardware fit, major limitations/risks,
