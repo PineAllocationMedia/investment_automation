@@ -777,3 +777,39 @@
   no Stage-C closure, Stage-D activation, qualification relaxation, financial/model
   change, commercial redistribution permission, shadow/deployment or production
   authority is granted. Blossom, dormant B2 and unrelated queue states are preserved.
+
+
+## 2026-10-11 — Stage-C PR5C feasibility decision and investigation handoff
+
+- Authorized `WO-GOVERNANCE-SYNC-STAGE-C-PR5C-FEASIBILITY` starts from verified
+  canonical HEAD `e64adaf018cf1f292b4126137ca5b94a9c2394f5`, tree
+  `45399b1b2c6718d722fbc71c36dd78b3577575cd`, after PR #135. That prior Governance
+  Sync is now canonical; its pending-merge wording above remains historical.
+- CEO-confirmed sequencing decision: preserve PR5C v1 unchanged, suspend proposed
+  multi-filing EPS comparability development and maintain strict source/economic
+  qualification. Revisit only on materially new authenticated evidence or a separate
+  CEO-authorized scope decision. This is neither an investment-model policy amendment
+  nor permanent rejection of multi-filing analysis. Further exploratory issuer
+  acquisitions require a separate justified decision.
+- Findings supplied in the Work Order: Microsoft native PR4C3
+  `UNAVAILABLE / INSUFFICIENT_FILING_IDENTITY`; Amazon authentic Companyfacts capture
+  and native PR4C3 `UNAVAILABLE / UNRESOLVED_VALUE_CONFLICT`. Filing-local evidence
+  strongly supports a 2022 stock-split/reporting-precision explanation, but no
+  authorized reconciliation exists. Amgen/Meta documentary preflight returned
+  `NO_CREDIBLE_CANDIDATE`, without an identified exact five-period PR5C presentation
+  or native qualification of either issuer. Architecture & Audit's final multi-filing
+  proof-adequacy verdict was `NOT_YET_DEFENSIBLE`. These are attributed handoffs,
+  not independent source inspection or qualification reruns by this sync.
+- Missing guarantees: affirmative cross-filing reporting-subject continuity,
+  affirmative cross-filing share-basis equivalence and sufficient bounded
+  filing-version/event coverage. Immutable captures and filing-local claims are not
+  those economic qualifications. No contract defect requiring immediate correction
+  was established.
+- Stage C remains `ACTIVE / INCOMPLETE`, with seven diagnostics and six foundations,
+  until its existing necessary authentic-positive exit-evidence criterion is met and
+  closure is separately authorized. No immediate implementation chantier or replacement
+  workstream is selected. PR4C3/PR5B/PR5C, V1 frozen authority, V2 challenger status,
+  Blossom and dormant B2 remain unchanged; no Stage-D or new Quality/PIT authority.
+- Only Current State, Work Queue and Worklog are synchronized. No protected Decision
+  Registry amendment, source acquisition, technical implementation or merge is
+  authorized. This Governance Sync remains pending merge.
