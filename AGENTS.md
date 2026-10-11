@@ -231,36 +231,63 @@ Do not modify unrelated code because it is nearby.
 
 ---
 
-## 9.1 OPEN-SOURCE REUSE BEFORE BUILD
+## 9.1 EXISTING TECHNOLOGY & RESOURCE REUSE BEFORE BUILD
 
-Before designing a substantive new capability, infrastructure component, parser,
-analytical engine, reporting feature or comparable software system, perform a
-lightweight open-source prior-art check. When applicable, complete this review
-before implementation authorization, not after implementation has begun.
+Before designing or implementing a substantive new capability, technical component,
+parser, analytical engine, data workflow, reporting feature, infrastructure service
+or comparable system, perform a proportionate pre-existing technology/resource
+assessment. When applicable, complete it before implementation authorization.
 
-- Search credible pre-existing free/open-source solutions, prioritizing GitHub
-  and authoritative project repositories; normally compare at most three relevant
-  candidates. Verify the actual repositories, current licenses, maintained
-  versions, documentation, compatibility, basic test/maintenance signals and
-  relevant security concerns.
-- Consider reuse as a dependency, adaptation as a component, safe study of design
-  patterns, or rejection. Prefer suitable permissive licenses; assess GPL/AGPL,
-  unclear, proprietary, dual-licensed or commercially restricted candidates before
-  incorporation. Software licensing is separate from underlying data licensing
-  and source-use restrictions. Preserve applicable copyright, license,
-  attribution, NOTICE and modification obligations.
+- Search only relevant ecosystems: GitHub and authoritative source repositories,
+  Hugging Face models/datasets/components, PyPI or conda-forge packages, public,
+  institutional or standards-based resources, existing algorithms, libraries,
+  APIs, tools and other credible free resources. Do not search every platform
+  automatically; normally compare no more than three credible candidates.
+- Verify actual sources, current licenses and maintained versions. Assess functional
+  suitability, reliability/correctness evidence, maintenance/releases, version
+  compatibility, documentation/tests, security and supply-chain concerns,
+  performance, integration/maintenance complexity and total cost of ownership.
+  Separate vendor claims from independently verified characteristics. Consider
+  dependency reuse, component adaptation, safe study of design patterns or rejection;
+  build custom solutions when necessary.
+- Independently check source-code and model architecture/code licenses, model
+  weights licenses, dataset licenses/provenance, redistribution/modification rights,
+  commercial-use permission, access restrictions, acceptable-use conditions and
+  applicable terms. Software licensing is separate from data licensing and
+  source-use restrictions. Free download does not imply open-source licensing or
+  commercial-use permission. Prefer suitable permissive licenses; assess GPL/AGPL,
+  custom, proprietary, dual-licensed, non-commercial, unclear or commercially
+  restricted resources before incorporation. Preserve copyright, license,
+  attribution, NOTICE and modification obligations. Material licensing or
+  commercial-use uncertainty requires Commercial & Compliance review; the CEO
+  retains material legal-risk and commercialization authority.
+- Consult [PAM execution environments](docs/operations/PAM_EXECUTION_ENVIRONMENTS.md).
+  When relevant, assess CPU architecture/instruction sets and processing demand,
+  peak/sustained RAM, swap assumptions, GPU/accelerators, installation/dependency
+  footprint, model weights/download size, caches/temporary storage, runtime/Python
+  compatibility, execution time, operational overhead and continuing API, hosting,
+  cloud or external-service costs. Preserve PAM's approved cost constraints;
+  this assessment grants no spending exception. Distinguish development-Mac
+  compatibility, plausible Chromebook/Linux compatibility, separately authorized
+  external-compute requirements and compatibility not established. Mac success
+  does not establish Chromebook compatibility; unknown capacities remain UNKNOWN.
 - Substantive implementation Work Orders must include a compact
-  `OPEN-SOURCE REUSE ASSESSMENT` with candidate links and a `REUSE / ADAPT / BUILD`
-  recommendation. Trivial bug fixes, pure documentation, isolated contract
-  corrections or work without a meaningful reusable component may instead give
-  a brief `NOT APPLICABLE` justification.
-- If no credible candidates or no network access exist, report the limitation;
-  never invent search results. Keep the assessment proportional to the chantier,
-  avoiding generic research campaigns and unnecessary implementation delay.
-- The assessment grants no automatic authority to adopt dependencies, copy code,
-  accept license risk or change architecture. Preserve PAM evidence provenance,
-  immutable capture, qualification contracts, reproducibility and source-authority
-  boundaries. This requirement does not require redoing completed chantiers.
+  `EXISTING TECHNOLOGY & RESOURCE REUSE ASSESSMENT`: candidate names/source links,
+  licensing/commercial-use status, technical/hardware fit, major limitations/risks,
+  a `REUSE / ADAPT / BUILD` recommendation and concise rationale. Trivial bug fixes,
+  pure documentation, isolated contract corrections or work without a meaningful
+  reusable component may give a brief justified `NOT APPLICABLE` instead.
+- If no credible candidates, internet access or required verification are available,
+  report the limitation. Never invent candidates/results or claim an unperformed
+  search. Keep the assessment lightweight and proportional; avoid broad research,
+  excessive bureaucracy and unnecessary implementation delay. No retroactive
+  reevaluation of completed chantiers is required.
+- The assessment grants no automatic permission to install dependencies, copy code,
+  download/execute model weights, introduce external APIs, accept licensing risk,
+  change architecture or financial methodology, expand source authority, relax
+  qualification, merge or deploy. Preserve immutable capture, exact evidence
+  provenance, qualification contracts, security boundaries, reproducibility,
+  deterministic analytical contracts, V1 frozen authority and V2 challenger status.
 
 ---
 
