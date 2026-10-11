@@ -744,3 +744,36 @@
   proposed, not performed or completed; suggested exit gates remain advisory, not
   CEO-ratified policy. Blossom scope, B2 trigger-based dormancy, V1 frozen authority
   and V2 challenger status remain unchanged.
+
+
+## 2026-10-11 — CEO Option A Stage-C authentic positive exit-evidence decision
+
+- The CEO selected Option A and explicitly dispatched
+  `WO-GOVERNANCE-SYNC-STAGE-C-AUTHENTIC-EXIT-GATE`: record a necessary positive
+  authentic contract-valid existing Quality chain before Stage-C closure may be
+  considered. Immutable source evidence, native upstream qualification, an
+  established existing evidence foundation and its associated native `AVAILABLE`
+  diagnostic must carry verifiable provenance/replay. Synthetic tests and successful
+  capture alone are insufficient; no universal issuer-count threshold or
+  all-thirteen-capabilities requirement is created. Closure and Stage-D transition
+  remain separate CEO decisions. No other suggested exit checklist is ratified.
+- The owner-supplied Work Order reports Architecture & Audit found no new material
+  implementation defect; PR #131's OCF identity correction remains closed within
+  its contract. Codex reported authentic Nasdaq Listed and Microsoft Companyfacts
+  captures, durable local preservation and independent-process offline replay.
+  Microsoft C3 returned `UNAVAILABLE / INSUFFICIENT_FILING_IDENTITY` under the
+  existing PR4C3 cross-form rule, not an identified implementation defect; no
+  Microsoft Quality foundation or diagnostic was executed. These are attributed
+  execution reports and specialist findings, not independently rerun repository
+  tests by this documentation sync. No private archive path or raw payload is recorded.
+- Positive authentic Quality applicability remains unestablished. Stage C remains
+  `ACTIVE / INCOMPLETE`, with seven diagnostics and six evidence foundations.
+  The former proposed Architecture & Audit exit-readiness frontier is replaced by
+  the CEO-approved exit-evidence condition and a proposed read-only evidence-
+  feasibility/issuer-selection preflight owned by Data & Evidence. It would select
+  one objective real issuer and minimum evidence before separate acquisition
+  authorization; this sync activates no issuer, source campaign or implementation.
+- Historical entries above remain historical. This Governance Sync is pending merge;
+  no Stage-C closure, Stage-D activation, qualification relaxation, financial/model
+  change, commercial redistribution permission, shadow/deployment or production
+  authority is granted. Blossom, dormant B2 and unrelated queue states are preserved.

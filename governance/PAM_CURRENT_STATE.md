@@ -3,18 +3,19 @@
 > Two-to-five-minute operational snapshot. Refresh through Governance Sync after
 > durable state changes.
 
-- **Governance snapshot:** records canonical PR #131 OCF identity correction,
-  PR #132 SEC Submissions compatibility and PR #133 technology/resource reuse gate
-  and execution-environment reference (2026-10-11; this sync is pending merge).
-  No governance-policy, capability-authority or Stage-C exit-criteria change.
+- **Governance snapshot:** records the CEO's 2026-10-11 Option A Stage-C authentic
+  positive Quality exit-evidence decision; this Governance Sync is pending merge.
+  Canonical PR #131–133 corrections and workflow improvements remain recorded.
+  No technical implementation, investment methodology or source authority changes.
 - **Current major program:** Stage C — Quality
 - **Parallel CEO-approved GTM initiative:** bounded Blossom audience-growth mandate for `@therealpam`, owned by Marketing & GTM; audience value first, PAM promotion secondary, human approval required before publication
-- **Proposed technical frontier:** exactly one read-only Architecture & Audit
-  Stage-C exit-readiness assessment after PR #133, to determine the smallest next
-  legitimate bounded action; no specialist implementation task is activated
+- **Proposed technical frontier:** one read-only evidence-feasibility and issuer-
+  selection preflight owned by Data & Evidence, to identify one objectively selected
+  real issuer and minimum source evidence before separate acquisition authorization.
+  This action is proposed only; no issuer, acquisition or implementation is activated.
 - **Canonical integration branch:** `model-v2/expected-return-challenger`
-- **Canonical verified pre-this-sync HEAD:** `5f1594b156ad25e4bb22b6de6d3239cf93d525c4`
-- **Canonical verified tree:** `91e521a803572502608e5a9aea8180b1afd2ccdb`
+- **Canonical verified pre-this-sync HEAD:** `d7050310d119a9aad04cf9e2149ca1a8f2416e44`
+- **Canonical verified tree:** `a42fbb3adcde93cdad59a9791a8b209ab0f8b0d4`
 - **Current status:** Stage C — Quality is `ACTIVE / INCOMPLETE`. Its seven bounded
   analytical diagnostics and six bounded evidence foundations are complete and
   canonical. No composite Quality score or aggregation is authorized.
@@ -67,11 +68,14 @@
   explicitly supported first bounded CURRENT route; Stage B — Expected Return is
   complete within the currently approved bounded supported scope; Stage C — Quality
   is active
-- **Immediate proposed frontier:** one read-only Architecture & Audit assessment
-  of Stage-C exit readiness after PR #133, considering the corrected OCF contract
-  and remaining real-issuer applicability evidence gap. It will
-  determine the smallest next legitimate bounded action; no implementation,
-  campaign, eighth diagnostic, new foundation or Stage-D transition is preselected.
+- **Stage-C exit requirement:** the CEO-approved Option A requires at least one
+  authentic positive contract-valid Quality chain: immutable source evidence → valid
+  native upstream qualification → established existing evidence foundation →
+  associated native `AVAILABLE` diagnostic, with verifiable provenance/replay.
+  This is necessary, not automatic closure; it creates no universal issuer-count
+  threshold or requirement for all thirteen capabilities on one issuer. Synthetic
+  tests or acquisition alone do not satisfy it. Closure and Stage-D transition
+  remain separate CEO decisions; positive applicability remains unestablished.
 - **Comparator availability:** Canonical only for the bounded current real route under
   `2026-10-01-company-vfv-constant-fx-comparison-v1`, with
   `RESEARCH_DIAGNOSTIC_ONLY` authority
@@ -360,13 +364,22 @@
   remain unchanged. The higher ceiling does not guarantee that every future
   `FULL_PIT` execution will complete within 60 minutes and grants no technical,
   model, investment or authority expansion.
-- Stage C remains `ACTIVE / INCOMPLETE`, with seven canonical diagnostics and six
-  canonical evidence foundations. PR #131 corrected the OCF identity defect;
-  demonstrated real-issuer applicability across the capability families proposed
-  for completion remains an open maturity concern. Architecture & Audit's suggested
-  exit gates remain advisory, not CEO-ratified canonical policy. Exactly one next proposed read-only
-  exit-readiness assessment will determine the smallest next legitimate bounded
-  action; no specialist work or automatic implementation authority is activated.
+- Reported evidence in the owner-supplied Work Order: Architecture & Audit found
+  no new material implementation defect; PR #131's OCF identity correction remains
+  closed within its contract. Codex reported authentic Nasdaq Listed and Microsoft
+  Companyfacts captures, durable preservation and independent-process offline
+  integrity/replay verification. Microsoft C3 returned
+  `UNAVAILABLE / INSUFFICIENT_FILING_IDENTITY` under the existing PR4C3 cross-form identity rule,
+  not an identified implementation defect. No Microsoft Quality foundation or
+  diagnostic was executed. These execution reports and specialist findings are
+  attributed evidence, not independently rerun repository tests in this sync.
+- Stage C remains `ACTIVE / INCOMPLETE`, with seven diagnostics and six foundations.
+  Positive authentic Quality applicability remains unestablished. The CEO-approved
+  exit condition is recorded in `DECISIONS.md`; no broader suggested exit checklist
+  is ratified. Data & Evidence's read-only feasibility/issuer-selection preflight
+  remains proposed only. No additional acquisition, new issuer validation,
+  implementation, composite Quality score, Stage-D activation or shadow/production
+  authority is granted.
 - All seven conversational PAM role Projects/employees are configured. Codex
   Development remains `ACTIVE BY TASK`, not an autonomous conversational employee.
 
@@ -378,5 +391,5 @@
 - `DECISIONS.md`
 - `governance/roles/*.md`
 
-The HEAD/tree above are the verified canonical state after PR #133 and before this
+The HEAD/tree above are the verified canonical state after PR #134 and before this
 Governance Sync, not the future merge commit of this Governance Sync PR.
