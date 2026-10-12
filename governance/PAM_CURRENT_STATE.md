@@ -3,23 +3,29 @@
 > Two-to-five-minute operational snapshot. Refresh through Governance Sync after
 > durable state changes.
 
-- **Governance snapshot:** PR #135's Option A exit requirement and PR #136's
-  PR5C v1 preservation/multi-filing suspension are canonical. This pending sync
-  records the completed authentic-path dependency audit and CEO-confirmed suspension
-  of further exploratory Stage-C qualification investigations. No methodology or
-  source authority changes.
+- **Governance snapshot:** PR #135's Option A exit requirement, PR #136's
+  PR5C v1 preservation/multi-filing suspension and PR #137's completed authentic-path
+  dependency audit/investigation-suspension sync are canonical. PR #138's bounded
+  PR5E audit export is now canonical. This sync records the CEO-approved next
+  read-only blocker-reexamination study direction; no methodology or source authority
+  changes.
 - **Current major program:** Stage C — Quality
 - **Parallel CEO-approved GTM initiative:** bounded Blossom audience-growth mandate for `@therealpam`, owned by Marketing & GTM; audience value first, PAM promotion secondary, human approval required before publication
 - **Current technical frontier:** the bounded evidence-feasibility investigations
   are complete with no demonstrated positive native Quality chain. PR5C v1 remains
   unchanged; proposed multi-filing EPS comparability development is suspended.
   The immediate next technical implementation chantier remains unselected. No
-  replacement workstream is authorized. Further exploratory authentic-issuer
+  replacement implementation workstream is authorized. Further exploratory authentic-issuer
   qualification investigations are suspended pending materially new admissible
   evidence or a separately authorized decision.
 - **Canonical integration branch:** `model-v2/expected-return-challenger`
-- **Canonical verified pre-this-sync HEAD:** `0f472e308cefbc7caf46df783ed6e209f2c5dfd8`
-- **Canonical verified tree:** `41172a33651f2fe67e269a2047fd7ca310058960`
+- **Selected next planning task:** `WO-BLOCKER-REEXAMINATION-MECHANISM-FEASIBILITY`,
+  primary owner Architecture & Audit, `QUEUED — read-only feasibility/design review`.
+  Evaluate proportionate blocker tracking, detection, reexamination and option
+  assessment, beginning with Stage C; dormant B2 may inform the inventory under its
+  distinct triggers. The mechanism is neither implemented nor activated.
+- **Canonical verified pre-this-sync HEAD:** `8f5ef4f3f4bb0e362e8bb93de5dc00d71236849b`
+- **Canonical verified tree:** `3b09cdb358433fd31522d459b58c91cd63c13898`
 - **Current status:** Stage C — Quality is `ACTIVE / INCOMPLETE`. Its seven bounded
   analytical diagnostics and six bounded evidence foundations are complete and
   canonical. No composite Quality score or aggregation is authorized.
@@ -38,7 +44,14 @@
   `CURRENT_ANNUAL_ASSETS_LIABILITIES_QUALIFICATION` and
   `CURRENT_ANNUAL_PPE_ACQUISITION_CASH_PAYMENTS_QUALIFICATION` and
   `CURRENT_ANNUAL_OPENING_CLOSING_ASSETS_QUALIFICATION`
-- **Latest completed technical / analytical milestone:** PR #129,
+- **Latest completed audit-export prerequisite:** PR #138 supplies deterministic
+  bounded PR5E identity/status/provenance export and independent offline verification
+  against an externally trusted SHA-256 digest. Architecture & Audit's `MERGE READY`
+  is the supplied independent handoff; GitHub confirms CEO-approved canonical merge
+  and successful FULL_PIT CI (3,416 tests). This isolated early Stage-N prerequisite
+  does not activate or complete Stage N. See the
+  [versioned contract](../docs/contracts/v2/expected_return/EXPECTED_RETURN_PR5E_AUDIT_EXPORT_V1.md).
+- **Latest completed Stage-C analytical milestone:** PR #129,
   `CURRENT_ANNUAL_OPERATING_INCOME_TO_POSITIVE_TWO_POINT_AVERAGE_ASSETS`, under
   `QUALITY_CURRENT_ANNUAL_OPERATING_INCOME_TO_POSITIVE_TWO_POINT_AVERAGE_ASSETS_DIAGNOSTIC_ONLY`
   authority. It reports the exact signed rational relationship of qualified annual
@@ -119,6 +132,16 @@
 - The pre-shadow Shadow Audit Export Bridge remains required, and eventual V2
   operation must be same-or-easier than V1 for the owner. Neither safeguard is
   changed by the parked technology opportunities.
+- PR #138 covers only the bounded export projection: no full native-result integrity,
+  financial-source authentication, economic replay, durable external archive or
+  automated export. It grants no PIT, forward-shadow or production authority.
+- The queued blocker study will assess existing PAM infrastructure and relevant
+  tools/sources/methods under cost, licensing/commercial-use, provenance,
+  Chromebook/Linux and development-environment, complexity/maintenance,
+  determinism/security/reliability constraints. Options include REUSE, ADAPT, BUILD,
+  defer and maintain the blocker. No autonomous operation, monitoring/reminders,
+  acquisition campaign, contract relaxation, implementation or task activation is
+  authorized. Only the CEO may authorize substantive reopening or authority changes.
 - Expected Return remains diagnostic/challenger functionality. It grants no
   production, recommendation, allocation, execution, deployment or promotion authority.
 - The supported real route is bounded, route-local and nonpayer-only. Payer support
@@ -427,5 +450,5 @@
 - `DECISIONS.md`
 - `governance/roles/*.md`
 
-The HEAD/tree above are the verified canonical state after PR #136 and before this
+The HEAD/tree above are the verified canonical state after PR #138 and before this
 Governance Sync, not the future merge commit of this Governance Sync PR.

@@ -849,3 +849,33 @@
   implementation, Stage-D transition or promotion is authorized. This sync is pending
   merge. Reuse assessment: `NOT APPLICABLE` — documentation only, no new component,
   dependency, source adoption or implementation.
+
+## 2026-10-11 — Post-PR138 audit-export milestone and blocker-study direction
+
+- `WO-GOVERNANCE-SYNC-POST-PR138-BLOCKER-REVIEW-DIRECTION` starts from verified
+  canonical PR #138 merge HEAD `8f5ef4f3f4bb0e362e8bb93de5dc00d71236849b`, tree
+  `3b09cdb358433fd31522d459b58c91cd63c13898`. GitHub confirms merged status and
+  successful FULL_PIT CI; the authorized handoff reports 3,416 tests and independent
+  Architecture & Audit `MERGE READY`. No analytical/audit rerun by this sync.
+- PR #138 supplies deterministic bounded PR5E identity/status/provenance export and
+  offline verification against an externally trusted SHA-256 digest. The CEO approved
+  the isolated early Stage-N prerequisite and canonical merge. No full native-result
+  integrity, source authentication, economic replay, durable external archive,
+  automated exports, PIT/forward-shadow/production authority or Stage-N activation.
+- Recorded the CEO-approved transversal blocker-study direction and queued
+  `WO-BLOCKER-REEXAMINATION-MECHANISM-FEASIBILITY`, primary owner Architecture & Audit,
+  read-only feasibility/design review, not active or implemented. Scope includes
+  preventing forgotten blockers, new evidence/tools/developments, reducing CEO manual
+  monitoring and proportionate option/resource assessment. Stage C is the first case;
+  B2 remains a distinct dormant gap with unchanged triggers. Options and cost,
+  licensing, provenance, hardware, complexity, maintenance, determinism, security and
+  reliability constraints are recorded in the Work Queue and Decision Registry.
+- Corrected current snapshot wording for the already-canonical PR #137 sync;
+  historical pending-merge records remain intact. Appended only already-approved
+  sequencing/study decisions. Stage C stays `ACTIVE / INCOMPLETE`, its authentic-
+  positive exit condition unmet and all suspensions preserved. V1 frozen authority,
+  V2 challenger status and Blossom remain unchanged.
+- Documentation-only sync: no implementation, autonomous operation, monitoring,
+  acquisition, substantive reopening, qualification relaxation, deployment or merge.
+  This sync awaits CEO review/merge authorization. Reuse assessment: `NOT APPLICABLE`
+  — pure institutional documentation; no new component, dependency or adoption.

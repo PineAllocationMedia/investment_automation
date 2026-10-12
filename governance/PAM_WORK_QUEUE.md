@@ -112,6 +112,15 @@
 
 ## COMPLETED
 
+- PR #138 / `WO-V2-PR5E-AUDIT-MANIFEST-EXPORT-V1`: bounded PR5E
+  identity/status/provenance export and independent offline verifier against an
+  externally trusted SHA-256 artifact digest, canonical at merge
+  `8f5ef4f3f4bb0e362e8bb93de5dc00d71236849b`. Independent Architecture & Audit
+  `MERGE READY` is the supplied handoff; GitHub FULL_PIT CI passed 3,416 tests and
+  the CEO approved merge. Isolated early Stage-N prerequisite only: no full native
+  result integrity, source authentication, economic replay, durable external archive,
+  automated export, PIT/forward-shadow/production authority or Stage-N activation.
+
 - `WO-STAGE-C-QUALITY-AUTHENTIC-PATH-DEPENDENCY-AUDIT` returned `PASS` (supplied
   Architecture & Audit handoff, not rerun here). No material implementation defect
   or authentic-positive end-to-end Quality result was established. No presently
@@ -176,7 +185,27 @@ None.
 
 ## QUEUED
 
-None.
+- `WO-BLOCKER-REEXAMINATION-MECHANISM-FEASIBILITY`
+  - **PRIMARY OWNER:** Architecture & Audit.
+  - **STATUS:** `QUEUED — read-only feasibility/design review`; selected next planning
+    task, not active and not implemented.
+  - Evaluate the smallest technically sound transversal mechanism for tracking,
+    detection, reexamination and option assessment of existing/future PAM blockers.
+    Avoid forgotten blockers, identify new evidence/tools/developments and reduce
+    CEO manual monitoring while preserving explicit CEO decisions.
+  - Assess proportionately existing PAM components/evidence infrastructure,
+    relevant open-source tools, public/official sources, APIs and alternative methods;
+    mandatory external costs, licensing/commercial-use rights and provenance;
+    Chromebook/Linux and existing development-environment fit; complexity,
+    maintenance, determinism, security and reliability. Compare REUSE, ADAPT, BUILD,
+    defer and maintain the blocker; no unlimited technology search.
+  - Stage C is the first intended case study; B2 is a distinct dormant capability
+    gap potentially relevant to the inventory. Their statuses and reopening triggers
+    remain unchanged. Data & Evidence may later be consulted; one primary owner only.
+  - No automatic operation, autonomous agent, background monitoring/reminders,
+    external acquisition campaign, contract relaxation, task activation or software
+    implementation is authorized. Only the CEO may authorize substantive reopening,
+    implementation or protected authority changes.
 
 The evaluated technology opportunities are `PARKED` in
 `PAM_OPPORTUNITY_BACKLOG.md`; none is a queued Work Order or implementation task.
