@@ -38,6 +38,36 @@
 
 ## COMPLETED
 
+- Stage-D limited preparation / D1 proposed contracts: `COMPLETED / PASS`,
+  separately CEO-authorized after bounded Stage-C closure.
+  - Consolidated Work Orders:
+    `WO-STAGE-D-DURABILITY-INITIAL-ARCHITECTURE-SCOPING`,
+    `WO-STAGE-D-D1-RETAINED-SEC-COMPARATIVE-EVIDENCE-FEASIBILITY`,
+    `WO-STAGE-D-D1-EXTERNAL-REUSE-GATE`,
+    `WO-STAGE-D-D1-COMPARATIVE-CONTRACT-DESIGN`,
+    `WO-STAGE-D-D1-INDEPENDENT-CONTRACT-DESIGN-REVIEW`,
+    `WO-STAGE-D-D1-CONTRACT-A-TARGETED-CORRECTIONS`,
+    `WO-STAGE-D-D1-CONTRACT-A-R3-RESIDUAL-CORRECTIONS` and
+    `WO-STAGE-D-D1-CANONICAL-CONTRACT-DOCUMENTATION`.
+  - The supplied post-PR #149 Work Order records architectural scoping complete,
+    Data & Evidence `FEASIBLE` on preserved Microsoft FY2025/FY2026 Companyfacts
+    evidence, and the external Reuse Gate completed without dependency adoption.
+    Final supplied Architecture & Audit review: `CONTRACT_REVIEW_PASS`.
+    This sync reruns no specialist research, source verification or contract review.
+  - [PR #149](https://github.com/PineAllocationMedia/investment_automation/pull/149)
+    merged into the integration branch at
+    `bd14033b32a21330de995739b4b678d027794b28`, tree
+    `e69c614ba65588ac4803f80037594a4d599cf2a5`: proposed
+    [Contract A R3](../docs/contracts/v2/durability/CURRENT_ANNUAL_ISSUER_TWO_PERIOD_REVENUE_OPERATING_INCOME_QUALIFICATION_V1.md)
+    and unchanged original
+    [Contract B](../docs/contracts/v2/durability/D1_TWO_PERIOD_OPERATING_PROFIT_CONTINUITY_DIAGNOSTIC_V1.md).
+    Both remain `PROPOSED / NOT IMPLEMENTED / NO RUNTIME AUTHORITY`.
+  - No D1 implementation, tests, native authentic replay or new SEC acquisition
+    occurred during the documentation milestone. Broad Stage-D implementation
+    remains `NOT AUTHORIZED / NOT ACTIVE`; optional bounded D1 implementation is
+    recorded under WAITING CEO, not ACTIVE or QUEUED. No moat, economic persistence,
+    aggregate Durability, PIT or downstream investment authority is established.
+
 - Stage C — Quality: `COMPLETE / CEO_APPROVED (bounded scope)`, closed by the CEO
   on `2026-10-12`.
   - **Final closure assurance:** Architecture & Audit's supplied independent
@@ -50,7 +80,8 @@
     `b8800c510220c7c8aba53b0923ffe5db5e16747f`. The
     [official closure decision](../DECISIONS.md#2026-10-12--official-bounded-stage-c-quality-closure)
     preserves the precise bounded completion and individual authority limits.
-    Stage D — Durability remains `NOT AUTHORIZED / NOT ACTIVE`; no new technical
+    Stage-D implementation remains `NOT AUTHORIZED / NOT ACTIVE`; its separately
+    authorized limited preparation is complete as recorded above. No new technical
     implementation chantier or dormant-specialist activation is selected.
   - **Trigger-review ID:** `BLK-STAGE-C-QUALITY-POSITIVE`.
   - **Historical evidence baseline:** PR #135 Option A, PR #137 authentic-path
@@ -169,7 +200,8 @@
     route; Microsoft's independent verification satisfies this necessary gate.
     At the PR #147 milestone Stage C remained `ACTIVE / INCOMPLETE`, with closure
     review and a separate CEO decision pending. The subsequent final assurance and
-    explicit CEO closure approval are recorded above; Stage D remains unauthorized.
+    explicit CEO closure approval are recorded above; Stage-D implementation remains
+    unauthorized, separately from its completed limited preparation.
   - Historical profile-route evidence-feasibility investigations are complete;
     their negative findings are preserved under COMPLETED below. The later verified
     issuer route satisfies supplemented Option A without resolving PR5C multi-filing.
@@ -186,9 +218,9 @@
     in that review record. The subsequent issuer route is independent; legacy
     PR4C3/PR5B/PR5C qualification and eligibility boundaries remain unchanged.
     EPS directional consistency alone does not satisfy Option A's existing established foundation plus associated native `AVAILABLE` diagnostic requirement.
-  - **Next delivery action:** PM verification followed by the CEO's canonical
-    merge decision for this closure governance sync. No new implementation chantier,
-    acquisition, aggregate Quality score or Stage-D transition is selected or authorized.
+  - **Current delivery action:** CEO review and canonical merge decision for this
+    post-PR #149 Governance Sync. No new implementation chantier, acquisition,
+    aggregate Quality score or Stage-D implementation is selected or authorized.
     Suspended technical investigations are not automatically reactivated. Closure
     establishes no universal issuer coverage, ROIC, moat, Durability, Microsoft
     Ordinary Compounder/global investment admission, PIT, Expected Return recalibration,
@@ -324,10 +356,13 @@
 
 ## WAITING CEO
 
-- Canonical merge of this closure Governance Sync after PM verification.
-- Stage-D initiation decision — `NOT AUTHORIZED / CEO_DECISION_REQUIRED`.
-  Next intended major stage only; this is not an active or queued implementation
-  Work Order and authorizes no contracts, specialist activation or development.
+- Canonical merge of this post-PR #149 Governance Sync.
+- Optional bounded D1 implementation — `PENDING_CEO_AUTHORIZATION`.
+  Stage-D scoping and D1 contract preparation are complete; this prospective
+  decision is not an active or queued implementation Work Order. Implementation,
+  tests and native authentic replay remain `NOT STARTED / NOT AUTHORIZED`.
+  Broad Stage-D implementation remains unauthorized; no specialist activation or
+  execution follows automatically from the contract merge or this sync.
 
 ## WAITING EXTERNAL / TOOL
 

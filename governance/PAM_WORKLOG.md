@@ -1105,3 +1105,39 @@ there is no activated reminder, scheduled checkpoint or guaranteed execution.
   No code, tests, contracts, model policies or private evidence changed. Resource
   reuse assessment: `NOT APPLICABLE` — documentation recording of an approved
   closure, with no component adoption, installation or spending.
+
+## 2026-10-12 — Stage-D limited preparation and canonical D1 proposed contracts after PR #149
+
+- `WO-GOVERNANCE-SYNC-POST-PR149-STAGE-D-D1`: GitHub-verified PR #149 merge into
+  `model-v2/expected-return-challenger`, canonical starting HEAD / merge commit
+  `bd14033b32a21330de995739b4b678d027794b28`, tree
+  `e69c614ba65588ac4803f80037594a4d599cf2a5`. Official Stage-C completion remains
+  `COMPLETE / CEO_APPROVED (bounded scope)`.
+- The CEO subsequently authorized limited Stage-D architectural scoping and D1
+  preparation. The supplied Work Order records scoping complete, Data & Evidence
+  `FEASIBLE` on preserved Microsoft FY2025/FY2026 SEC Companyfacts evidence, and
+  the external Reuse Gate completed without new dependency adoption. These are
+  attributed historical specialist findings; this sync reruns no source research,
+  verification, contract review or testing.
+- Proposed [Contract A](../docs/contracts/v2/durability/CURRENT_ANNUAL_ISSUER_TWO_PERIOD_REVENUE_OPERATING_INCOME_QUALIFICATION_V1.md),
+  `A-DRAFT-R3-2026-10-12`, and unchanged original
+  [Contract B](../docs/contracts/v2/durability/D1_TWO_PERIOD_OPERATING_PROFIT_CONTINUITY_DIAGNOSTIC_V1.md)
+  were designed/corrected and independently reviewed. Supplied final Architecture
+  & Audit result: `CONTRACT_REVIEW_PASS`. PR #149 placed both proposals in the
+  canonical repository; status remains `PROPOSED / NOT IMPLEMENTED / NO RUNTIME AUTHORITY`.
+- The documentation milestone performed no new SEC acquisition or native D1
+  execution. Source feasibility is not an executed D1 result. D1 implementation,
+  tests and native authentic replay remain `NOT STARTED / NOT AUTHORIZED`; broad
+  Stage-D implementation is not authorized or active. Next substantive CEO decision:
+  whether to authorize an optional bounded D1 implementation
+  (`PENDING_CEO_AUTHORIZATION`), separately from this sync's review/merge decision.
+- Proposed D1 semantics remain descriptive and `CURRENT_CAPTURE_BOUND_ONLY`,
+  without moat, economic persistence, aggregate Durability, PIT / `HISTORICAL_AS_OF`,
+  PR5C / Ordinary Compounder, Quality recalibration, Confidence / Expected Return
+  modification, investment admission, allocation, execution, production or V2-promotion
+  authority. V1 frozen operational authority, V2 challenger status, the `$0` external
+  financial-data-cost constraint, PR5C multi-filing suspension and dormant B2 gap remain.
+- Exactly four governance Markdown files are in scope; all prior Worklog history is
+  preserved. No protected policy, contract, code, test, source data, dependency or
+  model rule changes. Resource reuse assessment for this sync: `NOT APPLICABLE` —
+  institutional documentation only, with no adoption, installation or spending.

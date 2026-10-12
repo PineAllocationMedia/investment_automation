@@ -10,9 +10,12 @@
   canonical. PR #143's bounded PAM Research candidate, PR #145's CEO-approved
   issuer-level implementation specifications and PR #146's native issuer Quality
   route are canonical. PR #147's October 12 Option A supplement and independent
-  authentic-positive verification sync are now canonical. This sync records the
+  authentic-positive verification sync are now canonical. PR #148 recorded the
   CEO's explicit 2026-10-12 bounded Stage-C closure approval following the supplied
-  independent final readiness assessment. The separate limited monthly signal watch,
+  independent final readiness assessment. PR #149 subsequently merged the two
+  proposed D1 contracts after separately CEO-authorized Stage-D preparation.
+  This sync records that preparation and canonical documentation milestone only.
+  The separate limited monthly signal watch,
   methodology, source contracts and role authorities remain unchanged.
 - **Canonical reported-fact research candidate:** PR #142 adopted
   `2026-10-11-current-annual-reported-fact-research-candidate-v1` as a future
@@ -62,14 +65,36 @@
   [append-only closure decision](../DECISIONS.md#2026-10-12--official-bounded-stage-c-quality-closure).
   This is attributed assurance, not a new assessment by this sync.
 - **Major technical program status:** Stage C — Quality is officially closed
-  within its approved bounded scope. No next technical implementation chantier is
-  selected; Stage D — Durability is `NOT AUTHORIZED / NOT ACTIVE`.
+  within its approved bounded scope. Stage-D architectural scoping and D1
+  preparation are complete; broad Stage-D implementation remains
+  `NOT AUTHORIZED / NOT ACTIVE`, with no implementation chantier selected.
+- **Completed Stage-D D1 preparation:** the CEO separately authorized limited
+  architectural scoping, retained-source feasibility, the external Reuse Gate,
+  comparative contract design/corrections, independent review and documentation.
+  The supplied Work Order attributes `FEASIBLE` to Data & Evidence for preserved
+  Microsoft FY2025/FY2026 SEC Companyfacts evidence, and records the external
+  Reuse Gate completed without new dependency adoption. Architecture & Audit's
+  supplied final review was `CONTRACT_REVIEW_PASS`. These are historical findings,
+  not source research, contract review or native replay rerun by this sync.
+- **Canonical proposed D1 contracts:** [Contract A](../docs/contracts/v2/durability/CURRENT_ANNUAL_ISSUER_TWO_PERIOD_REVENUE_OPERATING_INCOME_QUALIFICATION_V1.md),
+  revision `A-DRAFT-R3-2026-10-12`, and unchanged original
+  [Contract B](../docs/contracts/v2/durability/D1_TWO_PERIOD_OPERATING_PROFIT_CONTINUITY_DIAGNOSTIC_V1.md),
+  merged in [PR #149](https://github.com/PineAllocationMedia/investment_automation/pull/149).
+  Both remain `PROPOSED / NOT IMPLEMENTED / NO RUNTIME AUTHORITY`.
+  D1 implementation, tests and native authentic replay are
+  `NOT STARTED / NOT AUTHORIZED`. The proposed comparison is descriptive and
+  `CURRENT_CAPTURE_BOUND_ONLY`; it establishes no moat, economic persistence,
+  aggregate Durability, PIT / `HISTORICAL_AS_OF`, PR5C / Ordinary Compounder,
+  Quality recalibration, Confidence / Expected Return modification, investment
+  admission, allocation, execution, production or V2-promotion authority.
 - **Parallel CEO-approved GTM initiative:** bounded Blossom audience-growth mandate for `@therealpam`, owned by Marketing & GTM; audience value first, PAM promotion secondary, human approval required before publication
 - **Current technical frontier:** bounded Stage C is closed by explicit CEO
   decision; the supplemented authentic-positive gate remains satisfied. Stage D is
-  the next intended major stage, `NOT ACTIVATED — separate CEO authorization required`.
-  Next delivery action is PM verification followed by the CEO's canonical merge
-  decision for this sync. PR5C v1 and the unresolved multi-filing suspension remain
+  the next intended major implementation stage. Its limited preparation and
+  proposed D1 contracts are complete; no Stage-D implementation is authorized or active.
+  Next delivery action is CEO review and canonical merge decision for this sync;
+  the next substantive decision is whether to authorize a bounded D1 implementation
+  (`PENDING_CEO_AUTHORIZATION`). PR5C v1 and the unresolved multi-filing suspension remain
   unchanged; existing exploratory qualification investigations remain suspended.
   No new technical implementation chantier or dormant-specialist activation is authorized.
 - **Canonical integration branch:** `model-v2/expected-return-challenger`
@@ -85,14 +110,14 @@
   `GAP-B2-EXECUTABLE-NET`. The Work Queue now records the first blocker as satisfied
   by the explicit CEO supplement; PR5C and B2 remain unchanged. This sync neither
   inspects nor changes the scheduled task or claims an automated check.
-- **Canonical verified pre-this-sync HEAD:** `b8800c510220c7c8aba53b0923ffe5db5e16747f`
-- **Canonical verified tree:** `6fb38a780eaaa12de3407187697b892b5e435526`
+- **Canonical verified pre-this-sync HEAD / PR #149 merge:** `bd14033b32a21330de995739b4b678d027794b28`
+- **Canonical verified tree:** `e69c614ba65588ac4803f80037594a4d599cf2a5`
 - **Current status:** Stage C — Quality is `COMPLETE / CEO_APPROVED (bounded scope)`.
   Its seven original economic diagnostic kinds and six original evidence foundations
   remain canonical; the additional issuer
   route is a separate native path for the existing operating-income/revenue kind,
   not an eighth diagnostic. No composite Quality score or aggregation is authorized.
-  Stage D remains unauthorized.
+  Stage-D preparation is complete; implementation remains unauthorized.
 - **Canonical Stage-C diagnostics:**
   `FIVE_PERIOD_DILUTED_EPS_DIRECTIONAL_CONSISTENCY` and
   `CURRENT_ANNUAL_EPS_DENOMINATOR_DILUTION` and
@@ -148,8 +173,8 @@
 - **Technical frontier:** Stage A — Real Fact Admission is complete for its
   explicitly supported first bounded CURRENT route; Stage B — Expected Return is
   complete within the currently approved bounded supported scope; Stage C — Quality
-  is `COMPLETE / CEO_APPROVED` within its bounded scope. Stage D is not active
-  or authorized.
+  is `COMPLETE / CEO_APPROVED` within its bounded scope. Stage-D scoping and D1
+  contract preparation are complete; implementation is not active or authorized.
 - **Stage-C exit requirement:** the CEO-approved Option A requires at least one
   authentic positive contract-valid Quality chain: immutable source evidence → valid
   native upstream qualification → established existing evidence foundation →
@@ -172,9 +197,9 @@
   gap, currently `UNAVAILABLE / DEFERRED` and `TRIGGER-BASED / DORMANT`, and may be
   revisited only if genuinely new qualified executable-quote, settled-funding and,
   where applicable, FX execution-cost evidence appears.
-- **Pending CEO decisions:** canonical merge of this closure governance sync after
-  PM verification. Stage-C closure is already CEO-approved. Any Stage-D initiation
-  requires a separate CEO decision; no implementation Work Order is selected.
+- **Pending CEO decisions:** canonical merge of this post-PR #149 Governance Sync.
+  Separately, optional bounded D1 implementation is `PENDING_CEO_AUTHORIZATION`;
+  no implementation Work Order is selected. Stage-C closure remains CEO-approved.
 
 ## Active role states
 
@@ -514,7 +539,8 @@
   Reported Operating Income / positive Revenue is not comprehensive company Quality
   or financial advice. Stage C is now `COMPLETE / CEO_APPROVED` within its bounded
   scope following independent readiness assurance and explicit CEO approval;
-  Stage-D activation remains unauthorized. The supplemented authentic-positive
+  Stage-D implementation remains unauthorized; limited preparation is complete.
+  The supplemented authentic-positive
   requirement is satisfied; PR4C3, PR5B and PR5C contracts, V1 frozen authority and
   V2 challenger status remain unchanged. Bounded closure establishes no universal
   issuer coverage, composite Quality score/grade, ROIC, moat, Durability, Microsoft
@@ -533,5 +559,5 @@
 - `DECISIONS.md`
 - `governance/roles/*.md`
 
-The HEAD/tree above are the verified canonical state after PR #147 and before this
+The HEAD/tree above are the verified canonical state after PR #149 and before this
 Governance Sync, not the future merge commit of this Governance Sync PR.
