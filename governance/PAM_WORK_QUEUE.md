@@ -116,6 +116,28 @@
     implementation task is active or queued; no automatic implementation authority
     is granted.
 
+- Limited monthly blocker-signal watch (`ENABLED`, CEO-reported external ChatGPT task).
+  - Name: `PAM — Signaux de déblocage`; successfully created/enabled according to
+    the CEO-authorized Work Order. This sync records that fact; it does not create,
+    update or independently inspect the task. No task identifier was supplied.
+  - Monthly on day 11, approximately 09:00 Toronto time (`America/Toronto`). Intended
+    first monthly check: 2026-11-11. First actual watch not yet evaluated.
+  - Tracks `BLK-STAGE-C-QUALITY-POSITIVE`, `BLK-PR5C-MULTIFILING` and
+    `GAP-B2-EXECUTABLE-NET` against their existing distinct conditions below.
+  - Lightweight comparison of available public signals only. Notify only when a
+    specific materially relevant signal warrants a bounded CEO decision; unchanged,
+    duplicate or non-material information warrants no unnecessary notification.
+  - No guarantee of comprehensive discovery, source access, perfect deduplication
+    or notification delivery. The six manual-pilot tabletop cases remain simulations,
+    not operational monitoring evidence or measured workload reduction.
+  - Separate authorization after the historical manual-only pilot; no financial
+    evidence admission, issuer campaign, financial-rule/contract modification,
+    specialist reactivation or automated blocker reopening. Human review/routing
+    and CEO substantive decisions retain their existing authority boundaries.
+  - No crawler, GitHub scheduler, repository-side code or external service was
+    installed. The limited signal watch does not activate Stage D, deploy or promote
+    V2; all original blocker states and Stage-C suspensions remain unchanged.
+
 - Blossom audience-growth initiative (`ACTIVE`).
   - Primary owner: Marketing & GTM.
   - Account: `@therealpam`.
@@ -141,8 +163,10 @@
   `WO-BLOCKER-TRIGGER-REVIEW-PILOT-V1`: CEO-authorized documentation-only manual
   pilot; parent owner Program Manager / Chief of Staff, implementation owner Codex
   Development. Trigger metadata and six controlled tabletop scenarios are complete
-  in this documentation candidate; PM review and CEO merge decision remain pending,
-  not canonical merge. Outcomes are in [the Worklog](PAM_WORKLOG.md#2026-10-11--manual-blocker-trigger-review-pilot-v1).
+  and canonical through PR #140, merge `958007d6d15f73d21efd9cfc4924699440864686`.
+  The pilot itself was manual-only; the separately authorized monthly watch above
+  does not turn its simulations into operational results. Outcomes are in
+  [the Worklog](PAM_WORKLOG.md#2026-10-11--manual-blocker-trigger-review-pilot-v1).
   No financial blocker is resolved or real workload reduction measured.
 
 - PR #138 / `WO-V2-PR5E-AUDIT-MANIFEST-EXPORT-V1`: bounded PR5E
@@ -230,7 +254,8 @@ The evaluated technology opportunities are `PARKED` in
   executable-quote, settled-funding and, where applicable, FX execution-cost evidence
   appears. It remains `UNAVAILABLE / DEFERRED`, an open capability gap, not
   permanently unsupported and not a blocker to the bounded Stage-B completion.
-  No autonomous monitoring or queued implementation task is authorized.
+  No autonomous investigation/reactivation or queued implementation task is
+  authorized. The separate limited public-signal watch does not change this status.
   - **Trigger-review ID:** `GAP-B2-EXECUTABLE-NET`.
   - **Historical evidence baseline:** completed real executable-entry investigation
     (`PARTIAL ROUTE ONLY`) and bounded Stage-B completion; no complete positive
@@ -251,7 +276,8 @@ The evaluated technology opportunities are `PARKED` in
   2026-10-11 sequencing decision. PR5C v1 remains unchanged. Reconsideration requires
   materially new authenticated evidence or a separate CEO-authorized scope decision;
   this is not permanent rejection or an investment-model policy amendment. No
-  autonomous monitoring, new acquisition or queued implementation is authorized.
+  autonomous investigation, new acquisition or queued implementation is authorized;
+  the separate limited public-signal watch does not reopen PR5C development.
   - **Trigger-review ID:** `BLK-PR5C-MULTIFILING`.
   - **Historical evidence baseline:** PR #136 and prior `NOT_YET_DEFENSIBLE`
     proof-adequacy findings; authenticated captures/filing-local claims did not prove
@@ -276,9 +302,12 @@ The evaluated technology opportunities are `PARKED` in
 ## Manual blocker-trigger checkpoint — pilot v1
 
 The Work Queue remains the single authoritative operational record; the Worklog
-retains checkpoint history. No separate blocker registry, software, crawler,
-scheduler, recurring task or scheduled workflow is introduced. Checkpoints occur
-only when a human initiates them; no automatic specialist execution is authorized.
+retains checkpoint history. This historical manual-only pilot introduced no separate
+registry, monitoring software, crawler, scheduler, recurring task or scheduled
+workflow. The later limited ChatGPT watch is separately authorized under ACTIVE;
+manual review checkpoints still require a human, and no automatic specialist
+execution is authorized. The pilot's no-reminder/no-schedule metadata describes
+that pilot only, not the later enabled watch.
 
 1. Program Manager compares a received source-linked signal with its exact blocker
    ID, trigger category and recorded historical evidence baseline/previous findings.
