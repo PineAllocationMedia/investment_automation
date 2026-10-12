@@ -247,8 +247,19 @@ def evaluate_sec_current_annual_reported_fact_research_candidate(archive, receip
     for o in rows:
         start, end = dates[o.observation_id]
         duration = (end - start).days + 1 if start and end else None
+        fiscal_or_period_incomplete = (
+            not start or not end or o.fp is None or o.fy is None
+        )
+        # Explicit FY and annual-length evidence have independent priority.
+        # Quarterly metadata blocks inference from an integer filing-vintage FY,
+        # while an annual filing with missing fiscal metadata remains unresolved.
+        unresolved_annual = (
+            fiscal_or_period_incomplete
+            and o.fp not in ('Q1', 'Q2', 'Q3', 'Q4')
+            and (o.form in ('10-K', '10-K/A') or type(o.fy) is int)
+        )
         apparent = (o.fp == 'FY' or (duration is not None and 364 <= duration <= 371)
-                    or ((not start or not end) and (o.form in ('10-K', '10-K/A') or type(o.fy) is int)))
+                    or unresolved_annual)
         if apparent:
             annual.append(o)
         else:

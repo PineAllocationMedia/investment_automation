@@ -174,6 +174,42 @@ class ResearchCandidateTests(unittest.TestCase):
         self.assertEqual(result.period_end,'2024-12-31')
         self.assertTrue(any('CLEARLY_NONANNUAL' in o.exclusion_reasons for o in result.observations))
 
+    def test_a1_newer_annual_filing_missing_fiscal_metadata_blocks_fallback(self):
+        # FICTIONAL: valid dates, 359 inclusive days, but no fiscal FP/FY.
+        newer=row(200,start='2025-01-07',end='2025-12-31',
+                  filed='2026-02-01',fp=None,fy=None)
+        del newer['fp']
+        del newer['fy']
+        result=self.evaluate(payload([row(),newer],[row(20)]),
+                             timestamp='2026-08-01T00:00:00Z')
+        self.assert_failure(result,m.S.EVIDENCE_UNSUPPORTED,m.R.ANNUAL_INTERVAL_UNSUPPORTED)
+        self.assertEqual(result.period_end,'2025-12-31')
+        self.assertIsNone(result.period_start)
+        observed=next(o for o in result.observations if o.end=='2025-12-31')
+        self.assertEqual(observed.disposition,'UNSUPPORTED')
+        self.assertIn('ANNUAL_INTERVAL_UNSUPPORTED',observed.exclusion_reasons)
+        self.assertTrue(observed.observation_id)
+        self.assertTrue(observed.source_locator.startswith('/facts/us-gaap/'))
+        self.assertFalse(any(o.disposition=='SELECTED' for o in result.observations))
+
+    def test_a2_explicit_quarter_missing_start_does_not_select_annual_endpoint(self):
+        # FICTIONAL: integer FY is filing metadata, not annual-period proof.
+        newer=row(200,form='10-Q',fp='Q4',fy=2025,start=None,
+                  end='2025-12-31',filed='2026-02-01')
+        del newer['start']
+        result=self.evaluate(payload([row(),newer],[row(20)]),
+                             timestamp='2026-08-01T00:00:00Z')
+        self.assertIs(result.status,m.S.CANDIDATE_COHERENT)
+        self.assertEqual(result.reasons,())
+        self.assertEqual(result.period_end,'2024-12-31')
+        self.assertEqual((result.revenue,result.operating_income),(Decimal(100),Decimal(20)))
+        observed=next(o for o in result.observations if o.end=='2025-12-31')
+        self.assertEqual(observed.disposition,'NONSELECTED')
+        self.assertIn('CLEARLY_NONANNUAL',observed.exclusion_reasons)
+        self.assertEqual((observed.form,observed.fp,observed.fy),('10-Q','Q4',2025))
+        self.assertTrue(observed.observation_id)
+        self.assertTrue(observed.source_locator.startswith('/facts/us-gaap/'))
+
     def test_duration_surveillance_despite_quarter_context(self):
         result=self.evaluate(payload([row(),row(fp='Q4',form='10-Q',start='2025-01-01',
                             end='2025-12-31',filed='2026-02-01')],[row(20)]),timestamp='2026-08-01T00:00:00Z')
