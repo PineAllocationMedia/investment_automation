@@ -879,3 +879,61 @@
   acquisition, substantive reopening, qualification relaxation, deployment or merge.
   This sync awaits CEO review/merge authorization. Reuse assessment: `NOT APPLICABLE`
   — pure institutional documentation; no new component, dependency or adoption.
+
+## 2026-10-11 — Manual blocker-trigger review pilot v1
+
+- `WO-BLOCKER-TRIGGER-REVIEW-PILOT-V1-DOCS`, parent
+  `WO-BLOCKER-TRIGGER-REVIEW-PILOT-V1`, starts from verified canonical HEAD
+  `3f5b9531c878dd497567638d572b23f51575b964`, tree
+  `bd3626a094b35073a03bcbf3db76adea7d91c2c8`, after PR #139. The empty
+  `pm/blocker-trigger-review-pilot-v1` branch was verified at that same HEAD/tree
+  and reused without reset or overwrite. Parent owner: Program Manager / Chief of
+  Staff; primary documentation implementation owner: Codex Development.
+- Program Manager supplied Architecture & Audit's completed feasibility verdict
+  `WO-BLOCKER-REEXAMINATION-MECHANISM-FEASIBILITY` → `PARTIALLY_FEASIBLE`.
+  The Work Queue now records it as completed, not queued. No broad technology audit
+  or new specialist execution was performed by this documentation task.
+- CEO authorized the manual-only documentation pilot. The existing Work Queue is
+  the authoritative operational record, with trigger metadata for
+  `BLK-STAGE-C-QUALITY-POSITIVE`, `BLK-PR5C-MULTIFILING` and
+  `GAP-B2-EXECUTABLE-NET`, plus a human-initiated comparison/deduplication/routing
+  procedure. Historical baselines, candidate signals, review ownership, CEO
+  authority and manual checkpoints are distinct. This history is not a second
+  blocker registry.
+
+### Controlled tabletop validation
+
+Manual procedural review compared the six scenarios below against the recorded
+conditions and triage procedure. The first two use existing documented findings;
+the last four are explicitly fictional. No source was acquired or verified and no
+real receipt, version or hash was invented. `FICTIONAL:` labels identify tabletop
+inputs only, not SEC/broker identifiers or qualified evidence. Trustworthy raw-source
+digests are `NOT_AVAILABLE` in all six scenarios; no synthetic digest is substituted.
+
+| Scenario / blocker | Input, baseline and identity comparison | Observed tabletop outcome / disposition |
+| --- | --- | --- |
+| Unchanged Stage C / `BLK-STAGE-C-QUALITY-POSITIVE` | Same PR #135 Option A, PR #137 dependency audit and documented issuer-feasibility baseline in Work Queue COMPLETED; no candidate document or changed content. | `NO_CHANGE` — conditions remain unmet; no unnecessary CEO escalation. |
+| Repeated Amazon explanation / `BLK-PR5C-MULTIFILING` | Same previously documented Amazon 2022 split/reporting-precision explanation in Work Queue COMPLETED → Stage-C evidence-feasibility investigation; no new source, document/version or observed content. Repeat is identifiable as that recorded narrative finding, not a deduplicated raw filing. | `DUPLICATE` — reference the existing finding; no repeated escalation or inferred qualification. |
+| Hypothetical unverified SEC locator / `BLK-STAGE-C-QUALITY-POSITIVE` | Fictional source location `FICTIONAL:SEC-LOCATOR-01`, document/version and observed content identity `NOT_AVAILABLE`; a claimed candidate chain requires source verification, with no verification attempt authorized here. Missing identity fields establish no duplicate. | `VERIFICATION_REQUIRED` — Data & Evidence is the initial specialist only after separate authorized routing; no campaign starts. |
+| Hypothetical new PR5C proof claim / `BLK-PR5C-MULTIFILING` | Fictional package `FICTIONAL:PR5C-PROOF-01`, version `FICTIONAL-V1`, claims reporting-subject continuity, share-basis equivalence and bounded filing/event coverage; authenticity and content digest unverified. This tests a claimed material change, not established proof. | `POTENTIAL_REOPENING` — assessment only, pending authentication and separately authorized Architecture & Audit reassessment; suspension and PR5C v1 remain unchanged. |
+| Hypothetical B2 broker marketing update / `GAP-B2-EXECUTABLE-NET` | New fictional announcement `FICTIONAL:BROKER-MARKETING-01`, version `FICTIONAL-V1`, supplies no qualified executable quote, eligibility, funding or applicable execution/settlement/FX cost evidence. | `NEW_SIGNAL` — unqualified marketing information; no numeric inference, automatic specialist task or B2 reactivation. |
+| Unavailable source or inconsistent receipt/hash / `BLK-STAGE-C-QUALITY-POSITIVE` | Fictional attempted checkpoint `FICTIONAL:UNAVAILABLE-OR-MISMATCH-01`: source cannot be checked or receipt/content comparison is inconsistent; no real request/receipt/hash is generated. | `CHECK_NOT_COMPLETED` — preserve uncertainty and the explicit failed/incomplete check; no trusted comparison, deduplication or reopening. |
+
+All six expected procedural dispositions were demonstrated in this controlled
+tabletop review. This is documentation-level validation, not software testing,
+real financial qualification, financial-blocker resolution or measured reduction
+in CEO workload. No authentic-positive Quality chain or new PR5C/B2 evidence was
+established. Last real trigger verification remains `NOT_PERFORMED_IN_THIS_PILOT`;
+there is no activated reminder, scheduled checkpoint or guaranteed execution.
+
+- Preserved: Stage C `ACTIVE / INCOMPLETE` and its necessary authentic-positive
+  exit criterion; CEO-confirmed PR5C multi-filing `SUSPENDED`, with PR5C v1 unchanged;
+  B2 `UNAVAILABLE / DEFERRED` and `TRIGGER-BASED / DORMANT`; all exploratory Stage-C
+  suspensions, Blossom, V1 frozen authority and V2 challenger status.
+- Documentation/tabletop work is complete in this candidate and awaits PM review
+  and CEO merge decision; it is not claimed as canonically merged. Only Work Queue
+  and Worklog are modified. No monitoring software/script/crawler/scheduler,
+  recurring task, source acquisition, qualification campaign, financial contract
+  change, autonomous specialist operation, deployment or V2 promotion is authorized.
+  Reuse assessment: `NOT APPLICABLE` — governance documentation only, no new
+  technology/component/dependency adoption or implementation.

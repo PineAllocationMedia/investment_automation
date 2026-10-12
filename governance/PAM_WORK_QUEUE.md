@@ -3,6 +3,22 @@
 ## ACTIVE
 
 - Stage C — Quality (`ACTIVE / INCOMPLETE`).
+  - **Trigger-review ID:** `BLK-STAGE-C-QUALITY-POSITIVE`.
+  - **Historical evidence baseline:** PR #135 Option A, PR #137 authentic-path
+    dependency audit and the documented issuer-feasibility findings under COMPLETED.
+    No authentic-positive Quality chain is established.
+  - **Candidate signal / trigger category:** `AUTHENTIC_POSITIVE_QUALITY_CANDIDATE`:
+    a specific source-linked candidate potentially satisfying existing PR4C3 → PR5B
+    → PR5C v1 → established existing Quality foundation → associated native
+    `AVAILABLE` diagnostic, with verifiable provenance/replay. The existing necessary
+    authentic-positive exit criterion below is unchanged.
+  - **Review ownership / authority:** Program Manager performs manual triage;
+    initial specialist for separately authorized source verification is Data &
+    Evidence. Only the CEO may authorize substantive reopening, a qualification
+    campaign, closure or Stage-D transition; no automatic reopening.
+  - **Manual checkpoint:** human-initiated comparison on receipt of a source-linked
+    candidate, using the procedure below. No reminder, schedule or guaranteed run;
+    last real trigger verification `NOT_PERFORMED_IN_THIS_PILOT`.
   - Seven bounded analytical diagnostics and six bounded evidence foundations are
     complete / canonical; no composite or aggregate Quality conclusion is authorized.
   - Complete / canonical: first bounded slice,
@@ -112,6 +128,23 @@
 
 ## COMPLETED
 
+- `WO-BLOCKER-REEXAMINATION-MECHANISM-FEASIBILITY`: Architecture & Audit study
+  completed with `PARTIALLY_FEASIBLE`, supplied by the Program Manager in the
+  CEO-authorized pilot Work Order, not independently repeated here. The study
+  direction covered proportionate PAM reuse, relevant tools/sources/methods,
+  cost/licensing/provenance, Chromebook/Linux/development fit and complexity,
+  maintenance, determinism, security and reliability; alternatives include REUSE,
+  ADAPT, BUILD, defer and maintain the blocker. This verdict resolves no financial
+  blocker and grants no implementation, acquisition or autonomous monitoring authority.
+
+- `WO-BLOCKER-TRIGGER-REVIEW-PILOT-V1-DOCS`, parent
+  `WO-BLOCKER-TRIGGER-REVIEW-PILOT-V1`: CEO-authorized documentation-only manual
+  pilot; parent owner Program Manager / Chief of Staff, implementation owner Codex
+  Development. Trigger metadata and six controlled tabletop scenarios are complete
+  in this documentation candidate; PM review and CEO merge decision remain pending,
+  not canonical merge. Outcomes are in [the Worklog](PAM_WORKLOG.md#2026-10-11--manual-blocker-trigger-review-pilot-v1).
+  No financial blocker is resolved or real workload reduction measured.
+
 - PR #138 / `WO-V2-PR5E-AUDIT-MANIFEST-EXPORT-V1`: bounded PR5E
   identity/status/provenance export and independent offline verifier against an
   externally trusted SHA-256 artifact digest, canonical at merge
@@ -185,27 +218,8 @@ None.
 
 ## QUEUED
 
-- `WO-BLOCKER-REEXAMINATION-MECHANISM-FEASIBILITY`
-  - **PRIMARY OWNER:** Architecture & Audit.
-  - **STATUS:** `QUEUED — read-only feasibility/design review`; selected next planning
-    task, not active and not implemented.
-  - Evaluate the smallest technically sound transversal mechanism for tracking,
-    detection, reexamination and option assessment of existing/future PAM blockers.
-    Avoid forgotten blockers, identify new evidence/tools/developments and reduce
-    CEO manual monitoring while preserving explicit CEO decisions.
-  - Assess proportionately existing PAM components/evidence infrastructure,
-    relevant open-source tools, public/official sources, APIs and alternative methods;
-    mandatory external costs, licensing/commercial-use rights and provenance;
-    Chromebook/Linux and existing development-environment fit; complexity,
-    maintenance, determinism, security and reliability. Compare REUSE, ADAPT, BUILD,
-    defer and maintain the blocker; no unlimited technology search.
-  - Stage C is the first intended case study; B2 is a distinct dormant capability
-    gap potentially relevant to the inventory. Their statuses and reopening triggers
-    remain unchanged. Data & Evidence may later be consulted; one primary owner only.
-  - No automatic operation, autonomous agent, background monitoring/reminders,
-    external acquisition campaign, contract relaxation, task activation or software
-    implementation is authorized. Only the CEO may authorize substantive reopening,
-    implementation or protected authority changes.
+None. The completed feasibility study is recorded under COMPLETED; it is no longer
+a queued task. The manual pilot authorizes no follow-on execution task.
 
 The evaluated technology opportunities are `PARKED` in
 `PAM_OPPORTUNITY_BACKLOG.md`; none is a queued Work Order or implementation task.
@@ -217,14 +231,92 @@ The evaluated technology opportunities are `PARKED` in
   appears. It remains `UNAVAILABLE / DEFERRED`, an open capability gap, not
   permanently unsupported and not a blocker to the bounded Stage-B completion.
   No autonomous monitoring or queued implementation task is authorized.
+  - **Trigger-review ID:** `GAP-B2-EXECUTABLE-NET`.
+  - **Historical evidence baseline:** completed real executable-entry investigation
+    (`PARTIAL ROUTE ONLY`) and bounded Stage-B completion; no complete positive
+    executable route is established. The gap remains `UNAVAILABLE / DEFERRED` and
+    `TRIGGER-BASED / DORMANT`.
+  - **Candidate signal / trigger category:** `QUALIFIED_EXECUTABLE_ENTRY_EVIDENCE`:
+    qualified executable quote, instrument/account eligibility, settled funding,
+    applicable execution/settlement costs and FX costs when applicable. Indicative
+    prices and broker marketing establish no numeric executable-net inference.
+  - **Review ownership / authority:** Program Manager performs manual triage;
+    initial specialist for separately authorized evidence review is Data & Evidence.
+    Only the CEO may authorize substantive reopening or B2 implementation/reactivation.
+  - **Manual checkpoint:** human-initiated comparison on receipt of a relevant
+    source-linked signal, using the procedure below. No reminder, schedule or
+    guaranteed run; last real trigger verification `NOT_PERFORMED_IN_THIS_PILOT`.
 
 - Proposed multi-filing EPS comparability development is `SUSPENDED` by the CEO's
   2026-10-11 sequencing decision. PR5C v1 remains unchanged. Reconsideration requires
   materially new authenticated evidence or a separate CEO-authorized scope decision;
   this is not permanent rejection or an investment-model policy amendment. No
   autonomous monitoring, new acquisition or queued implementation is authorized.
+  - **Trigger-review ID:** `BLK-PR5C-MULTIFILING`.
+  - **Historical evidence baseline:** PR #136 and prior `NOT_YET_DEFENSIBLE`
+    proof-adequacy findings; authenticated captures/filing-local claims did not prove
+    the required cross-filing economic qualifications. Status remains `SUSPENDED`.
+  - **Candidate signal / trigger category:** `MULTIFILING_QUALIFICATION_PROOF`:
+    authenticated evidence of reporting-subject continuity, share-basis equivalence
+    and sufficient bounded filing/event coverage. Repeated Amazon split/precision
+    explanation alone does not meet these conditions.
+  - **Review ownership / authority:** Program Manager performs manual triage;
+    initial specialist for separately authorized contract reassessment is Architecture
+    & Audit. Only the CEO may authorize substantive reopening or contract change;
+    PR5C v1 is neither modified nor relaxed by this pilot.
+  - **Manual checkpoint:** human-initiated comparison on receipt of a source-linked
+    proof candidate, using the procedure below. No reminder, schedule or guaranteed
+    run; last real trigger verification `NOT_PERFORMED_IN_THIS_PILOT`.
 
 - Further exploratory Stage-C authentic-issuer qualification investigations are
   `SUSPENDED` by CEO confirmation until materially new admissible evidence or a
   separately authorized decision justifies resumption. No next technical chantier,
   replacement workstream, acquisition or implementation is selected or activated.
+
+## Manual blocker-trigger checkpoint — pilot v1
+
+The Work Queue remains the single authoritative operational record; the Worklog
+retains checkpoint history. No separate blocker registry, software, crawler,
+scheduler, recurring task or scheduled workflow is introduced. Checkpoints occur
+only when a human initiates them; no automatic specialist execution is authorized.
+
+1. Program Manager compares a received source-linked signal with its exact blocker
+   ID, trigger category and recorded historical evidence baseline/previous findings.
+2. Record source identifiers/location, document/version and trustworthy observed
+   content digest only where actually available. Mark missing fields `NOT_AVAILABLE`
+   and unavailable/unperformed checks explicitly; never fabricate an identity,
+   timestamp, version, receipt or hash. A sender's unverified hash is a claim, not
+   a trusted observation.
+3. Deduplicate on `(blocker ID, trigger category, source identity, document/version,
+   observed content identity)`. Missing identity fields do not establish equality;
+   require enough existing provenance to identify a repeat, otherwise keep it
+   unresolved. Compare narrative repeats with the documented previous finding;
+   do not invent a raw-source digest for historical reports.
+4. Assign one triage outcome:
+   - `NO_CHANGE`: existing baseline/conditions unchanged, no new material signal.
+   - `DUPLICATE`: same identifiable signal/finding already recorded; retain its
+     previous reference without repeating escalation.
+   - `NEW_SIGNAL`: distinguishable new information, not qualified trigger evidence.
+   - `VERIFICATION_REQUIRED`: potentially relevant source-linked claim is unverified;
+     verification remains pending separate authorization.
+   - `POTENTIAL_REOPENING`: candidate addresses the exact material conditions and
+     warrants assessment only; this label proves no qualification or reopening.
+   - `CHECK_NOT_COMPLETED`: source unavailable, check not performed/completed, or
+     inconsistent receipt/hash prevents a trustworthy conclusion. Do not silently
+     mark it unchanged, verified or deduplicated.
+5. Suppress unnecessary CEO escalation for unchanged/duplicate cases. A new marketing
+   announcement alone is not a material evidence trigger. For credible material
+   claims, prepare a bounded routing/decision request identifying what changed,
+   remaining verification and the applicable blocker conditions.
+6. Refer to exactly one specialist specified in the blocker metadata only through
+   separately authorized routing. No label starts a source campaign or specialist
+   task. Substantive reopening, implementation and protected decisions remain CEO-only.
+7. Retain durable checkpoint outcomes in this Work Queue/Worklog only through
+   authorized Governance Sync. Record any later proposed date as a proposal, never
+   an activated reminder or guaranteed execution. This pilot sets no scheduled date.
+
+For a durable checkpoint, use a compact record containing blocker ID/category,
+baseline reference, received candidate source/location/version, observed content
+identity or explicit missingness, dedup comparison, outcome/reason, review owner,
+authorization state and manual checkpoint state. Tabletop records in the Worklog
+are procedural illustrations only; no real trigger verification occurred here.
