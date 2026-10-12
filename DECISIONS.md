@@ -3373,3 +3373,71 @@ capabilities to be AVAILABLE for the same issuer. Synthetic tests and successful
 source acquisition alone do not satisfy it. The CEO retains the later Stage-C
 closure and Stage-D transition decisions. Existing investment methodology and
 source qualification contracts remain unchanged.
+
+## 2026-10-11 — Isolated early PR5E audit-export sequencing exception
+
+### Decision
+
+The CEO authorized `WO-V2-PR5E-AUDIT-MANIFEST-EXPORT-V1` as an isolated early
+prerequisite of the future Stage-N Shadow Audit Export Bridge, then approved
+PR #138's canonical merge. GitHub confirms merge
+`8f5ef4f3f4bb0e362e8bb93de5dc00d71236849b`, tree
+`3b09cdb358433fd31522d459b58c91cd63c13898`.
+
+The completed capability exports a deterministic bounded native PR5E
+identity/status/provenance projection in a versioned artifact and provides
+independent offline integrity verification against an externally trusted SHA-256
+digest. Architecture & Audit's independent `MERGE READY` is the supplied Work Order
+handoff; GitHub FULL_PIT validation passed 3,416 tests. This sync records those
+approved decisions and observations, not a new analytical audit.
+
+### Boundaries
+
+This exception does not activate or complete Stage N, supply full native-result
+integrity, authenticate financial sources, replay economics, establish durable
+external archives or automate exports. It grants no PIT, forward-shadow or
+production authority. Stage C remains `ACTIVE / INCOMPLETE`; its necessary
+authentic-positive Quality exit condition remains unmet. Multi-filing EPS
+development and further exploratory Stage-C qualification investigations remain
+suspended under their existing triggers. V1 remains frozen operational authority
+and V2 remains challenger-only; methodology and source qualification are unchanged.
+
+## 2026-10-11 — Queued read-only transversal blocker-reexamination study
+
+### Decision
+
+After PR #138, the CEO approved examining a transversal mechanism for existing and
+future PAM blockers. The selected next planning task is
+`WO-BLOCKER-REEXAMINATION-MECHANISM-FEASIBILITY`, with Architecture & Audit as its
+single primary owner and status `QUEUED — read-only feasibility/design review`.
+Data & Evidence may later be consulted for source availability and qualification.
+
+The objectives are to prevent forgotten blockers, identify new evidence, tools or
+developments warranting reexamination, reduce the CEO's manual monitoring burden
+while preserving decision authority, and systematically assess relevant available
+solutions and internal resources under PAM constraints. Coverage is proportionate,
+not an unlimited technology search.
+
+The assessment must consider existing PAM components/evidence infrastructure;
+relevant open-source tools, public/official sources, APIs and alternative technical
+methods; mandatory external costs, licensing/commercial-use rights and source
+provenance; Chromebook/Linux resources and existing development environments;
+complexity, maintenance, determinism, security and reliability. Options include
+REUSE, ADAPT, BUILD, defer and maintain the blocker. Existing cost constraints and
+resource-reuse requirements remain unchanged.
+
+### Boundaries
+
+Stage C is the first intended case study. B2 is a separate dormant capability gap
+potentially relevant to the inventory, still `UNAVAILABLE / DEFERRED` and
+`TRIGGER-BASED / DORMANT`, with its qualified executable-quote, settled-funding and,
+where applicable, FX execution-cost evidence triggers preserved. Neither case is
+substantively reopened by this study direction.
+
+The mechanism is neither implemented nor activated. Automatic detection or reminders
+may later be proposed; no autonomous agent operation, background monitoring,
+external acquisition campaign, contract relaxation, task activation or software
+implementation is authorized. Only the CEO may authorize substantive reopening,
+implementation or protected authority changes. This is an append-only record of
+already-approved direction under `WO-GOVERNANCE-SYNC-POST-PR138-BLOCKER-REVIEW-DIRECTION`,
+not a protected-policy amendment or new delegated authority.

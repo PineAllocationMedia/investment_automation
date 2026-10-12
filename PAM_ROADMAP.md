@@ -540,7 +540,15 @@ planning reference, not a benchmark or established V2 runtime compatibility; unk
 capacities remain UNKNOWN. No installation, spending, deployment, production or
 investment authority was granted.
 
-Later technical stages remain in their existing order.
+Later technical stages remain in their existing order. The CEO authorized PR #138
+as an isolated early Stage-N prerequisite; its bounded audit export is canonical,
+without activating or completing Stage N. The selected next planning task is
+`WO-BLOCKER-REEXAMINATION-MECHANISM-FEASIBILITY`, owned by Architecture & Audit and
+`QUEUED — read-only feasibility/design review`. It will examine a proportionate
+transversal blocker mechanism, beginning with Stage C; B2 may inform the inventory
+under its distinct dormant status and evidence triggers. This is no implementation,
+monitoring, source campaign or substantive reopening authorization. See
+`governance/PAM_WORK_QUEUE.md` for the bounded study scope.
 
 No additional pre-Stage-B Expected Return architecture interlude is authorized in
 this sequence. B1 and the real-route investigation are complete; the investigation
@@ -1558,6 +1566,19 @@ allow the Data Analyst to consume longitudinal exported analytical history and a
 Architecture & Audit to verify exported evidence and manifests. Its implementation
 contract comes later.
 
+PR #138 is a completed, bounded prerequisite under the CEO's isolated early
+sequencing exception: deterministic export of one PR5E identity/status/provenance
+projection, a versioned artifact and independent offline integrity verification
+against an externally trusted SHA-256 digest. Architecture & Audit's independent
+`MERGE READY` is the supplied handoff; GitHub confirms the CEO-approved merge
+`8f5ef4f3f4bb0e362e8bb93de5dc00d71236849b` and successful FULL_PIT CI (3,416 tests).
+See [the technical contract](docs/contracts/v2/expected_return/EXPECTED_RETURN_PR5E_AUDIT_EXPORT_V1.md).
+It supplies no full native-result integrity, financial-source authentication,
+economic replay, durable external archive or automated export, and no PIT,
+forward-shadow or production authority. The full bridge remains future work;
+Stage N is neither activated nor complete. Stage C remains `ACTIVE / INCOMPLETE`,
+with its authentic-positive exit requirement unmet and all suspensions preserved.
+
 ### Stage N1 — Validation Firewall
 
 Maintain explicit boundaries between research/development, retrospective validation,
@@ -2273,8 +2294,12 @@ cannot begin.
 including OCF identity correction, bounded SEC Submissions compatibility and the
 technology/resource reuse gate with execution-environment planning reference;
 PR #135 recorded the authentic-positive exit condition and PR #136 preserved PR5C v1
-and suspended multi-filing development. This pending sync records the completed
+and suspended multi-filing development. PR #137 canonically recorded the completed
 authentic-path dependency audit and suspension of further exploratory qualification.
+PR #138 then canonically supplied the bounded audit-export prerequisite under an
+isolated early sequencing exception. This sync records the CEO-approved queued
+read-only blocker-reexamination feasibility/design direction, without activating a
+mechanism or authorizing implementation, monitoring or substantive reopening.
 Governance Reform
 Phase 1, Governance Cleanup / Migration, role Projects/employees configuration and
 PR5E are complete. Stage B — Expected Return is complete within the currently
