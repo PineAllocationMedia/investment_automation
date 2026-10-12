@@ -966,3 +966,33 @@ there is no activated reminder, scheduled checkpoint or guaranteed execution.
 - Documentation-only sync awaiting CEO merge decision; no merge/deployment or
   monitoring implementation. Reuse assessment: `NOT APPLICABLE` — documentation
   of an existing CEO-reported task, no technology adoption or installation here.
+
+## 2026-10-11 — Annual reported-fact research design-reference adoption sync
+
+- `WO-GOV-SYNC-V2-RESEARCH-CANDIDATE-CONTRACT-ADOPTION`: verified canonical
+  base HEAD `381eace49e411efe8f02769b72242fb06171faae`, tree
+  `04d0738ddb951f88f1e7019634300c0f8c94f159`; documentation candidate pending
+  CEO merge decision. Exactly four existing Markdown files and one new reference.
+- CEO/operator/Codex-reported local Microsoft V2 SEC Companyfacts LIVE capture
+  and native replay: CIK `0000789019`, receipt
+  `7622aa4fb7e867448327b0a7e8167a4d32286e383243e5fc33bc763f32725712`,
+  original source SHA-256
+  `f8aae2965b20ad0df44bdf7ccbedf797d275b6b8dc030154a7a311361bb7246f`.
+  Capture timestamp `2026-10-12T01:33:07.553346Z` is UTC; CEO design-reference
+  authorization occurred October 11, Toronto local time. These dates are distinct.
+- Codex reported `PROOF_SUPPORTED`: 412 source observations and one latest coherent
+  Microsoft FY2026 candidate, 2025-07-01–2026-06-30, common 10-K accession
+  `0001193125-26-323660`, Revenue `331839000000` USD and Operating Income
+  `155237000000` USD. Research-candidate evidence only, not native qualification.
+- Architecture & Audit's separate independent code/contract analysis reported
+  `CONTRACT_BOUNDARY_FEASIBLE`; it did not independently replay the private archive.
+  The final contract draft was `DRAFT_READY_FOR_CEO_REVIEW`, subsequently CEO-approved
+  as design reference `2026-10-11-current-annual-reported-fact-research-candidate-v1`.
+  The full eleven-section reference preserves substantive source language, with
+  only authorized status/editorial alignment and minimal provenance metadata.
+- `NOT_IMPLEMENTED / NO_RUNTIME_AUTHORITY`: no new capability, application tests,
+  acquisition, existing financial contract change, native Ordinary Compounder or
+  Quality/Expected Return admission, PIT, general issuer coverage, deployment or
+  merge. Stage C remains `ACTIVE / INCOMPLETE`, Option A unmet; suspensions, V1 frozen
+  authority and V2 challenger status remain unchanged. Reuse assessment:
+  `NOT APPLICABLE` — documentation-only preservation, no component adoption.

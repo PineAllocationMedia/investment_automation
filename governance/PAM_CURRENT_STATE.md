@@ -7,8 +7,17 @@
   PR5C v1 preservation/multi-filing suspension and PR #137's completed authentic-path
   dependency audit/investigation-suspension sync are canonical. PR #138's bounded
   PR5E audit export is canonical. PR #140's manual blocker-trigger pilot is now
-  canonical. This sync records the separately CEO-authorized limited monthly
-  signal watch; no methodology, source-admission or role-authority changes.
+  canonical. The separate limited monthly signal watch is preserved. This sync
+  records the CEO-approved future research design reference only; no methodology,
+  source-admission or role-authority changes.
+- **Approved future research reference:**
+  `2026-10-11-current-annual-reported-fact-research-candidate-v1`,
+  [complete design reference](../docs/contracts/v2/research/CURRENT_ANNUAL_REPORTED_FACT_RESEARCH_CANDIDATE.md),
+  is `NOT_IMPLEMENTED / NO_RUNTIME_AUTHORITY`. The limited Microsoft offline
+  proof and independent code/contract boundary review establish research feasibility
+  only; Architecture & Audit did not independently replay the private archive.
+  No implementation Work Order is selected or authorized, no new acquisition or
+  financial contract is activated, and Stage C's Option A exit condition remains unmet.
 - **Current major program:** Stage C — Quality
 - **Parallel CEO-approved GTM initiative:** bounded Blossom audience-growth mandate for `@therealpam`, owned by Marketing & GTM; audience value first, PAM promotion secondary, human approval required before publication
 - **Current technical frontier:** the bounded evidence-feasibility investigations
@@ -29,8 +38,8 @@
   intended first check 2026-11-11, not yet evaluated. It tracks
   `BLK-STAGE-C-QUALITY-POSITIVE`, `BLK-PR5C-MULTIFILING` and
   `GAP-B2-EXECUTABLE-NET`. See Work Queue for scope and limitations.
-- **Canonical verified pre-this-sync HEAD:** `958007d6d15f73d21efd9cfc4924699440864686`
-- **Canonical verified tree:** `7fc60f25e8afd8a3266413417d0c89b84a3bfa2a`
+- **Canonical verified pre-this-sync HEAD:** `381eace49e411efe8f02769b72242fb06171faae`
+- **Canonical verified tree:** `04d0738ddb951f88f1e7019634300c0f8c94f159`
 - **Current status:** Stage C — Quality is `ACTIVE / INCOMPLETE`. Its seven bounded
   analytical diagnostics and six bounded evidence foundations are complete and
   canonical. No composite Quality score or aggregation is authorized.

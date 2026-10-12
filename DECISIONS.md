@@ -3470,3 +3470,40 @@ service was installed. Substantive reopening and protected decisions remain
 CEO-only. Original Stage-C/PR5C/B2 states, suspensions, V1 frozen authority and V2
 challenger status are unchanged. Earlier manual-only/no-activation records retain
 their historical scope; only this bounded later signal watch is now authorized.
+
+## 2026-10-11 — Approved annual reported-fact research candidate design reference
+
+### CEO decision
+
+The CEO approved `2026-10-11-current-annual-reported-fact-research-candidate-v1`
+as a future PAM Research design/reference specification only, preserved in
+[the complete reference](docs/contracts/v2/research/CURRENT_ANNUAL_REPORTED_FACT_RESEARCH_CANDIDATE.md).
+Status: `NOT_IMPLEMENTED / NO_RUNTIME_AUTHORITY`. Its design-reference authority
+identifier is `CURRENT_CAPTURE_RESEARCH_CANDIDATE_ONLY`, not a deployed permission.
+This append-only protected-file record is expressly CEO-authorized under
+`WO-GOV-SYNC-V2-RESEARCH-CANDIDATE-CONTRACT-ADOPTION`.
+
+The bounded design uses exactly
+`us-gaap:RevenueFromContractWithCustomerExcludingAssessedTax` and
+`us-gaap:OperatingIncomeLoss` in `USD`, within one specific immutable LIVE
+Companyfacts capture. Its temporal claim is CURRENT/capture-bound, latest observed
+supported annual evidence within that capture; it is not comprehensive issuer-wide
+CURRENT coverage or HISTORICAL_AS_OF/PIT evidence.
+
+### Rationale and expected impact
+
+The authentic Microsoft offline feasibility result and independent Architecture &
+Audit code/contract boundary review support a defensible bounded research-evidence
+boundary, without proving general issuer applicability. Architecture & Audit did
+not independently replay the private archive. Expected impact: a stable future
+research design reference, with no current operational behavior change.
+
+### Preserved boundaries
+
+No implementation, new capability tests, source acquisition, existing financial
+contract modification, native Ordinary Compounder admission, Quality/Expected Return
+admission, new financial/policy authority, deployment or merge is authorized.
+Stage C remains `ACTIVE / INCOMPLETE`; its authentic-positive Option A exit condition
+remains unmet. Existing exploratory-investigation and PR5C multi-filing suspensions,
+PR5C v1, frozen V1 authority and V2 challenger status remain unchanged. No future
+research-candidate implementation Work Order is selected, queued or authorized.

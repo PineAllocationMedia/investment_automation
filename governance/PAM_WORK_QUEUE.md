@@ -150,6 +150,23 @@
 
 ## COMPLETED
 
+- Annual reported-fact research boundary specialist sequence (bounded handoffs):
+  - `WO-V2-CURRENT-ANNUAL-REPORTED-FACT-BOUNDARY-OFFLINE-PROOF-V1`:
+    `PROOF_SUPPORTED`, limited to Codex-reported Microsoft archived observations
+    and a coherent research candidate, without native qualification.
+  - Architecture & Audit independent code/contract boundary review:
+    `CONTRACT_BOUNDARY_FEASIBLE`; no independent replay of private archived bytes.
+  - `WO-V2-CURRENT-ANNUAL-REPORTED-FACT-RESEARCH-CONTRACT-DRAFT-V1`:
+    `DRAFT_READY_FOR_CEO_REVIEW`, followed by CEO approval on 2026-10-11 Toronto
+    local date as a future design reference only.
+  - `WO-GOV-SYNC-V2-RESEARCH-CANDIDATE-CONTRACT-ADOPTION` preserves
+    [the complete approved reference](../docs/contracts/v2/research/CURRENT_ANNUAL_REPORTED_FACT_RESEARCH_CANDIDATE.md)
+    in this documentation candidate, pending CEO merge decision:
+    `NOT_IMPLEMENTED / NO_RUNTIME_AUTHORITY`. No future implementation is queued
+    or authorized. Stage C remains `ACTIVE / INCOMPLETE`, its Option A exit condition
+    and `BLK-STAGE-C-QUALITY-POSITIVE` remain unmet, and existing investigation and
+    PR5C multi-filing suspensions are preserved.
+
 - `WO-BLOCKER-REEXAMINATION-MECHANISM-FEASIBILITY`: Architecture & Audit study
   completed with `PARTIALLY_FEASIBLE`, supplied by the Program Manager in the
   CEO-authorized pilot Work Order, not independently repeated here. The study
