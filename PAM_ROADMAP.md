@@ -197,7 +197,7 @@ Existing documents remain:
 
 ---
 
-## 8. Current technical frontier — Stage C Quality
+## 8. Current technical frontier — bounded Stage C closed; Stage D not activated
 
 ### Real-source chain through PR5C comparable historical EPS presentation ✅
 
@@ -425,7 +425,7 @@ Stage B bounded sequence COMPLETE within the currently approved supported scope 
     ↓
 CEO transition authorization ✅
     ↓
-Stage C — Quality ACTIVE
+Stage C — Quality bounded capability sequence
     ↓
 Five-period diluted-EPS directional consistency ✅
     ↓
@@ -459,7 +459,11 @@ Additional native issuer profitability route canonical — PR #145 / #146 ✅
     ↓
 Authentic-positive gate satisfied — October 12 CEO Option A supplement ✅
     ↓
-Stage-C closure-readiness assessment after governance-sync merge NEXT; CEO closure pending
+Final closure-readiness assessment COMPLETE — READY_FOR_CEO_CLOSURE_DECISION
+    ↓
+Stage C — Quality: COMPLETE / CEO_APPROVED (bounded scope), 2026-10-12
+    ↓
+Stage D — Durability intended next; NOT ACTIVATED — separate CEO authorization required
 ```
 
 This governance sequence was an administrative prerequisite, not a replacement for
@@ -471,8 +475,9 @@ current nominal cash-like carry Slice A and executable-entry evidence B1 foundat
 bounded confidence propagation and explicit non-available-case handling for four
 canonical analytical surfaces. Stage B — Expected Return is complete within the
 currently approved bounded supported scope. The CEO explicitly authorized transition
-to Stage C — Quality, which is now the active technical stage. The first bounded
-Quality slice, `FIVE_PERIOD_DILUTED_EPS_DIRECTIONAL_CONSISTENCY`, is canonical. The
+to Stage C — Quality, subsequently closed by explicit CEO approval on 2026-10-12
+within its reviewed bounded scope. Stage D remains not authorized or active.
+The first bounded Quality slice, `FIVE_PERIOD_DILUTED_EPS_DIRECTIONAL_CONSISTENCY`, is canonical. The
 paired current-annual basic/diluted EPS-denominator evidence foundation and bounded
 threshold-free `CURRENT_ANNUAL_EPS_DENOMINATOR_DILUTION` diagnostic are also
 canonical. PR #108 additionally established
@@ -516,12 +521,14 @@ authority. PR #128 established the sixth evidence foundation,
 diagnostic, `CURRENT_ANNUAL_OPERATING_INCOME_TO_POSITIVE_TWO_POINT_AVERAGE_ASSETS`,
 under
 `QUALITY_CURRENT_ANNUAL_OPERATING_INCOME_TO_POSITIVE_TWO_POINT_AVERAGE_ASSETS_DIAGNOSTIC_ONLY`.
-Stage C remains `ACTIVE / INCOMPLETE`. The October 11 Option A evidence standard
-and October 12 CEO supplement admit the additional native issuer profitability
-route, canonical through PR #145 / #146. Data & Evidence's supplied independent
-Microsoft FY2026 `AUTHENTIC_POSITIVE_VERIFIED` result satisfies the supplemented
-necessary gate. Formal closure-readiness assessment and a separate CEO closure
-decision remain pending; Stage D is unauthorized. Earlier profile-route feasibility
+Stage C — Quality is `COMPLETE / CEO_APPROVED (bounded scope)`, explicitly closed
+by the CEO on 2026-10-12 following Architecture & Audit's supplied independent
+`READY_FOR_CEO_CLOSURE_DECISION` finding. The October 11 Option A standard and
+October 12 issuer-level supplement remain unchanged, with Microsoft's independent
+`AUTHENTIC_POSITIVE_VERIFIED` result satisfying the gate through PR #145 / #146's
+canonical route and PR #147's canonical governance record. No additional binding
+Stage-C exit requirement remains unmet in the supplied readiness assessment.
+Stage D remains `NOT AUTHORIZED / NOT ACTIVE`. Earlier profile-route feasibility
 and dependency-audit findings remain historical; PR5C and exploratory qualification
 suspensions remain unchanged. No new technical chantier is selected.
 
@@ -554,7 +561,7 @@ without activating or completing Stage N. The then-selected planning task,
 `PARTIALLY_FEASIBLE` (supplied Architecture & Audit handoff). Its historical
 read-only study granted no implementation, source campaign or substantive reopening
 authority. See `governance/PAM_WORK_QUEUE.md` for its completed record and the
-current bounded Stage-C closure-readiness next action.
+current closure governance-sync delivery and separate Stage-D authorization boundary.
 
 No additional pre-Stage-B Expected Return architecture interlude is authorized in
 this sequence. B1 and the real-route investigation are complete; the investigation
@@ -563,8 +570,8 @@ found `PARTIAL ROUTE ONLY`. B2 numeric executable-net Expected Return is current
 B sequencing blocker. Bounded confidence propagation and explicit unsupported-case
 handling are complete. B2 may be revisited only if genuinely new qualified executable-
 quote, settled-funding and, where applicable, FX execution-cost evidence appears.
-Stage C — Quality is active and incomplete. Its seven original economic diagnostic
-kinds and six original evidence foundations remain canonical, with an additional
+Stage C — Quality is `COMPLETE / CEO_APPROVED (bounded scope)`. Its seven original
+economic diagnostic kinds and six original evidence foundations remain canonical, with an additional
 issuer-level native path for the existing operating-income/revenue kind. No eighth
 distinct diagnostic, composite Quality score, aggregation,
 next-dimension implementation, recommendation, ranking, allocation or execution
@@ -586,14 +593,14 @@ class is insufficient. The broader capabilities remain roadmap requirements and
 do not disappear merely because they are deferred. Stage A is complete only for
 the explicitly supported bounded first CURRENT route; this is not universal or
 global Real Fact Admission completeness. Stage B is complete only within its
-currently approved bounded supported scope. The current Stage-C frontier is the
-satisfied authentic-positive gate under the October 12 CEO supplement. After
-canonical merge of this governance sync, the next legitimate action is a bounded
-Program Manager-coordinated closure-readiness assessment, then a separate CEO
-closure decision. PR5C v1, its unresolved multi-filing blocker and existing
-investigation suspensions remain unchanged. No new implementation, acquisition,
-aggregate Quality score or Stage-D transition is authorized. The unchanged
-pre-shadow sequence remains in section 9; no wider resequencing is approved.
+currently approved bounded supported scope. Stage C is closed within its bounded
+approved scope after independent readiness assurance and the explicit October 12
+CEO decision. Next delivery action is PM verification and CEO canonical merge of
+this closure sync. Stage D — Durability is the next intended major development
+stage, `NOT ACTIVATED — separate CEO authorization required`. PR5C v1, its unresolved
+multi-filing blocker and existing investigation suspensions remain unchanged.
+No new implementation, acquisition or aggregate Quality authority is granted.
+The unchanged pre-shadow sequence remains in section 9; no wider resequencing is approved.
 
 ---
 
@@ -889,7 +896,7 @@ bounded company-vs-VFV Expected Return comparator complete
 → explicit unsupported-case handling ✅
 → Stage B bounded sequence COMPLETE ✅
 → CEO transition authorization ✅
-→ Stage C — Quality ACTIVE
+→ Stage C — Quality bounded capability sequence
 → five-period diluted-EPS directional consistency ✅
 → current annual paired basic/diluted EPS-denominator evidence foundation ✅
 → current annual EPS-denominator dilution diagnostic ✅
@@ -911,8 +918,10 @@ bounded company-vs-VFV Expected Return comparator complete
 → Bounded CURRENT annual reported-fact research candidate canonical (PR #143); research authority only
 → Additional native issuer profitability route canonical (PR #145 / #146); existing diagnostic kind
 → Authentic-positive gate SATISFIED (October 12 CEO Option A supplement; Microsoft independently verified)
-→ Stage-C closure-readiness assessment after governance-sync merge NEXT; CEO closure pending
-→ Stage C ACTIVE / INCOMPLETE; Stage D UNAUTHORIZED
+→ PR #147 Option A governance supplement canonical
+→ Final readiness assessment COMPLETE — READY_FOR_CEO_CLOSURE_DECISION
+→ Stage C — Quality: COMPLETE / CEO_APPROVED (bounded scope), 2026-10-12
+→ Stage D — Durability intended next; NOT ACTIVATED — separate CEO authorization required
 ```
 
 ### Bounded CURRENT reported-fact research candidate — canonical PR #143
@@ -975,9 +984,20 @@ portfolio allocation, production or model-policy promotion. LIVE provenance rest
 trusted local acquisition/archive evidence, not cryptographic remote SEC attestation;
 reported profitability is not comprehensive company Quality or financial advice.
 These verification findings are attributed, not rerun by this documentation sync.
-Stage C remains `ACTIVE / INCOMPLETE`; bounded Program Manager closure-readiness review
-follows canonical merge of this sync, then a separate CEO closure decision. Stage D
+At the PR #147 milestone, Stage C remained `ACTIVE / INCOMPLETE` pending readiness
+review and a separate CEO decision. That review and explicit closure approval have
+since occurred; Stage C is now `COMPLETE / CEO_APPROVED (bounded scope)`. Stage D
 remains unauthorized; wider sequencing and V1 frozen / V2 challenger boundaries remain.
+
+PR #147 canonically recorded the supplemented gate at merge
+`b8800c510220c7c8aba53b0923ffe5db5e16747f`, tree
+`6fb38a780eaaa12de3407187697b892b5e435526`. Architecture & Audit's supplied
+`WO-STAGE-C-QUALITY-FINAL-CLOSURE-READINESS` result was
+`READY_FOR_CEO_CLOSURE_DECISION`, establishing no additional binding unmet Stage-C
+exit requirement. Following the Program Manager's reviewed proposal, the CEO explicitly
+approved bounded closure on 2026-10-12 with `j'approuve`. The
+[append-only closure decision](DECISIONS.md#2026-10-12--official-bounded-stage-c-quality-closure)
+records this later authority; this sync does not rerun the specialist assessments.
 
 - completed: Data & Evidence currency/hedging prerequisite and reviewed compatible
   comparison basis;
@@ -1060,12 +1080,13 @@ remains unauthorized; wider sequencing and V1 frozen / V2 challenger boundaries 
 - complete / canonical cross-cutting workflow-capacity correction: Baseline V1 CI
   `FULL_PIT` runtime ceiling raised from 30 to 60 minutes with validation semantics
   unchanged;
-- active / incomplete: Stage C — Quality, with seven original economic diagnostic
-  kinds and six original foundations canonical, plus the separate native issuer path
-  for an existing kind. Microsoft's independent authentic-positive verification
-  satisfies the October 12 supplemented Option A gate; formal closure assessment and
-  CEO decision are pending. PR5C and exploratory qualification suspensions remain,
-  no new implementation/acquisition is queued, and Stage D remains unauthorized;
+- complete / CEO-approved: Stage C — Quality within its bounded approved scope,
+  with seven original economic diagnostic kinds, six original foundations and the
+  separate native issuer path for an existing kind. Microsoft's independent result
+  satisfies supplemented Option A; final independent readiness assurance preceded
+  the explicit October 12 CEO closure decision. PR5C and exploratory suspensions remain;
+- intended next: Stage D — Durability, `NOT AUTHORIZED / NOT ACTIVE`; separate CEO
+  authorization required, with no new implementation/acquisition queued;
 - revisit B2 only when genuinely new qualified evidence exists.
 
 Confidence applies to uncertainty inside an available analysis. Capability state
@@ -1080,9 +1101,18 @@ Return.
 
 ### Stage C — Quality
 
-Status: `ACTIVE / INCOMPLETE`. The CEO authorized transition from completed bounded
-Stage B. The first bounded slice,
-`FIVE_PERIOD_DILUTED_EPS_DIRECTIONAL_CONSISTENCY`, is complete and canonical. Its
+**Stage C — Quality: COMPLETE / CEO_APPROVED (bounded scope).** CEO closure decision:
+`2026-10-12`, following Architecture & Audit's supplied independent
+`WO-STAGE-C-QUALITY-FINAL-CLOSURE-READINESS` / `READY_FOR_CEO_CLOSURE_DECISION`.
+The supplied assessment established no additional binding unmet exit requirement;
+this sync records the explicit approval rather than inferring closure from gate
+satisfaction. Seven original kinds, six original foundations and the additional
+issuer route for an existing kind comprise the completed scope. Individual output
+contracts and authority limits remain unchanged; broader Quality ambitions remain future.
+Stage D remains `NOT AUTHORIZED / NOT ACTIVE`.
+
+The CEO previously authorized transition from completed bounded Stage B.
+The first bounded slice, `FIVE_PERIOD_DILUTED_EPS_DIRECTIONAL_CONSISTENCY`, is complete and canonical. Its
 immutable `FivePeriodEPSConsistencyResult` consumes the exact bounded
 ordinary-compounder qualification and embedded qualified five-period comparable
 diluted-EPS evidence. For `AVAILABLE` analyses it reports exactly four adjacent
@@ -1280,7 +1310,10 @@ no universal issuer-count threshold and does not require all thirteen capabiliti
 to be AVAILABLE for the same issuer. Synthetic tests and source acquisition alone
 do not satisfy it. The CEO retains closure and Stage-D transition decisions;
 existing investment methodology and source qualification contracts are unchanged.
-No other suggested exit checklist is ratified.
+No other suggested exit checklist is ratified. The supplied final readiness review
+established no additional binding unmet exit requirement, and the CEO subsequently
+approved bounded Stage-C closure. This is a separate explicit milestone decision;
+it does not activate Stage D.
 
 The earlier profile-route investigation Work Order reported Architecture & Audit
 found no new material implementation defect; PR #131's OCF identity correction
@@ -1316,12 +1349,17 @@ established Quality foundation and associated native `AVAILABLE` diagnostic requ
 The CEO confirmed suspension of further exploratory qualification investigations
 until materially new admissible evidence or a separately authorized decision
 justifies resumption. No immediate technical chantier or replacement workstream is
-selected. After canonical merge of this sync, bounded Program Manager closure-
-readiness assessment is next, followed by a separate CEO closure decision. No new
-acquisition, implementation, aggregate Quality, Stage-D transition or shadow/production
-authority is activated.
+selected. The final independent closure-readiness assessment is complete and the
+CEO has explicitly approved bounded Stage-C closure. No new acquisition,
+implementation, aggregate Quality, Stage-D transition or shadow/production authority
+is activated. Closure does not establish universal coverage, ROIC, moat, Durability,
+Microsoft Ordinary Compounder eligibility, global security/investment admission,
+PIT, Expected Return recalibration, recommendations, allocation, execution or model/V2
+promotion. Source qualification, provenance, licensing and resource/cost constraints
+remain unchanged; individual outputs are not automatically upgraded.
 
-Build transparent, evidence-backed measures for topics such as:
+Future Quality ambitions outside this bounded closure include further transparent,
+evidence-backed measures for topics such as:
 
 - profitability quality;
 - returns on capital;
@@ -1334,6 +1372,11 @@ Build transparent, evidence-backed measures for topics such as:
 Avoid creating one opaque magic score.
 
 ### Stage D — Durability
+
+**NOT ACTIVATED — separate CEO authorization required.** Status:
+`NOT AUTHORIZED / NOT ACTIVE`. This is the next intended major development stage
+following bounded Stage-C closure; no implementation Work Order, contract preparation,
+dormant-specialist activation or development is authorized by this sync.
 
 Assess whether economic advantages are likely to persist.
 
@@ -1661,10 +1704,11 @@ See [the technical contract](docs/contracts/v2/expected_return/EXPECTED_RETURN_P
 It supplies no full native-result integrity, financial-source authentication,
 economic replay, durable external archive or automated export, and no PIT,
 forward-shadow or production authority. The full bridge remains future work;
-Stage N is neither activated nor complete. Stage C remains `ACTIVE / INCOMPLETE`,
-with its authentic-positive gate satisfied under the October 12 CEO supplement,
-formal closure review/decision pending and all existing suspensions preserved.
-Stage D remains unauthorized.
+Stage N is neither activated nor complete. Stage C is
+`COMPLETE / CEO_APPROVED (bounded scope)` following the October 12 explicit CEO
+closure decision and independent readiness assurance; its supplemented authentic-
+positive gate remains satisfied and existing suspensions are preserved.
+Stage D remains `NOT AUTHORIZED / NOT ACTIVE`.
 
 ### Stage N1 — Validation Firewall
 
@@ -2367,15 +2411,15 @@ authority. PR #128 canonically established
 and PR #129 canonically established
 `CURRENT_ANNUAL_OPERATING_INCOME_TO_POSITIVE_TWO_POINT_AVERAGE_ASSETS` under
 diagnostic-only authority. These milestones create no composite or aggregate
-Quality conclusion and authorize no next implementation automatically. Stage C
-remains active and incomplete. The CEO-approved authentic positive Quality exit
-condition is necessary, not automatic closure authority. Microsoft's independently
-verified issuer route satisfies the October 12 supplemented gate; after canonical
-merge of this sync, bounded Program Manager closure-readiness review is next, then
-a separate CEO closure decision. Earlier profile-route feasibility/dependency findings
-and PR5C/exploratory suspensions remain unchanged. No new implementation or acquisition
-is selected, and Stage D remains unauthorized. V2 architecture remains incomplete
-and shadow cannot begin.
+Quality conclusion and authorize no next implementation automatically. Stage C is
+`COMPLETE / CEO_APPROVED (bounded scope)`: seven original economic diagnostic kinds,
+six original foundations and the separate native issuer path for an existing kind.
+Microsoft's independent result satisfies the October 12 supplemented gate; final
+Architecture & Audit readiness assurance preceded the explicit CEO closure approval.
+Earlier profile-route feasibility/dependency findings and PR5C/exploratory suspensions
+remain unchanged. No new implementation or acquisition is selected. Stage D is the
+next intended major stage, `NOT ACTIVATED — separate CEO authorization required`.
+V2 architecture remains incomplete and shadow cannot begin.
 
 ---
 
@@ -2414,7 +2458,7 @@ became canonical, separately from PR #142's design-reference adoption. At that
 milestone the Stage-C exit requirement was unmet; suspensions and authority boundaries
 were unchanged, with no next substantive implementation selected.*
 
-*Current October 12 update: PR #145's approved specifications and PR #146's native
+*Historical PR #147 October 12 update: PR #145's approved specifications and PR #146's native
 issuer route are canonical. The supplied independent Data & Evidence Microsoft
 verification and explicit CEO Option A supplement satisfy the authentic-positive
 requirement. Stage C remains ACTIVE / INCOMPLETE pending closure-readiness assessment
@@ -2422,3 +2466,13 @@ after this sync's canonical merge and a separate CEO decision; Stage D remains
 unauthorized. Seven original kinds and six original foundations remain canonical,
 with the issuer route a separate path for an existing kind. No wider resequencing,
 PR5C resolution, investment authority, production or model-policy promotion.*
+
+*Current 2026-10-12 closure update: Stage C — Quality is COMPLETE / CEO_APPROVED
+within its reviewed bounded scope, following the supplied independent
+READY_FOR_CEO_CLOSURE_DECISION assessment and explicit CEO approval. Seven original
+economic diagnostic kinds, six original foundations and one additional native issuer
+path for an existing kind are complete; the Microsoft authentic-positive gate remains
+satisfied. Stage D — Durability is the next intended major stage, NOT ACTIVATED —
+separate CEO authorization required. Broader Quality ambitions remain future scope;
+PR5C, PIT, source/provenance/resource limits, V1 frozen authority and V2 challenger
+status carry forward, with no new implementation, production or model promotion.*
