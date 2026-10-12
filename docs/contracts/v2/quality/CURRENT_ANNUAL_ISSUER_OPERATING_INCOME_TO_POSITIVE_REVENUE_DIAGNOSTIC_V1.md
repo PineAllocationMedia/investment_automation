@@ -1,5 +1,16 @@
 # CURRENT annual issuer Operating Income / positive Revenue route — proposed v1
 
+> **Phase-2 approval/status — 2026-10-12:** The CEO approved this contract as
+> an implementation specification under
+> `WO-STAGE-C-ISSUER-LEVEL-REPORTED-PROFITABILITY-NATIVE-PATH-V1`, following the
+> supplied independent PR #145 exact-head `MERGE READY` review. Bounded native
+> implementation is now supplied for review; authentic applicability is unverified.
+> The Phase-1 draft/status text below is retained as historical context, not a
+> prohibition on this separately authorized Phase 2. Normative requirements and
+> identities are unchanged. Authority is limited to the specified CURRENT issuer
+> research route; no Option A supplement, Stage-C closure, production or promotion
+> is approved. Independent implementation review and CEO merge approval remain required.
+
 **PROPOSED / NOT_IMPLEMENTED / NO_RUNTIME_AUTHORITY**
 
 Work Order: `WO-STAGE-C-ISSUER-LEVEL-REPORTED-PROFITABILITY-NATIVE-PATH-V1`.
