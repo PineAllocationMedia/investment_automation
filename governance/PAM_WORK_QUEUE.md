@@ -2,7 +2,56 @@
 
 ## ACTIVE
 
-- Stage C — Quality (`ACTIVE / INCOMPLETE`).
+- Limited monthly blocker-signal watch (`ENABLED`, CEO-reported external ChatGPT task).
+  - Name: `PAM — Signaux de déblocage`; successfully created/enabled according to
+    the CEO-authorized Work Order. This sync records that fact; it does not create,
+    update or independently inspect the task. No task identifier was supplied.
+  - Monthly on day 11, approximately 09:00 Toronto time (`America/Toronto`). Intended
+    first monthly check: 2026-11-11. First actual watch not yet evaluated.
+  - Tracks `BLK-STAGE-C-QUALITY-POSITIVE`, `BLK-PR5C-MULTIFILING` and
+    `GAP-B2-EXECUTABLE-NET` against their existing distinct conditions below.
+  - Lightweight comparison of available public signals only. Notify only when a
+    specific materially relevant signal warrants a bounded CEO decision; unchanged,
+    duplicate or non-material information warrants no unnecessary notification.
+  - No guarantee of comprehensive discovery, source access, perfect deduplication
+    or notification delivery. The six manual-pilot tabletop cases remain simulations,
+    not operational monitoring evidence or measured workload reduction.
+  - Separate authorization after the historical manual-only pilot; no financial
+    evidence admission, issuer campaign, financial-rule/contract modification,
+    specialist reactivation or automated blocker reopening. Human review/routing
+    and CEO substantive decisions retain their existing authority boundaries.
+  - No crawler, GitHub scheduler, repository-side code or external service was
+    installed. The limited signal watch does not activate Stage D, deploy or promote
+    V2. This sync records the authentic-positive blocker as satisfied by an explicit
+    CEO decision; PR5C, B2 and existing suspensions remain unchanged. Scheduled task
+    settings are neither inspected nor changed, and no automated check is claimed.
+
+- Blossom audience-growth initiative (`ACTIVE`).
+  - Primary owner: Marketing & GTM.
+  - Account: `@therealpam`.
+  - Objective: build a credible, engaging finance/investing audience; PAM promotion is secondary.
+  - Public-facing copy is English by default.
+  - Current-event content requires fresh reliable verification where material.
+  - Human/CEO approval is required before publication.
+  - Wealthsimple affiliation remains accessory and subject to Commercial & Compliance boundaries.
+  - No autonomous posting, personalized investment advice, invented PAM capability or hidden affiliate promotion is authorized.
+
+## COMPLETED
+
+- Stage C — Quality: `COMPLETE / CEO_APPROVED (bounded scope)`, closed by the CEO
+  on `2026-10-12`.
+  - **Final closure assurance:** Architecture & Audit's supplied independent
+    `WO-STAGE-C-QUALITY-FINAL-CLOSURE-READINESS` result was
+    `READY_FOR_CEO_CLOSURE_DECISION`, with no additional binding Stage-C exit
+    requirement unmet. After the Program Manager presented the reviewed proposal,
+    the CEO explicitly approved with `j'approuve`. This sync records the supplied
+    assurance and decision; it does not rerun the assessment.
+  - PR #147's Option A supplement is canonical at merge
+    `b8800c510220c7c8aba53b0923ffe5db5e16747f`. The
+    [official closure decision](../DECISIONS.md#2026-10-12--official-bounded-stage-c-quality-closure)
+    preserves the precise bounded completion and individual authority limits.
+    Stage D — Durability remains `NOT AUTHORIZED / NOT ACTIVE`; no new technical
+    implementation chantier or dormant-specialist activation is selected.
   - **Trigger-review ID:** `BLK-STAGE-C-QUALITY-POSITIVE`.
   - **Historical evidence baseline:** PR #135 Option A, PR #137 authentic-path
     dependency audit and the documented issuer-feasibility findings under COMPLETED.
@@ -118,8 +167,9 @@
     transition remain separate CEO decisions. Other suggested exit criteria remain
     advisory. The CEO's October 12 supplement admits the additional native issuer
     route; Microsoft's independent verification satisfies this necessary gate.
-    Stage C remains `ACTIVE / INCOMPLETE`, pending closure review and CEO decision;
-    Stage D remains unauthorized.
+    At the PR #147 milestone Stage C remained `ACTIVE / INCOMPLETE`, with closure
+    review and a separate CEO decision pending. The subsequent final assurance and
+    explicit CEO closure approval are recorded above; Stage D remains unauthorized.
   - Historical profile-route evidence-feasibility investigations are complete;
     their negative findings are preserved under COMPLETED below. The later verified
     issuer route satisfies supplemented Option A without resolving PR5C multi-filing.
@@ -136,47 +186,14 @@
     in that review record. The subsequent issuer route is independent; legacy
     PR4C3/PR5B/PR5C qualification and eligibility boundaries remain unchanged.
     EPS directional consistency alone does not satisfy Option A's existing established foundation plus associated native `AVAILABLE` diagnostic requirement.
-  - **Next legitimate action:** after canonical merge of this governance sync,
-    a bounded Stage-C closure-readiness assessment coordinated by the Program Manager,
-    followed by a separate CEO closure decision. No new implementation chantier,
+  - **Next delivery action:** PM verification followed by the CEO's canonical
+    merge decision for this closure governance sync. No new implementation chantier,
     acquisition, aggregate Quality score or Stage-D transition is selected or authorized.
-    Suspended technical investigations are not automatically reactivated.
-
-- Limited monthly blocker-signal watch (`ENABLED`, CEO-reported external ChatGPT task).
-  - Name: `PAM — Signaux de déblocage`; successfully created/enabled according to
-    the CEO-authorized Work Order. This sync records that fact; it does not create,
-    update or independently inspect the task. No task identifier was supplied.
-  - Monthly on day 11, approximately 09:00 Toronto time (`America/Toronto`). Intended
-    first monthly check: 2026-11-11. First actual watch not yet evaluated.
-  - Tracks `BLK-STAGE-C-QUALITY-POSITIVE`, `BLK-PR5C-MULTIFILING` and
-    `GAP-B2-EXECUTABLE-NET` against their existing distinct conditions below.
-  - Lightweight comparison of available public signals only. Notify only when a
-    specific materially relevant signal warrants a bounded CEO decision; unchanged,
-    duplicate or non-material information warrants no unnecessary notification.
-  - No guarantee of comprehensive discovery, source access, perfect deduplication
-    or notification delivery. The six manual-pilot tabletop cases remain simulations,
-    not operational monitoring evidence or measured workload reduction.
-  - Separate authorization after the historical manual-only pilot; no financial
-    evidence admission, issuer campaign, financial-rule/contract modification,
-    specialist reactivation or automated blocker reopening. Human review/routing
-    and CEO substantive decisions retain their existing authority boundaries.
-  - No crawler, GitHub scheduler, repository-side code or external service was
-    installed. The limited signal watch does not activate Stage D, deploy or promote
-    V2. This sync records the authentic-positive blocker as satisfied by an explicit
-    CEO decision; PR5C, B2 and existing suspensions remain unchanged. Scheduled task
-    settings are neither inspected nor changed, and no automated check is claimed.
-
-- Blossom audience-growth initiative (`ACTIVE`).
-  - Primary owner: Marketing & GTM.
-  - Account: `@therealpam`.
-  - Objective: build a credible, engaging finance/investing audience; PAM promotion is secondary.
-  - Public-facing copy is English by default.
-  - Current-event content requires fresh reliable verification where material.
-  - Human/CEO approval is required before publication.
-  - Wealthsimple affiliation remains accessory and subject to Commercial & Compliance boundaries.
-  - No autonomous posting, personalized investment advice, invented PAM capability or hidden affiliate promotion is authorized.
-
-## COMPLETED
+    Suspended technical investigations are not automatically reactivated. Closure
+    establishes no universal issuer coverage, ROIC, moat, Durability, Microsoft
+    Ordinary Compounder/global investment admission, PIT, Expected Return recalibration,
+    recommendation, allocation, execution, production or model/V2 promotion. Source,
+    provenance, resource/cost, V1 frozen and V2 challenger limits remain unchanged.
 
 - Native issuer-level Quality and authentic-positive evidence sequence:
   - PR #145: two independently reviewed issuer qualification/diagnostic contracts
@@ -190,9 +207,10 @@
     `AUTHENTIC_POSITIVE_VERIFIED`, including original source/acquisition evidence,
     receipt/object, full native replay, 412 observations, arithmetic and identities.
   - Explicit October 12 CEO supplement: Microsoft FY2026 satisfies the authentic-
-    positive gate and `BLK-STAGE-C-QUALITY-POSITIVE`. Stage C remains incomplete,
-    pending bounded closure-readiness assessment and a separate CEO decision; no
-    Stage D or resolution/reactivation of PR5C multi-filing. Exact identifiers and
+    positive gate and `BLK-STAGE-C-QUALITY-POSITIVE`. At that PR #147 milestone,
+    Stage C remained incomplete pending final readiness assessment and a separate
+    CEO decision. The later explicit bounded closure is recorded above; it grants
+    no Stage D or resolution/reactivation of PR5C multi-filing. Exact identifiers and
     boundaries are in the [Decision Registry](../DECISIONS.md#2026-10-12--stage-c-option-a-issuer-level-native-quality-supplement).
     This sync records supplied findings without rerunning evidence or technical tests.
 
@@ -306,7 +324,10 @@
 
 ## WAITING CEO
 
-None.
+- Canonical merge of this closure Governance Sync after PM verification.
+- Stage-D initiation decision — `NOT AUTHORIZED / CEO_DECISION_REQUIRED`.
+  Next intended major stage only; this is not an active or queued implementation
+  Work Order and authorizes no contracts, specialist activation or development.
 
 ## WAITING EXTERNAL / TOOL
 

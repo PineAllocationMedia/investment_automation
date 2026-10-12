@@ -9,10 +9,11 @@
   PR5E audit export is canonical. PR #140's manual blocker-trigger pilot is now
   canonical. PR #143's bounded PAM Research candidate, PR #145's CEO-approved
   issuer-level implementation specifications and PR #146's native issuer Quality
-  route are canonical. This sync records the CEO-approved October 12 Option A
-  supplement and the supplied independent authentic-positive verification. The
-  separate limited monthly signal watch is preserved; no methodology, source
-  contract or role-authority changes.
+  route are canonical. PR #147's October 12 Option A supplement and independent
+  authentic-positive verification sync are now canonical. This sync records the
+  CEO's explicit 2026-10-12 bounded Stage-C closure approval following the supplied
+  independent final readiness assessment. The separate limited monthly signal watch,
+  methodology, source contracts and role authorities remain unchanged.
 - **Canonical reported-fact research candidate:** PR #142 adopted
   `2026-10-11-current-annual-reported-fact-research-candidate-v1` as a future
   [design reference](../docs/contracts/v2/research/CURRENT_ANNUAL_REPORTED_FACT_RESEARCH_CANDIDATE.md)
@@ -52,15 +53,25 @@
   package/manifest and result identities are in the
   [CEO supplement](../DECISIONS.md#2026-10-12--stage-c-option-a-issuer-level-native-quality-supplement).
   These are attributed findings, not a new evidence execution by this sync.
-- **Current major program:** Stage C — Quality
+- **Official Stage-C closure:** `COMPLETE / CEO_APPROVED (bounded scope)`, CEO
+  decision dated `2026-10-12`. Architecture & Audit's supplied independent
+  `WO-STAGE-C-QUALITY-FINAL-CLOSURE-READINESS` result was
+  `READY_FOR_CEO_CLOSURE_DECISION`, with no additional binding Stage-C exit
+  requirement unmet. The Program Manager presented the reviewed proposal; the CEO
+  explicitly responded `j'approuve`. See the
+  [append-only closure decision](../DECISIONS.md#2026-10-12--official-bounded-stage-c-quality-closure).
+  This is attributed assurance, not a new assessment by this sync.
+- **Major technical program status:** Stage C — Quality is officially closed
+  within its approved bounded scope. No next technical implementation chantier is
+  selected; Stage D — Durability is `NOT AUTHORIZED / NOT ACTIVE`.
 - **Parallel CEO-approved GTM initiative:** bounded Blossom audience-growth mandate for `@therealpam`, owned by Marketing & GTM; audience value first, PAM promotion secondary, human approval required before publication
-- **Current technical frontier:** the supplemented authentic-positive gate is
-  satisfied by the independently verified Microsoft issuer route. After canonical
-  merge of this governance sync, the next action is a bounded Program Manager-
-  coordinated Stage-C closure-readiness assessment, then a separate CEO closure
-  decision. PR5C v1 and its multi-filing suspension remain unchanged; this result
-  does not resolve that feasibility blocker. No new implementation chantier is
-  selected. Further exploratory qualification investigations remain suspended.
+- **Current technical frontier:** bounded Stage C is closed by explicit CEO
+  decision; the supplemented authentic-positive gate remains satisfied. Stage D is
+  the next intended major stage, `NOT ACTIVATED — separate CEO authorization required`.
+  Next delivery action is PM verification followed by the CEO's canonical merge
+  decision for this sync. PR5C v1 and the unresolved multi-filing suspension remain
+  unchanged; existing exploratory qualification investigations remain suspended.
+  No new technical implementation chantier or dormant-specialist activation is authorized.
 - **Canonical integration branch:** `model-v2/expected-return-challenger`
 - **Completed blocker feasibility/pilot:** Architecture & Audit feasibility study
   `WO-BLOCKER-REEXAMINATION-MECHANISM-FEASIBILITY` returned `PARTIALLY_FEASIBLE`
@@ -74,11 +85,11 @@
   `GAP-B2-EXECUTABLE-NET`. The Work Queue now records the first blocker as satisfied
   by the explicit CEO supplement; PR5C and B2 remain unchanged. This sync neither
   inspects nor changes the scheduled task or claims an automated check.
-- **Canonical verified pre-this-sync HEAD:** `bbe35b1eeeff42ed5a01b3f9cda7804fce57fe8c`
-- **Canonical verified tree:** `97dda0d93c0258e75c1b2506d78e2118981c2c8a`
-- **Current status:** Stage C — Quality is `ACTIVE / INCOMPLETE`, pending final
-  closure review and CEO decision. Its seven original economic diagnostic kinds
-  and six original evidence foundations remain canonical; the additional issuer
+- **Canonical verified pre-this-sync HEAD:** `b8800c510220c7c8aba53b0923ffe5db5e16747f`
+- **Canonical verified tree:** `6fb38a780eaaa12de3407187697b892b5e435526`
+- **Current status:** Stage C — Quality is `COMPLETE / CEO_APPROVED (bounded scope)`.
+  Its seven original economic diagnostic kinds and six original evidence foundations
+  remain canonical; the additional issuer
   route is a separate native path for the existing operating-income/revenue kind,
   not an eighth diagnostic. No composite Quality score or aggregation is authorized.
   Stage D remains unauthorized.
@@ -137,7 +148,8 @@
 - **Technical frontier:** Stage A — Real Fact Admission is complete for its
   explicitly supported first bounded CURRENT route; Stage B — Expected Return is
   complete within the currently approved bounded supported scope; Stage C — Quality
-  is active
+  is `COMPLETE / CEO_APPROVED` within its bounded scope. Stage D is not active
+  or authorized.
 - **Stage-C exit requirement:** the CEO-approved Option A requires at least one
   authentic positive contract-valid Quality chain: immutable source evidence → valid
   native upstream qualification → established existing evidence foundation →
@@ -148,7 +160,9 @@
   remain separate CEO decisions. The explicit October 12 CEO supplement admits
   the additional native issuer qualification/diagnostic route above; Microsoft's
   independently verified FY2026 demonstration satisfies this necessary requirement.
-  This does not relax the original evidence standard or close Stage C.
+  Gate satisfaction alone did not close Stage C: at the PR #147 milestone closure
+  was still pending. The subsequent final readiness assessment and explicit CEO
+  closure approval are recorded above. The original evidence standard is unchanged.
 - **Comparator availability:** Canonical only for the bounded current real route under
   `2026-10-01-company-vfv-constant-fx-comparison-v1`, with
   `RESEARCH_DIAGNOSTIC_ONLY` authority
@@ -158,9 +172,9 @@
   gap, currently `UNAVAILABLE / DEFERRED` and `TRIGGER-BASED / DORMANT`, and may be
   revisited only if genuinely new qualified executable-quote, settled-funding and,
   where applicable, FX execution-cost evidence appears.
-- **Pending CEO decisions:** merge this governance sync, then a separate Stage-C
-  closure decision after the bounded closure-readiness review; Stage-D transition
-  is not authorized.
+- **Pending CEO decisions:** canonical merge of this closure governance sync after
+  PM verification. Stage-C closure is already CEO-approved. Any Stage-D initiation
+  requires a separate CEO decision; no implementation Work Order is selected.
 
 ## Active role states
 
@@ -498,12 +512,16 @@
   establishes no PIT, `HISTORICAL_AS_OF`, Ordinary Compounder, Expected Return,
   investment admission, portfolio allocation, production or model-policy promotion.
   Reported Operating Income / positive Revenue is not comprehensive company Quality
-  or financial advice. Stage C remains `ACTIVE / INCOMPLETE`; gate satisfaction
-  precedes closure-readiness review, not automatic closure or Stage-D activation.
-  The supplemented authentic-positive requirement is satisfied; PR4C3, PR5B and
-  PR5C contracts, V1 frozen authority and V2 challenger status remain unchanged.
-  Closure and Stage-D activation remain separate CEO decisions; no historical/PIT,
-  shadow, production or broader investment authority is granted.
+  or financial advice. Stage C is now `COMPLETE / CEO_APPROVED` within its bounded
+  scope following independent readiness assurance and explicit CEO approval;
+  Stage-D activation remains unauthorized. The supplemented authentic-positive
+  requirement is satisfied; PR4C3, PR5B and PR5C contracts, V1 frozen authority and
+  V2 challenger status remain unchanged. Bounded closure establishes no universal
+  issuer coverage, composite Quality score/grade, ROIC, moat, Durability, Microsoft
+  Ordinary Compounder eligibility or global security/investment admission. Outputs
+  retain their individual authority limits; no automatic reinterpretation, Expected
+  Return recalibration, allocation, execution, historical/PIT, shadow, production,
+  model-policy or V2 promotion is granted.
 - All seven conversational PAM role Projects/employees are configured. Codex
   Development remains `ACTIVE BY TASK`, not an autonomous conversational employee.
 
@@ -515,5 +533,5 @@
 - `DECISIONS.md`
 - `governance/roles/*.md`
 
-The HEAD/tree above are the verified canonical state after PR #146 and before this
+The HEAD/tree above are the verified canonical state after PR #147 and before this
 Governance Sync, not the future merge commit of this Governance Sync PR.

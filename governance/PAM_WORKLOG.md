@@ -1066,3 +1066,42 @@ there is no activated reminder, scheduled checkpoint or guaranteed execution.
 - Existing Technology & Resource Reuse Assessment: `NOT APPLICABLE` — documentation
   recording of approved decisions and existing evidence; no reusable component,
   technology adoption, installation or spending is proposed.
+
+## 2026-10-12 — Official bounded Stage-C Quality closure
+
+- `WO-GOV-SYNC-STAGE-C-QUALITY-OFFICIAL-CLOSURE`: verified canonical starting
+  HEAD `b8800c510220c7c8aba53b0923ffe5db5e16747f`, tree
+  `6fb38a780eaaa12de3407187697b892b5e435526`. PR #147 is merged; the approved
+  issuer-level Option A supplement and satisfied authentic-positive gate are canonical.
+- Architecture & Audit's supplied independent
+  `WO-STAGE-C-QUALITY-FINAL-CLOSURE-READINESS` assessment returned
+  `READY_FOR_CEO_CLOSURE_DECISION`, with no additional binding Stage-C exit
+  requirement unmet. Following the Program Manager's proposal, the CEO explicitly
+  approved closure on 2026-10-12 with `j'approuve`. This sync records those supplied
+  findings and approval without rerunning the assessment or evidence replay.
+- **Stage C — Quality: COMPLETE / CEO_APPROVED (bounded scope)**: seven original
+  economic diagnostic kinds, six original evidence foundations, and the additional
+  issuer-level native path for the existing Operating Income / positive Revenue
+  kind. PR #145 / #146 contracts, implementation and prior validation are canonical;
+  Data & Evidence's independently verified Microsoft FY2026 authentic-positive
+  result satisfies supplemented Option A. Prior decisions and all eight evidence
+  identifiers remain byte-for-byte preserved; the
+  [closure decision](../DECISIONS.md#2026-10-12--official-bounded-stage-c-quality-closure)
+  is a new append-only milestone.
+- PR5C multi-filing remains unresolved/suspended; Ordinary Compounder eligibility,
+  broader issuer coverage, CURRENT versus PIT, source/provenance/licensing and
+  resource/cost limits carry forward unchanged. No composite Quality, ROIC, moat,
+  Durability, investment admission, Expected Return recalibration, allocation,
+  execution, production or model/V2 promotion is established. V1 remains frozen
+  operational authority and V2 a challenger. Existing watch settings, unrelated
+  workstreams and role authorities are unchanged.
+- Stage D — Durability: `NOT AUTHORIZED / NOT ACTIVE`; separate CEO initiation
+  approval required. No new implementation chantier is selected. Next delivery
+  action: PM verification followed by the CEO's canonical merge decision for this sync.
+- Exactly five authorized Markdown files; append-only Decision Registry and Worklog,
+  scope/status, historical preservation, identity references and Markdown/link checks.
+  Canonical `pam_preflight` validates the exact committed snapshot and determines
+  the actual tier; its result and delivered tree are reported in the final handoff.
+  No code, tests, contracts, model policies or private evidence changed. Resource
+  reuse assessment: `NOT APPLICABLE` — documentation recording of an approved
+  closure, with no component adoption, installation or spending.
