@@ -251,12 +251,12 @@ def evaluate_sec_current_annual_reported_fact_research_candidate(archive, receip
             not start or not end or o.fp is None or o.fy is None
         )
         # Explicit FY and annual-length evidence have independent priority.
-        # Quarterly metadata blocks inference from an integer filing-vintage FY,
-        # while an annual filing with missing fiscal metadata remains unresolved.
+        # Quarterly metadata blocks inference solely from filing-vintage FY;
+        # a supported annual form with incomplete context remains unresolved.
         unresolved_annual = (
             fiscal_or_period_incomplete
-            and o.fp not in ('Q1', 'Q2', 'Q3', 'Q4')
-            and (o.form in ('10-K', '10-K/A') or type(o.fy) is int)
+            and (o.form in ('10-K', '10-K/A')
+                 or (o.fp not in ('Q1', 'Q2', 'Q3', 'Q4') and type(o.fy) is int))
         )
         apparent = (o.fp == 'FY' or (duration is not None and 364 <= duration <= 371)
                     or unresolved_annual)

@@ -210,6 +210,24 @@ class ResearchCandidateTests(unittest.TestCase):
         self.assertTrue(observed.observation_id)
         self.assertTrue(observed.source_locator.startswith('/facts/us-gaap/'))
 
+    def test_annual_form_quarter_fp_missing_start_blocks_older_fallback(self):
+        # FICTIONAL: annual form contradicts a clearly quarterly interpretation.
+        newer=row(200,form='10-K',fp='Q4',fy=2025,start=None,
+                  end='2025-12-31',filed='2026-02-01')
+        result=self.evaluate(payload([row(),newer],[row(20)]),
+                             timestamp='2026-08-01T00:00:00Z')
+        self.assert_failure(result,m.S.EVIDENCE_UNSUPPORTED,m.R.ANNUAL_INTERVAL_UNSUPPORTED)
+        self.assertEqual(result.period_end,'2025-12-31')
+        self.assertIsNone(result.period_start)
+        observed=next(o for o in result.observations if o.end=='2025-12-31')
+        self.assertEqual(observed.disposition,'UNSUPPORTED')
+        self.assertNotIn('CLEARLY_NONANNUAL',observed.exclusion_reasons)
+        self.assertIn('POTENTIALLY_COMPARABLE_CONTEXT_UNRESOLVED',observed.exclusion_reasons)
+        self.assertEqual((observed.form,observed.fp,observed.fy),('10-K','Q4',2025))
+        self.assertTrue(observed.observation_id)
+        self.assertTrue(observed.source_locator.startswith('/facts/us-gaap/'))
+        self.assertFalse(any(o.disposition=='SELECTED' for o in result.observations))
+
     def test_duration_surveillance_despite_quarter_context(self):
         result=self.evaluate(payload([row(),row(fp='Q4',form='10-Q',start='2025-01-01',
                             end='2025-12-31',filed='2026-02-01')],[row(20)]),timestamp='2026-08-01T00:00:00Z')
