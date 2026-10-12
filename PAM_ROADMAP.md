@@ -901,7 +901,33 @@ bounded company-vs-VFV Expected Return comparator complete
 → Stage-C authentic positive Quality exit evidence REQUIRED (CEO Option A)
 → Evidence-feasibility investigation and authentic-path dependency audit COMPLETE
 → Further exploratory qualification work SUSPENDED; next technical chantier UNSELECTED
+→ Bounded CURRENT annual reported-fact research candidate canonical (PR #143); no native Quality authority
 ```
+
+### Bounded CURRENT reported-fact research candidate — canonical PR #143
+
+PR #142 adopted contract
+`2026-10-11-current-annual-reported-fact-research-candidate-v1` as a future design
+reference only, historically `NOT_IMPLEMENTED / NO_RUNTIME_AUTHORITY`. PR #143
+subsequently implemented the bounded CURRENT annual source-reported Revenue /
+Operating Income research evaluator under that contract and was CEO-merged into
+`model-v2/expected-return-challenger` on 2026-10-12, HEAD
+`d4e80a985c8be3da71162e25adb876174b2903fc`, tree
+`8fac20224c801c0d807a64be39c5ec2d7b808efc`.
+
+Architecture & Audit's supplied independent rereview concluded `MERGE READY` after
+correction of three annual-surveillance defects. Codex reported local STANDARD
+validation with 3,453 tests and 43 quick checks; GitHub Baseline V1 CI succeeded.
+A limited Microsoft FY2026 replay was reported `CANDIDATE_COHERENT`; independent
+replay of the private archived bytes was not performed.
+
+Authority is `CURRENT_CAPTURE_RESEARCH_CANDIDATE_ONLY`: coherent source-reported
+research evidence, with no production, PIT, historical-as-of, native Quality,
+Expected Return or investment authority. Stage C remains `ACTIVE / INCOMPLETE` and
+Option A remains unmet. PR5C multi-filing and exploratory qualification suspensions
+are unchanged; no next substantive implementation Work Order is automatically
+selected. The approved reference's historical adoption wording and normative terms
+are preserved.
 
 - completed: Data & Evidence currency/hedging prerequisite and reviewed compatible
   comparison basis;
@@ -2319,3 +2345,8 @@ stages and shadow-readiness gates remain requirements only, and shadow cannot be
 The reviewed PR5D2 Expected Return assumption policies are now pinned, but no
 investment-rule, model-rule, V1 or production-authority change is authorized
 here.*
+
+*2026-10-12 update: PR #143 makes the bounded reported-fact research candidate
+implementation canonical, separately from PR #142's design-reference adoption.
+The Stage-C exit requirement, suspensions and authority boundaries above remain
+unchanged; no next substantive implementation Work Order is selected.*
