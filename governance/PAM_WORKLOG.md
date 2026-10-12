@@ -996,3 +996,31 @@ there is no activated reminder, scheduled checkpoint or guaranteed execution.
   merge. Stage C remains `ACTIVE / INCOMPLETE`, Option A unmet; suspensions, V1 frozen
   authority and V2 challenger status remain unchanged. Reuse assessment:
   `NOT APPLICABLE` — documentation-only preservation, no component adoption.
+
+## 2026-10-12 — Post-PR #143 governance synchronization
+
+- `WO-GOVERNANCE-SYNC-POST-PR143`: live verification confirms CEO-approved PR #143
+  merge into `model-v2/expected-return-challenger` on 2026-10-12, canonical HEAD
+  `d4e80a985c8be3da71162e25adb876174b2903fc`, tree
+  `8fac20224c801c0d807a64be39c5ec2d7b808efc`; GitHub Baseline V1 CI succeeded.
+- The bounded CURRENT annual reported Revenue / Operating Income research evaluator
+  is implemented / canonical under
+  `2026-10-11-current-annual-reported-fact-research-candidate-v1`. PR #142's earlier
+  design-reference-only adoption remains historical; the approved reference and
+  its normative terms are unchanged.
+- Architecture & Audit's supplied independent rereview concluded `MERGE READY`
+  after three annual-surveillance corrections. Codex reported local STANDARD
+  validation: 3,453 tests and 43 quick checks. This documentation sync does not
+  repeat those technical tests or independently adjudicate the specialist review.
+- Limited Microsoft FY2026 replay reported `CANDIDATE_COHERENT`; independent replay
+  of private archived bytes was not performed. Source-reported research candidate
+  capability only, under `CURRENT_CAPTURE_RESEARCH_CANDIDATE_ONLY`; no production,
+  PIT, historical-as-of, native Quality, Expected Return or investment authority.
+- Stage C remains `ACTIVE / INCOMPLETE`, Option A unmet; PR5C multi-filing and
+  exploratory qualification suspensions are unchanged. No next substantive
+  implementation Work Order is automatically selected. V1 frozen authority and
+  V2 challenger status are preserved.
+- Exactly four authorized Markdown files synchronized; this Governance Sync awaits
+  its own CEO merge decision. No code, tests, contracts, protected policy, acquisition,
+  merge or deployment changed by this sync. Resource reuse assessment:
+  `NOT APPLICABLE` — documentation-only recording of a canonical completion.

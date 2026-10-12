@@ -8,16 +8,25 @@
   dependency audit/investigation-suspension sync are canonical. PR #138's bounded
   PR5E audit export is canonical. PR #140's manual blocker-trigger pilot is now
   canonical. The separate limited monthly signal watch is preserved. This sync
-  records the CEO-approved future research design reference only; no methodology,
-  source-admission or role-authority changes.
-- **Approved future research reference:**
-  `2026-10-11-current-annual-reported-fact-research-candidate-v1`,
-  [complete design reference](../docs/contracts/v2/research/CURRENT_ANNUAL_REPORTED_FACT_RESEARCH_CANDIDATE.md),
-  is `NOT_IMPLEMENTED / NO_RUNTIME_AUTHORITY`. The limited Microsoft offline
-  proof and independent code/contract boundary review establish research feasibility
-  only; Architecture & Audit did not independently replay the private archive.
-  No implementation Work Order is selected or authorized, no new acquisition or
-  financial contract is activated, and Stage C's Option A exit condition remains unmet.
+  records PR #143's CEO-confirmed canonical merge on 2026-10-12 and completed
+  bounded PAM Research candidate implementation; no methodology, source-admission
+  or role-authority changes.
+- **Canonical reported-fact research candidate:** PR #142 adopted
+  `2026-10-11-current-annual-reported-fact-research-candidate-v1` as a future
+  [design reference](../docs/contracts/v2/research/CURRENT_ANNUAL_REPORTED_FACT_RESEARCH_CANDIDATE.md)
+  only (`NOT_IMPLEMENTED / NO_RUNTIME_AUTHORITY` at adoption). PR #143 subsequently
+  implemented the bounded CURRENT annual reported Revenue / Operating Income
+  evaluator under that contract. Architecture & Audit's supplied independent
+  rereview concluded `MERGE READY` after three annual-surveillance defects were
+  corrected. Codex reported local STANDARD validation: 3,453 tests and 43 quick
+  checks; GitHub Baseline V1 CI completed successfully.
+- **Research applicability / authority:** a limited Microsoft FY2026 replay was
+  reported `CANDIDATE_COHERENT`; the private archived bytes were not independently
+  replayed. Authority is `CURRENT_CAPTURE_RESEARCH_CANDIDATE_ONLY`: coherent
+  source-reported research evidence only, with no production, PIT,
+  `HISTORICAL_AS_OF`, native Quality, Expected Return or investment authority.
+  Stage C's Option A exit condition remains unmet. No next substantive
+  implementation Work Order is automatically selected.
 - **Current major program:** Stage C — Quality
 - **Parallel CEO-approved GTM initiative:** bounded Blossom audience-growth mandate for `@therealpam`, owned by Marketing & GTM; audience value first, PAM promotion secondary, human approval required before publication
 - **Current technical frontier:** the bounded evidence-feasibility investigations
@@ -38,8 +47,8 @@
   intended first check 2026-11-11, not yet evaluated. It tracks
   `BLK-STAGE-C-QUALITY-POSITIVE`, `BLK-PR5C-MULTIFILING` and
   `GAP-B2-EXECUTABLE-NET`. See Work Queue for scope and limitations.
-- **Canonical verified pre-this-sync HEAD:** `381eace49e411efe8f02769b72242fb06171faae`
-- **Canonical verified tree:** `04d0738ddb951f88f1e7019634300c0f8c94f159`
+- **Canonical verified pre-this-sync HEAD:** `d4e80a985c8be3da71162e25adb876174b2903fc`
+- **Canonical verified tree:** `8fac20224c801c0d807a64be39c5ec2d7b808efc`
 - **Current status:** Stage C — Quality is `ACTIVE / INCOMPLETE`. Its seven bounded
   analytical diagnostics and six bounded evidence foundations are complete and
   canonical. No composite Quality score or aggregation is authorized.
@@ -465,5 +474,5 @@
 - `DECISIONS.md`
 - `governance/roles/*.md`
 
-The HEAD/tree above are the verified canonical state after PR #140 and before this
+The HEAD/tree above are the verified canonical state after PR #143 and before this
 Governance Sync, not the future merge commit of this Governance Sync PR.

@@ -159,13 +159,22 @@
   - `WO-V2-CURRENT-ANNUAL-REPORTED-FACT-RESEARCH-CONTRACT-DRAFT-V1`:
     `DRAFT_READY_FOR_CEO_REVIEW`, followed by CEO approval on 2026-10-11 Toronto
     local date as a future design reference only.
-  - `WO-GOV-SYNC-V2-RESEARCH-CANDIDATE-CONTRACT-ADOPTION` preserves
+  - PR #142 / `WO-GOV-SYNC-V2-RESEARCH-CANDIDATE-CONTRACT-ADOPTION` adopted
     [the complete approved reference](../docs/contracts/v2/research/CURRENT_ANNUAL_REPORTED_FACT_RESEARCH_CANDIDATE.md)
-    in this documentation candidate, pending CEO merge decision:
-    `NOT_IMPLEMENTED / NO_RUNTIME_AUTHORITY`. No future implementation is queued
-    or authorized. Stage C remains `ACTIVE / INCOMPLETE`, its Option A exit condition
-    and `BLK-STAGE-C-QUALITY-POSITIVE` remain unmet, and existing investigation and
-    PR5C multi-filing suspensions are preserved.
+    as design reference only: `NOT_IMPLEMENTED / NO_RUNTIME_AUTHORITY` at that
+    historical adoption; no implementation was then authorized.
+  - PR #143: bounded CURRENT annual reported Revenue / Operating Income research
+    candidate implementation completed / canonical on 2026-10-12, under contract
+    `2026-10-11-current-annual-reported-fact-research-candidate-v1`. Independent
+    Architecture & Audit rereview reported `MERGE READY` after three annual-
+    surveillance corrections. Codex reported STANDARD 3,453 tests and 43 quick
+    checks; GitHub Baseline V1 CI succeeded. Limited Microsoft FY2026 replay reported
+    `CANDIDATE_COHERENT`, without independent replay of the private archive.
+    Research candidate only: no production, PIT, historical-as-of, native Quality,
+    Expected Return or investment authority. Stage C remains `ACTIVE / INCOMPLETE`,
+    Option A and `BLK-STAGE-C-QUALITY-POSITIVE` remain unmet; PR5C multi-filing and
+    exploratory qualification suspensions remain unchanged. No next substantive
+    implementation Work Order is automatically selected.
 
 - `WO-BLOCKER-REEXAMINATION-MECHANISM-FEASIBILITY`: Architecture & Audit study
   completed with `PARTIALLY_FEASIBLE`, supplied by the Program Manager in the
