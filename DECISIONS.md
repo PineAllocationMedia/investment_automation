@@ -3441,3 +3441,32 @@ implementation is authorized. Only the CEO may authorize substantive reopening,
 implementation or protected authority changes. This is an append-only record of
 already-approved direction under `WO-GOVERNANCE-SYNC-POST-PR138-BLOCKER-REVIEW-DIRECTION`,
 not a protected-policy amendment or new delegated authority.
+
+## 2026-10-11 — Separate limited monthly blocker-signal watch
+
+### Approved activation
+
+After the manual pilot canonically merged in PR #140, the CEO authorized a limited
+monthly public-signal watch. The CEO's supplied activation report confirms that
+the ChatGPT scheduled condition watch `PAM — Signaux de déblocage` was successfully
+created and enabled. Schedule: monthly on day 11, approximately 09:00 Toronto time;
+intended first monthly check 2026-11-11. The three tracked IDs are
+`BLK-STAGE-C-QUALITY-POSITIVE`, `BLK-PR5C-MULTIFILING` and `GAP-B2-EXECUTABLE-NET`.
+This sync records an already-approved operational activation, not a protected-policy
+amendment, role-authority change or repository monitoring implementation.
+
+### Scope and limits
+
+Compare available public signals lightly against existing reopening conditions.
+Notify only for a specific materially relevant signal warranting a bounded CEO
+decision. There is no guarantee of comprehensive discovery, source access, perfect
+deduplication or notification delivery. The first actual watch has not yet been
+evaluated; the six tabletop cases remain simulations, not monitoring evidence.
+
+The separate watch does not admit financial evidence, launch issuer qualification,
+modify financial rules/contracts, reactivate specialists or reopen blockers
+automatically. No crawler, GitHub scheduler, repository-side code or external
+service was installed. Substantive reopening and protected decisions remain
+CEO-only. Original Stage-C/PR5C/B2 states, suspensions, V1 frozen authority and V2
+challenger status are unchanged. Earlier manual-only/no-activation records retain
+their historical scope; only this bounded later signal watch is now authorized.

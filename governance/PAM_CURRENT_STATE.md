@@ -6,9 +6,9 @@
 - **Governance snapshot:** PR #135's Option A exit requirement, PR #136's
   PR5C v1 preservation/multi-filing suspension and PR #137's completed authentic-path
   dependency audit/investigation-suspension sync are canonical. PR #138's bounded
-  PR5E audit export is now canonical. This sync records the CEO-approved next
-  read-only blocker-reexamination study direction; no methodology or source authority
-  changes.
+  PR5E audit export is canonical. PR #140's manual blocker-trigger pilot is now
+  canonical. This sync records the separately CEO-authorized limited monthly
+  signal watch; no methodology, source-admission or role-authority changes.
 - **Current major program:** Stage C — Quality
 - **Parallel CEO-approved GTM initiative:** bounded Blossom audience-growth mandate for `@therealpam`, owned by Marketing & GTM; audience value first, PAM promotion secondary, human approval required before publication
 - **Current technical frontier:** the bounded evidence-feasibility investigations
@@ -19,13 +19,18 @@
   qualification investigations are suspended pending materially new admissible
   evidence or a separately authorized decision.
 - **Canonical integration branch:** `model-v2/expected-return-challenger`
-- **Selected next planning task:** `WO-BLOCKER-REEXAMINATION-MECHANISM-FEASIBILITY`,
-  primary owner Architecture & Audit, `QUEUED — read-only feasibility/design review`.
-  Evaluate proportionate blocker tracking, detection, reexamination and option
-  assessment, beginning with Stage C; dormant B2 may inform the inventory under its
-  distinct triggers. The mechanism is neither implemented nor activated.
-- **Canonical verified pre-this-sync HEAD:** `8f5ef4f3f4bb0e362e8bb93de5dc00d71236849b`
-- **Canonical verified tree:** `3b09cdb358433fd31522d459b58c91cd63c13898`
+- **Completed blocker feasibility/pilot:** Architecture & Audit feasibility study
+  `WO-BLOCKER-REEXAMINATION-MECHANISM-FEASIBILITY` returned `PARTIALLY_FEASIBLE`
+  (PM-supplied handoff); it is not queued. PR #140 completed the manual-only
+  documentation pilot. Its six tabletop cases remain simulations.
+- **Limited monthly signal watch:** CEO reports the ChatGPT scheduled condition
+  watch `PAM — Signaux de déblocage` successfully created and enabled, separately
+  from the manual pilot. Monthly on day 11, approximately 09:00 Toronto time;
+  intended first check 2026-11-11, not yet evaluated. It tracks
+  `BLK-STAGE-C-QUALITY-POSITIVE`, `BLK-PR5C-MULTIFILING` and
+  `GAP-B2-EXECUTABLE-NET`. See Work Queue for scope and limitations.
+- **Canonical verified pre-this-sync HEAD:** `958007d6d15f73d21efd9cfc4924699440864686`
+- **Canonical verified tree:** `7fc60f25e8afd8a3266413417d0c89b84a3bfa2a`
 - **Current status:** Stage C — Quality is `ACTIVE / INCOMPLETE`. Its seven bounded
   analytical diagnostics and six bounded evidence foundations are complete and
   canonical. No composite Quality score or aggregation is authorized.
@@ -135,13 +140,14 @@
 - PR #138 covers only the bounded export projection: no full native-result integrity,
   financial-source authentication, economic replay, durable external archive or
   automated export. It grants no PIT, forward-shadow or production authority.
-- The queued blocker study will assess existing PAM infrastructure and relevant
-  tools/sources/methods under cost, licensing/commercial-use, provenance,
-  Chromebook/Linux and development-environment, complexity/maintenance,
-  determinism/security/reliability constraints. Options include REUSE, ADAPT, BUILD,
-  defer and maintain the blocker. No autonomous operation, monitoring/reminders,
-  acquisition campaign, contract relaxation, implementation or task activation is
-  authorized. Only the CEO may authorize substantive reopening or authority changes.
+- The limited watch compares available public signals with existing reopening
+  conditions and notifies only for a specific materially relevant signal warranting
+  a bounded CEO decision. Comprehensive discovery, source access, perfect
+  deduplication and notification delivery are not guaranteed. It admits no financial
+  evidence and authorizes no qualification campaign, rule/contract change, specialist
+  reactivation or automated reopening. No crawler, GitHub scheduler, repository-side
+  code or external service was installed. Existing cost/licensing/provenance and
+  resource constraints remain unchanged; substantive reopening stays CEO-only.
 - Expected Return remains diagnostic/challenger functionality. It grants no
   production, recommendation, allocation, execution, deployment or promotion authority.
 - The supported real route is bounded, route-local and nonpayer-only. Payer support
@@ -450,5 +456,5 @@
 - `DECISIONS.md`
 - `governance/roles/*.md`
 
-The HEAD/tree above are the verified canonical state after PR #138 and before this
+The HEAD/tree above are the verified canonical state after PR #140 and before this
 Governance Sync, not the future merge commit of this Governance Sync PR.

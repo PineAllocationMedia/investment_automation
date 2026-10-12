@@ -937,3 +937,32 @@ there is no activated reminder, scheduled checkpoint or guaranteed execution.
   change, autonomous specialist operation, deployment or V2 promotion is authorized.
   Reuse assessment: `NOT APPLICABLE` — governance documentation only, no new
   technology/component/dependency adoption or implementation.
+
+## 2026-10-11 — Limited monthly blocker-signal watch activation sync
+
+- `WO-GOV-SYNC-BLOCKER-WATCH-PILOT-ACTIVATION` starts from verified canonical
+  HEAD `958007d6d15f73d21efd9cfc4924699440864686`, tree
+  `7fc60f25e8afd8a3266413417d0c89b84a3bfa2a`. GitHub confirms PR #140 merged;
+  previous candidate/pending wording above is historical, not rewritten.
+- Corrected Current State: feasibility is completed (`PARTIALLY_FEASIBLE`, supplied
+  handoff), not queued; the manual-only documentation pilot is canonical. Updated
+  the operational Work Queue while retaining it as the authoritative record.
+- Recorded the CEO-authorized separate limited watch and the CEO's report that the
+  ChatGPT condition task `PAM — Signaux de déblocage` was successfully created and
+  enabled. Monthly on day 11, approximately 09:00 Toronto time; intended first
+  check 2026-11-11. IDs: `BLK-STAGE-C-QUALITY-POSITIVE`, `BLK-PR5C-MULTIFILING`,
+  `GAP-B2-EXECUTABLE-NET`. This sync neither creates/updates nor independently
+  inspects that external task; no task identifier was supplied.
+- Scope: lightweight comparison of available public signals with existing conditions,
+  notifying only for a specific materially relevant signal warranting a bounded
+  CEO decision. Discovery, source access, perfect deduplication and notification
+  delivery are not guaranteed. First actual watch not yet evaluated; all six
+  tabletop cases remain simulations and no operational effectiveness is established.
+- No financial admission, issuer campaign, rule/contract change, specialist
+  reactivation or automated reopening; no crawler, GitHub scheduler, repository
+  code or external service installed. Blocker states/suspensions, Blossom, V1 frozen
+  authority and V2 challenger status are preserved. Appended only the already-approved
+  activation decision; protected policy and roles are unchanged.
+- Documentation-only sync awaiting CEO merge decision; no merge/deployment or
+  monitoring implementation. Reuse assessment: `NOT APPLICABLE` — documentation
+  of an existing CEO-reported task, no technology adoption or installation here.
