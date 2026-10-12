@@ -3507,3 +3507,98 @@ Stage C remains `ACTIVE / INCOMPLETE`; its authentic-positive Option A exit cond
 remains unmet. Existing exploratory-investigation and PR5C multi-filing suspensions,
 PR5C v1, frozen V1 authority and V2 challenger status remain unchanged. No future
 research-candidate implementation Work Order is selected, queued or authorized.
+
+## 2026-10-12 — Stage-C Option A issuer-level native Quality supplement
+
+### CEO decision
+
+Following the supplied independent Data & Evidence result
+`AUTHENTIC_POSITIVE_VERIFIED`, the CEO explicitly approved this narrowly scoped
+supplement on 2026-10-12 under
+`WO-GOV-SYNC-STAGE-C-OPTION-A-ISSUER-QUALITY-AUTHENTIC-POSITIVE`. The protected
+Decision Registry amendment is expressly authorized as one append-only entry.
+The October 11 Option A decision remains verbatim; this supplement adds a
+permissible native route without replacing or generally relaxing its evidence standard.
+
+The additional permitted chain is authentic immutable SEC Companyfacts evidence →
+native `CURRENT_ANNUAL_ISSUER_REVENUE_OPERATING_INCOME_QUALIFICATION_V1` →
+`PAIRED_ISSUER_REPORTED_FACTS_ESTABLISHED` → associated native
+`CURRENT_ANNUAL_ISSUER_OPERATING_INCOME_TO_POSITIVE_REVENUE_DIAGNOSTIC_V1` →
+`AVAILABLE`, with full provenance and independently reproducible replay.
+
+PR [#145](https://github.com/PineAllocationMedia/investment_automation/pull/145)
+established the independently reviewed, CEO-approved implementation specifications:
+
+- [Issuer qualification contract](docs/contracts/v2/quality/CURRENT_ANNUAL_ISSUER_REVENUE_OPERATING_INCOME_QUALIFICATION_V1.md):
+  `2026-10-12-current-annual-issuer-revenue-operating-income-qualification-v1`.
+- [Issuer diagnostic contract](docs/contracts/v2/quality/CURRENT_ANNUAL_ISSUER_OPERATING_INCOME_TO_POSITIVE_REVENUE_DIAGNOSTIC_V1.md):
+  `2026-10-12-current-annual-issuer-operating-income-to-positive-revenue-diagnostic-v1`.
+
+PR [#146](https://github.com/PineAllocationMedia/investment_automation/pull/146)
+implemented this route, received the supplied independent Architecture & Audit
+`MERGE READY` review and FULL_PIT validation, and merged canonically at
+`bbe35b1eeeff42ed5a01b3f9cda7804fce57fe8c`. The seven original economic diagnostic
+kinds and six original evidence foundations remain canonical. This is a separate
+native path for the existing `CURRENT_ANNUAL_OPERATING_INCOME_TO_POSITIVE_REVENUE`
+kind, not an eighth distinct diagnostic or a change to the legacy profile route.
+
+### Verified demonstration and durable references
+
+The supplied specialist report for
+`WO-STAGE-C-ISSUER-QUALITY-AUTHENTIC-POSITIVE-VALIDATION` is the provenance of
+these independent findings, not a new execution by this documentation sync.
+Data & Evidence verified Microsoft's original preserved official SEC Companyfacts
+source acquired on 2026-10-12, acquisition audit evidence, immutable receipt/object,
+complete native replay, all 412 observations, exact arithmetic and deterministic
+identities. Prior Codex execution reported `LOCAL_POSITIVE_REPLAY` and durable
+owner-controlled evidence preservation outside the repository.
+
+Microsoft Corporation, CIK `0000789019`, FY2026 period `2025-07-01`–`2026-06-30`,
+has selected common filing accession `0001193125-26-323660`, form `10-K`, filed
+`2026-07-29`, fiscal year `2026`, fiscal period `FY`. Revenue is `331839000000` USD
+and Operating Income is `155237000000` USD; the exact reduced analytical relationship
+is `155237 / 331839`. Native qualification is
+`PAIRED_ISSUER_REPORTED_FACTS_ESTABLISHED` and the associated diagnostic is `AVAILABLE`.
+The independently verified demonstration satisfies the supplemented authentic-positive
+exit-evidence requirement; `BLK-STAGE-C-QUALITY-POSITIVE` is satisfied by this route.
+
+| Evidence identifier | Exact value |
+| --- | --- |
+| Receipt ID | `89abd337bcd6b7fbc66238eb71650f3bfd877ad2b6b0eec3510e4abbde1dd70f` |
+| Source-object SHA-256 | `f8aae2965b20ad0df44bdf7ccbedf797d275b6b8dc030154a7a311361bb7246f` |
+| Evidence ZIP SHA-256 | `2faf0e580cc629906c4adc8bc743e6fbea19600749d4f3df0a213605b6bb99f0` |
+| Manifest SHA-256 | `01be6466d2407d24308adc7dfafe6fa0aee68c6f0e9433d2408a3a8f3c48c62e` |
+| Qualification semantic ID | `c4aa93e46e6ed5fce9db8b58fdd1220e05570769851b75b1149a9da76c1f062f` |
+| Qualification evidence ID | `958d774c0d6410b41f190f69c2fe56654969d63d9bc8cf85310b44d32567b474` |
+| Diagnostic semantic ID | `c93271be17d4bb3e05a1d0362f64cc715cb7db1d8d8129347053678719d47d3f` |
+| Diagnostic evidence ID | `5f8bc13cc28c927e002757568defb8310a7b8fcb76509e6bfc40001b903cb78e` |
+
+### Preserved boundaries and next action
+
+Stage C remains `ACTIVE / INCOMPLETE`. Satisfying this necessary evidence gate is
+not automatic closure. After canonical merge of this governance sync, the next
+legitimate action is a bounded Program Manager-coordinated Stage-C closure-readiness
+assessment, followed by a separate CEO closure decision. Stage-D transition remains
+unauthorized and requires its own CEO decision; no wider roadmap resequencing is approved.
+
+PR5C v1, PR4C3 → PR5B → PR5C → Ordinary Compounder eligibility, the unresolved
+`BLK-PR5C-MULTIFILING` and multi-filing/exploratory-investigation suspensions remain
+unchanged. The research-candidate evaluator retains its separate authority. Exact
+source contracts, strict native qualification, replay and provenance requirements
+remain mandatory. No universal issuer-count or all-thirteen-capabilities requirement
+is added; synthetic tests or acquisition alone remain insufficient.
+
+This is a bounded CURRENT/capture-bound issuer research result under
+`CURRENT_ISSUER_REPORTED_PROFITABILITY_EVIDENCE_ONLY` and
+`QUALITY_CURRENT_ISSUER_OPERATING_INCOME_TO_POSITIVE_REVENUE_DIAGNOSTIC_ONLY`.
+LIVE provenance uses the trusted local acquisition/archive boundary, not
+cryptographic remote SEC attestation. The diagnostic describes reported Operating
+Income / positive Revenue, not comprehensive company Quality or financial advice.
+It grants no PIT, `HISTORICAL_AS_OF`, Ordinary Compounder or investment admission,
+Expected Return, portfolio allocation, production, deployment or model-policy promotion.
+V1 remains frozen authority and V2 remains a challenger.
+
+**Be aggressive with economic risk, not information uncertainty.** The mandatory
+source → evidence → analysis chain and all authority limitations remain intact.
+No raw SEC bytes, ZIP, private local paths, personal contact values or sensitive
+configuration are included in this record.
