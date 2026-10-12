@@ -1024,3 +1024,45 @@ there is no activated reminder, scheduled checkpoint or guaranteed execution.
   its own CEO merge decision. No code, tests, contracts, protected policy, acquisition,
   merge or deployment changed by this sync. Resource reuse assessment:
   `NOT APPLICABLE` — documentation-only recording of a canonical completion.
+
+## 2026-10-12 — Stage-C Option A issuer-level supplement and verified authentic-positive evidence
+
+- `WO-GOV-SYNC-STAGE-C-OPTION-A-ISSUER-QUALITY-AUTHENTIC-POSITIVE`: verified
+  canonical baseline `bbe35b1eeeff42ed5a01b3f9cda7804fce57fe8c`, tree
+  `97dda0d93c0258e75c1b2506d78e2118981c2c8a`, on
+  `model-v2/expected-return-challenger`; both PR #145 and PR #146 are merged.
+- PR #145 approved the independently reviewed issuer Revenue / Operating Income
+  qualification and companion diagnostic implementation specifications, canonical
+  merge `3c832519f32e821d0bf48ffc9441b93b6c46f58f`. PR #146 implemented the native
+  route, received the supplied independent Architecture & Audit `MERGE READY`
+  review and reported FULL_PIT validation (43 quick checks, 3,518 tests), and
+  merged at the baseline above. This is a separate path for an existing economic
+  diagnostic, preserving seven original kinds and six original foundations.
+- Prior Codex execution acquired genuine Microsoft SEC Companyfacts on 2026-10-12,
+  reported `LOCAL_POSITIVE_REPLAY`, and preserved the immutable evidence and portable
+  review package outside the repository in owner-controlled local storage.
+- Data & Evidence's supplied independent report,
+  `WO-STAGE-C-ISSUER-QUALITY-AUTHENTIC-POSITIVE-VALIDATION`, concluded
+  `AUTHENTIC_POSITIVE_VERIFIED`: original preserved source/acquisition evidence,
+  receipt/object, full native replay, 412 observations, exact arithmetic and
+  deterministic identities verified. Microsoft FY2026, CIK `0000789019`, qualifies
+  as `PAIRED_ISSUER_REPORTED_FACTS_ESTABLISHED` with associated `AVAILABLE`
+  diagnostic and exact `155237 / 331839` relationship. The eight durable identities,
+  filing details and contract versions are preserved in the
+  [append-only CEO supplement](../DECISIONS.md#2026-10-12--stage-c-option-a-issuer-level-native-quality-supplement).
+- The CEO explicitly approved the additional native route on 2026-10-12;
+  `BLK-STAGE-C-QUALITY-POSITIVE` is satisfied under supplemented Option A.
+  Stage C remains `ACTIVE / INCOMPLETE`; bounded Program Manager closure-readiness
+  assessment follows canonical merge of this sync, then a separate CEO closure
+  decision. Stage D remains unauthorized. PR5C v1, its unresolved multi-filing
+  blocker and existing suspensions remain unchanged; no technical chantier is queued.
+- Five authorized Markdown files only; one append-only protected Decision Registry
+  entry, with all previous Decision Registry and Worklog bytes preserved. This
+  sync attributes the specialist findings and prior validation without rerunning
+  acquisition, evidence or technical tests. No contracts, model, code, tests, raw
+  source bytes, private package paths or sensitive configuration changed or added.
+  CURRENT/PIT separation, strict qualification/provenance, V1 frozen authority and
+  V2 challenger status remain intact. This sync awaits its own CEO merge decision.
+- Existing Technology & Resource Reuse Assessment: `NOT APPLICABLE` — documentation
+  recording of approved decisions and existing evidence; no reusable component,
+  technology adoption, installation or spending is proposed.

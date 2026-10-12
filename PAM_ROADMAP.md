@@ -455,7 +455,11 @@ Development Workflow Automation / deterministic pam_preflight ✅ (cross-cutting
     ↓
 Baseline V1 CI FULL_PIT runtime ceiling 60 minutes ✅ (cross-cutting)
     ↓
-Next bounded Quality slice — Architecture & Audit selection/definition NEXT
+Additional native issuer profitability route canonical — PR #145 / #146 ✅
+    ↓
+Authentic-positive gate satisfied — October 12 CEO Option A supplement ✅
+    ↓
+Stage-C closure-readiness assessment after governance-sync merge NEXT; CEO closure pending
 ```
 
 This governance sequence was an administrative prerequisite, not a replacement for
@@ -512,11 +516,14 @@ authority. PR #128 established the sixth evidence foundation,
 diagnostic, `CURRENT_ANNUAL_OPERATING_INCOME_TO_POSITIVE_TWO_POINT_AVERAGE_ASSETS`,
 under
 `QUALITY_CURRENT_ANNUAL_OPERATING_INCOME_TO_POSITIVE_TWO_POINT_AVERAGE_ASSETS_DIAGNOSTIC_ONLY`.
-Stage C remains active and incomplete. The CEO's 2026-10-11 Option A requires a
-positive authentic contract-valid existing Quality chain before closure may be
-considered. Evidence-feasibility investigation and the authentic-path dependency
-audit are complete, with no authentic-positive Quality chain established. Further
-exploratory qualification work is suspended; no next technical chantier is selected.
+Stage C remains `ACTIVE / INCOMPLETE`. The October 11 Option A evidence standard
+and October 12 CEO supplement admit the additional native issuer profitability
+route, canonical through PR #145 / #146. Data & Evidence's supplied independent
+Microsoft FY2026 `AUTHENTIC_POSITIVE_VERIFIED` result satisfies the supplemented
+necessary gate. Formal closure-readiness assessment and a separate CEO closure
+decision remain pending; Stage D is unauthorized. Earlier profile-route feasibility
+and dependency-audit findings remain historical; PR5C and exploratory qualification
+suspensions remain unchanged. No new technical chantier is selected.
 
 PR #131 corrected the existing OCF/net-income identity contract within v2 without
 adding a capability. PR #132 (`1aae1be7a444f054ee3eb58bf357496cc8be5e74`) preserves
@@ -542,13 +549,12 @@ investment authority was granted.
 
 Later technical stages remain in their existing order. The CEO authorized PR #138
 as an isolated early Stage-N prerequisite; its bounded audit export is canonical,
-without activating or completing Stage N. The selected next planning task is
-`WO-BLOCKER-REEXAMINATION-MECHANISM-FEASIBILITY`, owned by Architecture & Audit and
-`QUEUED — read-only feasibility/design review`. It will examine a proportionate
-transversal blocker mechanism, beginning with Stage C; B2 may inform the inventory
-under its distinct dormant status and evidence triggers. This is no implementation,
-monitoring, source campaign or substantive reopening authorization. See
-`governance/PAM_WORK_QUEUE.md` for the bounded study scope.
+without activating or completing Stage N. The then-selected planning task,
+`WO-BLOCKER-REEXAMINATION-MECHANISM-FEASIBILITY`, subsequently completed with
+`PARTIALLY_FEASIBLE` (supplied Architecture & Audit handoff). Its historical
+read-only study granted no implementation, source campaign or substantive reopening
+authority. See `governance/PAM_WORK_QUEUE.md` for its completed record and the
+current bounded Stage-C closure-readiness next action.
 
 No additional pre-Stage-B Expected Return architecture interlude is authorized in
 this sequence. B1 and the real-route investigation are complete; the investigation
@@ -557,8 +563,10 @@ found `PARTIAL ROUTE ONLY`. B2 numeric executable-net Expected Return is current
 B sequencing blocker. Bounded confidence propagation and explicit unsupported-case
 handling are complete. B2 may be revisited only if genuinely new qualified executable-
 quote, settled-funding and, where applicable, FX execution-cost evidence appears.
-Stage C — Quality is active and incomplete. Its seven bounded diagnostics and six
-evidence foundations are complete. No composite Quality score, aggregation,
+Stage C — Quality is active and incomplete. Its seven original economic diagnostic
+kinds and six original evidence foundations remain canonical, with an additional
+issuer-level native path for the existing operating-income/revenue kind. No eighth
+distinct diagnostic, composite Quality score, aggregation,
 next-dimension implementation, recommendation, ranking, allocation or execution
 authority is created by those milestones.
 
@@ -578,14 +586,14 @@ class is insufficient. The broader capabilities remain roadmap requirements and
 do not disappear merely because they are deferred. Stage A is complete only for
 the explicitly supported bounded first CURRENT route; this is not universal or
 global Real Fact Admission completeness. Stage B is complete only within its
-currently approved bounded supported scope. The immediate technical frontier is
-the completed authentic-path dependency audit and CEO-confirmed suspension of
-further exploratory Stage-C qualification investigations pending materially new
-admissible evidence or separate authorization. PR5C v1 and the multi-filing
-suspension recorded by PR #136 remain unchanged. No OCF implementation, real-data campaign, eighth diagnostic,
-new foundation or Stage-D transition is preselected; no automatic implementation
-authority is granted. The unchanged pre-shadow sequence
-remains in section 9.
+currently approved bounded supported scope. The current Stage-C frontier is the
+satisfied authentic-positive gate under the October 12 CEO supplement. After
+canonical merge of this governance sync, the next legitimate action is a bounded
+Program Manager-coordinated closure-readiness assessment, then a separate CEO
+closure decision. PR5C v1, its unresolved multi-filing blocker and existing
+investigation suspensions remain unchanged. No new implementation, acquisition,
+aggregate Quality score or Stage-D transition is authorized. The unchanged
+pre-shadow sequence remains in section 9; no wider resequencing is approved.
 
 ---
 
@@ -898,10 +906,13 @@ bounded company-vs-VFV Expected Return comparator complete
 → current annual Operating Income/two-point-average-Assets diagnostic ✅
 → Development Workflow Automation / deterministic pam_preflight ✅ (cross-cutting)
 → Baseline V1 CI FULL_PIT runtime ceiling 60 minutes ✅ (cross-cutting)
-→ Stage-C authentic positive Quality exit evidence REQUIRED (CEO Option A)
-→ Evidence-feasibility investigation and authentic-path dependency audit COMPLETE
-→ Further exploratory qualification work SUSPENDED; next technical chantier UNSELECTED
-→ Bounded CURRENT annual reported-fact research candidate canonical (PR #143); no native Quality authority
+→ Historical profile-route evidence-feasibility investigation and dependency audit COMPLETE
+→ Further exploratory qualification work SUSPENDED; PR5C multi-filing unchanged
+→ Bounded CURRENT annual reported-fact research candidate canonical (PR #143); research authority only
+→ Additional native issuer profitability route canonical (PR #145 / #146); existing diagnostic kind
+→ Authentic-positive gate SATISFIED (October 12 CEO Option A supplement; Microsoft independently verified)
+→ Stage-C closure-readiness assessment after governance-sync merge NEXT; CEO closure pending
+→ Stage C ACTIVE / INCOMPLETE; Stage D UNAUTHORIZED
 ```
 
 ### Bounded CURRENT reported-fact research candidate — canonical PR #143
@@ -923,11 +934,50 @@ replay of the private archived bytes was not performed.
 
 Authority is `CURRENT_CAPTURE_RESEARCH_CANDIDATE_ONLY`: coherent source-reported
 research evidence, with no production, PIT, historical-as-of, native Quality,
-Expected Return or investment authority. Stage C remains `ACTIVE / INCOMPLETE` and
-Option A remains unmet. PR5C multi-filing and exploratory qualification suspensions
-are unchanged; no next substantive implementation Work Order is automatically
-selected. The approved reference's historical adoption wording and normative terms
-are preserved.
+Expected Return or investment authority. At that PR #143 milestone, Stage C was
+`ACTIVE / INCOMPLETE` and Option A remained unmet. The subsequent issuer route below
+is independently qualified; research-candidate coherence is not converted into
+native authority. The approved reference's historical adoption wording and normative
+terms remain preserved, as do PR5C multi-filing and exploratory suspensions.
+
+### Native issuer profitability and authentic-positive evidence — canonical PR #145 / #146
+
+PR #145 established independently reviewed, CEO-approved implementation specifications:
+[issuer qualification](docs/contracts/v2/quality/CURRENT_ANNUAL_ISSUER_REVENUE_OPERATING_INCOME_QUALIFICATION_V1.md)
+`CURRENT_ANNUAL_ISSUER_REVENUE_OPERATING_INCOME_QUALIFICATION_V1` and
+[issuer diagnostic](docs/contracts/v2/quality/CURRENT_ANNUAL_ISSUER_OPERATING_INCOME_TO_POSITIVE_REVENUE_DIAGNOSTIC_V1.md)
+`CURRENT_ANNUAL_ISSUER_OPERATING_INCOME_TO_POSITIVE_REVENUE_DIAGNOSTIC_V1`.
+PR #146 implemented the route, received the supplied independent Architecture & Audit
+`MERGE READY` review and reported FULL_PIT validation (43 quick checks, 3,518 tests),
+and merged at `bbe35b1eeeff42ed5a01b3f9cda7804fce57fe8c`, tree
+`97dda0d93c0258e75c1b2506d78e2118981c2c8a`.
+
+Prior Codex execution reported genuine Microsoft SEC Companyfacts acquisition,
+`LOCAL_POSITIVE_REPLAY` and durable evidence preservation outside Git. Data & Evidence's
+supplied independent `WO-STAGE-C-ISSUER-QUALITY-AUTHENTIC-POSITIVE-VALIDATION` report
+concluded `AUTHENTIC_POSITIVE_VERIFIED`: original source/acquisition audit, immutable
+receipt/object, full native replay, 412 observations, arithmetic and identities.
+Microsoft Corporation, CIK `0000789019`, FY2026 period `2025-07-01`–`2026-06-30`,
+filing `0001193125-26-323660`, establishes native
+`PAIRED_ISSUER_REPORTED_FACTS_ESTABLISHED` and `AVAILABLE` diagnostic. Revenue is
+`331839000000` USD and Operating Income `155237000000` USD, exact `155237 / 331839`.
+The [October 12 append-only CEO supplement](DECISIONS.md#2026-10-12--stage-c-option-a-issuer-level-native-quality-supplement)
+records contract versions, all eight durable evidence identities and the approved
+additional chain. Microsoft satisfies supplemented Option A and
+`BLK-STAGE-C-QUALITY-POSITIVE`.
+
+Seven original economic diagnostic kinds and six original foundations remain canonical;
+this is a separate native path for the existing operating-income/positive-revenue kind,
+not an eighth diagnostic. It does not amend PR4C3, PR5B, PR5C or Ordinary Compounder
+eligibility, or resolve/reopen the suspended multi-filing blocker. CURRENT/capture-bound
+issuer research only: no PIT, `HISTORICAL_AS_OF`, Expected Return, investment admission,
+portfolio allocation, production or model-policy promotion. LIVE provenance rests on
+trusted local acquisition/archive evidence, not cryptographic remote SEC attestation;
+reported profitability is not comprehensive company Quality or financial advice.
+These verification findings are attributed, not rerun by this documentation sync.
+Stage C remains `ACTIVE / INCOMPLETE`; bounded Program Manager closure-readiness review
+follows canonical merge of this sync, then a separate CEO closure decision. Stage D
+remains unauthorized; wider sequencing and V1 frozen / V2 challenger boundaries remain.
 
 - completed: Data & Evidence currency/hedging prerequisite and reviewed compatible
   comparison basis;
@@ -1010,11 +1060,12 @@ are preserved.
 - complete / canonical cross-cutting workflow-capacity correction: Baseline V1 CI
   `FULL_PIT` runtime ceiling raised from 30 to 60 minutes with validation semantics
   unchanged;
-- active / incomplete: Stage C — Quality, with seven diagnostics and six evidence
-  foundations canonical; CEO-approved authentic positive Quality exit evidence is
-  required and remains unmet after completed evidence-feasibility investigation and
-  dependency audit; exploratory qualification work is suspended, with no next
-  implementation chantier selected or acquisition task activated;
+- active / incomplete: Stage C — Quality, with seven original economic diagnostic
+  kinds and six original foundations canonical, plus the separate native issuer path
+  for an existing kind. Microsoft's independent authentic-positive verification
+  satisfies the October 12 supplemented Option A gate; formal closure assessment and
+  CEO decision are pending. PR5C and exploratory qualification suspensions remain,
+  no new implementation/acquisition is queued, and Stage D remains unauthorized;
 - revisit B2 only when genuinely new qualified evidence exists.
 
 Confidence applies to uncertainty inside an available analysis. Capability state
@@ -1218,7 +1269,11 @@ positive, contract-valid demonstration of the existing Quality evidence-to-analy
 chain before closure may be considered. The minimum consists of authentic immutable
 source evidence, valid native upstream qualification, an existing established
 Quality evidence foundation and an associated native `AVAILABLE` diagnostic, with
-verifiable provenance and replay. See the append-only decision in `DECISIONS.md`.
+verifiable provenance and replay. The original decision remains verbatim in
+`DECISIONS.md`. The October 12 CEO supplement adds the independently qualified issuer
+route documented above; Microsoft's verified immutable evidence → native established
+issuer qualification → associated native `AVAILABLE` diagnostic satisfies that
+supplemented necessary gate, without generally relaxing the original standard.
 
 This is a necessary exit condition, not automatic completion authority. It creates
 no universal issuer-count threshold and does not require all thirteen capabilities
@@ -1227,31 +1282,33 @@ do not satisfy it. The CEO retains closure and Stage-D transition decisions;
 existing investment methodology and source qualification contracts are unchanged.
 No other suggested exit checklist is ratified.
 
-The owner-supplied Work Order reports Architecture & Audit found no new material
-implementation defect and PR #131's OCF identity correction remains closed within
-its contract. Codex reported authentic Nasdaq Listed and Microsoft Companyfacts
+The earlier profile-route investigation Work Order reported Architecture & Audit
+found no new material implementation defect; PR #131's OCF identity correction
+remains closed within its contract. Codex reported authentic Nasdaq Listed and Microsoft Companyfacts
 captures, durable preservation and independent-process offline integrity/replay
 verification. Microsoft C3 returned `UNAVAILABLE / INSUFFICIENT_FILING_IDENTITY`
 under the existing PR4C3 cross-form rule, not an identified implementation defect.
-No Microsoft Quality foundation or diagnostic was executed. These execution reports
-and specialist findings are attributed evidence, not independently rerun repository
-tests in this Governance Sync. Positive authentic Quality applicability remains
-unestablished.
+No Microsoft Quality foundation or diagnostic was executed in that earlier
+profile-route investigation; its positive applicability was unestablished then.
+Those attributed findings remain historical and do not contradict the subsequent
+independently verified issuer route. This sync reruns neither investigation.
 
-Evidence-feasibility investigation is complete: Microsoft/Amazon native PR4C3
-remained unavailable; Amgen/Meta documentary preflight found no credible exact
+The historical profile-route feasibility investigation is complete: Microsoft/Amazon
+native PR4C3 remained unavailable; Amgen/Meta documentary preflight found no credible exact
 five-period PR5C presentation and performed no native qualification. PR #136 preserves
 PR5C v1 and suspends multi-filing EPS comparability development.
 
-The supplied Architecture & Audit authentic-path dependency audit returned `PASS`.
-All seven `AVAILABLE` diagnostics require authenticated SEC/Nasdaq evidence → PR4C3
-→ PR5B → PR5C v1 → `ORDINARY_COMPOUNDER_PROFILE_ESTABLISHED` → Quality analysis.
+The supplied pre-PR #146 Architecture & Audit dependency audit returned `PASS`.
+All seven original profile-based `AVAILABLE` paths require authenticated SEC/Nasdaq
+evidence → PR4C3 → PR5B → PR5C v1 → `ORDINARY_COMPOUNDER_PROFILE_ESTABLISHED` → Quality analysis.
 The dependency is direct for five-period EPS directional consistency and transitive
 through the six native Quality foundations for the other six diagnostics. All seven
 positive paths are structurally reachable under existing contracts/synthetic fixtures;
-none has an authentic-positive end-to-end result in the reviewed record. No material
-implementation defect was established. No presently documented complete immutable
-evidence chain supports a further authentic-positive step under existing authority.
+none had an authentic-positive end-to-end result in that historical reviewed record.
+No material implementation defect was established. At that audit, no documented
+complete immutable chain supported a further positive step under the then-existing
+authority. The subsequently canonical issuer route is independent; it changes none
+of those legacy requirements or negative findings.
 EPS directional consistency needs no additional financial facts after profile
 establishment and consumes no foundation; it alone cannot satisfy Option A's existing
 established Quality foundation and associated native `AVAILABLE` diagnostic requirement.
@@ -1259,8 +1316,10 @@ established Quality foundation and associated native `AVAILABLE` diagnostic requ
 The CEO confirmed suspension of further exploratory qualification investigations
 until materially new admissible evidence or a separately authorized decision
 justifies resumption. No immediate technical chantier or replacement workstream is
-selected. No acquisition, implementation, aggregate Quality, Stage-D transition or
-shadow/production authority is activated.
+selected. After canonical merge of this sync, bounded Program Manager closure-
+readiness assessment is next, followed by a separate CEO closure decision. No new
+acquisition, implementation, aggregate Quality, Stage-D transition or shadow/production
+authority is activated.
 
 Build transparent, evidence-backed measures for topics such as:
 
@@ -1603,7 +1662,9 @@ It supplies no full native-result integrity, financial-source authentication,
 economic replay, durable external archive or automated export, and no PIT,
 forward-shadow or production authority. The full bridge remains future work;
 Stage N is neither activated nor complete. Stage C remains `ACTIVE / INCOMPLETE`,
-with its authentic-positive exit requirement unmet and all suspensions preserved.
+with its authentic-positive gate satisfied under the October 12 CEO supplement,
+formal closure review/decision pending and all existing suspensions preserved.
+Stage D remains unauthorized.
 
 ### Stage N1 — Validation Firewall
 
@@ -2308,15 +2369,17 @@ and PR #129 canonically established
 diagnostic-only authority. These milestones create no composite or aggregate
 Quality conclusion and authorize no next implementation automatically. Stage C
 remains active and incomplete. The CEO-approved authentic positive Quality exit
-condition is necessary, not automatic closure authority. Evidence-feasibility and
-follow-up dependency audit are complete; further exploratory qualification work is
-suspended and no next technical chantier is selected. No acquisition, implementation
-or Stage-D transition is preapproved. V2 architecture remains incomplete and shadow
-cannot begin.
+condition is necessary, not automatic closure authority. Microsoft's independently
+verified issuer route satisfies the October 12 supplemented gate; after canonical
+merge of this sync, bounded Program Manager closure-readiness review is next, then
+a separate CEO closure decision. Earlier profile-route feasibility/dependency findings
+and PR5C/exploratory suspensions remain unchanged. No new implementation or acquisition
+is selected, and Stage D remains unauthorized. V2 architecture remains incomplete
+and shadow cannot begin.
 
 ---
 
-*Roadmap state updated on 2026-10-11 through canonical PR #131, #132 and #133,
+*Historical 2026-10-11 roadmap snapshot through canonical PR #131, #132 and #133,
 including OCF identity correction, bounded SEC Submissions compatibility and the
 technology/resource reuse gate with execution-environment planning reference;
 PR #135 recorded the authentic-positive exit condition and PR #136 preserved PR5C v1
@@ -2346,7 +2409,16 @@ The reviewed PR5D2 Expected Return assumption policies are now pinned, but no
 investment-rule, model-rule, V1 or production-authority change is authorized
 here.*
 
-*2026-10-12 update: PR #143 makes the bounded reported-fact research candidate
-implementation canonical, separately from PR #142's design-reference adoption.
-The Stage-C exit requirement, suspensions and authority boundaries above remain
-unchanged; no next substantive implementation Work Order is selected.*
+*Historical PR #143 update on 2026-10-12: the bounded reported-fact research candidate
+became canonical, separately from PR #142's design-reference adoption. At that
+milestone the Stage-C exit requirement was unmet; suspensions and authority boundaries
+were unchanged, with no next substantive implementation selected.*
+
+*Current October 12 update: PR #145's approved specifications and PR #146's native
+issuer route are canonical. The supplied independent Data & Evidence Microsoft
+verification and explicit CEO Option A supplement satisfy the authentic-positive
+requirement. Stage C remains ACTIVE / INCOMPLETE pending closure-readiness assessment
+after this sync's canonical merge and a separate CEO decision; Stage D remains
+unauthorized. Seven original kinds and six original foundations remain canonical,
+with the issuer route a separate path for an existing kind. No wider resequencing,
+PR5C resolution, investment authority, production or model-policy promotion.*
