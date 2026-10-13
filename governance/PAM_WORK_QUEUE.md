@@ -38,6 +38,33 @@
 
 ## COMPLETED
 
+- Bounded Stage-D D1 native implementation: `COMPLETE / CANONICAL`, separately
+  CEO-authorized and merged in [PR #151](https://github.com/PineAllocationMedia/investment_automation/pull/151).
+  - Contract A R3 two immediately adjacent annual Revenue / Operating Income
+    qualification and Contract B reported operating-profit comparison are native,
+    with exact arithmetic, complete source surveillance, provenance, deterministic
+    identities and fail-closed replay. Corrected A-1 regression is included.
+  - Codex reported synthetic T1–T20 adversarial validation and `FULL_PIT PASS`
+    (3,585 tests), with protected fingerprints and model rules unchanged.
+    Baseline V1 CI `SUCCESS` is GitHub-verified for reviewed implementation HEAD
+    `6a71e2af2677f3252b25abb15b843901ff29e56e`.
+  - Architecture & Audit's supplied final finding: `MERGE READY`; authentic-positive
+    gate independently verified against the original preserved Microsoft SEC archive,
+    with evidence-integrity and identity checks passing. 412 observations,
+    FY2025/FY2026, accession `0001193125-26-323660`: Contract A
+    `COMPARATIVE_ISSUER_REPORTED_FACTS_ESTABLISHED`; Contract B `AVAILABLE`;
+    ratios PRIOR `32132/70431`, CURRENT `155237/331839`, exact difference
+    `90282133/7790584203`, `INCREASED`, `POSITIVE_IN_BOTH_PERIODS`.
+    These are attributed specialist findings; this sync reruns no native replay.
+  - CEO-authorized canonical merge `379f235ee3fac60b88130cb3e2e7097144081d5a`,
+    tree `2b6cb6c47e240059198e4815847e5ebea3c31ad9`.
+    `CURRENT_CAPTURE_BOUND_ONLY`, descriptive comparison only: no PIT /
+    `HISTORICAL_AS_OF`, moat, forward persistence, aggregate Durability, PR5C /
+    Ordinary Compounder admission, Confidence / Expected Return recalibration,
+    investment, allocation, execution, production or V2 promotion. V1 remains frozen
+    and V2 a challenger; PR5C multi-filing suspension and B2 gap remain unchanged.
+    Stage D as a whole is incomplete; further scope is under WAITING CEO.
+
 - Stage-D limited preparation / D1 proposed contracts: `COMPLETED / PASS`,
   separately CEO-authorized after bounded Stage-C closure.
   - Consolidated Work Orders:
@@ -61,12 +88,13 @@
     [Contract A R3](../docs/contracts/v2/durability/CURRENT_ANNUAL_ISSUER_TWO_PERIOD_REVENUE_OPERATING_INCOME_QUALIFICATION_V1.md)
     and unchanged original
     [Contract B](../docs/contracts/v2/durability/D1_TWO_PERIOD_OPERATING_PROFIT_CONTINUITY_DIAGNOSTIC_V1.md).
-    Both remain `PROPOSED / NOT IMPLEMENTED / NO RUNTIME AUTHORITY`.
+    At that milestone both were `PROPOSED / NOT IMPLEMENTED / NO RUNTIME AUTHORITY`;
+    subsequent bounded native implementation is recorded above under PR #151.
   - No D1 implementation, tests, native authentic replay or new SEC acquisition
-    occurred during the documentation milestone. Broad Stage-D implementation
-    remains `NOT AUTHORIZED / NOT ACTIVE`; optional bounded D1 implementation is
-    recorded under WAITING CEO, not ACTIVE or QUEUED. No moat, economic persistence,
-    aggregate Durability, PIT or downstream investment authority is established.
+    occurred during that documentation milestone. Its then-pending D1 authorization
+    was subsequently granted and the bounded implementation merged in PR #151.
+    No moat, economic persistence, aggregate Durability, PIT or downstream investment
+    authority is established.
 
 - Stage C — Quality: `COMPLETE / CEO_APPROVED (bounded scope)`, closed by the CEO
   on `2026-10-12`.
@@ -80,9 +108,9 @@
     `b8800c510220c7c8aba53b0923ffe5db5e16747f`. The
     [official closure decision](../DECISIONS.md#2026-10-12--official-bounded-stage-c-quality-closure)
     preserves the precise bounded completion and individual authority limits.
-    Stage-D implementation remains `NOT AUTHORIZED / NOT ACTIVE`; its separately
-    authorized limited preparation is complete as recorded above. No new technical
-    implementation chantier or dormant-specialist activation is selected.
+    Separately authorized Stage-D preparation and bounded native D1 implementation
+    are subsequently complete as recorded above; Stage D as a whole remains incomplete.
+    No new technical implementation chantier or dormant-specialist activation is selected.
   - **Trigger-review ID:** `BLK-STAGE-C-QUALITY-POSITIVE`.
   - **Historical evidence baseline:** PR #135 Option A, PR #137 authentic-path
     dependency audit and the documented issuer-feasibility findings under COMPLETED.
@@ -200,8 +228,8 @@
     route; Microsoft's independent verification satisfies this necessary gate.
     At the PR #147 milestone Stage C remained `ACTIVE / INCOMPLETE`, with closure
     review and a separate CEO decision pending. The subsequent final assurance and
-    explicit CEO closure approval are recorded above; Stage-D implementation remains
-    unauthorized, separately from its completed limited preparation.
+    explicit CEO closure approval are recorded above; the subsequently authorized
+    bounded Stage-D D1 milestone is also complete, without further scope authorization.
   - Historical profile-route evidence-feasibility investigations are complete;
     their negative findings are preserved under COMPLETED below. The later verified
     issuer route satisfies supplemented Option A without resolving PR5C multi-filing.
@@ -219,8 +247,9 @@
     PR4C3/PR5B/PR5C qualification and eligibility boundaries remain unchanged.
     EPS directional consistency alone does not satisfy Option A's existing established foundation plus associated native `AVAILABLE` diagnostic requirement.
   - **Current delivery action:** CEO review and canonical merge decision for this
-    post-PR #149 Governance Sync. No new implementation chantier, acquisition,
-    aggregate Quality score or Stage-D implementation is selected or authorized.
+    post-PR #151 Governance Sync. Bounded native D1 is complete; no new implementation
+    chantier, acquisition, aggregate Quality score or further Stage-D scope is selected
+    or authorized.
     Suspended technical investigations are not automatically reactivated. Closure
     establishes no universal issuer coverage, ROIC, moat, Durability, Microsoft
     Ordinary Compounder/global investment admission, PIT, Expected Return recalibration,
@@ -356,13 +385,13 @@
 
 ## WAITING CEO
 
-- Canonical merge of this post-PR #149 Governance Sync.
-- Optional bounded D1 implementation — `PENDING_CEO_AUTHORIZATION`.
-  Stage-D scoping and D1 contract preparation are complete; this prospective
-  decision is not an active or queued implementation Work Order. Implementation,
-  tests and native authentic replay remain `NOT STARTED / NOT AUTHORIZED`.
-  Broad Stage-D implementation remains unauthorized; no specialist activation or
-  execution follows automatically from the contract merge or this sync.
+- Canonical merge of this post-PR #151 Governance Sync.
+- Next substantive technical scope — `PENDING_CEO_SELECTION_AND_AUTHORIZATION`.
+  Bounded native Stage-D D1 implementation, synthetic validation and independently
+  verified authentic Microsoft replay are complete through PR #151. Stage D as a
+  whole remains incomplete. No D2, additional Durability diagnostic, issuer acquisition,
+  deployment or other technical chantier is active or queued; no specialist activation
+  or execution follows automatically from the D1 merge or this sync.
 
 ## WAITING EXTERNAL / TOOL
 
