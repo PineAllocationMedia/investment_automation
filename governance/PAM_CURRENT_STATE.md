@@ -14,7 +14,9 @@
   CEO's explicit 2026-10-12 bounded Stage-C closure approval following the supplied
   independent final readiness assessment. PR #149 subsequently merged the two
   proposed D1 contracts after separately CEO-authorized Stage-D preparation.
-  This sync records that preparation and canonical documentation milestone only.
+  PR #151 subsequently merged the separately CEO-authorized bounded native D1
+  implementation, corrected A-1 regression and independently verified authentic
+  Microsoft replay. This sync records that completed implementation milestone.
   The separate limited monthly signal watch,
   methodology, source contracts and role authorities remain unchanged.
 - **Canonical reported-fact research candidate:** PR #142 adopted
@@ -66,8 +68,9 @@
   This is attributed assurance, not a new assessment by this sync.
 - **Major technical program status:** Stage C — Quality is officially closed
   within its approved bounded scope. Stage-D architectural scoping and D1
-  preparation are complete; broad Stage-D implementation remains
-  `NOT AUTHORIZED / NOT ACTIVE`, with no implementation chantier selected.
+  preparation and bounded D1 native implementation are complete. Stage D as a whole
+  remains incomplete; additional implementation awaits separate CEO selection and
+  authorization, with no new technical chantier active or queued.
 - **Completed Stage-D D1 preparation:** the CEO separately authorized limited
   architectural scoping, retained-source feasibility, the external Reuse Gate,
   comparative contract design/corrections, independent review and documentation.
@@ -76,13 +79,32 @@
   Reuse Gate completed without new dependency adoption. Architecture & Audit's
   supplied final review was `CONTRACT_REVIEW_PASS`. These are historical findings,
   not source research, contract review or native replay rerun by this sync.
-- **Canonical proposed D1 contracts:** [Contract A](../docs/contracts/v2/durability/CURRENT_ANNUAL_ISSUER_TWO_PERIOD_REVENUE_OPERATING_INCOME_QUALIFICATION_V1.md),
+- **Canonical implemented D1 contracts:** [Contract A](../docs/contracts/v2/durability/CURRENT_ANNUAL_ISSUER_TWO_PERIOD_REVENUE_OPERATING_INCOME_QUALIFICATION_V1.md),
   revision `A-DRAFT-R3-2026-10-12`, and unchanged original
   [Contract B](../docs/contracts/v2/durability/D1_TWO_PERIOD_OPERATING_PROFIT_CONTINUITY_DIAGNOSTIC_V1.md),
   merged in [PR #149](https://github.com/PineAllocationMedia/investment_automation/pull/149).
-  Both remain `PROPOSED / NOT IMPLEMENTED / NO RUNTIME AUTHORITY`.
-  D1 implementation, tests and native authentic replay are
-  `NOT STARTED / NOT AUTHORIZED`. The proposed comparison is descriptive and
+  PR #149 adopted proposals; [PR #151](https://github.com/PineAllocationMedia/investment_automation/pull/151)
+  subsequently implemented Contract A R3 qualification of two immediately adjacent
+  annual Revenue / Operating Income periods and Contract B reported operating-profit
+  comparison, with exact arithmetic, complete source surveillance, provenance,
+  deterministic identities and fail-closed replay. The contract documents retain
+  their proposal-era headers; this operational snapshot records the subsequent
+  bounded canonical implementation without amending those out-of-scope contracts.
+  Codex reported synthetic T1–T20 adversarial validation, corrected A-1 regression
+  and `FULL_PIT PASS` (3,585 tests), with protected fingerprints and model rules unchanged.
+  GitHub confirms Baseline V1 CI `SUCCESS` for reviewed implementation HEAD
+  `6a71e2af2677f3252b25abb15b843901ff29e56e`.
+- **Independent D1 authentic-positive verification:** Architecture & Audit's supplied
+  final finding is `MERGE READY`, with the authentic-positive gate independently
+  verified using the original preserved Microsoft SEC Companyfacts archive.
+  Microsoft FY2025/FY2026, 412 observations, common accession
+  `0001193125-26-323660`: Contract A
+  `COMPARATIVE_ISSUER_REPORTED_FACTS_ESTABLISHED`; Contract B `AVAILABLE`.
+  PRIOR ratio `32132/70431`, CURRENT ratio `155237/331839`, exact difference
+  `90282133/7790584203`, direction `INCREASED`, Operating Income continuity
+  `POSITIVE_IN_BOTH_PERIODS`. Independent evidence-integrity and identity checks passed.
+  These are attributed specialist findings, distinct from synthetic validation;
+  this Governance Sync reruns no evidence execution. The comparison is descriptive and
   `CURRENT_CAPTURE_BOUND_ONLY`; it establishes no moat, economic persistence,
   aggregate Durability, PIT / `HISTORICAL_AS_OF`, PR5C / Ordinary Compounder,
   Quality recalibration, Confidence / Expected Return modification, investment
@@ -90,11 +112,11 @@
 - **Parallel CEO-approved GTM initiative:** bounded Blossom audience-growth mandate for `@therealpam`, owned by Marketing & GTM; audience value first, PAM promotion secondary, human approval required before publication
 - **Current technical frontier:** bounded Stage C is closed by explicit CEO
   decision; the supplemented authentic-positive gate remains satisfied. Stage D is
-  the next intended major implementation stage. Its limited preparation and
-  proposed D1 contracts are complete; no Stage-D implementation is authorized or active.
+  the current major architecture stage, with bounded D1 complete through PR #151.
   Next delivery action is CEO review and canonical merge decision for this sync;
-  the next substantive decision is whether to authorize a bounded D1 implementation
-  (`PENDING_CEO_AUTHORIZATION`). PR5C v1 and the unresolved multi-filing suspension remain
+  the next substantive technical scope awaits separate CEO selection and authorization.
+  No D2, additional Durability diagnostic or acquisition is activated.
+  PR5C v1 and the unresolved multi-filing suspension remain
   unchanged; existing exploratory qualification investigations remain suspended.
   No new technical implementation chantier or dormant-specialist activation is authorized.
 - **Canonical integration branch:** `model-v2/expected-return-challenger`
@@ -110,14 +132,15 @@
   `GAP-B2-EXECUTABLE-NET`. The Work Queue now records the first blocker as satisfied
   by the explicit CEO supplement; PR5C and B2 remain unchanged. This sync neither
   inspects nor changes the scheduled task or claims an automated check.
-- **Canonical verified pre-this-sync HEAD / PR #149 merge:** `bd14033b32a21330de995739b4b678d027794b28`
-- **Canonical verified tree:** `e69c614ba65588ac4803f80037594a4d599cf2a5`
+- **Canonical verified pre-this-sync HEAD / PR #151 merge:** `379f235ee3fac60b88130cb3e2e7097144081d5a`
+- **Canonical verified tree:** `2b6cb6c47e240059198e4815847e5ebea3c31ad9`
 - **Current status:** Stage C — Quality is `COMPLETE / CEO_APPROVED (bounded scope)`.
   Its seven original economic diagnostic kinds and six original evidence foundations
   remain canonical; the additional issuer
   route is a separate native path for the existing operating-income/revenue kind,
   not an eighth diagnostic. No composite Quality score or aggregation is authorized.
-  Stage-D preparation is complete; implementation remains unauthorized.
+  Bounded Stage-D D1 native implementation is complete; further technical scope
+  awaits separate CEO selection and authorization.
 - **Canonical Stage-C diagnostics:**
   `FIVE_PERIOD_DILUTED_EPS_DIRECTIONAL_CONSISTENCY` and
   `CURRENT_ANNUAL_EPS_DENOMINATOR_DILUTION` and
@@ -174,7 +197,8 @@
   explicitly supported first bounded CURRENT route; Stage B — Expected Return is
   complete within the currently approved bounded supported scope; Stage C — Quality
   is `COMPLETE / CEO_APPROVED` within its bounded scope. Stage-D scoping and D1
-  contract preparation are complete; implementation is not active or authorized.
+  contract preparation and bounded native D1 implementation are complete;
+  additional Stage-D implementation is not authorized or active.
 - **Stage-C exit requirement:** the CEO-approved Option A requires at least one
   authentic positive contract-valid Quality chain: immutable source evidence → valid
   native upstream qualification → established existing evidence foundation →
@@ -197,9 +221,9 @@
   gap, currently `UNAVAILABLE / DEFERRED` and `TRIGGER-BASED / DORMANT`, and may be
   revisited only if genuinely new qualified executable-quote, settled-funding and,
   where applicable, FX execution-cost evidence appears.
-- **Pending CEO decisions:** canonical merge of this post-PR #149 Governance Sync.
-  Separately, optional bounded D1 implementation is `PENDING_CEO_AUTHORIZATION`;
-  no implementation Work Order is selected. Stage-C closure remains CEO-approved.
+- **Pending CEO decisions:** canonical merge of this post-PR #151 Governance Sync.
+  Separately, the next substantive technical scope is `PENDING_CEO_SELECTION_AND_AUTHORIZATION`;
+  no new implementation Work Order is selected. Stage-C closure remains CEO-approved.
 
 ## Active role states
 
@@ -539,7 +563,8 @@
   Reported Operating Income / positive Revenue is not comprehensive company Quality
   or financial advice. Stage C is now `COMPLETE / CEO_APPROVED` within its bounded
   scope following independent readiness assurance and explicit CEO approval;
-  Stage-D implementation remains unauthorized; limited preparation is complete.
+  bounded Stage-D D1 is now complete through PR #151; additional implementation
+  remains unauthorized.
   The supplemented authentic-positive
   requirement is satisfied; PR4C3, PR5B and PR5C contracts, V1 frozen authority and
   V2 challenger status remain unchanged. Bounded closure establishes no universal
@@ -559,5 +584,5 @@
 - `DECISIONS.md`
 - `governance/roles/*.md`
 
-The HEAD/tree above are the verified canonical state after PR #149 and before this
+The HEAD/tree above are the verified canonical state after PR #151 and before this
 Governance Sync, not the future merge commit of this Governance Sync PR.

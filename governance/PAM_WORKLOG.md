@@ -1141,3 +1141,48 @@ there is no activated reminder, scheduled checkpoint or guaranteed execution.
   preserved. No protected policy, contract, code, test, source data, dependency or
   model rule changes. Resource reuse assessment for this sync: `NOT APPLICABLE` —
   institutional documentation only, with no adoption, installation or spending.
+
+## 2026-10-12 — Bounded native Stage-D D1 complete after CEO-authorized PR #151 merge
+
+- `WO-GOVERNANCE-SYNC-POST-PR151-D1-NATIVE`: fetched and verified canonical
+  `model-v2/expected-return-challenger` starting HEAD / PR #151 merge
+  `379f235ee3fac60b88130cb3e2e7097144081d5a`, tree
+  `2b6cb6c47e240059198e4815847e5ebea3c31ad9`. GitHub confirms
+  [PR #151](https://github.com/PineAllocationMedia/investment_automation/pull/151)
+  is merged following CEO authorization. Reviewed implementation HEAD:
+  `6a71e2af2677f3252b25abb15b843901ff29e56e`.
+- PR #149's historical preparation/proposal milestone is preserved. PR #151
+  subsequently implemented Contract A R3 native qualification of two immediately
+  adjacent annual Revenue / Operating Income periods and Contract B native reported
+  operating-profit comparison: exact arithmetic, complete source surveillance,
+  provenance, deterministic identities and fail-closed replay. Codex reported
+  synthetic T1–T20 adversarial validation, corrected A-1 regression and
+  `FULL_PIT PASS` (3,585 tests); protected fingerprints and model rules unchanged.
+  GitHub Baseline V1 CI is `SUCCESS` for the reviewed implementation HEAD.
+- Architecture & Audit's supplied final finding is `MERGE READY`. Its independent
+  authentic-positive verification used the original preserved Microsoft SEC
+  Companyfacts archive, with evidence-integrity and identity checks passing:
+  412 observations, FY2025/FY2026, common accession `0001193125-26-323660`;
+  Contract A `COMPARATIVE_ISSUER_REPORTED_FACTS_ESTABLISHED`; Contract B `AVAILABLE`;
+  PRIOR ratio `32132/70431`, CURRENT ratio `155237/331839`, exact difference
+  `90282133/7790584203`, direction `INCREASED`, Operating Income continuity
+  `POSITIVE_IN_BOTH_PERIODS`. This authentic native result is separate from synthetic
+  validation. All specialist findings are attributed; this Governance Sync performs
+  no new evidence execution, source acquisition or technical validation.
+- Bounded Stage-D D1 is `COMPLETE / CANONICAL`; Stage D as a whole is incomplete.
+  Stage C remains `COMPLETE / CEO_APPROVED (bounded scope)`. D1 remains descriptive,
+  `CURRENT_CAPTURE_BOUND_ONLY`: no PIT / `HISTORICAL_AS_OF`, moat or forward
+  persistence, aggregate Durability score, PR5C / Ordinary Compounder admission,
+  Confidence / Expected Return recalibration, investment, allocation, execution,
+  production or V2 promotion. V1 frozen authority, V2 challenger, PR5C multi-filing
+  suspension, B2 gap and unrelated work are unchanged.
+- The next substantive technical scope awaits separate CEO selection and
+  authorization. No D2, other Durability diagnostic, issuer acquisition, deployment
+  or new technical chantier is activated. This documentation sync awaits its own
+  CEO review and canonical merge decision.
+- Exactly four authorized governance Markdown files; all prior Worklog bytes are
+  preserved. No protected policy, contract, code, test or evidence archive changes.
+  Scope, documentation/link integrity and whitespace checks plus canonical
+  `DOCS_ONLY` preflight validate this committed snapshot; results are reported in
+  the delivery handoff. Resource reuse assessment: `NOT APPLICABLE` — institutional
+  documentation only, with no component adoption, installation or spending.
