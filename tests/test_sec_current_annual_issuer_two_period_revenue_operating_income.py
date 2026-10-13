@@ -6,13 +6,15 @@ configurations. No authentic applicability or investment authority is establishe
 from copy import deepcopy
 from dataclasses import FrozenInstanceError, asdict, fields, replace
 from decimal import Decimal, localcontext, Inexact, Rounded, FloatOperation
+from itertools import permutations
 import json
 import pickle
 import socket
 from unittest.mock import patch
 
 from economic_facts.sec_archive import ArchiveError, SecArchive
-from economic_facts.sec_revenue_operating_income import CONCEPTS
+from economic_facts.sec_revenue_operating_income import CONCEPTS, extract_revenue_operating_income
+from src import d1_two_period_operating_profit_continuity as b
 from tests.sec_d1_two_period_fixtures import D1Fixture, comparative, prior, row, payload, ACC, OTHER, TIME, a
 
 
@@ -199,6 +201,96 @@ class ComparativeQualificationTests(D1Fixture):
         source=comparative()
         source['facts']['us-gaap'][CONCEPTS[0]]['units']['USD'].extend([row(accn=OTHER),prior(start='2022-12-31',accn=OTHER)])
         self.failure(self.evaluate(source),a.S.EVIDENCE_UNSUPPORTED,a.R.COMPARATIVE_CONTEXT_UNRESOLVED)
+
+    def test_a1_alternative_partial_prior_in_coherent_current_accession(self):
+        source = comparative()
+        source['facts']['us-gaap'][CONCEPTS[0]]['units']['USD'].append(
+            prior(start='2022-12-31'))
+        q = self.failure(self.evaluate(source), a.S.EVIDENCE_UNSUPPORTED,
+                         a.R.COMPARATIVE_CONTEXT_UNRESOLVED)
+        self.assertEqual(q.reasons, (a.R.COMPARATIVE_CONTEXT_UNRESOLVED,))
+        alternative = next(ref for ref in q.observations
+                           if ref.observation.start == '2022-12-31')
+        self.assertIs(alternative.disposition, a.D.ORPHAN)
+        self.assertIn(('2022-12-31', '2023-12-31'), q.adjudicated_filings[0].prior_candidates)
+        self.assertEqual(alternative.exclusion_reasons, ())
+        self.assertEqual(q.conflict_values, ((),) * 4)
+        d = b.analyze_d1_two_period_operating_profit_continuity_v1(q)
+        self.assertIs(d.status, b.S.UNSUPPORTED)
+        self.assertEqual(d.reasons, (b.R.UPSTREAM_EVIDENCE_UNSUPPORTED,))
+        self.assertEqual(d.upstream_reasons, q.reasons)
+        self.assertEqual((d.upstream_qualification_semantic_id,
+                          d.upstream_qualification_evidence_id), (q.semantic_id, q.evidence_id))
+        for key in ('prior_period_start', 'prior_period_end', 'current_period_start',
+                    'current_period_end', 'prior_revenue', 'prior_operating_income',
+                    'current_revenue', 'current_operating_income', 'prior_operating_income_sign',
+                    'current_operating_income_sign', 'operating_income_sign_continuity',
+                    'prior_operating_income_to_revenue_ratio',
+                    'current_operating_income_to_revenue_ratio', 'ratio_difference', 'ratio_direction'):
+            self.assertIsNone(getattr(d, key))
+
+    def test_a1_partial_alternative_surveillance_for_both_concepts_and_current_pairs(self):
+        for acc in (ACC, OTHER):
+            for paired_current in (False, True):
+                for index, concept in enumerate(CONCEPTS):
+                    with self.subTest(acc=acc, paired_current=paired_current, concept=concept):
+                        source = comparative()
+                        if acc == OTHER:
+                            for i, c in enumerate(CONCEPTS):
+                                if paired_current or i == index:
+                                    source['facts']['us-gaap'][c]['units']['USD'].append(
+                                        row(100 if i == 0 else 20, accn=OTHER))
+                        source['facts']['us-gaap'][concept]['units']['USD'].append(
+                            prior(80 if index == 0 else 10, start='2022-12-31', accn=acc))
+                        q = self.failure(self.evaluate(source), a.S.EVIDENCE_UNSUPPORTED,
+                                         a.R.COMPARATIVE_CONTEXT_UNRESOLVED)
+                        self.assertEqual(q.reasons, (a.R.COMPARATIVE_CONTEXT_UNRESOLVED,))
+                        self.assertNotIn(a.R.PRIOR_ANNUAL_INTERVAL_AMBIGUOUS, q.reasons)
+
+    def test_a1_two_complete_same_filing_alternatives_remain_ambiguous(self):
+        source = comparative()
+        for index, concept in enumerate(CONCEPTS):
+            source['facts']['us-gaap'][concept]['units']['USD'].append(
+                prior(80 if index == 0 else 10, start='2022-12-31'))
+        q = self.failure(self.evaluate(source), a.S.EVIDENCE_UNSUPPORTED,
+                         a.R.PRIOR_ANNUAL_INTERVAL_AMBIGUOUS)
+        self.assertEqual(q.reasons, (a.R.PRIOR_ANNUAL_INTERVAL_AMBIGUOUS,))
+        self.assertIsNone(q.prior_period_start)
+
+    def test_a1_matching_prior_duplicates_preserve_economics_and_conflicts(self):
+        for acc in (ACC, OTHER):
+            for value, state, reason in ((80, a.S.COMPARATIVE_ISSUER_REPORTED_FACTS_ESTABLISHED, None),
+                    (999, a.S.SOURCE_CONFLICT, a.R.COMPETING_PRIOR_REVENUE_VALUES)):
+                with self.subTest(acc=acc, value=value):
+                    source = comparative()
+                    if acc == OTHER:
+                        source['facts']['us-gaap'][CONCEPTS[0]]['units']['USD'].append(row(accn=OTHER))
+                    source['facts']['us-gaap'][CONCEPTS[0]]['units']['USD'].append(prior(value, accn=acc))
+                    q = self.evaluate(source)
+                    if reason:
+                        self.failure(q, state, reason)
+                        expected = (reason, a.R.NO_COMMON_FOUR_CELL_ACCESSION) if acc == ACC else (reason,)
+                        self.assertEqual(q.reasons, expected)
+                    else:
+                        self.assertIs(q.status, state)
+                        self.assertEqual(q.reasons, ())
+                        self.assertEqual(q.semantic_id, self.evaluate().semantic_id)
+
+    def test_a1_surveillance_is_deterministic_under_inventory_permutations(self):
+        source = comparative()
+        source['facts']['us-gaap'][CONCEPTS[0]]['units']['USD'].append(prior(start='2022-12-31'))
+        raw = json.dumps(source).encode()
+        receipt = self.capture(raw=raw)
+        extraction = extract_revenue_operating_income(raw, receipt)
+        expected = a._qualify_extraction(receipt, extraction)
+        self.failure(expected, a.S.EVIDENCE_UNSUPPORTED, a.R.COMPARATIVE_CONTEXT_UNRESOLVED)
+        # Keep the exact source/provenance fixed; only qualification traversal
+        # changes. Reordering source JSON would correctly change evidence identity.
+        for ordering in permutations(extraction.observations):
+            actual = a._qualify_extraction(receipt, replace(extraction, observations=ordering))
+            self.assertEqual(actual, expected)
+            self.assertEqual((actual.semantic_id, actual.evidence_id),
+                             (expected.semantic_id, expected.evidence_id))
 
     def test_partial_unresolved_or_incompatible_is_never_silently_ignored(self):
         for changes,reason in (({'fy':None},a.R.COMPARATIVE_CONTEXT_UNRESOLVED),

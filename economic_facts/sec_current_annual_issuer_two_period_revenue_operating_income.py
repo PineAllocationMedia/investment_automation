@@ -483,7 +483,11 @@ def _qualify_extraction(receipt, extraction):
                     if (o.start, o.end) == prior:
                         relevant_ids.add(o.observation_id)
                         inspect(o)
-                    elif o.accession not in coherent_current:
+                    elif (o.accession not in coherent_current
+                          or (o.start, o.end) in candidates[o.accession]):
+                        # Immediate alternatives remain material even when
+                        # their accession has a coherent CURRENT pair. Older
+                        # same-filing history was excluded during selection.
                         start, end = _date(o.start), _date(o.end)
                         if (start and end and (end-start).days+1 in (365,366)
                                 and end < _date(prior[1]) and not _row_reasons(o, capture_day)):
