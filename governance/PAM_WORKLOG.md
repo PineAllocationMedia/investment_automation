@@ -1186,3 +1186,32 @@ there is no activated reminder, scheduled checkpoint or guaranteed execution.
   `DOCS_ONLY` preflight validate this committed snapshot; results are reported in
   the delivery handoff. Resource reuse assessment: `NOT APPLICABLE` — institutional
   documentation only, with no component adoption, installation or spending.
+
+## 2026-10-14 — Chromebook architecture retrospective and environment profile proposal
+
+- CEO asked for existing-tool evaluation before any further bespoke Chromebook
+  orchestrator construction and requested a durable correction of the recent PM
+  workflow failure. The failure was routing repeated architectural patches before
+  enforcing the pre-existing `AGENTS.md` §9.1 reuse-before-build comparison.
+  The retrospective adds an operational reuse decision checkpoint and a bounded
+  escalation trigger after repeat failures; it does not retroactively invalidate
+  completed mock-only technical work or expand any role authority.
+- [GitHub #173](https://github.com/PineAllocationMedia/investment_automation/issues/173)
+  was created for Architecture & Audit to compare OpenClaw, OpenHands and Hugging
+  Face smolagents against WO167; its evidence review is still queued, not complete.
+- Consolidated the CEO-supplied dated Chromebook hardware/resource facts and the
+  later Crostini/cgroup/process-visibility, LXD, suspension and mock-only
+  limitations in the existing execution-environments reference. Reported native
+  findings are attributed, not rerun or certified by this documentation sync.
+  The CEO's aspiration to run both future development automation and eventually
+  the finished PAM product on the Chromebook remains a **planning target**;
+  production/deployment and safe co-location are not authorized or established.
+- CEO clarification of #161 remains limited to the normative scope: its original
+  absolute 60-second and numerical LXD trial requirements stay intact, but are not
+  automatically inherited by other future worker classes. Each future class
+  requires independent security validation and explicit CEO approval; #154,
+  safe suspension recovery, actual kernel isolation, preserved historical WO171
+  and V1/V2 authority boundaries remain unchanged.
+- This PR changes only non-protected Markdown documentation, requires CEO merge,
+  installs no component, grants no Chromebook/worker authority, and makes no
+  claim of execution or CI results absent separately observed evidence.
