@@ -43,6 +43,74 @@ The 2.6 GiB available RAM and 25 GB free storage are snapshots, not permanent
 resource guarantees. No reported swap means memory-risk assessments must not assume
 swap can absorb excess demand. Effective cgroup limits remain UNKNOWN.
 
+## Chromebook / Crostini runtime observations — 2026-10-12 to 2026-10-14
+
+These are **later CEO-provided read-only native observations and attributed
+independent-review findings**, not newly executed measurements in this governance
+update. The original full native evidence archive is not independently revalidated
+here. Keep the 2026-10-11 capacity table above as a dated snapshot; none of its
+free-memory/disk values is a permanent allocation guarantee.
+
+| Area | Observed / reported | Qualification and boundary |
+|---|---|---|
+| Cgroup layout | Hybrid/v1: named `systemd`, and v1 `memory`, `pids`, `cpu,cpuacct` controllers; `0::/` also appears; no cgroup2 mount observed | Membership and controller presence do **not** prove per-worker CPU/RAM/PID limits or full confinement. |
+| Systemd user services | `systemctl --user` / mock-only coordinator were exercised; the historical service was later reported `inactive/dead`, `MainPID=0` | Inactivity is not positive proof of complete descendant disappearance or clean SQLite closure. No persistent autonomous Codex executor was certified. |
+| /proc trust | A procfs mount was positively attested in a limited native probe; UID 65534 appeared on procfs virtual paths | A narrowly reviewed procfs-owner exception does not generalize to cgroups or other mounts. |
+| Process/FD visibility | 27 PID directories visible; 16 FD directories accessible, 11 permission-denied; one FD metadata race reported | Global exclusion of unknown process/SQLite FD holders **not demonstrable** with these permissions. No process inventory is certified. |
+| Cgroup mount metadata | Reported `name=systemd` cgroup mount with UID 65534 on intermediate `/sys` paths and group-writable systemd directory | Kernel-backed, non-escapable worker cgroup and full descendant-stop proof **NOT ESTABLISHED**. |
+| Termina/LXD candidate | `lxc` and socket accessibility plus visible v1 controller indicators reported in #159–#161 | Offline LXD preparation accepted for review only; native per-job isolation, zero effective swap and independent stop were **NOT QUALIFIED**. |
+| Power/session behavior | ChromeOS/Crostini suspension, logout and VM restart affect guest processes; Linux automatic restart after logout is **not established** | Target is best-effort availability with safe reconciliation after Linux returns, **not** guaranteed uninterrupted 24/7 execution. |
+| Model/network/credentials | No independently certified worker separation, anti-dangerous-resume barrier or hard $0 model-billing gate | No real unattended Codex worker is authorized. |
+
+**Historical acceptance boundary:** WO164/WO167 durable queue and coordinator
+reached offline/device **MOCK-ONLY** acceptance, without real model calls,
+GitHub-write execution or production authority. WO171's historical mock-service
+clean exit remains `BLOCKED / NOT_CERTIFIED` with retained artifacts; #157
+quarantines remain preserved. No automatic cleanup, restart or SQLite reuse is
+authorized. Issue sources and scope: [#153](https://github.com/PineAllocationMedia/investment_automation/issues/153),
+[#154](https://github.com/PineAllocationMedia/investment_automation/issues/154),
+[#159](https://github.com/PineAllocationMedia/investment_automation/issues/159),
+[#161](https://github.com/PineAllocationMedia/investment_automation/issues/161),
+[#164](https://github.com/PineAllocationMedia/investment_automation/issues/164),
+[#167](https://github.com/PineAllocationMedia/investment_automation/issues/167),
+[#171](https://github.com/PineAllocationMedia/investment_automation/issues/171).
+
+### Intended host role versus proven authority
+
+The CEO intends the Chromebook to be the **permanent host of PAM's future
+development orchestrator**, with best-effort 24/7 availability, autonomous
+selection of tasks within a CEO-approved envelope and PR-only delivery. The CEO
+also envisions later running the finished PAM product on that device. This is a
+**planning objective**, not a performance qualification, deployment approval or
+decision that the eventual commercial product can fit this hardware.
+
+Presently the Chromebook hosts **operational V1**. The proposed development
+orchestrator, any future V2 shadow, and any finished-product deployment are
+**distinct security and authority domains**. Their co-location must not be
+assumed safe: V1 noninterference, storage growth, CPU/memory headroom, runtime
+availability, customer-data protection, legal/licensing restrictions and any
+production authority require separate design, native validation and explicit
+CEO approval. V2 remains a challenger; no commercial hosting/deployment is
+authorized here.
+
+**#161 CEO clarification (2026-10-14):** the complete 60-second absolute-stop
+and numerical acceptance requirements remain in force for that **specific
+one-shot synthetic LXD test**, not automatically for future different worker
+architectures. Each future worker class still requires its own independently
+validated and CEO-approved execution-safety contract; no safety relaxation,
+device GO or real worker follows from this clarification. The repeated-unattended
+financial spending barrier of #154 remains `NOT_PROVEN`.
+
+### Refresh / evidence discipline
+
+For new assessments record date, collection environment (Penguin/Termina/ChromeOS),
+method, exact observation vs interpretation, source/receipt where accessible,
+permissions denied and residual unknowns. Prefer one **separately authorized**,
+bounded read-only probe only when a decision actually depends on missing native
+information; never repeat broad process enumeration or reveal owner/private
+paths, credentials or V1 data. Historical measurements are not live capacity
+or proof of service/worker safety.
+
 ## Operational boundaries and runtimes
 
 - V1 remains frozen operational authority. Routine V2 development must not change
