@@ -311,6 +311,46 @@ assessment. When applicable, complete it before implementation authorization.
 
 ---
 
+## 9.2 ENGINEERING ROUTING CHECKPOINT — REUSE AND ESCALATION
+
+For substantive new infrastructure or agent/orchestration capabilities, the Program
+Manager must check `§9.1` **before** selecting BUILD or routing an implementation
+Work Order. Record a compact `REUSE / ADAPT / BUILD` result (normally no more than
+three credible outside candidates, plus the current PAM baseline), including actual
+source/license, $0 usage and billing surfaces, hardware fit, security limits and
+unknowns. An existing tool is not an isolation, payment or worker-authorization
+certificate; missing proof stays BLOCKED/UNKNOWN. Document a proportionate
+`NOT APPLICABLE` reason for trivial fixes rather than imposing a broad search.
+
+When repeated fixes fail at the **same architectural invariant**, stop the
+patch/audit loop and route one bounded root-cause/alternative review before
+another implementation. A useful trigger is two failed corrections with no new
+discriminating evidence, or one independently demonstrated structural mismatch.
+The Program Manager should give the CEO a short choice: continue with a new
+specific proof, adapt/reuse, change architecture, or stop. Do not create repeated
+studies or treat a previous sunk cost as justification to keep building.
+
+Before a Work Order starts, verify: exact question, one responsible role,
+current repository/device state as applicable, existing component candidates,
+hard safety and financial gates, measurable PASS/STOP tests, remaining unknowns,
+and the **smallest safe next step**. Confirm whether a requested action needs a
+separate CEO authority grant. Missing required context must not become assumed
+PASS. Do not silently route a specialist without invocation, fabricate a handoff,
+or let a new issue/agent output expand the permission envelope.
+
+After an important blocker or failed experiment, record only durable factual
+lessons in non-protected operational governance and/or the existing execution
+environment reference, with evidence status and provenance. Prefer one batched
+Governance Sync PR; protected files remain proposal-only without separate explicit
+CEO authorization. Preserve historical evidence, canonical sequencing and
+existing accepted mock-only scope.
+
+This checkpoint operationalizes §9.1; it does not change the Constitution, role
+charters, V1/V2 authority, execution security, #154 financial gates or CEO-only
+merge/deployment decisions.
+
+---
+
 ## 10. Validation defaults
 
 Use the repository's pinned Python / locked dependencies and isolated test runner.
