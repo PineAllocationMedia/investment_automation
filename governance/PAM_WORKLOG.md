@@ -1186,3 +1186,46 @@ there is no activated reminder, scheduled checkpoint or guaranteed execution.
   `DOCS_ONLY` preflight validate this committed snapshot; results are reported in
   the delivery handoff. Resource reuse assessment: `NOT APPLICABLE` — institutional
   documentation only, with no component adoption, installation or spending.
+
+## 2026-10-14 — CEO clarification of WO171 / #161 execution-security scope
+
+- `WO-GOV-SYNC-WO171-161-SCOPE-CEO-DECISION`: fetched and verified canonical
+  `model-v2/expected-return-challenger`, HEAD
+  `1e6912f1d31318e2ed695eb42fe09dccaca90acc`, tree
+  `0b28013e2b1a6a7e5ce8a5bd6b5da641ab4b474c`. Prior Governance Sync
+  [PR #152](https://github.com/PineAllocationMedia/investment_automation/pull/152)
+  is merged and canonical; the previous local branch/ref was preserved.
+- The CEO supplied the full Architecture & Audit handoff
+  `WO171-161-CONTRACT-SCOPE-VERIFICATION` in conversation, dated 2026-10-14:
+  `AMBIGUOUS_REQUIRES_CEO`. Its normative review used #161 and relevant #159/#163/#164
+  sources; it did not reexamine the original #161 protocol ZIP. This sync separately
+  read the canonical GitHub sources and makes no claim of consulting an independent
+  archive of that conversation handoff or reproducing a technical audit.
+- The subsequent explicit CEO decision makes scope `RESOLVED_BY_CEO_DECISION`:
+  the complete #161 acceptance protocol remains applicable to its single synthetic
+  LXD trial, including the absolute 60-second descendant-stop requirement and other
+  LXD acceptance parameters. Those parameters are not automatically universal for
+  every future architecture. Each future worker category needs a separate explicit
+  execution-security contract, independent technical validation and explicit CEO
+  approval before real execution. No safety waiver or technical GO is granted;
+  #163's replacement proposal and other proposed contracts are not adopted.
+  The [scope record](../PAM_ROADMAP.md#wo171-and-issue-161-scope-decision-2026-10-14)
+  preserves the CEO's exact clarification.
+- Technical/financial status is unchanged: historical #161 LXD device acceptance
+  `NOT ACCEPTED`; historical WO171 `BLOCKED / NOT_CERTIFIED`; WO157 quarantines
+  unchanged; WO167 `MOCK ONLY`; #154 autonomous repeated-use financial gate, kernel
+  confinement and non-dangerous resume `NOT PROVEN`. Real Codex workers and
+  Chromebook device operations remain `NOT AUTHORIZED`. V1 frozen operational
+  authority and V2 challenger status remain unchanged.
+- If separately authorized, the next legitimate technical step is preparation of
+  an execution-security contract for one specific proposed future worker architecture,
+  defining and independently validating confinement, resource limits, termination,
+  suspension/recovery, secrets and external access, with separate #154 satisfaction.
+  No implementation chantier is activated or queued and no roadmap resequencing occurs.
+- Exactly the four authorized operational Markdown files are in scope. All prior
+  Worklog bytes remain intact. Protected files, especially `DECISIONS.md`, remain
+  unchanged; a formal registry append needs separate authorization, not a substitute
+  registry. No code, tests, contracts, dependencies, workflows, historical artifacts,
+  device/service actions or new spending. Reuse assessment: `NOT APPLICABLE` —
+  documentation only. Local DOCS_ONLY/documentation validation and this PR's observed
+  CI/mergeability are reported separately; canonical merge remains the CEO's decision.

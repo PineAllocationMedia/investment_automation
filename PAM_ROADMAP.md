@@ -612,6 +612,50 @@ multi-filing blocker and existing investigation suspensions remain unchanged.
 No new implementation, acquisition or aggregate Quality authority is granted.
 The unchanged pre-shadow sequence remains in section 9; no wider resequencing is approved.
 
+### WO171 and issue 161 scope decision (2026-10-14)
+
+The CEO-supplied Architecture & Audit handoff
+`WO171-161-CONTRACT-SCOPE-VERIFICATION` concluded `AMBIGUOUS_REQUIRES_CEO`:
+[#161](https://github.com/PineAllocationMedia/investment_automation/issues/161)
+specifies one disposable synthetic LXD trial, while the later
+[#159 direction](https://github.com/PineAllocationMedia/investment_automation/issues/159#issuecomment-6157748977)
+and [#163 proposal](https://github.com/PineAllocationMedia/investment_automation/issues/163#issuecomment-6157988885)
+left its applicability to other worker categories unclear. That handoff was supplied
+by the CEO in conversation; no separate archived handoff or protocol ZIP was
+reexamined by this sync.
+
+On 2026-10-14 the CEO explicitly clarified:
+
+> #161 conserve intégralement ses exigences pour son essai LXD spécifique. Ses
+> paramètres, y compris le délai absolu de 60 secondes, ne s'appliquent pas
+> automatiquement à toute nouvelle architecture. Chaque future catégorie de worker
+> nécessite un contrat de sécurité propre, une validation indépendante et mon
+> approbation explicite avant exécution. Aucun assouplissement ou GO technique
+> n'est autorisé par cette clarification.
+
+Normative scope is `RESOLVED_BY_CEO_DECISION`. The complete #161 LXD acceptance
+protocol, including its absolute 60-second descendant-stop requirement and other
+resource/isolation parameters, remains unchanged for that trial. Those parameters
+are not automatically universal for every future architecture. Each future worker
+category requires its own explicit execution-security contract, independent technical
+validation and explicit CEO approval before real execution. No safety obligation
+is waived; the #163 replacement proposal or any other proposed contract is not adopted.
+
+Technical qualification is unchanged: historical #161 LXD device acceptance is
+`NOT ACCEPTED`; historical WO171 is `BLOCKED / NOT_CERTIFIED`; WO157 quarantines
+remain untouched; WO167 remains `MOCK ONLY`. The #154 autonomous repeated-use
+financial gate, kernel confinement and non-dangerous resume remain `NOT PROVEN`.
+Real Codex workers and Chromebook device operations remain `NOT AUTHORIZED`.
+V1 remains frozen operational authority; V2 remains a challenger.
+
+If separately authorized, the next legitimate technical step is preparation of an
+execution-security contract for one specific proposed future worker architecture.
+It must define and independently validate confinement, resource limits, termination,
+suspension/recovery, secrets and external access, and separately satisfy #154.
+No new implementation chantier is activated or queued, and existing roadmap
+sequencing is unchanged. `DECISIONS.md` remains `CEO_PROTECTED` and untouched;
+a formal registry append requires separate authorization, not a replacement registry.
+
 ---
 
 ## 9. Expected future V2 sequence

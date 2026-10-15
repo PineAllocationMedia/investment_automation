@@ -38,6 +38,23 @@
 
 ## COMPLETED
 
+- WO171 / #161 normative scope clarification: `RESOLVED_BY_CEO_DECISION`,
+  explicit CEO decision dated `2026-10-14`, following the CEO-supplied Architecture
+  & Audit `WO171-161-CONTRACT-SCOPE-VERIFICATION` finding `AMBIGUOUS_REQUIRES_CEO`.
+  See the [scope record](../PAM_ROADMAP.md#wo171-and-issue-161-scope-decision-2026-10-14).
+  - Complete #161 single synthetic LXD trial acceptance, including the absolute
+    60-second descendant-stop requirement, is unchanged. Its parameters are not
+    automatically universal for other architectures; each future worker category
+    needs a separate explicit execution-security contract, independent technical
+    validation and explicit CEO approval before real execution. No safety exemption,
+    technical GO or adoption of #163's or another proposed contract is granted.
+  - Historical #161 device acceptance: `NOT ACCEPTED`; historical WO171:
+    `BLOCKED / NOT_CERTIFIED`; WO157 quarantines unchanged; WO167: `MOCK ONLY`.
+    #154 autonomous repeated-use financial gate, kernel confinement and non-dangerous
+    resume: `NOT PROVEN`. Real Codex workers and Chromebook device operations:
+    `NOT AUTHORIZED`. V1 frozen operational authority / V2 challenger are unchanged.
+    The normative decision is complete; technical blockers remain unresolved.
+
 - Bounded Stage-D D1 native implementation: `COMPLETE / CANONICAL`, separately
   CEO-authorized and merged in [PR #151](https://github.com/PineAllocationMedia/investment_automation/pull/151).
   - Contract A R3 two immediately adjacent annual Revenue / Operating Income
@@ -385,7 +402,15 @@
 
 ## WAITING CEO
 
-- Canonical merge of this post-PR #151 Governance Sync.
+- Canonical merge of `WO-GOV-SYNC-WO171-161-SCOPE-CEO-DECISION` after review.
+  The prior post-PR #151 Governance Sync is already canonical through
+  [PR #152](https://github.com/PineAllocationMedia/investment_automation/pull/152).
+- A future worker execution-security contract is `NOT AUTHORIZED / NOT ADOPTED / NOT QUEUED`.
+  If separately authorized, preparation for one specific proposed architecture is
+  the next legitimate technical step: define and independently validate confinement,
+  resource limits, termination, suspension/recovery, secrets and external access,
+  and separately satisfy #154. This is no automatic implementation or activation.
+  `DECISIONS.md` remains protected and untouched; a formal append needs separate authorization.
 - Next substantive technical scope — `PENDING_CEO_SELECTION_AND_AUTHORIZATION`.
   Bounded native Stage-D D1 implementation, synthetic validation and independently
   verified authentic Microsoft replay are complete through PR #151. Stage D as a
