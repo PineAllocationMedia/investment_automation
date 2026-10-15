@@ -399,11 +399,12 @@ None.
 
 ## QUEUED
 
-None. The completed feasibility study is recorded under COMPLETED; it is no longer
-a queued task. The manual pilot authorizes no follow-on execution task.
+- **#173 — Chromebook orchestrator existing-technology assessment**: `WO-CHROMEBOOK-ORCHESTRATOR-REUSE-REVIEW`, PRIMARY Architecture & Audit, `QUEUED_FOR_DESK_REVIEW_ONLY`. Compare at most OpenClaw, OpenHands and Hugging Face smolagents against WO167; return one REUSE/ADAPT/BUILD strategy with licensing, hardware, integration, security and hard-$0 evidence. [Issue #173](https://github.com/PineAllocationMedia/investment_automation/issues/173) exists; specialist work is **not** represented as executed. No device commands, repo edits, installation, actual model use or technical GO.
 
-The evaluated technology opportunities are `PARKED` in
-`PAM_OPPORTUNITY_BACKLOG.md`; none is a queued Work Order or implementation task.
+The previously completed feasibility study and manual pilot do not authorize any
+follow-on execution task. The other evaluated technology opportunities remain
+`PARKED` in `PAM_OPPORTUNITY_BACKLOG.md`; no additional implementation Work Order
+is queued by this documentation update.
 
 ## TRIGGER-BASED / DORMANT
 
