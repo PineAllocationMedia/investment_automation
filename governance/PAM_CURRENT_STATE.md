@@ -3,7 +3,25 @@
 > Two-to-five-minute operational snapshot. Refresh through Governance Sync after
 > durable state changes.
 
-- **2026-10-14 Chromebook development-infrastructure decision/retrospective (CEO-supplied, documentation pending merge):** The CEO's goal is Chromebook-hosted best-effort 24/7-available development orchestration, autonomous admission/prioritization of tasks in a **preapproved** envelope, and PR-only output; merge/deployment remain CEO-only. Architecture & Audit attributed reviews find native worker confinement, safe post-suspension re-admission and repeated $0 model-usage enforcement **NOT PROVEN**. WO164/WO167 remain MOCK ONLY, historical WO171 `BLOCKED / NOT_CERTIFIED`; no real worker, Chromebook operation, cleanup, production or V2 promotion is authorized. The CEO clarified #161's 60-second LXD-specific acceptance parameters are **not automatically universal** to new worker classes; each needs its own validated, expressly CEO-approved contract. This is a normative scope clarification, **not** a security GO or amendment of #161. The PM retrospective identified inadequate application of `AGENTS.md` §9.1 (existing-technology reuse before build) and repeated architecture-remediation loops; [#173](https://github.com/PineAllocationMedia/investment_automation/issues/173) is queued for one Architecture & Audit review of OpenClaw/OpenHands/smolagents versus WO167, without adoption. The dated technical device profile and residual unknowns are in [PAM execution environments](../docs/operations/PAM_EXECUTION_ENVIRONMENTS.md). This documentation addition is pending CEO merge; no independent re-execution of native evidence is claimed.
+- **2026-10-14 Chromebook development-infrastructure decision/retrospective (CEO-supplied,
+  documentation pending merge):** The CEO's goal is Chromebook-hosted best-effort
+  24/7-available development orchestration, autonomous admission/prioritization of tasks
+  in a **preapproved** envelope, and PR-only output; merge/deployment remain CEO-only.
+  Architecture & Audit attributed reviews find native worker confinement, safe
+  post-suspension re-admission and repeated $0 model-usage enforcement **NOT PROVEN**.
+  WO164/WO167 remain MOCK ONLY, historical WO171 `BLOCKED / NOT_CERTIFIED`; no real
+  worker, Chromebook operation, cleanup, production or V2 promotion is authorized. The CEO
+  clarified #161's 60-second LXD-specific acceptance parameters are **not automatically
+  universal** to new worker classes; each needs its own validated, expressly CEO-approved
+  contract. This is a normative scope clarification, **not** a security GO or amendment of
+  #161. The PM retrospective identified inadequate application of `AGENTS.md` §9.1
+  (existing-technology reuse before build) and repeated architecture-remediation loops;
+  [#173](https://github.com/PineAllocationMedia/investment_automation/issues/173) is
+  queued for one Architecture & Audit review of OpenClaw/OpenHands/smolagents versus
+  WO167, without adoption. The dated technical device profile and residual unknowns are in
+  [PAM execution environments](../docs/operations/PAM_EXECUTION_ENVIRONMENTS.md). This
+  documentation addition is pending CEO merge; no independent re-execution of native
+  evidence is claimed.
 - **Governance snapshot:** PR #135's Option A exit requirement, PR #136's
   PR5C v1 preservation/multi-filing suspension and PR #137's completed authentic-path
   dependency audit/investigation-suspension sync are canonical. PR #138's bounded
