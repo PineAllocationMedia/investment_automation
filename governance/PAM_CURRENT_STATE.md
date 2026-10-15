@@ -3,6 +3,25 @@
 > Two-to-five-minute operational snapshot. Refresh through Governance Sync after
 > durable state changes.
 
+- **2026-10-14 Chromebook development-infrastructure decision/retrospective (CEO-supplied,
+  canonical through [PR #174](https://github.com/PineAllocationMedia/investment_automation/pull/174)):**
+  The CEO's goal is Chromebook-hosted best-effort
+  24/7-available development orchestration, autonomous admission/prioritization of tasks
+  in a **preapproved** envelope, and PR-only output; merge/deployment remain CEO-only.
+  Architecture & Audit attributed reviews find native worker confinement, safe
+  post-suspension re-admission and repeated $0 model-usage enforcement **NOT PROVEN**.
+  WO164/WO167 remain MOCK ONLY, historical WO171 `BLOCKED / NOT_CERTIFIED`; no real
+  worker, Chromebook operation, cleanup, production or V2 promotion is authorized. The CEO's
+  clarification of #161 is detailed in the
+  [scope record](../PAM_ROADMAP.md#wo171-and-issue-161-scope-decision-2026-10-14);
+  it grants no security GO and leaves #161 unchanged. The PM retrospective identified
+  inadequate application of `AGENTS.md` §9.1
+  (existing-technology reuse before build) and repeated architecture-remediation loops;
+  [#173](https://github.com/PineAllocationMedia/investment_automation/issues/173) is
+  queued for one Architecture & Audit review of OpenClaw/OpenHands/smolagents versus
+  WO167, without adoption. The dated technical device profile and residual unknowns are in
+  [PAM execution environments](../docs/operations/PAM_EXECUTION_ENVIRONMENTS.md). This
+  documentation is canonical; no independent re-execution of native evidence is claimed.
 - **Governance snapshot:** PR #135's Option A exit requirement, PR #136's
   PR5C v1 preservation/multi-filing suspension and PR #137's completed authentic-path
   dependency audit/investigation-suspension sync are canonical. PR #138's bounded
@@ -20,26 +39,15 @@
   The separate limited monthly signal watch,
   methodology, source contracts and role authorities remain unchanged.
 - **WO171 / #161 scope decision (2026-10-14):** the CEO-supplied Architecture &
-  Audit handoff `WO171-161-CONTRACT-SCOPE-VERIFICATION` first concluded
-  `AMBIGUOUS_REQUIRES_CEO`. The subsequent explicit CEO clarification makes normative
-  scope `RESOLVED_BY_CEO_DECISION`; see the
-  [scope record](../PAM_ROADMAP.md#wo171-and-issue-161-scope-decision-2026-10-14).
-  The complete #161 single synthetic LXD trial protocol, including the absolute
-  60-second descendant-stop requirement, is unchanged. Its parameters are not
-  automatically universal for future architectures; each future worker category
-  requires a separate explicit execution-security contract, independent technical
-  validation and explicit CEO approval before real execution. No exemption or
-  technical GO, and no adoption of #163's or any other proposed contract, follows.
-  Historical #161 device acceptance remains `NOT ACCEPTED`; historical WO171
-  `BLOCKED / NOT_CERTIFIED`; WO157 quarantines unchanged; WO167 `MOCK ONLY`.
-  #154's autonomous repeated-use financial gate, kernel confinement and non-dangerous
-  resume remain `NOT PROVEN`. Real Codex workers and Chromebook device operations
-  remain `NOT AUTHORIZED`; V1 frozen operational authority and V2 challenger remain.
-  If separately authorized, the next legitimate technical step is preparation of
-  one architecture-specific contract covering confinement, resource limits,
-  termination, suspension/recovery, secrets and external access, with separate #154
-  satisfaction. No new implementation chantier is activated or queued. Protected
-  policy/Decision Registry and existing roadmap sequencing are unchanged.
+  Audit handoff `WO171-161-CONTRACT-SCOPE-VERIFICATION` concluded
+  `AMBIGUOUS_REQUIRES_CEO`; the later explicit CEO clarification is
+  `RESOLVED_BY_CEO_DECISION`. The linked scope record preserves the exact decision
+  and source limitations. Historical #161 device acceptance remains `NOT ACCEPTED`;
+  WO157 quarantines are untouched; #154, kernel confinement and non-dangerous resume
+  remain `NOT PROVEN`. WO167 remains `MOCK ONLY`, historical WO171
+  `BLOCKED / NOT_CERTIFIED`; real workers/device operations remain `NOT AUTHORIZED`.
+  Future worker classes need their own independently validated, CEO-approved
+  execution-security contracts. No implementation is activated or queued by this sync.
 - **Canonical reported-fact research candidate:** PR #142 adopted
   `2026-10-11-current-annual-reported-fact-research-candidate-v1` as a future
   [design reference](../docs/contracts/v2/research/CURRENT_ANNUAL_REPORTED_FACT_RESEARCH_CANDIDATE.md)

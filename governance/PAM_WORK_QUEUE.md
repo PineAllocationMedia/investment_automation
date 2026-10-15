@@ -41,19 +41,11 @@
 - WO171 / #161 normative scope clarification: `RESOLVED_BY_CEO_DECISION`,
   explicit CEO decision dated `2026-10-14`, following the CEO-supplied Architecture
   & Audit `WO171-161-CONTRACT-SCOPE-VERIFICATION` finding `AMBIGUOUS_REQUIRES_CEO`.
-  See the [scope record](../PAM_ROADMAP.md#wo171-and-issue-161-scope-decision-2026-10-14).
-  - Complete #161 single synthetic LXD trial acceptance, including the absolute
-    60-second descendant-stop requirement, is unchanged. Its parameters are not
-    automatically universal for other architectures; each future worker category
-    needs a separate explicit execution-security contract, independent technical
-    validation and explicit CEO approval before real execution. No safety exemption,
-    technical GO or adoption of #163's or another proposed contract is granted.
-  - Historical #161 device acceptance: `NOT ACCEPTED`; historical WO171:
-    `BLOCKED / NOT_CERTIFIED`; WO157 quarantines unchanged; WO167: `MOCK ONLY`.
-    #154 autonomous repeated-use financial gate, kernel confinement and non-dangerous
-    resume: `NOT PROVEN`. Real Codex workers and Chromebook device operations:
-    `NOT AUTHORIZED`. V1 frozen operational authority / V2 challenger are unchanged.
-    The normative decision is complete; technical blockers remain unresolved.
+  The [single scope record](../PAM_ROADMAP.md#wo171-and-issue-161-scope-decision-2026-10-14)
+  preserves the exact CEO decision, unchanged complete #161 LXD requirements and
+  separate future-worker contract/approval gates. Only the normative clarification
+  is complete: historical WO171 remains `BLOCKED / NOT_CERTIFIED`, WO167 `MOCK ONLY`,
+  and #154, kernel confinement and non-dangerous resume `NOT PROVEN`. No execution GO.
 
 - Bounded Stage-D D1 native implementation: `COMPLETE / CANONICAL`, separately
   CEO-authorized and merged in [PR #151](https://github.com/PineAllocationMedia/investment_automation/pull/151).
@@ -403,8 +395,9 @@
 ## WAITING CEO
 
 - Canonical merge of `WO-GOV-SYNC-WO171-161-SCOPE-CEO-DECISION` after review.
-  The prior post-PR #151 Governance Sync is already canonical through
-  [PR #152](https://github.com/PineAllocationMedia/investment_automation/pull/152).
+  The prior post-PR #151 Governance Sync and Chromebook retrospective are already
+  canonical through [PR #152](https://github.com/PineAllocationMedia/investment_automation/pull/152)
+  and [PR #174](https://github.com/PineAllocationMedia/investment_automation/pull/174).
 - A future worker execution-security contract is `NOT AUTHORIZED / NOT ADOPTED / NOT QUEUED`.
   If separately authorized, preparation for one specific proposed architecture is
   the next legitimate technical step: define and independently validate confinement,
@@ -424,11 +417,12 @@ None.
 
 ## QUEUED
 
-None. The completed feasibility study is recorded under COMPLETED; it is no longer
-a queued task. The manual pilot authorizes no follow-on execution task.
+- **#173 — Chromebook orchestrator existing-technology assessment**: `WO-CHROMEBOOK-ORCHESTRATOR-REUSE-REVIEW`, PRIMARY Architecture & Audit, `QUEUED_FOR_DESK_REVIEW_ONLY`. Compare at most OpenClaw, OpenHands and Hugging Face smolagents against WO167; return one REUSE/ADAPT/BUILD strategy with licensing, hardware, integration, security and hard-$0 evidence. [Issue #173](https://github.com/PineAllocationMedia/investment_automation/issues/173) exists; specialist work is **not** represented as executed. No device commands, repo edits, installation, actual model use or technical GO.
 
-The evaluated technology opportunities are `PARKED` in
-`PAM_OPPORTUNITY_BACKLOG.md`; none is a queued Work Order or implementation task.
+The previously completed feasibility study and manual pilot do not authorize any
+follow-on execution task. The other evaluated technology opportunities remain
+`PARKED` in `PAM_OPPORTUNITY_BACKLOG.md`; no additional implementation Work Order
+is queued by this documentation update.
 
 ## TRIGGER-BASED / DORMANT
 

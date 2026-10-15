@@ -1187,6 +1187,35 @@ there is no activated reminder, scheduled checkpoint or guaranteed execution.
   the delivery handoff. Resource reuse assessment: `NOT APPLICABLE` — institutional
   documentation only, with no component adoption, installation or spending.
 
+## 2026-10-14 — Chromebook architecture retrospective and environment profile proposal
+
+- CEO asked for existing-tool evaluation before any further bespoke Chromebook
+  orchestrator construction and requested a durable correction of the recent PM
+  workflow failure. The failure was routing repeated architectural patches before
+  enforcing the pre-existing `AGENTS.md` §9.1 reuse-before-build comparison.
+  The retrospective adds an operational reuse decision checkpoint and a bounded
+  escalation trigger after repeat failures; it does not retroactively invalidate
+  completed mock-only technical work or expand any role authority.
+- [GitHub #173](https://github.com/PineAllocationMedia/investment_automation/issues/173)
+  was created for Architecture & Audit to compare OpenClaw, OpenHands and Hugging
+  Face smolagents against WO167; its evidence review is still queued, not complete.
+- Consolidated the CEO-supplied dated Chromebook hardware/resource facts and the
+  later Crostini/cgroup/process-visibility, LXD, suspension and mock-only
+  limitations in the existing execution-environments reference. Reported native
+  findings are attributed, not rerun or certified by this documentation sync.
+  The CEO's aspiration to run both future development automation and eventually
+  the finished PAM product on the Chromebook remains a **planning target**;
+  production/deployment and safe co-location are not authorized or established.
+- CEO clarification of #161 remains limited to the normative scope: its original
+  absolute 60-second and numerical LXD trial requirements stay intact, but are not
+  automatically inherited by other future worker classes. Each future class
+  requires independent security validation and explicit CEO approval; #154,
+  safe suspension recovery, actual kernel isolation, preserved historical WO171
+  and V1/V2 authority boundaries remain unchanged.
+- This PR changes only non-protected Markdown documentation, requires CEO merge,
+  installs no component, grants no Chromebook/worker authority, and makes no
+  claim of execution or CI results absent separately observed evidence.
+
 ## 2026-10-14 — CEO clarification of WO171 / #161 execution-security scope
 
 - `WO-GOV-SYNC-WO171-161-SCOPE-CEO-DECISION`: fetched and verified canonical
@@ -1201,16 +1230,11 @@ there is no activated reminder, scheduled checkpoint or guaranteed execution.
   sources; it did not reexamine the original #161 protocol ZIP. This sync separately
   read the canonical GitHub sources and makes no claim of consulting an independent
   archive of that conversation handoff or reproducing a technical audit.
-- The subsequent explicit CEO decision makes scope `RESOLVED_BY_CEO_DECISION`:
-  the complete #161 acceptance protocol remains applicable to its single synthetic
-  LXD trial, including the absolute 60-second descendant-stop requirement and other
-  LXD acceptance parameters. Those parameters are not automatically universal for
-  every future architecture. Each future worker category needs a separate explicit
-  execution-security contract, independent technical validation and explicit CEO
-  approval before real execution. No safety waiver or technical GO is granted;
-  #163's replacement proposal and other proposed contracts are not adopted.
-  The [scope record](../PAM_ROADMAP.md#wo171-and-issue-161-scope-decision-2026-10-14)
-  preserves the CEO's exact clarification.
+- The subsequent explicit CEO decision makes scope `RESOLVED_BY_CEO_DECISION`.
+  The [single scope record](../PAM_ROADMAP.md#wo171-and-issue-161-scope-decision-2026-10-14)
+  preserves the exact clarification, the unchanged complete #161 LXD requirements
+  and separate future-worker security-contract, independent-validation and CEO
+  approval gates. No safety waiver, technical GO or adoption of #163's proposal.
 - Technical/financial status is unchanged: historical #161 LXD device acceptance
   `NOT ACCEPTED`; historical WO171 `BLOCKED / NOT_CERTIFIED`; WO157 quarantines
   unchanged; WO167 `MOCK ONLY`; #154 autonomous repeated-use financial gate, kernel
@@ -1229,3 +1253,21 @@ there is no activated reminder, scheduled checkpoint or guaranteed execution.
   device/service actions or new spending. Reuse assessment: `NOT APPLICABLE` —
   documentation only. Local DOCS_ONLY/documentation validation and this PR's observed
   CI/mergeability are reported separately; canonical merge remains the CEO's decision.
+
+## 2026-10-15 — PR #175 resolution against canonical PR #174
+
+- Resumed the same Work Order and existing [PR #175](https://github.com/PineAllocationMedia/investment_automation/pull/175)
+  from HEAD `3615acfc7569845fcf7874eec0d0891f000ffcd9`. Integrated canonical
+  `model-v2/expected-return-challenger` HEAD
+  `80515e8eef280a226adc630c7dbc75d923610529`, tree
+  `494eeff536ff027a1270e488636c983a3b0f2b17`, containing merged
+  [PR #174](https://github.com/PineAllocationMedia/investment_automation/pull/174).
+  Preserved the original branch tip in a local backup ref; no history rewrite.
+- Preserved the canonical Chromebook environment/roadmap, reuse checkpoint,
+  retrospective and all prior Worklog bytes. #173 remains `QUEUED_FOR_DESK_REVIEW_ONLY`;
+  no Architecture & Audit evaluation is claimed. Replaced obsolete #174 pending-merge
+  snapshot text and linked summaries to one detailed normative scope record.
+- Only the four authorized Markdown files differ from the new canonical base.
+  Protected files and implementation are unchanged. DOCS_ONLY and focused
+  documentation checks are reported in the handoff; no worker/device authority,
+  merge, deployment or additional spending follows from this resolution.
