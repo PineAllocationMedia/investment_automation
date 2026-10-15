@@ -9,6 +9,36 @@
 
 ---
 
+### Operational engineering discipline — Chromebook automation (2026-10-14)
+
+Before building any further substantive Chromebook development-orchestration
+component, apply the **existing-technology reuse check** in `AGENTS.md` §9.1:
+compare relevant maintained free tools (normally at most three) with accepted
+WO167 mock-only internals and document one `REUSE / ADAPT / BUILD` decision.
+[Architecture & Audit review #173](https://github.com/PineAllocationMedia/investment_automation/issues/173)
+is queued for desk research; no tool has been adopted or installed. Repeated
+correction of the same kernel/security invariant without discriminating evidence
+must trigger a narrow re-scope/STOP decision rather than another patch loop.
+
+CEO's development-automation target is **Chromebook-only** persistent orchestration
+when Linux is available, safe reconciliation after interruption, autonomous task
+selection within a separately approved permission envelope and **PR-only** output.
+This target is not an execution GO. Native kernel confinement, non-dangerous
+resume, #154 structural zero incremental billing and credential isolation are
+not proven; WO167 is mock-only and historical WO171 remains
+`BLOCKED / NOT_CERTIFIED`. CEO clarified on 2026-10-14 that #161's
+one-shot LXD acceptance limits (including 60 real seconds) do not automatically
+apply to new worker categories, which need their own independently validated,
+CEO-approved security contracts. #161's original conditions remain unchanged.
+
+The CEO also envisions the Chromebook as a future PAM **product** host, but
+this is a planning objective rather than permission for V2/finished-product
+deployment or evidence that the hardware can support co-located development,
+V1 operations and a future product. See the dated
+[execution-environment profile](docs/operations/PAM_EXECUTION_ENVIRONMENTS.md).
+This process note does **not** reorder Stage R/S/T, activate a V2 stage or
+supersede any previously approved sequencing or production gates.
+
 ## 1. Current project phase
 
 **Phase:** V2 evidence-qualified Expected Return foundation
