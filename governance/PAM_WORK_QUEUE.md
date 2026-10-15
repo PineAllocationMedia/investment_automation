@@ -38,6 +38,15 @@
 
 ## COMPLETED
 
+- WO171 / #161 normative scope clarification: `RESOLVED_BY_CEO_DECISION`,
+  explicit CEO decision dated `2026-10-14`, following the CEO-supplied Architecture
+  & Audit `WO171-161-CONTRACT-SCOPE-VERIFICATION` finding `AMBIGUOUS_REQUIRES_CEO`.
+  The [single scope record](../PAM_ROADMAP.md#wo171-and-issue-161-scope-decision-2026-10-14)
+  preserves the exact CEO decision, unchanged complete #161 LXD requirements and
+  separate future-worker contract/approval gates. Only the normative clarification
+  is complete: historical WO171 remains `BLOCKED / NOT_CERTIFIED`, WO167 `MOCK ONLY`,
+  and #154, kernel confinement and non-dangerous resume `NOT PROVEN`. No execution GO.
+
 - Bounded Stage-D D1 native implementation: `COMPLETE / CANONICAL`, separately
   CEO-authorized and merged in [PR #151](https://github.com/PineAllocationMedia/investment_automation/pull/151).
   - Contract A R3 two immediately adjacent annual Revenue / Operating Income
@@ -385,7 +394,16 @@
 
 ## WAITING CEO
 
-- Canonical merge of this post-PR #151 Governance Sync.
+- Canonical merge of `WO-GOV-SYNC-WO171-161-SCOPE-CEO-DECISION` after review.
+  The prior post-PR #151 Governance Sync and Chromebook retrospective are already
+  canonical through [PR #152](https://github.com/PineAllocationMedia/investment_automation/pull/152)
+  and [PR #174](https://github.com/PineAllocationMedia/investment_automation/pull/174).
+- A future worker execution-security contract is `NOT AUTHORIZED / NOT ADOPTED / NOT QUEUED`.
+  If separately authorized, preparation for one specific proposed architecture is
+  the next legitimate technical step: define and independently validate confinement,
+  resource limits, termination, suspension/recovery, secrets and external access,
+  and separately satisfy #154. This is no automatic implementation or activation.
+  `DECISIONS.md` remains protected and untouched; a formal append needs separate authorization.
 - Next substantive technical scope — `PENDING_CEO_SELECTION_AND_AUTHORIZATION`.
   Bounded native Stage-D D1 implementation, synthetic validation and independently
   verified authentic Microsoft replay are complete through PR #151. Stage D as a

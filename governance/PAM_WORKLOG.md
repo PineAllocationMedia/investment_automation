@@ -1215,3 +1215,59 @@ there is no activated reminder, scheduled checkpoint or guaranteed execution.
 - This PR changes only non-protected Markdown documentation, requires CEO merge,
   installs no component, grants no Chromebook/worker authority, and makes no
   claim of execution or CI results absent separately observed evidence.
+
+## 2026-10-14 — CEO clarification of WO171 / #161 execution-security scope
+
+- `WO-GOV-SYNC-WO171-161-SCOPE-CEO-DECISION`: fetched and verified canonical
+  `model-v2/expected-return-challenger`, HEAD
+  `1e6912f1d31318e2ed695eb42fe09dccaca90acc`, tree
+  `0b28013e2b1a6a7e5ce8a5bd6b5da641ab4b474c`. Prior Governance Sync
+  [PR #152](https://github.com/PineAllocationMedia/investment_automation/pull/152)
+  is merged and canonical; the previous local branch/ref was preserved.
+- The CEO supplied the full Architecture & Audit handoff
+  `WO171-161-CONTRACT-SCOPE-VERIFICATION` in conversation, dated 2026-10-14:
+  `AMBIGUOUS_REQUIRES_CEO`. Its normative review used #161 and relevant #159/#163/#164
+  sources; it did not reexamine the original #161 protocol ZIP. This sync separately
+  read the canonical GitHub sources and makes no claim of consulting an independent
+  archive of that conversation handoff or reproducing a technical audit.
+- The subsequent explicit CEO decision makes scope `RESOLVED_BY_CEO_DECISION`.
+  The [single scope record](../PAM_ROADMAP.md#wo171-and-issue-161-scope-decision-2026-10-14)
+  preserves the exact clarification, the unchanged complete #161 LXD requirements
+  and separate future-worker security-contract, independent-validation and CEO
+  approval gates. No safety waiver, technical GO or adoption of #163's proposal.
+- Technical/financial status is unchanged: historical #161 LXD device acceptance
+  `NOT ACCEPTED`; historical WO171 `BLOCKED / NOT_CERTIFIED`; WO157 quarantines
+  unchanged; WO167 `MOCK ONLY`; #154 autonomous repeated-use financial gate, kernel
+  confinement and non-dangerous resume `NOT PROVEN`. Real Codex workers and
+  Chromebook device operations remain `NOT AUTHORIZED`. V1 frozen operational
+  authority and V2 challenger status remain unchanged.
+- If separately authorized, the next legitimate technical step is preparation of
+  an execution-security contract for one specific proposed future worker architecture,
+  defining and independently validating confinement, resource limits, termination,
+  suspension/recovery, secrets and external access, with separate #154 satisfaction.
+  No implementation chantier is activated or queued and no roadmap resequencing occurs.
+- Exactly the four authorized operational Markdown files are in scope. All prior
+  Worklog bytes remain intact. Protected files, especially `DECISIONS.md`, remain
+  unchanged; a formal registry append needs separate authorization, not a substitute
+  registry. No code, tests, contracts, dependencies, workflows, historical artifacts,
+  device/service actions or new spending. Reuse assessment: `NOT APPLICABLE` —
+  documentation only. Local DOCS_ONLY/documentation validation and this PR's observed
+  CI/mergeability are reported separately; canonical merge remains the CEO's decision.
+
+## 2026-10-15 — PR #175 resolution against canonical PR #174
+
+- Resumed the same Work Order and existing [PR #175](https://github.com/PineAllocationMedia/investment_automation/pull/175)
+  from HEAD `3615acfc7569845fcf7874eec0d0891f000ffcd9`. Integrated canonical
+  `model-v2/expected-return-challenger` HEAD
+  `80515e8eef280a226adc630c7dbc75d923610529`, tree
+  `494eeff536ff027a1270e488636c983a3b0f2b17`, containing merged
+  [PR #174](https://github.com/PineAllocationMedia/investment_automation/pull/174).
+  Preserved the original branch tip in a local backup ref; no history rewrite.
+- Preserved the canonical Chromebook environment/roadmap, reuse checkpoint,
+  retrospective and all prior Worklog bytes. #173 remains `QUEUED_FOR_DESK_REVIEW_ONLY`;
+  no Architecture & Audit evaluation is claimed. Replaced obsolete #174 pending-merge
+  snapshot text and linked summaries to one detailed normative scope record.
+- Only the four authorized Markdown files differ from the new canonical base.
+  Protected files and implementation are unchanged. DOCS_ONLY and focused
+  documentation checks are reported in the handoff; no worker/device authority,
+  merge, deployment or additional spending follows from this resolution.
