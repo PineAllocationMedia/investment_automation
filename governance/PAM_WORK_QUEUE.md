@@ -397,6 +397,9 @@
 
 None.
 
+- **#173 — Chromebook orchestrator existing-technology assessment**: `WO-CHROMEBOOK-ORCHESTRATOR-REUSE-REVIEW`, PRIMARY Architecture & Audit, `QUEUED_FOR_DESK_REVIEW_ONLY`. Compare at most OpenClaw, OpenHands and Hugging Face smolagents against WO167; return one REUSE/ADAPT/BUILD strategy with licensing, hardware, integration, security and hard-$0 evidence. [Issue #173](https://github.com/PineAllocationMedia/investment_automation/issues/173) exists; specialist work is **not** represented as executed. No device commands, repo edits, installation, actual model use or technical GO.
+- **PM workflow retrospective — operational documentation PR pending CEO merge**: record a lightweight prior-art assessment gate and a stop/re-scope trigger for serial architecture patches without discriminating evidence, implementing the already existing `AGENTS.md` §9.1 rather than creating new role powers. Source status: CEO requested documentary improvements 2026-10-14. Historical WO171 remains `BLOCKED / NOT_CERTIFIED`; #154 and real-worker gates remain unsatisfied.
+
 ## QUEUED
 
 None. The completed feasibility study is recorded under COMPLETED; it is no longer
