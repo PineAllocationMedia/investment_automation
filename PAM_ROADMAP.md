@@ -2363,6 +2363,78 @@ does not alter business economics. A source outage may reduce availability,
 Confidence or Admission, but must not become `THESIS_BROKEN`, `SELL` or degraded
 economic Quality without economic evidence.
 
+### Cross-cutting future candidate — Sector ETF opportunity and rotation research
+
+**Status: FUTURE RESEARCH/PRODUCT CANDIDATE — NOT IMPLEMENTED / NO RUNTIME
+AUTHORITY.** CEO-requested for roadmap consideration on 2026-10-16;
+tracked as `OPP-PROD-001` (`PROMOTED` to future roadmap only). This is
+not an activated Stage-D chantier, a new V2 pillar, a numerical model policy,
+or permission to change existing investment rules. Preserve canonical stage
+sequence and the final-cleanup gate.
+
+**Initial observation universe:** the 11 U.S. Select Sector SPDR ETFs,
+`XLK`, `XLF`, `XLV`, `XLI`, `XLE`, `XLU`, `XLP`, `XLY`, `XLB`,
+`XLRE` and `XLC`. This is an initial U.S. large-cap sector radar, not
+global coverage or an automatic investible/admitted opportunity set. USD
+research comparison must remain distinct from CAD-listed wrapper, FX,
+hedging and transaction economics. A sector proxy's exposures and inception
+date must be explicit.
+
+Two **separate explanatory research indicators**, subject to future
+contracts and evidence feasibility:
+
+1. **Sector Opportunity Context:** research a potentially attractive
+   long-horizon entry *context* using sector-appropriate valuation versus
+   its own qualified history, fundamental/earnings resilience, drawdown or
+   stress, real-rate and credit/macro context, and stabilization/relative
+   strength. High `VIX` or `VXN` alone never establishes cheapness or a
+   buying opportunity; `VXN` covers Nasdaq-100, not a pure tech sector.
+2. **Sector Deterioration / Rotation Review:** separately examine thesis
+   deterioration, excessive concentration and a material, evidence-supported
+   prospective-return disadvantage versus comparable alternatives after
+   costs. High valuation or low volatility alone never forces a sale.
+   `HOLD` / `STOP_ADDING` / `REVIEW` are future explanatory concepts,
+   not executable instructions or a symmetrical sell trigger.
+
+Candidate inputs include sector-specific valuations (not universal P/E;
+consider financials, real estate and cyclical earnings separately),
+earnings/revision evidence, financial quality, relative valuation,
+drawdown/market breadth, VIX/VXN context, U.S. nominal and **real** rates
+(including 10-year real yields and yield-curve context), credit spreads
+and recovery evidence. The conversation's percentile cutoffs and proposed
+35/25/15/15/10 weights are **untested hypotheses**, not adopted defaults,
+calibration or investment policy. Favor interpretable components over one
+opaque score.
+
+**Compact V2 report intention (Stage P, only when evidence-backed):**
+reserve a small `Sector Radar` summary showing notable opportunity and
+deterioration/rotation-review contexts, distinct statuses, brief reasons,
+observation dates, evidence quality and links to the 11-sector detail.
+Support `UNAVAILABLE` / `INSUFFICIENT_EVIDENCE` explicitly; do not
+fabricate missing valuation, forward earnings, revisions or historic
+percentiles. No report redesign or scoring integration is authorized now.
+
+**Sequential qualification gates before any implementation authorization:**
+
+- Product & UX: a bounded two-indicator research/compact-report contract;
+  maintain research-vs-recommendation and watchlist/admission separation.
+- Data & Evidence: source/provenance, $0 mandatory incremental
+  external-financial-data cost, rights/licensing/permitted use, compatible
+  sector definitions, valuation semantics and point-in-time availability.
+  Public macro vintage series do not imply free historical forward-P/E or
+  analyst-revision archives. Avoid `CURRENT` → `HISTORICAL_AS_OF` promotion.
+- Architecture & Audit / Data Analyst in separately authorized tasks:
+  fail-closed methodology review and genuine point-in-time evaluation,
+  including ETF/index inception and survivorship, distributions, FX,
+  turnover/taxes/costs, false positives, drawdowns, and 1/3/5-year outcomes
+  against a comparable continuously invested broad-market benchmark.
+  Backtest performance cannot authorize trading rules without a separate
+  CEO model-policy decision.
+
+No task, implementation, data acquisition, scheduled alert, sector
+allocation, automatic buy/sell/rotation, V1 alteration, deployment or
+V2 promotion is activated by this candidate.
+
 ### Longer-term direction — Research product surface
 
 Potential features:
