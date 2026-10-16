@@ -133,3 +133,15 @@ Each entry records:
 - **DEPENDENCIES:** Measured failure corpus, accuracy review, provenance-preserving output contract and explicit implementation Work Order.
 - **STATUS:** `PARKED`
 - **CEO DISPOSITION:** Approved to preserve and periodically reconsider; not approved to implement.
+
+### OPP-PROD-001 — Sector ETF opportunity and deterioration/rotation radar
+
+- **ID:** `OPP-PROD-001`
+- **TITLE:** Two-indicator research radar across 11 U.S. sector ETFs
+- **SOURCE:** CEO-requested roadmap feature from a supplied exploratory AI discussion, 2026-10-16; its thresholds, examples and performance claims are unvalidated.
+- **DESCRIPTION:** Distinct sector Opportunity Context and Deterioration / Rotation Review research indicators, with a compact V2 Sector Radar summary; no automatic buy/sell decisions.
+- **POTENTIAL VALUE:** Compare sector valuation, quality, stress, interest-rate context and long-term opportunity cost with evidence and uncertainty visible.
+- **ESTIMATED EFFORT:** High / multi-stage; exact feasibility and scope unknown.
+- **DEPENDENCIES:** Future bounded Product & UX contract; qualified free/PIT sector and macro data; licensing/redistribution verification; Architecture & Audit review; out-of-sample benchmarking; CEO authorization of each implementation scope.
+- **STATUS:** `PROMOTED` (roadmap candidate only; implementation `NOT AUTHORIZED`).
+- **CEO DISPOSITION:** Requested future roadmap inclusion on 2026-10-16; no model-rule, trading, deployment or investment-philosophy change.
