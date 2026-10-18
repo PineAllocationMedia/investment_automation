@@ -3,6 +3,26 @@
 > Two-to-five-minute operational snapshot. Refresh through Governance Sync after
 > durable state changes.
 
+- **2026-10-17 WSL2 mock-only acceptance (CEO-supplied):** Architecture & Audit
+  reportedly reviewed the native evidence archive and returned
+  `MOCK_ACCEPTED / WSL2_MOCK_ACCEPTED` for the covered WO164/WO167 scenarios:
+  60/60 + 42/42 tests, 7.28 seconds combined, approximately 51 MiB maximum reported
+  sampled group RSS. Windows 11 Home / Debian 13 WSL2 on AMD Ryzen 5 7600,
+  configured for 2 logical CPUs, 2 GB RAM, no swap; Python 3.13.5 / SQLite 3.46.1.
+  The [dated environment/evidence record](../docs/operations/PAM_EXECUTION_ENVIRONMENTS.md#windows-11--debian-wsl2-mock-only-acceptance--2026-10-17)
+  preserves supplied hashes, provenance and limits. This sync reran no native tests
+  and independently accessed neither the device nor private artifacts.
+  The PC is a validated experimental development environment for mock-only WSL2
+  tests; WO167 remains **MOCK ONLY**. No persistent coordinator installation is
+  accepted; genuine Windows/WSL2 shutdown recovery, global descendant termination,
+  complete confinement and universal absence of external actions are unverified.
+  No real Codex worker or automated ChatGPT-specialist invocation is authorized
+  or established; #154 structural zero-incremental-spending remains **NOT PROVEN**.
+  Credentials, network exposure, GitHub publication and CEO-only merge safeguards
+  remain unqualified for autonomous execution. V1 frozen authority and V2 challenger
+  status persist. CEO-approved Windows development exploration does not formally
+  replace the Chromebook-only permanent-host objective or resolve #173, historical
+  WO171 or Chromebook blockers; any permanent-host replacement is a distinct CEO decision.
 - **2026-10-14 Chromebook development-infrastructure decision/retrospective (CEO-supplied,
   canonical through [PR #174](https://github.com/PineAllocationMedia/investment_automation/pull/174)):**
   The CEO's goal is Chromebook-hosted best-effort

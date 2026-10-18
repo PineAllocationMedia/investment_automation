@@ -1271,3 +1271,45 @@ there is no activated reminder, scheduled checkpoint or guaranteed execution.
   Protected files and implementation are unchanged. DOCS_ONLY and focused
   documentation checks are reported in the handoff; no worker/device authority,
   merge, deployment or additional spending follows from this resolution.
+
+## 2026-10-18 — Governance Sync of 2026-10-17 WSL2 mock-only acceptance
+
+- **ROLE / WORK ORDER:** Codex Development /
+  `WO-GOVERNANCE-SYNC-WSL2-WO167-MOCK-ACCEPTANCE`, documentation-only CEO authorization.
+  Fetched canonical `model-v2/expected-return-challenger` HEAD
+  `6f923dea82081b8d7e228dc38be55c095961e6a1`, tree
+  `2cb6db4e5f4abe531c9e7895cdd453655e66c383`; clean worktree/index and no open PRs
+  observed at preflight. Prior local refs were preserved. Dedicated branch:
+  `codex/gov-sync-wsl2-wo167-mock-acceptance`.
+- **RESULT / KEY FINDINGS:** CEO-provided outputs and Architecture & Audit's
+  independent review report `MOCK_ACCEPTED / WSL2_MOCK_ACCEPTED` for the covered
+  Debian WSL2 scenarios: WO164 60/60, WO167 42/42, total 102/102; 7.28 seconds;
+  approximately 51 MiB maximum reported sampled group RSS. The reviewer reportedly
+  examined logs, persistent SQLite states and synthetic reconciliation/quarantine.
+  Supplied source/archive hashes and the dated Windows 11 Home / Debian 13 WSL2
+  resource/runtime profile are preserved in the
+  [environment/evidence record](../docs/operations/PAM_EXECUTION_ENVIRONMENTS.md#windows-11--debian-wsl2-mock-only-acceptance--2026-10-17).
+  This sync reran no native tests and independently accessed neither PC nor private
+  artifacts; the archive is not committed.
+- **LIMITATIONS:** WO167 remains **MOCK ONLY**. No persistent coordinator installation
+  accepted, genuine Windows/WSL2 shutdown recovery verified, global descendant
+  termination or complete resource confinement certified, or universal absence of
+  external actions certified. Automount/interop restrictions are not a hostile-worker
+  sandbox. No real Codex worker authorized; #154 structural zero-incremental-spending
+  remains **NOT PROVEN**. Credentials, network exposure, GitHub publication and CEO-only
+  merge safeguards remain unqualified for autonomous execution. Automated invocation
+  of existing ChatGPT specialists is not established. V1 remains frozen authority;
+  V2 remains a challenger. Historical Chromebook/WO171 blockers and #173 remain
+  unresolved; CEO-approved Windows development exploration does not replace the
+  Chromebook-only permanent-orchestrator objective.
+- **RECOMMENDED NEXT ACTION / CEO DECISION REQUIRED:** review this Governance Sync
+  PR; merge remains CEO-only. Any permanent-host strategy replacement or real-worker
+  work requires a distinct CEO decision and separately bounded authorization;
+  no new implementation is activated.
+- **REPO CHANGE REQUIRED / STATUS:** exactly five authorized non-protected Markdown
+  files updated additively; all prior Worklog bytes retained. No code, tests,
+  contracts, CI, model rules, historical evidence or runtime changed. Resource reuse
+  assessment: **NOT APPLICABLE** — pure documentation, no new component or adoption.
+  Local committed `DOCS_ONLY` preflight, scope, links, historical preservation and
+  whitespace results are reported in the delivery handoff; PR delivery stops before
+  merge and without polling Actions/reviews/mergeability.
