@@ -38,6 +38,25 @@
 
 ## COMPLETED
 
+- WO164/WO167 Debian WSL2 mock-only validation, dated `2026-10-17`:
+  `MOCK_ACCEPTED / WSL2_MOCK_ACCEPTED` per CEO-provided outputs and independent
+  Architecture & Audit review. Reported 60/60 + 42/42 tests (102/102), 7.28 seconds,
+  approximately 51 MiB maximum sampled group RSS. See the
+  [environment/evidence record](../docs/operations/PAM_EXECUTION_ENVIRONMENTS.md#windows-11--debian-wsl2-mock-only-acceptance--2026-10-17).
+  This documentation sync reran no native tests and accessed no PC/private archive.
+  Completion covers those mock scenarios only; WO167 remains **MOCK ONLY**.
+  Real-worker prerequisites remain unresolved: architecture-specific independently
+  validated security contract and explicit CEO approval, genuine shutdown recovery,
+  global process/descendant termination, complete resource confinement, external-action
+  controls, credentials/network/GitHub publication and CEO-only merge safeguards,
+  plus #154 structural zero-incremental-spending (**NOT PROVEN**). No persistent
+  coordinator installation is accepted and no automated invocation of existing
+  ChatGPT specialists is established. No real worker, implementation or deployment
+  is activated. V1 frozen authority and V2 challenger status remain. This milestone
+  does not close #173 or historical Chromebook/WO171 blockers, change queue priorities
+  or replace the Chromebook-only permanent-host objective; replacement requires a
+  distinct CEO decision.
+
 - WO171 / #161 normative scope clarification: `RESOLVED_BY_CEO_DECISION`,
   explicit CEO decision dated `2026-10-14`, following the CEO-supplied Architecture
   & Audit `WO171-161-CONTRACT-SCOPE-VERIFICATION` finding `AMBIGUOUS_REQUIRES_CEO`.

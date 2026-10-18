@@ -9,6 +9,35 @@
 
 ---
 
+### WSL2 development-infrastructure mock milestone — 2026-10-17
+
+The CEO-provided test outputs and Architecture & Audit review report
+`MOCK_ACCEPTED / WSL2_MOCK_ACCEPTED` for the existing WO164/WO167 coordinator
+under Debian WSL2: 102/102 mock tests, 7.28 seconds combined, approximately
+51 MiB maximum reported sampled group RSS. This sync did not rerun those tests
+or independently access the PC/private artifacts. See the dated
+[environment and evidence record](docs/operations/PAM_EXECUTION_ENVIRONMENTS.md#windows-11--debian-wsl2-mock-only-acceptance--2026-10-17).
+
+The Windows exploration follows repeated Chromebook confinement blockers and
+disproportionate Windows-native portability work; the existing Linux implementation
+was tested under WSL2 without porting its Unix security mechanisms to Windows.
+The PC is a validated **experimental development environment for mock-only WSL2
+tests**, not an approved production host. WO167 remains **MOCK ONLY**. Persistent
+installation, genuine shutdown recovery, global descendant termination, complete
+resource confinement and universal absence of external actions are not certified.
+Real Codex workers remain unauthorized; #154 structural zero-incremental-spending
+is **NOT PROVEN**. Credentials, network exposure, GitHub publication and CEO-only
+merge safeguards remain unqualified for autonomous execution; automated invocation
+of existing ChatGPT specialists is not established. V1 remains frozen operational
+authority and V2 a challenger.
+
+This CEO-approved development exploration does not replace the previously canonical
+Chromebook-only permanent-orchestrator objective: formal permanent-host strategy
+replacement requires a distinct CEO decision. Historical Chromebook blockers,
+WO171 status and #173 remain unresolved by this acceptance. Future real-worker
+work requires separately authorized security/financial qualification and CEO approval;
+no implementation, installation or roadmap-stage resequencing is activated here.
+
 ### Operational engineering discipline — Chromebook automation (2026-10-14)
 
 Before building any further substantive Chromebook development-orchestration

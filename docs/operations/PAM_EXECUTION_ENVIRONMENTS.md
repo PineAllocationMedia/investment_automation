@@ -111,6 +111,57 @@ information; never repeat broad process enumeration or reveal owner/private
 paths, credentials or V1 data. Historical measurements are not live capacity
 or proof of service/worker safety.
 
+## Windows 11 / Debian WSL2 mock-only acceptance — 2026-10-17
+
+**Provenance:** CEO-provided test outputs and Architecture & Audit handoff in
+`WO-GOVERNANCE-SYNC-WSL2-WO167-MOCK-ACCEPTANCE`. The independent reviewer reportedly
+examined the supplied native archive, logs, persistent SQLite states and synthetic
+reconciliation/quarantine scenarios, returning `MOCK_ACCEPTED / WSL2_MOCK_ACCEPTED`
+strictly for the covered mock-only scenarios. This Governance Sync did not rerun
+tests, independently access the WSL2 device or obtain/hash the private artifacts.
+The archive is not committed; the following identities are supplied, not recomputed.
+
+| Property | CEO-supplied / independently reviewed report |
+|---|---|
+| Host / processor | Windows 11 Home; AMD Ryzen 5 7600 development PC |
+| Guest | Debian 13 under WSL2 |
+| WSL2 configured resources | 2 logical CPUs; 2 GB RAM; no swap |
+| Pilot runtime | Python 3.13.5; SQLite 3.46.1 |
+| Guest restrictions during pilot | Windows-drive automount and Windows-program interop disabled |
+| WO164 / WO167 results | 60/60 PASS / 42/42 PASS; 102/102 total |
+| Combined suite duration | 7.28 seconds |
+| Maximum reported sampled group RSS | Approximately 51 MiB; sampled observation, not a certified resource ceiling |
+| Original WO167 source SHA-256 | `b84790e8bfe4289b0122f3173e31e17137f1bd8c4674d1d4bfff867cbed4d33e` |
+| Evidence archive | `PAM_WO167_WSL2_EVIDENCE.tar.gz` |
+| Archive SHA-256 | `bf04eb309f5742ddee414acdc8246cc6f8d35c5ada7e426ca1f97d3975ffeb39` |
+
+The existing Linux implementation was tested without porting its Unix security
+mechanisms to Windows. Python 3.13.5 is the reported pilot runtime, not a replacement
+for PAM's pinned development-validation interpreter. Full PC RAM/storage, GPU,
+installation footprint and broader workload compatibility remain **UNKNOWN** here.
+
+**Accepted role:** validated experimental development environment for mock-only
+WSL2 tests, not an approved production host. WO167 remains **MOCK ONLY**.
+Disabling automount/interop is not a certified hostile-worker sandbox. No persistent
+PAM coordinator installation is accepted by the pilot. Recovery after a genuine
+Windows/WSL2 shutdown is unverified; global process/descendant termination, complete
+resource confinement and universal absence of external actions are not certified.
+No real Codex worker is authorized. #154 structural zero-incremental-spending remains
+**NOT PROVEN**. Credentials, network exposure, GitHub publication and CEO-only merge
+safeguards remain unqualified for autonomous execution. Automated invocation of
+existing ChatGPT specialists is not established. No installation, execution,
+spending, production/deployment or V2-promotion authority follows from this record.
+V1 remains frozen operational authority; V2 remains a challenger.
+
+The CEO approved Windows development exploration after repeated Chromebook
+confinement blockers and disproportionate Windows-native portability work. This
+does not formally replace the previously canonical Chromebook-only permanent-host
+objective: that strategy replacement remains a distinct CEO decision. Historical
+Chromebook blockers, WO171 `BLOCKED / NOT_CERTIFIED` and
+[#173](https://github.com/PineAllocationMedia/investment_automation/issues/173)
+are not resolved by this WSL2 acceptance. Existing Chromebook observations above
+remain historical evidence within their original scope.
+
 ## Operational boundaries and runtimes
 
 - V1 remains frozen operational authority. Routine V2 development must not change
