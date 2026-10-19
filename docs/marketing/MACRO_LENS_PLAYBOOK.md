@@ -4,7 +4,7 @@
 **Owner:** Marketing & GTM under the existing bounded Blossom `@therealpam` mandate.
 **Channel:** Blossom posts on `@therealpam` only, unless separately authorized.
 **Authority:** Research, drafting, visual preparation, audit coordination and measurement; **no autonomous publication**.
-**Companion files:** [Templates](MACRO_LENS_TEMPLATES.md) · [Editorial log](MACRO_LENS_EDITORIAL_LOG.md) · [Role charter](../../governance/roles/MARKETING_GTM.md).
+**Companion files:** [Templates](MACRO_LENS_TEMPLATES.md) · [Visual Kit](visual_kit/README.md) · [Editorial log](MACRO_LENS_EDITORIAL_LOG.md) · [Role charter](../../governance/roles/MARKETING_GTM.md).
 
 ## 1. Why this exists
 
@@ -80,12 +80,12 @@ Prohibited: personally tailored investment advice, recommendations to buy/sell/h
 
 ## 6. Reusable layouts and controlled adaptation
 
-See [template library](MACRO_LENS_TEMPLATES.md). Choose by story:
+See [template library](MACRO_LENS_TEMPLATES.md) and the executable [Visual Kit](visual_kit/README.md). Choose by story:
 - `T1` **The Mechanism**: one macro transmission chain.
 - `T2` **The Divergence**: two signals seemingly at odds, dates and definitions aligned.
 - `T3` **The Regime Shift**: a properly sourced historical context and what changed.
 
-They share PAM branding, typographic hierarchy, footer date/source convention and fact-validation contract—not the same filler modules. Avoid daily dashboard repetition. Subject determines template. Do not invent charts simply to fill a slot. A template version is recorded for each published post.
+The three real SVG/PNG layouts are rendered by the offline Visual Kit. They share PAM branding, typographic hierarchy, footer date/source convention and fact-validation contract—not the same filler modules. SVG/PNG rendering is **not** factual verification; an independent reviewer must inspect the exact image and caption. A non-watermarked export requires separately recorded independent-audit and CEO-approval references bound to the input hash; those references are workflow declarations, not cryptographic proof of review. Avoid daily dashboard repetition. Subject determines template. Do not invent charts simply to fill a slot. A template version is recorded for each published post.
 
 ## 7. Audit and learning discipline
 
