@@ -1,0 +1,35 @@
+{
+  "schema_version": "1.0",
+  "account": "@therealpam",
+  "issue_at": "2026-10-19T09:30:00-04:00",
+  "deck": "A visual layout demonstration. No market facts or investment recommendations are present.",
+  "blind_spot": "The important question is often the transmission mechanism, not the headline alone.",
+  "tripwire": "Wait for relevant verified evidence, not market noise.",
+  "issue_id": "ML-20261019-01",
+  "template": "T1",
+  "headline": "The headline is only half the story.",
+  "evidence": [
+    {
+      "claim_id": "F1",
+      "label": "Illustrative signal",
+      "display": "DEMO ONLY",
+      "unit": "not market data",
+      "period": "DEMO",
+      "observed_at": "2026-10-19T09:30:00-04:00",
+      "retrieved_at": "2026-10-19T09:30:00-04:00",
+      "source_title": "Synthetic layout fixture",
+      "source_url": "https://example.org/fixture",
+      "classification": "FACT",
+      "verification": "VERIFIED",
+      "verification_note": "Synthetic fixture only; not externally checked; prohibited for publication"
+    }
+  ],
+  "fact_ids": [
+    "F1"
+  ],
+  "mechanism": [
+    "Initial macro signal",
+    "Financial conditions adapt",
+    "Economic effects unfold"
+  ]
+}
