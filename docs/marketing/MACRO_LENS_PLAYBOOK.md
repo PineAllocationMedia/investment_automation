@@ -1,0 +1,122 @@
+# PAM | The Macro Lens — Blossom editorial playbook v1.0
+
+**Status:** Proposed operational playbook; takes effect only after CEO approval and merge.
+**Owner:** Marketing & GTM under the existing bounded Blossom `@therealpam` mandate.
+**Channel:** Blossom posts on `@therealpam` only, unless separately authorized.
+**Authority:** Research, drafting, visual preparation, audit coordination and measurement; **no autonomous publication**.
+**Companion files:** [Templates](MACRO_LENS_TEMPLATES.md) · [Editorial log](MACRO_LENS_EDITORIAL_LOG.md) · [Role charter](../../governance/roles/MARKETING_GTM.md).
+
+## 1. Why this exists
+
+Create an investing/finance account genuinely worth following: timely, original, understandable macroeconomic explanations with institutional research discipline, **without pretending to be an institution or selling investment recommendations**. PAM promotion is incidental. The audience's understanding is more important than post cadence or engagement.
+
+Signature lens: **SIGNAL → MECHANISM → BLIND SPOT → TRIPWIRE**.
+
+- **Signal:** a verified development, with correct observation period.
+- **Mechanism:** *how* rates, currency, credit, liquidity, inflation, growth, productivity, or capital flows plausibly transmit into other markets.
+- **Blind spot:** a non-obvious, defensible consideration, not manufactured contrarianism.
+- **Tripwire:** an observable fact that could change the analysis, **not** a trading trigger.
+
+These are internal editorial questions, **not mandatory identical headings on every graphic**. Write naturally; witty when earned; nuance is a strength. Never imitate a recognizable commentator's phrasing, publishing identity or proprietary layout. Avoid AI-market-news bingo cards, invented urgency, forced conclusions and fake terminal aesthetics. Do not claim originality if the insight is standard.
+
+## 2. Editorial workflow: SCAN → PICK → VERIFY → INTERPRET → WRITE → RENDER → AUDIT → APPROVE → LOG → LEARN
+
+| Stage | Required action | Hard gate |
+|---|---|---|
+| SCAN | Inspect current reliable sources and genuine Blossom-relevant conversations | Do not assume a third-party post is factually correct |
+| PICK | Select one worthwhile idea; explain why PAM adds something readers would not get from a data dump | If no useful angle exists, **SKIP** |
+| VERIFY | Create a versioned issue fact sheet; independently check material claims, units, observations and dates | Unsupported central claims → **HOLD** |
+| INTERPRET | Separate facts from mechanisms, hypotheses, competing explanations and uncertainty | Do not promote correlation to established causation |
+| WRITE | Make a sharp headline and complementary concise natural-English caption | Inform; **never prescribe trades** |
+| RENDER | Populate a tested template using approved data; preview in Blossom mobile feed | No synthetic market charts/figures |
+| AUDIT | Independent skeptical review of the **actual image and caption** against facts | A material discrepancy → **HOLD** until fixed and rechecked |
+| APPROVE | CEO reviews final exact rendered artifact and caption | No CEO approval → **NOT PUBLISHED** |
+| LOG | Save post URL, content/version, approval, observation timestamps, measured metrics | No invented publication or analytics |
+| LEARN | Compare to matched prior issues; record confounders and propose one controlled test | No automatic rule/authority changes |
+
+A sourced research draft is not a fact-checked final graphic. The final artifact must undergo its own verification. No schedule obliges filler posts. A pre-market issue requires data appropriate to that *specific* session; avoid using prior close figures as live pre-market values.
+
+## 3. Evidence contract and fail-closed behavior
+
+Maintain an **internal evidence register** for each issue. For each material factual or numerical claim, record:
+- claim ID and literal publication text;
+- source publisher, original title and exact URL/locator;
+- publication time, retrieval time and **economic/market observation time**, all with timezone;
+- security/exchange/currency, market session, unit and reference period;
+- original value, derived calculation and method, if applicable;
+- evidence classification: `FACT`, `INTERPRETATION`, `HYPOTHESIS`, `UNKNOWN`;
+- status: `VERIFIED`, `QUALIFIED`, `UNRESOLVED`, or `REJECTED`.
+
+**Source hierarchy:** first official original release / central bank / statistical agency / exchange / issuer filings / corporate IR; then reputable market-data publications appropriate to the exact claim. Cite original data for releases whenever available. A social post or AI summary is a lead, not proof. Two syndications of the same report are not independent corroboration. Where legally or technically inaccessible, say unavailable and do not improvise. Respect licensing, reuse, attribution and redistribution limits; escalate commercial/data-rights ambiguity.
+
+For intraday figures distinguish timestamp, cash index versus futures contract versus ETF, delayed versus live, latest quote versus previous close, regular hours versus after-hours, price versus total return, and percentage points versus percent or basis points. For economic series distinguish vintage, seasonality, revisions and comparable periods. Independently recompute derived figures.
+
+The explanatory mechanism is an interpretation unless the causal relationship is specifically established. Provide plausible alternatives and what future evidence could disconfirm it. Do not use “because” when the source only establishes coincident movement. Never assert “markets priced in X” without evidence.
+
+**BLOCK / HOLD cases:** no accessible authoritative source for the central claim; stale or mixed-date data passed off as contemporaneous; conflicting key figures; wrong units, labels or currency; invented price path, time series, sparklines or misleading axis; inaccurate attribution; unsupported causal certainty; investment advice or affiliate conflict; unreadable or ambiguous critical labels. An `UNKNOWN` is not zero and not permission to estimate.
+
+**PASS** requires a source-linked fact sheet, recalculation where applicable, exact visual-content comparison, independent review and resolved material issues. An auditor's “PASS” is not a guarantee of truth and never substitutes for CEO approval.
+
+## 4. Information-only / compliance contract
+
+The series provides **market information and economic education**. The audience decides what, if anything, to invest in.
+
+Permitted: explain economic mechanisms, observed rates, macro risks, competing scenarios, changing business conditions and the interpretation's limitations.
+
+Prohibited: personally tailored investment advice, recommendations to buy/sell/hold, prescribed entry/exit levels, position sizes, price targets, urgency/fear inducements, promised returns, or claims that PAM's engine generated analysis it cannot demonstrably produce. “Not financial advice” does not cure substantive advice-like content. If securities are discussed, use them as examples of transmission mechanisms, not calls to action. Escalate regulated-advice, affiliate or commercial-claims uncertainty to Commercial & Compliance. Wealthsimple affiliate content is not part of this series by default.
+
+## 5. Blossom-specific publishing rules
+
+- Audience and destination: public **Blossom** feed, account `@therealpam`. No assumed access to publication or insights APIs.
+- All publishable visual text, hooks, captions, polls and replies are in **English**.
+- Default visual target for design exploration: portrait **4:5 (1080 × 1350)**; confirm Blossom's current display, upload, text and cropping constraints before treating them as official specifications.
+- Mobile-first: a legible single headline and one key visual/relationship. Leave practical margins for feed crop. Use accessible contrast and non-color-only meaning. Proofread all small-print, ticker symbols, market sessions and date labels.
+- Visual identity: midnight navy + warm white, selective mint/teal for focus, sparing amber for uncertainty; red/green only when economically meaningful; well-spaced editorial typography; no fake institutional logos or invented credentials.
+- Stable **design system**, variable **editorial substance**. Use at most one dominant chart; remove charts that add no explanatory value.
+- Default caption: around 60–120 words if useful, never rigid; add context not already readable in graphic. Strong opening, evidence-based explanation, precise uncertainty. Don't force a hook/CTA/joke every time.
+- Where Blossom cannot display full source links neatly, provide traceable source names and dates in a compact caption/comment and retain exact URLs in the private evidence register.
+- If figures/plots cannot be rendered from real structured observations with deterministic tools, use **text-only / mechanism diagram** or return layout spec for human assembly, not an AI-fabricated market-data graphic.
+- The concept image from 2026-10-19 was a **style mockup**, not a live-data feed. Never reuse its numbers, calendars, price paths or other depicted facts as verified material.
+
+## 6. Reusable layouts and controlled adaptation
+
+See [template library](MACRO_LENS_TEMPLATES.md). Choose by story:
+- `T1` **The Mechanism**: one macro transmission chain.
+- `T2` **The Divergence**: two signals seemingly at odds, dates and definitions aligned.
+- `T3` **The Regime Shift**: a properly sourced historical context and what changed.
+
+They share PAM branding, typographic hierarchy, footer date/source convention and fact-validation contract—not the same filler modules. Avoid daily dashboard repetition. Subject determines template. Do not invent charts simply to fill a slot. A template version is recorded for each published post.
+
+## 7. Audit and learning discipline
+
+Log real posts in [editorial log](MACRO_LENS_EDITORIAL_LOG.md) or an explicitly approved durable record linked from it. Capture snapshots at approximately 24h / 72h / 7d, **only when observed**. Records distinguish missing, zero and un-attributable metrics. If Blossom lacks profile-visit or post-attributed follower data, never infer it as factual attribution.
+
+Useful measures when available: views, likes, comments, shares/reposts, saves, profile visits, post-attributable follows; post age; meaningful/constructive discussion; audience confusion and corrections. Calculate engagement per 1,000 views only with compatible denominators and observation periods. Treat views as platform counts, not unique persons unless documented.
+
+Prioritize: **factual integrity gate > explanatory usefulness and discussion quality > sustained audience growth > raw engagement**. No engagement optimization can excuse misinformation.
+
+For improvement, log an explicit hypothesis, single major design or writing variable, comparator, primary metric, observation age, confounders and outcome. Compare multiple reasonably similar posts before calling a winner. Prevent retrospective “winner” selection. Do not silently rewrite playbook doctrine or use small samples to claim causality. Proposed changes require CEO approval.
+
+## 8. Working prompts (employee may invoke internally)
+
+### PRODUCTION
+> Using `MACRO_LENS_PLAYBOOK.md` and `MACRO_LENS_TEMPLATES.md`, prepare a Blossom `@therealpam` Macro Lens issue for [date/session or topic]. Scan and pick one worthwhile topic, build the source-linked fact sheet with observed timestamps, explain the signal/mechanism/blind spot/tripwire plus alternative, choose T1/T2/T3, draft visual and caption, then audit every rendered claim. If critical evidence is missing, HOLD instead of inventing. Return the exact draft, evidence register, audit status and `AWAITING CEO APPROVAL`. Do not publish.
+
+### INDEPENDENT REVIEW
+> Review this exact Macro Lens infographic, caption and evidence register adversarially. Reopen original sources, recompute figures and inspect each visual label/plot. Flag stale data, false certainty, misleading causality, licensing/attribution risk and advice-like wording. Return PASS/HOLD/REJECT, precise corrections and evidence links. PASS never authorizes publication.
+
+### LEARNING REVIEW
+> Evaluate the logged Blossom issues at comparable 24h/72h/7d observation ages. Separate actual measured results from unavailable attribution; review useful discussion, factual corrections, reach and engagement; identify confounders. Propose exactly one next editorial experiment and provide durable copy-ready log updates. Do not claim a causal improvement based on one post.
+
+### SESSION START / RELOAD
+> You are the Marketing & GTM specialist for `@therealpam`. Read `AGENTS.md`, the minimum necessary canonical governance/role documents, then the Macro Lens playbook, templates and editorial log in `docs/marketing/` from the authorized V2 integration branch. Follow them **only for Macro Lens Blossom tasks**; other work remains bounded by the role charter. Confirm what files are actually accessible and what previous outcomes are documented; never assume memory is the performance ledger. Do not publish without my explicit approval.
+
+## 9. Handoff (STANDARD)
+
+Return: **thesis | why now | verified fact sheet and as-of times | interpretation and counter-case | template and visual | Blossom caption | citations | verification verdict | risks | approval status | experiment ID | log-ready entry**.
+
+Avoid verbose research dumps in the public post. Preserve the complete internal trace.
+
+## 10. Governance
+
+This playbook does not authorize autonomous scheduled posts, posting to other channels, data subscriptions, code deployment, investment advice, automated workflow infrastructure, role expansion, or updates to CEO-protected policies. CEO approval remains mandatory for public publication, material editorial-positioning changes and protected amendments. Changes to this playbook should be versioned, reviewed and approved, never silently self-amended.

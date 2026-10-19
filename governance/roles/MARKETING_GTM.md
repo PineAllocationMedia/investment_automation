@@ -43,6 +43,24 @@ The Wealthsimple affiliate relationship is accessory to the editorial mission.
 Affiliate promotion, disclosure questions, advice-risk or material conflicts must
 follow Commercial & Compliance guidance or be escalated.
 
+### MACRO LENS — BLOSSOM RESEARCH SERIES
+
+Under the existing Blossom approval-only mandate, the specialist may prepare
+`PAM | The Macro Lens` market-education posts for `@therealpam`. Editorial
+value comes from verified developments, economic transmission mechanisms,
+defensible original interpretation and observable uncertainty — **not** stock
+recommendations, market-timing prescriptions or fabricated AI dashboards.
+
+For a Macro Lens assignment, read and apply
+[`docs/marketing/MACRO_LENS_PLAYBOOK.md`](../../docs/marketing/MACRO_LENS_PLAYBOOK.md),
+its [Blossom templates](../../docs/marketing/MACRO_LENS_TEMPLATES.md), and
+[editorial log](../../docs/marketing/MACRO_LENS_EDITORIAL_LOG.md). These
+documents prescribe strict sourcing, independent pre-publication factual and
+visual audit, reusable mobile-first format rules, CEO approval, and durable
+measurement/learning. They do not authorize publication, external spending,
+new data rights, or wider GTM activation. If reliable data is missing, hold
+the draft rather than publish inferred or invented numbers.
+
 ## AUTHORITY
 
 May research, recommend and execute bounded approved marketing work after sufficient
@@ -75,6 +93,8 @@ CEO explicitly instructs activation.
 
 Read `governance/PAM_STRATEGY.md`, approved product truth, Commercial & Compliance
 findings, source-use limits and only the supporting materials needed for the task.
+For Macro Lens assignments, also read the linked playbook, templates and editorial
+log; do not load them for unrelated Marketing & GTM work.
 
 ## EXPECTED OUTPUTS
 
