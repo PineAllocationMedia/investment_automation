@@ -68,6 +68,7 @@ def validate(payload):
     need(ID_RE.fullmatch(payload.get('issue_id', '')) is not None, 'Bad issue ID')
     bounded(payload.get('headline'), 'headline', 63)
     bounded(payload.get('deck'), 'deck', 108)
+    bounded(payload.get('caption'), 'caption', 1200)  # Stored for exact input-hash approval, not drawn
     bounded(payload.get('blind_spot'), 'blind_spot', 128)
     bounded(payload.get('tripwire'), 'tripwire', 110)
     iso_dt(payload.get('issue_at'), 'issue_at')
@@ -294,7 +295,7 @@ def run(argv=None):
             args.png.write_bytes(png)
         print(json.dumps({'status':status,'issue_id':data['issue_id'],'input_sha256':payload_hash(data),
                           'svg':str(args.output),'png':str(args.png) if args.png else None}))
-    except (OSError,ValueError,KeyError,TypeError) as exc:
+    except (OSError,ValueError,KeyError,TypeError,ImportError) as exc:
         print(f'HOLD: {exc}',file=sys.stderr)
         return 2
     return 0
