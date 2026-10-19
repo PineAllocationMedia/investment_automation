@@ -12,6 +12,22 @@ Produces consistent branded SVG graphics, plus optional PNG, from manually sourc
 
 The program has **no market data feed**, no publishing API, no autonomous recurring job and no factual validation of underlying linked sources. It checks source references, timestamps with timezone, completeness, length, matched periods/units where required, and blocks unresolved records and risky display overflow. A `VERIFIED` field is a **human research assertion, not proof**: an independent fact checker must open sources and recompute material claims. Image-generation tools must not fill these graphics with invented market figures.
 
+## Brand identity — verified Blossom logo (2026-10-19)
+
+The CEO supplied a screenshot of the *actual Blossom profile identity*: a **forest-green botanical pine branch and hanging cone, inside a warm-ivory circle**. This overrides the earlier assumption that a neon-teal `P` square represented the full PAM brand. The editorial canvas remains restrained dark navy/forest, with pine-green panels, soft sage accents, warm ivory typography and a reserved circular emblem.
+
+**The screenshot is visual evidence, NOT the official production logo asset.** It includes an interface button, crop and resolution limits. Do not cut, redraw, vectorize or hallucinate a supposedly exact corporate mark from it. The repository deliberately does not contain a clean original, and demonstration SVGs show a provisional ivory circle with a P. A real release requires the CEO's clean, square PNG of the exact current profile emblem (128–2048 px, <=2 MB). Never publish the provisional P badge as though it were the Blossom pine logo.
+
+Pass the original logo with `--brand-logo` and include the *actual PNG SHA256* in `brand_logo_sha256` in the JSON issue before independent visual/factual review and CEO approval. The asset bytes are inlined in the SVG as an image, so the final SVG stays self-contained. A changed logo invalidates its recorded hash/approval. Do not include a source screenshot as an acceptable logo substitute.
+
+To compute the SHA256 with Python:
+
+```bash
+python -c "import hashlib,sys; print(hashlib.sha256(open(sys.argv[1],'rb').read()).hexdigest())" /path/to/official_pam_logo.png
+```
+
+The logo's original graphic proportions and orientation are preserved in a circular crop, rather than recolored or redrawn. A later CEO-approved logo redesign would require a separate brand update.
+
 ## Minimal usage
 
 Run from repository root (Python 3.11+):
@@ -25,7 +41,7 @@ python docs/marketing/visual_kit/render_macro_lens.py \
 
 SVG: Python standard library only. PNG: PyMuPDF (`fitz`), already pinned in the repository `requirements.txt`. Rendering is offline, self-contained, with no external API call or obligatory paid service. No installation or hardware assumptions beyond normal local Python and the dependency, which may be absent on a given host (in that case omit `--png`). All static assets are code; fonts are system fallback only; no redistributed fonts. PNG path must be writable. SVG can be opened directly in a browser.
 
-Example JSON files contain **synthetic layout-only** tokens, not actual verified economic information. Generated previews have **DRAFT · NOT AUDITED**. Never publish them, even if they look finished. The exporter actively rejects a release manifest paired to these fixtures.
+Example JSON files contain **synthetic layout-only** tokens, not actual verified economic information. Generated previews have **DRAFT · NOT AUDITED** and a provisional P-brand mark. Never publish them, even if they look finished. The exporter actively rejects a release manifest paired to these fixtures.
 
 ## Draft to approved final
 
@@ -49,11 +65,12 @@ Example JSON files contain **synthetic layout-only** tokens, not actual verified
 ```bash
 python docs/marketing/visual_kit/render_macro_lens.py approved_issue.json \
   --release-manifest independent_review_and_ceo_approval.json \
+  --brand-logo /path/to/official_pam_logo.png \
   --output /tmp/macro-lens-approved.svg \
   --png /tmp/macro-lens-approved.png
 ```
 
-The input SHA-256 binds the manifest to a specific JSON payload; any content change invalidates that manifest. **The manifest is not cryptographically authenticated**, does not prove a human actually reviewed it, does not validate remote claims, and should be managed through CEO-controlled procedures. Publication itself is separate and manual unless the CEO explicitly authorizes a supported publishing workflow.
+The input SHA-256 binds the manifest to a specific JSON payload including `brand_logo_sha256`; the CLI separately hashes the PNG bytes and rejects any mismatch. Release is blocked unless an actual logo file was supplied and the hash matches; any content change invalidates that manifest. **The manifest is not cryptographically authenticated**, does not prove a human actually reviewed it, does not validate remote claims, and should be managed through CEO-controlled procedures. Publication itself is separate and manual unless the CEO explicitly authorizes a supported publishing workflow.
 
 ## Fact sheet JSON contract
 
@@ -68,6 +85,7 @@ Required top-level fields:
 | `issue_at` | ISO-8601 timestamp with explicit UTC offset |
 | `headline`, `deck`, `blind_spot`, `tripwire` | Concise public text; strict length and layout limits |
 | `caption` | Exact proposed English Blossom caption; excluded from SVG layout but INCLUDED in hash-bound review |
+| `brand_logo_sha256` | SHA256 of the original clean, square PAM logo PNG; required when rendering with `--brand-logo` and for final release. Omit in synthetic draft examples. |
 | `evidence` | 1+ records with claim ID, label, display, unit, period, observation timestamp, retrieval timestamp, original HTTPS source, short title, verification note, classification and review status |
 | `fact_ids` | T1: one evidence claim ID; T2/T3: two IDs |
 | `mechanism` | T1: exactly three short text links |
@@ -97,7 +115,7 @@ cd docs/marketing/visual_kit
 python -m unittest discover -s tests -v
 ```
 
-The tests use only synthetic mock observations. They cover XML escaping, all three layouts, unit/session comparability, missing/unverified evidence, unsafe URLs, oversized text, draft watermark, SHA-linked authorization and local PNG dimensions. They do **not** establish source truth, macroeconomic accuracy, independent compliance approval, actual Blossom upload behavior or follower conversion.
+The tests use only synthetic mock observations. They cover XML escaping, all three layouts, unit/session comparability, missing/unverified evidence, unsafe URLs, oversized text, draft watermark, SHA-linked authorization, logo-asset hash binding and local PNG dimensions. They do **not** establish source truth, macroeconomic accuracy, independent compliance approval, actual Blossom upload behavior or follower conversion.
 
 This is a pure documentation/graphic creation utility. **No product/model changes, investment decisions, data sources, scheduling, account publication privileges or spending authority are introduced.** Keep Marketing & GTM charter and CEO merge/publication gates intact.
 
