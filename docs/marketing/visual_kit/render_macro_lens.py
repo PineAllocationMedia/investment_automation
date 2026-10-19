@@ -5,19 +5,24 @@ Output remains watermarked until a separate audited, CEO-approved release manife
 identifies the exact input SHA-256. No network access or financial data retrieval.
 """
 import argparse
+import base64
 import hashlib
 import json
 import math
 import re
 import sys
+import struct
 from datetime import datetime
 from pathlib import Path
 from urllib.parse import urlparse
 from xml.sax.saxutils import escape
 
 W, H = 1080, 1350
-BG, PANEL, LIGHT = '#0B1828', '#14263A', '#F4F2EB'
-MUTED, TEAL, AMBER = '#AEBBC6', '#75DCC0', '#F3C574'
+# Blossom profile identity: warm ivory seal, forest-green pine-cone illustration.
+# Preserve subdued dark editorial canvas; eliminate the old neon/teal brand badge.
+BG, PANEL, LIGHT = '#11242A', '#1A3233', '#F4F0E6'
+MUTED, TEAL, AMBER = '#BDC8BE', '#A6CBB1', '#E6C592'
+PINE, IVORY = '#284936', '#F4F0E6'
 FONT = 'DejaVu Sans, Liberation Sans, Arial, sans-serif'
 ID_RE = re.compile(r'^ML-\d{8}-\d{2}$')
 SAFE_TOKEN = re.compile(r'^[A-Za-z0-9._:/+()%,&!?—–−= #\-]+$')
@@ -159,23 +164,44 @@ def arrow(x, y, length=70):
     return rule(x, y, x, y + length) + f'<path d="M{x-10} {y+length-11} L{x} {y+length} L{x+10} {y+length-11}" fill="none" stroke="{TEAL}" stroke-width="3"/>'
 
 
-def common(p, typ):
+def checked_logo(path):
+    """Load exact CEO-provided *clean* square PNG asset, never reconstruct from screenshot."""
+    raw = Path(path).read_bytes()
+    need(len(raw) <= 2_000_000 and len(raw) >= 24,
+         'Brand logo PNG must be between 24 bytes and 2MB')
+    need(raw[:8] == b'\x89PNG\r\n\x1a\n' and raw[12:16] == b'IHDR',
+         'Brand logo must be a real PNG')
+    width, height = struct.unpack('>II', raw[16:24])
+    need(width == height and 128 <= width <= 2048,
+         'Brand logo must be square (at least 128×128, at most 2048×2048)')
+    return raw
+
+
+def common(p, typ, logo_png=None):
+    # Real user-provided logo, if supplied, is embedded as image bytes in self-contained SVG.
+    # Fallback is a typographic draft seal, never a fake pine-cone imitation.
     out = [f'<svg xmlns="http://www.w3.org/2000/svg" width="{W}" height="{H}" viewBox="0 0 {W} {H}">',
            rect(0, 0, W, H, BG, 0),
-           rect(68, 59, 55, 55, TEAL, 14),
-           txt(82, 94, 'P', 31, BG, 900),
-           txt(145, 91, 'PAM', 25, LIGHT, 800),
-           txt(245, 91, '/  THE MACRO LENS', 21, MUTED, 600),
-           txt(1012, 92, typ+' / 01', 18, TEAL, 700, anchor='end'),
-           rule(68, 136, 1012, 136, '#2F4555', 2),
-           txt(68, 183, p['issue_at'][:10]+'  /  @therealpam', 19, MUTED, 600),
-           multiline(68, 267, p['headline'], 27, 2, 54, LIGHT, 800, 65, 'headline'),
-           multiline(68, 395, p['deck'], 57, 2, 24, MUTED, 400, 37, 'deck')]
+           '<defs><clipPath id="pamSealClip"><circle cx="110" cy="99" r="38"/></clipPath></defs>',
+           '<circle cx="110" cy="99" r="39" fill="'+IVORY+'"/>']
+    if logo_png is not None:
+        encoded = base64.b64encode(logo_png).decode('ascii')
+        out.append('<image x="72" y="61" width="76" height="76" preserveAspectRatio="xMidYMid slice" '
+                   'clip-path="url(#pamSealClip)" href="data:image/png;base64,'+encoded+'"/>')
+    else:
+        out.append(txt(110, 111, 'P', 40, PINE, 800, anchor='middle'))
+    out.extend([txt(169, 103, 'PAM', 29, LIGHT, 800),
+           txt(263, 102, '/  THE MACRO LENS', 21, MUTED, 600),
+           txt(1012, 102, typ+' / 01', 18, TEAL, 700, anchor='end'),
+           rule(68, 153, 1012, 153, '#3B554F', 2),
+           txt(68, 195, p['issue_at'][:10]+'  /  @therealpam', 19, MUTED, 600),
+           multiline(68, 276, p['headline'], 27, 2, 54, LIGHT, 800, 65, 'headline'),
+           multiline(68, 403, p['deck'], 57, 2, 24, MUTED, 400, 37, 'deck')])
     return out
 
 
 def footer(out, p, sources, asof, status):
-    out.extend([rule(68, 1224, 1012, 1224, '#304658', 2),
+    out.extend([rule(68, 1224, 1012, 1224, '#3B554F', 2),
                 txt(68, 1262, 'SOURCES: '+sources, 15, MUTED, 500),
                 txt(68, 1287, 'AS OF '+asof+'  ·  NOT INVESTMENT ADVICE', 15, MUTED, 500),
                 txt(1012, 1288, p['issue_id'], 16, TEAL, 600, anchor='end')])
@@ -186,7 +212,7 @@ def footer(out, p, sources, asof, status):
 
 
 def t1(out, p, f):
-    out.append(rect(68, 481, 944, 156, '#173545'))
+    out.append(rect(68, 481, 944, 156, '#204039'))
     out.append(txt(97, 520, '01  /  THE VERIFIED SIGNAL', 21, TEAL, 800))
     out.append(txt(97, 587, f['display'], 49, LIGHT, 800))
     out.append(txt(470, 580, f['label'], 27, LIGHT, 600))
@@ -200,7 +226,7 @@ def t1(out, p, f):
             out.append(rule(x+299, 787, x+319, 787, TEAL, 3))
     out.append(txt(68, 909, '03  /  THE BLIND SPOT', 20, TEAL, 800))
     out.append(multiline(68, 954, p['blind_spot'], 64, 2, 25, LIGHT, 500, 36, 'blind_spot'))
-    out.append(rect(68, 1050, 944, 60, '#25313D', 10))
+    out.append(rect(68, 1050, 944, 60, '#32433D', 10))
     out.append(multiline(89, 1088, 'WATCH: '+p['tripwire'], 91, 1, 19, AMBER, 600, 23, 'tripwire'))
 
 
@@ -234,10 +260,11 @@ def t3(out, p, a, b):
     out.append(multiline(68, 1172, 'WATCH: '+p['tripwire'], 86, 1, 18, AMBER, 650, 25, 'tripwire'))
 
 
-def render(payload, status='DRAFT'):
+def render(payload, status='DRAFT', logo_png=None):
+    need(status != 'RELEASE' or logo_png is not None, 'Release rendering requires exact brand logo asset')
     chosen = validate(payload)
     typ = payload['template']
-    out = common(payload, typ)
+    out = common(payload, typ, logo_png)
     if typ == 'T1': t1(out, payload, chosen[0])
     elif typ == 'T2': t2(out, payload, *chosen)
     else: t3(out, payload, *chosen)
@@ -262,6 +289,7 @@ def release_allowed(payload, approval):
     need(approval.get('ceo_approved') is True, 'Explicit CEO approval required')
     bounded(approval.get('auditor_reference'),'auditor_reference',140)
     bounded(approval.get('ceo_approval_reference'),'ceo_approval_reference',140)
+    need(bool(payload.get('brand_logo_sha256')), 'Release requires official brand logo SHA256 in approved payload')
     # This checks an external record; it cannot authenticate the human reviewer or verify source URLs.
 
 
@@ -271,6 +299,7 @@ def run(argv=None):
     ap.add_argument('--output',type=Path,required=True,help='Path to output SVG')
     ap.add_argument('--png',type=Path,help='Optional output PNG (existing PyMuPDF package required)')
     ap.add_argument('--release-manifest',type=Path,help='Separate pre-approved, SHA-bound external audit and CEO authorization')
+    ap.add_argument('--brand-logo',type=Path,help='Clean, CEO-provided square PNG of actual Blossom pine-cone logo')
     args=ap.parse_args(argv)
     try:
         data=json.loads(args.issue.read_text(encoding='utf-8'))
@@ -279,7 +308,13 @@ def run(argv=None):
             approval=json.loads(args.release_manifest.read_text(encoding='utf-8'))
             release_allowed(data,approval)
             status='RELEASE'
-        svg=render(data,status)
+        logo_png = checked_logo(args.brand_logo) if args.brand_logo else None
+        if logo_png is not None:
+            need(data.get('brand_logo_sha256') == hashlib.sha256(logo_png).hexdigest(),
+                 'Brand logo SHA256 missing or mismatched: asset is not bound to approved issue')
+        if status == 'RELEASE':
+            need(logo_png is not None, 'Cannot release without exact CEO-supplied Blossom logo PNG')
+        svg=render(data,status,logo_png)
         # Generate BOTH outputs before writing either to disk.
         png=None
         if args.png:
