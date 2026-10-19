@@ -12,21 +12,25 @@ Produces consistent branded SVG graphics, plus optional PNG, from manually sourc
 
 The program has **no market data feed**, no publishing API, no autonomous recurring job and no factual validation of underlying linked sources. It checks source references, timestamps with timezone, completeness, length, matched periods/units where required, and blocks unresolved records and risky display overflow. A `VERIFIED` field is a **human research assertion, not proof**: an independent fact checker must open sources and recompute material claims. Image-generation tools must not fill these graphics with invented market figures.
 
-## Brand identity — verified Blossom logo (2026-10-19)
+## Brand identity — CEO-approved RECONSTRUCTED pine emblem (2026-10-19)
 
-The CEO supplied a screenshot of the *actual Blossom profile identity*: a **forest-green botanical pine branch and hanging cone, inside a warm-ivory circle**. This overrides the earlier assumption that a neon-teal `P` square represented the full PAM brand. The editorial canvas remains restrained dark navy/forest, with pine-green panels, soft sage accents, warm ivory typography and a reserved circular emblem.
+The CEO supplied a screenshot of the existing Blossom `@therealpam` profile emblem: a pine branch and hanging cone in forest green on a warm-ivory circle. The historical source file has **not** been recovered. A new 2048×2048 RGBA PNG was reconstructed from that screenshot; the CEO explicitly approved **v0.1 as PAM Macro Lens's production master on 2026-10-19**. This is **RECONSTRUCTED**, not the recovered or pixel-identical historical original. Do not describe it as a restored original.
 
-**The screenshot is visual evidence, NOT the official production logo asset.** It includes an interface button, crop and resolution limits. Do not cut, redraw, vectorize or hallucinate a supposedly exact corporate mark from it. The repository deliberately does not contain a clean original, and demonstration SVGs show a provisional ivory circle with a P. A real release requires the CEO's clean, square PNG of the exact current profile emblem (128–2048 px, <=2 MB). Never publish the provisional P badge as though it were the Blossom pine logo.
+Canonical, versioned provenance record: [PAM_MACRO_LENS_LOGO_RECONSTRUCTED_v0.1.json](assets/PAM_MACRO_LENS_LOGO_RECONSTRUCTED_v0.1.json).
 
-Pass the original logo with `--brand-logo` and include the *actual PNG SHA256* in `brand_logo_sha256` in the JSON issue before independent visual/factual review and CEO approval. The asset bytes are inlined in the SVG as an image, so the final SVG stays self-contained. A changed logo invalidates its recorded hash/approval. Do not include a source screenshot as an acceptable logo substitute.
+- **Approved master custody:** ChatGPT Library → `/PAM/Brand Assets/PAM_Macro_Lens_logo_RECONSTRUCTED_v0.1_APPROVED_2048.png`. The binary is **not committed to this repo**; move an authorized copy from Library to the rendering host before production use.
+- **Size:** 2048×2048 PNG (RGBA, transparent corners), 1,868,624 bytes. **Exact SHA-256:** `a352aa5dc6b9c5f1a142a36747eb4361a2d22cbc628805ee9a4e28da51ca9c75`.
+- **Runtime binding:** supply that exact file through `--brand-logo /authorized/local/path/logo.png`, and put the **same SHA-256** in `brand_logo_sha256` in the issue JSON. The renderer rejects an unapproved PNG in release mode, even when an issue author changes their self-declared hash. The image bytes are embedded in the final SVG.
+- **Provenance limit:** source avatar screenshot is small and partly occluded; the pine-cone scales and needle strokes differ from the historical design. The reconstructed file is the **approved new master**, not evidence of the old original.
+- **Authority limit:** CEO *logo* approval is not CEO *post* approval. Every post still requires independent factual and visual audits of the **exact image + caption** and separate explicit CEO publication approval. No automatic merge, publication, or deployment.
 
-To compute the SHA256 with Python:
+Production handoff: retrieve the asset from its durable Library location, preserve bytes, verify the SHA-256 below and then supply the verified file to the renderer. **Never** use the screenshot, the provisional P badge, a different reconstruction, or an unverified logo as a release fallback. If the approved bytes are unavailable, **HOLD**.
 
 ```bash
-python -c "import hashlib,sys; print(hashlib.sha256(open(sys.argv[1],'rb').read()).hexdigest())" /path/to/official_pam_logo.png
+python -c "import hashlib,sys; print(hashlib.sha256(open(sys.argv[1],'rb').read()).hexdigest())" /authorized/local/path/logo.png
 ```
 
-The logo's original graphic proportions and orientation are preserved in a circular crop, rather than recolored or redrawn. A later CEO-approved logo redesign would require a separate brand update.
+The dark forest/ivory editorial design and circular seal remain unchanged; this is a narrow asset provenance + release-policy reconciliation, not a branding redesign.
 
 ## Minimal usage
 
@@ -70,7 +74,7 @@ python docs/marketing/visual_kit/render_macro_lens.py approved_issue.json \
   --png /tmp/macro-lens-approved.png
 ```
 
-The input SHA-256 binds the manifest to a specific JSON payload including `brand_logo_sha256`; the CLI separately hashes the PNG bytes and rejects any mismatch. Release is blocked unless an actual logo file was supplied and the hash matches; any content change invalidates that manifest. **The manifest is not cryptographically authenticated**, does not prove a human actually reviewed it, does not validate remote claims, and should be managed through CEO-controlled procedures. Publication itself is separate and manual unless the CEO explicitly authorizes a supported publishing workflow.
+The input SHA-256 binds the manifest to a specific JSON payload including `brand_logo_sha256`; the CLI separately hashes the PNG bytes and rejects any mismatch. Release is blocked unless the exact CEO-approved reconstructed logo file is supplied and its hash matches the canonical approved hash; any content change invalidates that manifest. **The manifest is not cryptographically authenticated**, does not prove a human actually reviewed it, does not validate remote claims, and should be managed through CEO-controlled procedures. Publication itself is separate and manual unless the CEO explicitly authorizes a supported publishing workflow.
 
 ## Fact sheet JSON contract
 
@@ -85,7 +89,7 @@ Required top-level fields:
 | `issue_at` | ISO-8601 timestamp with explicit UTC offset |
 | `headline`, `deck`, `blind_spot`, `tripwire` | Concise public text; strict length and layout limits |
 | `caption` | Exact proposed English Blossom caption; excluded from SVG layout but INCLUDED in hash-bound review |
-| `brand_logo_sha256` | SHA256 of the original clean, square PAM logo PNG; required when rendering with `--brand-logo` and for final release. Omit in synthetic draft examples. |
+| `brand_logo_sha256` | SHA-256 of the exact CEO-approved reconstructed v0.1 PNG listed in `assets/PAM_MACRO_LENS_LOGO_RECONSTRUCTED_v0.1.json`; required with `--brand-logo` and for final release. Omit in synthetic draft examples. |
 | `evidence` | 1+ records with claim ID, label, display, unit, period, observation timestamp, retrieval timestamp, original HTTPS source, short title, verification note, classification and review status |
 | `fact_ids` | T1: one evidence claim ID; T2/T3: two IDs |
 | `mechanism` | T1: exactly three short text links |
