@@ -87,9 +87,10 @@ class RenderTests(unittest.TestCase):
             result=run([str(EX/'t1_synthetic.json'),'--output',str(output),'--png',str(png)])
             self.assertEqual(result,0)
             self.assertGreater(png.stat().st_size,30000)
-            from PIL import Image
-            with Image.open(png) as im:
-                self.assertEqual(im.size,(1080,1350))
+            import struct
+            raw=png.read_bytes()
+            self.assertTrue(raw.startswith(b'\x89PNG\r\n\x1a\n'))
+            self.assertEqual(struct.unpack('>II',raw[16:24]),(1080,1350))
 
 if __name__=='__main__':
     unittest.main()
