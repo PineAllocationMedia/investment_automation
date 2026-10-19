@@ -32,7 +32,7 @@ Example JSON files contain **synthetic layout-only** tokens, not actual verified
 1. Research **one meaningful topic**, compile an internal evidence register and independent sources, record full URL, date, precise observation time, currency/units/period, calculations and verification notes. Store the original source outside the image. Create a JSON issue like one of the examples, replacing every synthetic field with real, checked content. Do not copy synthetic metadata into a real draft.
 2. Run the renderer. On schema, source, timestamp or layout problems it exits with `HOLD` (exit code 2) instead of fabricating data or silently truncating text. SVG carries a DRAFT watermark. Keep the caption in the editorial handoff (outside the image JSON); independently review caption as well.
 3. Give the **exact actual draft image + its final caption + source register** to a skeptical independent reviewer. Correct errors and rerender until the final image is factually consistent and legible at actual Blossom feed size. If the underlying data can't be verified, do not publish.
-4. Obtain **explicit CEO approval of that exact final artifact and caption**. A separate audit manifest can be recorded, e.g.:
+4. Obtain **explicit CEO approval of that exact final artifact and caption**. The caption is included in the hashed JSON, so any change invalidates prior authorization. A separate audit manifest can be recorded, e.g.:
 
 ```json
 {
@@ -67,6 +67,7 @@ Required top-level fields:
 | `account` | `@therealpam` |
 | `issue_at` | ISO-8601 timestamp with explicit UTC offset |
 | `headline`, `deck`, `blind_spot`, `tripwire` | Concise public text; strict length and layout limits |
+| `caption` | Exact proposed English Blossom caption; excluded from SVG layout but INCLUDED in hash-bound review |
 | `evidence` | 1+ records with claim ID, label, display, unit, period, observation timestamp, retrieval timestamp, original HTTPS source, short title, verification note, classification and review status |
 | `fact_ids` | T1: one evidence claim ID; T2/T3: two IDs |
 | `mechanism` | T1: exactly three short text links |
