@@ -1,11 +1,14 @@
 import copy
+import hashlib
+import struct
+import zlib
 import json
 import tempfile
 import unittest
 from pathlib import Path
 from xml.etree import ElementTree as ET
 
-from render_macro_lens import InvalidIssue, payload_hash, release_allowed, render, run
+from render_macro_lens import InvalidIssue, payload_hash, release_allowed, render, run, checked_logo
 
 ROOT = Path(__file__).resolve().parents[1]
 EX = ROOT / 'examples'
@@ -66,15 +69,42 @@ class RenderTests(unittest.TestCase):
         with self.assertRaises(InvalidIssue): release_allowed(d,good)  # synthetic must never release
         d['evidence'][0]['source_url']='https://www.bankofcanada.ca/reports'
         d['evidence'][0]['verification_note']='Verified against underlying bulletin by reviewer'
+        d['brand_logo_sha256']='a'*64
         good['input_sha256']=payload_hash(d)
         release_allowed(d,good)
-        self.assertNotIn('DRAFT',render(d,'RELEASE'))
+        with self.assertRaises(InvalidIssue): render(d,'RELEASE')  # exact logo mandatory
         altered=copy.deepcopy(d); altered['headline']='Edited after approval'
         with self.assertRaises(InvalidIssue): release_allowed(altered,good)
         altered_caption=copy.deepcopy(d);altered_caption['caption']='Changed caption after CEO approval'
         with self.assertRaises(InvalidIssue): release_allowed(altered_caption,good)
         bad=dict(good);bad['ceo_approved']=False
         with self.assertRaises(InvalidIssue): release_allowed(d,bad)
+
+    def test_logo_asset_hash_bound_and_release_requires_logo(self):
+        d=fixture('t1')
+        d['evidence'][0]['source_url']='https://www.bankofcanada.ca/reports'
+        d['evidence'][0]['verification_note']='External review recorded independently'
+        # Construct a legal square PNG without Pillow or network access.
+        def chunk(label, data):
+            return struct.pack('>I',len(data))+label+data+struct.pack('>I',zlib.crc32(label+data)&0xffffffff)
+        raw=b'\x89PNG\r\n\x1a\n'+chunk(b'IHDR',struct.pack('>IIBBBBB',128,128,8,2,0,0,0))
+        row=b'\x00'+bytes([244,240,230])*128
+        raw+=chunk(b'IDAT',zlib.compress(row*128))+chunk(b'IEND',b'')
+        with tempfile.TemporaryDirectory() as tmp:
+            logo=Path(tmp)/'logo.png';logo.write_bytes(raw)
+            self.assertEqual(checked_logo(logo),raw)
+            d['brand_logo_sha256']=hashlib.sha256(raw).hexdigest()
+            issue=Path(tmp)/'issue.json';issue.write_text(json.dumps(d))
+            good={'input_sha256':payload_hash(d),'independent_audit':'PASS','ceo_approved':True,
+                  'auditor_reference':'test-audit','ceo_approval_reference':'test-ceo-approval'}
+            manifest=Path(tmp)/'approval.json';manifest.write_text(json.dumps(good))
+            # This test fixture is not a real publication; it checks the release contract only.
+            out=Path(tmp)/'approved.svg'
+            self.assertEqual(run([str(issue),'--release-manifest',str(manifest),'--output',str(out)]),2)
+            self.assertEqual(run([str(issue),'--release-manifest',str(manifest),'--brand-logo',str(logo),'--output',str(out)]),0)
+            self.assertIn('data:image/png;base64',out.read_text())
+            issue_data=dict(d,brand_logo_sha256='0'*64);issue.write_text(json.dumps(issue_data))
+            self.assertEqual(run([str(issue),'--brand-logo',str(logo),'--output',str(out)]),2)
 
     def test_png_export(self):
         try:
