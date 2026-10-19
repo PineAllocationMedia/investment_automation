@@ -1,0 +1,46 @@
+{
+  "schema_version": "1.0",
+  "account": "@therealpam",
+  "issue_at": "2026-10-19T09:30:00-04:00",
+  "deck": "A visual layout demonstration. No market facts or investment recommendations are present.",
+  "blind_spot": "The important question is often the transmission mechanism, not the headline alone.",
+  "tripwire": "Wait for relevant verified evidence, not market noise.",
+  "issue_id": "ML-20261019-03",
+  "template": "T3",
+  "headline": "A different environment changes the question.",
+  "evidence": [
+    {
+      "claim_id": "F1",
+      "label": "Illustrative metric",
+      "display": "DEMO ONLY",
+      "unit": "not market data",
+      "period": "DEMO PERIOD A",
+      "observed_at": "2024-01-01T00:00:00+00:00",
+      "retrieved_at": "2026-10-19T09:30:00-04:00",
+      "source_title": "Synthetic layout fixture",
+      "source_url": "https://example.org/fixture",
+      "classification": "FACT",
+      "verification": "VERIFIED",
+      "verification_note": "Synthetic fixture only; not externally checked; prohibited for publication"
+    },
+    {
+      "claim_id": "F2",
+      "label": "Illustrative metric",
+      "display": "DEMO ONLY",
+      "unit": "not market data",
+      "period": "DEMO PERIOD B",
+      "observed_at": "2025-01-01T00:00:00+00:00",
+      "retrieved_at": "2026-10-19T09:30:00-04:00",
+      "source_title": "Synthetic layout fixture",
+      "source_url": "https://example.org/fixture",
+      "classification": "FACT",
+      "verification": "VERIFIED",
+      "verification_note": "Synthetic fixture only; not externally checked; prohibited for publication"
+    }
+  ],
+  "fact_ids": [
+    "F1",
+    "F2"
+  ],
+  "interpretation": "Historical comparisons need consistent units, definitions and observation windows."
+}
