@@ -71,6 +71,8 @@ class RenderTests(unittest.TestCase):
         self.assertNotIn('DRAFT',render(d,'RELEASE'))
         altered=copy.deepcopy(d); altered['headline']='Edited after approval'
         with self.assertRaises(InvalidIssue): release_allowed(altered,good)
+        altered_caption=copy.deepcopy(d);altered_caption['caption']='Changed caption after CEO approval'
+        with self.assertRaises(InvalidIssue): release_allowed(altered_caption,good)
         bad=dict(good);bad['ceo_approved']=False
         with self.assertRaises(InvalidIssue): release_allowed(d,bad)
 
