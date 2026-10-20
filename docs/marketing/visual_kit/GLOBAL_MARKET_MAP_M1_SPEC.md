@@ -1,4 +1,46 @@
-# M1 — Global Equity Market Map (PROPOSED, NOT IMPLEMENTED)
+# M1 — Global Equity Market Map (INDEX-FIRST RENDERER CANDIDATE / NOT PUBLICATION-READY)
+
+## Implementation candidate — 2026-10-20 CEO-directed, unmerged
+
+**User decision:** the CEO explicitly wants **country equity indexes shown on the world map**. The new \`render_global_index_map.py\` draft renders actual **Natural Earth 1:110m Admin-0 country polygons** and joins **20 separate country INDEX records**, coloring eligible countries by each domestic benchmark's **latest completed local-currency price-index return**. A ranked list of selected leaders and laggards includes **actual candidate index names**, not anonymous country scores. A full 20-name/index registry is in the issue evidence and methods packet. All benchmark names are **CANDIDATES_UNVERIFIED** in the fixture—not source-certified.
+
+**Geometry:** public-domain Natural Earth Admin 0 Countries v5.1.1, 177 feature polygons, source blob \`1e6ab74c7042f97013be69ceec798be8e1aff27d\` at [upstream GeoJSON](https://github.com/nvkelso/natural-earth-vector/blob/master/geojson/ne_110m_admin_0_countries.geojson); reduced precision to 0.01° longitude/latitude for the 110m map in \`assets/m1_natural_earth_110m_v5_1_1.json\`; pinned Git blob SHA \`8300299de7b831db1b50d0501924cad1f5b067e1\`. [Natural Earth terms](https://www.naturalearthdata.com/about/terms-of-use/) explicitly permit commercial use and modifications (public domain). This still does **not** grant stock-index data rights. Natural Earth displays **de facto** boundaries and is not an authoritative geopolitical statement; geography and territorial coverage need an editorial review for actual publication.
+
+**Critical unresolved gate:** the list in \`examples/m1_global_index_synthetic.json\` is an **illustrative 20-country universe, not independently derived from any official 2026 nominal-GDP ranking**. GDP source URL/vintage/rank amounts are fictional, and **every historical close and index return is invented**. Do not present this example as the “actual 20 largest economies”. Before an authentic M1 issue or accepted production status: source the frozen primary IMF WEO/World Bank nominal-GDP table, validate the actual top 20 using one vintage/year and GDP economy definitions, resolve ISO/territory joins, version and independently audit all 20 benchmark index definitions (and price-vs-total-return distinctions), source exact local-session closes, confirm quotation rights, and review a real replay at 1080×1350 and 390px.
+
+### Benchmark-index candidates (illustrative only, NOT VERIFIED)
+
+| Candidate economy | Candidate domestic equity index | Special caution |
+|---|---|---|
+| United States | S&P 500 Price Index | Large-cap, not total national market |
+| China | CSI 300 Price Index | A-share scope; not all Chinese equities |
+| Germany | **DAX Price Index / Kursindex** | Headline DAX is commonly a **performance / total-return** series; do not silently substitute |
+| Japan | TOPIX Price Index | Vendor variant / ticker must be established |
+| India | NIFTY 50 Price Index | Large-cap; not total NSE breadth |
+| United Kingdom | FTSE 100 Price Index | Large-cap and internationally exposed constituents |
+| France | CAC 40 Price Index | Different from CAC 40 gross/net return variants |
+| Italy | FTSE MIB Price Index | Verify price versus return series |
+| Russia | MOEX Russia Index | **MISSING** in demo due unresolved trustworthy compatible access/session/rights |
+| Canada | S&P/TSX Composite Price Index | Price index; significant sector weights |
+| Brazil | Ibovespa | **INCOMPARABLE** in demo: return-index methodology needs independent review; do not fake a domestic price index |
+| Spain | IBEX 35 Price Index | Separate from dividend/return variant |
+| Mexico | S&P/BMV IPC Price Index | Define quotation/session correctly |
+| South Korea | KOSPI Price Index | Broad composite; local KRW |
+| Australia | S&P/ASX 200 Price Index | AU price benchmark; index facts need original source |
+| Turkey | BIST 100 Price Index | Check official index definition and local quote |
+| Indonesia | IDX Composite Price Index | Source rights and methodology unverified |
+| Netherlands | AEX Price Index | Source/price-return variant unverified |
+| Saudi Arabia | Tadawul All Share Index (TASI) | Provider and local market session review |
+| Switzerland | Swiss Market Index (SMI) Price | Verify exact source variant |
+
+These are **names to investigate**, not audited tickers, official benchmark authorizations, data-provider subscriptions or an approved selection for an actual nominal-GDP-frozen top 20. If a candidate isn't a genuine compatible domestic **price** index, render **MISSING / INCOMPARABLE**, not a misleading index or an ETF substitute.
+
+**Pilot contract:** \`schema_version=1.0\`, \`template=M1\`, \`issue_id=GM-YYYYMMDD-NN\`, \`account\`, \`cutoff_utc\`, \`headline\`, \`deck\`, \`interpretation\`, \`caption\`, \`universe_version\`, \`gdp_vintage\`, \`ranking_year\`, \`gdp_source_url\`, \`geometry_version\`, \`geometry_source_github_blob_sha\`, \`return_basis=DOMESTIC_INDEX_LOCAL_PRICE_RETURN\`, \`comparison_basis=LATEST_COMPLETED_SESSIONS\`, \`method_version\`, \`rights_note\`, \`universe_review\`, \`benchmark_registry_status\`, \`evidence[20]\`. All 20 country rows require unique ranks 1–20, geometry ISO-key match, GDP value/year, candidate benchmark name/provider/variant, local quote currency, provenance and eligibility decision. Eligible rows additionally require independently verified original **price-index** current/prior closes, accurate offset-aware timestamps, exact % arithmetic, local session dates, and independent rights review. Missing rows must carry no numeric return—not 0%.
+
+**Executable contract is intentionally narrower than the full draft data specification below**: no ETF fallback in v0.1, no GDP source download, no live country-index data provider and no guarantee that any actual top-20 universe is fully usable. Geographic map produced only from verified public-domain shapes, not image-generated geography; map fills and mover table in demo are unverified fictional values. The render is **VISUAL HOLD pending CEO review**, even if CI succeeds. Release uses the existing exact input+caption SHA, independent audit and CEO approval gates plus exact pine-master hash. The audit must separately verify source access, index licensing and the immutable map+caption.
+
+---
+
 
 **Use case:** an accurate geographic view of country-equity proxy **daily session returns** for the **20 largest national economies by a frozen nominal-GDP ranking**. It is **not** a map of countries' daily GDP/economic performance, and green/red do not imply national prosperity or a trade recommendation. Requires separate CEO approval before implementation and publishing.
 
