@@ -498,8 +498,9 @@ def render_global_map(p, logo_png=None, status='DRAFT', geometry_path=GEOMETRY):
                 out.append(rect(x,row_y,458,53,'#182E33',0))
             out.append(rule(x,row_y+52,x+458,row_y+52,GRID,1))
             desc=(f"{i+1}.  {e['economy_id']} / {e['etf_ticker']}"
-                  if etf_mode else f"{i+1}.  {e['economy_id']} / INDEX")
-            out.append(put(x+12,row_y+34,desc,21,290,weight=660))
+                  if etf_mode else
+                  f"{i+1}.  {e['economy_id']} / {e['instrument_name']}")
+            out.append(put(x+12,row_y+34,desc,21,313,weight=660))
             result=_return(e)
             out.append(put(x+446,row_y+34,
                            f'{result:+.2f}%' if round(result,2) else '0.00%',
