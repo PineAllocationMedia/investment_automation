@@ -58,13 +58,13 @@ jobs:
         run: |
           set -euo pipefail
           for sample in m4 m4_four_row; do
-            python render_market_brief.py "examples/\${sample}_synthetic.json" \
-              --output "$RUNNER_TEMP/\${sample}_demo.svg" \
-              --png "$RUNNER_TEMP/\${sample}_demo.png"
-            test -s "$RUNNER_TEMP/\${sample}_demo.svg"
-            test -s "$RUNNER_TEMP/\${sample}_demo.png"
-            grep -q 'DRAFT' "$RUNNER_TEMP/\${sample}_demo.svg"
-            grep -q 'MARKET BRIEF' "$RUNNER_TEMP/\${sample}_demo.svg"
+            python render_market_brief.py "examples/${sample}_synthetic.json" \
+              --output "$RUNNER_TEMP/${sample}_demo.svg" \
+              --png "$RUNNER_TEMP/${sample}_demo.png"
+            test -s "$RUNNER_TEMP/${sample}_demo.svg"
+            test -s "$RUNNER_TEMP/${sample}_demo.png"
+            grep -q 'DRAFT' "$RUNNER_TEMP/${sample}_demo.svg"
+            grep -q 'MARKET BRIEF' "$RUNNER_TEMP/${sample}_demo.svg"
           done
 
       - name: Confirm synthetic content remains visibly watermarked
