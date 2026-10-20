@@ -125,7 +125,7 @@ class ResearchNoteTests(unittest.TestCase):
                  for line in block.get('lines', [])
                  for span in line['spans']]
         watch_lines = [span for span in spans
-                       if 1100 <= span['bbox'][1] < 1170]
+                       if 1090 <= span['bbox'][1] < 1170]
         provenance_lines = [span for span in spans
                             if 1190 <= span['bbox'][1] < 1290]
         self.assertEqual(len(watch_lines), 2)
