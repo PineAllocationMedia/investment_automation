@@ -446,7 +446,7 @@ def render_global_map(p, logo_png=None, status='DRAFT', geometry_path=GEOMETRY):
     out.append('</g>')
     # Source-of-truth legend: sample the same continuous color function used
     # for every country, with exact session-dependent tick values.
-    bar_x,bar_w,samples=68,720,80
+    bar_x,bar_w,samples=68,684,76
     for i in range(samples):
         value=scale*(2*(i+0.5)/samples-1)
         out.append(rect(bar_x+i*bar_w/samples,867,
@@ -457,8 +457,8 @@ def render_global_map(p, logo_png=None, status='DRAFT', geometry_path=GEOMETRY):
         out.append(txt(x,898,_tick(v),14,MUTED,600,anchor=anchor))
     # Zero is a separate covered state. Missing countries use the SAME land
     # fill as unselected countries, but the legend explicitly explains it.
-    out.append(rect(810,867,21,13,ZERO,0))
-    out.append(txt(837,879,'0.00%',14,MUTED,600))
+    out.append(rect(770,867,21,13,ZERO,0))
+    out.append(txt(798,879,'EXACT 0.00%',12,MUTED,600))
     out.append('<rect x="900" y="867" width="21" height="13" '
                f'fill="{LAND}" stroke="{LIGHT}" stroke-width="1"/>')
     out.append(txt(927,879,'NOT PLOTTED',12,MUTED,650))
