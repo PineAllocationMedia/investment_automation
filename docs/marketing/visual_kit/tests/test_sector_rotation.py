@@ -181,10 +181,12 @@ class M2RotationTests(unittest.TestCase):
             self.assertGreaterEqual(y0, 43, sp['text'])
             self.assertLessEqual(y1, 1342, sp['text'])
         # Rows must not collide in real rendered glyph geometry.
-        rank_lines = [sp for sp in spans if
-                      len(sp['text']) > 4 and
-                      sp['text'][:2].isdigit() and sp['text'][2:4] == '  ']
+        rank_lines = [sp for sp in spans if sp['text'] in SECTORS]
         self.assertEqual(len(rank_lines), 11)
+        self.assertEqual(
+            len([sp for sp in spans
+                 if sp['text'] in {f'{i:02d}' for i in range(1, 12)}]),
+            11)
         for upper, lower in zip(rank_lines, rank_lines[1:]):
             self.assertLess(upper['bbox'][3] + 5, lower['bbox'][1])
         interp = next(sp for sp in spans if sp['text'] == 'READING')
