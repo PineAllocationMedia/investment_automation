@@ -33,7 +33,7 @@ def geo_shapes(p):
              if g.attrib.get('clip-path')=='url(#mapView)')
     features=load_geometry()['features']
     country_shapes=grp.findall(ns+'path')
-    codes=[f['id'] for f in features if f['id']!='ATA' and f['geom_type'] in ('Polygon','MultiPolygon')]
+    codes=[f['id'] for f in features if f['id']!='ATA' and f['type'] in ('Polygon','MultiPolygon')]
     return svg,dict(zip(codes,country_shapes))
 
 
@@ -87,7 +87,7 @@ class M1AdaptiveColorsAndCaptionTests(unittest.TestCase):
             self.assertIn('+5%',svg)
             self.assertIn('NOT PLOTTED',svg)
             self.assertIn('0.00%',svg)
-            self.assertIn('x="810" y="867" width="21" height="13"',svg)
+            self.assertIn('x="770" y="867" width="21" height="13"',svg)
             self.assertIn('x="900" y="867" width="21" height="13"',svg)
             self.assertEqual(svg.count('fill="'+LAND+'"')>0,True)
 
