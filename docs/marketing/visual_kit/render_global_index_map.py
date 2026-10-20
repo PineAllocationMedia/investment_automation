@@ -2,7 +2,7 @@
 """PAM M1 index-first global equity choropleth. Offline research graphic ONLY.
 
 Synthetic fixture uses proposed, unverified benchmark names and fake prices.
-Production requires audited CEO-selected country coverage and 27 index decisions,
+Production requires audited CEO-selected country coverage and 30 index decisions,
 original source/rights review, immutable public-domain Natural Earth polygons,
 independent exact-asset audit, and separate CEO publication authorization.
 """
@@ -35,7 +35,7 @@ ECONOMY_RE = re.compile(r'^[A-Z]{3}$')
 COUNTRIES = (
     'USA','JPN','CHN','IND','DEU','GBR','CAN','AUS','TWN','KOR',
     'BRA','FRA','CHE','MEX','ESP','ITA','NLD','SGP','ZAF','TUR',
-    'IDN','VNM','RUS','KAZ','IRN','POL','SWE',
+    'SAU','EGY','DZA','IDN','VNM','RUS','KAZ','IRN','POL','SWE',
 )
 # Natural Earth 110m omits microstate-scale Singapore. This is a geographic
 # locator, not a fabricated polygon or an assertion about legal borders.
@@ -125,7 +125,7 @@ def validate_map_issue(p, geo):
                   ('caption',1200),('universe_version',57),
                   ('method_version',45)]:
         bounded(p.get(key),key,n)
-    need(p.get('selection_basis')=='CEO_SELECTED_27_COUNTRIES',
+    need(p.get('selection_basis')=='CEO_SELECTED_30_COUNTRIES',
          'M1 uses the CEO-selected country list, not GDP ranks')
     need(p.get('geometry_version')==GEO_VERSION and
          p.get('geometry_source_github_blob_sha')==UPSTREAM_NE_BLOB_SHA,
@@ -151,7 +151,7 @@ def validate_map_issue(p, geo):
              'Real M1 requires independent country, index and rights review')
     entries=p.get('evidence')
     need(isinstance(entries,list) and len(entries)==len(COUNTRIES),
-         'M1 map requires exactly 27 CEO-selected country decisions')
+         'M1 map requires exactly 30 CEO-selected country decisions')
     world={f['id'] for f in geo['features']}
     orders=set()
     ids=set()
@@ -242,7 +242,7 @@ def validate_map_issue(p, geo):
             need(e.get('session_status') != 'COMPLETED',
                  'M1 noneligible status contradictory to completed market')
     need(orders==set(range(1,len(COUNTRIES)+1)),
-         'M1 selection order must cover all 27 requested countries')
+         'M1 selection order must cover all 30 requested countries')
     need(len(valid)>=4,
          'M1 insufficient valid market coverage to justify a world graphic')
     return valid
@@ -290,7 +290,7 @@ def render_global_map(p, logo_png=None, status='DRAFT', geometry_path=GEOMETRY):
         need(p['rights_note']=='REVIEWED_FOR_EXACT_USE' and
              p['universe_review']=='COVERAGE_VALIDATED' and
              p['benchmark_registry_status']=='INDEPENDENTLY_VERIFIED',
-             'M1 RELEASE requires reviewed 27-country/index/geography/data rights')
+             'M1 RELEASE requires reviewed 30-country/index/geography/data rights')
         need(logo_png is not None and
              hashlib.sha256(logo_png).hexdigest()==APPROVED_LOGO_SHA256 and
              p.get('brand_logo_sha256')==APPROVED_LOGO_SHA256,
