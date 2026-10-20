@@ -130,6 +130,8 @@ Fact sheet ID/link:
 Source URLs, units and observation timestamps complete? YES / NO
 Actual image checked against fact sheet? YES / NO
 Clarity at Blossom mobile crop checked? YES / NO
+Institutional editorial six-gate review: PASS | VISUAL HOLD (reason + mobile proof)
+Visual hierarchy / restrained panel design / evidence proportionality documented? YES / NO
 Caption and image mutually consistent? YES / NO
 Causal language and scenario uncertainty checked? YES / NO
 Investment advice / affiliate risk checked? YES / NO
