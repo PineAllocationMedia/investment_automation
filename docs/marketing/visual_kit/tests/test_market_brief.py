@@ -170,6 +170,24 @@ class M4MarketBriefTests(unittest.TestCase):
         p['evidence'][0]['source_title']='W'*24
         with self.assertRaises(InvalidIssue): draw_market_brief(p)
 
+    def test_confirmation_label_never_collides_with_watch_text(self):
+        try:
+            import fitz
+        except ImportError:
+            self.skipTest('PyMuPDF required for collision check')
+        p=demo()
+        svg=draw_market_brief(p)
+        page=fitz.open(stream=svg.encode('utf-8'), filetype='svg')[0]
+        spans=[sp for block in page.get_text('dict')['blocks']
+               for line in block.get('lines', [])
+               for sp in line['spans']]
+        heading=next(x for x in spans if x['text']=='NEXT CONFIRMATION')
+        watch=[x for x in spans if 'Watch for confirmation' in x['text']]
+        self.assertEqual(len(watch),1)
+        self.assertLessEqual(heading['bbox'][2]+12,watch[0]['bbox'][0])
+        footer=next(x for x in spans if x['text'].startswith('PUBLISHER /'))
+        self.assertLess(watch[0]['bbox'][3]+20,footer['bbox'][1])
+
     def test_native_png_and_mobile_text_bounds(self):
         try:
             import fitz
