@@ -36,6 +36,8 @@ These are internal editorial questions, **not mandatory identical headings on ev
 
 A sourced research draft is not a fact-checked final graphic. The final artifact must undergo its own verification. No schedule obliges filler posts. A pre-market issue requires data appropriate to that *specific* session; avoid using prior close figures as live pre-market values.
 
+T1 **Evidence+** is an optional pilot, not an information-density quota: see [source-bound rendering contract](visual_kit/T1_EVIDENCE_PLUS.md). Extra indicators and chart points must have traceable primary evidence and comparable reference periods/units. A fixed, zero-anchored chart scale and deterministic evidence linkage prevent some common visualization errors, but neither the renderer nor CI authenticates source claims. The independent audit must check the actual plotted observations, transformation, baseline, label and caption against the source records; otherwise **HOLD**.
+
 ## 3. Evidence contract and fail-closed behavior
 
 Maintain an **internal evidence register** for each issue. For each material factual or numerical claim, record:
