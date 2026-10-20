@@ -242,9 +242,9 @@ def render_sector_rotation(p, logo_png=None, status='DRAFT'):
         if length > 0:
             out.append(rect(620 if long_move >= 0 else 620-length,
                             y+24, max(length, 1), 9, color, 0))
-        out.append(checked_text(921, y+31, move_text(long_move), 23, 95,
+        out.append(checked_text(921, y+31, move_text(long_move), 20, 95,
                                 weight=700, anchor='end'))
-        out.append(checked_text(1012, y+31, move_text(day_move), 21, 90,
+        out.append(checked_text(1012, y+31, move_text(day_move), 19, 90,
                                 color=MUTED, weight=600, anchor='end'))
     out.append(txt(68, 1080, 'RANKED 20-SESSION PRICE RETURNS', 16, MUTED, 600))
     out.append(txt(1012, 1080, f'BAR SCALE:  ±{scale:.0f}%', 16, MUTED, 600, anchor='end'))
