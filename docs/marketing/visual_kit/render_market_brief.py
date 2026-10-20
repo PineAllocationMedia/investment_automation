@@ -77,10 +77,9 @@ def validate_market_brief(p):
          'M4 requires four or five independently sourced market rows')
     groups = [f.get('asset_group') for f in facts if isinstance(f, dict)]
     need(len(groups) == len(facts), 'Each M4 evidence row must be an object')
-    need(groups[:4] == list(SECTIONS),
-         'First four rows must be EQUITIES, RATES, FX, COMMODITIES')
-    need(len(facts) == 4 or groups[4] == 'EQUITIES',
-         'Optional fifth M4 row must be an additional equity index')
+    need((groups == list(SECTIONS) if len(facts) == 4 else
+          groups == ['EQUITIES', 'EQUITIES', 'RATES', 'FX', 'COMMODITIES']),
+         'M4 requires one row per group and optional second equity row in order')
     used = set()
     for i, f in enumerate(facts):
         prefix = f'evidence[{i}]'
@@ -114,6 +113,9 @@ def validate_market_brief(p):
         need(issue_dt - current <= timedelta(hours=96),
              f'{prefix} market observation too stale for M4')
         need(prior_period < period, 'M4 previous session must precede current')
+        need(current.date().isoformat() == period and
+             previous.date().isoformat() == prior_period,
+             'M4 period must match the specified local session timestamps')
         expected_measure = ('YIELD_MOVE_BP' if groups[i] == 'RATES'
                             else 'PRICE_RETURN_PCT')
         need(f.get('change_kind') == expected_measure,
@@ -225,7 +227,7 @@ def draw_market_brief(p, logo_png=None, status='DRAFT'):
     out.extend(_paragraph(179, 1152, p['watch'], chars=66, max_lines=1,
                           size=23, lead=30, width=828, name='watch'))
     out.append(rule(68, 1201, 1012, 1201, SEPARATOR, 2))
-    out.append(txt(68, 1243, 'SOURCES NAMED PER ROW  /  ORIGINAL LINKS IN EVIDENCE PACKET',
+    out.append(txt(68, 1243, 'SOURCES PER ROW  /  ORIGINAL LINKS IN EVIDENCE PACKET',
                    23, MUTED, 500))
     out.append(txt(68, 1313, 'AS OF '+p['issue_at'][:16]+p['issue_at'][19:],
                    27, MUTED, 500))
