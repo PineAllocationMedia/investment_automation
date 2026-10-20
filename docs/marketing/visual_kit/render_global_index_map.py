@@ -367,10 +367,21 @@ def m1_release_allowed(p, approval):
 
 
 def render_global_map(p, logo_png=None, status='DRAFT', geometry_path=GEOMETRY):
-    need(status in ('DRAFT','RELEASE'), 'M1 mode invalid')
+    need(status in ('DRAFT','REVIEW_CANDIDATE','RELEASE'), 'M1 mode invalid')
     geo=load_geometry(geometry_path)
     elig=validate_map_issue(p,geo)
     etf_mode=p.get('return_basis')==ETF_BASIS
+    if status=='REVIEW_CANDIDATE':
+        need(p.get('rights_note')=='RESEARCH_PREVIEW' and
+             p.get('scan_status')=='RESEARCH_PREVIEW' and
+             p.get('return_basis')==ETF_BASIS and
+             p.get('artifact_intent')=='EXACT_ARTIFACT_AWAITING_PROMPT3',
+             'M1 review candidate only for source-linked real USD ETF facts')
+        need(len(elig)>=6,'Six different qualified ETFs required for TOP 3 and BOTTOM 3')
+        need(logo_png is not None and
+             hashlib.sha256(logo_png).hexdigest()==APPROVED_LOGO_SHA256 and
+             p.get('brand_logo_sha256')==APPROVED_LOGO_SHA256,
+             'M1 review candidate requires exact CEO-approved pine logo')
     if status=='RELEASE':
         need(p['rights_note'] in ('REVIEWED_FOR_EXACT_USE','PUBLIC_FACTS_QA_PASSED') and
              p['universe_review']=='COVERAGE_VALIDATED' and
@@ -468,21 +479,31 @@ def render_global_map(p, logo_png=None, status='DRAFT', geometry_path=GEOMETRY):
     out.append(txt(1012,947,'COUNTRY / USD ETF / 1 U.S. SESSION' if etf_mode else
                    'COUNTRY / INDEX / 1 SESSION',17,MUTED,600,anchor='end'))
     ranked=sorted(elig,key=lambda e:(-_return(e),e['economy_id']))
-    featured=ranked[:2]+list(reversed(ranked[-2:]))
-    labels_prefix=['LEADER','LEADER','LAGGARD','LAGGARD']
-    for i,(e,prefix) in enumerate(zip(featured,labels_prefix)):
-        y=955+i*49
-        if i%2==0:
-            out.append(rect(68,y,944,49,'#182E33',0))
-        out.append(rule(68,y+48,1012,y+48,GRID,1))
-        out.append(put(82,y+31,prefix,17,120,color=TEAL if i<2 else AMBER))
-        desc=(e['economy_id']+'  /  '+e['etf_ticker']+'  /  '+
-              e['instrument_name'].replace('iShares ','').replace('Vanguard ','').replace('VanEck ','').replace(' ETF','')
-              if etf_mode else e['economy_id']+'  /  '+e['instrument_name'])
-        out.append(put(226,y+31,desc,21,612,weight=600))
-        result=_return(e)
-        out.append(put(1012,y+31,f'{result:+.2f}%' if round(result,2) else '0.00%',
-                       24,145,anchor='end',weight=750))
+    # Each column has three non-overlapping ranked observations whenever six
+    # are qualified. Sparse legacy research drafts never duplicate a country.
+    winners_count=min(3,(len(ranked)+1)//2)
+    losers_count=min(3,len(ranked)//2)
+    leaders=ranked[:winners_count]
+    laggards=list(reversed(ranked[-losers_count:]))
+    need(not ({e['economy_id'] for e in leaders} &
+              {e['economy_id'] for e in laggards}),
+         'M1 leaderboard cannot repeat countries across columns')
+    for x,items,label,ink in (
+            (68,leaders,f'TOP {winners_count} FRONTRUNNERS',TEAL),
+            (554,laggards,f'BOTTOM {losers_count} LAGGARDS',AMBER)):
+        out.append(txt(x+10,977,label,16,ink,760))
+        for i,e in enumerate(items):
+            row_y=986+i*54
+            if i%2==0:
+                out.append(rect(x,row_y,458,53,'#182E33',0))
+            out.append(rule(x,row_y+52,x+458,row_y+52,GRID,1))
+            desc=(f"{i+1}.  {e['economy_id']} / {e['etf_ticker']}"
+                  if etf_mode else f"{i+1}.  {e['economy_id']} / INDEX")
+            out.append(put(x+12,row_y+34,desc,21,290,weight=660))
+            result=_return(e)
+            out.append(put(x+446,row_y+34,
+                           f'{result:+.2f}%' if round(result,2) else '0.00%',
+                           23,120,anchor='end',weight=750))
     out.append(txt(68,1185,'THE READING',18,TEAL,750))
     out.extend(paragraph(225,1185,p['interpretation'],name='interpretation',
                          chars=54,max_lines=2,size=21,leading=27,width=787))
@@ -495,7 +516,7 @@ def render_global_map(p, logo_png=None, status='DRAFT', geometry_path=GEOMETRY):
     out.append(put(68,1320,'AS OF '+_dt(p['cutoff_utc'],'cutoff_utc').strftime('%Y-%m-%d %H:%M UTC'),
                    20,500,color=MUTED))
     out.append(txt(1012,1320,'NOT INVESTMENT ADVICE',19,MUTED,550,anchor='end'))
-    if status!='RELEASE':
+    if status=='DRAFT':
         out.append(rect(720,202,292,48,'#503D25',10,AMBER))
         out.append(txt(866,233,'DRAFT · SYNTHETIC' if
                        p['rights_note']=='SYNTHETIC_LAYOUT_ONLY'
