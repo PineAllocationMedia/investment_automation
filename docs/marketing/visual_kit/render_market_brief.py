@@ -26,7 +26,7 @@ SEPARATOR = '#405751'
 SECTIONS = ('EQUITIES', 'RATES', 'FX', 'COMMODITIES')
 ID_RE = re.compile(r'^MB-\d{8}-\d{2}$')
 VALUE_RE = re.compile(r'^([+-]?\d+(?:,\d{3})*(?:\.\d{1,4})?)$')
-CHANGE_RE = re.compile(r'^([+-]?\d+(?:\.\d{1,2})?)\s*(%|bp)
+CHANGE_RE = re.compile(r'^([+-]?\d+(?:\.\d{1,2})?)\s*(%|bp)$')
 
 
 def _dt(value, name):
