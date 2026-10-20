@@ -158,6 +158,39 @@ jobs:
             ${{ runner.temp }}/m1_global_index_390px.png
           retention-days: 7
           if-no-files-found: error
+      - name: Render alternative M1 country ETF USD map and 390px proof
+        working-directory: docs/marketing/visual_kit
+        shell: bash
+        run: |
+          set -euo pipefail
+          python render_global_index_map.py examples/m1_us_etf_synthetic.json \
+            --output "$RUNNER_TEMP/m1_us_etf_synthetic.svg" \
+            --png "$RUNNER_TEMP/m1_us_etf_synthetic.png"
+          grep -q 'GLOBAL ETF MAP' "$RUNNER_TEMP/m1_us_etf_synthetic.svg"
+          grep -q 'USD PRICE MOVES' "$RUNNER_TEMP/m1_us_etf_synthetic.svg"
+          grep -q 'DRAFT' "$RUNNER_TEMP/m1_us_etf_synthetic.svg"
+          python - <<'PY'
+          import os
+          from pathlib import Path
+          import fitz
+          folder=Path(os.environ['RUNNER_TEMP'])
+          svg=(folder/'m1_us_etf_synthetic.svg').read_bytes()
+          page=fitz.open(stream=svg,filetype='svg')[0]
+          pix=page.get_pixmap(matrix=fitz.Matrix(390/1080,390/1080),alpha=False)
+          assert pix.width==390 and pix.height >= 487
+          pix.save(folder/'m1_us_etf_390px.png')
+          PY
+
+      - name: Upload synthetic M1 USD ETF proxy proofs for CEO review
+        uses: actions/upload-artifact@v4
+        with:
+          name: m1-us-country-etf-synthetic-previews
+          path: |
+            ${{ runner.temp }}/m1_us_etf_synthetic.svg
+            ${{ runner.temp }}/m1_us_etf_synthetic.png
+            ${{ runner.temp }}/m1_us_etf_390px.png
+          retention-days: 7
+          if-no-files-found: error
       - name: Render synthetic E1 company note and mobile proof
         working-directory: docs/marketing/visual_kit
         shell: bash
