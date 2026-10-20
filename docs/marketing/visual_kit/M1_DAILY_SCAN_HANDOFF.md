@@ -37,8 +37,9 @@ The file contains **30 ordered `UNRESEARCHED` rows with null quotes**. Candidate
 For each row, save:
 1. **Attempted authoritative sources** (original exchange/index administrator first), the index's exact series/return variant, currency, session and source capture reference.
 2. If qualification fails: `decision=EXCLUDED`, `exclusion_status` in `MISSING|HOLIDAY|CLOSED|STALE|INCOMPARABLE`, a meaningful `research_notes` rationale and no `qualified_quote`. No source URL is required if none exists.
-3. If a completed local-price return can be shown: `decision=QUALIFIED` and `qualified_quote` with exact publisher, index name/variant, original HTTPS URL, source capture ID + SHA-256, source title, local currency, completed prior/current closes, timestamp-with-offset for each, a retrieval timestamp and explicit rights evidence URL + independent rights/facts review references.
-4. For real qualified rows, `rights_decision=APPROVED_FOR_EXACT_USE`, `rights_scope=PUBLIC_BLOSSOM_INDEX_RETURN_GRAPHIC` and `fact_decision=INDEPENDENTLY_CHECKED` are **external reviewer assertions**, not something the script can discover or establish. The named rights/factual reviewer must actually inspect original sources and terms and keep an audit trail. A string or capture hash alone is never legal proof.
+3. If a completed local-price return can be shown: `decision=QUALIFIED` and `qualified_quote` with exact publisher, index name/variant, original HTTPS URL, relative local source capture path + SHA-256, source title, local currency, completed prior/current closes, timestamp-with-offset for each, a retrieval timestamp and explicit rights-evidence URL, **relative local rights-evidence capture path + SHA-256**, and independent rights/facts review references.
+4. Put **actual nonempty original-source and rights-document capture files** in a private, access-controlled evidence directory. The qualified row needs `source_capture_path`, `source_capture_sha256`, `rights_capture_path` and `rights_capture_sha256`. Paths must stay beneath the supplied evidence root. The tool opens each file and checks its **actual SHA-256 bytes**; it rejects absent/tampered/out-of-directory captures. Do **not** commit restricted or proprietary captures to a public GitHub branch.
+5. For real qualified rows, `rights_decision=APPROVED_FOR_EXACT_USE`, `rights_scope=PUBLIC_BLOSSOM_INDEX_RETURN_GRAPHIC` and `fact_decision=INDEPENDENTLY_CHECKED` are **external reviewer assertions**, not something the script can discover or establish. The named rights/factual reviewer must actually inspect original sources and terms and keep an audit trail. An original-source file capture proves only **which bytes were archived**, not that the material is correct, authentic, properly licensed or permissioned. A string or hash alone is never legal proof.
 
 **Never copy fictional 2026 sample returns or hypothetical example.org URLs into a genuine research packet.**
 
@@ -46,7 +47,8 @@ Diagnostic assessment:
 
 ```bash
 python m1_scan_handoff.py assess m1_20261020_research_packet.json \
-  --report m1_20261020_assessment.json
+  --report m1_20261020_assessment.json \
+  --evidence-root /private/m1_20261020_captures
 ```
 
 If any country remains `UNRESEARCHED` or fewer than four price-index returns meet qualified input requirements, the tool reports **HOLD**. It blocks swapped/duplicate countries, provisional sessions, invalid numeric closes, future source retrieval, absent original URLs and missing rights/facts review assertions.
@@ -57,7 +59,8 @@ Only after independently evidenced full packet review and CEO-approved route sho
 python m1_scan_handoff.py assess m1_20261020_research_packet.json \
   --report m1_20261020_assessment.json \
   --issue-metadata m1_20261020_editorial_metadata.json \
-  --draft-issue m1_20261020_candidate_draft.json
+  --draft-issue m1_20261020_candidate_draft.json \
+  --evidence-root /private/m1_20261020_captures
 ```
 
 The draft path is *never* an automatic post or audit PASS. The CLI passes the candidate issue through the existing deterministic M1 validator. The map renderer and its release approval are separate. If a complete, source-backed issue survives independent factual/visual review, inspect the actual 1080×1350 and 390px PNG, exact logo SHA and final caption. The CEO must approve **the exact publication candidate** before posting.
