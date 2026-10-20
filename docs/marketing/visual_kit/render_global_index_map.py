@@ -316,7 +316,7 @@ def render_global_map(p, logo_png=None, status='DRAFT', geometry_path=GEOMETRY):
     ])
     out.extend(paragraph(68,249,p['headline'],name='headline',chars=31,
                          max_lines=2,size=49,leading=59,width=944,weight=800))
-    out.extend(paragraph(68,373,p['deck'],name='deck',chars=68,max_lines=2,
+    out.extend(paragraph(68,373,p['deck'],name='deck',chars=58,max_lines=2,
                          size=23,leading=29,width=944,color=MUTED))
     out.append(txt(68,433,'LATEST COMPLETED SESSIONS / NOT SYNCHRONIZED',
                    19,TEAL,680))
