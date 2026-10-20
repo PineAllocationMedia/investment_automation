@@ -9,7 +9,7 @@ from pathlib import Path
 from xml.etree import ElementTree as ET
 
 from render_global_index_map import (
-    GEO_GIT_BLOB_SHA, GEOMETRY, COUNTRIES, SGP_POINT, _fill, _return, git_blob_sha, load_geometry,
+    GEO_GIT_BLOB_SHA, GEOMETRY, COUNTRIES, SGP_POINT, LAND, _fill, _return, git_blob_sha, load_geometry,
     render_global_map, validate_map_issue, run,
 )
 from render_macro_lens import InvalidIssue, payload_hash, release_allowed
@@ -51,6 +51,7 @@ class M1GlobalEquityIndexTests(unittest.TestCase):
         self.assertEqual(tuple(e['economy_id'] for e in p['evidence']),COUNTRIES)
         self.assertEqual([r['selection_order'] for r in p['evidence']],list(range(1,31)))
         self.assertEqual(p['selection_basis'],'CEO_SELECTED_30_COUNTRIES')
+        self.assertEqual(p['scan_status'],'SYNTHETIC_NOT_RUN')
         self.assertNotIn('gdp_source_url',p)
         self.assertEqual(p['evidence'][17]['geometry_id'],'SGP_POINT')
         self.assertEqual(
@@ -78,17 +79,58 @@ class M1GlobalEquityIndexTests(unittest.TestCase):
         paths=root.findall('.//{http://www.w3.org/2000/svg}path')
         self.assertGreaterEqual(len(paths),170)
         for text in ('GLOBAL EQUITY MAP','LOCAL CURRENCY','LATEST COMPLETED SESSIONS',
-                     '25/30 VALID INDICES','INDEX LEADERS &amp; LAGGARDS',
+                     '25 MARKETS SHOWN','INDEX LEADERS &amp; LAGGARDS',
                      'TOPIX Price Index','S&amp;P/TSX Composite Price Index',
-                     'NATURAL EARTH (PUBLIC DOMAIN)','EXACT 0.00%',
+                     'GEO: NATURAL EARTH','EXACT 0.00%',
                      'DRAFT · SYNTHETIC',
                      'NOT INVESTMENT ADVICE'):
             self.assertIn(text,svg)
         self.assertNotIn('GDP GROWTH',svg)
+        self.assertNotIn('NO VALID CLOSE',svg)
+        self.assertNotIn('DATA UNAVAILABLE',svg)
+        self.assertNotIn('/30 VALID',svg)
         self.assertIn('SG POINT',svg)
         self.assertIn('>SG</text>',svg)
         self.assertIn('cx="809.9"',svg)
         self.assertNotIn('TODAY ALL MARKETS',svg)
+
+    def test_missing_countries_use_ordinary_unselected_land_fill(self):
+        p=fixture()
+        root=ET.fromstring(render_global_map(p))
+        ns='{http://www.w3.org/2000/svg}'
+        group=next(g for g in root.findall(ns+'g')
+                   if g.attrib.get('clip-path')=='url(#mapView)')
+        shapes=group.findall(ns+'path')
+        geom_ids=[f['id'] for f in self.geo['features'] if f['id']!='ATA']
+        byid=dict(zip(geom_ids,shapes))
+        self.assertEqual(len(shapes),len(geom_ids))
+        for code in ('BRA','DZA','RUS','KAZ','IRN'):
+            self.assertEqual(byid[code].attrib['fill'],LAND,code)
+            self.assertEqual(byid[code].attrib['fill'],byid['NOR'].attrib['fill'])
+        for code in ('SAU','EGY','USA'):
+            self.assertNotEqual(byid[code].attrib['fill'],LAND,code)
+
+    def test_missing_singapore_is_completely_omitted_from_visual(self):
+        p=fixture()
+        sg=next(e for e in p['evidence'] if e['economy_id']=='SGP')
+        sg['missing_status']='MISSING'
+        sg['session_status']='UNVERIFIED'
+        for key in ('close_price','prior_close_price','signed_return_pct',
+                    'close_session_date','prior_session_date',
+                    'observed_at','prior_observed_at','retrieved_at'):
+            sg[key]=None
+        self.assertEqual(len(validate_map_issue(p,self.geo)),24)
+        svg=render_global_map(p)
+        self.assertIn('24 MARKETS SHOWN',svg)
+        self.assertNotIn('>SG</text>',svg)
+        self.assertNotIn('SG POINT',svg)
+        self.assertNotIn('NO VALID CLOSE',svg)
+
+    def test_scan_disposition_cannot_be_claimed_for_synthetic_fixture(self):
+        p=fixture()
+        p['scan_status']='COMPLETE_AUDITED'
+        with self.assertRaises(InvalidIssue):
+            validate_map_issue(p,self.geo)
 
     def test_polar_geometry_not_leaking_outside_mobile_map_crop(self):
         root=ET.fromstring(render_global_map(fixture()))
@@ -220,9 +262,8 @@ class M1GlobalEquityIndexTests(unittest.TestCase):
             self.assertLessEqual(y1,1340,sp['text'])
         leader=next(sp for sp in spans if sp['text']=='INDEX LEADERS & LAGGARDS')
         asof=next(sp for sp in spans if sp['text'].startswith('AS OF '))
-        missing=next(sp for sp in spans if sp['text']=='NO VALID CLOSE')
+        self.assertFalse(any(sp['text']=='NO VALID CLOSE' for sp in spans))
         true_zero=next(sp for sp in spans if sp['text']=='EXACT 0.00%')
-        self.assertLess(missing['bbox'][3],true_zero['bbox'][1])
         self.assertLess(true_zero['bbox'][3],919)
         self.assertLess(leader['bbox'][3]+30,asof['bbox'][1])
 
