@@ -394,7 +394,8 @@ def render_global_map(p, logo_png=None, status='DRAFT', geometry_path=GEOMETRY):
             out.append(rect(68,y,944,49,'#182E33',0))
         out.append(rule(68,y+48,1012,y+48,GRID,1))
         out.append(put(82,y+31,prefix,17,120,color=TEAL if i<2 else AMBER))
-        desc=(e['economy_id']+'  /  '+e['etf_ticker']+'  /  '+e['instrument_name'].split(' ETF')[0]
+        desc=(e['economy_id']+'  /  '+e['etf_ticker']+'  /  '+
+              e['instrument_name'].replace('iShares ','').replace('Vanguard ','').replace('VanEck ','').replace(' ETF','')
               if etf_mode else e['economy_id']+'  /  '+e['instrument_name'])
         out.append(put(226,y+31,desc,21,612,weight=600))
         result=_return(e)
