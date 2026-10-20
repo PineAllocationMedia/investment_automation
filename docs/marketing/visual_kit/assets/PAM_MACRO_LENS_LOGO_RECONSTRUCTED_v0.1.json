@@ -1,0 +1,31 @@
+{
+  "schema_version": "1.0",
+  "asset_name": "PAM Macro Lens — Botanical Pine Seal",
+  "asset_version": "0.1",
+  "provenance_classification": "RECONSTRUCTED",
+  "approval_status": "CEO_APPROVED_ASSET_ONLY",
+  "ceo_approval_reference": "PAM — Marketing & GTM conversation, 2026-10-19: CEO replied 'approved' after being asked to approve reconstructed v0.1 as the production master and authorize Visual Kit updates for review.",
+  "ceo_approval_scope": "This exact reconstructed logo only; does not approve a post, visual audit, factual claims, publication, merge, deployment, or later redesign.",
+  "source_reference": "CEO-supplied 2026-10-19 screenshot of Blossom @therealpam avatar (pine branch and cone on warm-ivory circle); original source file unavailable; no authenticated higher-resolution recovery proven.",
+  "approved_file_location": {
+    "storage": "ChatGPT Library",
+    "path": "/PAM/Brand Assets/PAM_Macro_Lens_logo_RECONSTRUCTED_v0.1_APPROVED_2048.png",
+    "repository_binary_copy": "NOT_INCLUDED: load the approved PNG from authorized asset custody using --brand-logo; do not substitute a screenshot, demo badge or independently redrawn file."
+  },
+  "format": "image/png",
+  "dimensions_px": {
+    "width": 2048,
+    "height": 2048
+  },
+  "channel_layout": "RGBA; warm-ivory circular background with transparent square corners",
+  "file_size_bytes": 1868624,
+  "sha256": "a352aa5dc6b9c5f1a142a36747eb4361a2d22cbc628805ee9a4e28da51ca9c75",
+  "limitations": [
+    "Artist reconstruction, not recovered historical original or pixel-identical copy.",
+    "Source screenshot is low-resolution and partially obscured by a UI button.",
+    "Pine cone scales and needle strokes vary from the reference.",
+    "Logo approval is separate from independent visual/factual audits and CEO post approval.",
+    "Logo PNG is kept in authorized Library custody; not included in the GitHub repository; renderer hosts must receive the exact approved PNG by authorized transfer."
+  ],
+  "use_policy": "Use only the exact SHA-256-matching approved PNG as --brand-logo for release; brand_logo_sha256 in each issue must match. Drafts may retain the provisional P badge with clear DRAFT watermark. No autonomous publication."
+}

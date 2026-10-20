@@ -1,0 +1,61 @@
+name: Macro Lens Visual Kit CI
+
+"on":
+  pull_request:
+    paths:
+      - "docs/marketing/visual_kit/**"
+      - "docs/marketing/MACRO_LENS_PLAYBOOK.md"
+      - "docs/marketing/MACRO_LENS_TEMPLATES.md"
+      - ".github/workflows/macro_lens_visual_kit.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  renderer:
+    name: Validate offline Blossom visual renderer
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout proposed PR changes
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install pinned PNG renderer only
+        run: python -m pip install "PyMuPDF==1.28.2"
+
+      - name: Verify PNG renderer is actually available
+        run: python -c "import fitz; print('PyMuPDF:', fitz.VersionBind)"
+
+      - name: Compile isolated marketing renderer and tests
+        run: python -m compileall -q docs/marketing/visual_kit
+
+      - name: Run actual Visual Kit regression tests
+        working-directory: docs/marketing/visual_kit
+        run: python -m unittest discover -s tests -v
+
+      - name: Render all three synthetic layout demos as SVG and PNG
+        working-directory: docs/marketing/visual_kit
+        shell: bash
+        run: |
+          set -euo pipefail
+          for template in t1 t2 t3; do
+            python render_macro_lens.py "examples/${template}_synthetic.json" \
+              --output "$RUNNER_TEMP/${template}_demo.svg" \
+              --png "$RUNNER_TEMP/${template}_demo.png"
+            test -s "$RUNNER_TEMP/${template}_demo.svg"
+            test -s "$RUNNER_TEMP/${template}_demo.png"
+          done
+
+      - name: Confirm synthetic content remains visibly watermarked
+        shell: bash
+        run: |
+          set -euo pipefail
+          for template in t1 t2 t3; do
+            grep -q "DRAFT" "$RUNNER_TEMP/${template}_demo.svg"
+          done
