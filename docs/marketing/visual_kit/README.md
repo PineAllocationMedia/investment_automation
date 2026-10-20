@@ -2,6 +2,10 @@
 
 **Target:** Blossom @therealpam; native drafting canvas 1080×1350 (4:5). **Status:** proposed repository implementation; no publishing or market-data access. Companion: `docs/marketing/MACRO_LENS_PLAYBOOK.md` and `MACRO_LENS_TEMPLATES.md`.
 
+## Proposed M2 Sector Rotation renderer (separate CEO-review PR)
+
+The [M2 Sector Rotation specification](M2_SECTOR_ROTATION.md) and [M2 deterministic renderer](render_sector_rotation.py) create a **distinct zero-centered 11-sector performance ranking** with two shared-index time horizons (source-bound 20-session price return and one-session return), computed positive-sector breadth and leader–laggard spread. [Synthetic DRAFT-only example](examples/m2_synthetic.json). This is a **candidate on its own PR**, not canonical until CEO merge. Sector index source rights, universe/20-session-count verification, accurate close prices, independent visual/factual audit and distinct post approval remain external human gates. M2 is not a live scan, total-return signal, performance claim or stock recommendation; synthetic source-free values cannot be released.
+
 ## Separate M4 Cross-Asset Market Brief implementation pilot
 
 A bounded **M4 Daily Market Brief** proof-of-renderer lives in [render_market_brief.py](render_market_brief.py) with its own [cross-asset schema and methodology](M4_DAILY_MARKET_BRIEF.md). Unlike Macro Lens T1–T3, M4 uses a five-or-four-observation institutional research table spanning equity indices, rate yields, FX and commodity prices, with distinct percent versus basis-point comparisons and actual observed/prior-session dates. This design is **not an automated market scan or live-data feed**, and no fully audited real M4 post or blanket data-redistribution right is established by merging the renderer. See [synthetic never-publish example](examples/m4_synthetic.json) and explicit M4 negative regressions. The M4 renderer is a **separate entrypoint** and does not affect the T1/T2/T3 code paths, logo hash or release authority.
