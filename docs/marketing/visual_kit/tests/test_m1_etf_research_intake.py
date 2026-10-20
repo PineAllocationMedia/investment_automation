@@ -100,6 +100,36 @@ class ETFResearchIntakeTests(unittest.TestCase):
         self.assertEqual(res['count_unresearched'],30)
         self.assertIsNone(issue)
 
+    def test_real_oct20_30_country_fund_discovery_packet_is_complete_but_held(self):
+        """Actual issuer research sources; no market-price redistribution attested."""
+        path=ROOT/'examples'/'m1_us_etf_discovery_retest_20261020.json'
+        p=json.loads(path.read_text(encoding='utf-8'))
+        self.assertEqual(p['research_mode'],ETF_RESEARCH_MODE)
+        self.assertEqual(len(p['rows']),30)
+        self.assertEqual(sum(r['etf_discovery']['state']=='CANDIDATE_VERIFIED'
+                             for r in p['rows']),25)
+        self.assertEqual(sum(r['etf_discovery']['state']=='NO_ELIGIBLE_ETF_FOUND'
+                             for r in p['rows']),5)
+        self.assertTrue(all(r['etf_discovery']['checked_at_utc']
+                             and r['etf_discovery']['source_urls']
+                             and r['etf_discovery']['notes']
+                             and r['qualified_quote'] is None
+                             for r in p['rows']))
+        report,issue=assess(p,evidence_root=ROOT,issue_metadata=META)
+        self.assertEqual(report['count_selected'],30)
+        self.assertEqual(report['count_unresearched'],0)
+        self.assertEqual(report['count_excluded'],30)
+        self.assertEqual(report['count_qualified'],0)
+        self.assertEqual(report['displayed_market_codes'],[])
+        self.assertEqual(report['status'],'HOLD')
+        self.assertIsNone(issue)
+        with tempfile.TemporaryDirectory() as d:
+            out=Path(d)/'report.json'
+            self.assertEqual(main(['assess',str(path),'--report',str(out)]),2)
+            a=json.loads(out.read_text())
+            self.assertEqual(a['status'],'HOLD')
+            self.assertEqual(a['count_unresearched'],0)
+
     def test_missing_discovery_check_blocks_exclusion_even_with_all_rows(self):
         p=research_packet()
         p['rows'][21]['etf_discovery']['state']='NOT_SEARCHED'
