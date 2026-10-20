@@ -3,7 +3,11 @@
 **Scope:** `@therealpam` image-post editorial templates, not investment recommendations.
 **Policy:** [Editorial playbook](MACRO_LENS_PLAYBOOK.md). **Executable layout renderer + sample SVGs:** [Visual Kit](visual_kit/README.md). Always verify source facts before laying out data. Final rendering and CEO approval are separate gates.
 
-The T1/T2/T3 specifications below now map to three separate deterministic 1080×1350 SVG layouts in `visual_kit/render_macro_lens.py`, with non-publishable synthetic example SVGs in `visual_kit/examples/`. The executable kit contains no source-fetching capability; independent factual and visual audits remain mandatory. Existing visual constraints, template-choice logic and governance below remain authoritative.\n\n## Universal visual grammar
+The T1/T2/T3 specifications below now map to three separate deterministic 1080×1350 SVG layouts in `visual_kit/render_macro_lens.py`, with non-publishable synthetic example SVGs in `visual_kit/examples/`. The executable kit contains no source-fetching capability; independent factual and visual audits remain mandatory. Existing visual constraints, template-choice logic and governance below remain authoritative.\n\n## Institutional editorial quality standard
+
+**Required visual-quality review for all T1/T2/T3 drafts:** [Institutional Editorial Design Gate](visual_kit/INSTITUTIONAL_EDITORIAL_STANDARD.md). The target is a concise macro research note for mobile—not an elementary explainer card, a poster of giant numbers or a cramped dashboard. Prefer crisp grid alignment, precise typography, purposeful evidence grouping and restrained color over repetitive oversized rounded tiles. Review the exact 390px PNG using its six PASS/HOLD criteria. Passing source validation and renderer CI alone **does not** certify editorial visual quality. If a draft looks childish, visually cluttered or unintuitive, return **VISUAL HOLD** and propose a controlled, CEO-reviewed renderer adjustment instead of claiming the current template already meets the higher bar.
+
+## Universal visual grammar
 
 - **Canvas:** 1080 × 1350 portrait working target (4:5); test against current Blossom mobile rendering and cropping before publication. A safe-area margin of 64 px is an internal design rule, not a Blossom specification.
 - **CEO-approved reconstructed brand anchor (2026-10-19):** botanical pine branch and hanging cone in forest green on a warm-ivory circle. The historical source is unavailable; the newly reconstructed v0.1 2048×2048 PNG was explicitly CEO-approved as the production master. Provenance remains **RECONSTRUCTED**, never **RECOVERED**. Exact file: ChatGPT Library `/PAM/Brand Assets/PAM_Macro_Lens_logo_RECONSTRUCTED_v0.1_APPROVED_2048.png`; canonical SHA-256: `a352aa5dc6b9c5f1a142a36747eb4361a2d22cbc628805ee9a4e28da51ca9c75`. See [asset register](visual_kit/assets/PAM_MACRO_LENS_LOGO_RECONSTRUCTED_v0.1.json). No other file or edited derivative is authorized for release. This logo approval does not replace the independent visual/factual audit and separate CEO approval of each post.
@@ -126,6 +130,8 @@ Fact sheet ID/link:
 Source URLs, units and observation timestamps complete? YES / NO
 Actual image checked against fact sheet? YES / NO
 Clarity at Blossom mobile crop checked? YES / NO
+Institutional editorial six-gate review: PASS | VISUAL HOLD (reason + mobile proof)
+Visual hierarchy / restrained panel design / evidence proportionality documented? YES / NO
 Caption and image mutually consistent? YES / NO
 Causal language and scenario uncertainty checked? YES / NO
 Investment advice / affiliate risk checked? YES / NO
