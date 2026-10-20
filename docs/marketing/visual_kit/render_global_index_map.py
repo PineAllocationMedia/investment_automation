@@ -370,6 +370,11 @@ def render_global_map(p, logo_png=None, status='DRAFT', geometry_path=GEOMETRY):
     need(status in ('DRAFT','REVIEW_CANDIDATE','RELEASE'), 'M1 mode invalid')
     geo=load_geometry(geometry_path)
     elig=validate_map_issue(p,geo)
+    # Fail only on an actual format deviation, never on an arbitrary number
+    # of real observations. The recurring Market Atlas header must not drift.
+    if p.get('map_product')=='MARKET_ATLAS_V1':
+        need(p.get('headline')=='The world in one U.S. session',
+             'Market Atlas V1 fixed headline cannot vary across days')
     etf_mode=p.get('return_basis')==ETF_BASIS
     if status=='REVIEW_CANDIDATE':
         need(p.get('rights_note')=='RESEARCH_PREVIEW' and
