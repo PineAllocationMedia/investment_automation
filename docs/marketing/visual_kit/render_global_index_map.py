@@ -30,6 +30,7 @@ GEO_GIT_BLOB_SHA = '8300299de7b831db1b50d0501924cad1f5b067e1'
 UPSTREAM_NE_BLOB_SHA = '1e6ab74c7042f97013be69ceec798be8e1aff27d'
 GEO_VERSION = 'NATURAL_EARTH_110M_V5.1.1_PAM_V1'
 BASIS = 'DOMESTIC_INDEX_LOCAL_PRICE_RETURN'
+ETF_BASIS = 'US_LISTED_COUNTRY_ETF_USD_MARKET_PRICE_RETURN'
 ISSUE_RE = re.compile(r'^GM-\d{8}-\d{2}$')
 ECONOMY_RE = re.compile(r'^[A-Z]{3}$')
 COUNTRIES = (
@@ -113,6 +114,11 @@ def _return(f):
 
 
 def validate_map_issue(p, geo):
+    # Explicitly separate domestic local-index returns from USD country-ETF
+    # proxy prices. The ETF mode has its own mutually exclusive input contract.
+    if isinstance(p,dict) and p.get('return_basis')==ETF_BASIS:
+        from m1_country_etf_mode import validate_country_etf_issue
+        return validate_country_etf_issue(p,geo)
     need(isinstance(p,dict), 'M1 issue is not JSON object')
     need(p.get('schema_version')=='1.0' and p.get('template')=='M1',
          'M1 template and version required')
@@ -294,6 +300,7 @@ def render_global_map(p, logo_png=None, status='DRAFT', geometry_path=GEOMETRY):
     need(status in ('DRAFT','RELEASE'), 'M1 mode invalid')
     geo=load_geometry(geometry_path)
     elig=validate_map_issue(p,geo)
+    etf_mode=p.get('return_basis')==ETF_BASIS
     if status=='RELEASE':
         need(p['rights_note']=='REVIEWED_FOR_EXACT_USE' and
              p['universe_review']=='COVERAGE_VALIDATED' and
@@ -322,16 +329,18 @@ def render_global_map(p, logo_png=None, status='DRAFT', geometry_path=GEOMETRY):
         out.append(txt(110,111,'P',39,PINE,800,anchor='middle'))
     out.extend([
         txt(169,102,'PAM',29,LIGHT,800),
-        txt(267,102,'/  GLOBAL EQUITY MAP',22,MUTED,600),
+        txt(267,102,'/  GLOBAL ETF MAP' if etf_mode else '/  GLOBAL EQUITY MAP',22,MUTED,600),
         txt(1012,103,p['issue_id'],20,TEAL,600,anchor='end'),
         rule(68,147,1012,147,GRID,2),
-        txt(68,183,'COUNTRY INDEX RETURNS  /  LOCAL CURRENCY',19,TEAL,700),
+        txt(68,183,'US-LISTED COUNTRY ETFs  /  USD PRICE MOVES' if etf_mode else
+            'COUNTRY INDEX RETURNS  /  LOCAL CURRENCY',19,TEAL,700),
     ])
     out.extend(paragraph(68,249,p['headline'],name='headline',chars=31,
                          max_lines=2,size=49,leading=59,width=944,weight=800))
     out.extend(paragraph(68,373,p['deck'],name='deck',chars=58,max_lines=2,
                          size=23,leading=29,width=944,color=MUTED))
-    out.append(txt(68,433,'LATEST COMPLETED SESSIONS / NOT SYNCHRONIZED',
+    out.append(txt(68,433,'ONE COMPLETED U.S. SESSION / FX INCLUDED' if etf_mode else
+                   'LATEST COMPLETED SESSIONS / NOT SYNCHRONIZED',
                    19,TEAL,680))
     out.append(txt(1012,433,f'{len(elig)} MARKETS SHOWN',
                    20,LIGHT,720,anchor='end'))
@@ -372,8 +381,10 @@ def render_global_map(p, logo_png=None, status='DRAFT', geometry_path=GEOMETRY):
     out.append(rect(823,867,22,12,ZERO,0))
     out.append(txt(854,879,'EXACT 0.00%',17,MUTED,600))
     out.append(rule(68,919,1012,919,GRID,2))
-    out.append(txt(68,947,'INDEX LEADERS & LAGGARDS',19,TEAL,750))
-    out.append(txt(1012,947,'COUNTRY / INDEX / 1 SESSION',17,MUTED,600,anchor='end'))
+    out.append(txt(68,947,'ETF LEADERS & LAGGARDS' if etf_mode else
+                   'INDEX LEADERS & LAGGARDS',19,TEAL,750))
+    out.append(txt(1012,947,'COUNTRY / USD ETF / 1 U.S. SESSION' if etf_mode else
+                   'COUNTRY / INDEX / 1 SESSION',17,MUTED,600,anchor='end'))
     ranked=sorted(elig,key=lambda e:(-_return(e),e['economy_id']))
     featured=ranked[:2]+list(reversed(ranked[-2:]))
     labels_prefix=['LEADER','LEADER','LAGGARD','LAGGARD']
@@ -383,7 +394,8 @@ def render_global_map(p, logo_png=None, status='DRAFT', geometry_path=GEOMETRY):
             out.append(rect(68,y,944,49,'#182E33',0))
         out.append(rule(68,y+48,1012,y+48,GRID,1))
         out.append(put(82,y+31,prefix,17,120,color=TEAL if i<2 else AMBER))
-        desc=e['economy_id']+'  /  '+e['instrument_name']
+        desc=(e['economy_id']+'  /  '+e['etf_ticker']+'  /  '+e['instrument_name'].split(' ETF')[0]
+              if etf_mode else e['economy_id']+'  /  '+e['instrument_name'])
         out.append(put(226,y+31,desc,21,612,weight=600))
         result=_return(e)
         out.append(put(1012,y+31,f'{result:+.2f}%' if round(result,2) else '0.00%',
@@ -392,8 +404,10 @@ def render_global_map(p, logo_png=None, status='DRAFT', geometry_path=GEOMETRY):
     out.extend(paragraph(225,1185,p['interpretation'],name='interpretation',
                          chars=54,max_lines=2,size=21,leading=27,width=787))
     out.append(rule(68,1254,1012,1254,GRID,2))
-    geography_note=('GEO: NATURAL EARTH / SG POINT / INDEX EVIDENCE' if sg is not None
-                    else 'GEO: NATURAL EARTH / INDEX EVIDENCE')
+    geography_note=(('GEO: NATURAL EARTH / SG POINT / USD ETF PROXIES' if sg is not None
+                    else 'GEO: NATURAL EARTH / USD ETF PROXIES') if etf_mode else
+                    ('GEO: NATURAL EARTH / SG POINT / INDEX EVIDENCE' if sg is not None
+                     else 'GEO: NATURAL EARTH / INDEX EVIDENCE'))
     out.append(txt(68,1280,geography_note,18,MUTED,500))
     out.append(put(68,1320,'AS OF '+_dt(p['cutoff_utc'],'cutoff_utc').strftime('%Y-%m-%d %H:%M UTC'),
                    20,500,color=MUTED))
@@ -411,7 +425,7 @@ def render_global_map(p, logo_png=None, status='DRAFT', geometry_path=GEOMETRY):
 
 
 def run(argv=None):
-    ap=argparse.ArgumentParser(description='PAM M1 audited-index world map: offline draft renderer')
+    ap=argparse.ArgumentParser(description='PAM M1 local-index or USD country-ETF map: audited offline renderer')
     ap.add_argument('issue',type=Path)
     ap.add_argument('--output',type=Path,required=True)
     ap.add_argument('--png',type=Path)
