@@ -5,15 +5,15 @@
   "issue_id": "GM-20261020-01",
   "cutoff_utc": "2026-10-20T21:00:00Z",
   "headline": "30 markets. More than one market story.",
-  "deck": "CEO-selected equity markets. Every return here is synthetic.",
+  "deck": "Illustrative qualified index returns; all numbers synthetic.",
   "interpretation": "A local index move is not a country's GDP, nor a synchronized global session.",
-  "caption": "SYNTHETIC DESIGN ONLY. These 30 markets are CEO-selected, not GDP-ranked. All index closes, returns and URLs are fictional examples; benchmark labels and quotation permissions are unverified. Five markets have no qualifying comparable return in this demo. Singapore is a point locator because the 1:110m basemap omits its polygon. Not for publication.",
+  "caption": "SYNTHETIC DESIGN ONLY — NOT A REAL MARKET SCAN. Displayed index closes and returns are fictional examples, and candidate index mappings and data-use permissions remain unverified. Only eligible synthetic series are drawn on the map; others are ordinary background geography. Singapore uses a geographic point at this map scale when eligible. Not for publication.",
   "universe_version": "CEO_SELECTED_30_COUNTRIES_DEMO_V1",
   "geometry_version": "NATURAL_EARTH_110M_V5.1.1_PAM_V1",
   "geometry_source_github_blob_sha": "1e6ab74c7042f97013be69ceec798be8e1aff27d",
   "return_basis": "DOMESTIC_INDEX_LOCAL_PRICE_RETURN",
   "comparison_basis": "LATEST_COMPLETED_SESSIONS",
-  "method_version": "M1_INDEX_LOCAL_PRICE_V0.3",
+  "method_version": "M1_INDEX_LOCAL_PRICE_V0.4",
   "rights_note": "SYNTHETIC_LAYOUT_ONLY",
   "universe_review": "CEO_SELECTED_UNVERIFIED",
   "benchmark_registry_status": "CANDIDATES_UNVERIFIED",
@@ -889,5 +889,6 @@
       "selection_order": 30
     }
   ],
-  "selection_basis": "CEO_SELECTED_30_COUNTRIES"
+  "selection_basis": "CEO_SELECTED_30_COUNTRIES",
+  "scan_status": "SYNTHETIC_NOT_RUN"
 }
