@@ -44,6 +44,15 @@ Required columns: `country,ticker,prior_close,close,source_url,prior_source_url,
 
 **No blanket per-fund data-license permission letter or archived rights-document SHA is required merely to prepare this original source-attributed research map.** Market price facts are not the same as distributing an entire vendor quote feed. Review actual material restrictions proportionately, not hypothetically.
 
+## Adaptive M1 color scale and race-style editorial caption (PR #204)
+
+The M1 map retains its existing approved design but maps every **eligible real computed return** to a continuous color with an adaptive symmetric daily legend: the smallest clean ±1/±2/±5/±10/±20 percentage-point cap including the largest absolute plotted change, with a minimum ±1%. Positive returns are successively deeper green, negative returns deeper red; exact 0.00% is warm-neutral and **still covered**; no observation means original dark slate land with a separate NOT PLOTTED swatch. The legend's current endpoints and middle ticks are **generated from the same function** as the country fills. Don't compare shade intensity across two different sessions without reading each session's scale. The 390px preview must visibly distinguish faint returns from unplotted land and no exaggerated full-saturation on quiet days.
+
+**Caption for each M1 daily map:** derive actual leading/lagging fund return, country name, ticker, percentage-point spread, count of positive/negative/unchanged plotted ETFs, dates and the precise USD ETF/FX caveat from the same price-pair JSON. A little horse-race scoreboard energy is welcome: who set the pace, who trailed and how large the gap was; it should read like an opinionated investor, not a corporate report or a sports commentator on repeat. The deterministic CLI writes an honest starting draft in `issue.caption` and `build` output `caption_draft`. The editor may improve wording, variety and emphasis **without changing a value, implication or attribution**; after editing, Prompt 3 audits the exact amended input SHA and finished graphic. Never imply all funds rose when every plotted return is negative, or call an ETF move the domestic index or whole economy. Never invent explanations for moves or push a buy/sell CTA.
+
+Prompt 3 must check numbers/legend agreement, selected-versus-unplotted land, and caption leaderboard/spread arithmetic **as well as** prior price/rights/brand gates. PR #204 remains proposed until CEO merge.
+
+
 ## Prompt 3 / independent auditor: proportional, focused, real checks
 
 1. Reopen and spot-check **every plotted ETF close pair**, ticker-to-country relationship and previous/current completed regular U.S. session dates. Recalculate displayed returns and check leaders/laggards, signs, percentages and source-to-image match. A genuine discrepancy blocks the exact post.
