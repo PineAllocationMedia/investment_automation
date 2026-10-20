@@ -257,6 +257,7 @@ def draw_t1_plus(out, p, primary, evidence, need):
     out.append(_text(68, 1003, '04 / THE BLIND SPOT', 19, SAGE, 800))
     out.extend(_paragraph(68, 1044, p['blind_spot'], chars=65, lines=2,
                           title='blind_spot', need=need, size=23, leading=33))
-    out.append(_rect(68, 1121, 944, 66, '#32433D', 10))
-    out.extend(_paragraph(89, 1162, 'WATCH: '+p['tripwire'], chars=93, lines=1,
+    # Leave a nonoverlapping, 2-line source attribution area in the T1 footer.
+    out.append(_rect(68, 1096, 944, 66, '#32433D', 10))
+    out.extend(_paragraph(89, 1137, 'WATCH: '+p['tripwire'], chars=93, lines=1,
                           title='tripwire', need=need, size=18, color=AMBER, weight=600))
