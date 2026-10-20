@@ -31,11 +31,18 @@ class E1CompanyLensTests(unittest.TestCase):
         self.assertEqual((int(root.attrib['width']),int(root.attrib['height'])),
                          (1080,1350))
         for token in ('COMPANY LENS','THREE REPORTED FACTS','COUNTER-CASE',
-                      'WHAT TO MONITOR','EDITORIAL READING','ORIGINAL SEC SOURCE',
+                      'WHAT TO MONITOR','EDITORIAL READING','FICTIONAL FILING',
                       'REPORTED','GAAP','DRAFT','SYNTHETIC TEST',
                       '4,280','620','735','NOT INVESTMENT ADVICE'):
             self.assertIn(token,svg)
         self.assertNotIn('BUY NOW',svg)
+
+    def test_synthetic_filing_does_not_claim_actual_issuer_status(self):
+        svg=draw_company_lens(demo())
+        for term in ('DEMO ISSUER','DEMO DATE','DEMO SOURCE','FICTIONAL FILING'):
+            self.assertIn(term,svg)
+        self.assertNotIn('/  SEC FILER',svg)
+        self.assertNotIn('ORIGINAL SEC SOURCE',svg)
 
     def test_missing_one_fact_fails(self):
         p=demo();p['evidence'].pop()
