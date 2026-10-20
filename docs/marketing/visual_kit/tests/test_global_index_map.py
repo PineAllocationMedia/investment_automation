@@ -191,6 +191,17 @@ class M1GlobalEquityIndexTests(unittest.TestCase):
         egypt['instrument_kind']='ETF'
         with self.assertRaises(InvalidIssue):validate_map_issue(p,self.geo)
 
+    def test_absent_original_source_is_allowed_only_for_excluded_market(self):
+        p=fixture()
+        algeria=next(e for e in p['evidence'] if e['economy_id']=='DZA')
+        algeria['original_price_source_url']=None
+        self.assertEqual(len(validate_map_issue(p,self.geo)),25)
+        self.assertIn('25 MARKETS SHOWN',render_global_map(p))
+        p=fixture()
+        usa=next(e for e in p['evidence'] if e['economy_id']=='USA')
+        usa['original_price_source_url']=None
+        with self.assertRaises(InvalidIssue):validate_map_issue(p,self.geo)
+
     def test_wrong_country_join_or_new_polygon_fails(self):
         p=fixture();p['evidence'][1]['geometry_id']='USA'
         with self.assertRaises(InvalidIssue):validate_map_issue(p,self.geo)
