@@ -6,7 +6,7 @@
   "cutoff_utc": "2026-10-20T21:00:00Z",
   "headline": "The world isn't trading one story.",
   "deck": "Synthetic country-index moves. The geography is real; index returns and the economy ranking aren't.",
-  "interpretation": "Local benchmark returns don't equal dollar returns. A scattered map can hide shared macro drivers.",
+  "interpretation": "Local index returns aren't USD returns. A mixed map can hide shared macro drivers.",
   "caption": "SYNTHETIC DESIGN ONLY. The GDP ranking, index returns, closings and provider links are invented or unverified benchmark candidates. Natural Earth geography is sourced and public domain. Do not publish.",
   "universe_version": "DEMO_20_ECONOMIES_UNVERIFIED",
   "gdp_vintage": "SYNTHETIC_NOT_IMF",
@@ -49,7 +49,8 @@
       "original_price_source_url": "https://example.org/fictitious-index-prices",
       "source_title": "DEMO CANDIDATE ONLY",
       "rights_note": "SYNTHETIC, UNVERIFIED; NOT LEGAL TO ATTRIBUTE AS REAL QUOTES",
-      "verification": "DEMO_ONLY"
+      "verification": "DEMO_ONLY",
+      "verification_note": "SYNTHETIC index levels and GDP universe; no independently verified market source"
     },
     {
       "economy_id": "CHN",
@@ -79,7 +80,8 @@
       "original_price_source_url": "https://example.org/fictitious-index-prices",
       "source_title": "DEMO CANDIDATE ONLY",
       "rights_note": "SYNTHETIC, UNVERIFIED; NOT LEGAL TO ATTRIBUTE AS REAL QUOTES",
-      "verification": "DEMO_ONLY"
+      "verification": "DEMO_ONLY",
+      "verification_note": "SYNTHETIC index levels and GDP universe; no independently verified market source"
     },
     {
       "economy_id": "DEU",
@@ -109,7 +111,8 @@
       "original_price_source_url": "https://example.org/fictitious-index-prices",
       "source_title": "DEMO CANDIDATE ONLY",
       "rights_note": "SYNTHETIC, UNVERIFIED; NOT LEGAL TO ATTRIBUTE AS REAL QUOTES",
-      "verification": "DEMO_ONLY"
+      "verification": "DEMO_ONLY",
+      "verification_note": "SYNTHETIC index levels and GDP universe; no independently verified market source"
     },
     {
       "economy_id": "JPN",
@@ -139,7 +142,8 @@
       "original_price_source_url": "https://example.org/fictitious-index-prices",
       "source_title": "DEMO CANDIDATE ONLY",
       "rights_note": "SYNTHETIC, UNVERIFIED; NOT LEGAL TO ATTRIBUTE AS REAL QUOTES",
-      "verification": "DEMO_ONLY"
+      "verification": "DEMO_ONLY",
+      "verification_note": "SYNTHETIC index levels and GDP universe; no independently verified market source"
     },
     {
       "economy_id": "IND",
@@ -169,7 +173,8 @@
       "original_price_source_url": "https://example.org/fictitious-index-prices",
       "source_title": "DEMO CANDIDATE ONLY",
       "rights_note": "SYNTHETIC, UNVERIFIED; NOT LEGAL TO ATTRIBUTE AS REAL QUOTES",
-      "verification": "DEMO_ONLY"
+      "verification": "DEMO_ONLY",
+      "verification_note": "SYNTHETIC index levels and GDP universe; no independently verified market source"
     },
     {
       "economy_id": "GBR",
@@ -199,7 +204,8 @@
       "original_price_source_url": "https://example.org/fictitious-index-prices",
       "source_title": "DEMO CANDIDATE ONLY",
       "rights_note": "SYNTHETIC, UNVERIFIED; NOT LEGAL TO ATTRIBUTE AS REAL QUOTES",
-      "verification": "DEMO_ONLY"
+      "verification": "DEMO_ONLY",
+      "verification_note": "SYNTHETIC index levels and GDP universe; no independently verified market source"
     },
     {
       "economy_id": "FRA",
@@ -229,7 +235,8 @@
       "original_price_source_url": "https://example.org/fictitious-index-prices",
       "source_title": "DEMO CANDIDATE ONLY",
       "rights_note": "SYNTHETIC, UNVERIFIED; NOT LEGAL TO ATTRIBUTE AS REAL QUOTES",
-      "verification": "DEMO_ONLY"
+      "verification": "DEMO_ONLY",
+      "verification_note": "SYNTHETIC index levels and GDP universe; no independently verified market source"
     },
     {
       "economy_id": "ITA",
@@ -259,7 +266,8 @@
       "original_price_source_url": "https://example.org/fictitious-index-prices",
       "source_title": "DEMO CANDIDATE ONLY",
       "rights_note": "SYNTHETIC, UNVERIFIED; NOT LEGAL TO ATTRIBUTE AS REAL QUOTES",
-      "verification": "DEMO_ONLY"
+      "verification": "DEMO_ONLY",
+      "verification_note": "SYNTHETIC index levels and GDP universe; no independently verified market source"
     },
     {
       "economy_id": "RUS",
@@ -289,7 +297,8 @@
       "original_price_source_url": "https://example.org/fictitious-index-prices",
       "source_title": "DEMO CANDIDATE ONLY",
       "rights_note": "SYNTHETIC, UNVERIFIED; NOT LEGAL TO ATTRIBUTE AS REAL QUOTES",
-      "verification": "DEMO_ONLY"
+      "verification": "DEMO_ONLY",
+      "verification_note": "SYNTHETIC index levels and GDP universe; no independently verified market source"
     },
     {
       "economy_id": "CAN",
@@ -319,7 +328,8 @@
       "original_price_source_url": "https://example.org/fictitious-index-prices",
       "source_title": "DEMO CANDIDATE ONLY",
       "rights_note": "SYNTHETIC, UNVERIFIED; NOT LEGAL TO ATTRIBUTE AS REAL QUOTES",
-      "verification": "DEMO_ONLY"
+      "verification": "DEMO_ONLY",
+      "verification_note": "SYNTHETIC index levels and GDP universe; no independently verified market source"
     },
     {
       "economy_id": "BRA",
@@ -349,7 +359,8 @@
       "original_price_source_url": "https://example.org/fictitious-index-prices",
       "source_title": "DEMO CANDIDATE ONLY",
       "rights_note": "SYNTHETIC, UNVERIFIED; NOT LEGAL TO ATTRIBUTE AS REAL QUOTES",
-      "verification": "DEMO_ONLY"
+      "verification": "DEMO_ONLY",
+      "verification_note": "SYNTHETIC index levels and GDP universe; no independently verified market source"
     },
     {
       "economy_id": "ESP",
@@ -379,7 +390,8 @@
       "original_price_source_url": "https://example.org/fictitious-index-prices",
       "source_title": "DEMO CANDIDATE ONLY",
       "rights_note": "SYNTHETIC, UNVERIFIED; NOT LEGAL TO ATTRIBUTE AS REAL QUOTES",
-      "verification": "DEMO_ONLY"
+      "verification": "DEMO_ONLY",
+      "verification_note": "SYNTHETIC index levels and GDP universe; no independently verified market source"
     },
     {
       "economy_id": "MEX",
@@ -409,7 +421,8 @@
       "original_price_source_url": "https://example.org/fictitious-index-prices",
       "source_title": "DEMO CANDIDATE ONLY",
       "rights_note": "SYNTHETIC, UNVERIFIED; NOT LEGAL TO ATTRIBUTE AS REAL QUOTES",
-      "verification": "DEMO_ONLY"
+      "verification": "DEMO_ONLY",
+      "verification_note": "SYNTHETIC index levels and GDP universe; no independently verified market source"
     },
     {
       "economy_id": "KOR",
@@ -439,7 +452,8 @@
       "original_price_source_url": "https://example.org/fictitious-index-prices",
       "source_title": "DEMO CANDIDATE ONLY",
       "rights_note": "SYNTHETIC, UNVERIFIED; NOT LEGAL TO ATTRIBUTE AS REAL QUOTES",
-      "verification": "DEMO_ONLY"
+      "verification": "DEMO_ONLY",
+      "verification_note": "SYNTHETIC index levels and GDP universe; no independently verified market source"
     },
     {
       "economy_id": "AUS",
@@ -469,7 +483,8 @@
       "original_price_source_url": "https://example.org/fictitious-index-prices",
       "source_title": "DEMO CANDIDATE ONLY",
       "rights_note": "SYNTHETIC, UNVERIFIED; NOT LEGAL TO ATTRIBUTE AS REAL QUOTES",
-      "verification": "DEMO_ONLY"
+      "verification": "DEMO_ONLY",
+      "verification_note": "SYNTHETIC index levels and GDP universe; no independently verified market source"
     },
     {
       "economy_id": "TUR",
@@ -499,7 +514,8 @@
       "original_price_source_url": "https://example.org/fictitious-index-prices",
       "source_title": "DEMO CANDIDATE ONLY",
       "rights_note": "SYNTHETIC, UNVERIFIED; NOT LEGAL TO ATTRIBUTE AS REAL QUOTES",
-      "verification": "DEMO_ONLY"
+      "verification": "DEMO_ONLY",
+      "verification_note": "SYNTHETIC index levels and GDP universe; no independently verified market source"
     },
     {
       "economy_id": "IDN",
@@ -529,7 +545,8 @@
       "original_price_source_url": "https://example.org/fictitious-index-prices",
       "source_title": "DEMO CANDIDATE ONLY",
       "rights_note": "SYNTHETIC, UNVERIFIED; NOT LEGAL TO ATTRIBUTE AS REAL QUOTES",
-      "verification": "DEMO_ONLY"
+      "verification": "DEMO_ONLY",
+      "verification_note": "SYNTHETIC index levels and GDP universe; no independently verified market source"
     },
     {
       "economy_id": "NLD",
@@ -559,7 +576,8 @@
       "original_price_source_url": "https://example.org/fictitious-index-prices",
       "source_title": "DEMO CANDIDATE ONLY",
       "rights_note": "SYNTHETIC, UNVERIFIED; NOT LEGAL TO ATTRIBUTE AS REAL QUOTES",
-      "verification": "DEMO_ONLY"
+      "verification": "DEMO_ONLY",
+      "verification_note": "SYNTHETIC index levels and GDP universe; no independently verified market source"
     },
     {
       "economy_id": "SAU",
@@ -589,7 +607,8 @@
       "original_price_source_url": "https://example.org/fictitious-index-prices",
       "source_title": "DEMO CANDIDATE ONLY",
       "rights_note": "SYNTHETIC, UNVERIFIED; NOT LEGAL TO ATTRIBUTE AS REAL QUOTES",
-      "verification": "DEMO_ONLY"
+      "verification": "DEMO_ONLY",
+      "verification_note": "SYNTHETIC index levels and GDP universe; no independently verified market source"
     },
     {
       "economy_id": "CHE",
@@ -619,7 +638,8 @@
       "original_price_source_url": "https://example.org/fictitious-index-prices",
       "source_title": "DEMO CANDIDATE ONLY",
       "rights_note": "SYNTHETIC, UNVERIFIED; NOT LEGAL TO ATTRIBUTE AS REAL QUOTES",
-      "verification": "DEMO_ONLY"
+      "verification": "DEMO_ONLY",
+      "verification_note": "SYNTHETIC index levels and GDP universe; no independently verified market source"
     }
   ]
 }
