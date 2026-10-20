@@ -36,6 +36,13 @@ The M1 map's public label must therefore identify **“US-LISTED COUNTRY ETFs / 
 
 **No fallback:** Do not silently substitute local indexes, broad emerging-market funds, ADRs or a different time-zone exchange series for missing country ETFs. If too few eligible ETF returns remain, report HOLD with the missing evidence and source/rights blockers rather than fabricate national performance.
 
+## M1 adaptive daily colors and strong caption (PR #204 in review)
+
+Use the approved world-map layout with an adaptive continuous percent-return scale from the actual plotted daily ETF observations. The map and legend share the same zero-centered symmetric rounded endpoints (minimum ±1%, then ±2/5/10/20 as warranted), so pale green/red and distinct exact-zero fill never merge with dark slate NOT PLOTTED land. An outlined plotted country remains identifiable at 390px. The legend must disclose the real session-dependent endpoints and background meaning. Fixed ±2% buckets are no longer adequate on a volatile day. The intensity is only comparable **within a session**, because endpoints change with its observed range.
+
+For the usual `m1_etf_daily.py build`, the source-derived caption starts as a lively horse-race-style market scoreboard: top ETF return, laggard, percentage-point gap, count of rising/falling ETFs, real completed US session and USD/FX caveats, with price-source attribution. Prompt 2 should polish the copy naturally, without changing figures or attributing invented causes; Prompt 3 confirms every quoted number and caption against the issue record and image. Preserve CEO approval of exact final post. The deterministic color fix applies to **both M1 ETF and opt-in domestic-index modes**, whereas the racing recap generator applies only to the USD ETF daily CLI.
+
+
 ## 30-country CEO list → 25 named U.S. ETF candidates
 
 These are **research starting points, not a fixed daily universe** and not a claim of 25 available real-time quotes or 25 publication-licensed feeds. Each must be rechecked on the intended market date; newly discovered funds require separate qualified registry review. The actual fund/underlying country focus, existence and trading status must be checked for the intended day. Proxy purity is approximate; do not substitute a broader regional/emerging-markets ETF for one country.
