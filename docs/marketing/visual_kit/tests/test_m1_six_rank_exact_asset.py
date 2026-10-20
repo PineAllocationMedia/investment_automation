@@ -135,10 +135,6 @@ class M1SixRankExactAssetTests(unittest.TestCase):
         # publication-looking when only a typographic P placeholder is present.
         stripped=[t for t in self.args if t not in (str(self.logo),)]
         stripped.remove('--brand-logo')
-        with self.assertRaises(ValueError):
-            # argparse occurs before the normal typed validation; choose
-            # direct exact renderer check rather than relying on CLI internals.
-            raise ValueError('test control')
         self.assertEqual(m1_etf_daily.main(stripped),2)
         self.assertFalse(self.svg.exists())
 
