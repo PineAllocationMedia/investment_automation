@@ -29,7 +29,8 @@ class M4MarketBriefTests(unittest.TestCase):
         self.assertEqual(root.attrib['width'], '1080')
         self.assertEqual(root.attrib['height'], '1350')
         for field in ('PAM', 'MARKET BRIEF', 'LATEST COMPLETED SESSIONS',
-                      'SOURCES PER ROW', 'THE READING', 'WATCH', 'NOT INVESTMENT ADVICE',
+                      'PUBLISHER / LOCAL CLOSE PER ROW', 'CROSS-ASSET INTERPRETATION',
+                      'NEXT CONFIRMATION', 'NOT INVESTMENT ADVICE',
                       'DRAFT', '+0.80%', '-3.00 bp', '-0.96%', 'DEMO ONLY'):
             self.assertIn(field, svg)
         self.assertNotIn('THE MACRO LENS', svg)
@@ -145,10 +146,47 @@ class M4MarketBriefTests(unittest.TestCase):
         p['headline']='Giant institution-sized capital market slogan. '*2
         with self.assertRaises(InvalidIssue): draw_market_brief(p)
 
+    def test_clear_market_tape_columns_and_local_session_clocks(self):
+        p=demo()
+        svg=draw_market_brief(p)
+        for heading in ('MARKET / SOURCE / SESSION', 'LAST', 'SESSION MOVE',
+                        'CROSS-ASSET INTERPRETATION', 'NEXT CONFIRMATION'):
+            self.assertIn(heading,svg)
+        self.assertEqual(svg.count('10-20 16:00-0400'),len(p['evidence']))
+        self.assertIn('AS OF 2026-10-20 18:00 -0400',svg)
+        self.assertNotIn('AS OF 2026-10-20T',svg)
+        self.assertNotIn('SOURCES PER ROW  /',svg)
+
+    def test_two_different_local_close_clocks_are_visible(self):
+        p=demo('m4_four_row')
+        p['evidence'][1]['observed_at']='2026-10-20T16:30:00-05:00'
+        p['evidence'][1]['retrieved_at']='2026-10-20T18:00:00-04:00'
+        svg=draw_market_brief(p)
+        self.assertIn('10-20 16:00-0400',svg)
+        self.assertIn('10-20 16:30-0500',svg)
+
     def test_source_overflows_are_not_silently_cut(self):
         p=demo()
         p['evidence'][0]['source_title']='W'*24
         with self.assertRaises(InvalidIssue): draw_market_brief(p)
+
+    def test_confirmation_label_never_collides_with_watch_text(self):
+        try:
+            import fitz
+        except ImportError:
+            self.skipTest('PyMuPDF required for collision check')
+        p=demo()
+        svg=draw_market_brief(p)
+        page=fitz.open(stream=svg.encode('utf-8'), filetype='svg')[0]
+        spans=[sp for block in page.get_text('dict')['blocks']
+               for line in block.get('lines', [])
+               for sp in line['spans']]
+        heading=next(x for x in spans if x['text']=='NEXT CONFIRMATION')
+        watch=[x for x in spans if 'Watch for confirmation' in x['text']]
+        self.assertEqual(len(watch),1)
+        self.assertLessEqual(heading['bbox'][2]+12,watch[0]['bbox'][0])
+        footer=next(x for x in spans if x['text'].startswith('PUBLISHER /'))
+        self.assertLess(watch[0]['bbox'][3]+20,footer['bbox'][1])
 
     def test_native_png_and_mobile_text_bounds(self):
         try:
@@ -173,7 +211,7 @@ class M4MarketBriefTests(unittest.TestCase):
                     self.assertLessEqual(y1,1342,sp['text'])
                 sources=[x for x in spans if 'DEMO ONLY' in x['text']]
                 self.assertEqual(len(sources),len(p['evidence']))
-                source_footer=next(x for x in spans if x['text'].startswith('SOURCES PER ROW'))
+                source_footer=next(x for x in spans if x['text'].startswith('PUBLISHER / LOCAL CLOSE PER ROW'))
                 asof=next(x for x in spans if x['text'].startswith('AS OF '))
                 self.assertLess(source_footer['bbox'][3]+10,asof['bbox'][1])
                 self.assertLess(asof['bbox'][2]+15,

@@ -34,6 +34,19 @@ Each source-bound evidence row requires:
 
 `observed_at` and `prior_observed_at` use the **local session clock with explicit offset** and their calendar dates must match `period` and `prior_period`. Preserve exchange holiday context and local offset/DST in the external evidence sheet. Missing/holiday markets are not 0%; reject and omit/skip rather than carry a fake close. Source register includes full publisher/release title, original URL, retrieved time, local session calendar, venue, quote definition, currency, raw closes, rounding and licensing.
 
+## Phase A institutional design refinement — proposed for CEO visual review
+
+The canonical PR #198 M4 renderer first established a functional *source-bound cross-asset table*. The **v1.1 restyle candidate** keeps all numeric, session, source, logo, provenance and CEO-approval contracts unchanged, and changes only visual composition:
+
+- Three formal table headings **MARKET / SOURCE / SESSION**, **LAST**, **SESSION MOVE** create an unambiguous left-to-right scan.
+- Each observation explicitly shows its group and `instrument_id`, main instrument label, original short source title and **local completed session clock with numeric UTC offset**. The latest-completed-sessions title remains; rows are **not claimed to close simultaneously**.
+- The bottom uses a lightly ruled **CROSS-ASSET INTERPRETATION** panel and separate **NEXT CONFIRMATION** rather than generic unanchored commentary. It must still be tied to the user's actual source-backed thesis.
+- Footer uses a readable local as-of timestamp (not a compressed ISO string), true rights/source-collection pointer, unchanged advice line, and unchanged logo requirements; `©` is not added to the approved seal.
+- At 390px the five-row and four-row variants must retain clear columns, readable short source/session metadata and safe boundaries without clipping. If a long publisher label does not fit, **HOLD** rather than silently truncating its meaning. Complete exact source URLs, exchange/quote/currency definitions and license checks remain in the evidence sheet.
+- The demonstration issue is wholly synthetic, contains a provisional `P` badge and **cannot be published**; a correct graphic still needs actual approved-logo bytes, fresh independently verified market closes, source/data rights, independent factual + visual audit, and CEO approval of the **exact final image and caption**.
+
+**Scope:** This is an evolution of M4's visual grammar, not a new market-data feed, broader asset coverage, a change to existing Macro Lens T1/T2/T3 or an addition to publication authority. Review alongside the [six institutional design gates](INSTITUTIONAL_EDITORIAL_STANDARD.md) and the before/after 390px CI previews.
+
 ## Visual specification
 
 1080×1350 (4:5) SVG with optional PNG at the same resolution. Distinct `PAM / MARKET BRIEF` masthead, report date, one thesis/headline, a brief context deck, four/five **thinly ruled source-named rows**, value and unit, signed day move with type, one interpretation, an observable WATCH line, as-of and an advice disclaimer. Forest ink / warm ivory / muted pine with no decorative rounded cards or meaningless heatmap. Disclosures and source metadata are inspected at **390px feed width**; no source/small print may depend on zoom to be understandable.

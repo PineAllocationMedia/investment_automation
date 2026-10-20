@@ -196,42 +196,52 @@ def draw_market_brief(p, logo_png=None, status='DRAFT'):
     out.extend(_paragraph(68, 379, p['deck'], chars=65, max_lines=2, size=24,
                           lead=34, width=944, name='deck', color=MUTED))
     out.extend([
-        txt(68, 444, 'LATEST COMPLETED SESSIONS  /  CROSS-ASSET', 20, TEAL, 700),
-        txt(1012, 444, 'PRICE %  ·  YIELDS bp', 18, MUTED, 650, anchor='end'),
-        rule(68, 465, 1012, 465, SEPARATOR, 2),
+        txt(68, 434, 'CROSS-ASSET / LATEST COMPLETED SESSIONS', 19, TEAL, 700),
+        rule(68, 452, 1012, 452, SEPARATOR, 2),
+        txt(86, 484, 'MARKET / SOURCE / SESSION', 19, MUTED, 600),
+        txt(783, 484, 'LAST', 19, MUTED, 600, anchor='end'),
+        txt(1012, 484, 'SESSION MOVE', 19, MUTED, 600, anchor='end'),
+        rule(68, 496, 1012, 496, SEPARATOR, 2),
     ])
-    # Keep all five rows comfortably sized; avoid different-width horizontal bars
-    # whose magnitude could misleadingly compare basis points with percentages.
-    step = 102 if len(facts) == 5 else 124
+    # Render by native category, source/session, level and native-unit move.
+    # Do not synthesize a heatmap or imply returns/yield bp are comparable.
+    step = 94 if len(facts) == 5 else 118
     for i, f in enumerate(facts):
-        y = 469 + i * step
-        out.append(rect(68, y, 944, step - 3,
+        y = 499 + i * step
+        session = _dt(f['observed_at'], 'observed_at').strftime('%m-%d %H:%M%z')
+        out.append(rect(68, y, 944, step-2,
                         NOTE_BG if i % 2 == 0 else BG, 0))
-        out.append(rule(68, y + step - 2, 1012, y + step - 2, SEPARATOR, 1))
-        out.append(_text_checked(86, y+23, f['asset_group'], 18, 400,
-                                 color=TEAL, weight=800))
-        out.append(_text_checked(86, y+58, f['label'], 29, 450, weight=650))
-        out.append(_text_checked(86, y+83, f['source_title']+' · '+f['period'],
-                                 20, 475, color=MUTED, weight=500))
-        out.append(_text_checked(774, y+54, f['display'], 30, 180,
+        out.append(rule(68, y+step-2, 1012, y+step-2, SEPARATOR, 1))
+        out.append(_text_checked(86, y+20,
+                                 f['asset_group']+'  /  '+f['instrument_id'],
+                                 18, 474, color=TEAL, weight=700))
+        out.append(_text_checked(86, y+54, f['label'], 28, 486, weight=660))
+        out.append(_text_checked(86, y+80,
+                                 f['source_title']+'  ·  '+session,
+                                 18, 497, color=MUTED, weight=500))
+        out.append(_text_checked(783, y+54, f['display'], 30, 186,
                                  weight=720, anchor='end'))
-        out.append(_text_checked(774, y+83, f['unit'], 19, 185,
+        out.append(_text_checked(783, y+80, f['unit'], 18, 186,
                                  color=MUTED, weight=500, anchor='end'))
-        out.append(_text_checked(1012, y+54, f['change_display'], 31, 182,
+        out.append(_text_checked(1012, y+54, f['change_display'], 31, 185,
                                  weight=750, anchor='end'))
-        out.append(txt(1012, y+83, 'vs previous close', 18, MUTED, 450, anchor='end'))
-    out.append(txt(68, 1037, 'THE READING', 19, TEAL, 750))
-    out.extend(_paragraph(68, 1073, p['interpretation'], chars=55, max_lines=2,
-                          size=24, lead=31, width=944, name='interpretation'))
-    out.append(txt(68, 1152, 'WATCH', 19, AMBER, 750))
-    out.extend(_paragraph(179, 1152, p['watch'], chars=66, max_lines=1,
-                          size=23, lead=30, width=828, name='watch'))
-    out.append(rule(68, 1201, 1012, 1201, SEPARATOR, 2))
-    out.append(txt(68, 1243, 'SOURCES PER ROW  /  ORIGINAL LINKS IN EVIDENCE PACKET',
-                   23, MUTED, 500))
-    out.append(txt(68, 1313, 'AS OF '+p['issue_at'][:16]+p['issue_at'][19:],
-                   27, MUTED, 500))
-    out.append(txt(1012, 1313, 'NOT INVESTMENT ADVICE', 27, MUTED, 500, anchor='end'))
+        out.append(txt(1012, y+80, 'vs prior close', 17, MUTED, 450, anchor='end'))
+    out.append(rule(68, 1010, 68, 1112, TEAL, 3))
+    out.append(txt(90, 1028, 'CROSS-ASSET INTERPRETATION', 19, TEAL, 740))
+    out.extend(_paragraph(90, 1065, p['interpretation'], chars=52, max_lines=2,
+                          size=24, lead=31, width=922, name='interpretation'))
+    out.append(txt(68, 1148, 'NEXT CONFIRMATION', 18, AMBER, 750))
+    out.extend(_paragraph(320, 1148, p['watch'], chars=48, max_lines=2,
+                          size=22, lead=27, width=692, name='watch'))
+    out.append(rule(68, 1214, 1012, 1214, SEPARATOR, 2))
+    out.append(txt(68, 1250,
+                   'PUBLISHER / LOCAL CLOSE PER ROW  ·  SOURCE LINKS IN EVIDENCE PACKET',
+                   20, MUTED, 500))
+    asof = _dt(p['issue_at'], 'issue_at').strftime('%Y-%m-%d %H:%M %z')
+    out.append(_text_checked(68, 1312, 'AS OF '+asof,
+                             22, 531, color=MUTED, weight=550))
+    out.append(_text_checked(1012, 1312, 'NOT INVESTMENT ADVICE',
+                             22, 351, color=MUTED, weight=550, anchor='end'))
     if status != 'RELEASE':
         out.append(rect(710, 151, 302, 53, '#503D25', 12, AMBER))
         out.append(txt(861, 185, 'DRAFT · NOT AUDITED', 18, AMBER, 750, anchor='middle'))
