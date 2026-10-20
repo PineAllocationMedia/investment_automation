@@ -1,0 +1,109 @@
+{
+  "schema_version": "1.0",
+  "account": "@therealpam",
+  "issue_at": "2026-10-19T09:30:00-04:00",
+  "template": "T1",
+  "t1_variant": "EVIDENCE_PLUS",
+  "issue_id": "ML-20261019-04",
+  "headline": "A synthetic story. Not market data.",
+  "deck": "EVIDENCE+ GRAPHIC DEMONSTRATION ONLY. No real economic or market facts.",
+  "blind_spot": "Short insight",
+  "tripwire": "Future source update",
+  "evidence": [
+    {
+      "verification": "VERIFIED",
+      "classification": "FACT",
+      "source_title": "DEMO ONLY",
+      "source_url": "https://example.org/demos",
+      "verification_note": "synthetic example",
+      "retrieved_at": "2026-10-19T16:00:00-04:00",
+      "claim_id": "S",
+      "label": "Synthetic price",
+      "display": "+4%",
+      "unit": "% m/m SA",
+      "period": "2026-09",
+      "observed_at": "2026-09-30T00:00:00Z",
+      "numeric_value": 4
+    },
+    {
+      "verification": "VERIFIED",
+      "classification": "FACT",
+      "source_title": "DEMO ONLY",
+      "source_url": "https://example.org/demos",
+      "verification_note": "synthetic example",
+      "retrieved_at": "2026-10-19T16:00:00-04:00",
+      "claim_id": "A",
+      "label": "Broad synthetic",
+      "display": "+0.7%",
+      "unit": "% m/m SA",
+      "period": "2026-09",
+      "observed_at": "2026-09-30T00:00:00Z"
+    },
+    {
+      "verification": "VERIFIED",
+      "classification": "FACT",
+      "source_title": "DEMO ONLY",
+      "source_url": "https://example.org/demos",
+      "verification_note": "synthetic example",
+      "retrieved_at": "2026-10-19T16:00:00-04:00",
+      "claim_id": "B",
+      "label": "Core synthetic",
+      "display": "+0.3%",
+      "unit": "% m/m SA",
+      "period": "2026-09",
+      "observed_at": "2026-09-30T00:00:00Z"
+    },
+    {
+      "verification": "VERIFIED",
+      "classification": "FACT",
+      "source_title": "DEMO ONLY",
+      "source_url": "https://example.org/demos",
+      "verification_note": "synthetic example",
+      "retrieved_at": "2026-10-19T16:00:00-04:00",
+      "claim_id": "JUL",
+      "label": "Synthetic price",
+      "display": "-2%",
+      "unit": "% m/m SA",
+      "period": "2026-07",
+      "observed_at": "2026-07-31T00:00:00Z",
+      "numeric_value": -2
+    },
+    {
+      "verification": "VERIFIED",
+      "classification": "FACT",
+      "source_title": "DEMO ONLY",
+      "source_url": "https://example.org/demos",
+      "verification_note": "synthetic example",
+      "retrieved_at": "2026-10-19T16:00:00-04:00",
+      "claim_id": "AUG",
+      "label": "Synthetic price",
+      "display": "+3%",
+      "unit": "% m/m SA",
+      "period": "2026-08",
+      "observed_at": "2026-08-31T00:00:00Z",
+      "numeric_value": 3
+    }
+  ],
+  "fact_ids": [
+    "S"
+  ],
+  "mechanism": [
+    "First stage",
+    "Second stage",
+    "Third stage"
+  ],
+  "support_fact_ids": [
+    "A",
+    "B"
+  ],
+  "mini_chart": {
+    "kind": "bar",
+    "title": "SYNTHETIC MONTHLY OBSERVATIONS",
+    "fact_ids": [
+      "JUL",
+      "AUG",
+      "S"
+    ]
+  },
+  "caption": "SYNTHETIC LAYOUT DEMONSTRATION ONLY. All figures are invented for renderer testing and must never be published."
+}
