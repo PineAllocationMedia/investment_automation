@@ -19,6 +19,7 @@ from xml.etree import ElementTree as ET
 from render_macro_lens import (
     W, H, BG, LIGHT, MUTED, TEAL, AMBER, PINE, IVORY, InvalidIssue,
     bounded, checked_logo, iso_dt, need, payload_hash, rect, rule, txt,
+    APPROVED_LOGO_SHA256,
     valid_url, wrap, release_allowed,
 )
 
@@ -178,9 +179,9 @@ def render_sector_rotation(p, logo_png=None, status='DRAFT'):
     ordered = validate_sector_rotation(p)
     if status == 'RELEASE':
         need(logo_png is not None, 'M2 RELEASE needs the approved logo')
-        need(p.get('brand_logo_sha256') ==
-             hashlib.sha256(logo_png).hexdigest(),
-             'M2 exact approved brand hash required')
+        need(p.get('brand_logo_sha256') == APPROVED_LOGO_SHA256 and
+             hashlib.sha256(logo_png).hexdigest() == APPROVED_LOGO_SHA256,
+             'M2 RELEASE requires exact CEO-approved pine logo master')
     out = [
         f'<svg xmlns="http://www.w3.org/2000/svg" width="{W}" height="{H}" viewBox="0 0 {W} {H}">',
         rect(0, 0, W, H, BG, 0),
