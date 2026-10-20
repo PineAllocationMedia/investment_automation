@@ -44,6 +44,26 @@ The [PAM Blossom Research Visual System roadmap](../BLOSSOM_VISUAL_SYSTEM_ROADMA
 
 For branding, the exact approved pine-logo bytes remain unchanged. A `©` symbol is **not** part of that logo and should not be added next to the masthead. If rights ownership is verified and CEO/Compliance approve a small footer notice, it may be developed as a separate optional typography element; there is **no copyright-notice renderer implementation in this roadmap**. A © mark does not grant market-data redistribution rights or substitute for source attribution.
 
+## Optional T1 Research Note — implemented renderer pilot (CEO visual approval pending)
+
+The existing `T1` default appearance remains **CLASSIC** for backward compatibility. For a source-backed T1 **Classic** issue only, add `"t1_layout": "RESEARCH_NOTE"` to an otherwise unchanged issue JSON to select an alternative institutional research-note geometry. That mode replaces the rounded signal/mechanism tiles with aligned typography, three ruled mechanism columns and an enlarged, unboxed WATCH statement. It **does not** add market data, change the economic fact fields, alter the caption, change the logo, or create a new source/release pathway. `t1_layout` is included in the existing `payload_hash`, so layout changes invalidate an earlier SHA-bound publication approval.
+
+- `t1_layout` omitted or `"CLASSIC"`: existing unchanged T1 Classic illustration.
+- `"RESEARCH_NOTE"`: **opt-in** T1 Classic editorial layout requiring actual 390px PNG visual inspection.
+- `t1_variant: EVIDENCE_PLUS`: **unchanged old Evidence+ composition**, and explicitly incompatible with Research Note until independently restyled and tested.
+- `T2`/`T3`: unchanged layouts; T1-only field is rejected.
+- Any long headline, unusual glyph, source byline, chart or footer collision: renderer may HOLD; shorten nonessential copy accurately or return to Classic. Do not fabricate/omit sources.
+
+Synthetic, **never-publish** example: [T1 Research Note fixture](examples/t1_research_note_synthetic.json). The exact approved logo bytes must still be provided and SHA-bound for final branded rendering; without them a draft shows a provisional P seal.
+
+```bash
+python docs/marketing/visual_kit/render_macro_lens.py \
+  docs/marketing/visual_kit/examples/t1_research_note_synthetic.json \
+  --output /tmp/research-note-draft.svg --png /tmp/research-note-draft.png
+```
+
+This is a controlled visual implementation, **not** an editorial-quality auto-PASS. Compare a real factual issue in the old and new layouts using identical evidence/caption/logo, inspect a native PNG and 390px view, perform independent source/visual review of the exact candidate, and obtain separate CEO approval for the final image and caption before publication. The CEO has not approved this pilot's exact new appearance merely by requesting its implementation.
+
 ## Institutional editorial design — mandatory visual review
 
 Use the [Institutional Editorial Design Gate](INSTITUTIONAL_EDITORIAL_STANDARD.md) when assessing any actual T1 Classic, T1 Evidence+, T2 or T3 PNG. A sober mobile-first macro research note is the editorial target: meaningful hierarchy, restrained rounded containers, nondecorative dividers, source-backed evidence and a readable mechanism. Technical CI verifies deterministic renderer behavior, **not** that a draft looks appropriately professional. Inspect at 1080×1350 and at 390px feed width, mark each of the six design gates PASS/HOLD and escalate a visibly childish or cluttered render as **VISUAL HOLD** before CEO post approval. The current renderer's appearance is not automatically changed by this documentation; design improvements require their own reviewed implementation PR, rendered proof and fresh independent factual/visual audit. This is a more demanding **editorial acceptance standard**, not a change to factual or publishing authority.
