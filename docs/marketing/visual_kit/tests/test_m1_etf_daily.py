@@ -65,8 +65,8 @@ class M1PracticalETFTests(unittest.TestCase):
         self.assertEqual(p['rights_note'],'RESEARCH_PREVIEW')
         self.assertEqual(p['session_date'],'2026-10-19')
         svg=render_global_map(p)
-        self.assertIn('GLOBAL ETF MAP',svg)
-        self.assertIn('DRAFT · REAL DATA',svg)
+        self.assertIn('MARKET ATLAS',svg)
+        self.assertNotIn('DRAFT ·',svg)
         self.assertIn('25 MARKETS SHOWN',svg)
         self.assertIn('USD PRICE MOVES',svg)
         self.assertNotIn('COUNTRY INDEX RETURNS',svg)
@@ -158,7 +158,7 @@ class M1PracticalETFTests(unittest.TestCase):
         self.assertEqual(main(args),0)
         self.assertTrue(all(x.is_file() and x.stat().st_size>500
                             for x in (issue,svg,png,mobile)))
-        self.assertIn('DRAFT · REAL DATA',svg.read_text())
+        self.assertNotIn('DRAFT ·',svg.read_text())
         import struct
         self.assertEqual(struct.unpack('>II',png.read_bytes()[16:24]),
                          (1080,1350))

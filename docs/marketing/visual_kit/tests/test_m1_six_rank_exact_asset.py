@@ -128,9 +128,10 @@ class M1SixRankExactAssetTests(unittest.TestCase):
                      observed_at=None,prior_observed_at=None,retrieved_at=None,
                      close_session_date=None,prior_session_date=None)
         svg=m1.render_global_map(p)
-        self.assertIn('TOP 2 FRONTRUNNERS',svg)
-        self.assertIn('BOTTOM 2 LAGGARDS',svg)
-        self.assertNotIn('TOP 3 FRONTRUNNERS',svg)
+        self.assertIn('TOP 3 FRONTRUNNERS',svg)
+        self.assertIn('BOTTOM 3 LAGGARDS',svg)
+        self.assertIn('3.  —',svg)
+        self.assertEqual(svg.count('3.  —'),2)
 
     def test_default_cli_requires_complete_brand_asset_and_sha_manifest(self):
         # Failing without a brand/image packet is deliberate; never claim
@@ -188,6 +189,71 @@ class M1SixRankExactAssetTests(unittest.TestCase):
         with patch.object(m1,'APPROVED_LOGO_SHA256',self.logo_sha):
             with self.assertRaises(InvalidIssue):
                 m1.render_global_map(p,self.logo.read_bytes(),status='REVIEW_CANDIDATE')
+
+
+    def test_one_through_five_supported_returns_never_block_clean_first_render(self):
+        # All quotes and brand bytes in this test are invented fixtures.
+        for n in (1,2,3,4,5):
+            with self.subTest(genuine_candidate_count=n):
+                rows=records(self.quotes)
+                available=0
+                for row in rows:
+                    if not row['ticker']:
+                        continue
+                    available+=1
+                    if available>n:
+                        for k in ('prior_close','close','source_url',
+                                  'prior_source_url','source_name',
+                                  'corporate_action_status','source_use_status'):
+                            row[k]=''
+                with self.quotes.open('w',newline='',encoding='utf-8') as fp:
+                    w=csv.DictWriter(fp,fieldnames=COLUMNS)
+                    w.writeheader();w.writerows(rows)
+                self.assertEqual(self.build_candidate(),0)
+                p=json.loads(self.issue.read_text())
+                svg=self.svg.read_text()
+                self.assertEqual(p['map_product'],'MARKET_ATLAS_V1')
+                self.assertEqual(len([e for e in p['evidence']
+                                      if e['missing_status']=='ELIGIBLE']),n)
+                self.assertIn('MARKET ATLAS',svg)
+                self.assertIn('TOP 3 FRONTRUNNERS',svg)
+                self.assertIn('BOTTOM 3 LAGGARDS',svg)
+                self.assertNotIn('DRAFT ·',svg)
+                self.assertNotIn('AUDIT ONLY',svg)
+                self.assertNotIn('NOT FOR PUBLICATION',svg)
+                self.assertEqual(json.loads(self.manifest.read_text())
+                                 ['publication_approved'],False)
+                self.assertEqual(struct.unpack('>II',
+                                 self.png.read_bytes()[16:24]),(1080,1350))
+                # Reinitialize full fictional set for the next isolated n.
+                quote_sheet(self.quotes)
+
+    def test_market_atlas_fixed_headline_and_panel_geometry(self):
+        self.assertEqual(self.build_candidate(),0)
+        p=json.loads(self.issue.read_text())
+        base=m1.render_global_map(p,self.logo.read_bytes(),
+                                  status='REVIEW_CANDIDATE')
+        varied=json.loads(json.dumps(p))
+        varied['headline']='The world in one U.S. session'
+        for e in varied['evidence']:
+            if e['missing_status']=='ELIGIBLE':
+                e['close_price']=e['prior_close_price']*1.001
+                e['signed_return_pct']=m1._return(e)
+        variant=m1.render_global_map(varied,self.logo.read_bytes(),
+                                     status='REVIEW_CANDIDATE')
+        for fixed in ('MARKET ATLAS','TOP 3 FRONTRUNNERS',
+                      'BOTTOM 3 LAGGARDS','NOT PLOTTED',
+                      'EXACT 0.00%','ETF LEADERS &amp; LAGGARDS'):
+            self.assertIn(fixed,base)
+            self.assertIn(fixed,variant)
+        def panel_positions(svg):
+            root=ET.fromstring(svg)
+            return [(el.attrib.get('x'),el.attrib.get('y'))
+                    for el in root.iter() if el.tag.endswith('text')
+                    and el.text in ('TOP 3 FRONTRUNNERS',
+                                    'BOTTOM 3 LAGGARDS')]
+        self.assertEqual(panel_positions(base),panel_positions(variant))
+        self.assertNotIn('DRAFT ·',variant)
 
 
 if __name__=='__main__':

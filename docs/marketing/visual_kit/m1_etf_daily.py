@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""PAM M1 practical USD ETF workflow: price facts -> branded DRAFT map -> Prompt 3 QA.
+"""PAM MARKET ATLAS: authentic ETF close facts -> exact clean image -> Prompt 3 QA.
 
 No market scraping, paid feed, permissions assertion or automatic publication.
 Researchers supply US ETF closing prices and public attribution URLs in one CSV.
@@ -26,6 +26,7 @@ from render_macro_lens import checked_logo, payload_hash, need, InvalidIssue
 HERE=Path(__file__).resolve().parent
 SAMPLE=HERE/'examples'/'m1_us_etf_synthetic.json'
 US_TZ=ZoneInfo('America/New_York')
+MARKET_ATLAS_HEADLINE='The world in one U.S. session'
 COLUMNS=['country','ticker','prior_close','close','source_url',
          'prior_source_url','source_name','corporate_action_status',
          'source_use_status','notes']
@@ -80,7 +81,7 @@ def race_recap_caption(eligible,session_date,prior_date):
     This is editorial copy, not an assertion that a particular country's
     domestic index, currency, economy or underlying equities all moved alike.
     """
-    need(len(eligible)>=4,'Need four ETF observations for a market recap')
+    need(len(eligible)>=1,'A factual Market Atlas recap requires at least one real return')
     ranked=sorted(eligible,key=lambda e:(-e['signed_return_pct'],e['economy_id']))
     leader,tail=ranked[0],ranked[-1]
     # Last in descending order is the weakest return. Ties are factual
@@ -90,7 +91,9 @@ def race_recap_caption(eligible,session_date,prior_date):
     gainers=sum(e['signed_return_pct']>0 for e in eligible)
     decliners=sum(e['signed_return_pct']<0 for e in eligible)
     flats=len(eligible)-gainers-decliners
-    if spread<0.005:
+    if len(eligible)==1:
+        hook="One country ETF at the closing bell."
+    elif spread<0.005:
         hook="A dead heat on the country ETF board."
     elif gainers==0 and flats==0:
         hook="Everyone finished in the red. Some fell a lot harder."
@@ -100,7 +103,10 @@ def race_recap_caption(eligible,session_date,prior_date):
         hook=f"One closing bell. {spread:.2f} percentage points between first and last."
     else:
         hook="One U.S. session. Very different finishes."
-    if spread<0.005:
+    if len(eligible)==1:
+        ordering=(f"{leader['economy_name']} ({leader['etf_ticker']}) "
+                  f"finished at {top:+.2f}%.")
+    elif spread<0.005:
         ordering=(f"All {len(eligible)} plotted country ETFs closed essentially level "
                   f"at {top:+.2f}%.")
     else:
@@ -146,7 +152,10 @@ def build(quotes,session_date,prior_date,cutoff_utc,*,issue_id,headline=None,log
         'universe_review':'RESEARCH_COVERAGE',
         'benchmark_registry_status':'SOURCE_LINKED_RESEARCH',
         'method_version':'M1_ETF_USD_DAILY_V1',
-        'headline':headline or 'The world in one U.S. session',
+        'map_product':'MARKET_ATLAS_V1',
+        # Title/composition stay invariant across sessions. A requested
+        # alternative hook belongs in the caption, not on the fixed map.
+        'headline':MARKET_ATLAS_HEADLINE,
         'deck':f'Country ETF moves in USD / US close {current.isoformat()} vs {prior.isoformat()}',
         'interpretation':'USD ETF returns reflect currency and US trading-hours repricing, not domestic index returns.',
         'caption':'PENDING PRICE-BASED EDITORIAL RECAP',
@@ -224,8 +233,8 @@ def build(quotes,session_date,prior_date,cutoff_utc,*,issue_id,headline=None,log
             verification_note='SOURCE-LINKED REAL FACT; PROMPT 3 UNCHECKED',
         )
         displayed.append(code)
-    need(len(displayed)>=4,
-         'At least 4 real source-linked ETF pairs required for useful M1 map')
+    need(len(displayed)>=1,
+         'At least one genuine source-linked close pair is necessary; search further before giving up')
     eligible=[e for e in p['evidence'] if e['missing_status']=='ELIGIBLE']
     p['caption']=race_recap_caption(eligible,current.isoformat(),prior.isoformat())
     p['caption_review_state']='DRAFT_AWAITING_PROMPT3'
@@ -344,7 +353,7 @@ def main(argv=None):
     sub=ap.add_subparsers(dest='command',required=True)
     a=sub.add_parser('init',help='Write a 30-country quote CSV for web research')
     a.add_argument('--out',type=Path,required=True)
-    b=sub.add_parser('build',help='Create exact final-looking M1 image for Prompt 3; --draft-only for exploratory previews')
+    b=sub.add_parser('build',help='Create clean, consistent Market Atlas image from genuine completed-session ETF prices')
     b.add_argument('quotes',type=Path)
     for key in ('session-date','prior-date','cutoff-utc','issue-id'):
         b.add_argument('--'+key,required=True)
@@ -389,8 +398,6 @@ def main(argv=None):
                        issue_id=args.issue_id,headline=args.headline,logo=args.brand_logo)
         logo=checked_logo(args.brand_logo) if args.brand_logo else None
         if candidate:
-            need(report['count_shown']>=6,
-                 'Need six distinct eligible countries for TOP 3 and BOTTOM 3')
             p['artifact_intent']='EXACT_ARTIFACT_AWAITING_PROMPT3'
             p['caption_review_state']='EXACT_CANDIDATE_AWAITING_PROMPT3'
         svg=render_global_map(p,logo,

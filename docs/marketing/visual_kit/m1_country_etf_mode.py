@@ -214,7 +214,7 @@ def validate_country_etf_issue(p, geo):
                  name+' missing cannot be fabricated as 0%')
             need(e.get('session_status')!='COMPLETED',
                  name+' excluded ETF cannot claim completed market quote')
-    need(len(accepted)>=4,'ETF M1 requires at least four qualified proxies')
+    need(len(accepted)>=1,'Market Atlas needs a genuine market observation, not an artificial coverage quota')
     need(len(session_dates)==1 and len(prior_dates)==1 and len(close_times)==1,
          'ETF M1 all shown ETFs must share one completed U.S. session close')
     return accepted
