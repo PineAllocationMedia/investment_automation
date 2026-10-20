@@ -463,26 +463,36 @@ def render_global_map(p, logo_png=None, status='DRAFT', geometry_path=GEOMETRY):
                f'fill="{LAND}" stroke="{LIGHT}" stroke-width="1"/>')
     out.append(txt(927,879,'NOT PLOTTED',12,MUTED,650))
     out.append(rule(68,919,1012,919,GRID,2))
-    out.append(txt(68,947,'ETF LEADERS & LAGGARDS' if etf_mode else
-                   'INDEX LEADERS & LAGGARDS',19,TEAL,750))
-    out.append(txt(1012,947,'COUNTRY / USD ETF / 1 U.S. SESSION' if etf_mode else
-                   'COUNTRY / INDEX / 1 SESSION',17,MUTED,600,anchor='end'))
-    ranked=sorted(elig,key=lambda e:(-_return(e),e['economy_id']))
-    featured=ranked[:2]+list(reversed(ranked[-2:]))
-    labels_prefix=['LEADER','LEADER','LAGGARD','LAGGARD']
+    out.append(txt(68,947,'TOP 3 FRONTRUNNERS / TOP 3 LAGGARDS',19,TEAL,750))
+    # Four/five qualified markets can appear in both top/bottom 3.
+    # Preserve the 4-market research-preview threshold without inventing extra
+    # markets or hiding the overlap from readers.
+    small_universe=len(elig)<6
+    scope=('RANKINGS OVERLAP / '+str(len(elig))+' SHOWN' if small_universe else
+           'USD COUNTRY ETFs / 1 U.S. SESSION' if etf_mode else
+           'COUNTRY INDICES / COMPLETED SESSIONS')
+    out.append(txt(1012,947,scope,14,MUTED,600,anchor='end'))
+    # Always show 3 ranked frontrunners and 3 ranked laggards, with stable
+    # alphabetical country tie-breaking in each direction.
+    frontrunners=sorted(elig,key=lambda e:(-_return(e),e['economy_id']))[:3]
+    laggards=sorted(elig,key=lambda e:(_return(e),e['economy_id']))[:3]
+    featured=frontrunners+laggards
+    labels_prefix=[f'FRONT #{i}' for i in range(1,4)]+[
+                   f'LAGGARD #{i}' for i in range(1,4)]
+    row_height=34
     for i,(e,prefix) in enumerate(zip(featured,labels_prefix)):
-        y=955+i*49
+        y=955+i*row_height
         if i%2==0:
-            out.append(rect(68,y,944,49,'#182E33',0))
-        out.append(rule(68,y+48,1012,y+48,GRID,1))
-        out.append(put(82,y+31,prefix,17,120,color=TEAL if i<2 else AMBER))
+            out.append(rect(68,y,944,row_height,'#182E33',0))
+        out.append(rule(68,y+row_height-1,1012,y+row_height-1,GRID,1))
+        out.append(put(82,y+24,prefix,16,128,color=TEAL if i<3 else AMBER))
         desc=(e['economy_id']+'  /  '+e['etf_ticker']+'  /  '+
               e['instrument_name'].replace('iShares ','').replace('Vanguard ','').replace('VanEck ','').replace(' ETF','')
               if etf_mode else e['economy_id']+'  /  '+e['instrument_name'])
-        out.append(put(226,y+31,desc,21,612,weight=600))
+        out.append(put(226,y+24,desc,19,612,weight=600))
         result=_return(e)
-        out.append(put(1012,y+31,f'{result:+.2f}%' if round(result,2) else '0.00%',
-                       24,145,anchor='end',weight=750))
+        out.append(put(1012,y+24,f'{result:+.2f}%' if round(result,2) else '0.00%',
+                       21,145,anchor='end',weight=750))
     out.append(txt(68,1185,'THE READING',18,TEAL,750))
     out.extend(paragraph(225,1185,p['interpretation'],name='interpretation',
                          chars=54,max_lines=2,size=21,leading=27,width=787))
