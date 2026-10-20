@@ -92,7 +92,7 @@ def race_recap_caption(eligible,session_date,prior_date):
     decliners=sum(e['signed_return_pct']<0 for e in eligible)
     flats=len(eligible)-gainers-decliners
     if len(eligible)==1:
-        hook="One verified ETF close. No invented global leaderboard."
+        hook="One country ETF at the closing bell."
     elif spread<0.005:
         hook="A dead heat on the country ETF board."
     elif gainers==0 and flats==0:
