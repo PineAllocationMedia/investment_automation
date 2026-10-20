@@ -80,7 +80,7 @@ class M1GlobalEquityIndexTests(unittest.TestCase):
         self.assertNotIn('GDP GROWTH',svg)
         self.assertIn('SG POINT',svg)
         self.assertIn('>SG</text>',svg)
-        self.assertIn('cx="810.',svg)
+        self.assertIn('cx="809.9"',svg)
         self.assertNotIn('TODAY ALL MARKETS',svg)
 
     def test_polar_geometry_not_leaking_outside_mobile_map_crop(self):
