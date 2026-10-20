@@ -70,7 +70,28 @@ def verified_local_capture(root, relative, expected_sha, label):
     require(actual == expected_sha, label + ' capture contents mismatch recorded hash')
 
 
-def scaffold(cutoff, *, research_mode=LOCAL_RESEARCH_MODE):
+def route_subject(subject=None, *, explicit_mode=None):
+    """Default M1 world-market maps to USD country ETFs, not local indices.
+
+    Other editorial layouts should not invoke M1 unless a map was chosen.
+    Explicit national/local index language opts into the original index route.
+    """
+    require(explicit_mode in (None, 'index', 'usd-etf'),
+            'Unknown explicit M1 mode')
+    if explicit_mode is not None:
+        return ETF_RESEARCH_MODE if explicit_mode=='usd-etf' else LOCAL_RESEARCH_MODE
+    subject=(subject or '').lower()
+    if any(term in subject for term in (
+            'local-currency index', 'local currency index',
+            'domestic index', 'national stock index',
+            'national equity index', 'local national index',
+            'local stock index', 'domestic market index',
+            'price indices', 'price indexes')):
+        return LOCAL_RESEARCH_MODE
+    return ETF_RESEARCH_MODE
+
+
+def scaffold(cutoff, *, research_mode=ETF_RESEARCH_MODE):
     d = _dt(cutoff, 'cutoff_utc')
     require(d.utcoffset().total_seconds() == 0, 'Cutoff must be UTC')
     require(research_mode in (LOCAL_RESEARCH_MODE, ETF_RESEARCH_MODE),
@@ -92,6 +113,12 @@ def scaffold(cutoff, *, research_mode=LOCAL_RESEARCH_MODE):
                 'currency_candidate': e['listed_currency'],
                 'etf_ticker_candidate': e.get('etf_ticker') if
                     research_mode == ETF_RESEARCH_MODE else None,
+                'etf_discovery': ({
+                    'state': 'NOT_SEARCHED',
+                    'checked_at_utc': None,
+                    'source_urls': [],
+                    'notes': None,
+                } if research_mode == ETF_RESEARCH_MODE else None),
                 'decision': 'UNRESEARCHED',
                 'research_notes': None,
                 'attempted_sources': [],
@@ -129,6 +156,42 @@ def assess(packet, *, issue_metadata=None, evidence_root=None):
             require(row.get('etf_ticker_candidate')==
                     (candidate['ticker'] if candidate else None),
                     code + ' candidate fund registry substituted')
+            # A proposed ticker is NOT a daily fund-availability check.
+            # Every country, including the five currently lacking candidates,
+            # must have evidence of its own dated fund discovery search.
+            discovery=row.get('etf_discovery')
+            require(isinstance(discovery,dict), code+' requires ETF discovery record')
+            discovered=discovery.get('state')
+            require(discovered in (
+                'NOT_SEARCHED','CANDIDATE_VERIFIED',
+                'NO_ELIGIBLE_ETF_FOUND','NEW_ETF_REVIEW_REQUIRED'),
+                code+' invalid ETF discovery state')
+            if row.get('decision')!='UNRESEARCHED':
+                require(discovered!='NOT_SEARCHED',
+                        code+' cannot be resolved without ETF fund discovery')
+                checked=_dt(discovery.get('checked_at_utc'),
+                            code+'.etf_discovery.checked_at_utc')
+                require(checked.utcoffset().total_seconds()==0 and checked<=cutoff,
+                        code+' future/non-UTC fund search is not evidence')
+                found=discovery.get('source_urls')
+                require(isinstance(found,list) and len(found)>=1,
+                        code+' issuer/listing search source required')
+                for u in found:
+                    url(u,code+' ETF discovery source')
+                nonempty(discovery.get('notes'),code+' ETF discovery notes')
+                if candidate is None:
+                    require(discovered in (
+                        'NO_ELIGIBLE_ETF_FOUND','NEW_ETF_REVIEW_REQUIRED'),
+                        code+' no approved registry ETF: search all alternatives')
+                if discovered=='CANDIDATE_VERIFIED':
+                    require(candidate is not None,
+                            code+' cannot verify a nonexistent candidate')
+                if discovered=='NO_ELIGIBLE_ETF_FOUND':
+                    require(row['decision']=='EXCLUDED',
+                            code+' no ETF cannot qualify')
+                if discovered=='NEW_ETF_REVIEW_REQUIRED':
+                    require(row['decision']=='EXCLUDED',
+                            code+' newly found ticker needs independent registry review')
         state = row.get('decision')
         require(state in STATES, code + ' invalid decision')
         attempts = row.get('attempted_sources')
@@ -154,6 +217,8 @@ def assess(packet, *, issue_metadata=None, evidence_root=None):
             require(q.get('return_currency') == ('USD' if etf_mode else 'LOCAL'),
                     code + ' wrong quote currency/return basis')
             if etf_mode:
+                require(discovered=='CANDIDATE_VERIFIED',
+                        code+' cannot qualify before verifying ETF candidate today')
                 require(candidate is not None and q.get('etf_ticker')==
                         candidate['ticker'] and q.get('index_name')==candidate['name'],
                         code + ' no confirmed active single-country ETF mapping')
@@ -325,7 +390,10 @@ def main(argv=None):
     sub = ap.add_subparsers(dest='command', required=True)
     a = sub.add_parser('init')
     a.add_argument('--cutoff-utc', required=True)
-    a.add_argument('--mode', choices=('index','usd-etf'), default='index')
+    a.add_argument('--mode', choices=('index','usd-etf'), default=None,
+                   help='Optional override; USD ETFs are the default M1 map mode')
+    a.add_argument('--subject',
+                   help='CEO subject; explicit local-index phrasing chooses index mode')
     a.add_argument('--out', type=Path, required=True)
     b = sub.add_parser('assess')
     b.add_argument('packet', type=Path)
@@ -336,8 +404,8 @@ def main(argv=None):
     args = ap.parse_args(argv)
     try:
         if args.command == 'init':
-            obj = scaffold(args.cutoff_utc, research_mode=(ETF_RESEARCH_MODE if
-                           args.mode=='usd-etf' else LOCAL_RESEARCH_MODE))
+            obj = scaffold(args.cutoff_utc, research_mode=route_subject(
+                args.subject,explicit_mode=args.mode))
             args.out.write_text(json.dumps(obj, indent=2) + '\n', encoding='utf-8')
             print('CREATED UNRESEARCHED 30-market intake; NOT A MARKET SCAN')
             return 0
