@@ -176,6 +176,7 @@ def validate_map_issue(p, geo):
         bounded(e.get('country_exposure_note'),n+'.country_exposure_note',100)
         bounded(e.get('source_title'),n+'.source_title',50)
         bounded(e.get('rights_note'),n+'.rights_note',160)
+        bounded(e.get('verification_note'),n+'.verification_note',160)
         need(e.get('instrument_kind') in ('INDEX','UNAVAILABLE'),
              f'{n} ETF proxy is excluded from domestic-index M1 mode')
         need(e.get('benchmark_variant') in ('PRICE_INDEX','UNCONFIRMED','NO_PROXY'),
