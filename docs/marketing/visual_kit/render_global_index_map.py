@@ -353,6 +353,9 @@ def render_global_map(p, logo_png=None, status='DRAFT', geometry_path=GEOMETRY):
         out.append(txt(x+44,899,labels[i],14,MUTED,550,anchor='middle'))
     out.append(rect(823,867,22,12,NO_DATA,0))
     out.append(txt(854,879,'NO VALID CLOSE',17,MUTED,600))
+    # True unchanged index close is a distinct neutral swatch, not a missing quote.
+    out.append(rect(823,895,22,12,ZERO,0))
+    out.append(txt(854,907,'EXACT 0.00%',17,MUTED,600))
     out.append(rule(68,919,1012,919,GRID,2))
     out.append(txt(68,947,'INDEX LEADERS & LAGGARDS',19,TEAL,750))
     out.append(txt(1012,947,'COUNTRY / INDEX / 1 SESSION',17,MUTED,600,anchor='end'))
