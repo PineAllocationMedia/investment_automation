@@ -23,6 +23,9 @@ W, H = 1080, 1350
 BG, PANEL, LIGHT = '#11242A', '#1A3233', '#F4F0E6'
 MUTED, TEAL, AMBER = '#BDC8BE', '#A6CBB1', '#E6C592'
 PINE, IVORY = '#284936', '#F4F0E6'
+# Exact CEO-approved RECONSTRUCTED v0.1 master; do not treat as historical original.
+# Source of asset metadata: visual_kit/assets/PAM_MACRO_LENS_LOGO_RECONSTRUCTED_v0.1.json
+APPROVED_LOGO_SHA256 = 'a352aa5dc6b9c5f1a142a36747eb4361a2d22cbc628805ee9a4e28da51ca9c75'
 FONT = 'DejaVu Sans, Liberation Sans, Arial, sans-serif'
 ID_RE = re.compile(r'^ML-\d{8}-\d{2}$')
 SAFE_TOKEN = re.compile(r'^[A-Za-z0-9._:/+()%,&!?—–−= #\-]+$')
@@ -165,7 +168,7 @@ def arrow(x, y, length=70):
 
 
 def checked_logo(path):
-    """Load exact CEO-provided *clean* square PNG asset, never reconstruct from screenshot."""
+    """Load clean square PNG bytes; release further restricts to CEO-approved asset hash."""
     raw = Path(path).read_bytes()
     need(len(raw) <= 2_000_000 and len(raw) >= 24,
          'Brand logo PNG must be between 24 bytes and 2MB')
@@ -289,7 +292,8 @@ def release_allowed(payload, approval):
     need(approval.get('ceo_approved') is True, 'Explicit CEO approval required')
     bounded(approval.get('auditor_reference'),'auditor_reference',140)
     bounded(approval.get('ceo_approval_reference'),'ceo_approval_reference',140)
-    need(bool(payload.get('brand_logo_sha256')), 'Release requires official brand logo SHA256 in approved payload')
+    need(payload.get('brand_logo_sha256') == APPROVED_LOGO_SHA256,
+         'Release requires SHA256 of exact CEO-approved reconstructed pine logo v0.1')
     # This checks an external record; it cannot authenticate the human reviewer or verify source URLs.
 
 
@@ -299,7 +303,7 @@ def run(argv=None):
     ap.add_argument('--output',type=Path,required=True,help='Path to output SVG')
     ap.add_argument('--png',type=Path,help='Optional output PNG (existing PyMuPDF package required)')
     ap.add_argument('--release-manifest',type=Path,help='Separate pre-approved, SHA-bound external audit and CEO authorization')
-    ap.add_argument('--brand-logo',type=Path,help='Clean, CEO-provided square PNG of actual Blossom pine-cone logo')
+    ap.add_argument('--brand-logo',type=Path,help='Exact CEO-approved reconstructed v0.1 pine PNG; see Visual Kit asset register')
     args=ap.parse_args(argv)
     try:
         data=json.loads(args.issue.read_text(encoding='utf-8'))
@@ -313,7 +317,7 @@ def run(argv=None):
             need(data.get('brand_logo_sha256') == hashlib.sha256(logo_png).hexdigest(),
                  'Brand logo SHA256 missing or mismatched: asset is not bound to approved issue')
         if status == 'RELEASE':
-            need(logo_png is not None, 'Cannot release without exact CEO-supplied Blossom logo PNG')
+            need(logo_png is not None, 'Cannot release without exact CEO-approved pine logo PNG')
         svg=render(data,status,logo_png)
         # Generate BOTH outputs before writing either to disk.
         png=None
