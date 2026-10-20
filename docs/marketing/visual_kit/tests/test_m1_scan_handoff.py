@@ -1,5 +1,6 @@
 """Offline M1 data intake tests: MOCK reviewer attestations are not actual rights."""
 import copy
+import hashlib
 import json
 import tempfile
 import unittest
@@ -9,6 +10,10 @@ from m1_scan_handoff import assess, main, scaffold
 from render_global_index_map import COUNTRIES, validate_map_issue, load_geometry
 from render_macro_lens import InvalidIssue
 
+
+EVIDENCE_ROOT = Path(__file__).resolve().parents[1]
+SOURCE_CAPTURE = 'tests/test_m1_scan_handoff.py'
+RIGHTS_CAPTURE = 'M1_DAILY_SCAN_HANDOFF.md'
 
 CUTOFF = '2026-10-20T23:00:00Z'
 META = {
@@ -47,7 +52,12 @@ def mock_eligible(p, code):
             'benchmark_definition': 'MOCK price-index variant, not authenticated',
             'rights_review_reference': 'MOCK-RIGHTS-REVIEW',
             'independent_fact_review_reference': 'MOCK-FACT-AUDIT',
-            'source_capture_sha256': 'a' * 64,
+            'source_capture_path': SOURCE_CAPTURE,
+            'source_capture_sha256': hashlib.sha256(
+                (EVIDENCE_ROOT / SOURCE_CAPTURE).read_bytes()).hexdigest(),
+            'rights_capture_path': RIGHTS_CAPTURE,
+            'rights_capture_sha256': hashlib.sha256(
+                (EVIDENCE_ROOT / RIGHTS_CAPTURE).read_bytes()).hexdigest(),
             'rights_scope': 'PUBLIC_BLOSSOM_INDEX_RETURN_GRAPHIC',
             'rights_decision': 'APPROVED_FOR_EXACT_USE',
             'fact_decision': 'INDEPENDENTLY_CHECKED',
@@ -77,7 +87,7 @@ class M1ResearchHandoffTests(unittest.TestCase):
         self.assertEqual(p['rows'][20]['economy_id'],'SAU')
         self.assertEqual(p['rows'][21]['economy_id'],'EGY')
         self.assertEqual(p['rows'][22]['economy_id'],'DZA')
-        r,issue = assess(p,issue_metadata=META)
+        r,issue = assess(p,issue_metadata=META,evidence_root=EVIDENCE_ROOT)
         self.assertEqual(r['count_unresearched'],30)
         self.assertEqual(r['status'],'HOLD')
         self.assertIsNone(issue)
@@ -93,7 +103,7 @@ class M1ResearchHandoffTests(unittest.TestCase):
 
     def test_excluded_countries_are_retained_in_scan_but_not_displayed(self):
         p=excluded_packet()
-        r,issue=assess(p,issue_metadata=META)
+        r,issue=assess(p,issue_metadata=META,evidence_root=EVIDENCE_ROOT)
         self.assertEqual(r['count_excluded'],30)
         self.assertEqual(r['count_qualified'],0)
         self.assertEqual(r['displayed_market_codes'],[])
@@ -104,7 +114,7 @@ class M1ResearchHandoffTests(unittest.TestCase):
         p=excluded_packet()
         for code in ('USA','JPN','SAU','EGY'):
             mock_eligible(p,code)
-        r,issue=assess(p,issue_metadata=META)
+        r,issue=assess(p,issue_metadata=META,evidence_root=EVIDENCE_ROOT)
         self.assertEqual(r['status'],'CANDIDATE_READY_REQUIRES_EXTERNAL_AUDIT')
         self.assertEqual(r['count_qualified'],4)
         self.assertEqual(r['count_excluded'],26)
@@ -132,7 +142,20 @@ class M1ResearchHandoffTests(unittest.TestCase):
             q=p['rows'][0]['qualified_quote']
             q[key]=val
             with self.subTest(field=key),self.assertRaises(InvalidIssue):
-                assess(p,issue_metadata=META)
+                assess(p,issue_metadata=META,evidence_root=EVIDENCE_ROOT)
+
+    def test_source_capture_missing_or_mutated_fails(self):
+        for key, val in (
+            ('source_capture_path','no-such-file.txt'),
+            ('source_capture_sha256','b' * 64),
+            ('rights_capture_path','../outside.txt'),
+            ('rights_capture_sha256','b' * 64),
+        ):
+            p=excluded_packet()
+            for code in ('USA','JPN','SAU','EGY'):mock_eligible(p,code)
+            p['rows'][0]['qualified_quote'][key]=val
+            with self.subTest(key=key),self.assertRaises(InvalidIssue):
+                assess(p,issue_metadata=META,evidence_root=EVIDENCE_ROOT)
 
     def test_provisional_quote_or_future_retrieval_fails(self):
         for key,value in (('session_status','INTRADAY'),
@@ -143,12 +166,12 @@ class M1ResearchHandoffTests(unittest.TestCase):
             for code in ('USA','JPN','SAU','EGY'):mock_eligible(p,code)
             p['rows'][0]['qualified_quote'][key]=value
             with self.subTest(field=key),self.assertRaises(InvalidIssue):
-                assess(p,issue_metadata=META)
+                assess(p,issue_metadata=META,evidence_root=EVIDENCE_ROOT)
 
     def test_three_attested_countries_not_enough(self):
         p=excluded_packet()
         for code in ('USA','JPN','EGY'):mock_eligible(p,code)
-        r,issue=assess(p,issue_metadata=META)
+        r,issue=assess(p,issue_metadata=META,evidence_root=EVIDENCE_ROOT)
         self.assertEqual(r['status'],'HOLD')
         self.assertIsNone(issue)
         self.assertIn('At least four', ' '.join(r['blockers']))
@@ -157,7 +180,7 @@ class M1ResearchHandoffTests(unittest.TestCase):
         p=excluded_packet()
         p['independent_auditor_reference']='MOCK-RESEARCHER'
         for code in ('USA','JPN','SAU','EGY'):mock_eligible(p,code)
-        with self.assertRaises(InvalidIssue):assess(p,issue_metadata=META)
+        with self.assertRaises(InvalidIssue):assess(p,issue_metadata=META,evidence_root=EVIDENCE_ROOT)
 
     def test_cli_creates_diagnostic_not_real_issue(self):
         with tempfile.TemporaryDirectory() as tmp:
