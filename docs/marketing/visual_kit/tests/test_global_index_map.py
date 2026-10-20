@@ -78,7 +78,7 @@ class M1GlobalEquityIndexTests(unittest.TestCase):
         self.assertEqual((root.attrib['width'],root.attrib['height']),('1080','1350'))
         paths=root.findall('.//{http://www.w3.org/2000/svg}path')
         self.assertGreaterEqual(len(paths),170)
-        for text in ('GLOBAL EQUITY MAP','LOCAL CURRENCY','LATEST COMPLETED SESSIONS',
+        for text in ('MARKET ATLAS','LOCAL CURRENCY','LATEST COMPLETED SESSIONS',
                      '25 MARKETS SHOWN','INDEX LEADERS &amp; LAGGARDS',
                      'JPN / TOPIX','CAN / S&amp;P/TSX',
                      'GEO: NATURAL EARTH','EXACT 0.00%',
