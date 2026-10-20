@@ -263,8 +263,8 @@ def validate_map_issue(p, geo):
                  'M1 noneligible status contradictory to completed market')
     need(orders==set(range(1,len(COUNTRIES)+1)),
          'M1 selection order must cover all 30 requested countries')
-    need(len(valid)>=4,
-         'M1 insufficient valid market coverage to justify a world graphic')
+    need(len(valid)>=1,
+         'Market Atlas requires one genuine qualified return; never fabricate data')
     return valid
 
 
@@ -377,7 +377,6 @@ def render_global_map(p, logo_png=None, status='DRAFT', geometry_path=GEOMETRY):
              p.get('return_basis')==ETF_BASIS and
              p.get('artifact_intent')=='EXACT_ARTIFACT_AWAITING_PROMPT3',
              'M1 review candidate only for source-linked real USD ETF facts')
-        need(len(elig)>=6,'Six different qualified ETFs required for TOP 3 and BOTTOM 3')
         need(logo_png is not None and
              hashlib.sha256(logo_png).hexdigest()==APPROVED_LOGO_SHA256 and
              p.get('brand_logo_sha256')==APPROVED_LOGO_SHA256,
@@ -411,7 +410,7 @@ def render_global_map(p, logo_png=None, status='DRAFT', geometry_path=GEOMETRY):
         out.append(txt(110,111,'P',39,PINE,800,anchor='middle'))
     out.extend([
         txt(169,102,'PAM',29,LIGHT,800),
-        txt(267,102,'/  GLOBAL ETF MAP' if etf_mode else '/  GLOBAL EQUITY MAP',22,MUTED,600),
+        txt(267,102,'/  MARKET ATLAS',22,MUTED,600),
         txt(1012,103,p['issue_id'],20,TEAL,600,anchor='end'),
         rule(68,147,1012,147,GRID,2),
         txt(68,183,'US-LISTED COUNTRY ETFs  /  USD PRICE MOVES' if etf_mode else
@@ -479,37 +478,39 @@ def render_global_map(p, logo_png=None, status='DRAFT', geometry_path=GEOMETRY):
     out.append(txt(1012,947,'COUNTRY / USD ETF / 1 U.S. SESSION' if etf_mode else
                    'COUNTRY / INDEX / 1 SESSION',17,MUTED,600,anchor='end'))
     ranked=sorted(elig,key=lambda e:(-_return(e),e['economy_id']))
-    # Each column has three non-overlapping ranked observations whenever six
-    # are qualified. Sparse legacy research drafts never duplicate a country.
+    # MARKET ATLAS V1: permanent 3+3 panel geometry across daily sessions.
+    # When data is exceptionally sparse, empty rows are blank rather than
+    # inventing a market, moving boxes or blocking the entire artifact.
     winners_count=min(3,(len(ranked)+1)//2)
     losers_count=min(3,len(ranked)//2)
     leaders=ranked[:winners_count]
-    laggards=list(reversed(ranked[-losers_count:]))
+    laggards=list(reversed(ranked[-losers_count:])) if losers_count else []
     need(not ({e['economy_id'] for e in leaders} &
               {e['economy_id'] for e in laggards}),
-         'M1 leaderboard cannot repeat countries across columns')
+         'Market Atlas ranking panels must never duplicate a market')
     for x,items,label,ink in (
-            (68,leaders,f'TOP {winners_count} FRONTRUNNERS',TEAL),
-            (554,laggards,f'BOTTOM {losers_count} LAGGARDS',AMBER)):
+            (68,leaders,'TOP 3 FRONTRUNNERS',TEAL),
+            (554,laggards,'BOTTOM 3 LAGGARDS',AMBER)):
         out.append(txt(x+10,977,label,16,ink,760))
-        for i,e in enumerate(items):
+        for i in range(3):
             row_y=986+i*54
             if i%2==0:
                 out.append(rect(x,row_y,458,53,'#182E33',0))
             out.append(rule(x,row_y+52,x+458,row_y+52,GRID,1))
+            if i>=len(items):
+                out.append(put(x+12,row_y+34,f'{i+1}.  —',21,313,weight=660,color=MUTED))
+                continue
+            e=items[i]
             if etf_mode:
                 desc=f"{i+1}.  {e['economy_id']} / {e['etf_ticker']}"
             else:
-                # Long home-market index names cannot fit the half-width
-                # scoreboard at readable font size. Keep exact full identity
-                # in the evidence record, and shorten only its visual label.
                 prefix=f"{i+1}.  {e['economy_id']} / "
                 desc=prefix+e['instrument_name']
                 if _text_width(desc,21)>313:
                     words=e['instrument_name'].split()
                     while words and _text_width(prefix+' '.join(words)+'…',21)>313:
                         words.pop()
-                    need(words,'M1 domestic index label cannot fit')
+                    need(words,'Market Atlas domestic index label cannot fit')
                     desc=prefix+' '.join(words)+'…'
             out.append(put(x+12,row_y+34,desc,21,313,weight=660))
             result=_return(e)
