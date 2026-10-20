@@ -194,7 +194,7 @@ class ETFResearchIntakeTests(unittest.TestCase):
                          ETF_RESEARCH_MODE)
         self.assertEqual(route_subject('National stock index daily map'),
                          LOCAL_RESEARCH_MODE)
-        self.assertEqual(route_subject('World map today's market moves',
+        self.assertEqual(route_subject("World map today's market moves",
                          explicit_mode='index'),LOCAL_RESEARCH_MODE)
         self.assertEqual(route_subject('Country map domestic index moves'),
                          LOCAL_RESEARCH_MODE)
