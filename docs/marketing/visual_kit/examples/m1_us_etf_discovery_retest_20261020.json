@@ -1,0 +1,1030 @@
+{
+  "schema_version": "M1_DAILY_RESEARCH_PACKET_V1",
+  "cutoff_utc": "2026-10-20T18:45:58Z",
+  "research_mode": "US_LISTED_ETF_USD",
+  "preparer_reference": "PAM-MARKETING-ASSISTANT-RESEARCH-RETEST-20261020",
+  "independent_auditor_reference": null,
+  "rows": [
+    {
+      "selection_order": 1,
+      "economy_id": "USA",
+      "economy_name": "United States of America",
+      "index_candidate": "Vanguard S&P 500 ETF",
+      "currency_candidate": "USD",
+      "etf_ticker_candidate": "VOO",
+      "etf_discovery": {
+        "state": "CANDIDATE_VERIFIED",
+        "checked_at_utc": "2026-10-20T18:40:00Z",
+        "source_urls": [
+          "https://advisors.vanguard.com/investments/products/voo/vanguard-sp-500-etf?fromSearch=true&source=autosuggest",
+          "https://www.sec.gov/Archives/edgar/data/36405/000003640526000183/f44783d1.htm"
+        ],
+        "notes": "2026-10-20 issuer-listed ticker VOO, for United States of America. Identity lead only; trade, price and rights require daily separate audit."
+      },
+      "decision": "EXCLUDED",
+      "research_notes": "Issuer/current directory confirms proposed VOO fund identity; no original-publisher Oct 16/19 close-pair capture or exact public ETF graphic display rights independently qualified in this pass. Secondary or mixed-source Oct 16/19 price pair now located; still unlicensed/unqualified.",
+      "attempted_sources": [
+        "https://advisors.vanguard.com/investments/products/voo/vanguard-sp-500-etf?fromSearch=true&source=autosuggest",
+        "https://www.sec.gov/Archives/edgar/data/36405/000003640526000183/f44783d1.htm",
+        "https://stockanalysis.com/etf/voo/history/"
+      ],
+      "exclusion_status": "MISSING",
+      "qualified_quote": null,
+      "price_research": {
+        "source_type": "SECONDARY_HISTORICAL_MARKET_PRICE_PAIR",
+        "source_urls": [
+          "https://stockanalysis.com/etf/voo/history/"
+        ],
+        "completed_us_session": "2026-10-19",
+        "prior_us_session": "2026-10-16",
+        "public_reuse_rights": "NOT_REVIEWED",
+        "independent_source_pair_verified": false,
+        "may_render": false
+      }
+    },
+    {
+      "selection_order": 2,
+      "economy_id": "JPN",
+      "economy_name": "Japan",
+      "index_candidate": "iShares MSCI Japan ETF",
+      "currency_candidate": "USD",
+      "etf_ticker_candidate": "EWJ",
+      "etf_discovery": {
+        "state": "CANDIDATE_VERIFIED",
+        "checked_at_utc": "2026-10-20T18:40:00Z",
+        "source_urls": [
+          "https://www.ishares.com/us/products/etf-investments",
+          "https://www.ishares.com/us/products/239665/ishares-msci-japan-etf",
+          "https://ca.investing.com/etfs/ishares-msci-japan-historical-data"
+        ],
+        "notes": "2026-10-20 issuer-listed ticker EWJ, for Japan. Identity lead only; trade, price and rights require daily separate audit."
+      },
+      "decision": "EXCLUDED",
+      "research_notes": "Issuer fund page confirms Oct 19 2026 EWJ closing price $94.99; third-party Oct 16 $94.88. Original exchange close pair and reuse license not independently captured. Secondary or mixed-source Oct 16/19 price pair now located; still unlicensed/unqualified.",
+      "attempted_sources": [
+        "https://www.ishares.com/us/products/etf-investments",
+        "https://www.ishares.com/us/products/239665/ishares-msci-japan-etf",
+        "https://ca.investing.com/etfs/ishares-msci-japan-historical-data",
+        "https://stockanalysis.com/etf/ewj/history/"
+      ],
+      "exclusion_status": "MISSING",
+      "qualified_quote": null,
+      "price_research": {
+        "source_type": "SECONDARY_HISTORICAL_MARKET_PRICE_PAIR",
+        "source_urls": [
+          "https://stockanalysis.com/etf/ewj/history/"
+        ],
+        "completed_us_session": "2026-10-19",
+        "prior_us_session": "2026-10-16",
+        "public_reuse_rights": "NOT_REVIEWED",
+        "independent_source_pair_verified": false,
+        "may_render": false
+      }
+    },
+    {
+      "selection_order": 3,
+      "economy_id": "CHN",
+      "economy_name": "China",
+      "index_candidate": "iShares MSCI China ETF",
+      "currency_candidate": "USD",
+      "etf_ticker_candidate": "MCHI",
+      "etf_discovery": {
+        "state": "CANDIDATE_VERIFIED",
+        "checked_at_utc": "2026-10-20T18:40:00Z",
+        "source_urls": [
+          "https://www.ishares.com/us/products/etf-investments",
+          "https://www.ishares.com/us/products/239619/ishares-msci-china-etf",
+          "https://www.financialcontent.com/quote/NQ%3AMCHI/historical"
+        ],
+        "notes": "2026-10-20 issuer-listed ticker MCHI, for China. Identity lead only; trade, price and rights require daily separate audit."
+      },
+      "decision": "EXCLUDED",
+      "research_notes": "Issuer product MCHI present; multiple third-party price histories show Oct 19 $50.87 and Oct 16 $51.20. Original exchange pair and licensed redistribution not approved. Secondary or mixed-source Oct 16/19 price pair now located; still unlicensed/unqualified.",
+      "attempted_sources": [
+        "https://www.ishares.com/us/products/etf-investments",
+        "https://www.ishares.com/us/products/239619/ishares-msci-china-etf",
+        "https://www.financialcontent.com/quote/NQ%3AMCHI/historical",
+        "https://stockanalysis.com/etf/mchi/history/"
+      ],
+      "exclusion_status": "MISSING",
+      "qualified_quote": null,
+      "price_research": {
+        "source_type": "SECONDARY_HISTORICAL_MARKET_PRICE_PAIR",
+        "source_urls": [
+          "https://stockanalysis.com/etf/mchi/history/"
+        ],
+        "completed_us_session": "2026-10-19",
+        "prior_us_session": "2026-10-16",
+        "public_reuse_rights": "NOT_REVIEWED",
+        "independent_source_pair_verified": false,
+        "may_render": false
+      }
+    },
+    {
+      "selection_order": 4,
+      "economy_id": "IND",
+      "economy_name": "India",
+      "index_candidate": "iShares MSCI India ETF",
+      "currency_candidate": "USD",
+      "etf_ticker_candidate": "INDA",
+      "etf_discovery": {
+        "state": "CANDIDATE_VERIFIED",
+        "checked_at_utc": "2026-10-20T18:40:00Z",
+        "source_urls": [
+          "https://www.ishares.com/us/products/etf-investments"
+        ],
+        "notes": "2026-10-20 issuer-listed ticker INDA, for India. Identity lead only; trade, price and rights require daily separate audit."
+      },
+      "decision": "EXCLUDED",
+      "research_notes": "Issuer/current directory confirms proposed INDA fund identity; no original-publisher Oct 16/19 close-pair capture or exact public ETF graphic display rights independently qualified in this pass. Secondary or mixed-source Oct 16/19 price pair now located; still unlicensed/unqualified.",
+      "attempted_sources": [
+        "https://www.ishares.com/us/products/etf-investments",
+        "https://stockanalysis.com/etf/inda/history/"
+      ],
+      "exclusion_status": "MISSING",
+      "qualified_quote": null,
+      "price_research": {
+        "source_type": "SECONDARY_HISTORICAL_MARKET_PRICE_PAIR",
+        "source_urls": [
+          "https://stockanalysis.com/etf/inda/history/"
+        ],
+        "completed_us_session": "2026-10-19",
+        "prior_us_session": "2026-10-16",
+        "public_reuse_rights": "NOT_REVIEWED",
+        "independent_source_pair_verified": false,
+        "may_render": false
+      }
+    },
+    {
+      "selection_order": 5,
+      "economy_id": "DEU",
+      "economy_name": "Germany",
+      "index_candidate": "iShares MSCI Germany ETF",
+      "currency_candidate": "USD",
+      "etf_ticker_candidate": "EWG",
+      "etf_discovery": {
+        "state": "CANDIDATE_VERIFIED",
+        "checked_at_utc": "2026-10-20T18:40:00Z",
+        "source_urls": [
+          "https://www.ishares.com/us/products/etf-investments"
+        ],
+        "notes": "2026-10-20 issuer-listed ticker EWG, for Germany. Identity lead only; trade, price and rights require daily separate audit."
+      },
+      "decision": "EXCLUDED",
+      "research_notes": "Issuer/current directory confirms proposed EWG fund identity; no original-publisher Oct 16/19 close-pair capture or exact public ETF graphic display rights independently qualified in this pass. Secondary or mixed-source Oct 16/19 price pair now located; still unlicensed/unqualified.",
+      "attempted_sources": [
+        "https://www.ishares.com/us/products/etf-investments",
+        "https://stockanalysis.com/etf/ewg/history/"
+      ],
+      "exclusion_status": "MISSING",
+      "qualified_quote": null,
+      "price_research": {
+        "source_type": "SECONDARY_HISTORICAL_MARKET_PRICE_PAIR",
+        "source_urls": [
+          "https://stockanalysis.com/etf/ewg/history/"
+        ],
+        "completed_us_session": "2026-10-19",
+        "prior_us_session": "2026-10-16",
+        "public_reuse_rights": "NOT_REVIEWED",
+        "independent_source_pair_verified": false,
+        "may_render": false
+      }
+    },
+    {
+      "selection_order": 6,
+      "economy_id": "GBR",
+      "economy_name": "United Kingdom",
+      "index_candidate": "iShares MSCI United Kingdom ETF",
+      "currency_candidate": "USD",
+      "etf_ticker_candidate": "EWU",
+      "etf_discovery": {
+        "state": "CANDIDATE_VERIFIED",
+        "checked_at_utc": "2026-10-20T18:40:00Z",
+        "source_urls": [
+          "https://www.ishares.com/us/products/etf-investments"
+        ],
+        "notes": "2026-10-20 issuer-listed ticker EWU, for United Kingdom. Identity lead only; trade, price and rights require daily separate audit."
+      },
+      "decision": "EXCLUDED",
+      "research_notes": "Issuer/current directory confirms proposed EWU fund identity; no original-publisher Oct 16/19 close-pair capture or exact public ETF graphic display rights independently qualified in this pass. Secondary or mixed-source Oct 16/19 price pair now located; still unlicensed/unqualified.",
+      "attempted_sources": [
+        "https://www.ishares.com/us/products/etf-investments",
+        "https://stockanalysis.com/etf/ewu/history/"
+      ],
+      "exclusion_status": "MISSING",
+      "qualified_quote": null,
+      "price_research": {
+        "source_type": "SECONDARY_HISTORICAL_MARKET_PRICE_PAIR",
+        "source_urls": [
+          "https://stockanalysis.com/etf/ewu/history/"
+        ],
+        "completed_us_session": "2026-10-19",
+        "prior_us_session": "2026-10-16",
+        "public_reuse_rights": "NOT_REVIEWED",
+        "independent_source_pair_verified": false,
+        "may_render": false
+      }
+    },
+    {
+      "selection_order": 7,
+      "economy_id": "CAN",
+      "economy_name": "Canada",
+      "index_candidate": "iShares MSCI Canada ETF",
+      "currency_candidate": "USD",
+      "etf_ticker_candidate": "EWC",
+      "etf_discovery": {
+        "state": "CANDIDATE_VERIFIED",
+        "checked_at_utc": "2026-10-20T18:40:00Z",
+        "source_urls": [
+          "https://www.ishares.com/us/products/etf-investments"
+        ],
+        "notes": "2026-10-20 issuer-listed ticker EWC, for Canada. Identity lead only; trade, price and rights require daily separate audit."
+      },
+      "decision": "EXCLUDED",
+      "research_notes": "Issuer/current directory confirms proposed EWC fund identity; no original-publisher Oct 16/19 close-pair capture or exact public ETF graphic display rights independently qualified in this pass. Secondary or mixed-source Oct 16/19 price pair now located; still unlicensed/unqualified.",
+      "attempted_sources": [
+        "https://www.ishares.com/us/products/etf-investments",
+        "https://stockanalysis.com/etf/ewc/history/"
+      ],
+      "exclusion_status": "MISSING",
+      "qualified_quote": null,
+      "price_research": {
+        "source_type": "SECONDARY_HISTORICAL_MARKET_PRICE_PAIR",
+        "source_urls": [
+          "https://stockanalysis.com/etf/ewc/history/"
+        ],
+        "completed_us_session": "2026-10-19",
+        "prior_us_session": "2026-10-16",
+        "public_reuse_rights": "NOT_REVIEWED",
+        "independent_source_pair_verified": false,
+        "may_render": false
+      }
+    },
+    {
+      "selection_order": 8,
+      "economy_id": "AUS",
+      "economy_name": "Australia",
+      "index_candidate": "iShares MSCI Australia ETF",
+      "currency_candidate": "USD",
+      "etf_ticker_candidate": "EWA",
+      "etf_discovery": {
+        "state": "CANDIDATE_VERIFIED",
+        "checked_at_utc": "2026-10-20T18:40:00Z",
+        "source_urls": [
+          "https://www.ishares.com/us/products/etf-investments"
+        ],
+        "notes": "2026-10-20 issuer-listed ticker EWA, for Australia. Identity lead only; trade, price and rights require daily separate audit."
+      },
+      "decision": "EXCLUDED",
+      "research_notes": "Issuer/current directory confirms proposed EWA fund identity; no original-publisher Oct 16/19 close-pair capture or exact public ETF graphic display rights independently qualified in this pass. Secondary or mixed-source Oct 16/19 price pair now located; still unlicensed/unqualified.",
+      "attempted_sources": [
+        "https://www.ishares.com/us/products/etf-investments",
+        "https://stockanalysis.com/etf/ewa/history/"
+      ],
+      "exclusion_status": "MISSING",
+      "qualified_quote": null,
+      "price_research": {
+        "source_type": "SECONDARY_HISTORICAL_MARKET_PRICE_PAIR",
+        "source_urls": [
+          "https://stockanalysis.com/etf/ewa/history/"
+        ],
+        "completed_us_session": "2026-10-19",
+        "prior_us_session": "2026-10-16",
+        "public_reuse_rights": "NOT_REVIEWED",
+        "independent_source_pair_verified": false,
+        "may_render": false
+      }
+    },
+    {
+      "selection_order": 9,
+      "economy_id": "TWN",
+      "economy_name": "Taiwan",
+      "index_candidate": "iShares MSCI Taiwan ETF",
+      "currency_candidate": "USD",
+      "etf_ticker_candidate": "EWT",
+      "etf_discovery": {
+        "state": "CANDIDATE_VERIFIED",
+        "checked_at_utc": "2026-10-20T18:40:00Z",
+        "source_urls": [
+          "https://www.ishares.com/us/products/etf-investments"
+        ],
+        "notes": "2026-10-20 issuer-listed ticker EWT, for Taiwan. Identity lead only; trade, price and rights require daily separate audit."
+      },
+      "decision": "EXCLUDED",
+      "research_notes": "Issuer/current directory confirms proposed EWT fund identity; no original-publisher Oct 16/19 close-pair capture or exact public ETF graphic display rights independently qualified in this pass. Secondary or mixed-source Oct 16/19 price pair now located; still unlicensed/unqualified.",
+      "attempted_sources": [
+        "https://www.ishares.com/us/products/etf-investments",
+        "https://stockanalysis.com/etf/ewt/history/"
+      ],
+      "exclusion_status": "MISSING",
+      "qualified_quote": null,
+      "price_research": {
+        "source_type": "SECONDARY_HISTORICAL_MARKET_PRICE_PAIR",
+        "source_urls": [
+          "https://stockanalysis.com/etf/ewt/history/"
+        ],
+        "completed_us_session": "2026-10-19",
+        "prior_us_session": "2026-10-16",
+        "public_reuse_rights": "NOT_REVIEWED",
+        "independent_source_pair_verified": false,
+        "may_render": false
+      }
+    },
+    {
+      "selection_order": 10,
+      "economy_id": "KOR",
+      "economy_name": "South Korea",
+      "index_candidate": "iShares MSCI South Korea ETF",
+      "currency_candidate": "USD",
+      "etf_ticker_candidate": "EWY",
+      "etf_discovery": {
+        "state": "CANDIDATE_VERIFIED",
+        "checked_at_utc": "2026-10-20T18:40:00Z",
+        "source_urls": [
+          "https://www.ishares.com/us/products/etf-investments"
+        ],
+        "notes": "2026-10-20 issuer-listed ticker EWY, for South Korea. Identity lead only; trade, price and rights require daily separate audit."
+      },
+      "decision": "EXCLUDED",
+      "research_notes": "Issuer/current directory confirms proposed EWY fund identity; no original-publisher Oct 16/19 close-pair capture or exact public ETF graphic display rights independently qualified in this pass. Secondary or mixed-source Oct 16/19 price pair now located; still unlicensed/unqualified.",
+      "attempted_sources": [
+        "https://www.ishares.com/us/products/etf-investments",
+        "https://stockanalysis.com/etf/ewy/history/"
+      ],
+      "exclusion_status": "MISSING",
+      "qualified_quote": null,
+      "price_research": {
+        "source_type": "SECONDARY_HISTORICAL_MARKET_PRICE_PAIR",
+        "source_urls": [
+          "https://stockanalysis.com/etf/ewy/history/"
+        ],
+        "completed_us_session": "2026-10-19",
+        "prior_us_session": "2026-10-16",
+        "public_reuse_rights": "NOT_REVIEWED",
+        "independent_source_pair_verified": false,
+        "may_render": false
+      }
+    },
+    {
+      "selection_order": 11,
+      "economy_id": "BRA",
+      "economy_name": "Brazil",
+      "index_candidate": "iShares MSCI Brazil ETF",
+      "currency_candidate": "USD",
+      "etf_ticker_candidate": "EWZ",
+      "etf_discovery": {
+        "state": "CANDIDATE_VERIFIED",
+        "checked_at_utc": "2026-10-20T18:40:00Z",
+        "source_urls": [
+          "https://www.ishares.com/us/products/etf-investments"
+        ],
+        "notes": "2026-10-20 issuer-listed ticker EWZ, for Brazil. Identity lead only; trade, price and rights require daily separate audit."
+      },
+      "decision": "EXCLUDED",
+      "research_notes": "Issuer/current directory confirms proposed EWZ fund identity; no original-publisher Oct 16/19 close-pair capture or exact public ETF graphic display rights independently qualified in this pass. Secondary or mixed-source Oct 16/19 price pair now located; still unlicensed/unqualified.",
+      "attempted_sources": [
+        "https://www.ishares.com/us/products/etf-investments",
+        "https://stockanalysis.com/etf/ewz/history/"
+      ],
+      "exclusion_status": "MISSING",
+      "qualified_quote": null,
+      "price_research": {
+        "source_type": "SECONDARY_HISTORICAL_MARKET_PRICE_PAIR",
+        "source_urls": [
+          "https://stockanalysis.com/etf/ewz/history/"
+        ],
+        "completed_us_session": "2026-10-19",
+        "prior_us_session": "2026-10-16",
+        "public_reuse_rights": "NOT_REVIEWED",
+        "independent_source_pair_verified": false,
+        "may_render": false
+      }
+    },
+    {
+      "selection_order": 12,
+      "economy_id": "FRA",
+      "economy_name": "France",
+      "index_candidate": "iShares MSCI France ETF",
+      "currency_candidate": "USD",
+      "etf_ticker_candidate": "EWQ",
+      "etf_discovery": {
+        "state": "CANDIDATE_VERIFIED",
+        "checked_at_utc": "2026-10-20T18:40:00Z",
+        "source_urls": [
+          "https://www.ishares.com/us/products/etf-investments"
+        ],
+        "notes": "2026-10-20 issuer-listed ticker EWQ, for France. Identity lead only; trade, price and rights require daily separate audit."
+      },
+      "decision": "EXCLUDED",
+      "research_notes": "Issuer/current directory confirms proposed EWQ fund identity; no original-publisher Oct 16/19 close-pair capture or exact public ETF graphic display rights independently qualified in this pass. Secondary or mixed-source Oct 16/19 price pair now located; still unlicensed/unqualified.",
+      "attempted_sources": [
+        "https://www.ishares.com/us/products/etf-investments",
+        "https://stockanalysis.com/etf/ewq/history/"
+      ],
+      "exclusion_status": "MISSING",
+      "qualified_quote": null,
+      "price_research": {
+        "source_type": "SECONDARY_HISTORICAL_MARKET_PRICE_PAIR",
+        "source_urls": [
+          "https://stockanalysis.com/etf/ewq/history/"
+        ],
+        "completed_us_session": "2026-10-19",
+        "prior_us_session": "2026-10-16",
+        "public_reuse_rights": "NOT_REVIEWED",
+        "independent_source_pair_verified": false,
+        "may_render": false
+      }
+    },
+    {
+      "selection_order": 13,
+      "economy_id": "CHE",
+      "economy_name": "Switzerland",
+      "index_candidate": "iShares MSCI Switzerland ETF",
+      "currency_candidate": "USD",
+      "etf_ticker_candidate": "EWL",
+      "etf_discovery": {
+        "state": "CANDIDATE_VERIFIED",
+        "checked_at_utc": "2026-10-20T18:40:00Z",
+        "source_urls": [
+          "https://www.ishares.com/us/products/etf-investments"
+        ],
+        "notes": "2026-10-20 issuer-listed ticker EWL, for Switzerland. Identity lead only; trade, price and rights require daily separate audit."
+      },
+      "decision": "EXCLUDED",
+      "research_notes": "Issuer/current directory confirms proposed EWL fund identity; no original-publisher Oct 16/19 close-pair capture or exact public ETF graphic display rights independently qualified in this pass. Secondary or mixed-source Oct 16/19 price pair now located; still unlicensed/unqualified.",
+      "attempted_sources": [
+        "https://www.ishares.com/us/products/etf-investments",
+        "https://stockanalysis.com/etf/ewl/history/"
+      ],
+      "exclusion_status": "MISSING",
+      "qualified_quote": null,
+      "price_research": {
+        "source_type": "SECONDARY_HISTORICAL_MARKET_PRICE_PAIR",
+        "source_urls": [
+          "https://stockanalysis.com/etf/ewl/history/"
+        ],
+        "completed_us_session": "2026-10-19",
+        "prior_us_session": "2026-10-16",
+        "public_reuse_rights": "NOT_REVIEWED",
+        "independent_source_pair_verified": false,
+        "may_render": false
+      }
+    },
+    {
+      "selection_order": 14,
+      "economy_id": "MEX",
+      "economy_name": "Mexico",
+      "index_candidate": "iShares MSCI Mexico ETF",
+      "currency_candidate": "USD",
+      "etf_ticker_candidate": "EWW",
+      "etf_discovery": {
+        "state": "CANDIDATE_VERIFIED",
+        "checked_at_utc": "2026-10-20T18:40:00Z",
+        "source_urls": [
+          "https://www.ishares.com/us/products/etf-investments"
+        ],
+        "notes": "2026-10-20 issuer-listed ticker EWW, for Mexico. Identity lead only; trade, price and rights require daily separate audit."
+      },
+      "decision": "EXCLUDED",
+      "research_notes": "Issuer/current directory confirms proposed EWW fund identity; no original-publisher Oct 16/19 close-pair capture or exact public ETF graphic display rights independently qualified in this pass. Secondary or mixed-source Oct 16/19 price pair now located; still unlicensed/unqualified.",
+      "attempted_sources": [
+        "https://www.ishares.com/us/products/etf-investments",
+        "https://stockanalysis.com/etf/eww/history/"
+      ],
+      "exclusion_status": "MISSING",
+      "qualified_quote": null,
+      "price_research": {
+        "source_type": "SECONDARY_HISTORICAL_MARKET_PRICE_PAIR",
+        "source_urls": [
+          "https://stockanalysis.com/etf/eww/history/"
+        ],
+        "completed_us_session": "2026-10-19",
+        "prior_us_session": "2026-10-16",
+        "public_reuse_rights": "NOT_REVIEWED",
+        "independent_source_pair_verified": false,
+        "may_render": false
+      }
+    },
+    {
+      "selection_order": 15,
+      "economy_id": "ESP",
+      "economy_name": "Spain",
+      "index_candidate": "iShares MSCI Spain ETF",
+      "currency_candidate": "USD",
+      "etf_ticker_candidate": "EWP",
+      "etf_discovery": {
+        "state": "CANDIDATE_VERIFIED",
+        "checked_at_utc": "2026-10-20T18:40:00Z",
+        "source_urls": [
+          "https://www.ishares.com/us/products/etf-investments"
+        ],
+        "notes": "2026-10-20 issuer-listed ticker EWP, for Spain. Identity lead only; trade, price and rights require daily separate audit."
+      },
+      "decision": "EXCLUDED",
+      "research_notes": "Issuer/current directory confirms proposed EWP fund identity; no original-publisher Oct 16/19 close-pair capture or exact public ETF graphic display rights independently qualified in this pass. Secondary or mixed-source Oct 16/19 price pair now located; still unlicensed/unqualified.",
+      "attempted_sources": [
+        "https://www.ishares.com/us/products/etf-investments",
+        "https://stockanalysis.com/etf/ewp/history/"
+      ],
+      "exclusion_status": "MISSING",
+      "qualified_quote": null,
+      "price_research": {
+        "source_type": "SECONDARY_HISTORICAL_MARKET_PRICE_PAIR",
+        "source_urls": [
+          "https://stockanalysis.com/etf/ewp/history/"
+        ],
+        "completed_us_session": "2026-10-19",
+        "prior_us_session": "2026-10-16",
+        "public_reuse_rights": "NOT_REVIEWED",
+        "independent_source_pair_verified": false,
+        "may_render": false
+      }
+    },
+    {
+      "selection_order": 16,
+      "economy_id": "ITA",
+      "economy_name": "Italy",
+      "index_candidate": "iShares MSCI Italy ETF",
+      "currency_candidate": "USD",
+      "etf_ticker_candidate": "EWI",
+      "etf_discovery": {
+        "state": "CANDIDATE_VERIFIED",
+        "checked_at_utc": "2026-10-20T18:40:00Z",
+        "source_urls": [
+          "https://www.ishares.com/us/products/etf-investments"
+        ],
+        "notes": "2026-10-20 issuer-listed ticker EWI, for Italy. Identity lead only; trade, price and rights require daily separate audit."
+      },
+      "decision": "EXCLUDED",
+      "research_notes": "Issuer/current directory confirms proposed EWI fund identity; no original-publisher Oct 16/19 close-pair capture or exact public ETF graphic display rights independently qualified in this pass. Secondary or mixed-source Oct 16/19 price pair now located; still unlicensed/unqualified.",
+      "attempted_sources": [
+        "https://www.ishares.com/us/products/etf-investments",
+        "https://stockanalysis.com/etf/ewi/history/"
+      ],
+      "exclusion_status": "MISSING",
+      "qualified_quote": null,
+      "price_research": {
+        "source_type": "SECONDARY_HISTORICAL_MARKET_PRICE_PAIR",
+        "source_urls": [
+          "https://stockanalysis.com/etf/ewi/history/"
+        ],
+        "completed_us_session": "2026-10-19",
+        "prior_us_session": "2026-10-16",
+        "public_reuse_rights": "NOT_REVIEWED",
+        "independent_source_pair_verified": false,
+        "may_render": false
+      }
+    },
+    {
+      "selection_order": 17,
+      "economy_id": "NLD",
+      "economy_name": "Netherlands",
+      "index_candidate": "iShares MSCI Netherlands ETF",
+      "currency_candidate": "USD",
+      "etf_ticker_candidate": "EWN",
+      "etf_discovery": {
+        "state": "CANDIDATE_VERIFIED",
+        "checked_at_utc": "2026-10-20T18:40:00Z",
+        "source_urls": [
+          "https://www.ishares.com/us/products/etf-investments"
+        ],
+        "notes": "2026-10-20 issuer-listed ticker EWN, for Netherlands. Identity lead only; trade, price and rights require daily separate audit."
+      },
+      "decision": "EXCLUDED",
+      "research_notes": "Issuer/current directory confirms proposed EWN fund identity; no original-publisher Oct 16/19 close-pair capture or exact public ETF graphic display rights independently qualified in this pass. Secondary or mixed-source Oct 16/19 price pair now located; still unlicensed/unqualified.",
+      "attempted_sources": [
+        "https://www.ishares.com/us/products/etf-investments",
+        "https://stockanalysis.com/etf/ewn/history/",
+        "https://www.ishares.com/us/products/239671/ishares-msci-netherlands-etf"
+      ],
+      "exclusion_status": "MISSING",
+      "qualified_quote": null,
+      "price_research": {
+        "source_type": "MIXED_ISSUER_AND_SECONDARY_CLOSE_PAIRS",
+        "source_urls": [
+          "https://stockanalysis.com/etf/ewn/history/",
+          "https://www.ishares.com/us/products/239671/ishares-msci-netherlands-etf"
+        ],
+        "completed_us_session": "2026-10-19",
+        "prior_us_session": "2026-10-16",
+        "public_reuse_rights": "NOT_REVIEWED",
+        "independent_source_pair_verified": false,
+        "may_render": false
+      }
+    },
+    {
+      "selection_order": 18,
+      "economy_id": "SGP",
+      "economy_name": "Singapore",
+      "index_candidate": "iShares MSCI Singapore ETF",
+      "currency_candidate": "USD",
+      "etf_ticker_candidate": "EWS",
+      "etf_discovery": {
+        "state": "CANDIDATE_VERIFIED",
+        "checked_at_utc": "2026-10-20T18:40:00Z",
+        "source_urls": [
+          "https://www.ishares.com/us/products/etf-investments"
+        ],
+        "notes": "2026-10-20 issuer-listed ticker EWS, for Singapore. Identity lead only; trade, price and rights require daily separate audit."
+      },
+      "decision": "EXCLUDED",
+      "research_notes": "Issuer/current directory confirms proposed EWS fund identity; no original-publisher Oct 16/19 close-pair capture or exact public ETF graphic display rights independently qualified in this pass. Secondary or mixed-source Oct 16/19 price pair now located; still unlicensed/unqualified.",
+      "attempted_sources": [
+        "https://www.ishares.com/us/products/etf-investments",
+        "https://stockanalysis.com/etf/ews/history/"
+      ],
+      "exclusion_status": "MISSING",
+      "qualified_quote": null,
+      "price_research": {
+        "source_type": "SECONDARY_HISTORICAL_MARKET_PRICE_PAIR",
+        "source_urls": [
+          "https://stockanalysis.com/etf/ews/history/"
+        ],
+        "completed_us_session": "2026-10-19",
+        "prior_us_session": "2026-10-16",
+        "public_reuse_rights": "NOT_REVIEWED",
+        "independent_source_pair_verified": false,
+        "may_render": false
+      }
+    },
+    {
+      "selection_order": 19,
+      "economy_id": "ZAF",
+      "economy_name": "South Africa",
+      "index_candidate": "iShares MSCI South Africa ETF",
+      "currency_candidate": "USD",
+      "etf_ticker_candidate": "EZA",
+      "etf_discovery": {
+        "state": "CANDIDATE_VERIFIED",
+        "checked_at_utc": "2026-10-20T18:40:00Z",
+        "source_urls": [
+          "https://www.ishares.com/us/products/etf-investments"
+        ],
+        "notes": "2026-10-20 issuer-listed ticker EZA, for South Africa. Identity lead only; trade, price and rights require daily separate audit."
+      },
+      "decision": "EXCLUDED",
+      "research_notes": "Issuer/current directory confirms proposed EZA fund identity; no original-publisher Oct 16/19 close-pair capture or exact public ETF graphic display rights independently qualified in this pass. Secondary or mixed-source Oct 16/19 price pair now located; still unlicensed/unqualified.",
+      "attempted_sources": [
+        "https://www.ishares.com/us/products/etf-investments",
+        "https://stockanalysis.com/etf/eza/history/"
+      ],
+      "exclusion_status": "MISSING",
+      "qualified_quote": null,
+      "price_research": {
+        "source_type": "SECONDARY_HISTORICAL_MARKET_PRICE_PAIR",
+        "source_urls": [
+          "https://stockanalysis.com/etf/eza/history/"
+        ],
+        "completed_us_session": "2026-10-19",
+        "prior_us_session": "2026-10-16",
+        "public_reuse_rights": "NOT_REVIEWED",
+        "independent_source_pair_verified": false,
+        "may_render": false
+      }
+    },
+    {
+      "selection_order": 20,
+      "economy_id": "TUR",
+      "economy_name": "Turkey",
+      "index_candidate": "iShares MSCI Turkey ETF",
+      "currency_candidate": "USD",
+      "etf_ticker_candidate": "TUR",
+      "etf_discovery": {
+        "state": "CANDIDATE_VERIFIED",
+        "checked_at_utc": "2026-10-20T18:40:00Z",
+        "source_urls": [
+          "https://www.ishares.com/us/products/etf-investments"
+        ],
+        "notes": "2026-10-20 issuer-listed ticker TUR, for Turkey. Identity lead only; trade, price and rights require daily separate audit."
+      },
+      "decision": "EXCLUDED",
+      "research_notes": "Issuer/current directory confirms proposed TUR fund identity; no original-publisher Oct 16/19 close-pair capture or exact public ETF graphic display rights independently qualified in this pass. Secondary or mixed-source Oct 16/19 price pair now located; still unlicensed/unqualified.",
+      "attempted_sources": [
+        "https://www.ishares.com/us/products/etf-investments",
+        "https://stockanalysis.com/etf/tur/history/"
+      ],
+      "exclusion_status": "MISSING",
+      "qualified_quote": null,
+      "price_research": {
+        "source_type": "SECONDARY_HISTORICAL_MARKET_PRICE_PAIR",
+        "source_urls": [
+          "https://stockanalysis.com/etf/tur/history/"
+        ],
+        "completed_us_session": "2026-10-19",
+        "prior_us_session": "2026-10-16",
+        "public_reuse_rights": "NOT_REVIEWED",
+        "independent_source_pair_verified": false,
+        "may_render": false
+      }
+    },
+    {
+      "selection_order": 21,
+      "economy_id": "SAU",
+      "economy_name": "Saudi Arabia",
+      "index_candidate": "iShares MSCI Saudi Arabia ETF",
+      "currency_candidate": "USD",
+      "etf_ticker_candidate": "KSA",
+      "etf_discovery": {
+        "state": "CANDIDATE_VERIFIED",
+        "checked_at_utc": "2026-10-20T18:40:00Z",
+        "source_urls": [
+          "https://www.ishares.com/us/products/etf-investments"
+        ],
+        "notes": "2026-10-20 issuer-listed ticker KSA, for Saudi Arabia. Identity lead only; trade, price and rights require daily separate audit."
+      },
+      "decision": "EXCLUDED",
+      "research_notes": "Issuer/current directory confirms proposed KSA fund identity; no original-publisher Oct 16/19 close-pair capture or exact public ETF graphic display rights independently qualified in this pass. Secondary or mixed-source Oct 16/19 price pair now located; still unlicensed/unqualified.",
+      "attempted_sources": [
+        "https://www.ishares.com/us/products/etf-investments",
+        "https://stockanalysis.com/etf/ksa/history/"
+      ],
+      "exclusion_status": "MISSING",
+      "qualified_quote": null,
+      "price_research": {
+        "source_type": "SECONDARY_HISTORICAL_MARKET_PRICE_PAIR",
+        "source_urls": [
+          "https://stockanalysis.com/etf/ksa/history/"
+        ],
+        "completed_us_session": "2026-10-19",
+        "prior_us_session": "2026-10-16",
+        "public_reuse_rights": "NOT_REVIEWED",
+        "independent_source_pair_verified": false,
+        "may_render": false
+      }
+    },
+    {
+      "selection_order": 22,
+      "economy_id": "EGY",
+      "economy_name": "Egypt",
+      "index_candidate": "NO QUALIFIED U.S. COUNTRY ETF",
+      "currency_candidate": "USD",
+      "etf_ticker_candidate": null,
+      "etf_discovery": {
+        "state": "NO_ELIGIBLE_ETF_FOUND",
+        "checked_at_utc": "2026-10-20T18:40:00Z",
+        "source_urls": [
+          "https://www.sec.gov/Archives/edgar/data/1137360/000113736024000170/vvtegpt2024liquidationsupp.htm",
+          "https://www.ishares.com/us/products/etf-investments"
+        ],
+        "notes": "SEC filing confirms EGPT NYSE Arca last trading day Mar 21, 2024. Bounded current issuer/directory search found no replacement US-listed single-country Egypt ETF."
+      },
+      "decision": "EXCLUDED",
+      "research_notes": "SEC filing confirms EGPT NYSE Arca last trading day Mar 21, 2024. Bounded current issuer/directory search found no replacement US-listed single-country Egypt ETF.",
+      "attempted_sources": [
+        "https://www.sec.gov/Archives/edgar/data/1137360/000113736024000170/vvtegpt2024liquidationsupp.htm",
+        "https://www.ishares.com/us/products/etf-investments"
+      ],
+      "exclusion_status": "MISSING",
+      "qualified_quote": null
+    },
+    {
+      "selection_order": 23,
+      "economy_id": "DZA",
+      "economy_name": "Algeria",
+      "index_candidate": "NO QUALIFIED U.S. COUNTRY ETF",
+      "currency_candidate": "USD",
+      "etf_ticker_candidate": null,
+      "etf_discovery": {
+        "state": "NO_ELIGIBLE_ETF_FOUND",
+        "checked_at_utc": "2026-10-20T18:40:00Z",
+        "source_urls": [
+          "https://www.ishares.com/us/products/etf-investments",
+          "https://www.etf.com/etfanalytics/etf-screener"
+        ],
+        "notes": "Bounded current US ETF issuer/directory search found no Algeria-specific US-listed exchange-traded equity ETF; 'Alger' investment firm's funds are not Algeria ETFs."
+      },
+      "decision": "EXCLUDED",
+      "research_notes": "Bounded current US ETF issuer/directory search found no Algeria-specific US-listed exchange-traded equity ETF; 'Alger' investment firm's funds are not Algeria ETFs.",
+      "attempted_sources": [
+        "https://www.ishares.com/us/products/etf-investments",
+        "https://www.etf.com/etfanalytics/etf-screener"
+      ],
+      "exclusion_status": "MISSING",
+      "qualified_quote": null
+    },
+    {
+      "selection_order": 24,
+      "economy_id": "IDN",
+      "economy_name": "Indonesia",
+      "index_candidate": "iShares MSCI Indonesia ETF",
+      "currency_candidate": "USD",
+      "etf_ticker_candidate": "EIDO",
+      "etf_discovery": {
+        "state": "CANDIDATE_VERIFIED",
+        "checked_at_utc": "2026-10-20T18:40:00Z",
+        "source_urls": [
+          "https://www.ishares.com/us/products/etf-investments"
+        ],
+        "notes": "2026-10-20 issuer-listed ticker EIDO, for Indonesia. Identity lead only; trade, price and rights require daily separate audit."
+      },
+      "decision": "EXCLUDED",
+      "research_notes": "Issuer/current directory confirms proposed EIDO fund identity; no original-publisher Oct 16/19 close-pair capture or exact public ETF graphic display rights independently qualified in this pass. Secondary or mixed-source Oct 16/19 price pair now located; still unlicensed/unqualified.",
+      "attempted_sources": [
+        "https://www.ishares.com/us/products/etf-investments",
+        "https://stockanalysis.com/etf/eido/history/"
+      ],
+      "exclusion_status": "MISSING",
+      "qualified_quote": null,
+      "price_research": {
+        "source_type": "SECONDARY_HISTORICAL_MARKET_PRICE_PAIR",
+        "source_urls": [
+          "https://stockanalysis.com/etf/eido/history/"
+        ],
+        "completed_us_session": "2026-10-19",
+        "prior_us_session": "2026-10-16",
+        "public_reuse_rights": "NOT_REVIEWED",
+        "independent_source_pair_verified": false,
+        "may_render": false
+      }
+    },
+    {
+      "selection_order": 25,
+      "economy_id": "VNM",
+      "economy_name": "Vietnam",
+      "index_candidate": "VanEck Vietnam ETF",
+      "currency_candidate": "USD",
+      "etf_ticker_candidate": "VNM",
+      "etf_discovery": {
+        "state": "CANDIDATE_VERIFIED",
+        "checked_at_utc": "2026-10-20T18:40:00Z",
+        "source_urls": [
+          "https://www.vaneck.com/us/en/investments/vietnam-etf-vnm/"
+        ],
+        "notes": "2026-10-20 issuer-listed ticker VNM, for Vietnam. Identity lead only; trade, price and rights require daily separate audit."
+      },
+      "decision": "EXCLUDED",
+      "research_notes": "Issuer/current directory confirms proposed VNM fund identity; no original-publisher Oct 16/19 close-pair capture or exact public ETF graphic display rights independently qualified in this pass. Secondary or mixed-source Oct 16/19 price pair now located; still unlicensed/unqualified.",
+      "attempted_sources": [
+        "https://www.vaneck.com/us/en/investments/vietnam-etf-vnm/",
+        "https://stockanalysis.com/etf/vnm/history/"
+      ],
+      "exclusion_status": "MISSING",
+      "qualified_quote": null,
+      "price_research": {
+        "source_type": "SECONDARY_HISTORICAL_MARKET_PRICE_PAIR",
+        "source_urls": [
+          "https://stockanalysis.com/etf/vnm/history/"
+        ],
+        "completed_us_session": "2026-10-19",
+        "prior_us_session": "2026-10-16",
+        "public_reuse_rights": "NOT_REVIEWED",
+        "independent_source_pair_verified": false,
+        "may_render": false
+      }
+    },
+    {
+      "selection_order": 26,
+      "economy_id": "RUS",
+      "economy_name": "Russia",
+      "index_candidate": "NO QUALIFIED U.S. COUNTRY ETF",
+      "currency_candidate": "USD",
+      "etf_ticker_candidate": null,
+      "etf_discovery": {
+        "state": "NO_ELIGIBLE_ETF_FOUND",
+        "checked_at_utc": "2026-10-20T18:40:00Z",
+        "source_urls": [
+          "https://www.vaneck.com/us/en/blogs/emerging-markets-equity/shareholder-notice-rsx-and-rsxj-liquidation/",
+          "https://www.vaneck.com/us/en/investments/russia-etf-rsx/overview/"
+        ],
+        "notes": "VanEck issuer confirms RSX/RSXJ remain under a liquidation plan, with no ordinary active U.S.-traded country fund performance series. May 2026 prospectus filing is not evidence that trading resumed."
+      },
+      "decision": "EXCLUDED",
+      "research_notes": "VanEck issuer confirms RSX/RSXJ remain under a liquidation plan, with no ordinary active U.S.-traded country fund performance series. May 2026 prospectus filing is not evidence that trading resumed.",
+      "attempted_sources": [
+        "https://www.vaneck.com/us/en/blogs/emerging-markets-equity/shareholder-notice-rsx-and-rsxj-liquidation/",
+        "https://www.vaneck.com/us/en/investments/russia-etf-rsx/overview/"
+      ],
+      "exclusion_status": "MISSING",
+      "qualified_quote": null
+    },
+    {
+      "selection_order": 27,
+      "economy_id": "KAZ",
+      "economy_name": "Kazakhstan",
+      "index_candidate": "NO QUALIFIED U.S. COUNTRY ETF",
+      "currency_candidate": "USD",
+      "etf_ticker_candidate": null,
+      "etf_discovery": {
+        "state": "NO_ELIGIBLE_ETF_FOUND",
+        "checked_at_utc": "2026-10-20T18:40:00Z",
+        "source_urls": [
+          "https://kase.kz/en/media-center/events/wxems8dzh4g4vuph2w4knpi9",
+          "https://kase.kz/en/investors/instruments/all/"
+        ],
+        "notes": "KASE reports Kazakhstan domestic ETF project/listing (KASXf) in Kazakhstan, not a U.S.-listed single-country USD ETF. Bounded US issuer/directory search found no qualified US-listed proxy."
+      },
+      "decision": "EXCLUDED",
+      "research_notes": "KASE reports Kazakhstan domestic ETF project/listing (KASXf) in Kazakhstan, not a U.S.-listed single-country USD ETF. Bounded US issuer/directory search found no qualified US-listed proxy.",
+      "attempted_sources": [
+        "https://kase.kz/en/media-center/events/wxems8dzh4g4vuph2w4knpi9",
+        "https://kase.kz/en/investors/instruments/all/"
+      ],
+      "exclusion_status": "MISSING",
+      "qualified_quote": null
+    },
+    {
+      "selection_order": 28,
+      "economy_id": "IRN",
+      "economy_name": "Iran",
+      "index_candidate": "NO QUALIFIED U.S. COUNTRY ETF",
+      "currency_candidate": "USD",
+      "etf_ticker_candidate": null,
+      "etf_discovery": {
+        "state": "NO_ELIGIBLE_ETF_FOUND",
+        "checked_at_utc": "2026-10-20T18:40:00Z",
+        "source_urls": [
+          "https://www.ishares.com/us/products/etf-investments",
+          "https://www.etf.com/etfanalytics/etf-screener"
+        ],
+        "notes": "Bounded current issuer / US ETF directory search found no US-listed single-country Iranian equities fund. No stand-in via geographic region funds."
+      },
+      "decision": "EXCLUDED",
+      "research_notes": "Bounded current issuer / US ETF directory search found no US-listed single-country Iranian equities fund. No stand-in via geographic region funds.",
+      "attempted_sources": [
+        "https://www.ishares.com/us/products/etf-investments",
+        "https://www.etf.com/etfanalytics/etf-screener"
+      ],
+      "exclusion_status": "MISSING",
+      "qualified_quote": null
+    },
+    {
+      "selection_order": 29,
+      "economy_id": "POL",
+      "economy_name": "Poland",
+      "index_candidate": "iShares MSCI Poland ETF",
+      "currency_candidate": "USD",
+      "etf_ticker_candidate": "EPOL",
+      "etf_discovery": {
+        "state": "CANDIDATE_VERIFIED",
+        "checked_at_utc": "2026-10-20T18:40:00Z",
+        "source_urls": [
+          "https://www.ishares.com/us/products/etf-investments"
+        ],
+        "notes": "2026-10-20 issuer-listed ticker EPOL, for Poland. Identity lead only; trade, price and rights require daily separate audit."
+      },
+      "decision": "EXCLUDED",
+      "research_notes": "Issuer/current directory confirms proposed EPOL fund identity; no original-publisher Oct 16/19 close-pair capture or exact public ETF graphic display rights independently qualified in this pass. Secondary or mixed-source Oct 16/19 price pair now located; still unlicensed/unqualified.",
+      "attempted_sources": [
+        "https://www.ishares.com/us/products/etf-investments",
+        "https://stockanalysis.com/etf/epol/history/"
+      ],
+      "exclusion_status": "MISSING",
+      "qualified_quote": null,
+      "price_research": {
+        "source_type": "SECONDARY_HISTORICAL_MARKET_PRICE_PAIR",
+        "source_urls": [
+          "https://stockanalysis.com/etf/epol/history/"
+        ],
+        "completed_us_session": "2026-10-19",
+        "prior_us_session": "2026-10-16",
+        "public_reuse_rights": "NOT_REVIEWED",
+        "independent_source_pair_verified": false,
+        "may_render": false
+      }
+    },
+    {
+      "selection_order": 30,
+      "economy_id": "SWE",
+      "economy_name": "Sweden",
+      "index_candidate": "iShares MSCI Sweden ETF",
+      "currency_candidate": "USD",
+      "etf_ticker_candidate": "EWD",
+      "etf_discovery": {
+        "state": "CANDIDATE_VERIFIED",
+        "checked_at_utc": "2026-10-20T18:40:00Z",
+        "source_urls": [
+          "https://www.ishares.com/us/products/etf-investments"
+        ],
+        "notes": "2026-10-20 issuer-listed ticker EWD, for Sweden. Identity lead only; trade, price and rights require daily separate audit."
+      },
+      "decision": "EXCLUDED",
+      "research_notes": "Issuer/current directory confirms proposed EWD fund identity; no original-publisher Oct 16/19 close-pair capture or exact public ETF graphic display rights independently qualified in this pass. Secondary or mixed-source Oct 16/19 price pair now located; still unlicensed/unqualified.",
+      "attempted_sources": [
+        "https://www.ishares.com/us/products/etf-investments",
+        "https://stockanalysis.com/etf/ewd/history/"
+      ],
+      "exclusion_status": "MISSING",
+      "qualified_quote": null,
+      "price_research": {
+        "source_type": "SECONDARY_HISTORICAL_MARKET_PRICE_PAIR",
+        "source_urls": [
+          "https://stockanalysis.com/etf/ewd/history/"
+        ],
+        "completed_us_session": "2026-10-19",
+        "prior_us_session": "2026-10-16",
+        "public_reuse_rights": "NOT_REVIEWED",
+        "independent_source_pair_verified": false,
+        "may_render": false
+      }
+    }
+  ],
+  "notice": "ALL 30 ETF DISCOVERY OUTCOMES DOCUMENTED; 25 SECONDARY/MIXED-SOURCE OCT16/OCT19 ETF CLOSE LEADS; ZERO ORIGINAL-EXCHANGE-CAPTURE/RIGHTS QUALIFIED; NO REAL M1 RENDER",
+  "price_lead_research": {
+    "source_kind": "THIRD_PARTY_PRICE_HISTORY_NOT_CLEARED_FOR_REUSE",
+    "checked_at_utc": "2026-10-20T18:45:58Z",
+    "oct16_oct19_candidate_pairs": 25,
+    "issuer_original_exchange_capture_certified": 0,
+    "reuse_rights_cleared": 0,
+    "notes": "Additional bounded exploratory source work found 25 market-price history leads. They remain EXCLUDED from the real M1 renderer and have no fabricated rights/reviewer claims. Full private price ledger furnished directly to CEO."
+  }
+}

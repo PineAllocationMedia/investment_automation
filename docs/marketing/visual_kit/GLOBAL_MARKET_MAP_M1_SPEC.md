@@ -1,55 +1,80 @@
-# M1 — Global Equity Market Map (PROPOSED, NOT IMPLEMENTED)
+# M1 — Global Equity Market Map: CEO-Selected 30-Market Prototype
 
-**Use case:** an accurate geographic view of country-equity proxy **daily session returns** for the **20 largest national economies by a frozen nominal-GDP ranking**. It is **not** a map of countries' daily GDP/economic performance, and green/red do not imply national prosperity or a trade recommendation. Requires separate CEO approval before implementation and publishing.
+**Status:** DRAFT / SYNTHETIC / UNMERGED / NOT PUBLICATION-READY. CEO scope update dated 2026-10-20. This specification supersedes the earlier proposed “20 largest economies by nominal GDP” M1 coverage rule. Country-selection order is **not** a GDP ranking, market-cap ranking or any other statistical ranking.
 
-## A. Frozen country universe
+**Alternative:** The CEO additionally requested [an explicit U.S.-listed USD country-ETF proxy mode](M1_US_COUNTRY_ETF_MODE.md) to improve the number of markets potentially shown. Its USD ETF market-price changes are **not national domestic-index returns**. The same Natural Earth layout and CEO 30-country universe are reused, but data contracts and visible labels are mutually exclusive. Neither mode constitutes a live automatic quote feed or data-rights entitlement.
 
-- **Rank basis:** a named primary statistical provider (e.g. IMF WEO / World Bank) **nominal GDP in current U.S. dollars**, *not* PPP, growth rate or aggregate market capitalization. Record source URL/table, publication vintage, estimate vs realized year, retrieval time, ranking formula and frozen `universe_version`. Do not mix different annual releases to build the ranking.
-- Choose the top **20 national economies** with an explicit handling rule for separately reported economies/territories and competing geographic definitions. Aggregate regions (EU, Euro area) are **not individual countries** and must not silently displace their members. Do not hardcode today's 20 as timeless; changes require versioned review.
-- Source a geo-join key (ISO 3166-compatible identifier with provenance and exception list). Record splits, missing geometry, contested boundaries and policy for territories. **Geographic polygons must come from reviewed licensed/publicly reusable geospatial data**; do not ask an image model or freehand illustrator to approximate sovereign outlines. No political-border representation is asserted authoritative.
+## Purpose and exact country coverage
 
-## B. What exactly moves?
+The CEO instructed an index-first world map for these **30 country/market labels, in this order**:
 
-One comparable series **per country**, selected through an audited **proxy registry**, not a presumed ETF-for-every-economy shortcut. Proposed hierarchy:
+| Order | Market | Geometry ID | Domestic equity-index candidate (not verified) |
+|---:|---|---|---|
+| 1 | United States | USA | S&P 500 price index |
+| 2 | Japan | JPN | TOPIX price index |
+| 3 | China | CHN | CSI 300 price index |
+| 4 | India | IND | NIFTY 50 price index |
+| 5 | Germany | DEU | DAX **Kursindex / price**, not headline performance DAX |
+| 6 | United Kingdom | GBR | FTSE 100 price index |
+| 7 | Canada | CAN | S&P/TSX Composite price index |
+| 8 | Australia | AUS | S&P/ASX 200 price index |
+| 9 | Taiwan | TWN | Taiwan Weighted Index / TAIEX candidate |
+| 10 | South Korea | KOR | KOSPI price index |
+| 11 | Brazil | BRA | Ibovespa — **INCOMPARABLE** pending return-basis review |
+| 12 | France | FRA | CAC 40 price index |
+| 13 | Switzerland | CHE | Swiss Market Index / SMI price candidate |
+| 14 | Mexico | MEX | S&P/BMV IPC price index |
+| 15 | Spain | ESP | IBEX 35 price index |
+| 16 | Italy | ITA | FTSE MIB price index |
+| 17 | Netherlands | NLD | AEX price index |
+| 18 | Singapore | SGP_POINT | Straits Times Index / STI price candidate |
+| 19 | South Africa | ZAF | FTSE/JSE All Share price candidate |
+| 20 | Turkey | TUR | BIST 100 price index |
+| 21 | **Saudi Arabia** | SAU | Tadawul All Share Index (TASI), source and exact price variant unverified |
+| 22 | **Egypt** | EGY | EGX 30 price-index candidate, source/variant unverified |
+| 23 | **Algeria** | DZA | **MISSING** — no qualified comparable domestic price-index series |
+| 24 | Indonesia | IDN | IDX Composite price index |
+| 25 | Vietnam | VNM | VN-Index price candidate |
+| 26 | Russia | RUS | MOEX Russia Index — **MISSING**, source/rights/session unresolved |
+| 27 | Kazakhstan | KAZ | KASE Index — **MISSING**, price variant/source unresolved |
+| 28 | Iran | IRN | TEDPIX — **INCOMPARABLE**, return basis and rights unresolved |
+| 29 | Poland | POL | WIG20 price index |
+| 30 | Sweden | SWE | OMX Stockholm 30 price index |
 
-1. **Preferred:** widely followed, representative **domestic equity index** with official historical closes, documented selection/weighting, relevant exchange and **local-currency price return** for a defined completed trading session.
-2. **Fallback only with declared different contract:** legally usable exchange-traded fund (ETF) representing national equity exposure; **ETF trading-price return in one common currency** and same exchange/session rules for *all* countries, not a patchwork of local indexes and U.S. ETF quotes.
-3. **No comparable eligible proxy:** render **MISSING/NOT COMPARABLE** and explain; do **not** silently proxy via an unrelated instrument or mix ETF/index return types under a single color scale.
+There are **30 decisions**, not 30 guaranteed daily returns or confirmed live feeds. The index names above are **research candidates**, not checked symbol/variant assignments or licensed-data entitlements. A market index is an equity benchmark proxy and is **not** the performance of a country's GDP or the total national economy. The countries/markets are chosen editorially; this representation does not assert a position on recognition, territorial sovereignty or contested borders. Taiwan and other potentially sensitive geographic representation require independent editorial/legal review before a public release.
 
-Important: `S&P 500` is a large-cap U.S. index, **not literally “the whole U.S. economy”**, and `Nikkei 225` (`N225`) is one Japan-listed equity index, **not a standardized total-country return**. ETF ticker symbols can vary by exchange, currency and domicile; confirm the **actual fund mandate, underlying index, listed currency, share class, price venue, corporate-action adjustments and session**. No blanket “national index ETF” equivalence.
+The CEO subsequently restored **Saudi Arabia** and added **Egypt and Algeria**, immediately after Turkey; 27 + 3 = **30 candidate markets**. Algeria remains unqualified until a comparable original price-index source, calendar and rights are independently proven. **Unqualified countries are omitted from market overlays entirely**, not highlighted as missing. There is no GDP-ranking fallback.
 
-**Return basis must be chosen before rendering:** for local-index mode, `(official_close_t / official_close_previous_eligible_session - 1)*100` as a **local-currency index price return**, unless the selected official provider explicitly supplies a differently defined consistent price series. Do not mix total-return and price-return indices. For a uniform ETF mode, use a consistent venue/common settlement currency, adjusted-close convention and the same eligible local trading session definition for all entries; identify FX impact explicitly. All instrument selections and formulas are **versioned data**, not editorial guesses.
+## Omission-only visual policy (CEO direction, 2026-10-20)
 
-## C. As-of/session and missingness gates
+**Scan all thirty; only draw the qualifying subset.** Missing, stale, holiday, closed, unlicensed or incomparable cases remain in the source register with their reasons and null numeric returns. On the map their Natural Earth polygons receive the same `LAND` fill as non-selected countries, **never a special gray**. Do not list excluded countries in leader/laggard rows or a gray legend; no missing-denominator annotation. The selection can vary by date, so the graphic reports only the number actually shown, without asserting that all 30 moved or were observed.
 
-Global exchanges close in different timezones and may be **open, closed, on holiday, halted or stale** when the post is composed. Declare a **single observation cutoff timestamp with timezone** and a precise rule for what constitutes an eligible completed session for every proxy. Record `local_session_date`, `previous_eligible_session_date`, `observation_utc`, `retrieved_utc`, exchange time zone, expected session open/close, corporate actions and freshness limit.
+The Singapore point/`SG` marker and `SG POINT` footer appear **only** when a qualifying Singapore series exists. If not qualified, neither is drawn. Preserve the public-facing context that these are *selected index observations*, not exhaustive global equity-market coverage. An internal audit record must keep the full 30-country scan history so omission is not concealed from reviewers. An immutable issue change, eligibility change or caption change invalidates earlier release approval.
 
-Never present asynchronous observations as though they were synchronized same-day trades. The headline should say e.g. **“Latest completed sessions, as of [timestamp]”** (not unqualified “today”) if local session dates differ. Prefer a **single comparable session cohort** where supported. If comparability is materially compromised, choose a regional summary or **SKIP M1**.
+## Geometry and Singapore
 
-A market with no valid completed observation is **neutral gray + status `CLOSED/HOLIDAY/STALE/MISSING/INCOMPARABLE`** and receives no invented 0.0% movement. Do not carry forward prices as a live session return. Display coverage: `N/20 observed`; a complete `20 economies` performance claim requires all 20 eligibility decisions and explicit missing-status marks. Distinguish a genuine 0.00% eligible return (neutral near-zero bin) from missing data.
+- Immutable public-domain **Natural Earth 1:110m Admin-0 v5.1.1**, 177 features; [upstream Natural Earth GitHub source](https://github.com/nvkelso/natural-earth-vector/blob/master/geojson/ne_110m_admin_0_countries.geojson), upstream blob SHA 1e6ab74c7042f97013be69ceec798be8e1aff27d; normalized local Git blob SHA 8300299de7b831db1b50d0501924cad1f5b067e1. Public-domain terms: https://www.naturalearthdata.com/about/terms-of-use/.
+- **29 selected geographic IDs have real Natural Earth polygons. Singapore is absent at this map scale.** Draw a small explicitly labeled SG **geographic point locator**, at approximate 103.8198°E, 1.3521°N, over the real basemap; identify “SG POINT” in the footer. This is not a sovereign boundary or a replacement licensed polygon; independently validate the point and cartographic presentation before release.
+- Preserve actual countries' polygons. Never freehand or image-generate geographic outlines. Examine small Taiwan/European/Southeast Asian shapes at 390px and use an approved inset/secondary information graphic if legibility is inadequate. The public-domain basemap does not grant stock-index quotation rights.
 
-## D. Required map design and legend
+## Data contract (M1 v0.3)
 
-- A **geographically accurate map** with consistent projection, source/license and country-id join; never warp country shapes to match data values. Confirm small-island and inset handling, disputed borders, and whether the chosen image is a recognizable map at **390px feed width**.
-- **Diverging, symmetric, documented scale** around 0: red losses / green gains, saturation proportional to magnitude, **fixed shared return bins** and clear min/max saturation cap. A candidate, **not approved** scheme is `0–0.5 | 0.5–1.0 | 1.0–2.0 | >2.0 percentage points` with mirrored negative bins. Validate against a real sample before setting thresholds; never choose per-country ranges that exaggerate small moves or conceal outsized ones.
-- Zero true eligible movement: muted neutral, **not missing gray**; closed/stale/missing/incomparable: separate neutral gray or hatch with a textual key. Use red/green with colorblind-accessible shapes/legend and **signed numeric returns** in an accompanying table or selectively annotated major movers; color alone must never convey sign.
-- A world map at 390px **cannot legibly label twenty tickers/countries plus their changes inside polygons**. Use a map plus short **top movers/laggards table** and a separate full 20-row method/data sheet accessible in the source/evidence packet. Labels/insets must avoid overlaps; if a 4:5 map is unreadable, use a split image or text alternative, not shrink labels.
-- Title clearly says `equity-index returns` or `ETF price returns` (as applicable), reference date/cutoff, currency basis, percentage unit, count of valid markets, publisher names, legal rights/disclaimers and coverage limitations. Full original URLs, retrieval timestamps, close prices, provenance and method live in evidence register.
+The input requires: schema_version=1.0, template=M1, account=@therealpam, issue_id, cutoff_utc, headline/deck/interpretation/caption, universe_version, **selection_basis=CEO_SELECTED_30_COUNTRIES**, geometry_version, geometry_source_github_blob_sha, return_basis=DOMESTIC_INDEX_LOCAL_PRICE_RETURN, comparison_basis=LATEST_COMPLETED_SESSIONS, method_version, rights_note, universe_review, benchmark_registry_status, **scan_status**, and an evidence array of **exactly 30 records**.
 
-## E. Minimum immutable input contract (proposal; renderer not yet built)
+Each record has a unique integer selection_order 1–30, matching the exact market/ISO code above. Selection order has **no economic ranking meaning**. The obsolete rank, rank_nominal_gdp_usd, gdp_observation_year, ranking_year, gdp_source_url, and gdp_vintage fields are not required by M1 v0.3 and must not be used as a basis for a numerical coverage claim. Singapore uses geometry_id=SGP_POINT; other rows require the exact pinned Natural Earth geometry join.
 
-One `map_issue` record: `schema_version | issue_id | account | universe_version | gdp_source_url | gdp_vintage | ranking_year | cutoff_utc | return_basis | geo_dataset_version/license | caption | brand_logo_sha256 | copyright_notice_status | status=DRAFT`.
+Each country has a candidate instrument name, provider/variant, benchmark definition, exchange/local quote currency, exposure note, verification and rights notes, plus an **explicit eligibility decision**. An eligible market requires an authentic original-price source URL. For an excluded country with no suitable quotation source, `original_price_source_url=null` is allowed; its unsuccessful source checks and exclusion rationale remain in the separate private scan record. Never invent a quotation URL to complete a failed candidate. Eligible price-index rows must have completed session/prior-session observed timestamps with offsets, observed and retrieved clocks before the UTC cutoff, exact prior/current numeric closes and signed percent return recomputed from those closes. If the price vs total-return basis, permission, integrity, completed session or comparability is not resolved, no numeric return may be supplied: mark MISSING, HOLIDAY, CLOSED, STALE or INCOMPARABLE rather than 0.00%.
 
-For **each** of 20 joined economies, require:
+Use a single symmetric red-to-green percentage scale for eligible local-index price returns. A **genuine 0.00%** return has its own neutral `EXACT 0.00%` key. **No missing-data color, missing-data legend, country-specific unavailable label or denominator `/30` appears on the plate**. Map headline still identifies the latest completed, **not synchronized** sessions. The on-image summary states only `N MARKETS SHOWN`; leader/laggard index rows draw exclusively from eligible market observations. Full all-30 inclusion/exclusion evidence remains in the internal audit packet, not in the on-image coverage display.
 
-`economy_id | rank | rank_nominal_gdp_usd | gdp_observation_year | geometry_id | economy_name | instrument_kind=INDEX|ETF|UNAVAILABLE | instrument_id | instrument_provider | country_exposure_note | benchmark_definition | listed_currency | return_currency | close_session_date | prior_session_date | close_timestamp_utc | close_price | prior_close_price | adjustment_policy | signed_return_pct | original_price_source_url | observed/retrieved timestamps | data_rights_note | verification | missing_status`.
+## Prototype proof vs real data
 
-Cross-record `method_version` must be identical. Reject duplicate ranks/IDs, unknown geometries, missing sources, divide-by-zero/NaN, signs inconsistent with computed returns, impossible unreviewed outliers, mismatched basis or stale observations, and unsupported geodata licenses. Store exact dataset checksums and rendering version to reproduce the same map. Data is not “verified” just because the JSON says `VERIFIED`.
+The fixture is a **synthetic visual exercise** with invented prices and returns and example.org placeholders. In this demo, **25 countries show fictional return colors**. The other five candidates (Brazil, Algeria, Russia, Kazakhstan, Iran) are **drawn as ordinary background land**, visually identical to countries never selected. The evidence register still records their exclusion reasons. Nothing in the graphic or synthetic data represents observed October 2026 market results, complete scanning, data-rights clearance or a verified index mapping.
 
-## F. Independently audited publication readiness
+Before any authentic M1 issue: the assigned research employee must **scan and resolve all 30 candidates for the intended as-of market day**, recording per-market examined source(s), actual observation/session, accepted return or reason for exclusion, retrieval/provenance and data-use qualification in a durable internal record. A scan is considered completed only after all 30 have an evidence-backed decision; merely writing `COMPLETE_AUDITED` is not independent proof. The renderer accepts `scan_status=SYNTHETIC_NOT_RUN` only for explicit demo inputs, and requires `scan_status=COMPLETE_AUDITED` plus separately reviewed universe/index/rights statuses for a real input. **PR #202 now provides an offline [30-market scan intake and assessment CLI](M1_DAILY_SCAN_HANDOFF.md) (`m1_scan_handoff.py`), but it does not implement an automatic network scanner, provider licensing, source capture or independent factual auditing**. The CLI starts with zero research and enforces full-universe disposition, original-source links and declared exact-use rights before a draft candidate; see the separate runbook. Independently verify exact price variant, official close, market calendar, exchange currency, quotation/redistribution rights, geographic joins, Singapore point, sensitive boundaries, calculations and native/mobile final asset. If too few valid comparable markets remain to sustain meaningful interpretation, **HOLD/SKIP** instead of making a misleading graphic.
 
-Before any `M1` renderer implementation, complete a **research/proxy methodology review**, authoritative instrument selection register, source rights/redistribution review and geospatial licensing review with Commercial & Compliance as needed. Audit sample data across at least: positive, negative, zero, closed, missing, stale, FX discrepancy, simultaneous but different exchange dates, absent geometry and boundaries. Test map/swatch contrast and every legend bin.
+Production still requires the exact CEO-approved SHA-bound reconstructed pine master, immutable issue/caption hash, independent factual/visual audit and **separate explicit CEO approval of the exact image and caption**. Visual Kit CI tests structurally deterministic code and rendering, not the authenticity, legal redistribution or public readiness of the data. No auto-publishing, fee-bearing feed, new external service, portfolio or investment decision authority is introduced.
 
-A new deterministic renderer must pass synthetic and authentic replay checks **without implying the authentic test itself authorizes distribution**. The first real issue requires independent original-source verification of all 20 ranks/proxies/returns, chart/legend tests, 390px inspection, and separate CEO approval of **exact map + caption**. If coverage cannot support the claimed geographic picture, **HOLD/SKIP**.
+## Intended regression gates
 
-This is a methodological **proposal only**. No country ranking, real-time return, national ETF ticker list, baseline performance or map artwork is approved in this file.
+Reject missing/duplicate internal scan decisions, removal of the Saudi Arabia → Egypt → Algeria block, incorrect Singapore join, GDP-rank masquerading, invalid Natural Earth SHA/ISO join, invalid or unreviewed scan status, mixed return basis, inconsistent close arithmetic, fabricated zeros for missingness, impossible clocks, stale observations, release-logo mismatch, synthetic release or caption-hash drift. **Visual tests must verify noneligible target countries use precisely the same base-land fill as never-selected countries, no missing-data legend/label or `/30` denominator, and no Singapore marker when Singapore is unqualified**. Preserve the true-zero swatch, 390px text bounds and Antarctica crop.
