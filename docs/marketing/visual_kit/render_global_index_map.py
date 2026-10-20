@@ -204,15 +204,18 @@ def validate_map_issue(p, geo):
         status=e.get('missing_status')
         need(status=='ELIGIBLE' or status in MISSING,
              f'{n} explicit missing-status required')
-        valid_url(e.get('original_price_source_url'),n+'.original_price_source_url')
-        if p['rights_note']=='SYNTHETIC_LAYOUT_ONLY':
-            need(urlparse(e['original_price_source_url']).hostname in
-                 ('example.org','example.com'),
-                 'Synthetic M1 prices must use safe demo URL')
-        else:
-            need(urlparse(e['original_price_source_url']).hostname not in
-                 ('example.org','example.com'),
-                 'Real M1 index price original source cannot be a demo')
+        # A real excluded market may have *no* usable original quotation URL.
+        # Never fabricate a source simply to satisfy the input schema; the full
+        # attempted-source and rejection record belongs in the audit packet.
+        source=e.get('original_price_source_url')
+        if status=='ELIGIBLE' or source is not None:
+            valid_url(source,n+'.original_price_source_url')
+            if p['rights_note']=='SYNTHETIC_LAYOUT_ONLY':
+                need(urlparse(source).hostname in ('example.org','example.com'),
+                     'Synthetic M1 prices must use safe demo URL')
+            else:
+                need(urlparse(source).hostname not in ('example.org','example.com'),
+                     'Real M1 index price original source cannot be a demo')
         if status=='ELIGIBLE':
             need(e.get('instrument_kind')=='INDEX' and
                  e.get('benchmark_variant')=='PRICE_INDEX',
@@ -347,8 +350,8 @@ def render_global_map(p, logo_png=None, status='DRAFT', geometry_path=GEOMETRY):
         color=_fill(_return(e)) if e is not None else LAND
         out.append('<path d="'+d+'" fill="'+color+
                    '" fill-rule="evenodd" stroke="'+GRID+'" stroke-width=".7"/>')
-    # Singapore is not present in 110m polygons: always plot its point and
-    # return-colored locator, then identify the representation in the footer.
+    # Singapore is absent from 110m polygons. Plot its labeled locator ONLY
+    # when its own index return is qualified; otherwise leave no marker.
     sg=eligible_byid.get('SGP')
     if sg is not None:
         sx,sy=_project(SGP_POINT)
