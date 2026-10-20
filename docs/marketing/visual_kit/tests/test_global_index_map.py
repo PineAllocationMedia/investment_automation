@@ -43,18 +43,25 @@ class M1GlobalEquityIndexTests(unittest.TestCase):
                 b'Natural Earth',b'Changed Earth',1))
             with self.assertRaises(InvalidIssue):load_geometry(altered)
 
-    def test_ceo_27_country_index_candidates_with_correct_missingness(self):
+    def test_ceo_30_country_index_candidates_with_correct_missingness(self):
         p=fixture()
         accepted=validate_map_issue(p,self.geo)
-        self.assertEqual(len(p['evidence']),27)
-        self.assertEqual(len(accepted),23)
+        self.assertEqual(len(p['evidence']),30)
+        self.assertEqual(len(accepted),25)
         self.assertEqual(tuple(e['economy_id'] for e in p['evidence']),COUNTRIES)
-        self.assertEqual([r['selection_order'] for r in p['evidence']],list(range(1,28)))
-        self.assertEqual(p['selection_basis'],'CEO_SELECTED_27_COUNTRIES')
+        self.assertEqual([r['selection_order'] for r in p['evidence']],list(range(1,31)))
+        self.assertEqual(p['selection_basis'],'CEO_SELECTED_30_COUNTRIES')
         self.assertNotIn('gdp_source_url',p)
         self.assertEqual(p['evidence'][17]['geometry_id'],'SGP_POINT')
+        self.assertEqual(
+            tuple(x['economy_id'] for x in p['evidence'][19:24]),
+            ('TUR','SAU','EGY','DZA','IDN'))
+        self.assertTrue({'SAU','EGY','DZA'}.issubset(
+            {f['id'] for f in self.geo['features']}))
+        self.assertEqual(p['evidence'][22]['instrument_kind'],'UNAVAILABLE')
+        self.assertIsNone(p['evidence'][22]['signed_return_pct'])
         self.assertEqual(set(COUNTRIES)-set(r['economy_id'] for r in accepted),
-                         {'BRA','RUS','KAZ','IRN'})
+                         {'BRA','DZA','RUS','KAZ','IRN'})
         self.assertTrue(all(r['instrument_kind']=='INDEX' for r in accepted))
         self.assertTrue(all(r['benchmark_variant']=='PRICE_INDEX' for r in accepted))
         self.assertIn('S&P 500',p['evidence'][0]['instrument_name'])
@@ -71,7 +78,7 @@ class M1GlobalEquityIndexTests(unittest.TestCase):
         paths=root.findall('.//{http://www.w3.org/2000/svg}path')
         self.assertGreaterEqual(len(paths),170)
         for text in ('GLOBAL EQUITY MAP','LOCAL CURRENCY','LATEST COMPLETED SESSIONS',
-                     '23/27 VALID INDICES','INDEX LEADERS &amp; LAGGARDS',
+                     '25/30 VALID INDICES','INDEX LEADERS &amp; LAGGARDS',
                      'TOPIX Price Index','S&amp;P/TSX Composite Price Index',
                      'NATURAL EARTH (PUBLIC DOMAIN)','EXACT 0.00%',
                      'DRAFT · SYNTHETIC',
@@ -98,7 +105,7 @@ class M1GlobalEquityIndexTests(unittest.TestCase):
         p=fixture()
         self.assertNotEqual(p['evidence'][0]['observed_at'],
                             p['evidence'][1]['observed_at'])
-        self.assertEqual(len(validate_map_issue(p,self.geo)),23)
+        self.assertEqual(len(validate_map_issue(p,self.geo)),25)
         self.assertIn('NOT SYNCHRONIZED',render_global_map(p))
 
     def test_missing_holidays_do_not_become_zero(self):
@@ -127,6 +134,19 @@ class M1GlobalEquityIndexTests(unittest.TestCase):
         p=fixture();p['evidence'][1]['selection_order']=1
         with self.assertRaises(InvalidIssue):validate_map_issue(p,self.geo)
         p=fixture();p['evidence'][0]['rank_nominal_gdp_usd']=1
+        with self.assertRaises(InvalidIssue):validate_map_issue(p,self.geo)
+
+    def test_added_markets_cannot_disappear_or_be_faked_as_returns(self):
+        p=fixture()
+        p['evidence']=[e for e in p['evidence'] if e['economy_id']!='DZA']
+        with self.assertRaises(InvalidIssue):validate_map_issue(p,self.geo)
+        p=fixture()
+        algeria=next(e for e in p['evidence'] if e['economy_id']=='DZA')
+        algeria['signed_return_pct']=0.0
+        with self.assertRaises(InvalidIssue):validate_map_issue(p,self.geo)
+        p=fixture()
+        egypt=next(e for e in p['evidence'] if e['economy_id']=='EGY')
+        egypt['instrument_kind']='ETF'
         with self.assertRaises(InvalidIssue):validate_map_issue(p,self.geo)
 
     def test_wrong_country_join_or_new_polygon_fails(self):
