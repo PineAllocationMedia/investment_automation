@@ -182,6 +182,25 @@ class M1ResearchHandoffTests(unittest.TestCase):
         for code in ('USA','JPN','SAU','EGY'):mock_eligible(p,code)
         with self.assertRaises(InvalidIssue):assess(p,issue_metadata=META,evidence_root=EVIDENCE_ROOT)
 
+    def test_live_source_retest_packet_remains_hold_without_fake_qualification(self):
+        source=(EVIDENCE_ROOT/'examples'/'m1_partial_research_retest_20261020.json')
+        packet=json.loads(source.read_text(encoding='utf-8'))
+        report, issue=assess(packet,evidence_root=EVIDENCE_ROOT)
+        self.assertEqual(report['status'],'HOLD')
+        self.assertEqual(report['count_selected'],30)
+        self.assertEqual(report['count_qualified'],0)
+        self.assertEqual(report['count_excluded'],7)
+        self.assertEqual(report['count_unresearched'],23)
+        self.assertEqual(report['displayed_market_codes'],[])
+        self.assertIsNone(issue)
+        self.assertIn('23 country research decisions', ' '.join(report['blockers']))
+        with tempfile.TemporaryDirectory() as tmp:
+            output=Path(tmp)/'real_retest.json'
+            self.assertEqual(main(['assess',str(source),
+                                   '--report',str(output),
+                                   '--evidence-root',str(EVIDENCE_ROOT)]),2)
+            self.assertEqual(json.loads(output.read_text())['status'],'HOLD')
+
     def test_cli_creates_diagnostic_not_real_issue(self):
         with tempfile.TemporaryDirectory() as tmp:
             root=Path(tmp)
