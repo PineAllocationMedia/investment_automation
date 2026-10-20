@@ -2,6 +2,8 @@
 
 **Status:** DRAFT / SYNTHETIC / UNMERGED / NOT PUBLICATION-READY. CEO scope update dated 2026-10-20. This specification supersedes the earlier proposed “20 largest economies by nominal GDP” M1 coverage rule. Country-selection order is **not** a GDP ranking, market-cap ranking or any other statistical ranking.
 
+**Alternative:** The CEO additionally requested [an explicit U.S.-listed USD country-ETF proxy mode](M1_US_COUNTRY_ETF_MODE.md) to improve the number of markets potentially shown. Its USD ETF market-price changes are **not national domestic-index returns**. The same Natural Earth layout and CEO 30-country universe are reused, but data contracts and visible labels are mutually exclusive. Neither mode constitutes a live automatic quote feed or data-rights entitlement.
+
 ## Purpose and exact country coverage
 
 The CEO instructed an index-first world map for these **30 country/market labels, in this order**:
