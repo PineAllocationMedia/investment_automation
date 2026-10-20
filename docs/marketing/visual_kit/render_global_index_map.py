@@ -42,9 +42,15 @@ COUNTRIES = (
 # locator, not a fabricated polygon or an assertion about legal borders.
 SGP_POINT = (103.8198, 1.3521)
 MISSING = {'HOLIDAY','CLOSED','STALE','MISSING','INCOMPARABLE'}
-PALETTE_NEG = ('#985F59','#B67D73','#CB9D90','#DFC5B9')
-PALETTE_POS = ('#CAD9C5','#A8C8B5','#79AE91','#4C886D')
-ZERO = '#CED0C8'
+# Fixed endpoints, adaptive daily scale. All channels darken with |return|,
+# making the fill mathematically monotonic within each sign.
+NEG_LIGHT, NEG_DARK = '#F5D4CE', '#982F37'
+POS_LIGHT, POS_DARK = '#C9E9D3', '#246B49'
+ZERO = '#F0E8D6'  # eligible, exactly unchanged; never ordinary land
+PALETTE_NEG = (NEG_DARK, NEG_LIGHT)  # legacy named endpoints, NOT fixed bins
+PALETTE_POS = (POS_LIGHT, POS_DARK)
+PALETTE_GAMMA = 0.85
+PALETTE_MIN_STRENGTH = 0.06
 # Non-eligible selections use the same neutral land fill as unselected countries.
 # No 'missing data' color is displayed on the public graphic.
 LAND = '#294047'
@@ -288,12 +294,52 @@ def _paths(f):
     return ' '.join(lines)
 
 
-def _fill(v):
-    if abs(v)<1e-10:
+def _daily_scale(returns):
+    """Symmetric, zero-centered, readable daily range, never clipping facts.
+
+    Minimum ±1 percentage point avoids magnifying very quiet sessions.
+    Nice step endpoints are chosen from 1,2,5×powers of ten.
+    """
+    moves=list(returns)
+    need(moves and all(type(x) in (float,int) and math.isfinite(x)
+                       for x in moves), 'M1 color scale needs real finite returns')
+    observed=max(abs(v) for v in moves)
+    target=max(1.0,observed)
+    order=10.0**math.floor(math.log10(target))
+    for factor in (1,2,5,10):
+        cap=factor*order
+        if cap>=target-1e-12:
+            return cap
+    return 10*order
+
+
+def _hexmix(light,dark,t):
+    need(0<=t<=1, 'M1 color interpolation out of range')
+    a=tuple(int(light[i:i+2],16) for i in (1,3,5))
+    b=tuple(int(dark[i:i+2],16) for i in (1,3,5))
+    return '#'+''.join(f'{round(a[i]+(b[i]-a[i])*t):02X}' for i in range(3))
+
+
+def _fill(v,scale=2.0):
+    """Return color intensity increases strictly with |percent move|.
+
+    Tiny observed moves remain colored, and 0% is explicitly not the
+    NOT PLOTTED land fill. The cap is printed on the actual map legend.
+    """
+    need(type(v) in (float,int) and math.isfinite(v) and scale>0,
+         'M1 fill needs finite market percent and positive daily scale')
+    if v==0:
         return ZERO
-    a=abs(v)
-    i=0 if a<0.5 else 1 if a<1 else 2 if a<2 else 3
-    return PALETTE_POS[i] if v>0 else PALETTE_NEG[3-i]
+    ratio=min(1.0,abs(v)/scale)
+    strength=PALETTE_MIN_STRENGTH+(1-PALETTE_MIN_STRENGTH)*ratio**PALETTE_GAMMA
+    return _hexmix(*(POS_LIGHT,POS_DARK) if v>0 else (NEG_LIGHT,NEG_DARK),
+                   strength)
+
+
+def _tick(v):
+    if v==0:
+        return '0%'
+    return f'{v:+g}%'
 
 
 def m1_release_allowed(p, approval):
@@ -337,6 +383,7 @@ def render_global_map(p, logo_png=None, status='DRAFT', geometry_path=GEOMETRY):
     # Only qualified entries have a visible market overlay. Keep all thirty
     # checked outcomes in the private evidence packet, including exclusions.
     eligible_byid={e['economy_id']:e for e in elig}
+    scale=_daily_scale(_return(e) for e in elig)
     out=[
         f'<svg xmlns="http://www.w3.org/2000/svg" width="{W}" height="{H}" viewBox="0 0 {W} {H}">',
         rect(0,0,W,H,BG,0),
@@ -380,30 +427,41 @@ def render_global_map(p, logo_png=None, status='DRAFT', geometry_path=GEOMETRY):
         if not d:
             continue
         e=eligible_byid.get(f['id'])
-        color=_fill(_return(e)) if e is not None else LAND
+        color=_fill(_return(e),scale) if e is not None else LAND
+        # A narrow pale border keeps even very light selected countries
+        # distinguishable from dark, unplotted land at mobile feed size.
+        border='#A8BFB5' if e is not None else GRID
+        width='1.05' if e is not None else '.7'
         out.append('<path d="'+d+'" fill="'+color+
-                   '" fill-rule="evenodd" stroke="'+GRID+'" stroke-width=".7"/>')
+                   '" fill-rule="evenodd" stroke="'+border+
+                   '" stroke-width="'+width+'"/>')
     # Singapore is absent from 110m polygons. Plot its labeled locator ONLY
     # when its own index return is qualified; otherwise leave no marker.
     sg=eligible_byid.get('SGP')
     if sg is not None:
         sx,sy=_project(SGP_POINT)
         out.append(f'<circle cx="{sx:.1f}" cy="{sy:.1f}" r="6" '
-                   f'fill="{_fill(_return(sg))}" stroke="{LIGHT}" stroke-width="2"/>')
+                   f'fill="{_fill(_return(sg),scale)}" stroke="{LIGHT}" stroke-width="2"/>')
         out.append(txt(sx+9,sy-8,'SG',15,LIGHT,750))
     out.append('</g>')
-    # Legend values are local-index return percentages, not GDP figures.
-    labels=('<-2','-2..-1','-1..-.5','-.5..0',
-            '0..+.5','+.5..+1','+1..+2','>+2')
-    palette=PALETTE_NEG+PALETTE_POS
-    for i,color in enumerate(palette):
-        x=68+i*91
-        out.append(rect(x,867,88,12,color,0))
-        out.append(txt(x+44,899,labels[i],14,MUTED,550,anchor='middle'))
-    # Genuine unchanged performance retains a visible swatch; missing
-    # observations have no graphic swatch or on-image missing-data message.
-    out.append(rect(823,867,22,12,ZERO,0))
-    out.append(txt(854,879,'EXACT 0.00%',17,MUTED,600))
+    # Source-of-truth legend: sample the same continuous color function used
+    # for every country, with exact session-dependent tick values.
+    bar_x,bar_w,samples=68,684,76
+    for i in range(samples):
+        value=scale*(2*(i+0.5)/samples-1)
+        out.append(rect(bar_x+i*bar_w/samples,867,
+                        bar_w/samples+0.05,13,_fill(value,scale),0))
+    for i,v in enumerate((-scale,-scale/2,0,scale/2,scale)):
+        x=bar_x+i*bar_w/4
+        anchor='start' if i==0 else 'end' if i==4 else 'middle'
+        out.append(txt(x,898,_tick(v),14,MUTED,600,anchor=anchor))
+    # Zero is a separate covered state. Missing countries use the SAME land
+    # fill as unselected countries, but the legend explicitly explains it.
+    out.append(rect(770,867,21,13,ZERO,0))
+    out.append(txt(798,879,'EXACT 0.00%',12,MUTED,600))
+    out.append('<rect x="900" y="867" width="21" height="13" '
+               f'fill="{LAND}" stroke="{LIGHT}" stroke-width="1"/>')
+    out.append(txt(927,879,'NOT PLOTTED',12,MUTED,650))
     out.append(rule(68,919,1012,919,GRID,2))
     out.append(txt(68,947,'ETF LEADERS & LAGGARDS' if etf_mode else
                    'INDEX LEADERS & LAGGARDS',19,TEAL,750))

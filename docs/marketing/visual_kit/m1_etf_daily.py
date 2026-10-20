@@ -74,6 +74,54 @@ def et_close(day):
     return datetime.combine(day,time(16,0),tzinfo=US_TZ)
 
 
+def race_recap_caption(eligible,session_date,prior_date):
+    """Natural, verifiable leaderboard framing based ONLY on price-pair facts.
+
+    This is editorial copy, not an assertion that a particular country's
+    domestic index, currency, economy or underlying equities all moved alike.
+    """
+    need(len(eligible)>=4,'Need four ETF observations for a market recap')
+    ranked=sorted(eligible,key=lambda e:(-e['signed_return_pct'],e['economy_id']))
+    leader,tail=ranked[0],ranked[-1]
+    # Last in descending order is the weakest return. Ties are factual
+    # co-leaders; avoid implying an arbitrary alphabetical winner is unique.
+    top=leader['signed_return_pct'];bottom=tail['signed_return_pct']
+    spread=top-bottom
+    gainers=sum(e['signed_return_pct']>0 for e in eligible)
+    decliners=sum(e['signed_return_pct']<0 for e in eligible)
+    flats=len(eligible)-gainers-decliners
+    if spread<0.005:
+        hook="A dead heat on the country ETF board."
+    elif gainers==0 and flats==0:
+        hook="Everyone finished in the red. Some fell a lot harder."
+    elif decliners==0 and flats==0:
+        hook="All green on the ETF board. Not everyone kept pace."
+    elif spread>=3:
+        hook=f"One closing bell. {spread:.2f} percentage points between first and last."
+    else:
+        hook="One U.S. session. Very different finishes."
+    if spread<0.005:
+        ordering=(f"All {len(eligible)} plotted country ETFs closed essentially level "
+                  f"at {top:+.2f}%.")
+    else:
+        ordering=(f"{leader['economy_name']} ({leader['etf_ticker']}) led the board "
+                  f"at {top:+.2f}%; {tail['economy_name']} ({tail['etf_ticker']}) "
+                  f"brought up the rear at {bottom:+.2f}%.")
+    score=f"{gainers} higher, {decliners} lower"
+    if flats: score+=f", {flats} unchanged"
+    score+=f" across {len(eligible)} plotted ETFs."
+    # Distinguish factual results and any suggested causal narrative.
+    caveat=("These are USD prices of U.S.-listed country ETFs, not domestic "
+            "stock-index returns. FX and U.S.-hours repricing matter.")
+    sourced=sorted({e['source_title'] for e in eligible})
+    sources=("Source: "+sourced[0]+"." if len(sourced)==1 else
+             "Price-source links retained in the evidence register.")
+    caption=(f"{hook} {ordering} {score} {caveat} "
+             f"U.S. session: {session_date} vs {prior_date}. {sources}")
+    need(len(caption)<=1200,'M1 generated caption too long')
+    return caption
+
+
 def build(quotes,session_date,prior_date,cutoff_utc,*,issue_id,headline=None,logo=None):
     current=date.fromisoformat(session_date)
     prior=date.fromisoformat(prior_date)
@@ -101,10 +149,7 @@ def build(quotes,session_date,prior_date,cutoff_utc,*,issue_id,headline=None,log
         'headline':headline or 'The world in one U.S. session',
         'deck':f'Country ETF moves in USD / US close {current.isoformat()} vs {prior.isoformat()}',
         'interpretation':'USD ETF returns reflect currency and US trading-hours repricing, not domestic index returns.',
-        'caption':('U.S.-listed single-country ETF closing-price changes in USD for '+
-                   current.isoformat()+' versus '+prior.isoformat()+
-                   '. Includes FX and ETF tracking differences. '+
-                   'RESEARCH DRAFT: Prompt 3 factual and source-use review pending.'),
+        'caption':'PENDING PRICE-BASED EDITORIAL RECAP',
         'session_date':current.isoformat(),
         'prior_session_date':prior.isoformat(),
     })
@@ -181,11 +226,15 @@ def build(quotes,session_date,prior_date,cutoff_utc,*,issue_id,headline=None,log
         displayed.append(code)
     need(len(displayed)>=4,
          'At least 4 real source-linked ETF pairs required for useful M1 map')
+    eligible=[e for e in p['evidence'] if e['missing_status']=='ELIGIBLE']
+    p['caption']=race_recap_caption(eligible,current.isoformat(),prior.isoformat())
+    p['caption_review_state']='DRAFT_AWAITING_PROMPT3'
     validate_map_issue(p,load_geometry())
     return p,{'state':'DRAFT_REAL_DATA_AWAITING_PROMPT3','displayed':displayed,
               'omitted':omitted,'count_shown':len(displayed),
               'session_date':session_date,'prior_session_date':prior_date,
-              'source_use_clearance':'NOT_IMPLIED_BY_SOURCE_LINKS'}
+              'source_use_clearance':'NOT_IMPLIED_BY_SOURCE_LINKS',
+              'caption_draft':p['caption']}
 
 
 def review(preview,qa):
