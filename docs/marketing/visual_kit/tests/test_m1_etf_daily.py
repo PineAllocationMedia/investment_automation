@@ -65,7 +65,7 @@ class M1PracticalETFTests(unittest.TestCase):
         self.assertEqual(p['rights_note'],'RESEARCH_PREVIEW')
         self.assertEqual(p['session_date'],'2026-10-19')
         svg=render_global_map(p)
-        self.assertIn('GLOBAL ETF MAP',svg)
+        self.assertIn('MARKET ATLAS',svg)
         self.assertIn('DRAFT · REAL DATA',svg)
         self.assertIn('25 MARKETS SHOWN',svg)
         self.assertIn('USD PRICE MOVES',svg)
