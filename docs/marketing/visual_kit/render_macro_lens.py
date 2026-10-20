@@ -213,14 +213,30 @@ def footer(out, p, sources, asof, status):
         # T1 mobile legibility: source attribution and observation time must
         # remain readable when the 1080px graphic is scaled to a 390px feed.
         # Two lines accommodate long provenance without truncating it.
-        source_lines = wrap('SOURCES: '+sources, 45, 2, 'T1 source attribution')
-        out.append(rule(68, 1224, 1012, 1224, '#3B554F', 2))
+        source_lines = wrap('SOURCES: '+sources, 42, 2, 'T1 source attribution')
+        # Failing closed on exceptionally wide glyphs matters: character count
+        # alone does not guarantee visual fit. This is a conservative estimate,
+        # not an SVG font-metrics engine. Final PNG must still be inspected.
+        def estimated_line_px(line):
+            return 32 * sum(
+                1.0 if c in 'MW@#%&' else
+                0.78 if c.isupper() else
+                0.64 if c.isalnum() else
+                0.37 if c.isspace() else 0.56 for c in line)
+        need(all(estimated_line_px(line) <= 900 for line in source_lines),
+             'T1 source attribution may exceed safe footer width; use concise source titles')
+        # Evidence+ WATCH ends at y=1162 (Classic ends at y=1110).
+        # Reserving extra height for wrapped attribution avoids row collisions.
+        two_lines = len(source_lines) == 2
+        separator_y = 1172 if two_lines else 1210
+        first_y = 1218 if two_lines else 1255
+        bottom_y = 1320 if two_lines else 1315
+        out.append(rule(68, separator_y, 1012, separator_y, '#3B554F', 2))
         for i, source_line in enumerate(source_lines):
-            out.append(txt(68, 1257 + i*29, source_line, 28, MUTED, 600))
-        bottom_y = 1320 if len(source_lines) == 2 else 1307
+            out.append(txt(68, first_y + i*50, source_line, 32, MUTED, 600))
         out.extend([
-            txt(68, bottom_y, 'AS OF '+asof, 26, MUTED, 500),
-            txt(1012, bottom_y, 'NOT INVESTMENT ADVICE', 26, MUTED, 500, anchor='end')
+            txt(68, bottom_y, 'AS OF '+asof, 29, MUTED, 500),
+            txt(1012, bottom_y, 'NOT INVESTMENT ADVICE', 29, MUTED, 500, anchor='end')
         ])
     else:
         # Preserve existing T2/T3 rendering unchanged.
