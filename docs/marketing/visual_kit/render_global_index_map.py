@@ -2,7 +2,7 @@
 """PAM M1 index-first global equity choropleth. Offline research graphic ONLY.
 
 Synthetic fixture uses proposed, unverified benchmark names and fake prices.
-Production requires a frozen audited GDP universe, 20 country-index decisions,
+Production requires audited CEO-selected country coverage and 27 index decisions,
 original source/rights review, immutable public-domain Natural Earth polygons,
 independent exact-asset audit, and separate CEO publication authorization.
 """
@@ -32,7 +32,14 @@ GEO_VERSION = 'NATURAL_EARTH_110M_V5.1.1_PAM_V1'
 BASIS = 'DOMESTIC_INDEX_LOCAL_PRICE_RETURN'
 ISSUE_RE = re.compile(r'^GM-\d{8}-\d{2}$')
 ECONOMY_RE = re.compile(r'^[A-Z]{3}$')
-ID_RE = re.compile(r'^[A-Z0-9._/-]{2,30}$')
+COUNTRIES = (
+    'USA','JPN','CHN','IND','DEU','GBR','CAN','AUS','TWN','KOR',
+    'BRA','FRA','CHE','MEX','ESP','ITA','NLD','SGP','ZAF','TUR',
+    'IDN','VNM','RUS','KAZ','IRN','POL','SWE',
+)
+# Natural Earth 110m omits microstate-scale Singapore. This is a geographic
+# locator, not a fabricated polygon or an assertion about legal borders.
+SGP_POINT = (103.8198, 1.3521)
 MISSING = {'HOLIDAY','CLOSED','STALE','MISSING','INCOMPARABLE'}
 PALETTE_NEG = ('#985F59','#B67D73','#CB9D90','#DFC5B9')
 PALETTE_POS = ('#CAD9C5','#A8C8B5','#79AE91','#4C886D')
@@ -116,11 +123,10 @@ def validate_map_issue(p, geo):
          'Global map cutoff_utc must be expressed in UTC')
     for key,n in [('headline',62),('deck',111),('interpretation',97),
                   ('caption',1200),('universe_version',57),
-                  ('gdp_vintage',49),('method_version',45)]:
+                  ('method_version',45)]:
         bounded(p.get(key),key,n)
-    need(type(p.get('ranking_year'))==int and 2000 <=p['ranking_year']<=2040,
-         'GDP ranking year invalid')
-    valid_url(p.get('gdp_source_url'),'gdp_source_url')
+    need(p.get('selection_basis')=='CEO_SELECTED_27_COUNTRIES',
+         'M1 uses the CEO-selected country list, not GDP ranks')
     need(p.get('geometry_version')==GEO_VERSION and
          p.get('geometry_source_github_blob_sha')==UPSTREAM_NE_BLOB_SHA,
          'M1 geometry join pinned source mismatch')
@@ -130,46 +136,47 @@ def validate_map_issue(p, geo):
          'M1 cross-time-zone markets cannot be described as synchronized')
     need(p.get('rights_note') in ('SYNTHETIC_LAYOUT_ONLY','REVIEWED_FOR_EXACT_USE'),
          'M1 precise data rights status required')
-    need(p.get('universe_review') in ('SYNTHETIC_UNVERIFIED','FROZEN_VALIDATED'),
-         'GDP universe review status is missing')
+    need(p.get('universe_review') in ('CEO_SELECTED_UNVERIFIED','COVERAGE_VALIDATED'),
+         'M1 country coverage review status missing')
     need(p.get('benchmark_registry_status') in
          ('CANDIDATES_UNVERIFIED','INDEPENDENTLY_VERIFIED'),
          'Benchmark registry verification status required')
     if p['rights_note']=='SYNTHETIC_LAYOUT_ONLY':
-        need(p['universe_review']=='SYNTHETIC_UNVERIFIED' and
+        need(p['universe_review']=='CEO_SELECTED_UNVERIFIED' and
              p['benchmark_registry_status']=='CANDIDATES_UNVERIFIED',
              'Demo issue must be explicitly marked as unverified')
-        need(urlparse(p['gdp_source_url']).hostname in ('example.org','example.com'),
-             'Demo GDP reference must use example domain')
     else:
-        need(p['universe_review']=='FROZEN_VALIDATED' and
-             p['benchmark_registry_status']=='INDEPENDENTLY_VERIFIED' and
-             urlparse(p['gdp_source_url']).hostname not in ('example.org','example.com'),
-             'Real M1 requires independent GDP universe and benchmark review')
+        need(p['universe_review']=='COVERAGE_VALIDATED' and
+             p['benchmark_registry_status']=='INDEPENDENTLY_VERIFIED',
+             'Real M1 requires independent country, index and rights review')
     entries=p.get('evidence')
-    need(isinstance(entries,list) and len(entries)==20,
-         'M1 map requires decisions for exactly 20 frozen GDP-ranked economies')
+    need(isinstance(entries,list) and len(entries)==len(COUNTRIES),
+         'M1 map requires exactly 27 CEO-selected country decisions')
     world={f['id'] for f in geo['features']}
-    ranks=set()
+    orders=set()
     ids=set()
     valid=[]
     for i,e in enumerate(entries):
         n=f'evidence[{i}]'
         need(isinstance(e,dict),f'{n} must be an object')
-        rank=e.get('rank')
-        need(type(rank)==int and rank in range(1,21) and rank not in ranks,
-             f'{n} invalid or duplicate nominal-GDP rank')
-        ranks.add(rank)
+        order=e.get('selection_order')
+        need(type(order)==int and 1 <= order <= len(COUNTRIES) and
+             order not in orders, f'{n} duplicate or invalid selection order')
+        orders.add(order)
         code=bounded(e.get('economy_id'),n+'.economy_id',3)
-        need(code in world and code not in ids,
-             f'{n} missing or duplicated Natural Earth geometry join')
+        need(code==COUNTRIES[order-1] and code not in ids,
+             f'{n} wrong or duplicate CEO-selected country')
         ids.add(code)
-        need(e.get('geometry_id')==code,'M1 economy/geometry join mismatch')
+        if code=='SGP':
+            need(e.get('geometry_id')=='SGP_POINT',
+                 'M1 Singapore must use audited locator, not nonexistent polygon')
+        else:
+            need(code in world and e.get('geometry_id')==code,
+                 f'{n} missing or incorrect Natural Earth geometry join')
         bounded(e.get('economy_name'),n+'.economy_name',36)
-        gdp=_one_number(e,'rank_nominal_gdp_usd',n)
-        bounded(e.get('gdp_observation_year'),n+'.gdp_observation_year',4)
-        need(e['gdp_observation_year']==str(p['ranking_year']),
-             'M1 mixes GDP ranking years')
+        need('rank' not in e and 'rank_nominal_gdp_usd' not in e and
+             'gdp_observation_year' not in e,
+             'M1 country order must not masquerade as a GDP ranking')
         bounded(e.get('instrument_name'),n+'.instrument_name',43)
         bounded(e.get('instrument_provider'),n+'.instrument_provider',37)
         bounded(e.get('benchmark_definition'),n+'.benchmark_definition',120)
@@ -234,12 +241,8 @@ def validate_map_issue(p, geo):
                  'M1 missing/holiday cannot be fabricated as 0% return')
             need(e.get('session_status') != 'COMPLETED',
                  'M1 noneligible status contradictory to completed market')
-    need(ranks==set(range(1,21)), 'M1 GDP ranks must cover exactly 1..20')
-    # Catch weak descending nominal-GDP mock rank that is actually mismapped.
-    sorted_e=sorted(entries,key=lambda x:x['rank'])
-    need(all(sorted_e[i]['rank_nominal_gdp_usd'] >=
-             sorted_e[i+1]['rank_nominal_gdp_usd'] for i in range(19)),
-         'M1 nominal-GDP ranks are inconsistent with submitted GDP values')
+    need(orders==set(range(1,len(COUNTRIES)+1)),
+         'M1 selection order must cover all 27 requested countries')
     need(len(valid)>=4,
          'M1 insufficient valid market coverage to justify a world graphic')
     return valid
@@ -285,9 +288,9 @@ def render_global_map(p, logo_png=None, status='DRAFT', geometry_path=GEOMETRY):
     elig=validate_map_issue(p,geo)
     if status=='RELEASE':
         need(p['rights_note']=='REVIEWED_FOR_EXACT_USE' and
-             p['universe_review']=='FROZEN_VALIDATED' and
+             p['universe_review']=='COVERAGE_VALIDATED' and
              p['benchmark_registry_status']=='INDEPENDENTLY_VERIFIED',
-             'M1 RELEASE requires independently reviewed index/geography/data rights')
+             'M1 RELEASE requires reviewed 27-country/index/geography/data rights')
         need(logo_png is not None and
              hashlib.sha256(logo_png).hexdigest()==APPROVED_LOGO_SHA256 and
              p.get('brand_logo_sha256')==APPROVED_LOGO_SHA256,
@@ -320,7 +323,7 @@ def render_global_map(p, logo_png=None, status='DRAFT', geometry_path=GEOMETRY):
                          size=23,leading=29,width=944,color=MUTED))
     out.append(txt(68,433,'LATEST COMPLETED SESSIONS / NOT SYNCHRONIZED',
                    19,TEAL,680))
-    out.append(txt(1012,433,f'{len(elig)}/20 VALID INDICES',
+    out.append(txt(1012,433,f'{len(elig)}/{len(COUNTRIES)} VALID INDICES',
                    20,LIGHT,720,anchor='end'))
     out.append(rect(68,454,944,395,OCEAN,0))
     out.append('<g clip-path="url(#mapView)">')
@@ -342,8 +345,16 @@ def render_global_map(p, logo_png=None, status='DRAFT', geometry_path=GEOMETRY):
             color=NO_DATA
         out.append('<path d="'+d+'" fill="'+color+
                    '" fill-rule="evenodd" stroke="'+GRID+'" stroke-width=".7"/>')
+    # Singapore is not present in 110m polygons: always plot its point and
+    # return-colored locator, then identify the representation in the footer.
+    sg=byid['SGP']
+    sx,sy=_project(SGP_POINT)
+    sg_color=_fill(_return(sg)) if sg['missing_status']=='ELIGIBLE' else NO_DATA
+    out.append(f'<circle cx="{sx:.1f}" cy="{sy:.1f}" r="6" fill="{sg_color}" '
+               f'stroke="{LIGHT}" stroke-width="2"/>')
+    out.append(txt(sx+9,sy-8,'SG',15,LIGHT,750))
     out.append('</g>')
-    # Legend values are return percentages, never GDP growth figures.
+    # Legend values are local-index return percentages, not GDP figures.
     labels=('<-2','-2..-1','-1..-.5','-.5..0',
             '0..+.5','+.5..+1','+1..+2','>+2')
     palette=PALETTE_NEG+PALETTE_POS
@@ -377,7 +388,7 @@ def render_global_map(p, logo_png=None, status='DRAFT', geometry_path=GEOMETRY):
     out.extend(paragraph(225,1185,p['interpretation'],name='interpretation',
                          chars=54,max_lines=2,size=21,leading=27,width=787))
     out.append(rule(68,1254,1012,1254,GRID,2))
-    out.append(txt(68,1280,'GEO: NATURAL EARTH (PUBLIC DOMAIN) / INDEX LOG IN EVIDENCE',
+    out.append(txt(68,1280,'GEO: NATURAL EARTH (PUBLIC DOMAIN) / SG POINT / INDEX EVIDENCE',
                    18,MUTED,500))
     out.append(put(68,1320,'AS OF '+_dt(p['cutoff_utc'],'cutoff_utc').strftime('%Y-%m-%d %H:%M UTC'),
                    20,500,color=MUTED))
