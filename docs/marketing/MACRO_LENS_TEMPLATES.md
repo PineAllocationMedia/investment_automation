@@ -47,6 +47,10 @@ The T1/T2/T3 specifications below now map to three separate deterministic 1080×
 
 **Abstention:** no causal explanation supported by defensible economic reasoning → text-only explanation with multiple possibilities, or skip.
 
+### Optional T1 Evidence+ pilot — not a replacement for Classic
+
+T1 Classic remains the default. When **additional verified evidence genuinely clarifies the mechanism**, choose opt-in `t1_variant: EVIDENCE_PLUS`: one unchanged hero statistic, **up to two** same-period contextual indicators, and an **optional** compact zero-anchored bar chart with 3–4 strictly consecutive monthly observations of one consistent metric. Draw every bar from checked evidence records, never from invented prices, decorative traces, truncated scales or unsourced labels. Keep the three mechanism stages, blind spot and tripwire prominent. If material comparability/legibility fails, omit the extras or revert to T1 Classic. See [implementation, schema, refusal conditions and synthetic example](visual_kit/T1_EVIDENCE_PLUS.md). CEO approval and independent review remain required.
+
 ## T2 — THE DIVERGENCE
 
 **Purpose:** explain why two market/economic signals are disagreeing, including why the conflict may be only apparent.
