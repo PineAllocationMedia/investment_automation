@@ -126,6 +126,38 @@ jobs:
             ${{ runner.temp }}/m2_390px.png
           retention-days: 7
           if-no-files-found: error
+      - name: Render synthetic E1 company note and mobile proof
+        working-directory: docs/marketing/visual_kit
+        shell: bash
+        run: |
+          set -euo pipefail
+          python render_company_lens.py examples/e1_synthetic.json \
+            --output "$RUNNER_TEMP/e1_synthetic.svg" \
+            --png "$RUNNER_TEMP/e1_synthetic.png"
+          grep -q 'DRAFT' "$RUNNER_TEMP/e1_synthetic.svg"
+          grep -q 'COMPANY LENS' "$RUNNER_TEMP/e1_synthetic.svg"
+          python - <<'PY'
+          import os
+          from pathlib import Path
+          import fitz
+          folder=Path(os.environ['RUNNER_TEMP'])
+          svg=(folder/'e1_synthetic.svg').read_bytes()
+          page=fitz.open(stream=svg,filetype='svg')[0]
+          pix=page.get_pixmap(matrix=fitz.Matrix(390/1080,390/1080),alpha=False)
+          assert pix.width == 390 and pix.height >= 487
+          pix.save(folder/'e1_390px.png')
+          PY
+
+      - name: Save synthetic E1 company-note previews for CEO
+        uses: actions/upload-artifact@v4
+        with:
+          name: e1-company-lens-synthetic-previews
+          path: |
+            ${{ runner.temp }}/e1_synthetic.svg
+            ${{ runner.temp }}/e1_synthetic.png
+            ${{ runner.temp }}/e1_390px.png
+          retention-days: 7
+          if-no-files-found: error
       - name: Confirm synthetic content remains visibly watermarked
         shell: bash
         run: |
