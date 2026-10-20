@@ -325,6 +325,11 @@ def render_global_map(p, logo_png=None, status='DRAFT', geometry_path=GEOMETRY):
     out.append(rect(68,454,944,395,OCEAN,0))
     out.append('<g clip-path="url(#mapView)">')
     for f in geo['features']:
+        # This fixed mobile crop ends around 60°S. Exclude Antarctica entirely:
+        # PyMuPDF's SVG clip-path handling can otherwise leak polar geometry
+        # beneath the legend, which is unacceptable even in a synthetic proof.
+        if f['id']=='ATA':
+            continue
         d=_paths(f)
         if not d:
             continue
