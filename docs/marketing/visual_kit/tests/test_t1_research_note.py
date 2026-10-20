@@ -110,6 +110,50 @@ class ResearchNoteTests(unittest.TestCase):
                               if (e.text or '').startswith('AS OF ')]), 1)
         self._check_real_geometry(svg)
 
+    def test_two_line_watch_stays_above_wrapped_provenance(self):
+        try:
+            import fitz
+        except ImportError:
+            self.skipTest('PyMuPDF required for text bounds')
+        p = note_issue()
+        p['tripwire'] = ('Higher buyer traffic and more permits would challenge '
+                         'the interpretation as mortgage costs ease.')
+        p['evidence'][0]['source_title'] = 'National Office for Monthly Price Statistics and Analysis'
+        svg = render(p)
+        page = fitz.open(stream=svg.encode('utf-8'), filetype='svg')[0]
+        spans = [span for block in page.get_text('dict')['blocks']
+                 for line in block.get('lines', [])
+                 for span in line['spans']]
+        watch_lines = [span for span in spans
+                       if 1100 <= span['bbox'][1] < 1170]
+        provenance_lines = [span for span in spans
+                            if 1190 <= span['bbox'][1] < 1290]
+        self.assertEqual(len(watch_lines), 2)
+        self.assertEqual(len(provenance_lines), 2)
+        self.assertLess(watch_lines[-1]['bbox'][3] + 8,
+                        provenance_lines[0]['bbox'][1])
+        self.assertLess(provenance_lines[-1]['bbox'][3] + 5,
+                        next(span for span in spans
+                             if span['text'].startswith('AS OF '))['bbox'][1])
+
+    def test_wrapped_signal_label_clears_units(self):
+        try:
+            import fitz
+        except ImportError:
+            self.skipTest('PyMuPDF required for text bounds')
+        p = note_issue()
+        p['evidence'][0]['label'] = 'Illustrative weighted signal index'
+        svg = render(p)
+        page = fitz.open(stream=svg.encode('utf-8'), filetype='svg')[0]
+        spans = [span for block in page.get_text('dict')['blocks']
+                 for line in block.get('lines', [])
+                 for span in line['spans']]
+        label = [x for x in spans if x['text'].startswith('Illustrative')
+                 or x['text'].startswith('signal index')]
+        unit = next(x for x in spans if x['text'] == 'not market data')
+        self.assertEqual(len(label), 2)
+        self.assertLess(label[-1]['bbox'][3], unit['bbox'][1])
+
     def test_mobile_rendered_bounds(self):
         self._check_real_geometry(render(note_issue()))
 
