@@ -154,7 +154,7 @@ class M1PracticalETFTests(unittest.TestCase):
               '--prior-date','2026-10-16','--cutoff-utc','2026-10-20T18:30:00Z',
               '--issue-id','GM-20261020-09','--headline','Global ETFs in USD',
               '--out-issue',str(issue),'--svg',str(svg),
-              '--png',str(png),'--mobile-png',str(mobile)]
+              '--png',str(png),'--mobile-png',str(mobile),'--draft-only']
         self.assertEqual(main(args),0)
         self.assertTrue(all(x.is_file() and x.stat().st_size>500
                             for x in (issue,svg,png,mobile)))
