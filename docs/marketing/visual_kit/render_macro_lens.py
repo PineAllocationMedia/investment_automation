@@ -112,9 +112,13 @@ def validate(payload):
         need(isinstance(steps, list) and len(steps) == 3, 'T1 requires three mechanism stages')
         for i, step in enumerate(steps):
             bounded(step, f'mechanism[{i}]', 39)
+        layout = payload.get('t1_layout', 'CLASSIC')
+        need(layout in ('CLASSIC', 'RESEARCH_NOTE'), 'Unsupported T1 layout')
+        need(layout == 'CLASSIC' or payload.get('t1_variant', 'CLASSIC') == 'CLASSIC',
+             'Research-note layout currently supports T1 Classic only')
         validate_t1_plus(payload, chosen, evidence, need, bounded)
     else:
-        need(not any(x in payload for x in ('t1_variant', 'support_fact_ids', 'mini_chart')),
+        need(not any(x in payload for x in ('t1_layout', 't1_variant', 'support_fact_ids', 'mini_chart')),
              'Evidence+ fields are only supported for T1')
         bounded(payload.get('interpretation'), 'interpretation', 130)
     if typ == 'T2':
@@ -268,6 +272,70 @@ def t1(out, p, f):
     out.append(multiline(89, 1088, 'WATCH: '+p['tripwire'], 91, 1, 19, AMBER, 600, 23, 'tripwire'))
 
 
+
+def t1_research_note(out, p, f):
+    """Opt-in sober T1 Classic layout. Facts/release manifest remain unchanged.
+
+    The three explanatory stages are a ruled editorial grid, not floating
+    classroom cards. An over-wide item fails closed instead of being clipped.
+    """
+    def estimated_width(value, size):
+        def weight(ch):
+            if ch in 'WM@#%&':
+                return 1.0
+            if ch.isupper():
+                return 0.78
+            if ch.islower() or ch.isdigit():
+                return 0.59
+            return 0.33 if ch.isspace() else 0.53
+        return size * sum(weight(c) for c in value)
+
+    def lines(x, y, value, *, chars, cap, size, leading, name,
+              color=LIGHT, weight=500, width=None):
+        rows = wrap(value, chars, cap, name)
+        max_width = (1012 - x - 5) if width is None else width
+        need(all(estimated_width(row, size) <= max_width for row in rows),
+             f'{name} exceeds research-note safe line width; shorten')
+        return [txt(x, y + i*leading, row, size, color, weight)
+                for i, row in enumerate(rows)]
+
+    out.extend([
+        rule(68, 464, 1012, 464, '#46615A', 2),
+        txt(68, 504, 'MARKET OBSERVATION', 20, TEAL, 750),
+        txt(1012, 504, 'PRIMARY SERIES / '+f['period'].upper(),
+            18, MUTED, 600, anchor='end')
+    ])
+    length = len(f['display'])
+    signal_size = 66 if length <= 5 else 51 if length <= 8 else 39 if length <= 11 else 31
+    need(estimated_width(f['display'], signal_size) <= 435,
+         'Signal too wide for research-note signal area')
+    out.append(txt(68, 594, f['display'], signal_size, LIGHT, 750))
+    out.extend(lines(528, 553, f['label'], chars=27, cap=2, size=28, leading=38,
+                     name='signal.label', weight=700))
+    out.extend(lines(528, 615, f['unit'], chars=24, cap=1, size=21, leading=25,
+                     name='signal.unit', color=MUTED))
+    out.extend(lines(528, 644, f['period'], chars=34, cap=1, size=20, leading=25,
+                     name='signal.period', color=MUTED))
+    out.append(rule(68, 670, 1012, 670, '#46615A', 2))
+    out.append(txt(68, 711, 'TRANSMISSION / POSSIBLE CHANNELS', 20, TEAL, 750))
+    for i, step in enumerate(p['mechanism']):
+        x = 68 + i*325
+        out.append(txt(x, 756, f'{i+1:02}', 19, MUTED, 500))
+        out.extend(lines(x, 807, step, chars=19, cap=2, size=27, leading=37,
+                         name=f'mechanism[{i}]', weight=600,
+                         width=(282 if i < 2 else 305)))
+        if i < 2:
+            out.append(rule(x+298, 751, x+298, 857, '#46615A', 2))
+    out.append(rule(68, 886, 1012, 886, '#46615A', 2))
+    out.append(txt(68, 928, 'SECOND-ORDER CONSIDERATION', 20, TEAL, 750))
+    out.extend(lines(68, 973, p['blind_spot'], chars=64, cap=2, size=26,
+                     leading=34, name='blind_spot'))
+    out.append(rule(68, 1040, 1012, 1040, '#46615A', 2))
+    out.append(txt(68, 1080, 'WHAT WOULD CHANGE THE VIEW?', 21, AMBER, 700))
+    out.extend(lines(68, 1123, p['tripwire'], chars=72, cap=2, size=25,
+                     leading=32, name='tripwire'))
+
+
 def t2(out, p, a, b):
     out.append(txt(68, 488, '01  /  TWO SIGNALS', 21, TEAL, 800))
     for x, f, code in [(68,a,'A'),(555,b,'B')]:
@@ -306,6 +374,8 @@ def render(payload, status='DRAFT', logo_png=None):
     if typ == 'T1':
         if payload.get('t1_variant') == 'EVIDENCE_PLUS':
             draw_t1_plus(out, payload, chosen[0], payload['evidence'], need)
+        elif payload.get('t1_layout') == 'RESEARCH_NOTE':
+            t1_research_note(out, payload, chosen[0])
         else:
             t1(out, payload, chosen[0])
     elif typ == 'T2': t2(out, payload, *chosen)
