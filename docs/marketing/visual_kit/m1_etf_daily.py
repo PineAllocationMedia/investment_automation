@@ -237,12 +237,79 @@ def build(quotes,session_date,prior_date,cutoff_utc,*,issue_id,headline=None,log
               'caption_draft':p['caption']}
 
 
-def review(preview,qa):
-    """Promote a research draft ONLY on actual external Prompt 3 attestations."""
+def _sha(content):
+    return hashlib.sha256(content).hexdigest()
+
+
+def exact_asset_manifest(issue,quote_csv,svg_path,svg,png_path,png,mobile_path,mobile):
+    """Immutable file-byte handoff for Prompt 3. Still NOT publication approval."""
+    need(issue.get('artifact_intent')=='EXACT_ARTIFACT_AWAITING_PROMPT3',
+         'Only approved-brand exact-image candidate can generate this manifest')
+    need(png is not None and mobile is not None,
+         'Exact-image handoff requires native and 390px preview bytes')
+    return {
+        'schema':'M1_EXACT_ASSET_HANDOFF_V1',
+        'state':'PENDING_INDEPENDENT_AUDIT_AND_CEO_APPROVAL',
+        'issue_sha256':payload_hash(issue),
+        'caption_sha256':_sha(issue['caption'].encode('utf-8')),
+        'quote_csv_sha256':_sha(Path(quote_csv).read_bytes()),
+        'brand_logo_sha256':issue['brand_logo_sha256'],
+        'assets':{
+            'svg':{'path':str(svg_path.resolve()),'sha256':_sha(svg.encode('utf-8'))},
+            'png':{'path':str(png_path.resolve()),'sha256':_sha(png)},
+            'mobile_png':{'path':str(mobile_path.resolve()),'sha256':_sha(mobile)},
+        },
+        'publication_approved':False,
+    }
+
+
+def check_exact_manifest(issue,manifest):
+    need(isinstance(manifest,dict) and
+         manifest.get('schema')=='M1_EXACT_ASSET_HANDOFF_V1' and
+         manifest.get('publication_approved') is False and
+         manifest.get('state')=='PENDING_INDEPENDENT_AUDIT_AND_CEO_APPROVAL',
+         'Exact-image manifest cannot authorize publication')
+    need(manifest.get('issue_sha256')==payload_hash(issue),
+         'Exact image manifest issue SHA mismatch')
+    need(manifest.get('caption_sha256')==_sha(issue['caption'].encode('utf-8')),
+         'Exact caption SHA mismatch')
+    need(issue.get('artifact_intent')=='EXACT_ARTIFACT_AWAITING_PROMPT3',
+         'Exact-image review requires the final-looking source-linked issue')
+    need(manifest.get('brand_logo_sha256')==APPROVED_LOGO_SHA256 and
+         issue.get('brand_logo_sha256')==APPROVED_LOGO_SHA256,
+         'Exact-image manifest requires CEO-approved pine-logo identity')
+    assets=manifest.get('assets',{})
+    need(isinstance(assets,dict),'Exact-image asset hashes missing')
+    for kind in ('svg','png','mobile_png'):
+        entry=assets.get(kind)
+        need(isinstance(entry,dict) and isinstance(entry.get('path'),str) and
+             isinstance(entry.get('sha256'),str),
+             'Exact image source/hash absent for '+kind)
+        need(_sha(Path(entry['path']).read_bytes())==entry['sha256'],
+             'Audited '+kind+' image differs from original Prompt 2 output')
+    return assets
+
+
+def review(preview,qa,manifest=None):
+    """Check actual Prompt 3 claims against exact Prompt 2 pixels and caption.
+
+    Never re-render at this stage. The CEO still separately approves publishing.
+    """
     need(preview.get('rights_note')=='RESEARCH_PREVIEW',
          'Only a source-linked M1 research draft can enter this workflow')
     need(qa.get('issue_sha256')==payload_hash(preview),
          'Prompt 3 review does not match exact issue input hash')
+    if preview.get('artifact_intent')=='EXACT_ARTIFACT_AWAITING_PROMPT3':
+        need(manifest is not None,
+             'Prompt 3 must audit the exact native/mobile image manifest')
+        assets=check_exact_manifest(preview,manifest)
+        for qa_key,asset in (('png_sha256','png'),
+                             ('mobile_png_sha256','mobile_png'),
+                             ('svg_sha256','svg')):
+            need(qa.get(qa_key)==assets[asset]['sha256'],
+                 'Prompt 3 did not audit exact '+asset+' bytes')
+        need(qa.get('caption_sha256')==manifest['caption_sha256'],
+             'Prompt 3 did not audit exact caption text')
     need(qa.get('fact_verdict')=='PASS' and
          qa.get('corporate_actions_verdict')=='PASS' and
          qa.get('source_use_verdict')=='NO_KNOWN_RESTRICTION' and
@@ -277,7 +344,7 @@ def main(argv=None):
     sub=ap.add_subparsers(dest='command',required=True)
     a=sub.add_parser('init',help='Write a 30-country quote CSV for web research')
     a.add_argument('--out',type=Path,required=True)
-    b=sub.add_parser('build',help='Render a real-price research DRAFT from a completed CSV')
+    b=sub.add_parser('build',help='Create exact final-looking M1 image for Prompt 3; --draft-only for exploratory previews')
     b.add_argument('quotes',type=Path)
     for key in ('session-date','prior-date','cutoff-utc','issue-id'):
         b.add_argument('--'+key,required=True)
@@ -287,10 +354,16 @@ def main(argv=None):
     b.add_argument('--svg',type=Path,required=True)
     b.add_argument('--png',type=Path)
     b.add_argument('--mobile-png',type=Path)
-    c=sub.add_parser('review',help='Verify Prompt 3 QA record and create release candidate')
+    b.add_argument('--asset-manifest',type=Path,
+                   help='Required for exact candidate: SHA-256 of same PNG, SVG, mobile and caption')
+    b.add_argument('--draft-only',action='store_true',
+                   help='Optional legacy watermarked research proof; never publish')
+    c=sub.add_parser('review',help='Check Prompt 3 QA against the EXACT original image and caption')
     c.add_argument('issue',type=Path)
     c.add_argument('--qa',type=Path,required=True)
     c.add_argument('--out-issue',type=Path,required=True)
+    c.add_argument('--asset-manifest',type=Path,
+                   help='Mandatory for clean Prompt 2 candidate review')
     args=ap.parse_args(argv)
     try:
         if args.command=='init':
@@ -300,14 +373,28 @@ def main(argv=None):
         if args.command=='review':
             draft=json.loads(args.issue.read_text(encoding='utf-8'))
             qa=json.loads(args.qa.read_text(encoding='utf-8'))
-            p=review(draft,qa)
+            manifest=(json.loads(args.asset_manifest.read_text(encoding='utf-8'))
+                      if args.asset_manifest else None)
+            p=review(draft,qa,manifest)
             args.out_issue.write_text(json.dumps(p,indent=2)+'\n',encoding='utf-8')
             print('SOURCE-LINKED M1 REVIEW CANDIDATE; STILL REQUIRES CEO POST APPROVAL')
             return 0
+        candidate=not args.draft_only
+        if candidate:
+            need(args.brand_logo is not None and args.png is not None and
+                 args.mobile_png is not None and args.asset_manifest is not None,
+                 'Prompt 2 exact M1 candidate requires approved logo, native PNG, '
+                 '390px PNG and asset-manifest; use --draft-only for research')
         p,report=build(args.quotes,args.session_date,args.prior_date,args.cutoff_utc,
                        issue_id=args.issue_id,headline=args.headline,logo=args.brand_logo)
         logo=checked_logo(args.brand_logo) if args.brand_logo else None
-        svg=render_global_map(p,logo,status='DRAFT')
+        if candidate:
+            need(report['count_shown']>=6,
+                 'Need six distinct eligible countries for TOP 3 and BOTTOM 3')
+            p['artifact_intent']='EXACT_ARTIFACT_AWAITING_PROMPT3'
+            p['caption_review_state']='EXACT_CANDIDATE_AWAITING_PROMPT3'
+        svg=render_global_map(p,logo,
+                              status='REVIEW_CANDIDATE' if candidate else 'DRAFT')
         png=None;mobile=None
         if args.png or args.mobile_png:
             import fitz
@@ -324,9 +411,24 @@ def main(argv=None):
                      'Unexpected M1 390px mobile proof dimensions')
                 mobile=pix.tobytes('png')
             doc.close()
-        # Validation and rendering complete before writing any output.
-        for dest,content in ((args.out_issue,json.dumps(p,indent=2)+'\n'),
-                             (args.svg,svg),(args.png,png),(args.mobile_png,mobile)):
+        manifest=(exact_asset_manifest(p,args.quotes,args.svg,svg,args.png,png,
+                                       args.mobile_png,mobile)
+                  if candidate else None)
+        if candidate:
+            report.update(state='EXACT_FINAL_LOOK_AWAITING_PROMPT3_AND_CEO',
+                          issue_sha256=payload_hash(p),
+                          caption_sha256=manifest['caption_sha256'],
+                          png_sha256=manifest['assets']['png']['sha256'],
+                          mobile_png_sha256=manifest['assets']['mobile_png']['sha256'])
+        # Finish validation and byte hashing BEFORE writing any output files.
+        output_items=[(args.out_issue,json.dumps(p,indent=2)+'\n'),
+                      (args.svg,svg),(args.png,png),(args.mobile_png,mobile)]
+        if candidate:
+            output_items.append((args.asset_manifest,json.dumps(manifest,indent=2)+'\n'))
+        need(len({dest.resolve() for dest,_ in output_items if dest})==
+             len([dest for dest,_ in output_items if dest]),
+             'M1 output file paths must be distinct')
+        for dest,content in output_items:
             if dest and content is not None:
                 dest.parent.mkdir(parents=True,exist_ok=True)
                 if isinstance(content,str):

@@ -80,7 +80,7 @@ class M1GlobalEquityIndexTests(unittest.TestCase):
         self.assertGreaterEqual(len(paths),170)
         for text in ('GLOBAL EQUITY MAP','LOCAL CURRENCY','LATEST COMPLETED SESSIONS',
                      '25 MARKETS SHOWN','INDEX LEADERS &amp; LAGGARDS',
-                     'TOPIX Price Index','S&amp;P/TSX Composite Price Index',
+                     'JPN / TOPIX','CAN / S&amp;P/TSX',
                      'GEO: NATURAL EARTH','EXACT 0.00%',
                      'DRAFT · SYNTHETIC',
                      'NOT INVESTMENT ADVICE'):
