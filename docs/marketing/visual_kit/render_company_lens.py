@@ -172,13 +172,14 @@ def draw_company_lens(p, logo_png=None, status='DRAFT'):
                    'href="data:image/png;base64,' + enc + '"/>')
     else:
         out.append(txt(110, 112, 'P', 39, PINE, 800, anchor='middle'))
+    demo = p.get('rights_note') == 'SYNTHETIC_LAYOUT_ONLY'
     out.extend([
         txt(169, 102, 'PAM', 29, LIGHT, 800),
         txt(267, 102, '/  COMPANY LENS', 23, MUTED, 600),
         txt(1012, 103, p['issue_id'], 20, TEAL, 600, anchor='end'),
         rule(68, 149, 1012, 149, DIVIDER, 2),
         safe_text(68, 193, p['company_name'], 25, 760, weight=700),
-        safe_text(1012, 193, p['ticker']+'  /  SEC FILER', 19, 240,
+        safe_text(1012, 193, p['ticker'] + ('  /  DEMO ISSUER' if demo else '  /  SEC FILER'), 19, 240,
                   color=TEAL, weight=600, anchor='end'),
     ])
     out.extend(lines(68, 266, p['headline'], chars=30, count=2,
@@ -192,7 +193,7 @@ def draw_company_lens(p, logo_png=None, status='DRAFT'):
                          ' / '+p['reporting_currency'], 19, 530,
                          color=TEAL, weight=700))
     out.append(safe_text(1012, 462,
-                         'FILED '+as_date(p['filed_at'], 'filed_at').strftime('%Y-%m-%d'),
+                         ('DEMO DATE ' if demo else 'FILED ')+as_date(p['filed_at'], 'filed_at').strftime('%Y-%m-%d'),
                          19, 268, color=MUTED, weight=550, anchor='end'))
     out.append(safe_text(68, 496, p['event'], 22, 922,
                          weight=550))
@@ -214,7 +215,7 @@ def draw_company_lens(p, logo_png=None, status='DRAFT'):
                              f['basis']+'  /  '+f['fiscal_period'], 19, 520,
                              color=MUTED, weight=570))
         out.append(safe_text(84, y+94,
-                             'SEC FILING  /  '+f['source_section'], 18, 555,
+                             ('DEMO SOURCE  /  ' if demo else 'SEC FILING  /  ')+f['source_section'], 18, 555,
                              color=MUTED))
         out.append(txt(84, y+122, 'EDITORIAL READING', 16, TEAL, 650))
         out.extend(lines(270, y+122, f['meaning'], chars=52, count=2,
@@ -227,7 +228,8 @@ def draw_company_lens(p, logo_png=None, status='DRAFT'):
     out.extend(lines(285, 1191, p['watch'], chars=48, count=2,
                      size=20, leading=26, available=727, name='watch'))
     out.append(rule(68, 1254, 1012, 1254, DIVIDER, 2))
-    out.append(txt(68, 1280, 'ORIGINAL SEC SOURCE + LOCATORS IN EVIDENCE RECORD', 18,
+    out.append(txt(68, 1280, ('FICTIONAL FILING / SOURCE-FREE LAYOUT TEST' if demo else
+                              'ORIGINAL SEC SOURCE + LOCATORS IN EVIDENCE RECORD'), 18,
                    MUTED, 500))
     out.append(safe_text(68, 1320,
                          'AS OF '+as_date(p['issue_at'], 'issue_at').strftime('%Y-%m-%d %H:%M %z'),
