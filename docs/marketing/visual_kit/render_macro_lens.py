@@ -208,15 +208,31 @@ def common(p, typ, logo_png=None):
 
 
 def footer(out, p, sources, asof, status):
-    out.extend([rule(68, 1224, 1012, 1224, '#3B554F', 2),
-                txt(68, 1262, 'SOURCES: '+sources, 15, MUTED, 500),
-                txt(68, 1287, 'AS OF '+asof+'  ·  NOT INVESTMENT ADVICE', 15, MUTED, 500),
-                txt(1012, 1288, p['issue_id'], 16, TEAL, 600, anchor='end')])
+    if p['template'] == 'T1':
+        # T1 mobile legibility: source attribution and observation time must
+        # remain readable when the 1080px graphic is scaled to a 390px feed.
+        # Two lines accommodate long provenance without truncating it.
+        source_lines = wrap('SOURCES: '+sources, 45, 2, 'T1 source attribution')
+        out.append(rule(68, 1224, 1012, 1224, '#3B554F', 2))
+        for i, source_line in enumerate(source_lines):
+            out.append(txt(68, 1257 + i*29, source_line, 28, MUTED, 600))
+        bottom_y = 1320 if len(source_lines) == 2 else 1307
+        out.extend([
+            txt(68, bottom_y, 'AS OF '+asof, 26, MUTED, 500),
+            txt(1012, bottom_y, 'NOT INVESTMENT ADVICE', 26, MUTED, 500, anchor='end'),
+            # Above the footer rule, but below Evidence+'s WATCH panel.
+            txt(1012, 1217, p['issue_id'], 24, TEAL, 600, anchor='end')
+        ])
+    else:
+        # Preserve existing T2/T3 rendering unchanged.
+        out.extend([rule(68, 1224, 1012, 1224, '#3B554F', 2),
+                    txt(68, 1262, 'SOURCES: '+sources, 15, MUTED, 500),
+                    txt(68, 1287, 'AS OF '+asof+'  ·  NOT INVESTMENT ADVICE', 15, MUTED, 500),
+                    txt(1012, 1288, p['issue_id'], 16, TEAL, 600, anchor='end')])
     if status != 'RELEASE':
         out.append(rect(710, 151, 302, 53, '#503D25', 12, AMBER))
         out.append(txt(861, 185, 'DRAFT · NOT AUDITED', 18, AMBER, 750, anchor='middle'))
     return out
-
 
 def t1(out, p, f):
     out.append(rect(68, 481, 944, 156, '#204039'))
