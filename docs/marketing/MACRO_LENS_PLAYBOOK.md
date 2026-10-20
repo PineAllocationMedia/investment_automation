@@ -4,7 +4,7 @@
 **Owner:** Marketing & GTM under the existing bounded Blossom `@therealpam` mandate.
 **Channel:** Blossom posts on `@therealpam` only, unless separately authorized.
 **Authority:** Research, drafting, visual preparation, audit coordination and measurement; **no autonomous publication**.
-**Companion files:** [Templates](MACRO_LENS_TEMPLATES.md) · [Editorial log](MACRO_LENS_EDITORIAL_LOG.md) · [Role charter](../../governance/roles/MARKETING_GTM.md).
+**Companion files:** [Templates](MACRO_LENS_TEMPLATES.md) · [Visual Kit](visual_kit/README.md) · [Editorial log](MACRO_LENS_EDITORIAL_LOG.md) · [Role charter](../../governance/roles/MARKETING_GTM.md).
 
 ## 1. Why this exists
 
@@ -71,7 +71,7 @@ Prohibited: personally tailored investment advice, recommendations to buy/sell/h
 - All publishable visual text, hooks, captions, polls and replies are in **English**.
 - Default visual target for design exploration: portrait **4:5 (1080 × 1350)**; confirm Blossom's current display, upload, text and cropping constraints before treating them as official specifications.
 - Mobile-first: a legible single headline and one key visual/relationship. Leave practical margins for feed crop. Use accessible contrast and non-color-only meaning. Proofread all small-print, ticker symbols, market sessions and date labels.
-- Visual identity: midnight navy + warm white, selective mint/teal for focus, sparing amber for uncertainty; red/green only when economically meaningful; well-spaced editorial typography; no fake institutional logos or invented credentials.
+- Visual identity: the CEO's actual Blossom pine-branch-and-cone emblem in forest green on warm ivory is the identity anchor. Preserve its original illustration; use a clean official PNG, not a UI screenshot or generated imitation. Pair the ivory/pine seal with a muted dark ink-and-forest editorial canvas and restrained sage/amber accents; no generic neon trading-terminal badge, fake institutional logos, or invented credentials. Release is blocked without the official logo asset and its content hash.
 - Stable **design system**, variable **editorial substance**. Use at most one dominant chart; remove charts that add no explanatory value.
 - Default caption: around 60–120 words if useful, never rigid; add context not already readable in graphic. Strong opening, evidence-based explanation, precise uncertainty. Don't force a hook/CTA/joke every time.
 - Where Blossom cannot display full source links neatly, provide traceable source names and dates in a compact caption/comment and retain exact URLs in the private evidence register.
@@ -80,12 +80,12 @@ Prohibited: personally tailored investment advice, recommendations to buy/sell/h
 
 ## 6. Reusable layouts and controlled adaptation
 
-See [template library](MACRO_LENS_TEMPLATES.md). Choose by story:
+See [template library](MACRO_LENS_TEMPLATES.md) and the executable [Visual Kit](visual_kit/README.md). Choose by story:
 - `T1` **The Mechanism**: one macro transmission chain.
 - `T2` **The Divergence**: two signals seemingly at odds, dates and definitions aligned.
 - `T3` **The Regime Shift**: a properly sourced historical context and what changed.
 
-They share PAM branding, typographic hierarchy, footer date/source convention and fact-validation contract—not the same filler modules. Avoid daily dashboard repetition. Subject determines template. Do not invent charts simply to fill a slot. A template version is recorded for each published post.
+The three real SVG/PNG layouts are rendered by the offline Visual Kit. They share PAM branding, typographic hierarchy, footer date/source convention and fact-validation contract—not the same filler modules. SVG/PNG rendering is **not** factual verification; an independent reviewer must inspect the exact image and caption. A non-watermarked export requires separately recorded independent-audit and CEO-approval references bound to the input hash; those references are workflow declarations, not cryptographic proof of review. Avoid daily dashboard repetition. Subject determines template. Do not invent charts simply to fill a slot. A template version is recorded for each published post.
 
 ## 7. Audit and learning discipline
 

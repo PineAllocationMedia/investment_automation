@@ -1,12 +1,13 @@
 # PAM | The Macro Lens — reusable Blossom templates v1.0
 
 **Scope:** `@therealpam` image-post editorial templates, not investment recommendations.
-**Policy:** [Editorial playbook](MACRO_LENS_PLAYBOOK.md). Always verify source facts before laying out data. Final rendering and CEO approval are separate gates.
+**Policy:** [Editorial playbook](MACRO_LENS_PLAYBOOK.md). **Executable layout renderer + sample SVGs:** [Visual Kit](visual_kit/README.md). Always verify source facts before laying out data. Final rendering and CEO approval are separate gates.
 
-## Universal visual grammar
+The T1/T2/T3 specifications below now map to three separate deterministic 1080×1350 SVG layouts in `visual_kit/render_macro_lens.py`, with non-publishable synthetic example SVGs in `visual_kit/examples/`. The executable kit contains no source-fetching capability; independent factual and visual audits remain mandatory. Existing visual constraints, template-choice logic and governance below remain authoritative.\n\n## Universal visual grammar
 
 - **Canvas:** 1080 × 1350 portrait working target (4:5); test against current Blossom mobile rendering and cropping before publication. A safe-area margin of 64 px is an internal design rule, not a Blossom specification.
-- **Palette:** dark navy `#0B1828`, panel navy `#14263A`, warm-white `#F4F2EB`, muted `#AEBBC6`, teal `#75DCC0`, amber `#F3C574`. Red `#EA7E83` and green `#7FD8AA` only for directional data, without implying a recommendation. Verify accessibility contrast in actual output.
+- **Verified Blossom brand anchor (CEO screenshot, 2026-10-19):** a botanical forest-green pine branch and hanging pine cone, on a warm-ivory circular background. Treat this as a visual identity reference—not as a clean production image file. Obtain the actual square logo PNG from the CEO before releasing a final graphic. No guessed redraw, screenshot crop, or generic corporate replacement may be presented as the official logo.
+- **Palette:** editorial ink `#11242A`, deep panel forest `#1A3233`, warm ivory `#F4F0E6`, muted sage-gray `#BDC8BE`, soft pine-sage accent `#A6CBB1`, warm amber `#E6C592`, pine-green emblem ink `#284936`. Red/green must express data meaning only, not an implied trade recommendation. Verify contrast in rendered output. Do not turn the series into a generic neon/blue market terminal.
 - **Typography:** clear hierarchy; strong 1–2 line headline; short explanatory subhead; one hero signal, diagram or comparable chart; spacious footer with dated source line and account/series attribution. Fonts must be licensed/available; never redistribute font files.
 - **Header:** `PAM  /  THE MACRO LENS` with issue date and `MARKET NOTE` or `MACRO EXPLAINER`. Do not use fake “institutional research” credentials.
 - **Evidence treatment:** data panels require explicit date, market session, currency/units, provenance. If there is no verified data, use explanatory prose and labeled conceptual diagrams without quantitatively implied scale.
