@@ -529,7 +529,10 @@ def render_global_map(p, logo_png=None, status='DRAFT', geometry_path=GEOMETRY):
     out.append(put(68,1320,'AS OF '+_dt(p['cutoff_utc'],'cutoff_utc').strftime('%Y-%m-%d %H:%M UTC'),
                    20,500,color=MUTED))
     out.append(txt(1012,1320,'NOT INVESTMENT ADVICE',19,MUTED,550,anchor='end'))
-    if status=='DRAFT':
+    # Synthetic fixtures alone display a watermark. Genuine source-linked
+    # Market Atlas maps, including research-state views, are always clean on
+    # the image. Audit/CEO state lives in the separate SHA-bound manifest.
+    if status=='DRAFT' and p['rights_note']=='SYNTHETIC_LAYOUT_ONLY':
         out.append(rect(720,202,292,48,'#503D25',10,AMBER))
         out.append(txt(866,233,'DRAFT · SYNTHETIC' if
                        p['rights_note']=='SYNTHETIC_LAYOUT_ONLY'
