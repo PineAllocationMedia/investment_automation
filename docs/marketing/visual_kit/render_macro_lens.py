@@ -323,7 +323,7 @@ def t1_research_note(out, p, f):
         out.append(txt(x, 756, f'{i+1:02}', 19, MUTED, 500))
         out.extend(lines(x, 807, step, chars=19, cap=2, size=27, leading=37,
                          name=f'mechanism[{i}]', weight=600,
-                         width=(282 if i < 2 else 305)))
+                         width=(282 if i < 2 else 289)))
         if i < 2:
             out.append(rule(x+298, 751, x+298, 857, '#46615A', 2))
     out.append(rule(68, 886, 1012, 886, '#46615A', 2))
