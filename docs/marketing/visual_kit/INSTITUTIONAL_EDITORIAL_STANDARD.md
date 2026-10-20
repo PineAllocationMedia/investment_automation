@@ -49,6 +49,10 @@ Mark each criterion **PASS / HOLD**, with one short observation:
 
 The reviewer should also state the main trade-off: **What was removed to improve clarity? What information was retained to preserve rigor?** Do not solve "too childish" by reducing body text until it is unreadable, or "more institutional" by adding needless charts.
 
+## Subjects, depth and the actual layout limitation
+
+Use the [Blossom Research Visual System roadmap](../BLOSSOM_VISUAL_SYSTEM_ROADMAP.md) for proposed macro, market, sector, equity and investor-perspective formats. `BRIEF`, `STANDARD` and `DEEP` are levels of **necessary analytical detail**, not different permission to be childish or to lower editorial quality. A deep note with unreadable labels fails the same mobile gate as a light note. The first controlled research-note implementation direction is the [T1 institutional restyle brief](INSTITUTIONAL_T1_RESTYLE_PROPOSAL.md), informed by the CEO-provided Oct. 20 visual HOLD packet. This is a proposed development task; the current renderer's cards are not magically modified by a style specification.
+
 ## Controlled upgrade procedure
 
 When the existing canonical template fails this gate:
