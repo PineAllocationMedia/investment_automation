@@ -36,4 +36,4 @@ Record the existing [six institutional visual gates](INSTITUTIONAL_EDITORIAL_STA
 
 Automated layout tests should include pixel/text-bounding boxes, 390px snapshots, extreme headline/mechanism/source lengths, short/long attributions, Evidence+ opt-in, draft/release controls and unchanged T2/T3 render assertions. Review human comprehension; passing CI alone does **not** prove this art direction succeeded. Seek independent fact/visual audit and separate CEO approval for any publication.
 
-**Implementation status:** no new renderer, creative mock or released visual is introduced here. This is a bounded design specification for a **future** developer PR, not a claim that PR #194 already redesigned the actual infographic.
+**Implementation status:** a separately reviewed **opt-in T1 Classic `t1_layout: RESEARCH_NOTE` implementation PR** now carries the first actual layout candidate, with baseline retained for comparison. This document remains the design/acceptance brief, not CEO visual approval, final factual review, publication authority or a promise that Evidence+ has been redesigned. Check GitHub for the actual merge and renderer status.
