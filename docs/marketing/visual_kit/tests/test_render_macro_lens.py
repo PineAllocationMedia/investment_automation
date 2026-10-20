@@ -5,10 +5,11 @@ import zlib
 import json
 import tempfile
 import unittest
+from unittest.mock import patch
 from pathlib import Path
 from xml.etree import ElementTree as ET
 
-from render_macro_lens import InvalidIssue, payload_hash, release_allowed, render, run, checked_logo
+from render_macro_lens import APPROVED_LOGO_SHA256, InvalidIssue, payload_hash, release_allowed, render, run, checked_logo
 
 ROOT = Path(__file__).resolve().parents[1]
 EX = ROOT / 'examples'
@@ -69,7 +70,7 @@ class RenderTests(unittest.TestCase):
         with self.assertRaises(InvalidIssue): release_allowed(d,good)  # synthetic must never release
         d['evidence'][0]['source_url']='https://www.bankofcanada.ca/reports'
         d['evidence'][0]['verification_note']='Verified against underlying bulletin by reviewer'
-        d['brand_logo_sha256']='a'*64
+        d['brand_logo_sha256']=APPROVED_LOGO_SHA256
         good['input_sha256']=payload_hash(d)
         release_allowed(d,good)
         with self.assertRaises(InvalidIssue): render(d,'RELEASE')  # exact logo mandatory
@@ -101,10 +102,24 @@ class RenderTests(unittest.TestCase):
             # This test fixture is not a real publication; it checks the release contract only.
             out=Path(tmp)/'approved.svg'
             self.assertEqual(run([str(issue),'--release-manifest',str(manifest),'--output',str(out)]),2)
-            self.assertEqual(run([str(issue),'--release-manifest',str(manifest),'--brand-logo',str(logo),'--output',str(out)]),0)
+            # A self-declared issue hash is insufficient to approve a brand asset.
+            self.assertEqual(run([str(issue),'--release-manifest',str(manifest),'--brand-logo',str(logo),'--output',str(out)]),2)
+            # Unit-test only: substitute the synthetic test PNG's hash to exercise the
+            # remainder of the release path; production must use canonical SHA.
+            with patch('render_macro_lens.APPROVED_LOGO_SHA256', hashlib.sha256(raw).hexdigest()):
+                self.assertEqual(run([str(issue),'--release-manifest',str(manifest),'--brand-logo',str(logo),'--output',str(out)]),0)
             self.assertIn('data:image/png;base64',out.read_text())
             issue_data=dict(d,brand_logo_sha256='0'*64);issue.write_text(json.dumps(issue_data))
             self.assertEqual(run([str(issue),'--brand-logo',str(logo),'--output',str(out)]),2)
+
+    def test_canonical_approved_asset_register(self):
+        meta=json.loads((ROOT/'assets'/'PAM_MACRO_LENS_LOGO_RECONSTRUCTED_v0.1.json').read_text())
+        self.assertEqual(meta['provenance_classification'], 'RECONSTRUCTED')
+        self.assertEqual(meta['approval_status'], 'CEO_APPROVED_ASSET_ONLY')
+        self.assertEqual(meta['sha256'], APPROVED_LOGO_SHA256)
+        self.assertEqual(meta['dimensions_px'], {'width':2048,'height':2048})
+        self.assertTrue(meta['approved_file_location']['path'].endswith('.png'))
+        # The actual approved binary is in authorized Library custody, not this Git tree.
 
     def test_png_export(self):
         try:
