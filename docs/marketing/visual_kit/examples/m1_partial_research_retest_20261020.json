@@ -1,0 +1,385 @@
+{
+  "schema_version": "M1_DAILY_RESEARCH_PACKET_V1",
+  "cutoff_utc": "2026-10-20T18:03:00Z",
+  "preparer_reference": "PAM-ASSISTANT-M1-CONTROLLED-RETEST",
+  "independent_auditor_reference": null,
+  "rows": [
+    {
+      "selection_order": 1,
+      "economy_id": "USA",
+      "economy_name": "United States of America",
+      "index_candidate": "S&P 500 Price Index",
+      "currency_candidate": "USD",
+      "decision": "UNRESEARCHED",
+      "research_notes": null,
+      "attempted_sources": [],
+      "exclusion_status": null,
+      "qualified_quote": null
+    },
+    {
+      "selection_order": 2,
+      "economy_id": "JPN",
+      "economy_name": "Japan",
+      "index_candidate": "TOPIX Price Index",
+      "currency_candidate": "JPY",
+      "decision": "EXCLUDED",
+      "research_notes": "TOPIX licensing and third-party display require separate consideration; no verified two original completed closes or public-display clearance captured in this trial.",
+      "attempted_sources": [
+        "https://www.jpx.co.jp/english/markets/indices/licence/index.html"
+      ],
+      "exclusion_status": "MISSING",
+      "qualified_quote": null
+    },
+    {
+      "selection_order": 3,
+      "economy_id": "CHN",
+      "economy_name": "China",
+      "index_candidate": "CSI 300 Price Index",
+      "currency_candidate": "CNY",
+      "decision": "UNRESEARCHED",
+      "research_notes": null,
+      "attempted_sources": [],
+      "exclusion_status": null,
+      "qualified_quote": null
+    },
+    {
+      "selection_order": 4,
+      "economy_id": "IND",
+      "economy_name": "India",
+      "index_candidate": "NIFTY 50 Price Index",
+      "currency_candidate": "INR",
+      "decision": "EXCLUDED",
+      "research_notes": "NSE official 2026 equities calendar lists Oct 20 Dussehra holiday. No Oct 20 trading session. Latest-eligible-prior-close alternative not researched/qualified in this pass.",
+      "attempted_sources": [
+        "https://www.nseindia.com/resources/exchange-communication-holidays"
+      ],
+      "exclusion_status": "HOLIDAY",
+      "qualified_quote": null
+    },
+    {
+      "selection_order": 5,
+      "economy_id": "DEU",
+      "economy_name": "Germany",
+      "index_candidate": "DAX Price Index (Kursindex)",
+      "currency_candidate": "EUR",
+      "decision": "UNRESEARCHED",
+      "research_notes": null,
+      "attempted_sources": [],
+      "exclusion_status": null,
+      "qualified_quote": null
+    },
+    {
+      "selection_order": 6,
+      "economy_id": "GBR",
+      "economy_name": "United Kingdom",
+      "index_candidate": "FTSE 100 Price Index",
+      "currency_candidate": "GBP",
+      "decision": "UNRESEARCHED",
+      "research_notes": null,
+      "attempted_sources": [],
+      "exclusion_status": null,
+      "qualified_quote": null
+    },
+    {
+      "selection_order": 7,
+      "economy_id": "CAN",
+      "economy_name": "Canada",
+      "index_candidate": "S&P/TSX Composite Price Index",
+      "currency_candidate": "CAD",
+      "decision": "UNRESEARCHED",
+      "research_notes": null,
+      "attempted_sources": [],
+      "exclusion_status": null,
+      "qualified_quote": null
+    },
+    {
+      "selection_order": 8,
+      "economy_id": "AUS",
+      "economy_name": "Australia",
+      "index_candidate": "S&P/ASX 200 Price Index",
+      "currency_candidate": "AUD",
+      "decision": "EXCLUDED",
+      "research_notes": "ASX original indexed statistics inspected, but readily exposed data here are month-end levels, insufficient for Oct 20 daily price-index return.",
+      "attempted_sources": [
+        "https://www.asx.com.au/about/market-statistics/historical-market-statistics"
+      ],
+      "exclusion_status": "MISSING",
+      "qualified_quote": null
+    },
+    {
+      "selection_order": 9,
+      "economy_id": "TWN",
+      "economy_name": "Taiwan",
+      "index_candidate": "Taiwan Weighted Index (TAIEX)",
+      "currency_candidate": "TWD",
+      "decision": "EXCLUDED",
+      "research_notes": "Official Oct 19 and Oct 20 TAIEX closes 46822.08 and 46292.93; computed -1.1301%. Exact Blossom public index-data use not authorized/reviewed. No licensed rendering eligibility.",
+      "attempted_sources": [
+        "https://www.twse.com.tw/en/exchangeReport/FMTQIK?date=&response=html",
+        "https://twse-regulation.twse.com.tw/EN/law/DAT0201.aspx?FLCODE=FL007304"
+      ],
+      "exclusion_status": "MISSING",
+      "qualified_quote": null
+    },
+    {
+      "selection_order": 10,
+      "economy_id": "KOR",
+      "economy_name": "South Korea",
+      "index_candidate": "KOSPI Price Index",
+      "currency_candidate": "KRW",
+      "decision": "UNRESEARCHED",
+      "research_notes": null,
+      "attempted_sources": [],
+      "exclusion_status": null,
+      "qualified_quote": null
+    },
+    {
+      "selection_order": 11,
+      "economy_id": "BRA",
+      "economy_name": "Brazil",
+      "index_candidate": "Ibovespa (return-basis unresolved)",
+      "currency_candidate": "BRL",
+      "decision": "UNRESEARCHED",
+      "research_notes": null,
+      "attempted_sources": [],
+      "exclusion_status": null,
+      "qualified_quote": null
+    },
+    {
+      "selection_order": 12,
+      "economy_id": "FRA",
+      "economy_name": "France",
+      "index_candidate": "CAC 40 Price Index",
+      "currency_candidate": "EUR",
+      "decision": "EXCLUDED",
+      "research_notes": "Euronext official page has live CAC 40 quote, but no immutable pair of two completed session prices and exact display rights recorded at trial cutoff.",
+      "attempted_sources": [
+        "https://live.euronext.com/en"
+      ],
+      "exclusion_status": "MISSING",
+      "qualified_quote": null
+    },
+    {
+      "selection_order": 13,
+      "economy_id": "CHE",
+      "economy_name": "Switzerland",
+      "index_candidate": "Swiss Market Index (SMI) Price",
+      "currency_candidate": "CHF",
+      "decision": "UNRESEARCHED",
+      "research_notes": null,
+      "attempted_sources": [],
+      "exclusion_status": null,
+      "qualified_quote": null
+    },
+    {
+      "selection_order": 14,
+      "economy_id": "MEX",
+      "economy_name": "Mexico",
+      "index_candidate": "S&P/BMV IPC Price Index",
+      "currency_candidate": "MXN",
+      "decision": "UNRESEARCHED",
+      "research_notes": null,
+      "attempted_sources": [],
+      "exclusion_status": null,
+      "qualified_quote": null
+    },
+    {
+      "selection_order": 15,
+      "economy_id": "ESP",
+      "economy_name": "Spain",
+      "index_candidate": "IBEX 35 Price Index",
+      "currency_candidate": "EUR",
+      "decision": "UNRESEARCHED",
+      "research_notes": null,
+      "attempted_sources": [],
+      "exclusion_status": null,
+      "qualified_quote": null
+    },
+    {
+      "selection_order": 16,
+      "economy_id": "ITA",
+      "economy_name": "Italy",
+      "index_candidate": "FTSE MIB Price Index",
+      "currency_candidate": "EUR",
+      "decision": "UNRESEARCHED",
+      "research_notes": null,
+      "attempted_sources": [],
+      "exclusion_status": null,
+      "qualified_quote": null
+    },
+    {
+      "selection_order": 17,
+      "economy_id": "NLD",
+      "economy_name": "Netherlands",
+      "index_candidate": "AEX Price Index",
+      "currency_candidate": "EUR",
+      "decision": "EXCLUDED",
+      "research_notes": "Euronext official live AEX quote located; a certified two-closed-session original series and rights decision were not captured.",
+      "attempted_sources": [
+        "https://live.euronext.com/en"
+      ],
+      "exclusion_status": "MISSING",
+      "qualified_quote": null
+    },
+    {
+      "selection_order": 18,
+      "economy_id": "SGP",
+      "economy_name": "Singapore",
+      "index_candidate": "Straits Times Index (STI)",
+      "currency_candidate": "SGD",
+      "decision": "UNRESEARCHED",
+      "research_notes": null,
+      "attempted_sources": [],
+      "exclusion_status": null,
+      "qualified_quote": null
+    },
+    {
+      "selection_order": 19,
+      "economy_id": "ZAF",
+      "economy_name": "South Africa",
+      "index_candidate": "FTSE/JSE All Share Price Index",
+      "currency_candidate": "ZAR",
+      "decision": "UNRESEARCHED",
+      "research_notes": null,
+      "attempted_sources": [],
+      "exclusion_status": null,
+      "qualified_quote": null
+    },
+    {
+      "selection_order": 20,
+      "economy_id": "TUR",
+      "economy_name": "Turkey",
+      "index_candidate": "BIST 100 Price Index",
+      "currency_candidate": "TRY",
+      "decision": "UNRESEARCHED",
+      "research_notes": null,
+      "attempted_sources": [],
+      "exclusion_status": null,
+      "qualified_quote": null
+    },
+    {
+      "selection_order": 21,
+      "economy_id": "SAU",
+      "economy_name": "Saudi Arabia",
+      "index_candidate": "Tadawul All Share Index (TASI)",
+      "currency_candidate": "SAR",
+      "decision": "UNRESEARCHED",
+      "research_notes": null,
+      "attempted_sources": [],
+      "exclusion_status": null,
+      "qualified_quote": null
+    },
+    {
+      "selection_order": 22,
+      "economy_id": "EGY",
+      "economy_name": "Egypt",
+      "index_candidate": "EGX 30 Price Index (candidate)",
+      "currency_candidate": "EGP",
+      "decision": "UNRESEARCHED",
+      "research_notes": null,
+      "attempted_sources": [],
+      "exclusion_status": null,
+      "qualified_quote": null
+    },
+    {
+      "selection_order": 23,
+      "economy_id": "DZA",
+      "economy_name": "Algeria",
+      "index_candidate": "Domestic price index not qualified",
+      "currency_candidate": "DZD",
+      "decision": "UNRESEARCHED",
+      "research_notes": null,
+      "attempted_sources": [],
+      "exclusion_status": null,
+      "qualified_quote": null
+    },
+    {
+      "selection_order": 24,
+      "economy_id": "IDN",
+      "economy_name": "Indonesia",
+      "index_candidate": "IDX Composite Price Index",
+      "currency_candidate": "IDR",
+      "decision": "UNRESEARCHED",
+      "research_notes": null,
+      "attempted_sources": [],
+      "exclusion_status": null,
+      "qualified_quote": null
+    },
+    {
+      "selection_order": 25,
+      "economy_id": "VNM",
+      "economy_name": "Vietnam",
+      "index_candidate": "VN-Index (price variant candidate)",
+      "currency_candidate": "VND",
+      "decision": "UNRESEARCHED",
+      "research_notes": null,
+      "attempted_sources": [],
+      "exclusion_status": null,
+      "qualified_quote": null
+    },
+    {
+      "selection_order": 26,
+      "economy_id": "RUS",
+      "economy_name": "Russia",
+      "index_candidate": "MOEX Russia Index (candidate)",
+      "currency_candidate": "RUB",
+      "decision": "UNRESEARCHED",
+      "research_notes": null,
+      "attempted_sources": [],
+      "exclusion_status": null,
+      "qualified_quote": null
+    },
+    {
+      "selection_order": 27,
+      "economy_id": "KAZ",
+      "economy_name": "Kazakhstan",
+      "index_candidate": "KASE Index (basis unresolved)",
+      "currency_candidate": "KZT",
+      "decision": "EXCLUDED",
+      "research_notes": "Official KASE Oct 19 and Oct 20 price-index levels 7873.89 and 7818.27; computed -0.7064%. Source and rights captures not certified by independent auditor; no claimed publishing entitlement.",
+      "attempted_sources": [
+        "https://kase.kz/en/indexes-and-indicators/shares/kase-index",
+        "https://kase.kz/en/information/news/show/1578252"
+      ],
+      "exclusion_status": "MISSING",
+      "qualified_quote": null
+    },
+    {
+      "selection_order": 28,
+      "economy_id": "IRN",
+      "economy_name": "Iran",
+      "index_candidate": "TEDPIX (return basis unresolved)",
+      "currency_candidate": "IRR",
+      "decision": "UNRESEARCHED",
+      "research_notes": null,
+      "attempted_sources": [],
+      "exclusion_status": null,
+      "qualified_quote": null
+    },
+    {
+      "selection_order": 29,
+      "economy_id": "POL",
+      "economy_name": "Poland",
+      "index_candidate": "WIG20 Price Index",
+      "currency_candidate": "PLN",
+      "decision": "UNRESEARCHED",
+      "research_notes": null,
+      "attempted_sources": [],
+      "exclusion_status": null,
+      "qualified_quote": null
+    },
+    {
+      "selection_order": 30,
+      "economy_id": "SWE",
+      "economy_name": "Sweden",
+      "index_candidate": "OMX Stockholm 30 Price Index",
+      "currency_candidate": "SEK",
+      "decision": "UNRESEARCHED",
+      "research_notes": null,
+      "attempted_sources": [],
+      "exclusion_status": null,
+      "qualified_quote": null
+    }
+  ],
+  "notice": "PARTIAL DIRECT WEB RESEARCH RETEST; NO COMPLETE 30-MARKET SCAN; NO INDEPENDENT AUDIT; NO LICENSE/RIGHTS CLEARANCE; NOT A PUBLISHABLE MAP"
+}
