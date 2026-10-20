@@ -1,4 +1,4 @@
-name: PAM Blossom Visual Kit CI
+name: Macro Lens Visual Kit CI
 
 "on":
   pull_request:
