@@ -67,7 +67,8 @@ class M1GlobalEquityIndexTests(unittest.TestCase):
         for text in ('GLOBAL EQUITY MAP','LOCAL CURRENCY','LATEST COMPLETED SESSIONS',
                      '18/20 VALID INDICES','INDEX LEADERS &amp; LAGGARDS',
                      'TOPIX Price Index','S&amp;P/TSX Composite Price Index',
-                     'NATURAL EARTH (PUBLIC DOMAIN)','DRAFT · SYNTHETIC',
+                     'NATURAL EARTH (PUBLIC DOMAIN)','EXACT 0.00%',
+                     'DRAFT · SYNTHETIC',
                      'NOT INVESTMENT ADVICE'):
             self.assertIn(text,svg)
         self.assertNotIn('GDP GROWTH',svg)
@@ -185,6 +186,10 @@ class M1GlobalEquityIndexTests(unittest.TestCase):
             self.assertLessEqual(y1,1340,sp['text'])
         leader=next(sp for sp in spans if sp['text']=='INDEX LEADERS & LAGGARDS')
         asof=next(sp for sp in spans if sp['text'].startswith('AS OF '))
+        missing=next(sp for sp in spans if sp['text']=='NO VALID CLOSE')
+        true_zero=next(sp for sp in spans if sp['text']=='EXACT 0.00%')
+        self.assertLess(missing['bbox'][3],true_zero['bbox'][1])
+        self.assertLess(true_zero['bbox'][3],919)
         self.assertLess(leader['bbox'][3]+30,asof['bbox'][1])
 
     def test_cli_writes_after_validation_only(self):
