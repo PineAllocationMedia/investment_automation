@@ -2,6 +2,8 @@
 
 **Scope:** optional enhanced T1 graphic for Blossom `@therealpam`; **T1 Classic (existing/default) remains unchanged**. No new publishing authority, product data feed, chart extrapolation or automatic market data verification.
 
+**Visual-quality gate:** use the [Institutional Editorial Design Gate](INSTITUTIONAL_EDITORIAL_STANDARD.md) on the actual mobile preview. More indicators do not equal more authority; a crowded Evidence+ panel, oversized card composition or tiny chart labels require **VISUAL HOLD** or fallback to T1 Classic, even if the deterministic schema and source binding pass. No new design has been implemented by this requirement alone.
+
 ## When to use
 
 Use Evidence+ only if the contextual evidence demonstrably improves the mechanism. A visually attractive but unnecessary chart should be omitted. For the first pilot, compare the clarity and quality of the evidence-rich draft against T1 Classic; keep an independent factual audit and CEO approval for the exact image/caption.
