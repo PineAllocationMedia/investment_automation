@@ -1,6 +1,6 @@
 # M1 — Global country ETF map (PRIMARY default for daily world-market maps)
 
-**Branch/authority:** PR #202, open and unmerged until the CEO decides. **Design/validation prototype only. No real ETF return series or public use clearance is supplied.** This is the **default M1 route** when the CEO requests a world/global map of today's or daily equity-market moves without explicitly requesting local domestic indices. The separate local-national-index map remains available by an explicit request. This mode is not a claim of full national stock-market or economy returns.
+**Status:** M1 renderer was merged to canonical V2 in PR #202. Practical data-to-map simplification is proposed in PR #203; do not claim that code is canonical before the CEO merges it. **M1 does not itself supply live closing prices, but it can render a clearly marked real-data research DRAFT from source-linked closing-price facts without demanding per-ticker licensing paperwork at the preview stage.** This is the **default M1 route** when the CEO requests a world/global map of today's or daily equity-market moves without explicitly requesting local domestic indices. The separate local-national-index map remains available by an explicit request. This mode is not a claim of full national stock-market or economy returns.
 
 ## Why a separate mode
 
