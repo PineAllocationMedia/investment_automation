@@ -39,12 +39,12 @@ jobs:
         working-directory: docs/marketing/visual_kit
         run: python -m unittest discover -s tests -v
 
-      - name: Render Classic, Evidence+ and other layout demos as SVG and PNG
+      - name: Render T1 Classic/Research Note/Evidence+ and T2/T3 as SVG and PNG
         working-directory: docs/marketing/visual_kit
         shell: bash
         run: |
           set -euo pipefail
-          for template in t1 t1_evidence_plus t2 t3; do
+          for template in t1 t1_research_note t1_evidence_plus t2 t3; do
             python render_macro_lens.py "examples/${template}_synthetic.json" \
               --output "$RUNNER_TEMP/${template}_demo.svg" \
               --png "$RUNNER_TEMP/${template}_demo.png"
@@ -56,6 +56,6 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          for template in t1 t1_evidence_plus t2 t3; do
+          for template in t1 t1_research_note t1_evidence_plus t2 t3; do
             grep -q "DRAFT" "$RUNNER_TEMP/${template}_demo.svg"
           done

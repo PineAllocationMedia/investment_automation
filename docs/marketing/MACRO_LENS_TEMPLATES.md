@@ -29,6 +29,10 @@ The [PAM Blossom Research Visual System roadmap](BLOSSOM_VISUAL_SYSTEM_ROADMAP.m
 - **Guardrail:** never fill an empty slot with fabricated numbers, synthetic ticks/price paths, unverified claims or an irrelevant statistic. Delete the slot instead.
 - **Status:** all drafts and design assets should visibly indicate `DRAFT / NOT VERIFIED` until the final fact audit passes. Remove the draft mark only after an explicit PASS; no publication without CEO approval.
 
+## T1 controlled institutional restyle — source-bound renderer variant
+
+An **opt-in** `t1_layout: RESEARCH_NOTE` renderer option is included in the pending T1 restyle implementation PR. The default T1 Classic visual stays unchanged; Evidence+ and T2/T3 remain untouched. The Research Note geometry uses aligned rows, hairline dividers, a three-column explanatory strip instead of rounded mechanism cards, and a legible WATCH line. No new economics, data or source rights are introduced. See the [Visual Kit README](visual_kit/README.md) and [restyle design brief](visual_kit/INSTITUTIONAL_T1_RESTYLE_PROPOSAL.md). Never claim this opt-in is in the canonical merged renderer until the implementation PR has been CEO-merged and verified. A visually improved draft still needs the six-point mobile gate, independent fact/visual audit and exact CEO post approval.
+
 ## T1 — THE MECHANISM
 
 **Purpose:** explain one real transmission chain: economic signal → intermediate forces → relevant market implication.
