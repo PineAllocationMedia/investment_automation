@@ -30,6 +30,87 @@ class RenderTests(unittest.TestCase):
                 self.assertIn('NOT INVESTMENT ADVICE',svg)
                 self.assertNotIn('crypto',svg)
 
+    def test_t1_footer_legibility_at_feed_scale(self):
+        root = ET.fromstring(render(fixture('t1')))
+        nodes = [el for el in root.iter() if el.tag.endswith('text')]
+        sources = [el for el in nodes if (el.text or '').startswith('SOURCES:')]
+        asof = [el for el in nodes if (el.text or '').startswith('AS OF ')]
+        legal = [el for el in nodes if el.text == 'NOT INVESTMENT ADVICE']
+        self.assertEqual(len(sources), 1)
+        self.assertEqual(len(asof), 1)
+        self.assertEqual(len(legal), 1)
+        self.assertEqual(sources[0].attrib['y'], '1255')
+        self.assertEqual(asof[0].attrib['y'], '1315')
+        # 32 px source / 29 px date and legal at 1080 design width.
+        # At 390 feed width these become 11.56 / 10.47 px respectively.
+        self.assertGreaterEqual(int(sources[0].attrib['font-size']), 32)
+        self.assertGreaterEqual(int(asof[0].attrib['font-size']), 29)
+        self.assertGreaterEqual(int(legal[0].attrib['font-size']), 29)
+        self.assertTrue(any('ML-20261019-01' in (el.text or '') for el in nodes))
+
+    def test_t1_footer_wraps_long_source_without_suppressing_provenance(self):
+        d = fixture('t1')
+        d['evidence'][0]['source_title'] = 'National Office for Monthly Price Statistics and Analysis'
+        root = ET.fromstring(render(d))
+        nodes = [el for el in root.iter() if el.tag.endswith('text')]
+        source_rows = [el for el in nodes if el.attrib.get('y') in ('1218', '1268')]
+        self.assertEqual(len(source_rows), 2)
+        self.assertIn('National Office for Monthly Price Statistics and Analysis',
+                      ' '.join(el.text for el in source_rows))
+        self.assertTrue(all(int(el.attrib['font-size']) == 32 for el in source_rows))
+        asof = next(el for el in nodes if (el.text or '').startswith('AS OF '))
+        legal = next(el for el in nodes if el.text == 'NOT INVESTMENT ADVICE')
+        self.assertEqual(asof.attrib['y'], '1320')
+        self.assertEqual(legal.attrib['y'], '1320')
+        # Text baselines leave meaningful room for two full source lines.
+        self.assertGreaterEqual(1320 - 1268, 50)
+
+    def test_t1_footer_refuses_overwide_sources(self):
+        d = fixture('t1')
+        d['evidence'][0]['source_title'] = 'W' * 45
+        with self.assertRaises(InvalidIssue):
+            render(d)
+
+    def test_t1_footer_two_lines_do_not_overlap_asof(self):
+        try:
+            import fitz
+        except ImportError:
+            self.skipTest('PyMuPDF optional outside dedicated Visual Kit CI')
+        for typ in ('classic', 'evidence_plus'):
+            with self.subTest(variant=typ):
+                d = fixture('t1' if typ == 'classic' else 't1_evidence_plus')
+                for record in d['evidence']:
+                    record['source_title'] = 'National Office for Monthly Price Statistics and Analysis'
+                svg = render(d)
+                page = fitz.open(stream=svg.encode('utf-8'), filetype='svg')[0]
+                spans = [span for block in page.get_text('dict')['blocks']
+                         for line in block.get('lines', [])
+                         for span in line['spans']]
+                first = next(x for x in spans if x['text'].startswith('SOURCES:'))
+                second = next(x for x in spans if 'Statistics and Analysis' in x['text'])
+                asof = next(x for x in spans if x['text'].startswith('AS OF '))
+                legal = next(x for x in spans if x['text'] == 'NOT INVESTMENT ADVICE')
+                self.assertLessEqual(first['bbox'][3] + 3, second['bbox'][1])
+                self.assertLessEqual(second['bbox'][3] + 5, asof['bbox'][1])
+                self.assertLessEqual(asof['bbox'][3], 1340)
+                self.assertLessEqual(legal['bbox'][3], 1340)
+                self.assertLessEqual(asof['bbox'][2] + 10, legal['bbox'][0])
+                self.assertLessEqual(first['bbox'][2], 1012)
+                # Evidence+ WATCH must be completely above the source divider.
+                if typ == 'evidence_plus':
+                    root = ET.fromstring(svg)
+                    rects = [x for x in root.iter() if x.tag.endswith('rect')]
+                    watches = [x for x in rects if x.attrib.get('y') == '1096']
+                    self.assertEqual(len(watches), 1)
+
+    def test_t2_t3_footer_not_changed(self):
+        for template in ('t2', 't3'):
+            root = ET.fromstring(render(fixture(template)))
+            source = next(el for el in root.iter() if el.tag.endswith('text')
+                          and (el.text or '').startswith('SOURCES:'))
+            self.assertEqual(source.attrib['font-size'], '15')
+            self.assertEqual(source.attrib['y'], '1262')
+
     def test_html_escaping(self):
         d=fixture('t1')
         d['headline']='Signal & mechanism < not investment advice'

@@ -38,6 +38,14 @@ T1 Classic remains the default and renders exactly as before. An optional T1 `t1
 
 See [T1 Evidence+ pilot contract](T1_EVIDENCE_PLUS.md) and [synthetic example](examples/t1_evidence_plus_synthetic.json). If the extra information fails to clarify the story or mobile readability suffers, use Classic. No chart is required. Factual truth still requires external source verification and final-artifact review; the machine validates only structural consistency. Existing logo-hash and CEO release safeguards are unchanged.
 
+## Default source labels and independent provenance
+
+**Keep the published graphic short by default:** populate each displayed evidence record's `source_title` with a **concise, accurate and recognizable publisher label** (for example `U.S. BLS`, `BEA`, `Federal Reserve`, `Statistics Canada`) only when that label unambiguously identifies the original publisher. The renderer **does not auto-abbreviate** `source_title`; it repeats the supplied labels and safely wraps long ones when necessary. Do not abbreviate an obscure agency into an ambiguous acronym or silently omit any materially distinct source used in the displayed indicators/chart. If an accurate short label cannot fit, use supported wrapping or HOLD. Preserve exact source publisher, official release/article title, full original URL and all observation/retrieval/publication dates, figures, units and calculations in the independent evidence register. Concise on-image attribution never reduces the independent auditor's evidence requirements.
+
+## Clean-slate retest after replacing old concepteur/audit chats
+
+The repository stores the **template, renderer and approval gates**; it does not guarantee the old conversation's exact live issue JSON, Blossom caption, 14-claim register, primary source snapshots or final render are recoverable. **Before deleting the only copies of a test's materials**, save the exact issue JSON, evidence register, caption, source links and draft SVG/PNG in a deliberately retained, authorized location if the goal is to reproduce the same proposal. Otherwise start a **new independent source-verification pass from original authoritative releases**, create a self-contained evidence register and label it as a new test/revision; do not invent missing prior inputs or re-use a prior PASS. The new concepteur should follow the canonical branch, use the exact approved SHA-matching logo from Library, render **DRAFT**, and supply the full review packet. A **separate auditor** must independently open primary sources and audit that exact graphic plus caption. CEO review of the exact final artifact is still required for publication. Do not post automatically.
+
 ## Minimal usage
 
 Run from repository root (Python 3.11+):
