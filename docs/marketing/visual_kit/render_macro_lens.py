@@ -199,7 +199,8 @@ def common(p, typ, logo_png=None):
         out.append(txt(110, 111, 'P', 40, PINE, 800, anchor='middle'))
     out.extend([txt(169, 103, 'PAM', 29, LIGHT, 800),
            txt(263, 102, '/  THE MACRO LENS', 21, MUTED, 600),
-           txt(1012, 102, typ+' / 01', 18, TEAL, 700, anchor='end'),
+           txt(1012, 102, (typ+' / '+p['issue_id'] if typ == 'T1' else typ+' / 01'),
+               (22 if typ == 'T1' else 18), TEAL, 700, anchor='end'),
            rule(68, 153, 1012, 153, '#3B554F', 2),
            txt(68, 195, p['issue_at'][:10]+'  /  @therealpam', 19, MUTED, 600),
            multiline(68, 276, p['headline'], 27, 2, 54, LIGHT, 800, 65, 'headline'),
@@ -219,9 +220,7 @@ def footer(out, p, sources, asof, status):
         bottom_y = 1320 if len(source_lines) == 2 else 1307
         out.extend([
             txt(68, bottom_y, 'AS OF '+asof, 26, MUTED, 500),
-            txt(1012, bottom_y, 'NOT INVESTMENT ADVICE', 26, MUTED, 500, anchor='end'),
-            # Above the footer rule, but below Evidence+'s WATCH panel.
-            txt(1012, 1217, p['issue_id'], 24, TEAL, 600, anchor='end')
+            txt(1012, bottom_y, 'NOT INVESTMENT ADVICE', 26, MUTED, 500, anchor='end')
         ])
     else:
         # Preserve existing T2/T3 rendering unchanged.
