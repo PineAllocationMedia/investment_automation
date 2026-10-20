@@ -73,6 +73,17 @@ class M1GlobalEquityIndexTests(unittest.TestCase):
         self.assertNotIn('GDP GROWTH',svg)
         self.assertNotIn('TODAY ALL MARKETS',svg)
 
+    def test_polar_geometry_not_leaking_outside_mobile_map_crop(self):
+        root=ET.fromstring(render_global_map(fixture()))
+        ns='{http://www.w3.org/2000/svg}'
+        groups=[g for g in root.findall(ns+'g')
+                if g.attrib.get('clip-path')=='url(#mapView)']
+        self.assertEqual(len(groups),1)
+        country_paths=groups[0].findall(ns+'path')
+        # All 176 non-Antarctic Natural Earth features remain genuine polygons.
+        # Antarctica is outside the cropped research map, never behind legend.
+        self.assertEqual(len(country_paths),176)
+
     def test_asynchronous_eligible_market_closes_are_allowed(self):
         p=fixture()
         self.assertNotEqual(p['evidence'][0]['observed_at'],
