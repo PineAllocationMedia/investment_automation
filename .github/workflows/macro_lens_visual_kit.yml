@@ -1,4 +1,4 @@
-name: Macro Lens Visual Kit CI
+name: PAM Blossom Visual Kit CI
 
 "on":
   pull_request:
@@ -50,6 +50,21 @@ jobs:
               --png "$RUNNER_TEMP/${template}_demo.png"
             test -s "$RUNNER_TEMP/${template}_demo.svg"
             test -s "$RUNNER_TEMP/${template}_demo.png"
+          done
+
+      - name: Render M4 cross-asset demo as SVG and PNG
+        working-directory: docs/marketing/visual_kit
+        shell: bash
+        run: |
+          set -euo pipefail
+          for sample in m4 m4_four_row; do
+            python render_market_brief.py "examples/\${sample}_synthetic.json" \
+              --output "$RUNNER_TEMP/\${sample}_demo.svg" \
+              --png "$RUNNER_TEMP/\${sample}_demo.png"
+            test -s "$RUNNER_TEMP/\${sample}_demo.svg"
+            test -s "$RUNNER_TEMP/\${sample}_demo.png"
+            grep -q 'DRAFT' "$RUNNER_TEMP/\${sample}_demo.svg"
+            grep -q 'MARKET BRIEF' "$RUNNER_TEMP/\${sample}_demo.svg"
           done
 
       - name: Confirm synthetic content remains visibly watermarked
