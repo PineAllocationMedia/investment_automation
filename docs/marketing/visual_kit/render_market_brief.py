@@ -208,7 +208,7 @@ def draw_market_brief(p, logo_png=None, status='DRAFT'):
     step = 94 if len(facts) == 5 else 118
     for i, f in enumerate(facts):
         y = 499 + i * step
-        session = _dt(f['observed_at']).strftime('%m-%d %H:%M%z')
+        session = _dt(f['observed_at'], 'observed_at').strftime('%m-%d %H:%M%z')
         out.append(rect(68, y, 944, step-2,
                         NOTE_BG if i % 2 == 0 else BG, 0))
         out.append(rule(68, y+step-2, 1012, y+step-2, SEPARATOR, 1))
@@ -237,7 +237,7 @@ def draw_market_brief(p, logo_png=None, status='DRAFT'):
     out.append(txt(68, 1250,
                    'PUBLISHER / LOCAL CLOSE PER ROW  ·  SOURCE LINKS IN EVIDENCE PACKET',
                    20, MUTED, 500))
-    asof = _dt(p['issue_at']).strftime('%Y-%m-%d %H:%M %z')
+    asof = _dt(p['issue_at'], 'issue_at').strftime('%Y-%m-%d %H:%M %z')
     out.append(_text_checked(68, 1312, 'AS OF '+asof,
                              22, 531, color=MUTED, weight=550))
     out.append(_text_checked(1012, 1312, 'NOT INVESTMENT ADVICE',
