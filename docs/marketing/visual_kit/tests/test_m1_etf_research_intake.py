@@ -30,7 +30,16 @@ def research_packet():
     for row in p['rows']:
         row.update(decision='EXCLUDED',
                    exclusion_status='MISSING',
-                   research_notes='No current eligible fund with rights in mock scenario')
+                   research_notes='MOCK: missing independently licensed fund quote')
+        row['etf_discovery'] = {
+            'state': ('CANDIDATE_VERIFIED' if
+                      row['etf_ticker_candidate'] else 'NO_ELIGIBLE_ETF_FOUND'),
+            'checked_at_utc': '2026-10-20T14:03:00Z',
+            'source_urls': ['https://www.ishares.com/us/products/etf-investments'
+                            if row['etf_ticker_candidate'] else
+                            'https://www.sec.gov/edgar/search/'],
+            'notes': 'MOCK discovery declaration: not evidence of actual search',
+        }
     return p
 
 
@@ -91,6 +100,33 @@ class ETFResearchIntakeTests(unittest.TestCase):
         self.assertEqual(res['count_unresearched'],30)
         self.assertIsNone(issue)
 
+    def test_missing_discovery_check_blocks_exclusion_even_with_all_rows(self):
+        p=research_packet()
+        p['rows'][21]['etf_discovery']['state']='NOT_SEARCHED'
+        with self.assertRaises(InvalidIssue):
+            assess(p,issue_metadata=META)
+        p=research_packet()
+        p['rows'][0]['etf_discovery']['source_urls']=[]
+        with self.assertRaises(InvalidIssue):
+            assess(p,issue_metadata=META)
+        p=research_packet()
+        p['rows'][0]['etf_discovery']['checked_at_utc']='2026-10-21T14:03:00Z'
+        with self.assertRaises(InvalidIssue):
+            assess(p,issue_metadata=META)
+
+    def test_new_etf_discovery_requires_registry_review_never_auto_substitutes(self):
+        p=research_packet()
+        p['rows'][21]['etf_discovery'].update(
+            state='NEW_ETF_REVIEW_REQUIRED',
+            notes='MOCK newly discovered fund; no authorized registry identity',
+            source_urls=['https://www.sec.gov/edgar/search/'])
+        result,issue=assess(p,issue_metadata=META)
+        self.assertEqual(result['status'],'HOLD')
+        self.assertIsNone(issue)
+        p['rows'][21]['decision']='QUALIFIED'
+        with self.assertRaises(InvalidIssue):
+            assess(p,issue_metadata=META)
+
     def test_four_mock_qualified_us_funds_may_only_become_draft_candidate(self):
         p=research_packet()
         for code in ('USA','JPN','IND','SAU'):accept_mock(p,code)
@@ -149,6 +185,19 @@ class ETFResearchIntakeTests(unittest.TestCase):
              retrieved_at='2026-10-20T21:00:00Z')
         with self.assertRaises(InvalidIssue):
             assess(p,issue_metadata=META,evidence_root=ROOT)
+
+    def test_default_subject_routing_etf_and_explicit_index_override(self):
+        from m1_scan_handoff import route_subject, LOCAL_RESEARCH_MODE
+        self.assertEqual(route_subject('World map scan of today\'s market moves'),
+                         ETF_RESEARCH_MODE)
+        self.assertEqual(route_subject('Full world map daily scan'),
+                         ETF_RESEARCH_MODE)
+        self.assertEqual(route_subject('National stock index daily map'),
+                         LOCAL_RESEARCH_MODE)
+        self.assertEqual(route_subject('World map today's market moves',
+                         explicit_mode='index'),LOCAL_RESEARCH_MODE)
+        self.assertEqual(route_subject('Country map domestic index moves'),
+                         LOCAL_RESEARCH_MODE)
 
     def test_cli_usd_etf_mode_returns_hold_without_real_quote(self):
         with tempfile.TemporaryDirectory() as tmp:
