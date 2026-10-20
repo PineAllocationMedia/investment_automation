@@ -30,6 +30,42 @@ class RenderTests(unittest.TestCase):
                 self.assertIn('NOT INVESTMENT ADVICE',svg)
                 self.assertNotIn('crypto',svg)
 
+    def test_t1_footer_legibility_at_feed_scale(self):
+        root = ET.fromstring(render(fixture('t1')))
+        nodes = [el for el in root.iter() if el.tag.endswith('text')]
+        sources = [el for el in nodes if (el.text or '').startswith('SOURCES:')]
+        asof = [el for el in nodes if (el.text or '').startswith('AS OF ')]
+        legal = [el for el in nodes if el.text == 'NOT INVESTMENT ADVICE']
+        self.assertEqual(len(sources), 1)
+        self.assertEqual(len(asof), 1)
+        self.assertEqual(len(legal), 1)
+        # A minimum 26px SVG font becomes >= 9.39px at 390px feed width.
+        self.assertGreaterEqual(int(sources[0].attrib['font-size']), 28)
+        self.assertGreaterEqual(int(asof[0].attrib['font-size']), 26)
+        self.assertGreaterEqual(int(legal[0].attrib['font-size']), 26)
+        self.assertLessEqual(int(asof[0].attrib['y']), 1320)
+        self.assertIn('ML-20261019-01', [el.text for el in nodes])
+
+    def test_t1_footer_wraps_long_source_without_suppressing_provenance(self):
+        d = fixture('t1')
+        d['evidence'][0]['source_title'] = 'National Office for Monthly Price Statistics and Analysis'
+        root = ET.fromstring(render(d))
+        nodes = [el for el in root.iter() if el.tag.endswith('text')]
+        source_rows = [el for el in nodes if el.attrib.get('y') in ('1257', '1286')]
+        self.assertEqual(len(source_rows), 2)
+        self.assertIn('National Office for Monthly Price Statistics and Analysis',
+                      ' '.join(el.text for el in source_rows))
+        self.assertTrue(all(int(el.attrib['font-size']) == 28 for el in source_rows))
+        self.assertIn('NOT INVESTMENT ADVICE', [el.text for el in nodes])
+
+    def test_t2_t3_footer_not_changed(self):
+        for template in ('t2', 't3'):
+            root = ET.fromstring(render(fixture(template)))
+            source = next(el for el in root.iter() if el.tag.endswith('text')
+                          and (el.text or '').startswith('SOURCES:'))
+            self.assertEqual(source.attrib['font-size'], '15')
+            self.assertEqual(source.attrib['y'], '1262')
+
     def test_html_escaping(self):
         d=fixture('t1')
         d['headline']='Signal & mechanism < not investment advice'
