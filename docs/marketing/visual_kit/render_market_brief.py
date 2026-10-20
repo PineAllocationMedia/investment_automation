@@ -221,7 +221,7 @@ def draw_market_brief(p, logo_png=None, status='DRAFT'):
                                  weight=750, anchor='end'))
         out.append(txt(1012, y+83, 'vs previous close', 18, MUTED, 450, anchor='end'))
     out.append(txt(68, 1037, 'THE READING', 19, TEAL, 750))
-    out.extend(_paragraph(68, 1073, p['interpretation'], chars=73, max_lines=2,
+    out.extend(_paragraph(68, 1073, p['interpretation'], chars=55, max_lines=2,
                           size=24, lead=31, width=944, name='interpretation'))
     out.append(txt(68, 1152, 'WATCH', 19, AMBER, 750))
     out.extend(_paragraph(179, 1152, p['watch'], chars=66, max_lines=1,
