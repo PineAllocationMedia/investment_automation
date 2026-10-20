@@ -1,6 +1,6 @@
 # M1 — Global country ETF map (PRIMARY default for daily world-market maps)
 
-**Branch/authority:** PR #202, open and unmerged until the CEO decides. **Design/validation prototype only. No real ETF return series or public use clearance is supplied.** This is the **default M1 route** when the CEO requests a world/global map of today's or daily equity-market moves without explicitly requesting local domestic indices. The separate local-national-index map remains available by an explicit request. This mode is not a claim of full national stock-market or economy returns.
+**Status:** M1 renderer was merged to canonical V2 in PR #202. Practical data-to-map simplification is proposed in PR #203; do not claim that code is canonical before the CEO merges it. **M1 does not itself supply live closing prices, but it can render a clearly marked real-data research DRAFT from source-linked closing-price facts without demanding per-ticker licensing paperwork at the preview stage.** This is the **default M1 route** when the CEO requests a world/global map of today's or daily equity-market moves without explicitly requesting local domestic indices. The separate local-national-index map remains available by an explicit request. This mode is not a claim of full national stock-market or economy returns.
 
 ## Why a separate mode
 
@@ -26,7 +26,9 @@ The M1 map's public label must therefore identify **“US-LISTED COUNTRY ETFs / 
 
 `m1_scan_handoff.py init` now defaults to USD ETFs; `--mode usd-etf` is equivalent, `--mode index` explicitly opts into domestic indices, and `--subject "World map scan of today's market moves"` records the automatic ETF route.
 
-**Each time the employee receives a world-map assignment:**
+**Each time the employee receives a world-map assignment:** Before doing exhaustive new-fund research, use the [practical daily price-to-map flow](M1_PRACTICAL_DAILY_WORKFLOW.md). The existing 25 ticker names are starting leads; prioritize **two actual closing prices and the map preview**. Check issuer identity when conflicting, stale or newly changed, and revisit absent-fund cases proportionately. The 30-country CSV already records the absent five. **Do not let blank missing-country price rows or unresolved hypothetical license grants stop a 4+ market source-linked research preview.**
+
+**Optional deeper discovery protocol (only when actual ETF identity uncertainty warrants it):**
 1. Perform a **fresh, dated fund-discovery check for every one of the 30 countries**, even if the registry already contains a ticker. First check fund issuer/official product pages, exchange listing/activity and SEC filings as relevant. The 25-ticker registry is a starting list, **not a license to skip searching**. Investigate the other five countries for newly launched suitable funds; check whether a previously listed ETF has liquidated or changed exposure.
 2. For each market, complete the `etf_discovery` ledger: `state`, `checked_at_utc`, `source_urls` (at least one real, inspectable HTTPS publisher/listing reference) and specific `notes`. Only `CANDIDATE_VERIFIED`, `NO_ELIGIBLE_ETF_FOUND` or `NEW_ETF_REVIEW_REQUIRED` may resolve a row. A `NOT_SEARCHED` row must remain `UNRESEARCHED` and forces assessment HOLD. No generic unexamined “none exists” conclusion.
 3. If a previously unlisted ETF is found, record `NEW_ETF_REVIEW_REQUIRED`; the ETF cannot be plotted until a separate identity/activity/exposure/rights review authorizes a **registry change** and the changed code is independently tested. If no equivalent qualifies, explain why and omit that country visually.
@@ -75,7 +77,7 @@ These are **research starting points, not a fixed daily universe** and not a cla
 
 Registry source URLs identify the issuer; they **do not provide approved reuse rights or current-day closing prices**. Only an exact, active U.S.-listed, unhedged single-country fund may qualify. The lack of a candidate for five countries is a working state, not a permanent assertion that no comparable U.S. fund could ever exist.
 
-## What the employee must actually do
+## Legacy full research-intake path (optional for ordinary USD ETF maps)
 
 1. **Initialize 30-row ETF research** on the authorized PR #202 branch, with **zero** inherited market prices or completed status. This is the DEFAULT `init` mode, so `--mode usd-etf` is optional:
 
@@ -92,7 +94,7 @@ Registry source URLs identify the issuer; they **do not provide approved reuse r
 5. Run `assess` with `--evidence-root /private/... `, the complete packet and an external review. A candidate M1 real-issue JSON can be created **only** if 30 decisions are complete, at least four genuinely approved ETF series are present, separate source/rights/fact reviewers are identified and every original/rights capture's bytes match its SHA. All displayed observations must share one completed U.S. session date and U.S. close.
 6. Run the M1 deterministic renderer to create an **unpublished DRAFT** image and real-data caption, inspect 1080x1350 and 390px, and send the exact asset/source/rights packet for a separate factual, visual and Commercial & Compliance review. **CEO approval of the exact asset remains mandatory**.
 
-**Cannot be bypassed:** Data-use licensing/permissions and independent factual verification are unresolved. A ticker list and a pricing endpoint do not establish rights to branded redistribution. A free endpoint, synthetic screenshot or arbitrary `VERIFIED` JSON field cannot create publication authority.
+**Normal daily mode:** Public ETF closing-price facts with attribution can be used in an original internal map preview; no per-ticker copyright licence is presumed necessary merely to record a fact. Before posting, Prompt 3 must review actual source-access/reuse conditions, calculation integrity, corporate actions, sessions, image and caption; a known contractual restriction remains a real issue. The separate approved pine-logo gate, human independent audit and exact CEO post approval remain binding. A fake reviewer identity or synthetic screenshot cannot establish release authority.
 
 ## Test / proof
 

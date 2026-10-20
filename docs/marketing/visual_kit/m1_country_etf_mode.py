@@ -7,6 +7,7 @@ quotes, exchange price completeness, issuer licenses or rights approvals.
 import math
 import re
 from datetime import timedelta
+from zoneinfo import ZoneInfo
 from urllib.parse import urlparse
 
 from render_global_index_map import (
@@ -80,17 +81,26 @@ def validate_country_etf_issue(p, geo):
     need(p.get('geometry_version')==GEO_VERSION and
          p.get('geometry_source_github_blob_sha')==UPSTREAM_NE_BLOB_SHA,
          'ETF M1 geodata not pinned')
-    need(p.get('rights_note') in ('SYNTHETIC_LAYOUT_ONLY','REVIEWED_FOR_EXACT_USE'),
-         'ETF rights status invalid')
-    demo=p['rights_note']=='SYNTHETIC_LAYOUT_ONLY'
-    need(p.get('scan_status')==('SYNTHETIC_NOT_RUN' if demo else 'COMPLETE_AUDITED'),
-         'ETF M1 complete externally reviewed 30-market scan status required')
-    need(p.get('universe_review')==('CEO_SELECTED_UNVERIFIED' if demo
-                                   else 'COVERAGE_VALIDATED'),
+    stage=p.get('rights_note')
+    need(stage in ('SYNTHETIC_LAYOUT_ONLY','RESEARCH_PREVIEW',
+                   'PUBLIC_FACTS_QA_PASSED','REVIEWED_FOR_EXACT_USE'),
+         'ETF M1 evidence stage invalid')
+    demo=stage=='SYNTHETIC_LAYOUT_ONLY'
+    preview=stage=='RESEARCH_PREVIEW'
+    need(p.get('scan_status')==('SYNTHETIC_NOT_RUN' if demo else
+         'RESEARCH_PREVIEW' if preview else 'COMPLETE_AUDITED'),
+         'ETF M1 issue stage/scan status mismatch')
+    need(p.get('universe_review')==('CEO_SELECTED_UNVERIFIED' if demo else
+         'RESEARCH_COVERAGE' if preview else 'COVERAGE_VALIDATED'),
          'ETF M1 universe review invalid')
-    need(p.get('benchmark_registry_status')==('CANDIDATES_UNVERIFIED' if demo
-                                              else 'INDEPENDENTLY_VERIFIED'),
-         'ETF M1 fund identity/activity not independently confirmed')
+    need(p.get('benchmark_registry_status')==('CANDIDATES_UNVERIFIED' if demo else
+         'SOURCE_LINKED_RESEARCH' if preview else 'INDEPENDENTLY_VERIFIED'),
+         'ETF M1 fund registry review status mismatch')
+    if stage=='PUBLIC_FACTS_QA_PASSED':
+        for k in ('fact_audit_reference','source_use_review_reference'):
+            bounded(p.get(k),k,140)
+        need(p.get('publication_source_use_state')=='NO_KNOWN_RESTRICTION',
+             'Publication must not bypass identified contractual restrictions')
     need(p.get('etf_price_basis')==ETF_PRICE_BASIS,
          'ETF M1 must use exchange market price, not NAV or total-return')
     need(p.get('fund_currency')=='USD', 'ETF M1 must use USD quote currency')
@@ -118,8 +128,9 @@ def validate_country_etf_issue(p, geo):
         need(e.get('return_currency')=='USD' and
              e.get('listed_currency')=='USD',
              name+' cannot mix local-index or non-USD returns')
-        need(e.get('verification')==('DEMO_ONLY' if demo else 'VERIFIED'),
-             name+' reviewer assertion missing')
+        need(e.get('verification')==('DEMO_ONLY' if demo else
+             'SOURCE_LINKED_PREVIEW' if preview else 'VERIFIED'),
+             name+' false source verification stage')
         state=e.get('missing_status')
         need(state=='ELIGIBLE' or state in MISSING,
              name+' eligibility decision missing')
@@ -158,8 +169,10 @@ def validate_country_etf_issue(p, geo):
             need(e.get('session_status')=='COMPLETED',
                  name+' intraday quote cannot be a completed return')
             need(e.get('etf_price_basis')==ETF_PRICE_BASIS and
-                 e.get('corporate_action_review')==CORPORATE_ACTION,
-                 name+' split/ex-distribution events not cleared')
+                 e.get('corporate_action_review') in (
+                     ('NO_KNOWN_MATERIAL_ACTION',CORPORATE_ACTION)
+                     if preview else (CORPORATE_ACTION,)),
+                 name+' split/ex-distribution question unresolved')
             now=_dt(e.get('observed_at'),name+'.observed_at')
             prior=_dt(e.get('prior_observed_at'),name+'.prior_observed_at')
             fetched=_dt(e.get('retrieved_at'),name+'.retrieved_at')
@@ -168,13 +181,21 @@ def validate_country_etf_issue(p, geo):
                  name+' missing/late/stale original U.S. ETF quote')
             # U.S. exchange closing times, not source-country sessions;
             # record true 16:00 ET offsets rather than blindly using UTC.
+            et=ZoneInfo('America/New_York')
             need(now.hour==16 and prior.hour==16 and
-                 now.utcoffset().total_seconds() in (-4*3600,-5*3600)
-                 and prior.utcoffset().total_seconds() in (-4*3600,-5*3600),
-                 name+' expected completed 16:00 U.S. ET ETF close')
+                 now.utcoffset()==now.astimezone(et).utcoffset() and
+                 prior.utcoffset()==prior.astimezone(et).utcoffset(),
+                 name+' expected DST-correct 16:00 U.S. ET ETF close')
             need(now.date().isoformat()==e.get('close_session_date') and
                  prior.date().isoformat()==e.get('prior_session_date'),
                  name+' U.S. session date mismatch')
+            if preview or stage=='PUBLIC_FACTS_QA_PASSED':
+                bounded(e.get('price_source_title'),name+'.price_source_title',70)
+                valid_url(e.get('prior_price_source_url'),name+'.prior_price_source_url')
+                need(e.get('source_use_status') in ('NO_KNOWN_RESTRICTION',
+                      'REVIEW_PENDING') if preview else
+                      e.get('source_use_status')=='NO_KNOWN_RESTRICTION',
+                      name+' known restricted data is not authorized')
             _one_number(e,'close_price',name)
             _one_number(e,'prior_close_price',name)
             computed=_return(e)

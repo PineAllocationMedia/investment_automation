@@ -21,7 +21,7 @@ from xml.etree import ElementTree as ET
 from render_macro_lens import (
     W, H, BG, LIGHT, MUTED, TEAL, AMBER, PINE, IVORY,
     InvalidIssue, APPROVED_LOGO_SHA256, need, bounded, iso_dt,
-    valid_url, payload_hash, checked_logo, release_allowed, rect, rule, txt, wrap,
+    valid_url, payload_hash, checked_logo, rect, rule, txt, wrap,
 )
 
 GEOMETRY = Path(__file__).parent/'assets'/'m1_natural_earth_110m_v5_1_1.json'
@@ -296,13 +296,37 @@ def _fill(v):
     return PALETTE_POS[i] if v>0 else PALETTE_NEG[3-i]
 
 
+def m1_release_allowed(p, approval):
+    """M1-specific SHA-bound approval. Never assume that public facts need a
+    per-ticker data licence; require Prompt 3 factual and actual-source-use
+    review, plus CEO approval of this exact issue and image.
+    """
+    need(isinstance(approval,dict) and
+         approval.get('input_sha256')==payload_hash(p),
+         'M1 release approval missing/stale issue SHA256')
+    need(approval.get('independent_audit')=='PASS' and
+         approval.get('ceo_approved') is True,
+         'M1 independent Prompt 3 PASS and separate CEO post approval required')
+    for k in ('auditor_reference','ceo_approval_reference'):
+        bounded(approval.get(k),k,140)
+    need(p.get('rights_note') in ('REVIEWED_FOR_EXACT_USE','PUBLIC_FACTS_QA_PASSED'),
+         'M1 preview/synthetic cannot be directly published')
+    need(p.get('brand_logo_sha256')==APPROVED_LOGO_SHA256,
+         'M1 exact approved pine-logo hash required')
+    if p.get('rights_note')=='PUBLIC_FACTS_QA_PASSED':
+        need(p.get('publication_source_use_state')=='NO_KNOWN_RESTRICTION' and
+             p.get('fact_audit_reference') and p.get('source_use_review_reference'),
+             'M1 public-facts release needs completed factual/terms review')
+    # These are signed-off external claims; code cannot impersonate a human auditor.
+
+
 def render_global_map(p, logo_png=None, status='DRAFT', geometry_path=GEOMETRY):
     need(status in ('DRAFT','RELEASE'), 'M1 mode invalid')
     geo=load_geometry(geometry_path)
     elig=validate_map_issue(p,geo)
     etf_mode=p.get('return_basis')==ETF_BASIS
     if status=='RELEASE':
-        need(p['rights_note']=='REVIEWED_FOR_EXACT_USE' and
+        need(p['rights_note'] in ('REVIEWED_FOR_EXACT_USE','PUBLIC_FACTS_QA_PASSED') and
              p['universe_review']=='COVERAGE_VALIDATED' and
              p['benchmark_registry_status']=='INDEPENDENTLY_VERIFIED',
              'M1 RELEASE requires reviewed 30-country/index/geography/data rights')
@@ -417,7 +441,9 @@ def render_global_map(p, logo_png=None, status='DRAFT', geometry_path=GEOMETRY):
         out.append(rect(720,202,292,48,'#503D25',10,AMBER))
         out.append(txt(866,233,'DRAFT · SYNTHETIC' if
                        p['rights_note']=='SYNTHETIC_LAYOUT_ONLY'
-                       else 'DRAFT · NOT AUDITED',
+                       else 'DRAFT · REAL DATA' if
+                       p['rights_note']=='RESEARCH_PREVIEW'
+                       else 'DRAFT · PENDING POST APPROVAL',
                        17,AMBER,750,anchor='middle'))
     out.append('</svg>')
     svg='\n'.join(out)+'\n'
@@ -444,7 +470,7 @@ def run(argv=None):
         status='DRAFT'
         if args.release_manifest:
             approval=json.loads(args.release_manifest.read_text(encoding='utf-8'))
-            release_allowed(p,approval)
+            m1_release_allowed(p,approval)
             need(logo is not None,'M1 RELEASE requires approved pine logo bytes')
             status='RELEASE'
         svg=render_global_map(p,logo,status)
