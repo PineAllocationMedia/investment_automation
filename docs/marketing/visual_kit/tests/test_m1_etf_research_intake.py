@@ -130,6 +130,31 @@ class ETFResearchIntakeTests(unittest.TestCase):
             self.assertEqual(a['status'],'HOLD')
             self.assertEqual(a['count_unresearched'],0)
 
+    def test_all_25_secondary_price_leads_remain_nonpublishable_without_rights(self):
+        """A full set of price URLs does not turn into qualified quote captures."""
+        path=ROOT/'examples'/'m1_us_etf_discovery_retest_20261020.json'
+        p=json.loads(path.read_text(encoding='utf-8'))
+        leads=[r for r in p['rows'] if r.get('price_research')]
+        self.assertEqual(len(leads),25)
+        self.assertEqual(p['price_lead_research']['oct16_oct19_candidate_pairs'],25)
+        self.assertEqual(p['price_lead_research']['reuse_rights_cleared'],0)
+        self.assertTrue(all(r['price_research']['completed_us_session']=='2026-10-19'
+                            and r['price_research']['prior_us_session']=='2026-10-16'
+                            and r['price_research']['source_urls']
+                            and r['price_research']['may_render'] is False
+                            and r['price_research']['independent_source_pair_verified'] is False
+                            and r['qualified_quote'] is None
+                            for r in leads))
+        report, issue=assess(p, issue_metadata=META, evidence_root=ROOT)
+        self.assertEqual(report['status'],'HOLD')
+        self.assertEqual(report['count_selected'],30)
+        self.assertEqual(report['count_unresearched'],0)
+        self.assertEqual(report['count_qualified'],0)
+        self.assertIsNone(issue)
+        p['rows'][0]['decision']='QUALIFIED'
+        with self.assertRaises(InvalidIssue):
+            assess(p, issue_metadata=META, evidence_root=ROOT)
+
     def test_missing_discovery_check_blocks_exclusion_even_with_all_rows(self):
         p=research_packet()
         p['rows'][21]['etf_discovery']['state']='NOT_SEARCHED'
