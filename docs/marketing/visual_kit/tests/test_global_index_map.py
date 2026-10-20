@@ -9,7 +9,7 @@ from pathlib import Path
 from xml.etree import ElementTree as ET
 
 from render_global_index_map import (
-    GEO_GIT_BLOB_SHA, GEOMETRY, _fill, _return, git_blob_sha, load_geometry,
+    GEO_GIT_BLOB_SHA, GEOMETRY, COUNTRIES, SGP_POINT, _fill, _return, git_blob_sha, load_geometry,
     render_global_map, validate_map_issue, run,
 )
 from render_macro_lens import InvalidIssue, payload_hash, release_allowed
@@ -43,16 +43,22 @@ class M1GlobalEquityIndexTests(unittest.TestCase):
                 b'Natural Earth',b'Changed Earth',1))
             with self.assertRaises(InvalidIssue):load_geometry(altered)
 
-    def test_twenty_country_index_candidates_with_correct_missingness(self):
+    def test_ceo_27_country_index_candidates_with_correct_missingness(self):
         p=fixture()
         accepted=validate_map_issue(p,self.geo)
-        self.assertEqual(len(p['evidence']),20)
-        self.assertEqual(len(accepted),18)
-        self.assertEqual([r['rank'] for r in p['evidence']],list(range(1,21)))
+        self.assertEqual(len(p['evidence']),27)
+        self.assertEqual(len(accepted),23)
+        self.assertEqual(tuple(e['economy_id'] for e in p['evidence']),COUNTRIES)
+        self.assertEqual([r['selection_order'] for r in p['evidence']],list(range(1,28)))
+        self.assertEqual(p['selection_basis'],'CEO_SELECTED_27_COUNTRIES')
+        self.assertNotIn('gdp_source_url',p)
+        self.assertEqual(p['evidence'][17]['geometry_id'],'SGP_POINT')
+        self.assertEqual(set(COUNTRIES)-set(r['economy_id'] for r in accepted),
+                         {'BRA','RUS','KAZ','IRN'})
         self.assertTrue(all(r['instrument_kind']=='INDEX' for r in accepted))
         self.assertTrue(all(r['benchmark_variant']=='PRICE_INDEX' for r in accepted))
         self.assertIn('S&P 500',p['evidence'][0]['instrument_name'])
-        self.assertIn('DAX Price Index',p['evidence'][2]['instrument_name'])
+        self.assertIn('DAX Price Index',p['evidence'][4]['instrument_name'])
         self.assertEqual(p['evidence'][10]['missing_status'],'INCOMPARABLE')
         self.assertTrue(all(r['signed_return_pct'] is None for r in
                             p['evidence'] if r['missing_status']!='ELIGIBLE'))
@@ -65,13 +71,16 @@ class M1GlobalEquityIndexTests(unittest.TestCase):
         paths=root.findall('.//{http://www.w3.org/2000/svg}path')
         self.assertGreaterEqual(len(paths),170)
         for text in ('GLOBAL EQUITY MAP','LOCAL CURRENCY','LATEST COMPLETED SESSIONS',
-                     '18/20 VALID INDICES','INDEX LEADERS &amp; LAGGARDS',
+                     '23/27 VALID INDICES','INDEX LEADERS &amp; LAGGARDS',
                      'TOPIX Price Index','S&amp;P/TSX Composite Price Index',
                      'NATURAL EARTH (PUBLIC DOMAIN)','EXACT 0.00%',
                      'DRAFT · SYNTHETIC',
                      'NOT INVESTMENT ADVICE'):
             self.assertIn(text,svg)
         self.assertNotIn('GDP GROWTH',svg)
+        self.assertIn('SG POINT',svg)
+        self.assertIn('>SG</text>',svg)
+        self.assertIn('cx="810.',svg)
         self.assertNotIn('TODAY ALL MARKETS',svg)
 
     def test_polar_geometry_not_leaking_outside_mobile_map_crop(self):
@@ -89,7 +98,7 @@ class M1GlobalEquityIndexTests(unittest.TestCase):
         p=fixture()
         self.assertNotEqual(p['evidence'][0]['observed_at'],
                             p['evidence'][1]['observed_at'])
-        self.assertEqual(len(validate_map_issue(p,self.geo)),18)
+        self.assertEqual(len(validate_map_issue(p,self.geo)),23)
         self.assertIn('NOT SYNCHRONIZED',render_global_map(p))
 
     def test_missing_holidays_do_not_become_zero(self):
@@ -100,6 +109,7 @@ class M1GlobalEquityIndexTests(unittest.TestCase):
         zero=next(x for x in fixture()['evidence'] if x['economy_id']=='ESP')
         self.assertEqual(_return(zero),0)
         self.assertNotEqual(_fill(0),_fill(0.03))
+        self.assertEqual(next(x for x in p['evidence'] if x['economy_id']=='SGP')['geometry_id'],'SGP_POINT')
 
     def test_computed_source_price_return_disagrees_fails(self):
         p=fixture();p['evidence'][0]['signed_return_pct']=-0.17
@@ -114,7 +124,7 @@ class M1GlobalEquityIndexTests(unittest.TestCase):
     def test_incomplete_or_duplicate_gdp_universe_fails(self):
         p=fixture();p['evidence'].pop()
         with self.assertRaises(InvalidIssue):validate_map_issue(p,self.geo)
-        p=fixture();p['evidence'][1]['rank']=1
+        p=fixture();p['evidence'][1]['selection_order']=1
         with self.assertRaises(InvalidIssue):validate_map_issue(p,self.geo)
         p=fixture();p['evidence'][0]['rank_nominal_gdp_usd']=1
         with self.assertRaises(InvalidIssue):validate_map_issue(p,self.geo)
@@ -124,6 +134,10 @@ class M1GlobalEquityIndexTests(unittest.TestCase):
         with self.assertRaises(InvalidIssue):validate_map_issue(p,self.geo)
         p=fixture();p['evidence'][1]['economy_id']='ZZZ'
         p['evidence'][1]['geometry_id']='ZZZ'
+        with self.assertRaises(InvalidIssue):validate_map_issue(p,self.geo)
+        p=fixture();p['evidence'][17]['geometry_id']='SGP'
+        with self.assertRaises(InvalidIssue):validate_map_issue(p,self.geo)
+        p=fixture();p['evidence'][17]['economy_id']='SAU'
         with self.assertRaises(InvalidIssue):validate_map_issue(p,self.geo)
 
     def test_etf_total_return_or_fx_crossed_bases_fail(self):
