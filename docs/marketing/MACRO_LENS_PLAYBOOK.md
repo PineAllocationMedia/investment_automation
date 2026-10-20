@@ -19,6 +19,12 @@ Signature lens: **SIGNAL → MECHANISM → BLIND SPOT → TRIPWIRE**.
 
 These are internal editorial questions, **not mandatory identical headings on every graphic**. Write naturally; witty when earned; nuance is a strength. Never imitate a recognizable commentator's phrasing, publishing identity or proprietary layout. Avoid AI-market-news bingo cards, invented urgency, forced conclusions and fake terminal aesthetics. Do not claim originality if the insight is standard.
 
+## Additional Blossom subject families (roadmap; no new runtime authority)
+
+The `@therealpam` mandate covers useful finance/investing market, sector and company commentary, not macro indicators alone. During a general/latest-market SCAN, evaluate the strongest genuine story across macro, cross-asset markets, sectors and companies; pick the analytical question **before** considering its visual family. See the [proposed PAM Blossom Research Visual System roadmap](BLOSSOM_VISUAL_SYSTEM_ROADMAP.md) for candidate families, three **depth** settings (Brief/Standard/Deep), and a bounded selection/adaptation procedure. All must meet one professional baseline; more density is not more institutional.
+
+**Current executable reality:** `T1/T2/T3` only, with optional T1 Evidence+. Proposed `M1/M2/E1/...` structures are **NOT_IMPLEMENTED** until an approved separate renderer/data/rights PR. Do not render invented maps, substitute unsupported indices or imply every candidate template is available. If the subject cannot be handled by current implemented layouts, propose a DRAFT-only design for CEO review or write a sourced text post. An actual market map needs the [M1 global equity-map methodology](visual_kit/GLOBAL_MARKET_MAP_M1_SPEC.md), which is presently proposal-only. The public series `The Macro Lens` remains a macro family rather than silently branding every stock or sector note as macro.
+
 ## 2. Editorial workflow: SCAN → PICK → VERIFY → INTERPRET → WRITE → RENDER → AUDIT → APPROVE → LOG → LEARN
 
 | Stage | Required action | Hard gate |
