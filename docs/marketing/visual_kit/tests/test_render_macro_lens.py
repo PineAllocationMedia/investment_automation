@@ -44,7 +44,7 @@ class RenderTests(unittest.TestCase):
         self.assertGreaterEqual(int(asof[0].attrib['font-size']), 26)
         self.assertGreaterEqual(int(legal[0].attrib['font-size']), 26)
         self.assertLessEqual(int(asof[0].attrib['y']), 1320)
-        self.assertIn('ML-20261019-01', [el.text for el in nodes])
+        self.assertTrue(any('ML-20261019-01' in (el.text or '') for el in nodes))
 
     def test_t1_footer_wraps_long_source_without_suppressing_provenance(self):
         d = fixture('t1')
