@@ -22,6 +22,9 @@ from render_macro_lens import InvalidIssue, payload_hash
 
 HERE = Path(__file__).resolve().parent
 CANDIDATES = HERE / 'examples' / 'm1_global_index_synthetic.json'
+ETF_TEMPLATE = HERE / 'examples' / 'm1_us_etf_synthetic.json'
+ETF_RESEARCH_MODE = 'US_LISTED_ETF_USD'
+LOCAL_RESEARCH_MODE = 'LOCAL_DOMESTIC_INDEX'
 SCHEMA = 'M1_DAILY_RESEARCH_PACKET_V1'
 SHA = re.compile(r'^[a-f0-9]{64}$')
 STATES = {'UNRESEARCHED', 'EXCLUDED', 'QUALIFIED'}
@@ -67,11 +70,15 @@ def verified_local_capture(root, relative, expected_sha, label):
     require(actual == expected_sha, label + ' capture contents mismatch recorded hash')
 
 
-def scaffold(cutoff):
+def scaffold(cutoff, *, research_mode=LOCAL_RESEARCH_MODE):
     d = _dt(cutoff, 'cutoff_utc')
     require(d.utcoffset().total_seconds() == 0, 'Cutoff must be UTC')
-    template = json.loads(CANDIDATES.read_text(encoding='utf-8'))
+    require(research_mode in (LOCAL_RESEARCH_MODE, ETF_RESEARCH_MODE),
+            'Unknown M1 research mode')
+    template_file = ETF_TEMPLATE if research_mode == ETF_RESEARCH_MODE else CANDIDATES
+    template = json.loads(template_file.read_text(encoding='utf-8'))
     return {
+        'research_mode': research_mode,
         'schema_version': SCHEMA,
         'cutoff_utc': cutoff,
         'preparer_reference': None,
@@ -83,6 +90,8 @@ def scaffold(cutoff):
                 'economy_name': e['economy_name'],
                 'index_candidate': e['instrument_name'],
                 'currency_candidate': e['listed_currency'],
+                'etf_ticker_candidate': e.get('etf_ticker') if
+                    research_mode == ETF_RESEARCH_MODE else None,
                 'decision': 'UNRESEARCHED',
                 'research_notes': None,
                 'attempted_sources': [],
@@ -98,6 +107,10 @@ def scaffold(cutoff):
 def assess(packet, *, issue_metadata=None, evidence_root=None):
     require(isinstance(packet, dict) and packet.get('schema_version') == SCHEMA,
             'M1 research packet schema required')
+    mode=packet.get('research_mode', LOCAL_RESEARCH_MODE)
+    require(mode in (LOCAL_RESEARCH_MODE, ETF_RESEARCH_MODE),
+            'Unsupported research mode: no mixed index/ETF dataset')
+    etf_mode=mode==ETF_RESEARCH_MODE
     cutoff = _dt(packet.get('cutoff_utc'), 'cutoff_utc')
     require(cutoff.utcoffset().total_seconds() == 0, 'Cutoff must be UTC')
     rows = packet.get('rows')
@@ -110,6 +123,12 @@ def assess(packet, *, issue_metadata=None, evidence_root=None):
         code = COUNTRIES[n - 1]
         require(row.get('economy_id') == code and row.get('selection_order') == n,
                 'Missing, swapped or duplicate candidate at row ' + str(n))
+        if etf_mode:
+            from m1_country_etf_mode import ETF_CANDIDATES
+            candidate=ETF_CANDIDATES.get(code)
+            require(row.get('etf_ticker_candidate')==
+                    (candidate['ticker'] if candidate else None),
+                    code + ' candidate fund registry substituted')
         state = row.get('decision')
         require(state in STATES, code + ' invalid decision')
         attempts = row.get('attempted_sources')
@@ -129,10 +148,22 @@ def assess(packet, *, issue_metadata=None, evidence_root=None):
             q = row.get('qualified_quote')
             require(isinstance(q, dict), code + ' qualified quote required')
             require(row.get('exclusion_status') is None, code + ' conflicting exclusion')
-            require(q.get('benchmark_variant') == 'PRICE_INDEX',
-                    code + ' requires domestic price-index variant')
-            require(q.get('return_currency') == 'LOCAL',
-                    code + ' requires local return currency')
+            require(q.get('benchmark_variant') ==
+                    ('ETF_EXCHANGE_PRICE' if etf_mode else 'PRICE_INDEX'),
+                    code + ' wrong instrument price basis')
+            require(q.get('return_currency') == ('USD' if etf_mode else 'LOCAL'),
+                    code + ' wrong quote currency/return basis')
+            if etf_mode:
+                require(candidate is not None and q.get('etf_ticker')==
+                        candidate['ticker'] and q.get('index_name')==candidate['name'],
+                        code + ' no confirmed active single-country ETF mapping')
+                require(q.get('etf_price_basis')=='UNADJUSTED_US_EXCHANGE_CLOSE',
+                        code + ' ETF NAV/adjusted return cannot substitute for exchange close')
+                require(q.get('corporate_action_review')==
+                        'NO_MATERIAL_SPLIT_OR_EX_DISTRIBUTION',
+                        code + ' split/distribution event unresolved')
+                require(q.get('proxy_scope')=='SINGLE_COUNTRY_UNHEDGED',
+                        code + ' fund is not an unhedged single-country exposure')
             require(q.get('currency') == row['currency_candidate'],
                     code + ' currency differs from configured candidate: manual registry review required')
             for key in ('index_name', 'publisher', 'source_title', 'capture_reference',
@@ -147,8 +178,10 @@ def assess(packet, *, issue_metadata=None, evidence_root=None):
             verified_local_capture(evidence_root, q.get('rights_capture_path'),
                                    q.get('rights_capture_sha256'),
                                    code + ' rights-evidence')
-            require(q.get('rights_scope') == 'PUBLIC_BLOSSOM_INDEX_RETURN_GRAPHIC',
-                    code + ' exact intended usage rights scope not reviewed')
+            require(q.get('rights_scope') ==
+                    ('PUBLIC_BLOSSOM_ETF_USD_GRAPHIC' if etf_mode else
+                     'PUBLIC_BLOSSOM_INDEX_RETURN_GRAPHIC'),
+                    code + ' exact intended data rights scope not reviewed')
             require(q.get('rights_decision') == 'APPROVED_FOR_EXACT_USE',
                     code + ' data-use clearance not established')
             require(q.get('fact_decision') == 'INDEPENDENTLY_CHECKED',
@@ -168,6 +201,20 @@ def assess(packet, *, issue_metadata=None, evidence_root=None):
                     code + ' invalid completed close/observation/retrieval cutoff')
             require(q.get('session_status') == 'COMPLETED',
                     code + ' provisional session cannot appear on a daily map')
+            if etf_mode:
+                prior_session=prior.date().isoformat()
+                close_session=current.date().isoformat()
+                require(q.get('close_session_date')==close_session and
+                        q.get('prior_session_date')==prior_session and
+                        prior.hour==16 and current.hour==16 and
+                        prior.utcoffset().total_seconds() in (-18000,-14400) and
+                        current.utcoffset().total_seconds() in (-18000,-14400),
+                        code + ' requires completed matching 16:00 ET US session')
+                if qualified:
+                    first=next(iter(qualified.values()))
+                    require((q['close_session_date'],q['prior_session_date'])==
+                            (first['close_session_date'],first['prior_session_date']),
+                            code + ' incompatible US ETF session dates')
             # Capture SHA and reviewer references are *claims*; a separate audit
             # must access the actual capture, original source and rights grant.
             qualified[code] = q
@@ -185,6 +232,7 @@ def assess(packet, *, issue_metadata=None, evidence_root=None):
     require(packet.get('independent_auditor_reference') != packet.get('preparer_reference')
             or not ready, 'Research preparer cannot be independent auditor')
     report = {
+        'research_mode': mode,
         'status': 'CANDIDATE_READY_REQUIRES_EXTERNAL_AUDIT' if ready else 'HOLD',
         'count_selected': len(rows), 'count_qualified': len(qualified),
         'count_excluded': len(excluded), 'count_unresearched': len(pending),
@@ -206,7 +254,9 @@ def issue_from_evidence(packet, qualified, excluded, meta):
     # This is intentionally never a RELEASE. The exact issue/caption/images and
     # source captures still require a distinct independent audit and CEO approval.
     require(isinstance(meta, dict), 'M1 issue metadata object required')
-    sample = json.loads(CANDIDATES.read_text(encoding='utf-8'))
+    etf_mode=packet.get('research_mode')==ETF_RESEARCH_MODE
+    sample=json.loads((ETF_TEMPLATE if etf_mode else CANDIDATES)
+                      .read_text(encoding='utf-8'))
     for key in ('issue_id', 'headline', 'deck', 'interpretation', 'caption'):
         sample[key] = nonempty(meta.get(key), key)
     sample.update({
@@ -215,8 +265,10 @@ def issue_from_evidence(packet, qualified, excluded, meta):
         'universe_review': 'COVERAGE_VALIDATED',
         'benchmark_registry_status': 'INDEPENDENTLY_VERIFIED',
         'scan_status': 'COMPLETE_AUDITED',
-        'method_version': 'M1_INDEX_LOCAL_PRICE_V0.4',
-        'universe_version': 'CEO_SELECTED_30_COUNTRIES_RESEARCH_V1',
+        'method_version': 'M1_ETF_USD_PRICE_V0.1' if etf_mode else
+                          'M1_INDEX_LOCAL_PRICE_V0.4',
+        'universe_version': 'CEO_30_COUNTRIES_US_ETF_PROXY_V1' if etf_mode else
+                            'CEO_SELECTED_30_COUNTRIES_RESEARCH_V1',
     })
     for row in sample['evidence']:
         code = row['economy_id']
@@ -230,19 +282,20 @@ def issue_from_evidence(packet, qualified, excluded, meta):
         row['rights_note'] = 'NOT APPROVED FOR DISPLAY'
         row['session_status'] = 'UNVERIFIED'
         row['missing_status'] = 'MISSING'
-        row['benchmark_variant'] = 'UNCONFIRMED'
+        row['benchmark_variant'] = ('NO_PROXY' if etf_mode and row['etf_ticker'] is None
+                                    else 'ETF_EXCHANGE_PRICE' if etf_mode else 'UNCONFIRMED')
         if code in excluded:
             row['missing_status'], reason = excluded[code]
             row['verification_note'] = reason[:160]
         elif code in qualified:
             q = qualified[code]
             row.update({
-                'instrument_kind': 'INDEX',
+                'instrument_kind': 'ETF' if etf_mode else 'INDEX',
                 'instrument_name': q['index_name'],
                 'instrument_provider': q['publisher'],
                 'benchmark_definition': q['benchmark_definition'],
-                'benchmark_variant': 'PRICE_INDEX',
-                'return_currency': 'LOCAL',
+                'benchmark_variant': 'ETF_EXCHANGE_PRICE' if etf_mode else 'PRICE_INDEX',
+                'return_currency': 'USD' if etf_mode else 'LOCAL',
                 'listed_currency': q['currency'],
                 'session_status': 'COMPLETED',
                 'missing_status': 'ELIGIBLE',
@@ -259,6 +312,10 @@ def issue_from_evidence(packet, qualified, excluded, meta):
                 'rights_note': ('RIGHTS REVIEW ' + q['rights_review_reference'])[:160],
                 'verification_note': ('INDEPENDENT FACT REVIEW ' +
                                       q['independent_fact_review_reference'])[:160],
+                **({'etf_ticker':q['etf_ticker'],
+                    'etf_price_basis':q['etf_price_basis'],
+                    'corporate_action_review':q['corporate_action_review']}
+                   if etf_mode else {}),
             })
     return sample
 
@@ -268,6 +325,7 @@ def main(argv=None):
     sub = ap.add_subparsers(dest='command', required=True)
     a = sub.add_parser('init')
     a.add_argument('--cutoff-utc', required=True)
+    a.add_argument('--mode', choices=('index','usd-etf'), default='index')
     a.add_argument('--out', type=Path, required=True)
     b = sub.add_parser('assess')
     b.add_argument('packet', type=Path)
@@ -278,7 +336,8 @@ def main(argv=None):
     args = ap.parse_args(argv)
     try:
         if args.command == 'init':
-            obj = scaffold(args.cutoff_utc)
+            obj = scaffold(args.cutoff_utc, research_mode=(ETF_RESEARCH_MODE if
+                           args.mode=='usd-etf' else LOCAL_RESEARCH_MODE))
             args.out.write_text(json.dumps(obj, indent=2) + '\n', encoding='utf-8')
             print('CREATED UNRESEARCHED 30-market intake; NOT A MARKET SCAN')
             return 0
