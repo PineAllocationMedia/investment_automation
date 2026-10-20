@@ -4,7 +4,7 @@
 **Owner:** Marketing & GTM under the existing bounded Blossom `@therealpam` mandate.
 **Channel:** Blossom posts on `@therealpam` only, unless separately authorized.
 **Authority:** Research, drafting, visual preparation, audit coordination and measurement; **no autonomous publication**.
-**Companion files:** [Templates](MACRO_LENS_TEMPLATES.md) · [Visual Kit](visual_kit/README.md) · [Editorial log](MACRO_LENS_EDITORIAL_LOG.md) · [Role charter](../../governance/roles/MARKETING_GTM.md).
+**Companion files:** [Templates](MACRO_LENS_TEMPLATES.md) · [Visual Kit](visual_kit/README.md) · [Institutional Editorial Design Gate](visual_kit/INSTITUTIONAL_EDITORIAL_STANDARD.md) · [Editorial log](MACRO_LENS_EDITORIAL_LOG.md) · [Role charter](../../governance/roles/MARKETING_GTM.md).
 
 ## 1. Why this exists
 
