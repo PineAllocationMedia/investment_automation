@@ -32,6 +32,12 @@ python -c "import hashlib,sys; print(hashlib.sha256(open(sys.argv[1],'rb').read(
 
 The dark forest/ivory editorial design and circular seal remain unchanged; this is a narrow asset provenance + release-policy reconciliation, not a branding redesign.
 
+## T1 Evidence+ (optional controlled pilot)
+
+T1 Classic remains the default and renders exactly as before. An optional T1 `t1_variant: EVIDENCE_PLUS` adds **up to two source-linked supporting indicators** and **at most one zero-anchored monthly bar chart** (three or four consecutive verified observations) while preserving the hero fact, causal stages, blind spot and tripwire. The plotted numeric values are read directly from registered `evidence` records; unregistered raw chart values, non-finite figures, mismatched figure labels, mixed units or missing months halt rendering. The footer includes **all displayed evidence sources**.
+
+See [T1 Evidence+ pilot contract](T1_EVIDENCE_PLUS.md) and [synthetic example](examples/t1_evidence_plus_synthetic.json). If the extra information fails to clarify the story or mobile readability suffers, use Classic. No chart is required. Factual truth still requires external source verification and final-artifact review; the machine validates only structural consistency. Existing logo-hash and CEO release safeguards are unchanged.
+
 ## Minimal usage
 
 Run from repository root (Python 3.11+):

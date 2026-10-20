@@ -12,6 +12,7 @@ import math
 import re
 import sys
 import struct
+from t1_evidence_plus import validate_t1_plus, draw_t1_plus, used_evidence
 from datetime import datetime
 from pathlib import Path
 from urllib.parse import urlparse
@@ -111,7 +112,10 @@ def validate(payload):
         need(isinstance(steps, list) and len(steps) == 3, 'T1 requires three mechanism stages')
         for i, step in enumerate(steps):
             bounded(step, f'mechanism[{i}]', 39)
+        validate_t1_plus(payload, chosen, evidence, need, bounded)
     else:
+        need(not any(x in payload for x in ('t1_variant', 'support_fact_ids', 'mini_chart')),
+             'Evidence+ fields are only supported for T1')
         bounded(payload.get('interpretation'), 'interpretation', 130)
     if typ == 'T2':
         # Comparing readings from different sessions can mislead even when both are true.
@@ -268,12 +272,19 @@ def render(payload, status='DRAFT', logo_png=None):
     chosen = validate(payload)
     typ = payload['template']
     out = common(payload, typ, logo_png)
-    if typ == 'T1': t1(out, payload, chosen[0])
+    if typ == 'T1':
+        if payload.get('t1_variant') == 'EVIDENCE_PLUS':
+            draw_t1_plus(out, payload, chosen[0], payload['evidence'], need)
+        else:
+            t1(out, payload, chosen[0])
     elif typ == 'T2': t2(out, payload, *chosen)
     else: t3(out, payload, *chosen)
-    sources = ', '.join(dict.fromkeys(f['source_title'] for f in chosen))
+    # The footer must cover all data visibly represented, not just the hero metric.
+    related = (used_evidence(payload, chosen, payload['evidence'])
+               if typ == 'T1' and payload.get('t1_variant') == 'EVIDENCE_PLUS' else chosen)
+    sources = ', '.join(dict.fromkeys(f['source_title'] for f in related))
     need(len(sources) <= 60, 'Source byline too long; use short precise publisher titles')
-    times = [datetime.fromisoformat(f['observed_at'].replace('Z', '+00:00')) for f in chosen]
+    times = [datetime.fromisoformat(f['observed_at'].replace('Z', '+00:00')) for f in related]
     asof = max(times).strftime('%Y-%m-%d %H:%M %z')
     footer(out, payload, sources, asof, status)
     out.append('</svg>')
