@@ -20,7 +20,7 @@ An accurate worldwide map needs **two separately controlled inputs**: (1) origin
 
 This PR adopts the narrowest $0-incremental-dependency, standard-library **offline research handoff** rather than installing a questionable scraper or silently assuming data licenses. Operationalizing an automatic global data feed remains a distinct Data & Evidence / Commercial & Compliance work item. There is **no $0 validated universal licensed provider** established by this assessment.
 
-## Repeatable runbook
+**New alternative mode:** For more candidate-market coverage, use the [25 U.S.-listed country-ETF proxy mode and runbook](M1_US_COUNTRY_ETF_MODE.md), initialized with `m1_scan_handoff.py init --mode usd-etf`. ETF-price mode and local domestic-index mode are separate evidence contracts; the script never converts or mixes one into the other. No ETF mode claims public display rights or an online live feed.\n\n## Repeatable runbook
 
 Use an actual UTC cutoff, after deciding whether the subject means the **latest completed** session in each local market or a specific previously completed market day. Never label a live U.S. session as a completed close. The employee, not the CLI, must investigate publisher/benchmark definitions, calendar and quote rights.
 
