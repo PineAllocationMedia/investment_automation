@@ -179,7 +179,7 @@ def draw_company_lens(p, logo_png=None, status='DRAFT'):
         txt(1012, 103, p['issue_id'], 20, TEAL, 600, anchor='end'),
         rule(68, 149, 1012, 149, DIVIDER, 2),
         safe_text(68, 193, p['company_name'], 25, 760, weight=700),
-        safe_text(1012, 193, p['ticker'] + ('  /  DEMO ISSUER' if demo else '  /  SEC FILER'), 19, 240,
+        safe_text(1012, 193, p['ticker'] + ('  /  DEMO ISSUER' if demo else '  /  SEC FILER'), 19, 348,
                   color=TEAL, weight=600, anchor='end'),
     ])
     out.extend(lines(68, 266, p['headline'], chars=30, count=2,
