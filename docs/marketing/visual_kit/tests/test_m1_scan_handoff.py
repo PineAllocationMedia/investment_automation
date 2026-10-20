@@ -6,7 +6,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from m1_scan_handoff import assess, main, scaffold
+from m1_scan_handoff import assess, main, scaffold, LOCAL_RESEARCH_MODE
 from render_global_index_map import COUNTRIES, validate_map_issue, load_geometry
 from render_macro_lens import InvalidIssue
 
@@ -26,7 +26,7 @@ META = {
 
 
 def excluded_packet():
-    p = scaffold(CUTOFF)
+    p = scaffold(CUTOFF,research_mode=LOCAL_RESEARCH_MODE)
     p['preparer_reference'] = 'MOCK-RESEARCHER'
     p['independent_auditor_reference'] = 'MOCK-AUDITOR'
     for r in p['rows']:
@@ -78,7 +78,7 @@ def mock_eligible(p, code):
 
 class M1ResearchHandoffTests(unittest.TestCase):
     def test_scaffold_is_thirty_unresearched_without_fabricated_prices(self):
-        p = scaffold(CUTOFF)
+        p = scaffold(CUTOFF,research_mode=LOCAL_RESEARCH_MODE)
         self.assertEqual(tuple(r['economy_id'] for r in p['rows']), COUNTRIES)
         self.assertEqual(len(p['rows']), 30)
         self.assertTrue(all(r['decision']=='UNRESEARCHED'
@@ -94,7 +94,7 @@ class M1ResearchHandoffTests(unittest.TestCase):
 
     def test_missing_swapped_or_duplicate_market_fails(self):
         for transform in ('pop','swap','duplicate'):
-            p=scaffold(CUTOFF)
+            p=scaffold(CUTOFF,research_mode=LOCAL_RESEARCH_MODE)
             if transform=='pop':p['rows'].pop()
             if transform=='swap':p['rows'][0],p['rows'][1]=p['rows'][1],p['rows'][0]
             if transform=='duplicate':p['rows'][10]['economy_id']='USA'
@@ -205,7 +205,7 @@ class M1ResearchHandoffTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             root=Path(tmp)
             inp=root/'packet.json';out=root/'report.json'
-            self.assertEqual(main(['init','--cutoff-utc',CUTOFF,
+            self.assertEqual(main(['init','--cutoff-utc',CUTOFF,'--mode','index',
                                    '--out',str(inp)]),0)
             raw=json.loads(inp.read_text())
             self.assertEqual(len(raw['rows']),30)
