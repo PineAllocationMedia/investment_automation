@@ -232,8 +232,10 @@ def render_sector_rotation(p, logo_png=None, status='DRAFT'):
         # bar direction is always anchored to the same value.
         out.append(rule(620, y, 620, y+47, DIVIDER, 1))
         out.append(rule(68, y+48, 1012, y+48, DIVIDER, 1))
-        label = f'{i+1:02d}  {f["sector"]}'
-        out.append(checked_text(75, y+31, label, 20, 322, weight=620))
+        out.append(checked_text(75, y+31, f'{i+1:02d}', 19, 35,
+                                color=MUTED, weight=550))
+        out.append(checked_text(112, y+31, f['sector'], 20, 299,
+                                weight=620))
         length = min(185, abs(long_move)/scale * 185)
         color = TEAL if long_move > 0 else AMBER if long_move < 0 else NEUTRAL
         if length > 0:
@@ -255,7 +257,7 @@ def render_sector_rotation(p, logo_png=None, status='DRAFT'):
         txt(68, 1154, 'READING', 18, AMBER, 730),
     ])
     out.extend(paragraph(197, 1154, p['interpretation'], name='interpretation',
-                         chars=66, count=2, size=21, leading=26, width=815))
+                         chars=53, count=2, size=21, leading=26, width=815))
     out.append(txt(68, 1228, 'WATCH', 18, AMBER, 740))
     out.extend(paragraph(171, 1228, p['watch'], name='watch',
                          chars=60, count=1, size=20, leading=25, width=841))
