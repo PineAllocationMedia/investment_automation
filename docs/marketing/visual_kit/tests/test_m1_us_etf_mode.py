@@ -61,11 +61,11 @@ class M1UsdETFTests(unittest.TestCase):
     def test_accurate_labels_no_false_local_index_or_today_claim(self):
         svg=render_global_map(fixture())
         ET.fromstring(svg)
-        for token in ('GLOBAL ETF MAP','USD PRICE MOVES','ONE COMPLETED U.S. SESSION',
+        for token in ('MARKET ATLAS','USD PRICE MOVES','ONE COMPLETED U.S. SESSION',
                       'FX INCLUDED','ETF LEADERS &amp; LAGGARDS',
                       '25 MARKETS SHOWN','USD ETF PROXIES','DRAFT · SYNTHETIC'):
             self.assertIn(token,svg)
-        for absent in ('GLOBAL EQUITY MAP','LOCAL CURRENCY','INDEX LEADERS',
+        for absent in ('LOCAL CURRENCY','INDEX LEADERS',
                        'NO VALID CLOSE','/30 VALID','DATA UNAVAILABLE'):
             self.assertNotIn(absent,svg)
 
@@ -156,7 +156,7 @@ class M1UsdETFTests(unittest.TestCase):
         q=validate_map_issue(old,self.geo)
         self.assertEqual(len(q),25)
         self.assertEqual(q[0]['instrument_kind'],'INDEX')
-        self.assertIn('GLOBAL EQUITY MAP',render_global_map(old))
+        self.assertIn('MARKET ATLAS',render_global_map(old))
 
 
 if __name__=='__main__':
