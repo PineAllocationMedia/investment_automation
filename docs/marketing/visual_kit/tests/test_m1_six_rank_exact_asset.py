@@ -128,9 +128,10 @@ class M1SixRankExactAssetTests(unittest.TestCase):
                      observed_at=None,prior_observed_at=None,retrieved_at=None,
                      close_session_date=None,prior_session_date=None)
         svg=m1.render_global_map(p)
-        self.assertIn('TOP 2 FRONTRUNNERS',svg)
-        self.assertIn('BOTTOM 2 LAGGARDS',svg)
-        self.assertNotIn('TOP 3 FRONTRUNNERS',svg)
+        self.assertIn('TOP 3 FRONTRUNNERS',svg)
+        self.assertIn('BOTTOM 3 LAGGARDS',svg)
+        self.assertIn('3.  —',svg)
+        self.assertEqual(svg.count('3.  —'),2)
 
     def test_default_cli_requires_complete_brand_asset_and_sha_manifest(self):
         # Failing without a brand/image packet is deliberate; never claim
