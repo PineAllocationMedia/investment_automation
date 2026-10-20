@@ -87,7 +87,8 @@ class M1AdaptiveColorsAndCaptionTests(unittest.TestCase):
             self.assertIn('+5%',svg)
             self.assertIn('NOT PLOTTED',svg)
             self.assertIn('0.00%',svg)
-            self.assertEqual(svg.count('height="13"'),2)  # exact 0 / unplotted
+            self.assertIn('x="810" y="867" width="21" height="13"',svg)
+            self.assertIn('x="900" y="867" width="21" height="13"',svg)
             self.assertEqual(svg.count('fill="'+LAND+'"')>0,True)
 
     def test_covered_color_can_never_merge_into_land(self):
