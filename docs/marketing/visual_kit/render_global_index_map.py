@@ -497,9 +497,20 @@ def render_global_map(p, logo_png=None, status='DRAFT', geometry_path=GEOMETRY):
             if i%2==0:
                 out.append(rect(x,row_y,458,53,'#182E33',0))
             out.append(rule(x,row_y+52,x+458,row_y+52,GRID,1))
-            desc=(f"{i+1}.  {e['economy_id']} / {e['etf_ticker']}"
-                  if etf_mode else
-                  f"{i+1}.  {e['economy_id']} / {e['instrument_name']}")
+            if etf_mode:
+                desc=f"{i+1}.  {e['economy_id']} / {e['etf_ticker']}"
+            else:
+                # Long home-market index names cannot fit the half-width
+                # scoreboard at readable font size. Keep exact full identity
+                # in the evidence record, and shorten only its visual label.
+                prefix=f"{i+1}.  {e['economy_id']} / "
+                desc=prefix+e['instrument_name']
+                if _text_width(desc,21)>313:
+                    words=e['instrument_name'].split()
+                    while words and _text_width(prefix+' '.join(words)+'…',21)>313:
+                        words.pop()
+                    need(words,'M1 domestic index label cannot fit')
+                    desc=prefix+' '.join(words)+'…'
             out.append(put(x+12,row_y+34,desc,21,313,weight=660))
             result=_return(e)
             out.append(put(x+446,row_y+34,
