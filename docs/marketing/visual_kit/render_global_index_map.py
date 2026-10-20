@@ -44,7 +44,8 @@ MISSING = {'HOLIDAY','CLOSED','STALE','MISSING','INCOMPARABLE'}
 PALETTE_NEG = ('#985F59','#B67D73','#CB9D90','#DFC5B9')
 PALETTE_POS = ('#CAD9C5','#A8C8B5','#79AE91','#4C886D')
 ZERO = '#CED0C8'
-NO_DATA = '#707D7D'
+# Non-eligible selections use the same neutral land fill as unselected countries.
+# No 'missing data' color is displayed on the public graphic.
 LAND = '#294047'
 OCEAN = '#142D35'
 GRID = '#405B58'
@@ -141,13 +142,17 @@ def validate_map_issue(p, geo):
     need(p.get('benchmark_registry_status') in
          ('CANDIDATES_UNVERIFIED','INDEPENDENTLY_VERIFIED'),
          'Benchmark registry verification status required')
+    need(p.get('scan_status') in ('SYNTHETIC_NOT_RUN','COMPLETE_AUDITED'),
+         'M1 requires an explicit full-universe daily scan disposition')
     if p['rights_note']=='SYNTHETIC_LAYOUT_ONLY':
         need(p['universe_review']=='CEO_SELECTED_UNVERIFIED' and
-             p['benchmark_registry_status']=='CANDIDATES_UNVERIFIED',
+             p['benchmark_registry_status']=='CANDIDATES_UNVERIFIED' and
+             p['scan_status']=='SYNTHETIC_NOT_RUN',
              'Demo issue must be explicitly marked as unverified')
     else:
         need(p['universe_review']=='COVERAGE_VALIDATED' and
-             p['benchmark_registry_status']=='INDEPENDENTLY_VERIFIED',
+             p['benchmark_registry_status']=='INDEPENDENTLY_VERIFIED' and
+             p['scan_status']=='COMPLETE_AUDITED',
              'Real M1 requires independent country, index and rights review')
     entries=p.get('evidence')
     need(isinstance(entries,list) and len(entries)==len(COUNTRIES),
@@ -295,7 +300,9 @@ def render_global_map(p, logo_png=None, status='DRAFT', geometry_path=GEOMETRY):
              hashlib.sha256(logo_png).hexdigest()==APPROVED_LOGO_SHA256 and
              p.get('brand_logo_sha256')==APPROVED_LOGO_SHA256,
              'M1 RELEASE exact approved brand master required')
-    byid={e['economy_id']:e for e in p['evidence']}
+    # Only qualified entries have a visible market overlay. Keep all thirty
+    # checked outcomes in the private evidence packet, including exclusions.
+    eligible_byid={e['economy_id']:e for e in elig}
     out=[
         f'<svg xmlns="http://www.w3.org/2000/svg" width="{W}" height="{H}" viewBox="0 0 {W} {H}">',
         rect(0,0,W,H,BG,0),
@@ -323,7 +330,7 @@ def render_global_map(p, logo_png=None, status='DRAFT', geometry_path=GEOMETRY):
                          size=23,leading=29,width=944,color=MUTED))
     out.append(txt(68,433,'LATEST COMPLETED SESSIONS / NOT SYNCHRONIZED',
                    19,TEAL,680))
-    out.append(txt(1012,433,f'{len(elig)}/{len(COUNTRIES)} VALID INDICES',
+    out.append(txt(1012,433,f'{len(elig)} MARKETS SHOWN',
                    20,LIGHT,720,anchor='end'))
     out.append(rect(68,454,944,395,OCEAN,0))
     out.append('<g clip-path="url(#mapView)">')
@@ -336,23 +343,18 @@ def render_global_map(p, logo_png=None, status='DRAFT', geometry_path=GEOMETRY):
         d=_paths(f)
         if not d:
             continue
-        e=byid.get(f['id'])
-        if e is None:
-            color=LAND
-        elif e['missing_status']=='ELIGIBLE':
-            color=_fill(_return(e))
-        else:
-            color=NO_DATA
+        e=eligible_byid.get(f['id'])
+        color=_fill(_return(e)) if e is not None else LAND
         out.append('<path d="'+d+'" fill="'+color+
                    '" fill-rule="evenodd" stroke="'+GRID+'" stroke-width=".7"/>')
     # Singapore is not present in 110m polygons: always plot its point and
     # return-colored locator, then identify the representation in the footer.
-    sg=byid['SGP']
-    sx,sy=_project(SGP_POINT)
-    sg_color=_fill(_return(sg)) if sg['missing_status']=='ELIGIBLE' else NO_DATA
-    out.append(f'<circle cx="{sx:.1f}" cy="{sy:.1f}" r="6" fill="{sg_color}" '
-               f'stroke="{LIGHT}" stroke-width="2"/>')
-    out.append(txt(sx+9,sy-8,'SG',15,LIGHT,750))
+    sg=eligible_byid.get('SGP')
+    if sg is not None:
+        sx,sy=_project(SGP_POINT)
+        out.append(f'<circle cx="{sx:.1f}" cy="{sy:.1f}" r="6" '
+                   f'fill="{_fill(_return(sg))}" stroke="{LIGHT}" stroke-width="2"/>')
+        out.append(txt(sx+9,sy-8,'SG',15,LIGHT,750))
     out.append('</g>')
     # Legend values are local-index return percentages, not GDP figures.
     labels=('<-2','-2..-1','-1..-.5','-.5..0',
@@ -362,11 +364,10 @@ def render_global_map(p, logo_png=None, status='DRAFT', geometry_path=GEOMETRY):
         x=68+i*91
         out.append(rect(x,867,88,12,color,0))
         out.append(txt(x+44,899,labels[i],14,MUTED,550,anchor='middle'))
-    out.append(rect(823,867,22,12,NO_DATA,0))
-    out.append(txt(854,879,'NO VALID CLOSE',17,MUTED,600))
-    # True unchanged index close is a distinct neutral swatch, not a missing quote.
-    out.append(rect(823,895,22,12,ZERO,0))
-    out.append(txt(854,907,'EXACT 0.00%',17,MUTED,600))
+    # Genuine unchanged performance retains a visible swatch; missing
+    # observations have no graphic swatch or on-image missing-data message.
+    out.append(rect(823,867,22,12,ZERO,0))
+    out.append(txt(854,879,'EXACT 0.00%',17,MUTED,600))
     out.append(rule(68,919,1012,919,GRID,2))
     out.append(txt(68,947,'INDEX LEADERS & LAGGARDS',19,TEAL,750))
     out.append(txt(1012,947,'COUNTRY / INDEX / 1 SESSION',17,MUTED,600,anchor='end'))
@@ -388,8 +389,9 @@ def render_global_map(p, logo_png=None, status='DRAFT', geometry_path=GEOMETRY):
     out.extend(paragraph(225,1185,p['interpretation'],name='interpretation',
                          chars=54,max_lines=2,size=21,leading=27,width=787))
     out.append(rule(68,1254,1012,1254,GRID,2))
-    out.append(txt(68,1280,'GEO: NATURAL EARTH (PUBLIC DOMAIN) / SG POINT / INDEX EVIDENCE',
-                   18,MUTED,500))
+    geography_note=('GEO: NATURAL EARTH / SG POINT / INDEX EVIDENCE' if sg is not None
+                    else 'GEO: NATURAL EARTH / INDEX EVIDENCE')
+    out.append(txt(68,1280,geography_note,18,MUTED,500))
     out.append(put(68,1320,'AS OF '+_dt(p['cutoff_utc'],'cutoff_utc').strftime('%Y-%m-%d %H:%M UTC'),
                    20,500,color=MUTED))
     out.append(txt(1012,1320,'NOT INVESTMENT ADVICE',19,MUTED,550,anchor='end'))
