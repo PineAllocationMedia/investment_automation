@@ -67,6 +67,33 @@ jobs:
             grep -q 'MARKET BRIEF' "$RUNNER_TEMP/${sample}_demo.svg"
           done
 
+      - name: Prepare 390px synthetic M4 mobile proofs
+        shell: bash
+        run: |
+          python - <<'PY'
+          import os
+          from pathlib import Path
+          import fitz
+          folder=Path(os.environ['RUNNER_TEMP'])
+          for name in ('m4','m4_four_row'):
+              svg=(folder/f'{name}_demo.svg').read_bytes()
+              page=fitz.open(stream=svg,filetype='svg')[0]
+              pix=page.get_pixmap(matrix=fitz.Matrix(390/1080,390/1080),alpha=False)
+              assert pix.width == 390 and pix.height >= 487
+              pix.save(folder/f'{name}_390px.png')
+          PY
+
+      - name: Save synthetic M4 previews for CEO visual review
+        uses: actions/upload-artifact@v4
+        with:
+          name: m4-synthetic-research-plate-previews
+          path: |
+            ${{ runner.temp }}/m4_demo.png
+            ${{ runner.temp }}/m4_390px.png
+            ${{ runner.temp }}/m4_four_row_demo.png
+            ${{ runner.temp }}/m4_four_row_390px.png
+          retention-days: 7
+          if-no-files-found: error
       - name: Confirm synthetic content remains visibly watermarked
         shell: bash
         run: |
