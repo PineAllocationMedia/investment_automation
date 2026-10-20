@@ -7,6 +7,14 @@ The T1/T2/T3 specifications below now map to three separate deterministic 1080×
 
 **Required visual-quality review for all T1/T2/T3 drafts:** [Institutional Editorial Design Gate](visual_kit/INSTITUTIONAL_EDITORIAL_STANDARD.md). The target is a concise macro research note for mobile—not an elementary explainer card, a poster of giant numbers or a cramped dashboard. Prefer crisp grid alignment, precise typography, purposeful evidence grouping and restrained color over repetitive oversized rounded tiles. Review the exact 390px PNG using its six PASS/HOLD criteria. Passing source validation and renderer CI alone **does not** certify editorial visual quality. If a draft looks childish, visually cluttered or unintuitive, return **VISUAL HOLD** and propose a controlled, CEO-reviewed renderer adjustment instead of claiming the current template already meets the higher bar.
 
+## Wider PAM Blossom visual families — proposal-only
+
+The [PAM Blossom Research Visual System roadmap](BLOSSOM_VISUAL_SYSTEM_ROADMAP.md) proposes subject-based families for **Markets, Equities, Sectors and Investor Perspectives** alongside Macro Lens. It also separates Brief / Standard / Deep **analytical depth**, not “low/medium/high professionalism.” All families must meet the same institutional visual quality gate. The [Global Equity Market Map M1](visual_kit/GLOBAL_MARKET_MAP_M1_SPEC.md) requires a frozen 20-largest-economy nominal-GDP universe and a defensible, single-basis country equity index/ETF proxy methodology; it is **not implemented or publishable** yet. A world map must use accurate, rights-reviewed geometry and auditable as-of returns; never mix local-index closes with USD ETF quotes in one unqualified scale.
+
+**Actual current renderer still supports only T1/T2/T3**; roadmap entries are not selectable through the runtime. For a more serious T1 look, follow the separate [institutional T1 restyle implementation brief](visual_kit/INSTITUTIONAL_T1_RESTYLE_PROPOSAL.md); documentation alone does not change rounded cards or WATCH typography.
+
+**Copyright notice:** the CEO-approved reconstructed pine logo stays unchanged; do **not** place `©` next to or inside the emblem. An optional, discreet footer notice may be proposed **only after confirming the actual rights holder and any third-party data/graphic licenses**, with Commercial & Compliance review where needed. Do not imply ownership of underlying market data, supplant essential sources or use `®` without registration evidence. No footer copyright notice is automatically rendered by this proposal.
+
 ## Universal visual grammar
 
 - **Canvas:** 1080 × 1350 portrait working target (4:5); test against current Blossom mobile rendering and cropping before publication. A safe-area margin of 64 px is an internal design rule, not a Blossom specification.
