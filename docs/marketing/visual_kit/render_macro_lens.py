@@ -310,14 +310,14 @@ def t1_research_note(out, p, f):
     need(estimated_width(f['display'], signal_size) <= 435,
          'Signal too wide for research-note signal area')
     out.append(txt(68, 594, f['display'], signal_size, LIGHT, 750))
-    out.extend(lines(528, 553, f['label'], chars=27, cap=2, size=28, leading=38,
+    out.extend(lines(528, 535, f['label'], chars=27, cap=2, size=28, leading=38,
                      name='signal.label', weight=700))
-    out.extend(lines(528, 615, f['unit'], chars=24, cap=1, size=21, leading=25,
+    out.extend(lines(528, 614, f['unit'], chars=24, cap=1, size=21, leading=25,
                      name='signal.unit', color=MUTED))
-    out.extend(lines(528, 644, f['period'], chars=34, cap=1, size=20, leading=25,
+    out.extend(lines(528, 651, f['period'], chars=34, cap=1, size=20, leading=25,
                      name='signal.period', color=MUTED))
-    out.append(rule(68, 670, 1012, 670, '#46615A', 2))
-    out.append(txt(68, 711, 'TRANSMISSION / POSSIBLE CHANNELS', 20, TEAL, 750))
+    out.append(rule(68, 679, 1012, 679, '#46615A', 2))
+    out.append(txt(68, 720, 'TRANSMISSION / POSSIBLE CHANNELS', 20, TEAL, 750))
     for i, step in enumerate(p['mechanism']):
         x = 68 + i*325
         out.append(txt(x, 756, f'{i+1:02}', 19, MUTED, 500))
@@ -332,7 +332,7 @@ def t1_research_note(out, p, f):
                      leading=34, name='blind_spot'))
     out.append(rule(68, 1040, 1012, 1040, '#46615A', 2))
     out.append(txt(68, 1080, 'WHAT WOULD CHANGE THE VIEW?', 21, AMBER, 700))
-    out.extend(lines(68, 1123, p['tripwire'], chars=72, cap=2, size=25,
+    out.extend(lines(68, 1123, p['tripwire'], chars=60, cap=2, size=25,
                      leading=32, name='tripwire'))
 
 
