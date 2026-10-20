@@ -231,8 +231,8 @@ def draw_market_brief(p, logo_png=None, status='DRAFT'):
     out.extend(_paragraph(90, 1065, p['interpretation'], chars=52, max_lines=2,
                           size=24, lead=31, width=922, name='interpretation'))
     out.append(txt(68, 1148, 'NEXT CONFIRMATION', 18, AMBER, 750))
-    out.extend(_paragraph(264, 1148, p['watch'], chars=45, max_lines=2,
-                          size=22, lead=27, width=748, name='watch'))
+    out.extend(_paragraph(320, 1148, p['watch'], chars=48, max_lines=2,
+                          size=22, lead=27, width=692, name='watch'))
     out.append(rule(68, 1214, 1012, 1214, SEPARATOR, 2))
     out.append(txt(68, 1250,
                    'PUBLISHER / LOCAL CLOSE PER ROW  ·  SOURCE LINKS IN EVIDENCE PACKET',
