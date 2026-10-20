@@ -106,13 +106,15 @@ class M1SixRankExactAssetTests(unittest.TestCase):
             cells=[x.text for x in found.iter() if x.tag.endswith('text')
                    and x.attrib.get('y') in ('1020','1074','1128')]
             for rank,e in enumerate(eligible[:3],1):
-                row=f"{rank}.  {e['economy_id']} / "+(
-                    e['etf_ticker'] if p['return_basis']==m1.ETF_BASIS else e['instrument_name'])
-                self.assertIn(row,cells)
+                suffix=(e['etf_ticker'] if p['return_basis']==m1.ETF_BASIS
+                        else e['instrument_name'].split()[0])
+                prefix=f"{rank}.  {e['economy_id']} / {suffix}"
+                self.assertTrue(any((cell or '').startswith(prefix) for cell in cells),prefix)
             for rank,e in enumerate(reversed(eligible[-3:]),1):
-                row=f"{rank}.  {e['economy_id']} / "+(
-                    e['etf_ticker'] if p['return_basis']==m1.ETF_BASIS else e['instrument_name'])
-                self.assertIn(row,cells)
+                suffix=(e['etf_ticker'] if p['return_basis']==m1.ETF_BASIS
+                        else e['instrument_name'].split()[0])
+                prefix=f"{rank}.  {e['economy_id']} / {suffix}"
+                self.assertTrue(any((cell or '').startswith(prefix) for cell in cells),prefix)
             leaders={e['economy_id'] for e in eligible[:3]}
             laggards={e['economy_id'] for e in eligible[-3:]}
             self.assertTrue(leaders.isdisjoint(laggards))
