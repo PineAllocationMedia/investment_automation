@@ -26,7 +26,7 @@ class M1PracticalETFTests(unittest.TestCase):
         # Fictional prices used only for tests. We never claim these prices
         # actually appear at the linked issuer pages.
         for i,row in enumerate(self.rows):
-            if i<25 and row['ticker']:
+            if row['ticker']:
                 row.update(
                     prior_close=str(100.0+i),
                     close=str(round((100+i)*(1+(i%7-3)*.003),4)),
@@ -159,11 +159,10 @@ class M1PracticalETFTests(unittest.TestCase):
         self.assertTrue(all(x.is_file() and x.stat().st_size>500
                             for x in (issue,svg,png,mobile)))
         self.assertIn('DRAFT · REAL DATA',svg.read_text())
-        from PIL import Image
-        with Image.open(png) as im:
-            self.assertEqual(im.size,(1080,1350))
-        with Image.open(mobile) as im:
-            self.assertEqual(im.width,390)
+        import struct
+        self.assertEqual(struct.unpack('>II',png.read_bytes()[16:24]),
+                         (1080,1350))
+        self.assertEqual(struct.unpack('>II',mobile.read_bytes()[16:24])[0],390)
 
 
 if __name__=='__main__':
