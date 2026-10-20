@@ -47,6 +47,26 @@ def nonempty(value, label):
     return value.strip()
 
 
+def verified_local_capture(root, relative, expected_sha, label):
+    # Local evidence integrity, not proof that its contents are an authentic
+    # source or that third-party redistribution has been authorized.
+    require(root is not None, label + ' requires a local evidence-root directory')
+    require(isinstance(relative, str) and relative.strip(), label + ' capture path required')
+    require(isinstance(expected_sha, str) and SHA.fullmatch(expected_sha),
+            label + ' capture SHA-256 required')
+    root = Path(root).resolve()
+    path = Path(relative)
+    require(not path.is_absolute() and '..' not in path.parts,
+            label + ' capture path cannot escape evidence root')
+    absolute = (root / path).resolve()
+    require(absolute.is_relative_to(root) and absolute.is_file(),
+            label + ' local capture missing or outside evidence root')
+    require(0 < absolute.stat().st_size <= 16 * 1024 * 1024,
+            label + ' capture must be nonempty and <=16 MiB')
+    actual = hashlib.sha256(absolute.read_bytes()).hexdigest()
+    require(actual == expected_sha, label + ' capture contents mismatch recorded hash')
+
+
 def scaffold(cutoff):
     d = _dt(cutoff, 'cutoff_utc')
     require(d.utcoffset().total_seconds() == 0, 'Cutoff must be UTC')
@@ -75,7 +95,7 @@ def scaffold(cutoff):
     }
 
 
-def assess(packet, *, issue_metadata=None):
+def assess(packet, *, issue_metadata=None, evidence_root=None):
     require(isinstance(packet, dict) and packet.get('schema_version') == SCHEMA,
             'M1 research packet schema required')
     cutoff = _dt(packet.get('cutoff_utc'), 'cutoff_utc')
@@ -121,9 +141,12 @@ def assess(packet, *, issue_metadata=None):
                 nonempty(q.get(key), code + '.' + key)
             for key in ('original_price_source_url', 'rights_evidence_url'):
                 url(q.get(key), code + '.' + key)
-            capture = q.get('source_capture_sha256')
-            require(isinstance(capture, str) and SHA.fullmatch(capture),
-                    code + ' requires immutable original-source capture hash')
+            verified_local_capture(evidence_root, q.get('source_capture_path'),
+                                   q.get('source_capture_sha256'),
+                                   code + ' original-source')
+            verified_local_capture(evidence_root, q.get('rights_capture_path'),
+                                   q.get('rights_capture_sha256'),
+                                   code + ' rights-evidence')
             require(q.get('rights_scope') == 'PUBLIC_BLOSSOM_INDEX_RETURN_GRAPHIC',
                     code + ' exact intended usage rights scope not reviewed')
             require(q.get('rights_decision') == 'APPROVED_FOR_EXACT_USE',
@@ -251,6 +274,7 @@ def main(argv=None):
     b.add_argument('--report', type=Path, required=True)
     b.add_argument('--issue-metadata', type=Path)
     b.add_argument('--draft-issue', type=Path)
+    b.add_argument('--evidence-root', type=Path)
     args = ap.parse_args(argv)
     try:
         if args.command == 'init':
@@ -263,7 +287,8 @@ def main(argv=None):
                     if args.issue_metadata else None)
         require(not args.draft_issue or metadata is not None,
                 'A candidate M1 draft requires approved editorial issue metadata')
-        report, issue = assess(packet, issue_metadata=metadata)
+        report, issue = assess(packet, issue_metadata=metadata,
+                               evidence_root=args.evidence_root)
         args.report.write_text(json.dumps(report, indent=2) + '\n', encoding='utf-8')
         if issue and args.draft_issue:
             args.draft_issue.write_text(json.dumps(issue, indent=2) + '\n',
