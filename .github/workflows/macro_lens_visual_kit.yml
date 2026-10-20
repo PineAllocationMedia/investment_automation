@@ -94,6 +94,38 @@ jobs:
             ${{ runner.temp }}/m4_four_row_390px.png
           retention-days: 7
           if-no-files-found: error
+      - name: Render synthetic M2 sector rotation and mobile proof
+        working-directory: docs/marketing/visual_kit
+        shell: bash
+        run: |
+          set -euo pipefail
+          python render_sector_rotation.py examples/m2_synthetic.json \
+            --output "$RUNNER_TEMP/m2_synthetic.svg" \
+            --png "$RUNNER_TEMP/m2_synthetic.png"
+          grep -q 'DRAFT' "$RUNNER_TEMP/m2_synthetic.svg"
+          grep -q 'SECTOR ROTATION' "$RUNNER_TEMP/m2_synthetic.svg"
+          python - <<'PY'
+          import os
+          from pathlib import Path
+          import fitz
+          folder=Path(os.environ['RUNNER_TEMP'])
+          svg=(folder/'m2_synthetic.svg').read_bytes()
+          page=fitz.open(stream=svg,filetype='svg')[0]
+          pix=page.get_pixmap(matrix=fitz.Matrix(390/1080,390/1080),alpha=False)
+          assert pix.width == 390 and pix.height >= 487
+          pix.save(folder/'m2_390px.png')
+          PY
+
+      - name: Save M2 synthetic proofs for CEO visual review
+        uses: actions/upload-artifact@v4
+        with:
+          name: m2-sector-rotation-synthetic-previews
+          path: |
+            ${{ runner.temp }}/m2_synthetic.svg
+            ${{ runner.temp }}/m2_synthetic.png
+            ${{ runner.temp }}/m2_390px.png
+          retention-days: 7
+          if-no-files-found: error
       - name: Confirm synthetic content remains visibly watermarked
         shell: bash
         run: |
