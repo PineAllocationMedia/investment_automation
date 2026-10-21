@@ -3477,7 +3477,7 @@ def git_blob_sha(raw):
 
 def _load_embedded_ne50():
     """Exact, lossless 50m polygons shipped with the renderer itself."""
-    raw = base64.b64decode(''.join(_EMBEDDED_NE50))
+    raw = base64.b64decode(_EMBEDDED_NE50)
     pos = 0
 
     def unsigned():
