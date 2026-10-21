@@ -275,19 +275,19 @@ def validate_map_issue(p, geo):
     return valid
 
 
-def _project(pt):
+def _project(pt, map_top=462, map_height=388):
     x,y=pt
-    return (72+(x+180)/360*936, 462+(81-y)/141*388)
+    return (72+(x+180)/360*936, map_top+(81-y)/141*map_height)
 
 
-def _paths(f):
+def _paths(f, map_top=462, map_height=388):
     parts=[f['coordinates']] if f['type']=='Polygon' else f['coordinates']
     lines=[]
     for poly in parts:
         for ring in poly:
             if len(ring)<4:
                 continue
-            coords=[_project(c) for c in ring]
+            coords=[_project(c,map_top,map_height) for c in ring]
             # Split any date-line jump instead of drawing a false line across Earth.
             seg=[]
             for k,(x,y) in enumerate(coords):
@@ -349,6 +349,168 @@ def _tick(v):
     return f'{v:+g}%'
 
 
+
+def _render_market_atlas_reference(p, geo, eligible, logo_png, status):
+    """CEO's October 20 reference plate. Fixed geometry; only session data change.
+
+    This renders the same 1080 x 1350 composition every day: masthead, single
+    headline, session comparison, map, diverging legend, 3+3 league panels,
+    breadth/spread and source footer. No alternative design selection.
+    """
+    dark = BG
+    ocean = '#12282C'
+    land = '#294344'
+    panel = '#173033'
+    border = '#36585A'
+    soft = '#B5C8C4'
+    green = '#78C99D'
+    red = '#E67C7A'
+    def color(v):
+        if v == 0:
+            return ZERO
+        ratio = min(1.0, abs(v) / scale)**0.68
+        light, strong = (('#B2C8BA', '#59B989') if v > 0
+                         else ('#C3B1A9', '#C97878'))
+        return _hexmix(light, strong, ratio)
+    def stat(v):
+        return f'{v:+.2f}%' if round(v, 2) else '0.00%'
+
+    ranked = sorted(eligible, key=lambda e: (-_return(e), e['economy_id']))
+    # One shared observed scale: exact values, not a misleading fixed +/-2%.
+    scale = max(1.0, math.ceil(max(abs(_return(e)) for e in ranked)*10-1e-9)/10)
+    selected = {e['economy_id']: e for e in eligible}
+    winners_count = min(3, (len(ranked)+1)//2)
+    losers_count = min(3, len(ranked)//2)
+    leaders = ranked[:winners_count]
+    laggards = list(reversed(ranked[-losers_count:])) if losers_count else []
+    higher = sum(_return(e)>0 for e in eligible)
+    lower = sum(_return(e)<0 for e in eligible)
+    unchanged = len(eligible)-higher-lower
+    spread = _return(ranked[0])-_return(ranked[-1])
+    current = datetime.fromisoformat(p['session_date']).strftime('%b %d, %Y').upper()
+    previous = datetime.fromisoformat(p['prior_session_date']).strftime('%b %d, %Y').upper()
+    source_names = sorted({e['source_title'] for e in eligible})
+    source_label = (source_names[0] if len(source_names)==1
+                    else 'MULTIPLE DATED SOURCES')
+    # Avoid unreadable source strings without silently changing factual values.
+    source_line = ('PRICES: '+source_label.upper()+
+                   '  /  U.S. ETF USD EXCHANGE CLOSE')
+    if len(source_line)>108:
+        source_line = 'PRICES: MULTIPLE DATED SOURCES / U.S. ETF USD EXCHANGE CLOSE'
+
+    out = [
+        f'<svg xmlns="http://www.w3.org/2000/svg" width="{W}" height="{H}" viewBox="0 0 {W} {H}">',
+        rect(0,0,W,H,dark,0),
+        '<defs><clipPath id="atlasMap"><rect x="68" y="372" width="944" height="429"/></clipPath>'
+        '<clipPath id="atlasSeal"><circle cx="113" cy="101" r="49"/></clipPath></defs>',
+        f'<circle cx="113" cy="101" r="49" fill="{IVORY}"/>',
+    ]
+    if logo_png:
+        img = base64.b64encode(logo_png).decode('ascii')
+        out.append('<image x="64" y="52" width="98" height="98" '
+                   'preserveAspectRatio="xMidYMid slice" clip-path="url(#atlasSeal)" '
+                   'href="data:image/png;base64,'+img+'"/>')
+    else:
+        out.append(txt(113,113,'P',43,PINE,800,anchor='middle'))
+    out.extend([
+        txt(175,99,'PAM / MARKET ATLAS',30,LIGHT,760),
+        txt(178,123,'GLOBAL EQUITY ETF PRICE MONITOR',14,TEAL,650),
+        rule(68,160,1012,160,border,1),
+        txt(68,240,'The world in one U.S. session',49,LIGHT,800),
+        txt(68,279,'U.S.-LISTED COUNTRY ETFs  /  USD PRICE MOVES',17,TEAL,680),
+        txt(68,324,current+'  vs.  '+previous,22,LIGHT,660),
+        txt(1012,322,'REGULAR U.S. CLOSE',13,soft,520,anchor='end'),
+        rect(68,372,944,429,ocean,0),
+    ])
+    # Pale grid behind the authentic 50m polygons, exactly as in the CEO image.
+    for x in (225,540,698,855):
+        out.append(rule(x,372,x,801,'#254247',0.6))
+    for y in (535,626,716):
+        out.append(rule(68,y,1012,y,'#254247',0.6))
+    out.append('<g clip-path="url(#atlasMap)">')
+    for f in geo['features']:
+        if f['id']=='ATA':
+            continue
+        d = _paths(f, 376, 419)
+        if not d:
+            continue
+        e = selected.get(f['id'])
+        fill = color(_return(e)) if e is not None else land
+        ink = '#6F9589' if e is not None else '#29474A'
+        out.append('<path d="'+d+'" fill="'+fill+
+                   '" fill-rule="evenodd" stroke="'+ink+
+                   '" stroke-width=".72"/>')
+    sg = selected.get('SGP')
+    if sg is not None:
+        sx,sy = _project(SGP_POINT, 376, 419)
+        out.append(f'<circle cx="{sx:.1f}" cy="{sy:.1f}" r="5" '
+                   f'fill="{color(_return(sg))}" stroke="{LIGHT}" stroke-width="1.4"/>')
+        out.append(txt(sx+10,sy-8,'SG',14,LIGHT,700))
+    out.extend([
+        '</g>',
+        txt(68,835,'ONE COMPLETED U.S. SESSION  /  FX INCLUDED',15,soft,540),
+        txt(1012,835,f'{len(eligible)} MARKETS SHOWN',15,TEAL,700,anchor='end'),
+        txt(68,875,f'-{scale:g}%',15,soft,540),
+        txt(1012,875,f'+{scale:g}%',15,soft,540,anchor='end'),
+    ])
+    # Each displayed map color is generated from the same function as this key.
+    for i in range(110):
+        v=scale*(2*(i+.5)/110-1)
+        out.append(rect(116+i*848/110,871,848/110+.2,16,color(v),0))
+    out.extend([
+        txt(540,906,'0.0%  /  NEUTRAL',14,soft,550,anchor='middle'),
+        rect(68,924,19,17,land,0),
+        txt(95,937,'NOT PLOTTED',14,soft,560),
+        txt(540,937,'RETURN SCALE IS SYMMETRIC',14,soft,560,anchor='middle'),
+        txt(1012,937,'SINGAPORE SHOWN AS SG POINT' if sg else
+            'COUNTRY ETF PRICE RETURNS',13,soft,540,anchor='end'),
+        rule(68,957,1012,957,border,1),
+    ])
+    for x, items, heading in (
+        (68,leaders,'TOP 3 / FRONTRUNNERS'),
+        (554,laggards,'BOTTOM 3 / LAGGARDS'),
+    ):
+        out.extend([rect(x,982,458,237,panel,4),
+                    txt(x+21,1019,heading,20,LIGHT,740),
+                    rule(x+20,1035,x+438,1035,border,1)])
+        for i in range(3):
+            row_y=1074+i*52
+            if i:
+                out.append(rule(x+20,row_y-31,x+438,row_y-31,border,1))
+            if i >= len(items):
+                out.append(txt(x+21,row_y,'—',19,soft,540))
+                continue
+            item=items[i]
+            value=_return(item)
+            out.extend([
+                txt(x+21,row_y,item['economy_name'].upper(),17,LIGHT,690),
+                txt(x+236,row_y,item['etf_ticker'],16,soft,580),
+                txt(x+434,row_y,stat(value),20,green if value>=0 else red,770,
+                    anchor='end'),
+            ])
+    breadth=f'{higher} HIGHER  /  {lower} LOWER'
+    if unchanged:
+        breadth+=f'  /  {unchanged} FLAT'
+    out.extend([
+        txt(68,1254,breadth,16,TEAL,670),
+        txt(1012,1254,f'{spread:.2f} pp  LEADER-LAGGARD SPREAD',
+            16,LIGHT,650,anchor='end'),
+        rule(68,1274,1012,1274,border,1),
+        txt(68,1296,source_line,12,soft,500),
+        txt(68,1318,p['prior_session_date']+' — '+p['session_date']+
+            '  /  COUNTRY ETF PROXIES, NOT DOMESTIC INDEX RETURNS',
+            12,'#819D9D',500),
+        txt(1012,1334,'NOT INVESTMENT ADVICE',13,soft,540,anchor='end'),
+    ])
+    if status=='DRAFT' and p['rights_note']=='SYNTHETIC_LAYOUT_ONLY':
+        out.extend([rect(750,305,262,36,'#503D25',5),
+                    txt(881,329,'SYNTHETIC EXAMPLE',15,AMBER,750,anchor='middle')])
+    out.append('</svg>')
+    svg='\n'.join(out)+'\n'
+    ET.fromstring(svg)
+    return svg
+
+
 def m1_release_allowed(p, approval):
     """M1-specific SHA-bound approval. Never assume that public facts need a
     per-ticker data licence; require Prompt 3 factual and actual-source-use
@@ -402,6 +564,10 @@ def render_global_map(p, logo_png=None, status='DRAFT', geometry_path=GEOMETRY):
              hashlib.sha256(logo_png).hexdigest()==APPROVED_LOGO_SHA256 and
              p.get('brand_logo_sha256')==APPROVED_LOGO_SHA256,
              'M1 RELEASE exact approved brand master required')
+    # CEO reference image is the single stable Market Atlas visual contract.
+    # All other M1 modes retain the existing renderer unchanged.
+    if p.get('map_product')=='MARKET_ATLAS_V1' and etf_mode:
+        return _render_market_atlas_reference(p, geo, elig, logo_png, status)
     # Only qualified entries have a visible market overlay. Keep all thirty
     # checked outcomes in the private evidence packet, including exclusions.
     eligible_byid={e['economy_id']:e for e in elig}
