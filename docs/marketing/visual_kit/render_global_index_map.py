@@ -3805,7 +3805,7 @@ def _render_market_atlas_reference(p, geo, eligible, logo_png, status):
     """
     dark = BG
     ocean = '#12282C'
-    land = '#294344'
+    land = '#21393B'
     panel = '#173033'
     border = '#36585A'
     soft = '#B5C8C4'
@@ -3814,9 +3814,12 @@ def _render_market_atlas_reference(p, geo, eligible, logo_png, status):
     def color(v):
         if v == 0:
             return ZERO
-        ratio = min(1.0, abs(v) / scale)**0.68
-        light, strong = (('#B2C8BA', '#59B989') if v > 0
-                         else ('#C3B1A9', '#C97878'))
+        # Stronger but restrained diverging ink: small nonzero moves remain
+        # visibly green/red rather than fading into pale near-neutral ivory.
+        # Continuous and symmetric, with NO thresholds or layout changes.
+        ratio = 0.18 + 0.82 * min(1.0, abs(v) / scale)**0.70
+        light, strong = (('#8BBF9E', '#249E6B') if v > 0
+                         else ('#E29A8E', '#C64C59'))
         return _hexmix(light, strong, ratio)
     def stat(v):
         return f'{v:+.2f}%' if round(v, 2) else '0.00%'

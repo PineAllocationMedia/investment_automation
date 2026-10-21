@@ -21,6 +21,9 @@ ETF_COMPARISON = 'ONE_COMPLETED_US_ETF_SESSION'
 ETF_PRICE_BASIS = 'UNADJUSTED_US_EXCHANGE_CLOSE'
 CORPORATE_ACTION = 'NO_MATERIAL_SPLIT_OR_EX_DISTRIBUTION'
 ISHARES = 'https://www.ishares.com/us/products/etf-investments'
+ARGENTINA = 'https://www.globalxetfs.com/funds/ARGT'
+CHILE = 'https://www.ishares.com/us/products/239618/ishares-msci-chile-etf'
+THAILAND = 'https://www.ishares.com/us/products/239688/ishares-msci-thailand-capped-etf'
 VANGUARD = 'https://investor.vanguard.com/investment-products/etfs/profile/voo'
 VANECK = 'https://www.vaneck.com/us/en/investments/vietnam-etf-vnm/'
 # Candidate identity and U.S. fund issuer verified at issuer/SEC sources.
@@ -52,11 +55,18 @@ CANDIDATE_PAIRS = (
     ('VNM','VNM','VanEck Vietnam ETF','VanEck',VANECK),
     ('POL','EPOL','iShares MSCI Poland ETF','iShares',ISHARES),
     ('SWE','EWD','iShares MSCI Sweden ETF','iShares',ISHARES),
+    # CEO-requested country expansion: active U.S. USD single-country ETF proxies.
+    ('ARG','ARGT','Global X MSCI Argentina ETF','Global X',ARGENTINA),
+    ('CHL','ECH','iShares MSCI Chile ETF','iShares',CHILE),
+    ('THA','THD','iShares MSCI Thailand ETF','iShares',THAILAND),
 )
 ETF_CANDIDATES={c:{'ticker':t,'name':n,'issuer':issuer,'issuer_url':url}
                 for c,t,n,issuer,url in CANDIDATE_PAIRS}
 NO_ETF_PROXY={'EGY','DZA','RUS','KAZ','IRN'}
-assert len(ETF_CANDIDATES)==25 and set(ETF_CANDIDATES)|NO_ETF_PROXY==set(COUNTRIES)
+# Extend only the ETF product. The original 30-country domestic-index M1 and
+# previously researched 30-row ETF CSVs remain accepted unchanged.
+ETF_COUNTRIES=COUNTRIES+('ARG','CHL','THA')
+assert len(ETF_CANDIDATES)==28 and set(ETF_CANDIDATES)|NO_ETF_PROXY==set(ETF_COUNTRIES)
 # EGPT liquidated in March 2024 (SEC), RSX began liquidation after Russian
 # equity market suspension. No stale delisted tickers or broad-region substitutes.
 
@@ -73,8 +83,14 @@ def validate_country_etf_issue(p, geo):
                 ('caption',1200),('universe_version',57),
                 ('method_version',45)):
         bounded(p.get(k),k,n)
-    need(p.get('selection_basis')=='CEO_SELECTED_30_COUNTRIES',
-         'ETF M1 requires all 30 CEO country decisions')
+    rows=p.get('evidence')
+    need(isinstance(rows,list) and len(rows) in (len(COUNTRIES),len(ETF_COUNTRIES)),
+         'ETF M1 requires complete 30- or 33-country evidence')
+    selected=ETF_COUNTRIES if len(rows)==len(ETF_COUNTRIES) else COUNTRIES
+    basis=('CEO_SELECTED_33_COUNTRIES' if len(rows)==len(ETF_COUNTRIES)
+           else 'CEO_SELECTED_30_COUNTRIES')
+    need(p.get('selection_basis')==basis,
+         'ETF M1 country-list basis does not match the supplied full ledger')
     need(p.get('return_basis')==ETF_BASIS and
          p.get('comparison_basis')==ETF_COMPARISON,
          'ETF M1 requires same U.S. market-price session in USD')
@@ -104,13 +120,10 @@ def validate_country_etf_issue(p, geo):
     need(p.get('etf_price_basis')==ETF_PRICE_BASIS,
          'ETF M1 must use exchange market price, not NAV or total-return')
     need(p.get('fund_currency')=='USD', 'ETF M1 must use USD quote currency')
-    rows=p.get('evidence')
-    need(isinstance(rows,list) and len(rows)==30,
-         'ETF M1 requires full 30-decision evidence register')
     world={f['id'] for f in geo['features']}
     accepted=[];session_dates=set();prior_dates=set();close_times=set()
     for i,e in enumerate(rows):
-        code=COUNTRIES[i];name=f'ETF evidence[{i}]'
+        code=selected[i];name=f'ETF evidence[{i}]'
         need(isinstance(e,dict) and e.get('selection_order')==i+1 and
              e.get('economy_id')==code,
              name+' country/order missing or substituted')
