@@ -43,9 +43,9 @@ Use the approved world-map layout with an adaptive continuous percent-return sca
 For the usual `m1_etf_daily.py build`, the source-derived caption starts as a lively horse-race-style market scoreboard: top ETF return, laggard, percentage-point gap, count of rising/falling ETFs, real completed US session and USD/FX caveats, with price-source attribution. Prompt 2 should polish the copy naturally, without changing figures or attributing invented causes; Prompt 3 confirms every quoted number and caption against the issue record and image. Preserve CEO approval of exact final post. The deterministic color fix applies to **both M1 ETF and opt-in domestic-index modes**, whereas the racing recap generator applies only to the USD ETF daily CLI.
 
 
-## 30-country CEO list → 25 named U.S. ETF candidates
+## Market Atlas ETF country registry: 28 candidates, 5 exclusions
 
-These are **research starting points, not a fixed daily universe** and not a claim of 25 available real-time quotes or 25 publication-licensed feeds. Each must be rechecked on the intended market date; newly discovered funds require separate qualified registry review. The actual fund/underlying country focus, existence and trading status must be checked for the intended day. Proxy purity is approximate; do not substitute a broader regional/emerging-markets ETF for one country.
+These are **research starting points, not live-price records or publication-licensed feeds**. The original 30-country/25-ETF research schema remains accepted for historical inputs, and the expanded daily ETF CSV has 33 rows (28 registered tickers plus five no-proxy cases). Each must be rechecked on the intended market date; newly discovered funds require separate qualified registry review. The actual fund/underlying country focus, existence and trading status must be checked for the intended day. Proxy purity is approximate; do not substitute a broader regional/emerging-markets ETF for one country.
 
 | Country | Proposed ETF | Issuer |
 |---|---|---|
@@ -79,6 +79,11 @@ These are **research starting points, not a fixed daily universe** and not a cla
 | **Iran** | **NO QUALIFIED U.S. SINGLE-COUNTRY ETF** | No active verified equivalent established |
 | Poland | **EPOL** — MSCI Poland | iShares |
 | Sweden | **EWD** — MSCI Sweden | iShares |
+| **Argentina** | **ARGT** — MSCI Argentina | [Global X](https://www.globalxetfs.com/funds/ARGT) |
+| **Chile** | **ECH** — MSCI Chile | [iShares](https://www.ishares.com/us/products/239618/ishares-msci-chile-etf) |
+| **Thailand** | **THD** — MSCI Thailand | [iShares](https://www.ishares.com/us/products/239688/ishares-msci-thailand-capped-etf) |
+
+**Exposure caveat:** ARGT tracks the MSCI All Argentina 25/50 equity-exposure basket and includes internationally listed/ADR companies; it is **not** an index of only shares trading in Buenos Aires. ECH and THD provide Chile- and Thailand-focused equities, but ETF USD market-close returns still incorporate trading/FX effects. Vietnam was already covered by VanEck **VNM**, France by **EWQ**. **EGPT (Egypt) was liquidated in March 2024** and no current eligible U.S.-listed country ETF for Algeria was verified; do not substitute a regional ETF.
 
 **Primary issuer/entity references:** [iShares U.S. ETF directory](https://www.ishares.com/us/products/etf-investments), [Vanguard VOO](https://investor.vanguard.com/investment-products/etfs/profile/voo), [VanEck VNM](https://www.vaneck.com/us/en/investments/vietnam-etf-vnm/). [SEC EGPT liquidation supplement (March 2024)](https://www.sec.gov/Archives/edgar/data/1137360/000113736024000170/vvtegpt2024liquidationsupp.htm), [VanEck RSX/RSXJ liquidation notice](https://www.vaneck.com/us/en/blogs/emerging-markets-equity/shareholder-notice-rsx-and-rsxj-liquidation/).
 
