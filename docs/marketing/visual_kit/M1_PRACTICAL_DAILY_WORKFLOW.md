@@ -18,26 +18,11 @@ No additional prompt or alternative topic-selection workflow is needed when Mark
 
 **Coverage is a research-performance objective, not a hardcoded renderer quota.** Try to recover authentic pairs for the full established 25-ticker candidate set. The old 4- and 6-country blocking thresholds are gone. An exceptional one-country fact pattern can still render in the SAME three-row-per-panel visual layout, with honest empty slots and no invented ranking entries. A zero-real-return issue cannot truthfully show any performance; diagnose the retrieval problem instead of producing fake percentages.
 
-## Exact runtime bootstrap (no more missing-private-repository-file dead end)
+## One fixed image, updated data only
 
-**Before reporting that the canonical M1 map cannot be rendered because the private GitHub checkout or 50m asset is missing**, use the standalone `m1_runtime_bootstrap.py`. It downloads each exact executable source file and the full 1:50m Natural Earth JSON via the **authenticated GitHub Git blob API** (rather than relying on Contents API inline text for a large file), pins them all to ONE resolved canonical commit, checks individual blob SHA-1s, enforces the pinned geometry SHA `9f298a1bac5923c787a8e2aaf937221da04c4a58`, and byte-copies the exact CEO-approved PNG after checking its SHA-256. It writes `m1_runtime_materialization.json` and imports the renderer/loads the actual geometry as a preflight. No redrawn map, replacement logo, invented pricing, or blanket CI/pass claim.
+The CEO-supplied October 20, 2026 Market Atlas image is the **visual master**. Each Market Atlas request immediately uses that composition in the existing M1 renderer. Keep the dark background, approved pine seal, masthead, headline, fixed map, horizontal green/red scale, three frontrunners, three laggards, market-breadth/spread band and source/footer exactly where they are. Update only completed-session dates, properly sourced ETF prices/returns, map fills, ranks, scale values, observed market count, data-driven summary, sources and English caption. Use the same existing renderer and country geometry; **no bootstrap, new infrastructure, template selection or pre-render administrative procedure**.
 
-```bash
-# Run in the SAME network-enabled/authenticated Python execution environment
-# where the actual M1 output will be created. Keep credentials out of prompts.
-export GH_TOKEN="$(gh auth token)"   # or an already configured, read-only GITHUB_TOKEN
-python docs/marketing/visual_kit/m1_runtime_bootstrap.py \
-  --dest ./m1_runtime \
-  --brand-logo /authorized/local/path/PAM_Macro_Lens_logo_RECONSTRUCTED_v0.1_APPROVED_2048.png
-unset GH_TOKEN
-cd m1_runtime
-python m1_etf_daily.py init --out ./market_atlas_quotes.csv
-# Fill with VERIFIED genuine dated ETF closing-price evidence, then build.
-```
-
-The bootstrap itself is an ordinary small Python file (fetch it through the connected GitHub tool or start from an existing repo checkout). If the actual repository checkout is already accessible, use `--source-tree /path/to/verified/investment_automation` instead of an API token: it verifies files against the checkout's HEAD Git blobs. The logo is the separately approved master in PAM's Library; it is never reconstructed by this process. The geometry is part of the source checkout or fetched from GitHub by immutable SHA, not a separate manual download.
-
-**Environment boundary:** a GitHub connector's text reply does not itself place files into an isolated local Python environment; a network-disabled sandbox without a repository checkout or an authorized transferable snapshot cannot execute the private renderer. Choose the available authorized network-enabled/local checkout execution environment and materialize there. Never fabricate a CANONICAL image or claim an unrun test. This bootstrap solves the ordinary missing-file problem when either GitHub read credentials and network, or a verified local Git checkout, are available. If neither exists, report that specific missing execution bridge rather than asking the research workflow to change subject.
+An internal image can be produced before independent publication review. Verification of material facts and CEO sign-off remain necessary **before posting**, not as reasons to withhold the first image.
 
 ## Normal CLI example (paths/date are examples only, NOT actual closing-price evidence)
 
