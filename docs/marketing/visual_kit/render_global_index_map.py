@@ -40,8 +40,8 @@ COUNTRIES = (
     'BRA','FRA','CHE','MEX','ESP','ITA','NLD','SGP','ZAF','TUR',
     'SAU','EGY','DZA','IDN','VNM','RUS','KAZ','IRN','POL','SWE',
 )
-# Natural Earth 110m omits microstate-scale Singapore. This is a geographic
-# locator, not a fabricated polygon or an assertion about legal borders.
+# The pinned map-country set has no Singapore polygon, even at 50m; the
+# location below is a geographic point, not a fabricated sovereign boundary.
 SGP_POINT = (103.8198, 1.3521)
 MISSING = {'HOLIDAY','CLOSED','STALE','MISSING','INCOMPARABLE'}
 # Fixed endpoints, adaptive daily scale. All channels darken with |return|,
