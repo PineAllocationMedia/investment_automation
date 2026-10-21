@@ -30,9 +30,9 @@ class M1UsdETFTests(unittest.TestCase):
     def setUpClass(cls):
         cls.geo=load_geometry()
 
-    def test_25_candidates_and_five_genuine_no_proxy_markets(self):
+    def test_28_registered_candidates_and_five_genuine_no_proxy_markets(self):
         self.assertEqual(len(COUNTRIES),30)
-        self.assertEqual(len(ETF_CANDIDATES),25)
+        self.assertEqual(len(ETF_CANDIDATES),28)
         self.assertEqual(NO_ETF_PROXY,{'EGY','DZA','RUS','KAZ','IRN'})
         self.assertEqual(ETF_CANDIDATES['USA']['ticker'],'VOO')
         self.assertEqual(ETF_CANDIDATES['JPN']['ticker'],'EWJ')
