@@ -52,10 +52,18 @@ class RuntimeBootstrapTests(unittest.TestCase):
 
     def test_wrong_geometry_version_is_rejected_before_download(self):
         commit = "b" * 40
+        raw = b"correct-other-file"
+        sha = bootstrap.blob_sha(raw)
         def api(path, _token):
             if path.startswith("commits/"):
                 return {"sha": commit}
-            return {"type": "file", "sha": "f" * 40}
+            if path.startswith("contents/"):
+                if path.startswith("contents/" + bootstrap.KIT + "/" + bootstrap.GEO):
+                    return {"type": "file", "sha": "f" * 40}
+                return {"type": "file", "sha": sha}
+            if path == "git/blobs/" + sha:
+                return {"encoding": "base64", "content": base64.b64encode(raw).decode()}
+            raise AssertionError(path)
         with patch.object(bootstrap, "api_get", side_effect=api):
             with self.assertRaisesRegex(ValueError, "geography SHA drift"):
                 bootstrap.read_from_github("fake-token", bootstrap.REF)
