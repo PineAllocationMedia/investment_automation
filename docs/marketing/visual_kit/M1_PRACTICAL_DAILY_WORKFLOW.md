@@ -24,6 +24,14 @@ The CEO-supplied October 20, 2026 Market Atlas image is the **visual master**. *
 
 An internal image can be produced before independent publication review. Verification of material facts and CEO sign-off remain necessary **before posting**, not as reasons to withhold the first image.
 
+## No-runtime handoff: image creation stays the first deliverable
+
+If genuine ETF data have already been found (for example 25/25 close pairs) but a GitHub connector cannot transfer the embedded-geometry Python source to the local Python sandbox, **do not end Prompt 2 with `RENDER HOLD`, a ZIP handoff or a request for another execution environment**. This is not a data-research defect.
+
+**Produce the image now:** use available image creation/editing capabilities with the CEO's October 20, 2026 reference image, source-backed returns and both actual completed U.S. session dates. Keep the masthead, pine visual identity, fixed 4:5 composition, real-country map, symmetric performance colors, 3+3 league tables, breadth/spread and legible footer. If actual deterministic M1 can run, always prefer it. A visual fallback can be a high-quality working proof but does **not** inherit exact Natural Earth geometry, approved-logo byte equality or renderer output hashes by assertion: record its actual method/limitations outside the artwork, and verify before CEO-approved publication. Generate a 390px companion if the available tools permit; no fictional SVG, hashes, audit pass or file links.
+
+The research ledger, corporate-action questions and publisher terms may still require independent review **before public release**. They are not a reason to refuse to show a clearly identified working image. Do not substitute dated data, infer missing close prices or pass off a previous session's map as the new session.
+
 ## Normal CLI example (paths/date are examples only, NOT actual closing-price evidence)
 
 ```bash
