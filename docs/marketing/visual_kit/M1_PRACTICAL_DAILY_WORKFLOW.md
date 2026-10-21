@@ -50,7 +50,7 @@ See [MARKET_ATLAS_STANDARD.md](MARKET_ATLAS_STANDARD.md) for invariant coordinat
 
 The English caption is engaging, natural, grounded in the actual strongest/weakest qualifying ETF returns, signed % values, percentage-point spread, observed breadth, dates, source attribution and USD ETF/FX caveat. No invented price catalyst, fake quotation, inaccurate domestic-index claim, mandatory engagement bait or investment recommendation.
 
-**A clean image is only publication-ready in appearance**, not permission to post. Approval-state text is stored in the manifest/issue/QA packet, never on the public image.
+**A clean image is only publication-ready in appearance**, not permission to post. Approval-state text is stored in the manifest/issue/QA packet, never on the public image. **Market Atlas geographic/chrome correction proposed in this PR:** both colored countries and ordinary unplotted land now use the pinned 1:50m Natural Earth polygons (including detailed Canadian Arctic and Indonesian/Japanese islands). The public image header does **not** show `GM-YYYYMMDD-NN` and the footer does **not** show the redundant `AS OF ... UTC` line; the true US-session comparison remains in the prominent deck. Exact issue ID and UTC cutoff remain in the JSON/source/asset SHA audit trail, and the bottom-right NOT INVESTMENT ADVICE disclosure remains on the image. These improvements require CEO PR merge before becoming canonical.
 
 ## Prompt 3 / independent review — no re-render
 
