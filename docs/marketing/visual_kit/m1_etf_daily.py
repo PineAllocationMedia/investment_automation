@@ -16,7 +16,7 @@ from pathlib import Path
 from urllib.parse import urlparse
 from zoneinfo import ZoneInfo
 
-from m1_country_etf_mode import ETF_CANDIDATES, NO_ETF_PROXY
+from m1_country_etf_mode import ETF_CANDIDATES, ETF_COUNTRIES, NO_ETF_PROXY
 from render_global_index_map import (
     COUNTRIES, APPROVED_LOGO_SHA256, load_geometry, render_global_map,
     validate_map_issue,
@@ -48,10 +48,10 @@ def init_csv(path):
     with Path(path).open('w',newline='',encoding='utf-8') as fp:
         writer=csv.DictWriter(fp,fieldnames=COLUMNS)
         writer.writeheader()
-        for code in COUNTRIES:
+        for code in ETF_COUNTRIES:
             ticker=ETF_CANDIDATES.get(code,{}).get('ticker','')
             writer.writerow({'country':code,'ticker':ticker})
-    return len(COUNTRIES)
+    return len(ETF_COUNTRIES)
 
 
 def records(path):
@@ -61,8 +61,10 @@ def records(path):
              set(COLUMNS).issubset(set(reader.fieldnames)),
              'M1 CSV needs columns: '+', '.join(COLUMNS))
         rows=list(reader)
-    need(len(rows)==30,'M1 CSV needs exactly 30 countries, even excluded cases')
-    for i,(row,code) in enumerate(zip(rows,COUNTRIES),1):
+    need(len(rows) in (len(COUNTRIES),len(ETF_COUNTRIES)),
+         'M1 CSV requires original 30 countries or expanded 33 countries')
+    selected=ETF_COUNTRIES if len(rows)==len(ETF_COUNTRIES) else COUNTRIES
+    for i,(row,code) in enumerate(zip(rows,selected),1):
         need(row['country'].strip()==code,
              f'M1 CSV country row {i} must be {code} in canonical order')
         ticker=ETF_CANDIDATES.get(code,{}).get('ticker','')
@@ -142,6 +144,7 @@ def build(quotes,session_date,prior_date,cutoff_utc,*,issue_id,headline=None,log
          'Today\'s US market has not yet closed; use the last completed session')
     need((cutoff-close_et.astimezone(timezone.utc))<=timedelta(hours=96),
          'Too old for daily briefing: choose a recent completed session')
+    source_rows=records(quotes)
     template=json.loads(SAMPLE.read_text(encoding='utf-8'))
     p=template
     p.update({
@@ -162,13 +165,32 @@ def build(quotes,session_date,prior_date,cutoff_utc,*,issue_id,headline=None,log
         'session_date':current.isoformat(),
         'prior_session_date':prior.isoformat(),
     })
+    if len(source_rows)==len(ETF_COUNTRIES):
+        # Leave the validated legacy 30-country example unchanged. The expanded
+        # daily ETF product appends three optional price observations in order.
+        # All values are reset to MISSING below unless real close pairs exist.
+        for code,name in (('ARG','Argentina'),('CHL','Chile'),('THA','Thailand')):
+            candidate=ETF_CANDIDATES[code]
+            row=p['evidence'][0].copy()
+            row.update(economy_id=code,geometry_id=code,economy_name=name,
+                       instrument_name=candidate['name'],
+                       instrument_provider=candidate['issuer'],
+                       issuer_product_url=candidate['issuer_url'],
+                       etf_ticker=candidate['ticker'],
+                       selection_order=len(p['evidence'])+1)
+            if code=='ARG':
+                row['country_exposure_note']=(
+                    'Argentina-focused index includes offshore/ADR company exposures')
+            p['evidence'].append(row)
+        p['selection_basis']='CEO_SELECTED_33_COUNTRIES'
+        p['universe_version']='CEO_33_COUNTRIES_US_ETF_PROXY_V2'
     if logo is not None:
         raw=checked_logo(logo)
         need(hashlib.sha256(raw).hexdigest()==APPROVED_LOGO_SHA256,
              'Exact CEO-approved pine master required')
         p['brand_logo_sha256']=APPROVED_LOGO_SHA256
     displayed=[];omitted=[]
-    for r,e in zip(records(quotes),p['evidence']):
+    for r,e in zip(source_rows,p['evidence']):
         code=e['economy_id']; ticker=e.get('etf_ticker')
         a=(r.get('prior_close') or '').strip()
         b=(r.get('close') or '').strip()
@@ -351,7 +373,7 @@ def review(preview,qa,manifest=None):
 def main(argv=None):
     ap=argparse.ArgumentParser(description=__doc__)
     sub=ap.add_subparsers(dest='command',required=True)
-    a=sub.add_parser('init',help='Write a 30-country quote CSV for web research')
+    a=sub.add_parser('init',help='Write the expanded 33-country ETF quote CSV for web research')
     a.add_argument('--out',type=Path,required=True)
     b=sub.add_parser('build',help='Create clean, consistent Market Atlas image from genuine completed-session ETF prices')
     b.add_argument('quotes',type=Path)
@@ -377,7 +399,7 @@ def main(argv=None):
     try:
         if args.command=='init':
             init_csv(args.out)
-            print('30-country USD ETF quote sheet initialized; ZERO prices')
+            print('33-country USD ETF quote sheet initialized; ZERO prices')
             return 0
         if args.command=='review':
             draft=json.loads(args.issue.read_text(encoding='utf-8'))
