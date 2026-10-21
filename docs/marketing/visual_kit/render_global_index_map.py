@@ -459,8 +459,8 @@ def render_global_map(p, logo_png=None, status='DRAFT', geometry_path=GEOMETRY):
         out.append('<path d="'+d+'" fill="'+color+
                    '" fill-rule="evenodd" stroke="'+border+
                    '" stroke-width="'+width+'"/>')
-    # Singapore is absent from 110m polygons. Plot its labeled locator ONLY
-    # when its own index return is qualified; otherwise leave no marker.
+    # Singapore has no polygon in the pinned 50m country-ID subset. Plot its
+    # locator ONLY when its own price return is qualified; otherwise omit it.
     sg=eligible_byid.get('SGP')
     if sg is not None:
         sx,sy=_project(SGP_POINT)
