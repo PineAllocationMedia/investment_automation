@@ -20,7 +20,7 @@ No additional prompt or alternative topic-selection workflow is needed when Mark
 
 ## One fixed image, updated data only
 
-The CEO-supplied October 20, 2026 Market Atlas image is the **visual master**. Each Market Atlas request immediately uses that composition in the existing M1 renderer. Keep the dark background, approved pine seal, masthead, headline, fixed map, horizontal green/red scale, three frontrunners, three laggards, market-breadth/spread band and source/footer exactly where they are. Update only completed-session dates, properly sourced ETF prices/returns, map fills, ranks, scale values, observed market count, data-driven summary, sources and English caption. Use the same existing renderer and country geometry; **no bootstrap, new infrastructure, template selection or pre-render administrative procedure**.
+The CEO-supplied October 20, 2026 Market Atlas image is the **visual master**. **The renderer now contains all 177 exact Natural Earth 50m country geometries itself.** A missing standalone 50m JSON file is not a reason to stop the image; do not download geometry, use a bootstrap or request another repository/runner handoff. Each Market Atlas request immediately uses that composition in the existing M1 renderer. Keep the dark background, approved pine seal, masthead, headline, fixed map, horizontal green/red scale, three frontrunners, three laggards, market-breadth/spread band and source/footer exactly where they are. Update only completed-session dates, properly sourced ETF prices/returns, map fills, ranks, scale values, observed market count, data-driven summary, sources and English caption. Use the same existing renderer and country geometry; **no bootstrap, new infrastructure, template selection or pre-render administrative procedure**.
 
 An internal image can be produced before independent publication review. Verification of material facts and CEO sign-off remain necessary **before posting**, not as reasons to withhold the first image.
 
@@ -48,7 +48,7 @@ Required columns:
 
 An included row needs genuine HTTPS quotation URLs, positive comparable USD closing prices and an actual corporate action/source-use observation. No blanket per-ETF fictitious licence-letter or exhaustive legal rights archive is needed merely to generate an original internal graphic from publicly reported factual close prices. Source-specific binding restrictions remain material and will be checked in Prompt 3.
 
-The renderer **does not fetch remote quotes**: an employee with web capabilities must actively complete the source-linked CSV. Once genuine prices exist it assembles the image deterministically. Rendering is not proof that external quote facts were verified by an independent person.
+The renderer needs **no external geometry file or geodata download**. It **does not fetch remote ETF quotes**: an employee with web capabilities must actively complete the source-linked CSV. Once genuine prices exist it assembles the image deterministically. Rendering is not proof that external quote facts were verified by an independent person.
 
 ## Fixed image and caption
 
