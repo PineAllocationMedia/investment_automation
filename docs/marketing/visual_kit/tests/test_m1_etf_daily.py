@@ -48,26 +48,26 @@ class M1PracticalETFTests(unittest.TestCase):
                      '2026-10-20T18:30:00Z',issue_id='GM-20261020-09',
                      headline='Global ETFs in USD')
 
-    def test_30_country_csv_has_no_fake_prices(self):
+    def test_expanded_country_csv_has_no_fake_prices(self):
         p=self.root/'initial.csv'
-        self.assertEqual(init_csv(p),30)
+        self.assertEqual(init_csv(p),33)
         data=records(p)
-        self.assertEqual(len(data),30)
+        self.assertEqual(len(data),33)
         self.assertTrue(all(not e['close'] and not e['prior_close'] for e in data))
-        self.assertEqual(sum(bool(e['ticker']) for e in data),25)
+        self.assertEqual(sum(bool(e['ticker']) for e in data),28)
 
-    def test_25_mock_us_close_pairs_produce_real_data_draft_contract(self):
+    def test_28_mock_us_close_pairs_produce_real_data_draft_contract(self):
         p,report=self.make()
         eligible=validate_map_issue(p,load_geometry())
-        self.assertEqual(len(eligible),25)
-        self.assertEqual(report['count_shown'],25)
+        self.assertEqual(len(eligible),28)
+        self.assertEqual(report['count_shown'],28)
         self.assertEqual(len(report['omitted']),5)
         self.assertEqual(p['rights_note'],'RESEARCH_PREVIEW')
         self.assertEqual(p['session_date'],'2026-10-19')
         svg=render_global_map(p)
         self.assertIn('MARKET ATLAS',svg)
         self.assertNotIn('DRAFT ·',svg)
-        self.assertIn('25 MARKETS SHOWN',svg)
+        self.assertIn('28 MARKETS SHOWN',svg)
         self.assertIn('USD PRICE MOVES',svg)
         self.assertNotIn('COUNTRY INDEX RETURNS',svg)
         with self.assertRaises(InvalidIssue):
@@ -81,7 +81,7 @@ class M1PracticalETFTests(unittest.TestCase):
         self.save()
         p,report=self.make()
         self.assertEqual(report['count_shown'],6)
-        self.assertEqual(len(report['omitted']),24)
+        self.assertEqual(len(report['omitted']),27)
         self.assertIn('6 MARKETS SHOWN',render_global_map(p))
 
     def test_current_us_market_close_not_yet_complete(self):
@@ -139,7 +139,7 @@ class M1PracticalETFTests(unittest.TestCase):
         q['source_use_verdict']='NO_KNOWN_RESTRICTION'
         promoted=review(p,q)
         self.assertEqual(promoted['rights_note'],'PUBLIC_FACTS_QA_PASSED')
-        self.assertEqual(len(validate_map_issue(promoted,load_geometry())),25)
+        self.assertEqual(len(validate_map_issue(promoted,load_geometry())),28)
         with self.assertRaises(InvalidIssue):
             m1_release_allowed(promoted,{'input_sha256':payload_hash(promoted),
                                          'independent_audit':'PASS',
