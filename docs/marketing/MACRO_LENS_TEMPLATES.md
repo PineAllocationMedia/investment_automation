@@ -15,6 +15,10 @@ The T1/T2/T3 specifications below now map to three separate deterministic 1080×
 
 **Copyright notice:** the CEO-approved reconstructed pine logo stays unchanged; do **not** place `©` next to or inside the emblem. An optional, discreet footer notice may be proposed **only after confirming the actual rights holder and any third-party data/graphic licenses**, with Commercial & Compliance review where needed. Do not imply ownership of underlying market data, supplant essential sources or use `®` without registration evidence. No footer copyright notice is automatically rendered by this proposal.
 
+### Market Atlas Prompt 2: deliver the visual, not a render-status report
+
+For literal **Subject: Market Atlas**, the first deliverable is the image using the CEO's October 20, 2026 reference composition. Prefer exact deterministic M1/50m rendering when the Python runtime can execute its source. **If GitHub code cannot be moved into the local renderer**, that alone is not an editorial stop: directly create/edit the same 1080×1350-style working plate using an available image creation tool, with the factual ETF price results, matching completed-session dates and correct English display text. Do not run an additional bootstrap or submit a research-only handoff in place of the image. A graphical fallback **is not a verified Natural Earth render**; disclose this externally for subsequent independent cartography/figure/source QA before publication. Never claim SVG/390px derivatives, approved-logo exact-byte use, or an asset manifest unless those actual files exist. The source and CEO approval conditions govern *publishing*, not the first visual draft. This exception does not apply to fabricated return data or fake domestic-index coverage.
+
 ## Universal visual grammar
 
 - **Canvas:** 1080 × 1350 portrait working target (4:5); test against current Blossom mobile rendering and cropping before publication. A safe-area margin of 64 px is an internal design rule, not a Blossom specification.
