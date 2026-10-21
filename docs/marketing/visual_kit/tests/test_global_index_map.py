@@ -31,10 +31,59 @@ class M1GlobalEquityIndexTests(unittest.TestCase):
         self.assertEqual(git_blob_sha(raw),GEO_GIT_BLOB_SHA)
         self.assertEqual(len(self.geo['features']),177)
         self.assertEqual(self.geo['source_github_blob_sha'],
-                         '1e6ab74c7042f97013be69ceec798be8e1aff27d')
+                         '9d99f26dc470fcdbd08b062c813005acbdf73ccb')
         self.assertEqual(self.geo['license'],'Public domain')
         joined={f['id'] for f in self.geo['features']}
         self.assertTrue({'USA','CHN','JPN','BRA','RUS','CAN','IND'}.issubset(joined))
+
+    def test_50m_canadian_arctic_and_island_fidelity(self):
+        # 1:50m preserves scores of detached Canadian archipelago islands
+        # that were absent or radically simplified in the old 1:110m master.
+        from render_global_index_map import _paths
+        features={f['id']:f for f in self.geo['features']}
+        expected_min_parts={'CAN':100,'IDN':15,'JPN':5}
+        for code,minimum in expected_min_parts.items():
+            f=features[code]
+            self.assertEqual(f['type'],'MultiPolygon')
+            self.assertGreaterEqual(len(f['coordinates']),minimum,code)
+            self.assertGreaterEqual(_paths(f).count('M '),minimum,code)
+            self.assertTrue(all(len(ring)>=4 for poly in f['coordinates']
+                                for ring in poly),code)
+        canada=features['CAN']
+        lats=[coord[1] for poly in canada['coordinates']
+              for ring in poly for coord in ring]
+        self.assertGreater(max(lats),82.0)
+        self.assertLess(min(lats),45.0)
+
+    def test_identical_50m_geometry_for_covered_and_uncovered_land(self):
+        from render_global_index_map import _paths
+        p=fixture()
+        svg=render_global_map(p)
+        root=ET.fromstring(svg)
+        ns='{http://www.w3.org/2000/svg}'
+        group=next(g for g in root.findall(ns+'g')
+                   if g.attrib.get('clip-path')=='url(#mapView)')
+        ids=[f['id'] for f in self.geo['features'] if f['id']!='ATA']
+        paths=dict(zip(ids,group.findall(ns+'path')))
+        feat={f['id']:f for f in self.geo['features']}
+        for country in ('CAN','RUS','IDN','JPN','USA'):
+            self.assertEqual(paths[country].attrib['d'],_paths(feat[country]))
+        self.assertNotEqual(paths['CAN'].attrib['fill'],LAND)
+        self.assertEqual(paths['RUS'].attrib['fill'],LAND)
+
+    def test_public_svg_keeps_internal_id_and_utc_cutoff_off_artwork(self):
+        for example in ('m1_global_index_synthetic.json',
+                        'm1_us_etf_synthetic.json'):
+            p=json.loads((EX.parent/example).read_text(encoding='utf-8'))
+            svg=render_global_map(p)
+            self.assertIn('MARKET ATLAS',svg)
+            self.assertNotIn(p['issue_id'],svg)
+            self.assertNotIn('AS OF ',svg)
+            self.assertNotIn(p['cutoff_utc'],svg)
+            self.assertIn('NOT INVESTMENT ADVICE',svg)
+            # The original review evidence remains available outside the image.
+            self.assertTrue(p['issue_id'].startswith('GM-'))
+            self.assertTrue(p['cutoff_utc'])
 
     def test_mutated_geometry_fails_closed(self):
         with tempfile.TemporaryDirectory() as d:
@@ -272,11 +321,13 @@ class M1GlobalEquityIndexTests(unittest.TestCase):
             self.assertGreaterEqual(y0,42,sp['text'])
             self.assertLessEqual(y1,1340,sp['text'])
         leader=next(sp for sp in spans if sp['text']=='INDEX LEADERS & LAGGARDS')
-        asof=next(sp for sp in spans if sp['text'].startswith('AS OF '))
         self.assertFalse(any(sp['text']=='NO VALID CLOSE' for sp in spans))
+        self.assertFalse(any(sp['text'].startswith('AS OF ') or
+                             sp['text'].startswith('GM-') for sp in spans))
+        self.assertTrue(any(sp['text']=='NOT INVESTMENT ADVICE' for sp in spans))
         true_zero=next(sp for sp in spans if sp['text']=='EXACT 0.00%')
         self.assertLess(true_zero['bbox'][3],919)
-        self.assertLess(leader['bbox'][3]+30,asof['bbox'][1])
+        self.assertLess(leader['bbox'][3],1240)
 
     def test_cli_writes_after_validation_only(self):
         try:
