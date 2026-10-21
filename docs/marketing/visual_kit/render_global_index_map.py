@@ -24,11 +24,13 @@ from render_macro_lens import (
     valid_url, payload_hash, checked_logo, rect, rule, txt, wrap,
 )
 
-GEOMETRY = Path(__file__).parent/'assets'/'m1_natural_earth_110m_v5_1_1.json'
-# Pin the exact rounded 177-feature public-domain Natural Earth snapshot.
-GEO_GIT_BLOB_SHA = '8300299de7b831db1b50d0501924cad1f5b067e1'
-UPSTREAM_NE_BLOB_SHA = '1e6ab74c7042f97013be69ceec798be8e1aff27d'
-GEO_VERSION = 'NATURAL_EARTH_110M_V5.1.1_PAM_V1'
+GEOMETRY = Path(__file__).parent/'assets'/'m1_natural_earth_50m_v5_1_1.json'
+# Pin the 177 original country IDs mapped to the genuine public-domain
+# Natural Earth 1:50m polygons; geometry upgraded for Arctic/coastal fidelity.
+# The background land and eligible colored countries share each same path.
+GEO_GIT_BLOB_SHA = '9f298a1bac5923c787a8e2aaf937221da04c4a58'
+UPSTREAM_NE_BLOB_SHA = '9d99f26dc470fcdbd08b062c813005acbdf73ccb'
+GEO_VERSION = 'NATURAL_EARTH_50M_V5.1.1_PAM_V2'
 BASIS = 'DOMESTIC_INDEX_LOCAL_PRICE_RETURN'
 ETF_BASIS = 'US_LISTED_COUNTRY_ETF_USD_MARKET_PRICE_RETURN'
 ISSUE_RE = re.compile(r'^GM-\d{8}-\d{2}$')
@@ -89,13 +91,13 @@ def load_geometry(path=GEOMETRY):
     need(git_blob_sha(raw) == GEO_GIT_BLOB_SHA,
          'M1 Natural Earth geometry bytes/hash changed; quarantine asset')
     geo=json.loads(raw)
-    need(geo.get('schema') == 'pam.m1.ne110.geometry.v1' and
+    need(geo.get('schema') == 'pam.m1.ne50.geometry.v1' and
          geo.get('source_github_blob_sha') == UPSTREAM_NE_BLOB_SHA and
          geo.get('license') == 'Public domain',
          'M1 geometry provenance or license record has drifted')
     features=geo.get('features')
     need(isinstance(features,list) and len(features)==177,
-         'M1 expected 177 Natural Earth country features')
+         'Market Atlas expects 177 pinned Natural Earth 50m country features')
     ids=set()
     for i,f in enumerate(features):
         fid=f.get('id')
@@ -105,6 +107,11 @@ def load_geometry(path=GEOMETRY):
         ids.add(fid)
         need(f.get('type') in ('Polygon','MultiPolygon'),
              'M1 unsupported country geometry type')
+    # The 50m master preserves island groups absent at 110m; never
+    # substitute a coarser or different shape for highlighted countries.
+    can=next(f for f in features if f['id']=='CAN')
+    need(can['type']=='MultiPolygon' and len(can['coordinates'])>=100,
+         'Market Atlas geographic fidelity regression: Canadian Arctic polygons lost')
     return geo
 
 
@@ -416,7 +423,8 @@ def render_global_map(p, logo_png=None, status='DRAFT', geometry_path=GEOMETRY):
     out.extend([
         txt(169,102,'PAM',29,LIGHT,800),
         txt(267,102,'/  MARKET ATLAS',22,MUTED,600),
-        txt(1012,103,p['issue_id'],20,TEAL,600,anchor='end'),
+        # The GM-YYYYMMDD-NN identifier lives in the issue JSON/manifest,
+        # never in the public-facing Market Atlas image.
         rule(68,147,1012,147,GRID,2),
         txt(68,183,'US-LISTED COUNTRY ETFs  /  USD PRICE MOVES' if etf_mode else
             'COUNTRY INDEX RETURNS  /  LOCAL CURRENCY',19,TEAL,700),
@@ -433,9 +441,10 @@ def render_global_map(p, logo_png=None, status='DRAFT', geometry_path=GEOMETRY):
     out.append(rect(68,454,944,395,OCEAN,0))
     out.append('<g clip-path="url(#mapView)">')
     for f in geo['features']:
-        # This fixed mobile crop ends around 60°S. Exclude Antarctica entirely:
-        # PyMuPDF's SVG clip-path handling can otherwise leak polar geometry
-        # beneath the legend, which is unacceptable even in a synthetic proof.
+        # Land and colored performances MUST be the same Natural Earth 50m
+        # polygon. MultiPolygon Arctic archipelagos/island countries remain
+        # intact, with one shared projection/clipping and no overlay mismatch.
+        # Antarctica is outside this mobile crop, so exclude it entirely.
         if f['id']=='ATA':
             continue
         d=_paths(f)
@@ -531,8 +540,8 @@ def render_global_map(p, logo_png=None, status='DRAFT', geometry_path=GEOMETRY):
                     ('GEO: NATURAL EARTH / SG POINT / INDEX EVIDENCE' if sg is not None
                      else 'GEO: NATURAL EARTH / INDEX EVIDENCE'))
     out.append(txt(68,1280,geography_note,18,MUTED,500))
-    out.append(put(68,1320,'AS OF '+_dt(p['cutoff_utc'],'cutoff_utc').strftime('%Y-%m-%d %H:%M UTC'),
-                   20,500,color=MUTED))
+    # The session dates remain in the visible deck. Internal render cutoff
+    # UTC stays in the source-linked issue/manifest, not the image footer.
     out.append(txt(1012,1320,'NOT INVESTMENT ADVICE',19,MUTED,550,anchor='end'))
     # Synthetic fixtures alone display a watermark. Genuine source-linked
     # Market Atlas maps, including research-state views, are always clean on
