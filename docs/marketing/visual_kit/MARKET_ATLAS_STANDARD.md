@@ -20,6 +20,17 @@
 
 **Permitted daily variation:** valid returns, color fills, numerical legend endpoints, session comparison near the title, private audit cutoff metadata, qualifying country count, country ranks, measured performance values and narrative wording. **Not permitted:** arbitrary replacement of the world map, shifted modules, altered fonts or branding, new cards, changing ranked-slot count, hidden missingness, unapproved chart type or visual watermarks on genuine first-output artwork.
 
+## Execution-independent first-image rule (CEO approved)
+
+**Goal:** Prompt 1 activates Macro Lens; Prompt 2 containing literal **Subject: Market Atlas** delivers a professional Market Atlas image, **not a 25/25 research summary plus `RENDER HOLD`**. Follow this minimal order:
+
+1. With genuine observed ETF close pairs in hand, render through the existing deterministic M1 if its source is actually executable. Its 177 Natural Earth 50m country shapes are already embedded; do not require a separate geometry file or bootstrap.
+2. **If repository source files are visible only via GitHub connector and cannot be transferred to an isolated Python runtime, that tool boundary must not terminate image creation.** Directly generate/edit a 4:5 Market Atlas *working image* using the image-capable tools available in that conversation, referencing the CEO-provided October 20, 2026 plate. Preserve the professional fixed composition, correct mapped directions and sourced returns, dynamic symmetric legend, exact session dates, logo identity, 3+3 tables, sources and disclaimer. Produce the image **before** the extended evidence handoff.
+3. State the actual method and any unverified geometry/logo/text limitations outside the artwork. Generative output must **not** be called a deterministic 50m PNG, an authorized reproduction of the exact approved-logo bytes, a successful 390px review, or a hash-bound audited candidate unless independently established. When available, generate 390px companion from the actual output. Do not reuse prior-day images as if their numbers or country fills were updated.
+4. Run independent source-use/factual/geometry/visual checks and request CEO exact-image/caption approval **only before public posting**, never as conditions for drawing the first working image. If no image creation or editable-image tool exists in the active environment, explain that particular limitation in one sentence; instructions in Git cannot conjure unavailable capabilities.
+
+**No extra runtime bootstrap, new dependency, image-production form, test suite, audit gate or PR is required for a routine daily issue.** Never invent source prices, unqualified national-market returns or a publication approval.
+
 ## Prompt 2: search thoroughly, output the clean final-looking asset first
 
 For a plain `Subject: Market Atlas`, bypass generic topic-selection/scanning questions and immediately initiate M1 on the latest fully completed U.S. exchange session and its true predecessor. **Never use intraday values as completed closes.** On holidays and before U.S. close, use the latest completed regular session, with dates explicitly identified.
@@ -34,7 +45,7 @@ A failure to retrieve initial quotes is a **search-retry trigger**, *not* permis
 
 This is a **vigorous search obligation**, not permission to fabricate values or imply that proprietary website reuse rights exist. A competent agent with browsing/source access should ordinarily recover historical ETF close pairs; the repository's offline assembler **does not retrieve them on its own** and cannot guarantee remote availability.
 
-The renderer has **no arbitrary minimum of four or six markets**: one genuinely qualified close pair is enough to generate the standard clean map. A shortfall of plotted markets is recorded in the audit/evidence packet; it is not a layout-switch command or an automatic blocker. The only genuine blockers to the exact branded graphic are **zero real qualified returns**, a contradictory/noncompleted session, incompatible/false quotation, absent or corrupt approved master logo, or an actual technical render failure. Do not bypass these by inventing data or impersonating an auditor.
+The renderer has **no arbitrary minimum of four or six markets**: one genuinely qualified close pair is enough to generate the standard clean map. A shortfall of plotted markets is recorded in the audit/evidence packet; it is not a layout-switch command or an automatic blocker. These are genuine constraints on **exact authenticated/publication-candidate assets**: zero sourced returns, invalid date/basis, incompatible/false quotations or missing exact approved-logo bytes. An execution/runtime failure of the canonical Python renderer **does not veto a separate clearly identified working image** made through an available visual tool. Do not bypass factual truth, impersonate an auditor or claim an approximate picture is the canonical geometry.
 
 Ordinary `m1_etf_daily.py build` outputs:
 - first visually final, watermark-free native **Market Atlas** PNG + SVG and companion mobile PNG,
