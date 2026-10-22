@@ -63,6 +63,14 @@ Record `PARTIAL` whenever pagination, authentication, visibility or other retrie
 
 A scan may be partial; discovery without an accessible post page does not establish its metrics. Snapshot provenance remains PUBLIC_OBSERVED, PLATFORM_VERIFIED or CEO_SUPPLIED. Post class is MACRO_LENS or ORDINARY (or another verified category), not inferred from popularity.
 
+### Profile scan coverage
+
+| Observed at (TZ) | Profile URL | Posts discovered | Individually inspected | New / refreshed / inaccessible | Accessible date range | Coverage limitations / saved status |
+|---|---|---|---|---|---|---|
+| | | | | | | |
+
+This scan summary is distinct from per-post performance. Mark coverage PARTIAL if the public profile does not demonstrably expose every historical original post. Public profile metrics do not establish private analytics access.
+
 ## C. Reader-value and factual-quality observations
 
 | Issue ID | Useful discussion / feedback (link + observation time) | Confusion or correction | Internal classification (FACT/INFERENCE) | Follow-up |
