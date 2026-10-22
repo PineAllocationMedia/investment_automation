@@ -1,4 +1,4 @@
-# PAM | The Macro Lens — editorial evidence & experiment log v1.0
+# PAM | Blossom — editorial evidence & experiment log v1.1
 
 **Channel:** Blossom `@therealpam`.
 **Status:** No actual publication, metric, follower attribution, or editorial experiment is implied by this empty ledger.
