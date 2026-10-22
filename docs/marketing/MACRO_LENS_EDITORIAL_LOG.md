@@ -6,7 +6,15 @@
 
 This existing register now tracks all verified @therealpam original posts: Macro Lens and ordinary content alike. Do not invent approval history for past ordinary posts. Replies to others are distinct from original publications.
 
-## Recording rules — link first, reuse known facts
+## Recording rules — profile scan first
+
+Prompt 4 defaults to an @therealpam profile link. The employee collects visible data for all distinct original posts it can actually access, including ordinary posts. A specific publication URL instead selects SINGLE POST mode. Confirm that every post belongs to @therealpam; public pagination or login may limit profile coverage.
+
+Identify records using an exposed Blossom post ID when available or the stable post permalink. An existing post gets refreshed, never duplicated; new ordinary posts get distinct stable local issue IDs. Preserve previously recorded snapshots and any Macro Lens identifiers. Fields without evidence, including past approvals and template assignments, stay NA.
+
+For each scan, report the number discovered, individually inspected, newly recorded, refreshed and inaccessible, plus oldest/newest dates available and any coverage limitations. Never claim a full history if access is partial. Batch writes to this register only; no new database, private analytics assumption or unattended monitoring.
+
+
 
 1. Prompt 2 records the prospective issue ID, assigned/open-scan subject, thesis, chosen format and **why this subject/format seemed useful before any engagement results**. Prompt 3 links its actual fact/visual verdict and noteworthy corrections. Never mark these drafts as published.
 2. **Prompt 4 normally needs only the posted Blossom URL.** Reuse the pre-publication records; retrieve only genuinely visible/authorized engagement data and useful discussions. Record exact observation time/timezone, source and post age. Request a CEO screenshot only when valuable private analytics cannot otherwise be accessed; it is optional, not a per-post requirement.
