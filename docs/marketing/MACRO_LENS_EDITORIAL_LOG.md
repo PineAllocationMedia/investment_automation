@@ -49,6 +49,14 @@ Illustrative **calculation definitions** (only if raw inputs truly exist and are
 
 Do not aggregate metrics collected at mismatched post ages without normalization and caveats.
 
+### Profile scan coverage notes
+
+| Scan at (TZ) | Profile URL | Posts discovered / inspected | New / refreshed / inaccessible | Accessible publication-date range | Coverage limitations + write outcome |
+|---|---|---|---|---|---|
+| | | | | | |
+
+Record `PARTIAL` whenever pagination, authentication, visibility or other retrieval limits prevent a proven complete history. Discovery is not the same as successfully reading per-post statistics. Only mark `COMPLETE` with actual evidence for the full set of original publications.
+
 ## C. Reader-value and factual-quality observations
 
 | Issue ID | Useful discussion / feedback (link + observation time) | Confusion or correction | Internal classification (FACT/INFERENCE) | Follow-up |
