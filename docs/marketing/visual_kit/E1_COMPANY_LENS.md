@@ -1,6 +1,19 @@
-# E1 — Company Lens research plate v0.1 (CEO-review implementation candidate)
+# E1 — Company Lens research plate v0.1 (CEO-approved working visual direction)
 
-**Editorial use:** an evidence-based note about a single U.S. SEC-reporting public company's reported fiscal period. **Channel:** Blossom \`@therealpam\`. **Code:** \`render_company_lens.py\` accepts only \`template="E1"\`; no live SEC/financial feed, prediction, personalized advice, security rating, issuer affiliation, or publication. The candidate is **NOT IMPLEMENTED on canonical V2 until a separate CEO merge**.
+**Editorial use:** an evidence-based note about a single U.S. SEC-reporting public company's reported fiscal period. **Channel:** Blossom \`@therealpam\`. **Code:** \`render_company_lens.py\` accepts only \`template="E1"\`; no live SEC/financial feed, prediction, personalized advice, security rating, issuer affiliation, or publication. The bounded E1 renderer **was merged in PR #201**; this records implementation availability, not data-source authentication or automatic publication.
+
+## CEO visual-direction freeze — 2026-10-21
+
+**Decision:** CEO reviewed the real-data Microsoft FY2026 Company Lens **working image** (native and mobile previews) and selected **FREEZE AS-IS / NO MICRO-IMPROVEMENTS**. The visual composition is satisfactory as a reusable editorial design. Do not initiate cosmetic rework or increase information density without new CEO direction; proceed to other templates such as M4.
+
+**Approved working reference** (generated in the October 2026 CEO conversation, not embedded or separately versioned as a GitHub asset):
+- `PAM_E1_Company_Lens_MSFT_FY2026_WORKING_1080.png` — 1080 x 1350; SHA-256 `3c4e09d9d946f21e06de59cbe4f0d16d11e4a5bda2723f34af68ddcaafb52214`.
+- `PAM_E1_Company_Lens_MSFT_FY2026_WORKING_390.png` — 390 x 488; SHA-256 `fbb54c9b5c1fd7dcec49cdcec6151201a390ea9da6ace22b0db03e859ed1b058`.
+- `PAM_E1_Company_Lens_MSFT_FY2026_WORKING.svg` — SHA-256 `203cd37e23b335791c8fb83d17db7f27f6621f39b114a13761682c15b3931611`.
+
+**Retain the accepted visual grammar:** deep pine background; approved ivory botanical seal; PAM / COMPANY LENS masthead; issuer name and ticker; compact two-line analytical thesis and deck; one documented fiscal-period/source line; exactly three clearly ruled financial evidence rows with right-aligned levels and distinct editorial interpretations; sober counter-case and what-to-watch; concise original-source/disclaimer footer; legibility at mobile scale. No decorative dashboards or added metrics as filler.
+
+**Scope / exactness:** the working Microsoft preview was composed **locally from the E1 design**, *not* exported by executing the canonical `render_company_lens.py`. This freeze records CEO approval of that **working visual direction**, **not** proof of pixel-identical canonical-renderer output, a passed independent data/rights audit, or approval to publish that Microsoft issue. The GitHub renderer remains unchanged. Before the first production post, compare its actual native/mobile output to the accepted reference during the ordinary exact-artifact audit; correct an actual material mismatch if observed rather than reopening cosmetic template redesign. Preserve the existing independent sourcing, logo-hash and exact-post CEO publication gates.
 
 ## Why this is not T1, M4 or M2
 
