@@ -4,7 +4,7 @@
 **Status:** No actual publication, metric, follower attribution, or editorial experiment is implied by this empty ledger.
 **Instructions:** [Playbook](MACRO_LENS_PLAYBOOK.md) · [Templates](MACRO_LENS_TEMPLATES.md).
 
-This is the durable index for actual Macro Lens publication evidence, corrections, and learning. The account's existing general Blossom replies/posts are **not** retroactively labeled Macro Lens issues. Record only independently observed or CEO-provided facts.
+This existing register now tracks all verified @therealpam original posts: Macro Lens and ordinary content alike. Do not invent approval history for past ordinary posts. Replies to others are distinct from original publications.
 
 ## Recording rules — link first, reuse known facts
 
