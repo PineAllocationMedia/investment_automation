@@ -125,12 +125,17 @@ T1 Classic remains the default. When **additional verified evidence genuinely cl
 
 **Abstention:** insufficient history or revisions invalidate comparison → no regime claim.
 
-## Decision tree
+## Decision tree — subject first, format second
 
-- One strong verified mechanism → **T1**.
-- Two genuinely comparable signals with a useful tension → **T2**.
-- Sufficient historical evidence for a time-based comparison → **T3**.
-- No suitable evidence or macro angle → **SKIP** or a short text-only verified Blossom post.
+On an open-market scan, **do not default to M1 or any other visual family**. Select the most worthwhile verified topic and thesis first, then match the evidence to an implemented contract:
+
+- One strong economic transmission mechanism → **T1**; comparable signals in tension → **T2**; a credible historical regime comparison → **T3**.
+- Major *country-level* equity ETF dispersion/leadership is the point → **M1 Market Atlas**; meaningful movements across equities, rates, FX and commodities → **M4 Daily Market Brief**.
+- Comparable sector leadership/rotation → **M2**; a documented issuer event or financial-reporting insight → **E1**.
+- Another topic better served by a distinct composition → an explicitly **proposed working concept**, or a verified text-only post if no suitable renderer exists.
+- No worthwhile source-supported angle → **SKIP**. Never publish filler, pick a template on a fixed schedule, or pretend a concept has a validated renderer.
+
+An explicit CEO topic or literal `Subject: Market Atlas` still takes precedence over autonomous scanning.
 
 Do not add decorative stock charts, sparklines or “buy the dip” labels merely because space exists. The stable identity comes from precise explanation and consistently branded readability, not identical module density.
 
