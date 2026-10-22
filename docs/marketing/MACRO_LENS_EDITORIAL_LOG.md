@@ -6,33 +6,31 @@
 
 This is the durable index for actual Macro Lens publication evidence, corrections, and learning. The account's existing general Blossom replies/posts are **not** retroactively labeled Macro Lens issues. Record only independently observed or CEO-provided facts.
 
-## Recording rules
+## Recording rules — link first, reuse known facts
 
-1. Every prospective issue gets `ML-YYYYMMDD-XX` ID and explicit draft/approval/published state.
-2. Store final approved image and caption references, source register and its timestamp, exact published URL (if any), template version, and the CEO-approval reference.
-3. For performance, append **time-bounded snapshots** near 24h, 72h and 7d when manually observed or retrieved with authorized capability, with observation timestamp/timezone and metric definition. Missing = `NA`, not `0`.
-4. Platform “views” must not be relabeled unique impressions without evidence. Likes/comments alone cannot prove comprehension. Do not derive followers caused by post from account-level follower change.
-5. Keep the original measurement; corrections are appended with reason and date, not silent overwrites.
-6. For editor-selected open-scan posts, briefly retain the **reason the subject and format were chosen at the time** (observed event, thesis, anticipated reader value, rejected alternative if material). Prompt 4 records actual reach and discussion; Prompt 5 compares later outcomes against those *prior* editorial hypotheses, normalizing observation age and considering topic/timing confounders. Do not rewrite an earlier prediction or treat a single popular post as causal proof. Other analyses still record topic, mechanism, format and uncertainty.
-7. Update durable records with actual authorized tools. If these files are read-only, provide append-ready lines for CEO/Program Manager review. Batch repository writes where practical; do not bypass governance merely to log every refresh.
-8. If no direct Blossom analytics access, the CEO may supply screenshots/links and timestamps. Mark those entries `CEO_SUPPLIED` rather than `PLATFORM_VERIFIED`.
-9. Factual correction and retraction incidents take priority over engagement optimizations.
+1. Prompt 2 records the prospective issue ID, assigned/open-scan subject, thesis, chosen format and **why this subject/format seemed useful before any engagement results**. Prompt 3 links its actual fact/visual verdict and noteworthy corrections. Never mark these drafts as published.
+2. **Prompt 4 normally needs only the posted Blossom URL.** Reuse the pre-publication records; retrieve only genuinely visible/authorized engagement data and useful discussions. Record exact observation time/timezone, source and post age. Request a CEO screenshot only when valuable private analytics cannot otherwise be accessed; it is optional, not a per-post requirement.
+3. Use `PUBLIC_OBSERVED` for data actually visible at the public URL, `PLATFORM_VERIFIED` only for authorized platform-linked analytics, and `CEO_SUPPLIED` for screenshots or measurements supplied by the CEO. Never label a public count as authenticated private account analytics.
+4. Log snapshots around 24h/72h/7d **only when observed**. `NA` is unknown, distinct from numerical zero; unobserved periods are not failures. Record account-level audience figures separately in dated notes when available, never as post-attributed follows. Views are not unique people unless documented.
+5. Preserve historic snapshots and corrections rather than silently rewriting them. Prompt 5 compares like-aged posts, the original selection rationale, discussion quality, confounders, and factual corrections; small samples remain tentative.
+6. Persist via authorized tools and **batch writes** to avoid routine PRs or manual data entry for every observation. If the log cannot be updated, return one compact append-ready entry and disclose that persistence did not occur. No unattended monitoring, automatic publication or new analytics system is implied.
+7. Factual errors and necessary corrections outrank engagement optimization. Only the CEO authorizes editorial-system changes and publication.
 
 ## A. Issues register
 
-| Issue ID | Status | Date/time + TZ | Subject + thesis | Template v | Draft/final asset + caption ref | Evidence register ref | Audit result | CEO approval reference | Blossom URL |
-|---|---|---|---|---|---|---|---|---|---|
-| | | | | | | | | | |
+| Issue ID | Status | Date/time + TZ | Subject + thesis | Editorial choice (assigned/open; why now + expected reader value, recorded before results) | Template v | Draft/final asset + caption ref | Evidence register ref | Audit result | CEO approval reference | Blossom URL |
+|---|---|---|---|---|---|---|---|---|---|---|
+| | | | | | | | | | | |
 
 Statuses: `DRAFT`, `HOLD`, `REJECTED`, `AWAITING_CEO_APPROVAL`, `APPROVED_NOT_PUBLISHED`, `PUBLISHED`, `CORRECTED`, `RETRACTED`.
 
 ## B. Actual performance snapshots
 
-| Issue ID | Observation age | Observed at (TZ) | Provenance (PLATFORM_VERIFIED/CEO_SUPPLIED) | Views | Likes | Comments | Shares/reposts | Saves | Profile visits | Attributed follows | Notes/limitations |
+| Issue ID | Observation age | Observed at (TZ) | Provenance (PUBLIC_OBSERVED/PLATFORM_VERIFIED/CEO_SUPPLIED) | Views | Likes | Comments | Shares/reposts | Saves | Profile visits | Attributed follows | Notes/limitations |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
 | | | | | | | | | | | | |
 
-`NA` signifies unavailable and is never treated as numeric zero.
+`NA` signifies unavailable and is never treated as numeric zero. `PUBLIC_OBSERVED` means visible counts captured from a public post; `PLATFORM_VERIFIED` requires an authorized analytics source; `CEO_SUPPLIED` means user-provided evidence. Account-level creator-statistics screenshots may be noted with their own observation time, **without** attributing growth to any specific post.
 
 Illustrative **calculation definitions** (only if raw inputs truly exist and are compatible):
 - `engagements_per_1k_views = (likes + comments + shares + saves) / views × 1000`, with only available components reported and explicitly named. Otherwise `NA`.
