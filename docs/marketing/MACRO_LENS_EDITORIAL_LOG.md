@@ -1,7 +1,7 @@
 # PAM | Blossom — editorial evidence & experiment log v1.1
 
 **Channel:** Blossom `@therealpam`.
-**Status:** No actual publication, metric, follower attribution, or editorial experiment is implied by this empty ledger.
+**Status:** Two public original publications and their first observed metrics recorded on 2026-10-22. Coverage is PARTIAL; no private analytics, historical approval, follower attribution or experiment outcome is established.
 **Instructions:** [Playbook](MACRO_LENS_PLAYBOOK.md) · [Templates](MACRO_LENS_TEMPLATES.md).
 
 This existing register now tracks all verified @therealpam original posts: Macro Lens and ordinary content alike. Do not invent approval history for past ordinary posts. Replies to others are distinct from original publications.
@@ -28,7 +28,8 @@ For each scan, report the number discovered, individually inspected, newly recor
 
 | Issue ID | Post class | Status | Date/time + TZ | Subject + thesis | Editorial choice (if documented) | Template v or NA | Draft/final asset + caption ref | Evidence register ref | Audit result | CEO approval reference | Blossom permalink / post ID |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| | | | | | | | | | | | |
+| BL-POST-1792632635232-p3wDGaJ3 | ORDINARY | PUBLISHED | Exact publication timestamp NA; UI age 11h at scan | ICP/application architecture as a possible security discussion beyond token prices; explicitly says existing sites still need patching and decentralized software can have bugs | Pre-publication rationale NA; thesis transcribed from public caption | NA (text-only observed) | Exact public caption archived below; public permalink | NA | NA | NA | https://www.blossomsocial.com/posts/AI-Uncovers-PHP-Flaws-Blockchains-Role-in-Security__POST-1792632635232-p3wDGaJ3_IwHhSPDG2aOMks63 / POST-1792632635232-p3wDGaJ3_IwHhSPDG2aOMks63 |
+| BL-POST-1792618150646-9HYkfaqz | MACRO_LENS / MARKET_ATLAS | PUBLISHED | Exact publication timestamp NA; UI age 15h at scan; image compares 2026-10-20 to 2026-10-21 US closes | Broad emerging-market labels hide country ETF dispersion; 28 USD country ETFs | Public caption: author wanted maps to expose differences hidden by broad market labels; pre-publication rationale NA | M1 family identified from published artwork; exact renderer/layout version NA | Public image at permalink; exact public caption archived below; local issue JSON/hash NA | NA | NA | NA | https://www.blossomsocial.com/posts/Emerging-Markets-ETF-Performance-Map__POST-1792618150646-9HYkfaqz_IwHhSPDG2aOMks63 / POST-1792618150646-9HYkfaqz_IwHhSPDG2aOMks63 |
 
 Statuses: `DRAFT`, `HOLD`, `REJECTED`, `AWAITING_CEO_APPROVAL`, `APPROVED_NOT_PUBLISHED`, `PUBLISHED`, `CORRECTED`, `RETRACTED`.
 
@@ -36,7 +37,8 @@ Statuses: `DRAFT`, `HOLD`, `REJECTED`, `AWAITING_CEO_APPROVAL`, `APPROVED_NOT_PU
 
 | Issue ID | Observation age | Observed at (TZ) | Provenance (PUBLIC_OBSERVED/PLATFORM_VERIFIED/CEO_SUPPLIED) | Views | Likes | Comments | Shares/reposts | Saves | Profile visits | Attributed follows | Notes/limitations |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
-| | | | | | | | | | | | |
+| BL-POST-1792632635232-p3wDGaJ3 | 11h (rounded public UI; exact age NA) | 2026-10-22T08:51:54-04:00 America/Toronto (scan completed; capture window 08:51:07–08:51:54) | PUBLIC_OBSERVED | 8 | NA | 0 | 0 | 0 | NA | NA | Opened individual post and inspected counters visually; no comments available. Heart has no numeric count. No private analytics. |
+| BL-POST-1792618150646-9HYkfaqz | 15h (rounded public UI; exact age NA) | 2026-10-22T08:51:54-04:00 America/Toronto (scan completed; capture window 08:51:07–08:51:54) | PUBLIC_OBSERVED | 24 | NA | 0 | 0 | 0 | NA | NA | Opened individual post and inspected image/counters visually; no comments available. Heart has no numeric count. No private analytics. |
 
 `NA` signifies unavailable and is never treated as numeric zero. `PUBLIC_OBSERVED` means visible counts captured from a public post; `PLATFORM_VERIFIED` requires an authorized analytics source; `CEO_SUPPLIED` means user-provided evidence. Account-level creator-statistics screenshots may be noted with their own observation time, **without** attributing growth to any specific post.
 
@@ -51,7 +53,7 @@ Do not aggregate metrics collected at mismatched post ages without normalization
 
 | Scan at (TZ) | Profile URL | Posts discovered / inspected | New / refreshed / inaccessible | Accessible publication-date range | Coverage limitations + write outcome |
 |---|---|---|---|---|---|
-| | | | | | |
+| 2026-10-22T08:51:54-04:00 America/Toronto; capture window 08:51:07–08:51:54 | https://www.blossomsocial.com/users/PAM__IwHhSPDG2aOMks63?tab=Posts | 2 distinct originals discovered / 2 individually inspected | 2 new / 0 refreshed / 0 discovered permalinks inaccessible; hidden older-post count UNKNOWN | Exact timestamps NA; newest UI 11h, oldest UI 15h (approximately 2026-10-21 evening, not exact publication dates) | PARTIAL: public feed stops after two originals with “See all of @therealpam posts! … Sign up”; scrolling exposed no further posts or pagination. No login attempted. Both authorship links resolve to supplied profile. Batched into this log only. |
 
 Record `PARTIAL` whenever pagination, authentication, visibility or other retrieval limits prevent a proven complete history. Discovery is not the same as successfully reading per-post statistics. Only mark `COMPLETE` with actual evidence for the full set of original publications.
 
@@ -83,7 +85,8 @@ Coverage is PARTIAL unless full public original-post history was actually enumer
 
 | Issue ID | Useful discussion / feedback (link + observation time) | Confusion or correction | Internal classification (FACT/INFERENCE) | Follow-up |
 |---|---|---|---|---|
-| | | | | |
+| BL-POST-1792632635232-p3wDGaJ3 | https://www.blossomsocial.com/posts/AI-Uncovers-PHP-Flaws-Blockchains-Role-in-Security__POST-1792632635232-p3wDGaJ3_IwHhSPDG2aOMks63; at scan completion 2026-10-22T08:51:54-04:00; 0 comments / no comments available | No reader discussion visible; factual/source-rights audit not performed by measurement scan | FACT (UI observation) | No engagement conclusion from one young post |
+| BL-POST-1792618150646-9HYkfaqz | https://www.blossomsocial.com/posts/Emerging-Markets-ETF-Performance-Map__POST-1792618150646-9HYkfaqz_IwHhSPDG2aOMks63; same scan; 0 comments / no comments available | Displayed +2.54% and -1.79% imply 4.33 pp using rounded values, whereas graphic/caption say 4.32 pp. Potential rounding reconciliation only, NOT a confirmed factual error; underlying unrounded evidence unavailable in this scan | FACT (displayed labels); INFERENCE (possible rounding explanation) | Verify source closes/unrounded calculation before any correction decision; no public edit or audit PASS implied |
 
 ## D. Experiments
 
@@ -129,3 +132,43 @@ Comparability limits:
 Next single-variable experiment:
 Proposed playbook amendment (CEO approval pending):
 ```
+
+## Public observation archive — scan 2026-10-22
+
+Deduplication uses the exact exposed POST IDs/permalinks above. The pre-scan canonical ledger had no populated issue/snapshot rows; no earlier measurements were removed. Both publications were accessed without sign-in. No private statistics or authenticated analytics were accessed. No assertion is made that these are the account's only historical originals.
+
+**Metric definitions:** Views = page-displayed “views” count, definition/unique-user status unknown. Comments = displayed comment total, corroborated by “No comments available.” Shares = numeric counter beside share-arrow icon; does not establish completed external shares or distinct reposts. Saves = numeric counter beside bookmark icon. Likes = NA because the heart icon has no numeric count; absence is not zero. Profile visits and attributed follows = NA. Snapshot time is exact scan completion, with the acquisition window disclosed; ages are public rounded labels, not computed from POST-ID digits. No 24h/72h/7d snapshots inferred.
+
+**Account-level observation:** 9 followers and 4 following publicly displayed during this scan. No earlier comparable account snapshot; no change or post attribution inferred.
+
+### BL-POST-1792632635232-p3wDGaJ3 — exact public caption
+
+> Government websites are going offline over critical PHP security flaws. AI helped uncover vulnerabilities that had been hiding for years.
+>
+> And I’m wondering if this is where crypto finally gets to talk about something more interesting than token prices.
+>
+> Take ICP (Internet Computer).
+>
+> It can run applications on a replicated network, serve cryptographically verified web content and reduce reliance on traditional centralized servers.
+>
+> That wouldn’t magically fix today’s vulnerable websites. They need patching now. And decentralized software can still have serious bugs.
+>
+> But if AI keeps making vulnerabilities easier to discover and exploit, perhaps we should rethink how parts of the internet are built in the first place.
+>
+> That’s a blockchain use case worth paying attention to.
+
+### BL-POST-1792618150646-9HYkfaqz — exact public caption
+
+> Vietnam +2.54%. China -1.79%.
+>
+> Apparently "emerging markets" forgot to coordinate today.
+>
+> That's a 4.32 percentage-point gap between two country ETFs in a single US trading session. Indonesia was up 2.23%, too.
+>
+> This is why I wanted to start making these maps. Broad market labels can hide some pretty big differences between countries.
+>
+> First PAM Market Atlas: 28 country ETFs, mapped at the US close.
+>
+> 17 green. 11 red. All priced in USD, so currency moves count too.
+
+Published image visibly identifies PAM / MARKET ATLAS, U.S.-listed country ETFs / USD price moves, Tue 20 Oct 2026 → Wed 21 Oct 2026, 4:00 PM ET regular closes; 28 markets shown, 17 up / 11 down / 0 flat. Footer names StockAnalysis.com, USD ETF market prices, unadjusted closes, FX and after-home-market repricing caveat, and NOT INVESTMENT ADVICE. This archives displayed content only, not independent verification of its market facts, source rights, canonical renderer identity or CEO approval.
