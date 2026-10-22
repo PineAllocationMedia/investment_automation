@@ -71,6 +71,14 @@ A scan may be partial; discovery without an accessible post page does not establ
 
 This scan summary is distinct from per-post performance. Mark coverage PARTIAL if the public profile does not demonstrably expose every historical original post. Public profile metrics do not establish private analytics access.
 
+### Profile scan coverage
+
+| Scan observed at (TZ) | Profile URL | Discovered | Inspected | New / refreshed / inaccessible | Accessible date range | Limitations / saved status |
+|---|---|---|---|---|---|---|
+| | | | | | | |
+
+Coverage is PARTIAL unless full public original-post history was actually enumerated.
+
 ## C. Reader-value and factual-quality observations
 
 | Issue ID | Useful discussion / feedback (link + observation time) | Confusion or correction | Internal classification (FACT/INFERENCE) | Follow-up |
