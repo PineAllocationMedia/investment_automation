@@ -55,6 +55,14 @@ Do not aggregate metrics collected at mismatched post ages without normalization
 
 Record `PARTIAL` whenever pagination, authentication, visibility or other retrieval limits prevent a proven complete history. Discovery is not the same as successfully reading per-post statistics. Only mark `COMPLETE` with actual evidence for the full set of original publications.
 
+### Profile scan coverage
+
+| Scanned at (timezone) | Profile URL | Posts discovered | Individually inspected | New / refreshed / inaccessible | Accessible date range | Coverage / access limitations | Persisted? |
+|---|---|---|---|---|---|---|---|
+| | | | | | | | |
+
+A scan may be partial; discovery without an accessible post page does not establish its metrics. Snapshot provenance remains PUBLIC_OBSERVED, PLATFORM_VERIFIED or CEO_SUPPLIED. Post class is MACRO_LENS or ORDINARY (or another verified category), not inferred from popularity.
+
 ## C. Reader-value and factual-quality observations
 
 | Issue ID | Useful discussion / feedback (link + observation time) | Confusion or correction | Internal classification (FACT/INFERENCE) | Follow-up |
