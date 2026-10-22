@@ -26,9 +26,11 @@ For each scan, report the number discovered, individually inspected, newly recor
 
 ## A. Issues register
 
-| Issue ID | Status | Date/time + TZ | Subject + thesis | Editorial choice (assigned/open; why now + expected reader value, recorded before results) | Template v | Draft/final asset + caption ref | Evidence register ref | Audit result | CEO approval reference | Blossom URL |
-|---|---|---|---|---|---|---|---|---|---|---|
-| | | | | | | | | | | |
+| Issue ID | Post class | Status | Date/time + TZ | Subject + thesis | Editorial choice (when known) | Template v or NA | Draft/final asset + caption ref | Evidence register ref | Audit result | CEO approval reference | Blossom permalink / stable post ID |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| | | | | | | | | | | | |
+
+Classes: `MACRO_LENS`, `ORDINARY`, `OTHER_VERIFIED`. An ordinary post may legitimately have `NA` for audit or template fields. Preserve historical Macro Lens issue IDs.
 
 Statuses: `DRAFT`, `HOLD`, `REJECTED`, `AWAITING_CEO_APPROVAL`, `APPROVED_NOT_PUBLISHED`, `PUBLISHED`, `CORRECTED`, `RETRACTED`.
 
