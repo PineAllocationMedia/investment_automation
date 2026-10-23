@@ -2,6 +2,12 @@
 
 **Target:** Blossom @therealpam; native drafting canvas 1080×1350 (4:5). **Status:** proposed repository implementation; no publishing or market-data access. Companion: `docs/marketing/MACRO_LENS_PLAYBOOK.md` and `MACRO_LENS_TEMPLATES.md`.
 
+## Clean public artwork / separate approval state
+
+For all genuine-source image candidates (T1–T3, E1, M1, M2, M4 or bespoke), the **first** 1080×1350 artwork must be visually free of internal production notes: no `DRAFT`, `NOT AUDITED`, `REVIEW PENDING`, `NOT FOR PUBLICATION` or comparable approval/status label in the header, footer or illustration. **Synthetic examples keep their clearly visible DRAFT / SYNTHETIC TEST mark.** This is an appearance rule, not a publishable-status claim. The source, exact hashes, audit status, approval state and any reviewer notes remain in the separate manifest/handoff. The rendering CLIs still emit `status=DRAFT` until the existing signed-off SHA-bound release manifest is supplied. Never invent an approval or use a release flag merely to remove a banner.
+
+**Bespoke-svg safety check:** run `python artwork_status_guard.py <candidate.svg>` before delivering an image; inspect both actual 1080px and 390px PNGs as well. The checker catches visible SVG text only, not words flattened into raster layers. An SVG failure requires fixing the composition, not relaxing review. Source accuracy, image rights, exact logo bytes, independent artifact audit and CEO's separate per-post publication approval remain mandatory.
+
 ## Market Atlas — recurring world performance map (M1)
 
 **Daily production rule:** the CEO-supplied October 20, 2026 Market Atlas image is the locked visual reference. The complete original Natural Earth 1:50m geography is embedded losslessly in `render_global_index_map.py` (177 countries, 97,907 coordinate pairs). **No separate geometry asset, GitHub download, bootstrap or runtime file mounting is required** for the normal M1 map. Use the existing `render_global_index_map.py` M1 layout with new real ETF prices, dates, country fills, rankings, legend limits, breadth and source/caption only. No bootstrap or additional pre-render process. Preserve separate factual review and CEO approval **before publication**.
@@ -117,12 +123,12 @@ python docs/marketing/visual_kit/render_macro_lens.py \
 
 SVG: Python standard library only. PNG: PyMuPDF (`fitz`), already pinned in the repository `requirements.txt`. Rendering is offline, self-contained, with no external API call or obligatory paid service. No installation or hardware assumptions beyond normal local Python and the dependency, which may be absent on a given host (in that case omit `--png`). All static assets are code; fonts are system fallback only; no redistributed fonts. PNG path must be writable. SVG can be opened directly in a browser.
 
-Example JSON files contain **synthetic layout-only** tokens, not actual verified economic information. Generated previews have **DRAFT · NOT AUDITED** and a provisional P-brand mark. Never publish them, even if they look finished. The exporter actively rejects a release manifest paired to these fixtures.
+Example JSON files contain **synthetic layout-only** tokens, not actual verified economic information. These fixture previews carry a visible **DRAFT · SYNTHETIC TEST** warning and a provisional P-brand mark. Never publish them, even if they look finished. The exporter actively rejects a release manifest paired to these fixtures.
 
 ## Draft to approved final
 
 1. Research **one meaningful topic**, compile an internal evidence register and independent sources, record full URL, date, precise observation time, currency/units/period, calculations and verification notes. Store the original source outside the image. Create a JSON issue like one of the examples, replacing every synthetic field with real, checked content. Do not copy synthetic metadata into a real draft.
-2. Run the renderer. On schema, source, timestamp or layout problems it exits with `HOLD` (exit code 2) instead of fabricating data or silently truncating text. SVG carries a DRAFT watermark. Keep the caption in the editorial handoff (outside the image JSON); independently review caption as well.
+2. Run the renderer. On schema, source, timestamp or layout problems it exits with `HOLD` (exit code 2) instead of fabricating data or silently truncating text. A genuine-source SVG has **no visible internal DRAFT/status watermark**, but the CLI still reports DRAFT and the manifest must mark it unapproved; synthetic fixtures remain visibly identified. Keep the caption in the editorial handoff and independently review caption as well.
 3. Give the **exact actual draft image + its final caption + source register** to a skeptical independent reviewer. Correct errors and rerender until the final image is factually consistent and legible at actual Blossom feed size. If the underlying data can't be verified, do not publish.
 4. Obtain **explicit CEO approval of that exact final artifact and caption**. The caption is included in the hashed JSON, so any change invalidates prior authorization. A separate audit manifest can be recorded, e.g.:
 
@@ -136,7 +142,7 @@ Example JSON files contain **synthetic layout-only** tokens, not actual verified
 }
 ```
 
-5. Only then render a non-watermarked final graphic:
+5. Only then render the separately authorized **RELEASE** graphic using the SHA-bound approval manifest; clean artwork before this step is still **DRAFT and not publishable**:
 
 ```bash
 python docs/marketing/visual_kit/render_macro_lens.py approved_issue.json \

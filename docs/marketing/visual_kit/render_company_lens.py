@@ -21,6 +21,7 @@ from render_macro_lens import (
     W, H, BG, LIGHT, MUTED, TEAL, AMBER, PINE, IVORY, InvalidIssue,
     APPROVED_LOGO_SHA256, bounded, checked_logo, iso_dt, need, payload_hash,
     rect, rule, txt, valid_url, release_allowed, wrap,
+    assert_clean_artwork,
 )
 
 DIVIDER = '#405A53'
@@ -236,16 +237,17 @@ def draw_company_lens(p, logo_png=None, status='DRAFT'):
                          18, 508, color=MUTED))
     out.append(txt(1012, 1320, 'NOT INVESTMENT ADVICE', 19,
                    MUTED, 550, anchor='end'))
-    if status != 'RELEASE':
+    # Genuine-filing previews are visually clean, but still unaudited drafts.
+    # Their authorization status is kept in the separate exact-file record.
+    if status != 'RELEASE' and demo:
         out.append(rect(720, 205, 292, 46, '#503D25', 10, AMBER))
-        out.append(txt(866, 235,
-                       'DRAFT · SYNTHETIC TEST' if
-                       p['rights_note'] == 'SYNTHETIC_LAYOUT_ONLY' else
-                       'DRAFT · NOT AUDITED',
+        out.append(txt(866, 235, 'DRAFT · SYNTHETIC TEST',
                        16, AMBER, 730, anchor='middle'))
     out.append('</svg>')
     svg = '\n'.join(out) + '\n'
     ET.fromstring(svg)
+    if not demo:
+        assert_clean_artwork(svg)
     return svg
 
 
