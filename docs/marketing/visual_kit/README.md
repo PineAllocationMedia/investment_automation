@@ -123,12 +123,12 @@ python docs/marketing/visual_kit/render_macro_lens.py \
 
 SVG: Python standard library only. PNG: PyMuPDF (`fitz`), already pinned in the repository `requirements.txt`. Rendering is offline, self-contained, with no external API call or obligatory paid service. No installation or hardware assumptions beyond normal local Python and the dependency, which may be absent on a given host (in that case omit `--png`). All static assets are code; fonts are system fallback only; no redistributed fonts. PNG path must be writable. SVG can be opened directly in a browser.
 
-Example JSON files contain **synthetic layout-only** tokens, not actual verified economic information. Generated previews have **DRAFT · NOT AUDITED** and a provisional P-brand mark. Never publish them, even if they look finished. The exporter actively rejects a release manifest paired to these fixtures.
+Example JSON files contain **synthetic layout-only** tokens, not actual verified economic information. These fixture previews carry a visible **DRAFT · SYNTHETIC TEST** warning and a provisional P-brand mark. Never publish them, even if they look finished. The exporter actively rejects a release manifest paired to these fixtures.
 
 ## Draft to approved final
 
 1. Research **one meaningful topic**, compile an internal evidence register and independent sources, record full URL, date, precise observation time, currency/units/period, calculations and verification notes. Store the original source outside the image. Create a JSON issue like one of the examples, replacing every synthetic field with real, checked content. Do not copy synthetic metadata into a real draft.
-2. Run the renderer. On schema, source, timestamp or layout problems it exits with `HOLD` (exit code 2) instead of fabricating data or silently truncating text. SVG carries a DRAFT watermark. Keep the caption in the editorial handoff (outside the image JSON); independently review caption as well.
+2. Run the renderer. On schema, source, timestamp or layout problems it exits with `HOLD` (exit code 2) instead of fabricating data or silently truncating text. A genuine-source SVG has **no visible internal DRAFT/status watermark**, but the CLI still reports DRAFT and the manifest must mark it unapproved; synthetic fixtures remain visibly identified. Keep the caption in the editorial handoff and independently review caption as well.
 3. Give the **exact actual draft image + its final caption + source register** to a skeptical independent reviewer. Correct errors and rerender until the final image is factually consistent and legible at actual Blossom feed size. If the underlying data can't be verified, do not publish.
 4. Obtain **explicit CEO approval of that exact final artifact and caption**. The caption is included in the hashed JSON, so any change invalidates prior authorization. A separate audit manifest can be recorded, e.g.:
 
@@ -142,7 +142,7 @@ Example JSON files contain **synthetic layout-only** tokens, not actual verified
 }
 ```
 
-5. Only then render a non-watermarked final graphic:
+5. Only then render the separately authorized **RELEASE** graphic using the SHA-bound approval manifest; clean artwork before this step is still **DRAFT and not publishable**:
 
 ```bash
 python docs/marketing/visual_kit/render_macro_lens.py approved_issue.json \
