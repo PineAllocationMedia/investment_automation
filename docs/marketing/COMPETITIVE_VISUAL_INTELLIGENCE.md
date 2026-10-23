@@ -881,7 +881,7 @@ This batch illustrates that financial research platforms can offer broad explora
 
 ## CEO screenshot intake — 2026-10-23, batch 5 (3 references; 3 analytical cases)
 
-**Intake and custody:** Three CEO-supplied screenshots, in displayed order, archived as original unmodified PNG bytes in the private \`competitive_visual_assets/\` directory. Each file is indexed in \`ASSET_MANIFEST.json\` with a SHA-256 checksum, byte count, dimensions, descriptive title and case reference. No original creator URL, redistribution license or performance data has been independently verified. These are **dashboard, infographic and analytics-UI design references**, not verified Blossom competitors, market evidence or PAM feature demonstrations.
+**Intake and custody:** Three CEO-supplied screenshots, in displayed order, archived as original unmodified PNG bytes in the private `competitive_visual_assets/` directory. Each file is indexed in `ASSET_MANIFEST.json` with a SHA-256 checksum, byte count, dimensions, descriptive title and case reference. No original creator URL, redistribution license or performance data has been independently verified. These are **dashboard, infographic and analytics-UI design references**, not verified Blossom competitors, market evidence or PAM feature demonstrations.
 
 | Batch 5 screenshot | Observed reference | Analytical case | Medium / provenance |
 |---|---|---|---|
@@ -905,7 +905,7 @@ This batch illustrates that financial research platforms can offer broad explora
 - **Potential strengths (editorial judgment):** repeatable modules, strong color grouping and consistent spacing create a recognizable visual language across heterogeneous charts. Numbered callouts make dense information appear approachable.
 - **Limitations:** the image is mostly placeholder copy; its percentages and chart values are illustrative, not authenticated economic observations. The many widgets compete with one another, and substantial copy is tiny at feed size; circles and triangles can be decorative rather than analytically necessary.
 - **Possible PAM lesson (IDEA):** reuse a **disciplined component vocabulary** where charts represent specific questions, but keep one dominant thesis per static Blossom graphic. Repeated colors should communicate stable semantics, not simply look coordinated.
-- **Action/outcome:** \`MODULARITY REFERENCE — OBSERVE\`. No template edit or copying instruction; engagement unknown.
+- **Action/outcome:** `MODULARITY REFERENCE — OBSERVE`. No template edit or copying instruction; engagement unknown.
 
 ### CVI-20261023-038 — Finance KPI and receivables hierarchy
 <details>
@@ -923,7 +923,7 @@ This batch illustrates that financial research platforms can offer broad explora
 - **Potential strengths:** the broad-to-specific reading order makes the headline status scannable before readers inspect causes and cohorts; aging buckets and concentration panels expose distinct operational risks behind summary totals.
 - **Limitations:** many legends and monthly labels are tiny. Different metrics (cash flow, sales, overdue balances and credit percentages) need unit/time definitions; the screenshot's displayed values are **UNVERIFIED** and cannot be republished as sourced company financials.
 - **Possible PAM lesson (IDEA):** for future evidence-backed finance research, lead with a few headline metrics, then show the **one diagnostic breakdown** that explains an interesting economic change. Reserve a full interactive dashboard density for a genuine software interface, not one social image.
-- **Action/outcome:** \`INFORMATION-HIERARCHY REFERENCE — OBSERVE\`; no PAM feature, source coverage or post format approved.
+- **Action/outcome:** `INFORMATION-HIERARCHY REFERENCE — OBSERVE`; no PAM feature, source coverage or post format approved.
 
 ### CVI-20261023-039 — Multi-dashboard landscape board
 <details>
@@ -941,13 +941,13 @@ This batch illustrates that financial research platforms can offer broad explora
 - **Potential strengths:** broad visual comparison makes recurring dashboard conventions visible in one place. It is useful for discussing hierarchy, clutter, color consistency and tradeoffs among BI/reporting design families.
 - **Limitations:** original authors, context, licenses and individual screenshots' purposes are unknown. Subviews are too small to read or verify, and the collage gives **no empirical engagement, research quality or commercial performance evidence**.
 - **Possible PAM lesson (IDEA):** treat this as a **survey board**, not a design target; contrast presentation patterns only after deciding which investing question requires an answer. Avoid turning a static macro infographic into a decorative collection of BI widgets.
-- **Action/outcome:** \`LANDSCAPE REFERENCE — OBSERVE\`; no new template, renderer modification, or performance claim.
+- **Action/outcome:** `LANDSCAPE REFERENCE — OBSERVE`; no new template, renderer modification, or performance claim.
 
 ### Cross-case synthesis — batch 5
 
 Together, these examples distinguish (i) consistent infographic building blocks, (ii) structured finance-diagnostic hierarchy and (iii) a broad visual pattern catalogue. **Transferable lessons** are consistent color semantics, defensible metric grouping and top-line-to-detail organization. **Non-transferable assumptions** are that more widgets improve an investor's understanding, that a nice dashboard implies trusted data, or that unrelated BI screens establish what engages Blossom readers. Keep the original images for **private comparative analysis only**; do not copy source layouts or publish the screenshots.
 
-- **Current action:** \`NONE — OBSERVE\`. This intake does not authorize a PAM template change, product claim, marketing experiment or publication.
+- **Current action:** `NONE — OBSERVE`. This intake does not authorize a PAM template change, product claim, marketing experiment or publication.
 
 
 ## How to consume this without restricting creative work
