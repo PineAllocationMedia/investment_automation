@@ -41,6 +41,10 @@ Three **and only three** evidence objects:
 - Each record contains a section locator; the source register must preserve full filing URL, filing accession, filing date, fiscal period, original table/footnote text, GAAP/non-GAAP reconciliation or operating definition, exchange/ticker/CIK and independent comparison to the rendered level. \`basis="NON_GAAP"\` is a disclosure signal, **not an automatic acceptable data-definition validation**.
 - \`rights_note=REVIEWED_FOR_EXACT_USE\` is a manual assertion that source presentation rights were reviewed and does not itself grant data rights. No paid source or membership feed is added.
 
+## Private issuer IDs, no public code
+
+`CL-YYYYMMDD-NN` identifies the E1 issue in structured research, filenames, manifests and audit communications only. The top-right internal tracking code is no longer part of the public-facing E1 masthead. Keep the company, fiscal period, reported-vs-inferred distinctions and source references readable; do not replace that code with another arbitrary build/revision string. Apply the same principle to one-off E1 compositions.
+
 ## Clean genuine-filing previews (including custom compositions)
 
 Real-filing E1 preview artwork must have **no internal DRAFT / NOT AUDITED badge or production-status footer**, even while the working package remains internally `DRAFT_NOT_AUDITED_NOT_APPROVED`. The CEO-supplied Meta Q3 2026 working package used **custom SVG composition**, not the canonical E1 renderer: its upper-right `DRAFT / NOT AUDITED` badge and lower-left `DRAFT NOT AUDITED` footer are the exact recurring defect to prevent. Place review and approval notes in the **external asset manifest and response**, not on the image. Synthetic fixture images must still visibly identify themselves as `DRAFT · SYNTHETIC TEST`. A visually clean image is **not** permission to publish.

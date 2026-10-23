@@ -180,7 +180,8 @@ def _masthead(p, logo_png):
     out.extend([
         txt(169, 102, 'PAM', 29, LIGHT, 800),
         txt(267, 102, '/  MARKET BRIEF', 23, MUTED, 600),
-        txt(1012, 103, p['issue_id'], 20, TEAL, 600, anchor='end'),
+        # No internal issue identifier printed on the image.
+
         rule(68, 150, 1012, 150, SEPARATOR, 2),
         txt(68, 188, p['issue_at'][:10]+'   /   @therealpam', 19, MUTED, 600),
     ])

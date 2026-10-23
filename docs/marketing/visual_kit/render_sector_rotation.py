@@ -199,7 +199,8 @@ def render_sector_rotation(p, logo_png=None, status='DRAFT'):
     out.extend([
         txt(169, 102, 'PAM', 29, LIGHT, 800),
         txt(267, 102, '/  SECTOR ROTATION', 23, MUTED, 600),
-        txt(1012, 103, p['issue_id'], 20, TEAL, 600, anchor='end'),
+        # No internal issue identifier printed on the image.
+
         rule(68, 148, 1012, 148, DIVIDER, 2),
         txt(68, 188, 'EQUITY MARKETS  /  20-SESSION PRICE RETURN', 19, TEAL, 680),
     ])

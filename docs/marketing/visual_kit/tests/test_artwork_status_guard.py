@@ -20,7 +20,10 @@ class ArtworkStatusGuardTests(unittest.TestCase):
         for label in ('DRAFT / NOT AUDITED',
                       'PREPARED 2026-10-23 / DRAFT NOT AUDITED',
                       'AUDIT ONLY', 'NOT FOR PUBLICATION',
-                      'INTERNAL REVIEW', 'REVIEW PENDING', 'PENDING APPROVAL'):
+                      'INTERNAL REVIEW', 'REVIEW PENDING', 'PENDING APPROVAL',
+                      'CL-20261023-01', 'ML-20261023-01',
+                      'SR-20261023-01', 'MB-20261023-01',
+                      'GM-20261023-01'):
             with self.subTest(label=label), self.assertRaises(ValueError):
                 assert_clean_artwork('<svg><text>' + label + '</text></svg>')
 
@@ -29,6 +32,23 @@ class ArtworkStatusGuardTests(unittest.TestCase):
                              '<text>NOT INVESTMENT ADVICE</text></svg>')
         with self.assertRaises(ValueError):
             assert_clean_artwork('<svg><text><tspan>DRAFT</tspan></text></svg>')
+
+    def test_issue_codes_are_internal_across_all_renderers(self):
+        # Keep issue_id in source JSON/CLI for audit, never SVG text.
+        for name, renderer in [
+            ('t1', macro), ('t2', macro), ('t3', macro),
+            ('e1', draw_company_lens), ('m2', render_sector_rotation),
+            ('m4', draw_market_brief)
+        ]:
+            with self.subTest(name=name):
+                p=fixture(name)
+                svg=renderer(p)
+                self.assertNotIn(p['issue_id'], svg)
+                self.assertNotIn(' / 01</text>', svg)
+                if name in ('t1', 't2', 't3'):
+                    self.assertNotIn('T1 / ', svg)
+                    self.assertNotIn('T2 / ', svg)
+                    self.assertNotIn('T3 / ', svg)
 
     def test_synthetic_remains_labeled_in_each_family(self):
         for name, renderer in [
