@@ -20,7 +20,7 @@ class ArtworkStatusGuardTests(unittest.TestCase):
         for label in ('DRAFT / NOT AUDITED',
                       'PREPARED 2026-10-23 / DRAFT NOT AUDITED',
                       'AUDIT ONLY', 'NOT FOR PUBLICATION',
-                      'INTERNAL REVIEW', 'PENDING APPROVAL'):
+                      'INTERNAL REVIEW', 'REVIEW PENDING', 'PENDING APPROVAL'):
             with self.subTest(label=label), self.assertRaises(ValueError):
                 assert_clean_artwork('<svg><text>' + label + '</text></svg>')
 
