@@ -177,7 +177,8 @@ def draw_company_lens(p, logo_png=None, status='DRAFT'):
     out.extend([
         txt(169, 102, 'PAM', 29, LIGHT, 800),
         txt(267, 102, '/  COMPANY LENS', 23, MUTED, 600),
-        txt(1012, 103, p['issue_id'], 20, TEAL, 600, anchor='end'),
+        # No internal issue identifier printed on the image.
+
         rule(68, 149, 1012, 149, DIVIDER, 2),
         safe_text(68, 193, p['company_name'], 25, 760, weight=700),
         safe_text(1012, 193, p['ticker'] + ('  /  DEMO ISSUER' if demo else '  /  SEC FILER'), 19, 348,

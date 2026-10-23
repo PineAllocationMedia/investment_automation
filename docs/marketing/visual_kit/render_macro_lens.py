@@ -204,8 +204,7 @@ def common(p, typ, logo_png=None):
         out.append(txt(110, 111, 'P', 40, PINE, 800, anchor='middle'))
     out.extend([txt(169, 103, 'PAM', 29, LIGHT, 800),
            txt(263, 102, '/  THE MACRO LENS', 21, MUTED, 600),
-           txt(1012, 102, (typ+' / '+p['issue_id'] if typ == 'T1' else typ+' / 01'),
-               (22 if typ == 'T1' else 18), TEAL, 700, anchor='end'),
+           # Tracking issue IDs and renderer family codes are private metadata.
            rule(68, 153, 1012, 153, '#3B554F', 2),
            txt(68, 195, p['issue_at'][:10]+'  /  @therealpam', 19, MUTED, 600),
            multiline(68, 276, p['headline'], 27, 2, 54, LIGHT, 800, 65, 'headline'),
@@ -247,8 +246,7 @@ def footer(out, p, sources, asof, status):
         # Preserve existing T2/T3 rendering unchanged.
         out.extend([rule(68, 1224, 1012, 1224, '#3B554F', 2),
                     txt(68, 1262, 'SOURCES: '+sources, 15, MUTED, 500),
-                    txt(68, 1287, 'AS OF '+asof+'  ·  NOT INVESTMENT ADVICE', 15, MUTED, 500),
-                    txt(1012, 1288, p['issue_id'], 16, TEAL, 600, anchor='end')])
+                    txt(68, 1287, 'AS OF '+asof+'  ·  NOT INVESTMENT ADVICE', 15, MUTED, 500)])
     if status != 'RELEASE' and synthetic_issue(p):
         out.append(rect(710, 151, 302, 53, '#503D25', 12, AMBER))
         out.append(txt(861, 185, 'DRAFT · SYNTHETIC TEST', 18, AMBER, 750, anchor='middle'))

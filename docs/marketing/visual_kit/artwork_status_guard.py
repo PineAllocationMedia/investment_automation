@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Fail-closed SVG label check. Does not audit financial facts or rasterized text."""
+"""Reject visible workflow status and issue codes; no financial/raster audit."""
 import argparse
 import re
 import sys
@@ -11,7 +11,8 @@ INTERNAL_STATUS = re.compile(
     r"\b(?:DRAFT|NOT[\s-]+AUDITED|AUDIT[\s-]+ONLY|"
     r"NOT[\s-]+FOR[\s-]+PUBLICATION|PENDING[\s-]+APPROVAL|"
     r"INTERNAL[\s-]+(?:ONLY|REVIEW)|REVIEW[\s-]+(?:PENDING|REQUIRED)|"
-    r"CEO[\s-]+APPROVAL[\s-]+PENDING|WORKING[\s-]+(?:COPY|ASSET))\b",
+    r"CEO[\s-]+APPROVAL[\s-]+PENDING|WORKING[\s-]+(?:COPY|ASSET)|"
+    r"(?:ML|CL|SR|MB|GM)-\d{8}-\d{2})\b",
     re.IGNORECASE,
 )
 
@@ -42,7 +43,7 @@ def assert_clean_artwork(svg):
 
 
 def run(argv=None):
-    parser = argparse.ArgumentParser(description='Reject on-artwork draft/review labels')
+    parser = argparse.ArgumentParser(description='Reject on-artwork internal status or issue IDs')
     parser.add_argument('svg', type=Path)
     args = parser.parse_args(argv)
     try:
@@ -50,7 +51,7 @@ def run(argv=None):
     except (OSError, ValueError, ET.ParseError) as exc:
         print('HOLD: ' + str(exc), file=sys.stderr)
         return 2
-    print('PASS: no internal SVG text labels found (inspect actual PNG separately)')
+    print('PASS: no internal-status or issue-code SVG text found (inspect PNG)')
     return 0
 
 
