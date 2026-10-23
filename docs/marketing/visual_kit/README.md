@@ -2,6 +2,12 @@
 
 **Target:** Blossom @therealpam; native drafting canvas 1080×1350 (4:5). **Status:** proposed repository implementation; no publishing or market-data access. Companion: `docs/marketing/MACRO_LENS_PLAYBOOK.md` and `MACRO_LENS_TEMPLATES.md`.
 
+## Clean public artwork / separate approval state
+
+For all genuine-source image candidates (T1–T3, E1, M1, M2, M4 or bespoke), the **first** 1080×1350 artwork must be visually free of internal production notes: no `DRAFT`, `NOT AUDITED`, `REVIEW PENDING`, `NOT FOR PUBLICATION` or comparable approval/status label in the header, footer or illustration. **Synthetic examples keep their clearly visible DRAFT / SYNTHETIC TEST mark.** This is an appearance rule, not a publishable-status claim. The source, exact hashes, audit status, approval state and any reviewer notes remain in the separate manifest/handoff. The rendering CLIs still emit `status=DRAFT` until the existing signed-off SHA-bound release manifest is supplied. Never invent an approval or use a release flag merely to remove a banner.
+
+**Bespoke-svg safety check:** run `python artwork_status_guard.py <candidate.svg>` before delivering an image; inspect both actual 1080px and 390px PNGs as well. The checker catches visible SVG text only, not words flattened into raster layers. An SVG failure requires fixing the composition, not relaxing review. Source accuracy, image rights, exact logo bytes, independent artifact audit and CEO's separate per-post publication approval remain mandatory.
+
 ## Market Atlas — recurring world performance map (M1)
 
 **Daily production rule:** the CEO-supplied October 20, 2026 Market Atlas image is the locked visual reference. The complete original Natural Earth 1:50m geography is embedded losslessly in `render_global_index_map.py` (177 countries, 97,907 coordinate pairs). **No separate geometry asset, GitHub download, bootstrap or runtime file mounting is required** for the normal M1 map. Use the existing `render_global_index_map.py` M1 layout with new real ETF prices, dates, country fills, rankings, legend limits, breadth and source/caption only. No bootstrap or additional pre-render process. Preserve separate factual review and CEO approval **before publication**.

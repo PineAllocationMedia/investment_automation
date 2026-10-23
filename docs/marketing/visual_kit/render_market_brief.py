@@ -14,6 +14,7 @@ from datetime import datetime, timedelta
 from pathlib import Path
 from xml.etree import ElementTree as ET
 
+from artwork_status_guard import assert_clean_artwork, synthetic_issue
 from render_macro_lens import (
     W, H, BG, LIGHT, MUTED, TEAL, AMBER, PINE, IVORY,
     InvalidIssue, APPROVED_LOGO_SHA256, bounded, checked_logo,
@@ -242,12 +243,14 @@ def draw_market_brief(p, logo_png=None, status='DRAFT'):
                              22, 531, color=MUTED, weight=550))
     out.append(_text_checked(1012, 1312, 'NOT INVESTMENT ADVICE',
                              22, 351, color=MUTED, weight=550, anchor='end'))
-    if status != 'RELEASE':
+    if status != 'RELEASE' and synthetic_issue(p):
         out.append(rect(710, 151, 302, 53, '#503D25', 12, AMBER))
-        out.append(txt(861, 185, 'DRAFT · NOT AUDITED', 18, AMBER, 750, anchor='middle'))
+        out.append(txt(861, 185, 'DRAFT · SYNTHETIC TEST', 18, AMBER, 750, anchor='middle'))
     out.append('</svg>')
     result = '\n'.join(out) + '\n'
     ET.fromstring(result)  # Verify XML validity before release/output.
+    if not synthetic_issue(p):
+        assert_clean_artwork(result)
     return result
 
 

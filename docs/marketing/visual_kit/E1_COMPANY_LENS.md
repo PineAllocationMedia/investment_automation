@@ -41,6 +41,12 @@ Three **and only three** evidence objects:
 - Each record contains a section locator; the source register must preserve full filing URL, filing accession, filing date, fiscal period, original table/footnote text, GAAP/non-GAAP reconciliation or operating definition, exchange/ticker/CIK and independent comparison to the rendered level. \`basis="NON_GAAP"\` is a disclosure signal, **not an automatic acceptable data-definition validation**.
 - \`rights_note=REVIEWED_FOR_EXACT_USE\` is a manual assertion that source presentation rights were reviewed and does not itself grant data rights. No paid source or membership feed is added.
 
+## Clean genuine-filing previews (including custom compositions)
+
+Real-filing E1 preview artwork must have **no internal DRAFT / NOT AUDITED badge or production-status footer**, even while the working package remains internally `DRAFT_NOT_AUDITED_NOT_APPROVED`. The CEO-supplied Meta Q3 2026 working package used **custom SVG composition**, not the canonical E1 renderer: its upper-right `DRAFT / NOT AUDITED` badge and lower-left `DRAFT NOT AUDITED` footer are the exact recurring defect to prevent. Place review and approval notes in the **external asset manifest and response**, not on the image. Synthetic fixture images must still visibly identify themselves as `DRAFT · SYNTHETIC TEST`. A visually clean image is **not** permission to publish.
+
+For bespoke SVG, run `python artwork_status_guard.py <candidate.svg>`, then inspect exported native and 390px PNGs; the SVG check does not inspect words in embedded/raster image content. This new hygiene rule leaves every original source/rights, brand hash, independent-review and CEO exact-post release gate intact.
+
 ## Release and brand gates
 
 The same \`release_allowed()\` exact JSON **including caption** SHA manifest, independent reviewer reference, explicit CEO approval of exact asset, and matching CEO-approved reconstructed pine-logo master SHA are required for any release. Direct RELEASE renderer calls also enforce the exact logo hash. The renderer cannot verify audit identity or actual CEO intent and never sends anything to Blossom. **A PR merge is not a post approval**.

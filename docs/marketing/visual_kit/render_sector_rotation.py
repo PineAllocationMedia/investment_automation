@@ -16,6 +16,7 @@ from pathlib import Path
 from urllib.parse import urlparse
 from xml.etree import ElementTree as ET
 
+from artwork_status_guard import assert_clean_artwork
 from render_macro_lens import (
     W, H, BG, LIGHT, MUTED, TEAL, AMBER, PINE, IVORY, InvalidIssue,
     bounded, checked_logo, iso_dt, need, payload_hash, rect, rule, txt,
@@ -270,14 +271,15 @@ def render_sector_rotation(p, logo_png=None, status='DRAFT'):
                             18, 475, color=MUTED, weight=500))
     out.append(txt(1012, 1321, 'NOT INVESTMENT ADVICE', 19,
                    MUTED, 550, anchor='end'))
-    if status != 'RELEASE':
+    if status != 'RELEASE' and p.get('rights_note') == 'SYNTHETIC_LAYOUT_ONLY':
         out.append(rect(732, 159, 280, 45, '#503D25', 10, AMBER))
-        out.append(txt(872, 188, 'DRAFT · SYNTHETIC TEST' if
-                       p.get('rights_note') == 'SYNTHETIC_LAYOUT_ONLY' else
-                       'DRAFT · NOT AUDITED', 16, AMBER, 750, anchor='middle'))
+        out.append(txt(872, 188, 'DRAFT · SYNTHETIC TEST',
+                       16, AMBER, 750, anchor='middle'))
     out.append('</svg>')
     svg = '\n'.join(out)+'\n'
     ET.fromstring(svg)
+    if p.get('rights_note') != 'SYNTHETIC_LAYOUT_ONLY':
+        assert_clean_artwork(svg)
     return svg
 
 

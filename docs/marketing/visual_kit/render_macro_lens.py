@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Offline PAM Macro Lens SVG/PNG renderer. Layout only, never a market-data verifier.
 
-Output remains watermarked until a separate audited, CEO-approved release manifest
-identifies the exact input SHA-256. No network access or financial data retrieval.
+Real-data previews have clean artwork; audit/CEO status remains separate and
+SHA-bound. Synthetic examples retain conspicuous markings. No network access.
 """
 import argparse
 import base64
@@ -13,6 +13,7 @@ import re
 import sys
 import struct
 from t1_evidence_plus import validate_t1_plus, draw_t1_plus, used_evidence
+from artwork_status_guard import assert_clean_artwork, synthetic_issue
 from datetime import datetime
 from pathlib import Path
 from urllib.parse import urlparse
@@ -248,9 +249,9 @@ def footer(out, p, sources, asof, status):
                     txt(68, 1262, 'SOURCES: '+sources, 15, MUTED, 500),
                     txt(68, 1287, 'AS OF '+asof+'  ·  NOT INVESTMENT ADVICE', 15, MUTED, 500),
                     txt(1012, 1288, p['issue_id'], 16, TEAL, 600, anchor='end')])
-    if status != 'RELEASE':
+    if status != 'RELEASE' and synthetic_issue(p):
         out.append(rect(710, 151, 302, 53, '#503D25', 12, AMBER))
-        out.append(txt(861, 185, 'DRAFT · NOT AUDITED', 18, AMBER, 750, anchor='middle'))
+        out.append(txt(861, 185, 'DRAFT · SYNTHETIC TEST', 18, AMBER, 750, anchor='middle'))
     return out
 
 def t1(out, p, f):
@@ -389,7 +390,10 @@ def render(payload, status='DRAFT', logo_png=None):
     asof = max(times).strftime('%Y-%m-%d %H:%M %z')
     footer(out, payload, sources, asof, status)
     out.append('</svg>')
-    return '\n'.join(out)+'\n'
+    svg = '\n'.join(out)+'\n'
+    if not synthetic_issue(payload):
+        assert_clean_artwork(svg)
+    return svg
 
 
 def payload_hash(payload):
