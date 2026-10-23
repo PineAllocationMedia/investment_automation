@@ -4,7 +4,7 @@
 **Owner:** Marketing & GTM under the existing bounded Blossom `@therealpam` mandate.
 **Channel:** Blossom posts on `@therealpam` only, unless separately authorized.
 **Authority:** Research, drafting, visual preparation, audit coordination and measurement; **no autonomous publication**.
-**Companion files:** [Templates](MACRO_LENS_TEMPLATES.md) · [Visual Kit](visual_kit/README.md) · [Institutional Editorial Design Gate](visual_kit/INSTITUTIONAL_EDITORIAL_STANDARD.md) · [Editorial log](MACRO_LENS_EDITORIAL_LOG.md) · [Role charter](../../governance/roles/MARKETING_GTM.md).
+**Companion files:** [Templates](MACRO_LENS_TEMPLATES.md) · [Visual Kit](visual_kit/README.md) · [Institutional Editorial Design Gate](visual_kit/INSTITUTIONAL_EDITORIAL_STANDARD.md) · [Editorial log](MACRO_LENS_EDITORIAL_LOG.md) · [Competitive Visual Intelligence](COMPETITIVE_VISUAL_INTELLIGENCE.md) (optional market context, **not a template**) · [Role charter](../../governance/roles/MARKETING_GTM.md).
 
 ## 1. Why this exists
 
@@ -33,6 +33,8 @@ The `@therealpam` mandate spans macro, companies, sectors, valuations and cross-
 ## Subject-first editorial freedom for CEO-directed briefs
 
 **Subject routing:** a specific CEO topic is binding; research it rather than silently switching to a more template-friendly one. Literal `Subject: Market Atlas` explicitly selects the fixed M1 format. Conversely, `Subject: Best subject according to your interpretation of today's events` (or `SCAN CURRENT MARKETS`) **authorizes an independent editorial scan and choice of subject *and* format**. For unusual CEO-assigned questions, analyze the question before proposing a supported layout. If a central claim cannot be sourced, explain the uncertainty or recommend HOLD/SKIP rather than inventing a replacement topic or numbers.
+
+**Optional competitive visual context:** When designing or materially revising an image, the editor may consult the [Competitive Visual Intelligence](COMPETITIVE_VISUAL_INTELLIGENCE.md) notes for category conventions and possible differentiation **after** selecting the useful subject and verifying central evidence. The reference library is descriptive, not binding: do not copy a third-party composition, confuse anecdotal appearance with engagement results, require a benchmark consultation for every image, or modify PAM templates merely to react to a competitor. The approved PAM visual identity, authentic sources, existing renderers and CEO publication authority remain controlling.
 
 **Choose the explanation before its container.** Identify the reader's question, the verified economic relationship, the necessary depth (`BRIEF / STANDARD / DEEP`) and the evidence that would make the conclusion understandable. Then recommend the best visual treatment, which may be an implemented reusable template, a text-only sourced commentary, or an **original DRAFT-only composition proposal**. The employee is explicitly encouraged to suggest a custom geographic flow, supply-chain network, sector comparison, company earnings bridge, scenario tree or source-backed analytical table when that form communicates the assigned thesis materially better than any existing template. Do not force a novel subject into a generic rounded-card or “signal → arrows → conclusion” infographic.
 
