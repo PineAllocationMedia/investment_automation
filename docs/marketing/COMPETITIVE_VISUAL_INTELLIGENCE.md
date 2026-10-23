@@ -271,6 +271,148 @@ The screenshot sample spans three broad market presentation choices: (i) strikin
 - **Two particularly useful contrasts for PAM:** flamboyant ranked market posters versus one defensible source-traced insight; and multi-metric portfolio dashboards versus a small, honest source-linked performance explanation. These are hypotheses for future observation, **not** verified competitive superiority.
 - **Current action:** \`NONE — OBSERVE\`. The batch does not authorize new templates, specific PAM metric claims, visual copying, publication, or a mandatory competitive checklist.
 
+## CEO screenshot intake — 2026-10-23, batch 3 (15 references; 12 analytical cases)
+
+**Source and classification:** Fifteen images supplied by the CEO in the PAM Marketing & GTM ChatGPT conversation, in the order listed below. This batch comprises **desktop BI dashboards, infographic/chart catalogues, valuation and portfolio-analysis UI, conceptual analytics imagery, and report/slide design**. These are **not established Blossom competitors or examples of proven social engagement**. Several resemble stock/mockup art and one pair is effectively a duplicate. This is visual market literacy for designers, not a new renderer backlog.
+
+**Custody and limits:** Only a numbered description and qualitative design analysis are registered in this repository. The **third-party image bytes are not copied**, and no permanent image URL, original author, license, source-file resolution, usage rights or platform performance has been confirmed. Reference numbers are anchored to this CEO-supplied **batch 3 conversation**, not to external URL identities. Text, statistics, brands and product claims displayed within these images are **illustrative/unverified**. The descriptions and comparisons are observations or hypotheses, **not source verification or proof of market superiority**.
+
+| Batch 3 image | Visible characteristics (observation, not verification) | Case | Source classification |
+|---|---|---|---|
+| **01** | Black, framed large-format analytics wall; multiple colorful bar, area and line charts, mini callouts, columns of small copy | [CVI-20261023-019](#cvi-20261023-019--dense-poster-style-analytics-wall) | Presentation/poster photo; creator and data unknown |
+| **02** | Pale dashboard with world choropleth, concentric radial display, horizontal ranked sections and small charts | [CVI-20261023-020](#cvi-20261023-020--multi-panel-executive-dashboard) | Dashboard/design reference; original source unknown |
+| **03** | Modular, flat coral/teal/yellow infographic canvas with stacked bands, donut indicators, pictograms and bars | [CVI-20261023-021](#cvi-20261023-021--flat-infographic-tile-system) | Generic infographic example; rights unknown |
+| **04** | Person facing a wide wall of orange, white and charcoal dashboard screens | [CVI-20261023-022](#cvi-20261023-022--conceptual-analytics-hero-imagery) | Conceptual promotional illustration/photo, not evidenced analytics |
+| **05** | Navy chart collection using lime and cyan lines, bars, map dots, circular gauges and card-like modules | [CVI-20261023-020](#cvi-20261023-020--multi-panel-executive-dashboard) | Chart/dashboard catalogue example; data unknown |
+| **06** | Flat coral/teal/yellow modular infographic board substantially repeating image #03 | [CVI-20261023-021](#cvi-20261023-021--flat-infographic-tile-system) | **Near-duplicate of #03**, counted but not a separate lesson |
+| **07** | White/gray editorial analytic sheets photographed diagonally, orange/yellow/black charts, circles and long labels | [CVI-20261023-023](#cvi-20261023-023--white-analytical-sheet-with-many-charts) | Design/print collage; no verified data source |
+| **08** | Person typing at laptop/calculator with transparent holographic pie charts, bars and indicators superimposed | [CVI-20261023-022](#cvi-20261023-022--conceptual-analytics-hero-imagery) | Stock-style conceptual analytics photo; not product evidence |
+| **09** | Two dark valuation widgets: future cash-flow value with \`22.0% Undervalued\` badge, and portfolio versus market P/E speedometer | [CVI-20261023-024](#cvi-20261023-024--compact-valuation-widgets) | Portfolio UI screenshot; valuation calculations **not verified** |
+| **10** | White \`Optimizer / My Portfolio\` risk-return scatter, four highlighted alternatives, donut allocation and comparison bars | [CVI-20261023-025](#cvi-20261023-025--portfolio-optimizer-risk-return-map) | PortfolioCharts-branded UI appearance; source rights/results unknown |
+| **11** | StockCharts-branded AMZN versus SPY multi-series percentage-performance time chart with many colored lines | [CVI-20261023-026](#cvi-20261023-026--relative-performance-multi-line-chart) | Third-party financial website screenshot; not reusable chart art |
+| **12** | Portfolio weightings horizontal ranked bars beside overlapped growth-versus-dividend bubble/scatter plot | [CVI-20261023-027](#cvi-20261023-027--holdings-weighting-plus-bubble-comparison) | Analytics screenshot/composite; original source unknown |
+| **13** | Turquoise, yellow and black \`INFOGRAPHICS 15\` chart/dashboard mockup tiles | [CVI-20261023-028](#cvi-20261023-028--infographic-chart-catalogue) | General-purpose chart-template catalogue |
+| **14** | Role × month resource-utilization percentage heatmap in green, amber and red; expandable rows, month labels | [CVI-20261023-029](#cvi-20261023-029--operational-heatmap-matrix) | Project/resource planning UI, not investment chart |
+| **15** | Cream, muted-teal and brick-red report/slide suite: multi-line chart, bars, a diagram and five-step horizontal path | [CVI-20261023-030](#cvi-20261023-030--report-and-slide-layout-family) | Generic presentation template, not published market analysis |
+
+### CVI-20261023-019 — Dense poster-style analytics wall
+
+**Reference:** batch 3 #01. **Subject/shape:** very dark, wide, framed analytics board resembling an exhibition wall or command-center poster; nine-ish regions with bright gradients, histograms, area/line charts and explanatory footnotes.
+
+- **Visible strengths (editorial opinion):** strong visual spectacle, purposeful grouping of many subtopics, coherent black background with contrasting highlights; potentially useful for an exhibit or large-screen exploration.
+- **Visible tradeoffs:** thumbnail-level text density, numerous equally loud panels and mixed chart scales prevent a single immediate takeaway; success on a wall is not evidence of readability in a Blossom phone feed.
+- **Possible PAM lesson:** borrow only the principle of grouping related evidence and disciplined repeated scales. Reduce to a few evidence-bearing elements for a social post; don't imitate the full analytics-wall composition.
+- **Status:** \`BACKGROUND REFERENCE\`. Engagement, accuracy and copyright: **UNKNOWN**.
+
+### CVI-20261023-020 — Multi-panel executive dashboard
+
+**References:** batch 3 #02 and #05. **Subject/shape:** pale map-and-radial executive board versus dark navy data-visualization dashboard family. Both combine maps, trend plots, radial/gauge modules, distribution measures and small KPI or ranking elements.
+
+- **Possible strengths:** compact overview of several metrics; recognizable color semantics within each local chart; map-plus-trend can locate and contextualize an issue when geographic units really belong together.
+- **Tradeoffs:** crowded labels and gauge/map semantics are not obvious without interaction; maps need comparable underlying geography and source units; disconnected mini charts can become a generic catalog with no editorial focus.
+- **PAM lesson:** overview → one meaningful comparison → uncertainty, not ten equal-priority widgets. A geographically bounded claim should use verified correct map geometry. Use neither screenshot as a required PAM layout.
+- **Status:** \`DESIGN INTELLIGENCE ONLY\`. Original analytics and authorship unverified.
+
+### CVI-20261023-021 — Flat infographic tile system
+
+**References:** batch 3 #03 and **near-duplicate** #06. **Subject/shape:** repeatable bright graphic tiles with stacked/striped bars, donut indicators, labeled circle nodes, stylized lines and callout panels on coral, mustard and teal backgrounds.
+
+- **Possible strengths:** internally consistent modules, distinct visual identity, quick categorical separation and accessible flat illustrations.
+- **Tradeoffs:** the repeating shapes and placeholder text can look illustrative rather than fact-driven; some encodings are decorative or incompletely labeled; saturated color across every panel weakens hierarchy.
+- **PAM lesson:** modularity can be useful without adopting these particular colors, ornaments or grid. Any donut, category width or proportion must represent an actual verified denominator.
+- **Status:** \`VISUAL GRAMMAR REFERENCE\`. #06 is counted as an image but does **not** justify a new case or extra template.
+
+### CVI-20261023-022 — Conceptual analytics hero imagery
+
+**References:** batch 3 #04 and #08. **Subject/shape:** a person examining dozens of dashboard panes, and an office worker using laptop/calculator with a holographic data overlay.
+
+- **Potential strength:** communicates "analytics", decision support or digital tools at a glance without requiring the audience to decode a real data source.
+- **Risk:** generic technology symbolism can imply a mature or live platform that does not exist; imagery has almost no verifiable information and does little for finance research credibility if used in place of an original chart.
+- **PAM lesson:** reserve such imagery, if at all, for clearly conceptual communications with accurate capability claims. The public investing account should prioritize relevant sourced explanation instead of stock-style finance-technology scenes.
+- **Status:** \`WHAT TO AVOID OVERUSING\`; no evidence of competing account performance.
+
+### CVI-20261023-023 — White analytical sheet with many charts
+
+**Reference:** batch 3 #07. **Subject/shape:** brightly lit report sheets/collage with assorted bar, line and ring charts, orange/yellow accents and technical text on white paper.
+
+- **Possible strengths:** research/reporting visual cues, legible contrasts at sheet scale and ability to compose multiple evidence views around a common question.
+- **Tradeoffs:** photographic perspective, overlapping papers and numerous unrelated modules are weak choices for precise extraction of numeric information; not a ready-to-post mobile chart.
+- **PAM lesson:** use this as an information-design reference only: clear charts on a neutral surface, then crop/split to one thesis per frame. No numeric value in the collage is validated.
+- **Status:** \`BACKGROUND REFERENCE\`.
+
+### CVI-20261023-024 — Compact valuation widgets
+
+**Reference:** batch 3 #09. **Subject/shape:** dark two-card UI, one comparing hypothetical or modelled future cash-flow value against displayed total value with "undervalued" output, the other a dial comparing portfolio P/E against a market P/E reference.
+
+- **Possible strengths:** one question per module; instantly recognizable benchmark-versus-current framing; compact visual summary with a visible exclusion note for incomplete data.
+- **Material risks:** future cash-flow value is model-dependent; P/E is not a bounded physical quantity that intrinsically warrants a green-to-red speedometer; a binary "undervalued" tag can overstate precision and imply an investment judgment. Missing holdings and valuation weights can bias aggregate interpretation.
+- **PAM lesson:** separate **observed inputs, method, assumptions, missing-data coverage and model output**. If future product capability truly supports this analysis, expose uncertainty rather than asserting objective intrinsic value; never imply an unvalidated feature is live. No trading advice.
+- **Status:** \`VALUATION COMMUNICATION REFERENCE\`, **not** endorsement of 22% discount or of any P/E values.
+
+### CVI-20261023-025 — Portfolio optimizer risk-return map
+
+**Reference:** batch 3 #10. **Subject/shape:** light browser interface with grey scenario cloud of portfolios, several colored points, axes labeled Ulcer Index and long-term withdrawal rate, plus allocation donut and optimized-versus-current bars.
+
+- **Possible strengths:** meaningful multi-objective tradeoff shown spatially, visibly highlights selected alternatives and preserves comparisons to a benchmark; chart and secondary allocation summary are logically connected.
+- **Material limitations:** outcomes depend on data samples, simulated weights, method, rebalancing assumptions, selected risk/return measures and look-ahead/survivorship issues. A chart of possible outcomes is not a prediction or a personalized recommendation.
+- **PAM lesson:** when portfolio intelligence is validated, identify the objective, metric meanings and assumptions; make the selected point and decision tradeoff comprehensible. Do not copy third-party optimization visuals or claim PAM already runs this methodology.
+- **Status:** \`SPECIALIZED RESEARCH REFERENCE\`; no validated results or reuse permission.
+
+### CVI-20261023-026 — Relative performance multi-line chart
+
+**Reference:** batch 3 #11. **Subject/shape:** StockCharts-branded website with many colored cumulative/relative return lines, common horizontal date scale and percentage levels.
+
+- **Possible strengths:** same-base, same-period chart can reveal relative leadership, turning points and dispersion without a large table; historical context matters more than one-day snapshots.
+- **Tradeoffs:** too many similar-color series obscure identities and movements; reference benchmark, dividend treatment, share class, currency, data clock and baseline date are essential before comparing results.
+- **PAM lesson:** choose a small, hypothesis-relevant peer set and a clearly stated rebasing/return method. A source's branded plotted pixels are not automatically licensed for reposting.
+- **Status:** \`EVIDENCE ENCODING REFERENCE\`; chart returns unverified.
+
+### CVI-20261023-027 — Holdings weighting plus bubble comparison
+
+**Reference:** batch 3 #12. **Subject/shape:** two overlaid analytical panels: ranked portfolio weights in horizontal teal bars; labelled bubbles placed against estimated growth and dividend-yield axes with average reference lines.
+
+- **Possible strengths:** combines **exposure** (which holdings dominate) with **economic attributes** (growth/yield) and spotlights exceptions; means/reference lines provide context.
+- **Risks:** overprinted chart regions, labels within bubbles and variable circle sizes create possible confusion about what size represents; estimated growth is not observed fact, and a portfolio-weight chart cannot be mixed with unweighted peer scatter without explanation.
+- **PAM lesson:** separate weight-based concentration from company-factor comparison when the two arguments are different; make bubble size, universe, estimates and period explicit. Favor clear readable panels over overlapping decorative layers.
+- **Status:** \`PORTFOLIO VISUAL GRAMMAR\`, not a ready-made feature or template.
+
+### CVI-20261023-028 — Infographic chart catalogue
+
+**Reference:** batch 3 #13. **Subject/shape:** turquoise/yellow/black set of generic numbered infographics, stylized bars, circles, timelines, columns and faux-depth objects.
+
+- **Potential benefit:** a visual vocabulary reminder that the same evidence can be presented with a few different, deliberately chosen encodings.
+- **Limits:** decorative and faux-3D charts may distort proportional comparisons; "lots of chart options" says nothing about an account's popularity or a reader's comprehension.
+- **PAM lesson:** choose an encoding *after* verifying units, denominator, time period and the intended explanation. Never use a catalogue as a quota or justification to invent a template.
+- **Status:** \`CATALOGUE / BACKGROUND ONLY\`.
+
+### CVI-20261023-029 — Operational heatmap matrix
+
+**Reference:** batch 3 #14. **Subject/shape:** role × month percentage grid, expandable row list, traffic-light cell fills and values directly printed on cells.
+
+- **Possible strengths:** repeated measures over a consistent matrix reveal extremes, emerging pressure and changing patterns faster than a long table; numeric text survives without color.
+- **Tradeoffs:** red/amber/green can encode good/bad without specifying what "good" means; percentages over 100% need definition; number of rows and small cells challenge phone readability. Capacity planning is **not** automatically a financial-investing use case.
+- **PAM lesson:** a matrix/heatmap is appropriate only for a real multi-entity × multi-period comparison with compatible data and interpretable thresholds. Color needs labels and an accessible legend.
+- **Status:** \`CROSS-DOMAIN INFORMATION DESIGN\`; no production action.
+
+### CVI-20261023-030 — Report and slide layout family
+
+**Reference:** batch 3 #15. **Subject/shape:** warm-ivory report/slide pages with muted chart palettes, a primary page of side-by-side line and column charts, and smaller diagram/process panels beneath.
+
+- **Possible strengths:** restrained print/editorial palette, clear main-page hierarchy and separation of visual evidence from prose; multiple pages can expand an argument without cramming it into one social tile.
+- **Limitations:** placeholder copy and chart values convey no validated finance insight; slide and report structures usually require different dimensions and interaction than a Blossom 4:5 post.
+- **PAM lesson:** borrow the **principle** of a strong primary thesis and deliberate secondary views; preserve current brand identity and adapt to the actual intended medium. Do not substitute a generic slide deck or modify the renderer because a template looks polished.
+- **Status:** \`PRESENTATION STRUCTURE REFERENCE\`.
+
+### Cross-case synthesis — batch 3
+
+This batch sharpens a distinction: **dashboard quality, infographic novelty and mobile editorial performance are three different questions**. A sophisticated desktop screen can be useful to its operator while being completely ineffective as a static image in Blossom. Conversely, a one-metric chart can outperform a full dashboard for comprehension without proving greater engagement.
+
+- **Most directly relevant to future PAM research communication:** compact but carefully qualified valuation comparisons (#09), portfolio objective/tradeoff plots (#10), and selected-series performance histories (#11); all require independently validated data and methods before any real post.
+- **Useful mainly for layout judgment:** modular consistency (#03/#06), information grouping (#02/#05), heatmaps for true matrix questions (#14), report hierarchy (#15).
+- **Signals to avoid overusing:** generic stock-analytics hero photos (#04/#08), decorative chart menus (#13), dense poster walls (#01) and source-unreadable collages (#07).
+- **No performance inference:** zero competitor audience measurements or original post identities were established from these uploads.
+- **No action requested by these observations:** \`OBSERVE / OPTIONAL REFERENCE\`; no implementation ticket, new dashboard product claim, new template, renderer changes, publication or routine monitoring.
+
 ## How to consume this without restricting creative work
 
 1. **Creating a new image:** first identify a useful story and evidence, then optionally scan relevant CVI cases to understand common market presentation. Use the ideas critically; do not inherit the example's modules or style.
