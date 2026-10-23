@@ -10,7 +10,8 @@ from xml.etree import ElementTree as ET
 INTERNAL_STATUS = re.compile(
     r"\b(?:DRAFT|NOT[\s-]+AUDITED|AUDIT[\s-]+ONLY|"
     r"NOT[\s-]+FOR[\s-]+PUBLICATION|PENDING[\s-]+APPROVAL|"
-    r"INTERNAL[\s-]+(?:ONLY|REVIEW)|WORKING[\s-]+(?:COPY|ASSET))\b",
+    r"INTERNAL[\s-]+(?:ONLY|REVIEW)|REVIEW[\s-]+(?:PENDING|REQUIRED)|"
+    r"CEO[\s-]+APPROVAL[\s-]+PENDING|WORKING[\s-]+(?:COPY|ASSET))\b",
     re.IGNORECASE,
 )
 
