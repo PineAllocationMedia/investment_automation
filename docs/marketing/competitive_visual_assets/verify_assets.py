@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Check the 49 CEO-supplied CVI screenshots against the private archive manifest."""
+"""Check the 52 CEO-supplied CVI screenshots against the private archive manifest."""
 import hashlib
 import json
 from pathlib import Path
@@ -20,9 +20,9 @@ for entry in entries:
         errors.append(f"SIZE MISMATCH: {file.name}")
     if hashlib.sha256(data).hexdigest() != entry["sha256"]:
         errors.append(f"SHA-256 MISMATCH: {file.name}")
-if len(entries) != 49:
-    errors.append(f"EXPECTED 49 MANIFEST ENTRIES, found {len(entries)}")
+if len(entries) != 52:
+    errors.append(f"EXPECTED 52 MANIFEST ENTRIES, found {len(entries)}")
 if errors:
     print("\n".join(errors))
     raise SystemExit(1)
-print("PASS: 49 original screenshots match the asset manifest.")
+print("PASS: 52 original screenshots match the asset manifest.")

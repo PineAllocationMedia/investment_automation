@@ -4,7 +4,7 @@
 **Owner / scope:** Marketing & GTM, bounded Blossom `@therealpam` mandate.
 **Purpose:** Understand visible finance/investing content conventions, learn from strong execution, spot overused motifs, and identify ways for PAM to deliver a distinct, more useful and credible reader experience.
 
-**Private image backfill (CEO-authorized, 2026-10-23):** This library has embedded references to **49 original CEO-supplied screenshots**, tied to all 36 analytical cases. The original 49 PNGs and SHA-256 manifest are now present in the private directory `docs/marketing/competitive_visual_assets/`, with all 49 Git blob checksums and Markdown image paths verified on the recovery branch. The adjacent `verify_assets.py` can independently check file integrity after checkout. Retain this private-only storage and recheck asset availability after subsequent migrations. These are for internal reference only; financial figures, third-party rights and competitive engagement remain unverified.
+**Private archive (CEO-authorized, 2026-10-23):** This library embeds **52 original CEO-supplied screenshots** across **39 analytical cases** in the private directory `docs/marketing/competitive_visual_assets/`. The first 49 files were recovered under PR #227; batch 5 contributes 3 additional original PNGs with manifest checksums, descriptions and embedded Markdown previews. The adjacent `verify_assets.py` checks image byte sizes and SHA-256 hashes after checkout. Private design-reference use only; third-party rights, market figures and performance claims remain unverified.
 
 ## Operating principle
 
@@ -878,6 +878,77 @@ This batch illustrates that financial research platforms can offer broad explora
 - **Especially easy to misuse:** extrapolating current prices into analyst-target fans, visually predicting cycles from a few seasonality lines, treating P/E dials as intrinsic-value truth or adding derivative-chain information without explaining its risk.
 - **Do not overread the reference:** neither TradingView nor Zacks screenshots are direct Blossom engagement benchmarks; these are product UX/source-presentation references. Displayed figures, licenses and account-level conversions were not verified.
 - **Current action:** \`NONE — OBSERVE\`. Do not implement new PAM research capabilities, alter the existing E1/M4/T-family templates, create a copying brief or imply an independent factual audit.
+
+## CEO screenshot intake — 2026-10-23, batch 5 (3 references; 3 analytical cases)
+
+**Intake and custody:** Three CEO-supplied screenshots, in displayed order, archived as original unmodified PNG bytes in the private `competitive_visual_assets/` directory. Each file is indexed in `ASSET_MANIFEST.json` with a SHA-256 checksum, byte count, dimensions, descriptive title and case reference. No original creator URL, redistribution license or performance data has been independently verified. These are **dashboard, infographic and analytics-UI design references**, not verified Blossom competitors, market evidence or PAM feature demonstrations.
+
+| Batch 5 screenshot | Observed reference | Analytical case | Medium / provenance |
+|---|---|---|---|
+| **01** | Three-column modular infographic featuring numbered callouts, compact charts, progress/battery bars, doughnuts and contrasting red/teal/navy blocks | [CVI-20261023-037](#cvi-20261023-037--modular-infographic-grammar) | CEO-supplied template-like screenshot; source and rights unverified |
+| **02** | “4. YTD Dashboard” finance operations interface: sales, receivables, cash flow, monthly comparison, debt aging, concentration gauges | [CVI-20261023-038](#cvi-20261023-038--finance-kpi-and-receivables-hierarchy) | CEO-supplied operational dashboard screenshot; underlying numbers unverified |
+| **03** | Mosaic of dashboard screenshots and UI examples from multiple domains, with charts, tables, cards, heatmaps and visualizations | [CVI-20261023-039](#cvi-20261023-039--multi-dashboard-landscape-board) | CEO-supplied collage/screen capture; individual creators and rights unknown |
+
+### CVI-20261023-037 — Modular infographic grammar
+<details>
+<summary>Reference screenshot (1) — private archive</summary>
+
+<img src="competitive_visual_assets/cvi_batch05_01.png" width="520" alt="Three-column infographic dashboard template with numbered coral and teal cards, progress bars, rings, pie and bar charts" />
+
+*Batch 5 · screenshot 01 — numbered three-column infographic with recurring coral, teal and navy motifs*
+
+</details>
+
+**Reference:** batch 5 #01. **Medium:** stylized infographic/template, not a sourced market update.
+
+- **Observed grammar:** three narrow vertical columns combine numbered colored blocks, vertical percentage capsules, small concentric rings, a short bar chart, flattened ring, segmented bars and triangle-shaped visual indicators. A restrained coral/red, teal and deep-navy palette ties deliberately varied widgets together.
+- **Potential strengths (editorial judgment):** repeatable modules, strong color grouping and consistent spacing create a recognizable visual language across heterogeneous charts. Numbered callouts make dense information appear approachable.
+- **Limitations:** the image is mostly placeholder copy; its percentages and chart values are illustrative, not authenticated economic observations. The many widgets compete with one another, and substantial copy is tiny at feed size; circles and triangles can be decorative rather than analytically necessary.
+- **Possible PAM lesson (IDEA):** reuse a **disciplined component vocabulary** where charts represent specific questions, but keep one dominant thesis per static Blossom graphic. Repeated colors should communicate stable semantics, not simply look coordinated.
+- **Action/outcome:** `MODULARITY REFERENCE — OBSERVE`. No template edit or copying instruction; engagement unknown.
+
+### CVI-20261023-038 — Finance KPI and receivables hierarchy
+<details>
+<summary>Reference screenshot (1) — private archive</summary>
+
+<img src="competitive_visual_assets/cvi_batch05_02.png" width="520" alt="YTD finance dashboard with sales and receivables KPI cards, monthly bars, overdue receivable aging, a days-outstanding gauge and customer concentration charts" />
+
+*Batch 5 · screenshot 02 — YTD finance dashboard with KPI strip, monthly series, receivable-age diagnostics and customer-concentration widgets*
+
+</details>
+
+**Reference:** batch 5 #02. **Medium:** business finance/receivables dashboard, not investor advice or a verified earnings figure.
+
+- **Observed grammar:** a five-tile headline KPI strip for sales, receivables, overdue receivables, overdue percentage and operating cash flow; a twelve-month grouped-bar overview; smaller supporting panels for days receivable outstanding, aging distributions, top-customer concentration and credit-sales trend.
+- **Potential strengths:** the broad-to-specific reading order makes the headline status scannable before readers inspect causes and cohorts; aging buckets and concentration panels expose distinct operational risks behind summary totals.
+- **Limitations:** many legends and monthly labels are tiny. Different metrics (cash flow, sales, overdue balances and credit percentages) need unit/time definitions; the screenshot's displayed values are **UNVERIFIED** and cannot be republished as sourced company financials.
+- **Possible PAM lesson (IDEA):** for future evidence-backed finance research, lead with a few headline metrics, then show the **one diagnostic breakdown** that explains an interesting economic change. Reserve a full interactive dashboard density for a genuine software interface, not one social image.
+- **Action/outcome:** `INFORMATION-HIERARCHY REFERENCE — OBSERVE`; no PAM feature, source coverage or post format approved.
+
+### CVI-20261023-039 — Multi-dashboard landscape board
+<details>
+<summary>Reference screenshot (1) — private archive</summary>
+
+<img src="competitive_visual_assets/cvi_batch05_03.png" width="520" alt="Collage of many analytics dashboard interface screenshots including line charts, gauges, treemaps, revenue reports, scatterplots and KPI panels" />
+
+*Batch 5 · screenshot 03 — heterogeneous visual survey of dashboard and BI interface patterns*
+
+</details>
+
+**Reference:** batch 5 #03. **Medium:** composite screen capture showing multiple unrelated UI/dashboard examples; it is not a single creator-owned dashboard.
+
+- **Observed grammar:** many thumbnails vary in scale and visual design. Recognizable patterns include metric ribbons, paired trend lines, categorized bar charts, pie/doughnut widgets, gauges, matrix-like displays, treemaps, bubble plots, scatterplots and analytic tables. The bottom part includes smaller reporting/report-builder views.
+- **Potential strengths:** broad visual comparison makes recurring dashboard conventions visible in one place. It is useful for discussing hierarchy, clutter, color consistency and tradeoffs among BI/reporting design families.
+- **Limitations:** original authors, context, licenses and individual screenshots' purposes are unknown. Subviews are too small to read or verify, and the collage gives **no empirical engagement, research quality or commercial performance evidence**.
+- **Possible PAM lesson (IDEA):** treat this as a **survey board**, not a design target; contrast presentation patterns only after deciding which investing question requires an answer. Avoid turning a static macro infographic into a decorative collection of BI widgets.
+- **Action/outcome:** `LANDSCAPE REFERENCE — OBSERVE`; no new template, renderer modification, or performance claim.
+
+### Cross-case synthesis — batch 5
+
+Together, these examples distinguish (i) consistent infographic building blocks, (ii) structured finance-diagnostic hierarchy and (iii) a broad visual pattern catalogue. **Transferable lessons** are consistent color semantics, defensible metric grouping and top-line-to-detail organization. **Non-transferable assumptions** are that more widgets improve an investor's understanding, that a nice dashboard implies trusted data, or that unrelated BI screens establish what engages Blossom readers. Keep the original images for **private comparative analysis only**; do not copy source layouts or publish the screenshots.
+
+- **Current action:** `NONE — OBSERVE`. This intake does not authorize a PAM template change, product claim, marketing experiment or publication.
+
 
 ## How to consume this without restricting creative work
 
