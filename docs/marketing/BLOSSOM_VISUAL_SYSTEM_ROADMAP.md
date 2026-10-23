@@ -4,7 +4,7 @@
 
 **Implementation state in this change set:** Macro Lens `T1` (Classic, optional Research Note and Evidence+), `T2`, `T3`, plus a **bounded M4 Cross-Asset Market Brief renderer candidate**, documented in [M4 pilot contract](visual_kit/M4_DAILY_MARKET_BRIEF.md). M4 is code-implemented on this PR branch but **not canonical until CEO merge** and not an approved post without real original-source/data-rights review, independent exact-asset audit and separate CEO post approval. All other M/E/P layouts, feeds, instrument mappings and capabilities remain **PROPOSED/NOT IMPLEMENTED**. Do not confuse an implemented source-bound renderer with live automated market data.
 
-Related: [institutional visual gate](visual_kit/INSTITUTIONAL_EDITORIAL_STANDARD.md) · [Global Market Map methodology](visual_kit/GLOBAL_MARKET_MAP_M1_SPEC.md) · [T1 institutional restyle proposal](visual_kit/INSTITUTIONAL_T1_RESTYLE_PROPOSAL.md) · [current templates](MACRO_LENS_TEMPLATES.md).
+Related: [Competitive Visual Intelligence](COMPETITIVE_VISUAL_INTELLIGENCE.md) (optional market observations; not design authority) · [institutional visual gate](visual_kit/INSTITUTIONAL_EDITORIAL_STANDARD.md) · [Global Market Map methodology](visual_kit/GLOBAL_MARKET_MAP_M1_SPEC.md) · [T1 institutional restyle proposal](visual_kit/INSTITUTIONAL_T1_RESTYLE_PROPOSAL.md) · [current templates](MACRO_LENS_TEMPLATES.md).
 
 ## 1. Two-axis design: subjects × depth, not “degrees of professionalism”
 
