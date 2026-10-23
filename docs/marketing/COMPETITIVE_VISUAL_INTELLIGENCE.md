@@ -4,7 +4,7 @@
 **Owner / scope:** Marketing & GTM, bounded Blossom `@therealpam` mandate.
 **Purpose:** Understand visible finance/investing content conventions, learn from strong execution, spot overused motifs, and identify ways for PAM to deliver a distinct, more useful and credible reader experience.
 
-**Private image backfill (CEO-authorized, 2026-10-23):** This library has embedded references to **49 original CEO-supplied screenshots**, tied to all 36 analytical cases. The PNGs, batch mapping, checksum manifest and private-use notice belong in `docs/marketing/competitive_visual_assets/` **after the binary asset folder is imported**. **Do not merge the documentation-preparation PR until all 49 PNGs and the manifest are uploaded and the embedded images display correctly.** These are for internal reference only; financial figures, third-party rights and competitive engagement remain unverified.
+**Private image backfill (CEO-authorized, 2026-10-23):** This library has embedded references to **49 original CEO-supplied screenshots**, tied to all 36 analytical cases. The PNGs, batch mapping, checksum manifest and private-use notice belong in `docs/marketing/competitive_visual_assets/` **after the binary asset folder is imported**. **Integrity requirement:** screenshot embeds work only when all 49 PNGs and the SHA-256 manifest are physically present at those relative paths. The archive recovery is complete only after a verified binary upload; Markdown links alone do not prove the images exist. These are for internal reference only; financial figures, third-party rights and competitive engagement remain unverified.
 
 ## Operating principle
 
