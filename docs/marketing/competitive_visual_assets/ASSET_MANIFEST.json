@@ -883,10 +883,64 @@
       "format": "PNG",
       "provenance": "CEO-supplied screenshot in PAM ChatGPT conversation; original permalink/licensing not independently verified",
       "use": "private internal design-reference analysis only; not licensed for external redistribution"
+    },
+    {
+      "filename": "cvi_batch05_01.png",
+      "git_relative_path": "docs/marketing/competitive_visual_assets/cvi_batch05_01.png",
+      "relative_markdown_path": "competitive_visual_assets/cvi_batch05_01.png",
+      "batch": 5,
+      "image_number": 1,
+      "case_id": "CVI-20261023-037",
+      "description": "Three-column coral teal navy modular infographic with numbered callouts, bars, rings, battery-style progress and pie charts",
+      "size_bytes": 283668,
+      "sha256": "f56e39e7fe61ad2e6d4e2e11a451ace2dc8cee0ddc55fa21f83bb5ef42a976ca",
+      "dimensions": [
+        705,
+        635
+      ],
+      "format": "PNG",
+      "provenance": "CEO-supplied screenshot in PAM ChatGPT conversation; original permalink/licensing not independently verified",
+      "use": "private internal design-reference analysis only; not licensed for external redistribution"
+    },
+    {
+      "filename": "cvi_batch05_02.png",
+      "git_relative_path": "docs/marketing/competitive_visual_assets/cvi_batch05_02.png",
+      "relative_markdown_path": "competitive_visual_assets/cvi_batch05_02.png",
+      "batch": 5,
+      "image_number": 2,
+      "case_id": "CVI-20261023-038",
+      "description": "Year-to-date operational finance dashboard with sales, receivables, overdue aging, cash flow, monthly bars and customer concentration",
+      "size_bytes": 285135,
+      "sha256": "882572937c487ef903d636958cb16b21e29af077b5d4edc21efda5481c6fefae",
+      "dimensions": [
+        587,
+        548
+      ],
+      "format": "PNG",
+      "provenance": "CEO-supplied screenshot in PAM ChatGPT conversation; original permalink/licensing not independently verified",
+      "use": "private internal design-reference analysis only; not licensed for external redistribution"
+    },
+    {
+      "filename": "cvi_batch05_03.png",
+      "git_relative_path": "docs/marketing/competitive_visual_assets/cvi_batch05_03.png",
+      "relative_markdown_path": "competitive_visual_assets/cvi_batch05_03.png",
+      "batch": 5,
+      "image_number": 3,
+      "case_id": "CVI-20261023-039",
+      "description": "Composite collage of numerous finance business and healthcare dashboard examples with charts, KPI tiles, gauges and visual analytics",
+      "size_bytes": 439397,
+      "sha256": "7eb7c6cc97cec2fb8d5408b8c707329c8d43f3e0dc729d09031dd4bc7a44d148",
+      "dimensions": [
+        750,
+        838
+      ],
+      "format": "PNG",
+      "provenance": "CEO-supplied screenshot in PAM ChatGPT conversation; original permalink/licensing not independently verified",
+      "use": "private internal design-reference analysis only; not licensed for external redistribution"
     }
   ],
-  "total_original_images": 49,
-  "total_original_bytes": 14126487,
+  "total_original_images": 52,
+  "total_original_bytes": 15134687,
   "source": "Original CEO conversation uploads materialized from the files tool (not reconstructed)",
   "license_status": "unverified third-party rights; private internal reference only",
   "no_public_redistribution": true
