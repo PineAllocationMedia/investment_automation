@@ -1,7 +1,7 @@
 # PAM | Blossom — editorial evidence & experiment log v1.1
 
 **Channel:** Blossom `@therealpam`.
-**Status:** 19 distinct accessible originals recorded on 2026-10-22: 17 added after authorized sign-in and two refreshed with appended snapshots. All 19 discovered permalinks inspected. Accessible feed exhausted to the 15d introduction; historical completeness remains unproven and some discussion bodies remain PARTIAL. No private analytics, historical approval, follower attribution or experiment outcome is established.
+**Status:** 21 distinct accessible originals recorded through 2026-10-23: latest scan added 2 and refreshed 19 with appended observations. All 21 exposed permalinks inspected; historical completeness remains unproven and some discussion bodies remain PARTIAL. Earlier snapshots preserved. No private analytics or post-attributed follows established.
 **Instructions:** [Playbook](MACRO_LENS_PLAYBOOK.md) · [Templates](MACRO_LENS_TEMPLATES.md).
 
 This existing register now tracks all verified @therealpam original posts: Macro Lens and ordinary content alike. Do not invent approval history for past ordinary posts. Replies to others are distinct from original publications.
@@ -416,3 +416,86 @@ https://www.blossomsocial.com/posts/Exploring-Market-Insights-and-Portfolio-Thou
 ### Analysis readiness and limits
 
 All 19 accessible originals now have stable deduplication IDs, public permalinks, verified authorship, archived captions and dated metric snapshots: 18 ordinary text posts and one observed M1 Market Atlas. Highest displayed view counts: Nasdaq/Dow divergence 844 (UI 4d), sentiment divergence 390 (UI 12d), AI/gas/rates 338 (UI 7d). This is descriptive only: differing post ages, topics and distribution prevent a causal format-performance conclusion. No winning template, follower-conversion claim, experiment outcome or editorial-system change is established. Financial/source-rights verification of all historical claims was not performed by this measurement scan.
+
+## Profile scan — 2026-10-23 (authorized signed-in Cloud Browser)
+
+**Coverage:** 21 distinct original posts discovered and all 21 individual permalinks inspected; 2 newly registered originals, 19 existing records refreshed with appended snapshots, 0 discovered post URLs inaccessible. Authorship verified as PAM / @therealpam linking to the supplied profile. Original Posts tab used; Blooms, trades and replies on other accounts excluded. Feed scrolling exposed 17 posts, then four older posts; further bottom navigation exposed no additional posts or pagination control beyond the introduction. All actually exposed originals captured; **HISTORICAL COMPLETENESS UNPROVEN**. No authoritative historical post total available.
+
+**Accessible range:** displayed ages 2m–17d, approximately October 6–23, 2026 from rounded labels only. Exact publication timestamps remain NA; ID digits were not converted to publication dates. Some ages differ from earlier scans; earlier measurements and labels are preserved verbatim rather than corrected retrospectively.
+
+**Observation window:** counters captured 2026-10-23 12:42:12.900–12:42:42.042 EDT (America/Toronto, UTC−04:00). Each row carries its exact timestamp. Discussion revisits followed. Signed-in account header/Edit profile and authenticated discussion access verified. Initial permalink page hydration sometimes temporarily showed a sign-up invitation; settled discussion revisits resolved access for the five posts with nonzero comment totals. Some bodies remained missing. This was not treated as proof of logout or zero discussion. No private analytics accessed.
+
+**Definitions/provenance:** all counters PUBLIC_OBSERVED, even while authenticated. Views = displayed cumulative views, unique-person meaning unknown; comments = displayed total, platform reply semantics unknown; shares = arrow counter, not independently proven completed reposts; saves = bookmark counter. Likes = heart-only count where numeric; mixed emoji totals are total reactions only, heart breakdown NA. No numeric reaction count = NA, not zero. Profile visits/attributed follows NA throughout. Account display 9 followers / 4 following, with no post attribution. No automatic snapshot schedule, background monitoring or Blossom account mutation.
+
+### New original records (stable IDs; existing register continuation)
+
+| Issue ID | Post class/status | Subject/thesis from published caption | Template/internal evidence | Permalink |
+|---|---|---|---|---|
+| BL-POST-1792773556527-n3zJCc9e | Company commentary / PUBLISHED | AXP headline EPS growth versus adjusted growth; assess underlying fees/spending and costs | Image-bearing observed; exact template/version, original selection rationale, audit/CEO approval evidence and internal source register NA. Public caption archived below; publication alone does not establish approval. | https://www.blossomsocial.com/posts/American-Express-EPS-Growth-Analysis__POST-1792773556527-n3zJCc9e_IwHhSPDG2aOMks63 |
+| BL-POST-1792712380652-veFF6JIW | Market commentary / PUBLISHED | Nasdaq/Dow divergence requires attention to basket/weighting differences; constituent contributions and breadth remain unproven | Image-bearing observed; exact template/version, original selection rationale, audit/CEO approval evidence and internal source register NA. Public source attribution preserved in caption. | https://www.blossomsocial.com/posts/Nasdaq-Drops-260percent-While-Dow-Rises-002percent__POST-1792712380652-veFF6JIW_IwHhSPDG2aOMks63 |
+
+Known prior thesis, caption, template and evidence fields remain unchanged. No missing internal history was inferred from project packages or conversation recollection. This measurement scan is not an independent fact/rights audit of published claims.
+
+### Appended metric snapshots
+
+| Issue ID | UI age (rounded; exact NA) | Observed at — America/Toronto EDT | Provenance | Views | Likes | Comments | Shares | Saves | Total reactions | Profile visits | Attributed follows |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| BL-POST-1792773556527-n3zJCc9e | 2m | 2026-10-23T12:42:12.900-04:00 | PUBLIC_OBSERVED | 2 | NA | 0 | 0 | 0 | NA | NA | NA |
+| BL-POST-1792712380652-veFF6JIW | 17h | 2026-10-23T12:42:14.311-04:00 | PUBLIC_OBSERVED | 58 | 1 | 2 | 0 | 0 | 1 | NA | NA |
+| BL-POST-1792632635232-p3wDGaJ3 | 1d | 2026-10-23T12:42:15.786-04:00 | PUBLIC_OBSERVED | 30 | NA | 0 | 0 | 0 | NA | NA | NA |
+| BL-POST-1792618150646-9HYkfaqz | 1d | 2026-10-23T12:42:17.362-04:00 | PUBLIC_OBSERVED | 50 | NA | 0 | 0 | 0 | NA | NA | NA |
+| BL-POST-1792543338595-Ou0WyNVs | 2d | 2026-10-23T12:42:19.263-04:00 | PUBLIC_OBSERVED | 270 | NA | 0 | 1 | 0 | NA | NA | NA |
+| BL-POST-1792445839015-LojFs7Jp | 3d | 2026-10-23T12:42:20.464-04:00 | PUBLIC_OBSERVED | 274 | 4 | 2 | 0 | 0 | 4 | NA | NA |
+| BL-POST-1792413329799-4TDnXVvZ | 4d | 2026-10-23T12:42:21.581-04:00 | PUBLIC_OBSERVED | 58 | NA | 0 | 1 | 0 | NA | NA | NA |
+| BL-POST-1792285181556-dajQRiJ8 | 5d | 2026-10-23T12:42:23.015-04:00 | PUBLIC_OBSERVED | 128 | 1 | 2 | 0 | 0 | 1 | NA | NA |
+| BL-POST-1792243935166-5rY3pW0x | 6d | 2026-10-23T12:42:29.374-04:00 | PUBLIC_OBSERVED | 844 | NA | 0 | 2 | 0 | 6 | NA | NA |
+| BL-POST-1792154075898-WKgQpyWr | 7d | 2026-10-23T12:42:30.981-04:00 | PUBLIC_OBSERVED | 60 | NA | 0 | 0 | 0 | NA | NA | NA |
+| BL-POST-1792015357362-r0k28CcU | 8d | 2026-10-23T12:42:31.812-04:00 | PUBLIC_OBSERVED | 338 | NA | 0 | 0 | 0 | 7 | NA | NA |
+| BL-POST-1791924123452-n0SE9Lsf | 9d | 2026-10-23T12:42:33.170-04:00 | PUBLIC_OBSERVED | 174 | 4 | 1 | 0 | 0 | 4 | NA | NA |
+| BL-POST-1791820180736-IT7xZSEt | 11d | 2026-10-23T12:42:34.038-04:00 | PUBLIC_OBSERVED | 88 | 2 | 0 | 0 | 0 | 2 | NA | NA |
+| BL-POST-1791764804066-6p0ZcQRe | 11d | 2026-10-23T12:42:35.129-04:00 | PUBLIC_OBSERVED | 248 | NA | 0 | 0 | 0 | NA | NA | NA |
+| BL-POST-1791725403770-fzsmjWDJ | 12d | 2026-10-23T12:42:35.933-04:00 | PUBLIC_OBSERVED | 174 | 2 | 0 | 0 | 0 | 2 | NA | NA |
+| BL-POST-1791636358863-EDvN5sp6 | 13d | 2026-10-23T12:42:36.874-04:00 | PUBLIC_OBSERVED | 208 | 2 | 0 | 0 | 0 | 2 | NA | NA |
+| BL-POST-1791589339142-QZtwsSBo | 13d | 2026-10-23T12:42:37.874-04:00 | PUBLIC_OBSERVED | 390 | 3 | 3 | 0 | 0 | 3 | NA | NA |
+| BL-POST-1791501798381-vTsMLRu2 | 14d | 2026-10-23T12:42:39.006-04:00 | PUBLIC_OBSERVED | 124 | NA | 0 | 0 | 0 | 4 | NA | NA |
+| BL-POST-1791495336766-q7dQtifh | 14d | 2026-10-23T12:42:39.956-04:00 | PUBLIC_OBSERVED | 98 | NA | 0 | 0 | 0 | NA | NA | NA |
+| BL-POST-1791416148323-vptp1ie5 | 15d | 2026-10-23T12:42:41.019-04:00 | PUBLIC_OBSERVED | 76 | NA | 0 | 0 | 0 | NA | NA | NA |
+| BL-POST-1791303632255-hNbqeFsO | 17d | 2026-10-23T12:42:42.042-04:00 | PUBLIC_OBSERVED | 12 | NA | 0 | 0 | 0 | NA | NA | NA |
+
+### Discussion observations (PUBLIC_OBSERVED)
+
+| Post | Observed at — EDT America/Toronto | Accessible discussion / limitation |
+|---|---|---|
+| BL-POST-1792712380652-veFF6JIW | 2026-10-23T12:42:58.471-04:00 | 2 displayed / 2 rendered: Shael @nickel333 (16h): “Rough day for the market today.....”, 1 like, existing Liked state; PAM reply (16h): “@nickel333 yeah rough day today…”, 1 like. Prior reaction/reply observed, not performed. |
+| BL-POST-1792445839015-LojFs7Jp | 2026-10-23T12:43:03.424-04:00 | 2 displayed / 1 rendered: Nate @hoodnate (2d) expresses concern about narrow breadth and asks buying versus waiting; 1 like. Missing body NA; prior capture preserved. |
+| BL-POST-1792285181556-dajQRiJ8 | 2026-10-23T12:43:09.782-04:00 | 2 displayed / 1 rendered: solomon @ambessa (5d) argues skills, workforce, supply-chain scale and flexibility constrain US manufacturing reshoring, mentioning Tim Cook and TSMC; 1 like. Earlier captured PAM reply remains in historical archive but was not re-exposed here. PARTIAL. Participant claims not fact-checked. |
+| BL-POST-1791924123452-n0SE9Lsf | 2026-10-23T12:43:18.193-04:00 | 1 displayed / 1 rendered: Nate @hoodnate (9d) contrasts mood and figures, asks whether charge-offs keep trending down; 0 likes. |
+| BL-POST-1791589339142-QZtwsSBo | 2026-10-23T12:43:37.017-04:00 | 3 displayed / 1 rendered in Top Comments: Phil @diversifiedfill (13d) attributes index strength to AI names, questions earnings discipline and notes weakness elsewhere; 1 like. Most Recent also inspected; missing bodies not inferred. PARTIAL. Claims not independently verified. |
+
+No reply, like, bookmark, trade or publication performed. Discussion quality is descriptive; no engagement or follower causality inferred.
+
+### Exact newly registered public captions
+
+#### BL-POST-1792773556527-n3zJCc9e
+
+> American Express just reported 31% EPS growth. Nice headline. Now read the footnote.
+>
+> Adjusted EPS grew 13%. The difference reflects a gain from selling its Global Business Travel stake, net of restructuring costs. Meanwhile, revenue grew 9% and billed business rose 8%. The business isn't standing still.
+>
+> But adjusted doesn't automatically mean recurring, either. Reserve movements, tax benefits and buybacks still matter.
+>
+> The real question: can card fees and spending keep growing faster than the cost of rewards, service and credit? That's where the next chapter of the thesis gets written.
+
+#### BL-POST-1792712380652-veFF6JIW
+
+> The Nasdaq fell 2.60% on Thursday. The Dow Jones Industrial Average rose 0.02%.
+>
+> Same closing bell. A 2.62-percentage-point gap.
+>
+> Here’s the part a dramatic index headline misses: the Nasdaq Composite is market-cap weighted; the Dow is a 30-stock, price-weighted index. Different baskets, different rules for what moves the scoreboard.
+>
+> That can help explain divergence. It doesn’t prove which stocks drove Thursday’s gap, or how many stocks across the market actually fell. We’d need constituent contributions and consistent breadth data for that.
+>
+> A Nasdaq selloff is real. Calling it a market-wide verdict without checking under the hood? Less convincing.
+>
+> Sources: Nasdaq, S&P Dow Jones Indices, Reuters and AP (Oct. 22, 2026 U.S. close). Not investment advice.
