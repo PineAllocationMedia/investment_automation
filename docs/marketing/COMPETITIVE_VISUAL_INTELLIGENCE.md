@@ -4,6 +4,8 @@
 **Owner / scope:** Marketing & GTM, bounded Blossom `@therealpam` mandate.
 **Purpose:** Understand visible finance/investing content conventions, learn from strong execution, spot overused motifs, and identify ways for PAM to deliver a distinct, more useful and credible reader experience.
 
+**Private image backfill (CEO-authorized, 2026-10-23):** This library has embedded references to **49 original CEO-supplied screenshots**, tied to all 36 analytical cases. The PNGs, batch mapping, checksum manifest and private-use notice belong in `docs/marketing/competitive_visual_assets/` **after the binary asset folder is imported**. **Do not merge the documentation-preparation PR until all 49 PNGs and the manifest are uploaded and the embedded images display correctly.** These are for internal reference only; financial figures, third-party rights and competitive engagement remain unverified.
+
 ## Operating principle
 
 **Observe the category; do not clone the competitor.** This collection is a *situational-awareness aid*, not creative direction by default. A competitor's existence, design style or apparent popularity does not establish effectiveness. Preserve PAM's CEO-approved identity, factual/source quality, editorial judgment, established renderer constraints and independent exact-post review. Treat "more institutional" as a testable *editorial/design hypothesis*, not as equivalent to more numbers, smaller type, pseudo-authority or superiority already demonstrated.
@@ -11,7 +13,7 @@
 - **Read selectively.** Prompt 2 editors and image-development discussions may consult this file when choosing or evaluating an image format, **after** the real subject, thesis and evidence are clear. Never force a competitor motif into an unrelated story, copy a particular grid/module order, or add a competitor check to every post. No per-post benchmark paperwork.
 - **Separate five things:** what the reference *visibly contains*; perceived strengths and weaknesses (*editorial judgment*); tentative PAM differentiation (*idea*); observed engagement (*only if independently available and age/context-qualified*); decisions supported by PAM's own reader feedback (*only with evidence*).
 - **Minimal intake:** add a reference only when it demonstrates a distinctive tradeoff or a new/repeated category pattern; avoid accumulating dozens of nearly identical cards. Label unverified identity, dates, reach and rights as **UNKNOWN**.
-- **Rights and provenance:** store original public permalinks when verified, screenshot source/observation dates and a text-only breakdown. Don't reproduce whole third-party graphics, exact copy, logos or licensed elements in the repo without a separate rights decision. A screenshot shared by the CEO in a ChatGPT conversation is **not automatically a repository-hosted image**. Never imply PAM owns it.
+- **Rights and provenance:** record CEO-supplied screenshot order, archive original screenshots in the **private GitHub repository only** as internal observational references, and bind each to its case and checksum manifest. Private retention at the CEO's direction **does not confer copyright ownership, permission to redistribute or approval to copy third-party graphic designs**. Keep the repo private, do not publish the asset folder via Pages/releases, and re-evaluate rights before exposing these materials.
 - **Updates and evaluation:** a future design change requires a specific reader-value hypothesis, an authorized implementation/approval path, and appropriate mobile tests. A single screenshot is **not a reason to redesign a live template**. This library has **no release/PASS/HOLD authority**, no competitive surveillance job, and no automatic publication rights.
 
 ## Compact case record (repeat only when useful)
@@ -23,8 +25,17 @@ Use precise, comparative language: "appears busy at thumbnail size" is an observ
 ---
 
 ## CVI-20261023-001 — Leveraged Life: pre-market market board
+<details>
+<summary>Reference screenshots (1) — private archive</summary>
 
-- **Captured for review:** 2026-10-23, CEO-supplied screenshot in the PAM Marketing & GTM conversation. Visible graphic masthead `LEVERAGED LIFE`, account footer `@leveraged.life`, graphic date `Friday · Oct 23, 2026 · PRE-MARKET`. **Source type:** screenshot only. **Post URL / original creator account verification / engagement:** UNKNOWN; web search did not confirm an original permalink. The screenshot itself is not stored in this repository.
+<img src="competitive_visual_assets/cvi_batch00_01.png" width="520" alt="Leveraged Life original pre-market dark market board with indices, futures and watch list" />
+
+*Seed screenshot — Leveraged Life original pre-market dark market board with indices, futures and watch list*
+
+</details>
+
+
+- **Captured for review:** 2026-10-23, CEO-supplied screenshot in the PAM Marketing & GTM conversation. Visible graphic masthead `LEVERAGED LIFE`, account footer `@leveraged.life`, graphic date `Friday · Oct 23, 2026 · PRE-MARKET`. **Source type:** screenshot only. **Post URL / original creator account verification / engagement:** UNKNOWN; web search did not confirm an original permalink. At original intake no pixels were archived; the private backfill associates the original screenshot with `competitive_visual_assets/cvi_batch00_01.png` after binary import.
 - **Observed creator-owned visual structure (top to bottom):** masthead and session/date; three boxed previous-close index readings (Dow, S&P 500, Nasdaq); one thin weekly-summary line; warm-color framed `THE STORY` explanatory panel; `THIS MORNING — FUTURES` / cross-asset indicators in two rows of three boxed readings (equities, crude, VIX); `WATCHING TODAY` list; personal posting-schedule note; compact disclaimer/footer. **Not part of the composition:** the DIA/SPY/QQQ holdings widgets underneath appear in Blossom's surrounding post interface, not inside the original visual.
 - **Observable positive choices (editorial judgment):** immediate pre-market framing; familiar index orientation; discrete information groupings; a visually prioritized narrative panel; enough market breadth to serve readers seeking a morning pulse.
 - **Potential weaknesses at feed size (judgment, not tested):** many near-equal competing numbers/panels; condensed secondary type and compressed supporting story; boxed dashboard aesthetic competes with the central interpretation; on-image underlying sources and timestamps for each individual observation are not discernible in this screenshot. **No conclusion about truth or actual readability on a different device:** no source-level audit or native-resolution image is available.
@@ -36,7 +47,7 @@ Use precise, comparative language: "appears busy at thumbnail size" is an observ
 
 ## CEO screenshot intake — 2026-10-23 (12 visual references; 8 thematic cases)
 
-**Intake provenance:** the CEO supplied **12 screenshots in one PAM Marketing & GTM ChatGPT conversation** on 2026-10-23. Inventory numbers below follow their presentation order. They are a *visual-analysis trail*, **not** claims that the screenshots were uploaded to GitHub: the screenshot image bytes, owners' permissions, exact Blossom permalinks, publication timestamps, original resolution and any platform analytics were **not verified or archived in this repository**. Descriptions capture the visible compositions only; figures/tickers/quotes on third-party graphics are **UNVERIFIED CONTENT**, not PAM research evidence. Apparent holdings chips, comments, post chrome and engagement counters from Blossom are not part of the creator's original graphic. Dates printed within the examples are graphic labels, not independently corroborated publication dates.
+**Intake provenance:** the CEO supplied **12 screenshots in one PAM Marketing & GTM ChatGPT conversation** on 2026-10-23. Inventory numbers follow the presentation order. At initial intake the image bytes were not archived in GitHub; the private backfill adds the original CEO-uploaded screenshots **upon import**. Owners' permissions, original Blossom permalinks, publication timestamps, original creator-file resolution and any platform analytics remain unverified. Descriptions capture the visible compositions only; figures/tickers/quotes on third-party graphics are **UNVERIFIED CONTENT**, not PAM research evidence. Apparent holdings chips, comments, post chrome and engagement counters from Blossom are not part of the creator's original graphic. Dates printed within the examples are graphic labels, not independently corroborated publication dates.
 
 | Intake no. | Short screenshot identification (observed) | Analytical case | Original post permalink / image reproduction rights |
 |---|---|---|---|
@@ -56,6 +67,23 @@ Use precise, comparative language: "appears busy at thumbnail size" is an observ
 **Identity caution:** \`@selldon\` and \`@Granvestor\` are *visible screenshot labels*, not verified account ownership. Other images' creators are not identified with confidence. A chart's publisher/source watermark (for example, Stock Analysis or Bloomberg Tax) must not be confused with the Blossom poster or proof of usage rights. No independent fact audit of displayed numbers was performed.
 
 ### CVI-20261023-002 — Illustrated market highlights (two markets)
+<details>
+<summary>Reference screenshots (3) — private archive</summary>
+
+<img src="competitive_visual_assets/cvi_batch01_01.png" width="520" alt="Dark illustrated US MARKET HIGHLIGHTS, Oct 22; S&amp;P 500/Nasdaq 100/Dow, movers/losers, Wall Street flag, bull/bear" />
+
+*Batch 1 · screenshot 01 — Dark illustrated US MARKET HIGHLIGHTS, Oct 22; S&P 500/Nasdaq 100/Dow, movers/losers, Wall Street flag, bull/bear*
+
+<img src="competitive_visual_assets/cvi_batch01_02.png" width="520" alt="Dark illustrated TSX MARKET HIGHLIGHTS, Oct 22; Canadian indices, movers/losers, Toronto skyline, bull/bear" />
+
+*Batch 1 · screenshot 02 — Dark illustrated TSX MARKET HIGHLIGHTS, Oct 22; Canadian indices, movers/losers, Toronto skyline, bull/bear*
+
+<img src="competitive_visual_assets/cvi_batch02_04.png" width="520" alt="Dark US MARKET HIGHLIGHTS: three index tiles, top movers/losers, Wall Street photo, bull and rising-graph decoration" />
+
+*Batch 2 · screenshot 04 — Dark US MARKET HIGHLIGHTS: three index tiles, top movers/losers, Wall Street photo, bull and rising-graph decoration*
+
+</details>
+
 
 **References:** #01 U.S. headline board and #02 Canadian/TSX board. **Category:** attention-first index/movers poster.
 
@@ -66,6 +94,15 @@ Use precise, comparative language: "appears busy at thumbnail size" is an observ
 - **Action/outcome:** \`IDEA ONLY\`; not a request to redesign M4. Whether these posters outperform institutional research cards is **UNKNOWN**.
 
 ### CVI-20261023-003 — High-contrast Canadian market update
+<details>
+<summary>Reference screenshots (1) — private archive</summary>
+
+<img src="competitive_visual_assets/cvi_batch01_05.png" width="520" alt="Light-blue CANADIAN MARKET UPDATE: TSX headline counters, gainers/decliners, post header visible for Eldon @selldon" />
+
+*Batch 1 · screenshot 05 — Light-blue CANADIAN MARKET UPDATE: TSX headline counters, gainers/decliners, post header visible for Eldon @selldon*
+
+</details>
+
 
 **Reference:** #05, bright blue TSX market-card composition; screenshot shows a Blossom author line \`Eldon @selldon\`, not independently verified. **Category:** simple, high-color retail market scoreboard.
 
@@ -76,6 +113,15 @@ Use precise, comparative language: "appears busy at thumbnail size" is an observ
 - **Action/outcome:** \`IDEA ONLY\`, engagement **UNKNOWN**.
 
 ### CVI-20261023-004 — One-index time series with a clear takeaway
+<details>
+<summary>Reference screenshots (1) — private archive</summary>
+
+<img src="competitive_visual_assets/cvi_batch01_03.png" width="520" alt="Nasdaq Composite, daily closes, Sep 28–Oct 22 line chart with peak/end annotations and source footer" />
+
+*Batch 1 · screenshot 03 — Nasdaq Composite, daily closes, Sep 28–Oct 22 line chart with peak/end annotations and source footer*
+
+</details>
+
 
 **Reference:** #03, Nasdaq Composite daily-close chart (Sep 28–Oct 22 labels). **Category:** minimalist point-to-point historical evidence.
 
@@ -86,6 +132,15 @@ Use precise, comparative language: "appears busy at thumbnail size" is an observ
 - **Action/outcome:** \`OPTIONAL TECHNIQUE\`; no visual production requested, returns/record assertions **UNVERIFIED**.
 
 ### CVI-20261023-005 — ZETA historical operating metric bars
+<details>
+<summary>Reference screenshots (1) — private archive</summary>
+
+<img src="competitive_visual_assets/cvi_batch01_04.png" width="520" alt="ZETA remaining performance obligations, quarterly historical bars with Stock Analysis attribution" />
+
+*Batch 1 · screenshot 04 — ZETA remaining performance obligations, quarterly historical bars with Stock Analysis attribution*
+
+</details>
+
 
 **Reference:** #04, Stock Analysis-branded chart of quarterly remaining performance obligations (RPO) to be recognized over the next twelve months. **Category:** evidence-led company operating metric with long history.
 
@@ -96,6 +151,19 @@ Use precise, comparative language: "appears busy at thumbnail size" is an observ
 - **Action/outcome:** \`IDEA ONLY\`, no data validated, no copied graphic retained.
 
 ### CVI-20261023-006 — Corporate obligations comparison, two visual grammars
+<details>
+<summary>Reference screenshots (2) — private archive</summary>
+
+<img src="competitive_visual_assets/cvi_batch01_06.png" width="520" alt="Polygon/triangle of on- vs off-balance-sheet commitments across major tech firms" />
+
+*Batch 1 · screenshot 06 — Polygon/triangle of on- vs off-balance-sheet commitments across major tech firms*
+
+<img src="competitive_visual_assets/cvi_batch01_07.png" width="520" alt="Paired horizontal bars comparing recorded liabilities vs future lease/purchase commitments by issuer" />
+
+*Batch 1 · screenshot 07 — Paired horizontal bars comparing recorded liabilities vs future lease/purchase commitments by issuer*
+
+</details>
+
 
 **References:** #06, geometric triangle partition; #07, paired horizontal bars comparing liabilities and commitments by firm. **Category:** multi-company financial structure comparisons.
 
@@ -106,6 +174,15 @@ Use precise, comparative language: "appears busy at thumbnail size" is an observ
 - **Action/outcome:** \`DESIGN COMPARISON ONLY\`; no numeric verification or action to reproduce either visual.
 
 ### CVI-20261023-007 — Cash versus bonds: two horizons
+<details>
+<summary>Reference screenshots (1) — private archive</summary>
+
+<img src="competitive_visual_assets/cvi_batch01_08.png" width="520" alt="Dark SGOV vs BND paired bars: yield and five-year total return, Blossom post chrome visible" />
+
+*Batch 1 · screenshot 08 — Dark SGOV vs BND paired bars: yield and five-year total return, Blossom post chrome visible*
+
+</details>
+
 
 **Reference:** #08, dark SGOV/BND chart comparing a recent yield-type observation and a five-year total-return comparison. **Category:** paired-metric investor education.
 
@@ -116,6 +193,15 @@ Use precise, comparative language: "appears busy at thumbnail size" is an observ
 - **Action/outcome:** \`EDITORIAL INSIGHT\`, no verified financial values or user-response assessment.
 
 ### CVI-20261023-008 — SOFI event-driven earnings and market expectations
+<details>
+<summary>Reference screenshots (1) — private archive</summary>
+
+<img src="competitive_visual_assets/cvi_batch01_09.png" width="520" alt="Dark SOFI Q3 earnings setup: estimate/prior comparison plus stock-low/close/target comparison" />
+
+*Batch 1 · screenshot 09 — Dark SOFI Q3 earnings setup: estimate/prior comparison plus stock-low/close/target comparison*
+
+</details>
+
 
 **Reference:** #09, upcoming quarterly earnings setup. **Category:** pre-event company expectations sheet.
 
@@ -126,6 +212,23 @@ Use precise, comparative language: "appears busy at thumbnail size" is an observ
 - **Action/outcome:** \`OPTIONAL EDITORIAL REFERENCE\`, no recommendation or template rollout.
 
 ### CVI-20261023-009 — SharkNinja multiplate company research
+<details>
+<summary>Reference screenshots (3) — private archive</summary>
+
+<img src="competitive_visual_assets/cvi_batch01_10.png" width="520" alt="@Granvestor SharkNinja in one picture: category, brand and regional segmentation" />
+
+*Batch 1 · screenshot 10 — @Granvestor SharkNinja in one picture: category, brand and regional segmentation*
+
+<img src="competitive_visual_assets/cvi_batch01_11.png" width="520" alt="@Granvestor What you pay vs what you could get: peer forward P/E and 2031 valuation scenarios" />
+
+*Batch 1 · screenshot 11 — @Granvestor What you pay vs what you could get: peer forward P/E and 2031 valuation scenarios*
+
+<img src="competitive_visual_assets/cvi_batch01_12.png" width="520" alt="@Granvestor SharkNinja to 2031: sales/EPS bear-base-bull scenario trajectories" />
+
+*Batch 1 · screenshot 12 — @Granvestor SharkNinja to 2031: sales/EPS bear-base-bull scenario trajectories*
+
+</details>
+
 
 **References:** #10 category/brand/region business mix; #11 valuation and five-year price scenarios; #12 sales and EPS bear/base/bull trajectories. Screenshots have a visible \`@Granvestor\` mark, **not independently linked to an authenticated account**. **Category:** coherent, staged company-research sequence (three separate images, not one giant dashboard).
 
@@ -151,7 +254,7 @@ The screenshot sample spans three broad market presentation choices: (i) strikin
 
 **Intake provenance:** the CEO shared **14 images** in the PAM Marketing & GTM ChatGPT conversation on 2026-10-23. Numbering follows their display order in that single message and is local to **batch 2**; it does not replace the 12-screenshot inventory above. Some are apparent Blossom graphics, others are magazine-style editorial art, BI application screenshots, chart catalogues, mockups or reports. **Do not treat this mixed collection as 14 competing Blossom posts or as performance evidence.**
 
-**Archival scope:** each image is **registered below by subject, distinctive visible elements and analytical case**. The **third-party image pixels are not copied to GitHub**, and the original public URLs, creator permissions, licensing, exact asset files and native resolutions remain unknown unless specifically verified later. The CEO's ChatGPT upload is an intake source, **not** a verified persistent hosted image URL. Displayed tickers, returns, rankings, fund balances and future assumptions are unverified *example text*, not facts for reuse. Do not confuse image watermarks with a verified author identity or presentation slides with published account material.
+**Archival scope:** each image is **registered below by subject, distinctive visible elements and analytical case**. The third-party image pixels were not copied at initial intake; this private backfill will add the exact files upon import, while the original public URLs, creator permissions, licensing, exact asset files and native resolutions remain unknown unless specifically verified later. The CEO's ChatGPT upload is an intake source, **not** a verified persistent hosted image URL. Displayed tickers, returns, rankings, fund balances and future assumptions are unverified *example text*, not facts for reuse. Do not confuse image watermarks with a verified author identity or presentation slides with published account material.
 
 | Batch 2 image | Visible subject and composition (not fact-checked) | Group / analysis | Medium confidence and provenance |
 |---|---|---|---|
@@ -173,6 +276,15 @@ The screenshot sample spans three broad market presentation choices: (i) strikin
 **Identity/source caution:** \`FINN\`, \`MACLEAN'S\`, \`Qlik\`, \`CashWise\`, \`Aurelius\`, \`Aethel\` and \`Vogue Labs\` are visible names/marks; their identity as actual publishers, current active businesses or image rights holders was **not independently investigated**. A concept logo or professional-looking display does not establish factual validity. The apparent \`Noor911\` signature is not a verified Blossom account. The image #04 contains a "SpaceX" entry in a purported market-movers list; **do not infer stock-market eligibility or accuracy from a logo and displayed percentage**.
 
 ### CVI-20261023-010 — Portfolio composition before and after
+<details>
+<summary>Reference screenshots (1) — private archive</summary>
+
+<img src="competitive_visual_assets/cvi_batch02_01.png" width="520" alt="Dark neon FINN TOP 10 June versus September 2026 holdings comparison, names entering/leaving, concentration and YTD change; Noor911 graphic signature" />
+
+*Batch 2 · screenshot 01 — Dark neon FINN TOP 10 June versus September 2026 holdings comparison, names entering/leaving, concentration and YTD change; Noor911 graphic signature*
+
+</details>
+
 
 **Reference:** batch 2 #01. **Format:** attention-grabbing comparative holdings board, not evidence of actual FINN performance.
 
@@ -183,6 +295,15 @@ The screenshot sample spans three broad market presentation choices: (i) strikin
 - **Status:** \`OPTIONAL BENCHMARK\`; no author/account verification and no performance figures validated.
 
 ### CVI-20261023-011 — Editorial magazine cover as visual argument
+<details>
+<summary>Reference screenshots (1) — private archive</summary>
+
+<img src="competitive_visual_assets/cvi_batch02_02.png" width="520" alt="Cream MACLEAN'S / The Great Generational Rip-Off magazine-style social-policy cover with illustrated two-generation split, large display typography and callout annotations" />
+
+*Batch 2 · screenshot 02 — Cream MACLEAN'S / The Great Generational Rip-Off magazine-style social-policy cover with illustrated two-generation split, large display typography and callout annotations*
+
+</details>
+
 
 **Reference:** batch 2 #02. **Format:** illustrated narrative/political-economic cover, categorically different from a financial-data visualization.
 
@@ -193,6 +314,15 @@ The screenshot sample spans three broad market presentation choices: (i) strikin
 - **Status:** \`EDITORIAL TECHNIQUE\` only; no policy, data or publication recommendation inferred.
 
 ### CVI-20261023-012 — Canadian market-cap ranking and poll poster
+<details>
+<summary>Reference screenshots (1) — private archive</summary>
+
+<img src="competitive_visual_assets/cvi_batch02_03.png" width="520" alt="Dark-gold Canada's top 5 companies by market cap ranking with bank/Shopify logos, medals, country flag and audience-vote CTA" />
+
+*Batch 2 · screenshot 03 — Dark-gold Canada's top 5 companies by market cap ranking with bank/Shopify logos, medals, country flag and audience-vote CTA*
+
+</details>
+
 
 **Reference:** batch 2 #03. **Format:** sports-style leaderboard plus engagement question.
 
@@ -203,6 +333,23 @@ The screenshot sample spans three broad market presentation choices: (i) strikin
 - **Status:** \`OPTIONAL REFERENCE\`, no template change.
 
 ### CVI-20261023-013 — Dense legacy BI financial reporting interfaces
+<details>
+<summary>Reference screenshots (3) — private archive</summary>
+
+<img src="competitive_visual_assets/cvi_batch02_05.png" width="520" alt="Qlik Financial Reporting interface: revenue-by-division pie, monthly revenue/margin plot, category-level financial table" />
+
+*Batch 2 · screenshot 05 — Qlik Financial Reporting interface: revenue-by-division pie, monthly revenue/margin plot, category-level financial table*
+
+<img src="competitive_visual_assets/cvi_batch02_07.png" width="520" alt="YTD Dashboard: KPI ribbon, sales/receivables comparison, aging breakdown bars, donut customer mixes, monthly credit percentages" />
+
+*Batch 2 · screenshot 07 — YTD Dashboard: KPI ribbon, sales/receivables comparison, aging breakdown bars, donut customer mixes, monthly credit percentages*
+
+<img src="competitive_visual_assets/cvi_batch02_08.png" width="520" alt="Executive metrics dashboard: revenue, expenses, quick/working metrics, monthly financial table, 12-month cash-flow/income plot" />
+
+*Batch 2 · screenshot 08 — Executive metrics dashboard: revenue, expenses, quick/working metrics, monthly financial table, 12-month cash-flow/income plot*
+
+</details>
+
 
 **References:** batch 2 #05, #07 and #08. **Format:** interactive operational reporting dashboards, not directly comparable with mobile Blossom posts.
 
@@ -215,6 +362,15 @@ The screenshot sample spans three broad market presentation choices: (i) strikin
 - **Status:** \`DESIGN INTELLIGENCE ONLY\`; does not activate product/dashboard development.
 
 ### CVI-20261023-014 — Modern cash-flow SaaS dashboard
+<details>
+<summary>Reference screenshots (1) — private archive</summary>
+
+<img src="competitive_visual_assets/cvi_batch02_09.png" width="520" alt="CashWise Cash Flow Dashboard: browser-app navigation, cash/work-capital/liquidity KPI row, flow trends, expenses, receivables/payables donut summaries" />
+
+*Batch 2 · screenshot 09 — CashWise Cash Flow Dashboard: browser-app navigation, cash/work-capital/liquidity KPI row, flow trends, expenses, receivables/payables donut summaries*
+
+</details>
+
 
 **Reference:** batch 2 #09. **Format:** cleaner desktop finance application/dashboard compared with the legacy BI examples.
 
@@ -225,6 +381,15 @@ The screenshot sample spans three broad market presentation choices: (i) strikin
 - **Status:** \`FUTURE DESIGN REFERENCE\`; no source/link/right or market effectiveness established.
 
 ### CVI-20261023-015 — Budget versus actual symmetric comparison
+<details>
+<summary>Reference screenshots (1) — private archive</summary>
+
+<img src="competitive_visual_assets/cvi_batch02_06.png" width="520" alt="Budget vs Actual Dashboard: income and expenses side by side, KPI donut gauges, monthly bars plus target overlays, categorized variance tables" />
+
+*Batch 2 · screenshot 06 — Budget vs Actual Dashboard: income and expenses side by side, KPI donut gauges, monthly bars plus target overlays, categorized variance tables*
+
+</details>
+
 
 **Reference:** batch 2 #06. **Format:** clean budget-versus-actual reporting pair.
 
@@ -235,6 +400,19 @@ The screenshot sample spans three broad market presentation choices: (i) strikin
 - **Status:** \`COMPARISON GRAMMAR\`, not implemented template.
 
 ### CVI-20261023-016 — Chart library and report-pipeline reference art
+<details>
+<summary>Reference screenshots (2) — private archive</summary>
+
+<img src="competitive_visual_assets/cvi_batch02_10.png" width="520" alt="Flat illustration of data/tables/code feeding charts and document reports through arrows" />
+
+*Batch 2 · screenshot 10 — Flat illustration of data/tables/code feeding charts and document reports through arrows*
+
+<img src="competitive_visual_assets/cvi_batch02_11.png" width="520" alt="40 CHARTS GRAPHS mosaic of varied bar, line, area, waterfall-like and dimensional chart examples" />
+
+*Batch 2 · screenshot 11 — 40 CHARTS GRAPHS mosaic of varied bar, line, area, waterfall-like and dimensional chart examples*
+
+</details>
+
 
 **References:** batch 2 #10 and #11. **Format:** explanatory graphic and generic chart-type catalogue—not competitor posts or demonstrated performance.
 
@@ -244,6 +422,19 @@ The screenshot sample spans three broad market presentation choices: (i) strikin
 - **Status:** \`BACKGROUND REFERENCE\` only; do not use this as permission to create 40 new template families.
 
 ### CVI-20261023-017 — Institutional fund report, light versus dark
+<details>
+<summary>Reference screenshots (2) — private archive</summary>
+
+<img src="competitive_visual_assets/cvi_batch02_12.png" width="520" alt="White institutional-style Aurelius Wealth Fund portfolio review with asset allocation, risk stats, performance, target comparison and holdings" />
+
+*Batch 2 · screenshot 12 — White institutional-style Aurelius Wealth Fund portfolio review with asset allocation, risk stats, performance, target comparison and holdings*
+
+<img src="competitive_visual_assets/cvi_batch02_13.png" width="520" alt="Dark blue-and-gold Aethel Capital Management multi-asset overview: NAV, alpha, risk, allocation, holdings and stress tests" />
+
+*Batch 2 · screenshot 13 — Dark blue-and-gold Aethel Capital Management multi-asset overview: NAV, alpha, risk, allocation, holdings and stress tests*
+
+</details>
+
 
 **References:** batch 2 #12 ("Aurelius Wealth Fund") and #13 ("Aethel Capital Management"). **Format:** portfolio oversight reports/dashboard mockups with very different visual treatment.
 
@@ -254,6 +445,15 @@ The screenshot sample spans three broad market presentation choices: (i) strikin
 - **Status:** \`INSTITUTIONAL INFORMATION HIERARCHY\` reference only. Actual fund existence and figures **UNKNOWN**.
 
 ### CVI-20261023-018 — E-commerce growth funnel and revenue dashboard
+<details>
+<summary>Reference screenshots (1) — private archive</summary>
+
+<img src="competitive_visual_assets/cvi_batch02_14.png" width="520" alt="Dark aubergine VOGUE LABS conversion &amp; revenue report: product category tiles, funnel, weekly revenue/AOV, acquisition channels, device mix and launch forecast" />
+
+*Batch 2 · screenshot 14 — Dark aubergine VOGUE LABS conversion & revenue report: product category tiles, funnel, weekly revenue/AOV, acquisition channels, device mix and launch forecast*
+
+</details>
+
 
 **Reference:** batch 2 #14, "Vogue Labs" conversion/revenue image. **Format:** commercial analytics/business-growth performance monitor.
 
@@ -275,7 +475,7 @@ The screenshot sample spans three broad market presentation choices: (i) strikin
 
 **Source and classification:** Fifteen images supplied by the CEO in the PAM Marketing & GTM ChatGPT conversation, in the order listed below. This batch comprises **desktop BI dashboards, infographic/chart catalogues, valuation and portfolio-analysis UI, conceptual analytics imagery, and report/slide design**. These are **not established Blossom competitors or examples of proven social engagement**. Several resemble stock/mockup art and one pair is effectively a duplicate. This is visual market literacy for designers, not a new renderer backlog.
 
-**Custody and limits:** Only a numbered description and qualitative design analysis are registered in this repository. The **third-party image bytes are not copied**, and no permanent image URL, original author, license, source-file resolution, usage rights or platform performance has been confirmed. Reference numbers are anchored to this CEO-supplied **batch 3 conversation**, not to external URL identities. Text, statistics, brands and product claims displayed within these images are **illustrative/unverified**. The descriptions and comparisons are observations or hypotheses, **not source verification or proof of market superiority**.
+**Custody and limits:** At initial intake only numbered descriptions and qualitative analyses were registered; this private backfill adds exact CEO-supplied image bytes upon import. No permanent original image URL, author identity, license, creator source-file resolution, usage rights or platform performance has been confirmed. Reference numbers are anchored to this CEO-supplied **batch 3 conversation**, not to external URL identities. Text, statistics, brands and product claims displayed within these images are **illustrative/unverified**. The descriptions and comparisons are observations or hypotheses, **not source verification or proof of market superiority**.
 
 | Batch 3 image | Visible characteristics (observation, not verification) | Case | Source classification |
 |---|---|---|---|
@@ -296,6 +496,15 @@ The screenshot sample spans three broad market presentation choices: (i) strikin
 | **15** | Cream, muted-teal and brick-red report/slide suite: multi-line chart, bars, a diagram and five-step horizontal path | [CVI-20261023-030](#cvi-20261023-030--report-and-slide-layout-family) | Generic presentation template, not published market analysis |
 
 ### CVI-20261023-019 — Dense poster-style analytics wall
+<details>
+<summary>Reference screenshots (1) — private archive</summary>
+
+<img src="competitive_visual_assets/cvi_batch03_01.png" width="520" alt="Black, framed large-format analytics wall; multiple colorful bar, area and line charts, mini callouts, columns of small copy" />
+
+*Batch 3 · screenshot 01 — Black, framed large-format analytics wall; multiple colorful bar, area and line charts, mini callouts, columns of small copy*
+
+</details>
+
 
 **Reference:** batch 3 #01. **Subject/shape:** very dark, wide, framed analytics board resembling an exhibition wall or command-center poster; nine-ish regions with bright gradients, histograms, area/line charts and explanatory footnotes.
 
@@ -305,6 +514,19 @@ The screenshot sample spans three broad market presentation choices: (i) strikin
 - **Status:** \`BACKGROUND REFERENCE\`. Engagement, accuracy and copyright: **UNKNOWN**.
 
 ### CVI-20261023-020 — Multi-panel executive dashboard
+<details>
+<summary>Reference screenshots (2) — private archive</summary>
+
+<img src="competitive_visual_assets/cvi_batch03_02.png" width="520" alt="Pale dashboard with world choropleth, concentric radial display, horizontal ranked sections and small charts" />
+
+*Batch 3 · screenshot 02 — Pale dashboard with world choropleth, concentric radial display, horizontal ranked sections and small charts*
+
+<img src="competitive_visual_assets/cvi_batch03_05.png" width="520" alt="Navy chart collection using lime and cyan lines, bars, map dots, circular gauges and card-like modules" />
+
+*Batch 3 · screenshot 05 — Navy chart collection using lime and cyan lines, bars, map dots, circular gauges and card-like modules*
+
+</details>
+
 
 **References:** batch 3 #02 and #05. **Subject/shape:** pale map-and-radial executive board versus dark navy data-visualization dashboard family. Both combine maps, trend plots, radial/gauge modules, distribution measures and small KPI or ranking elements.
 
@@ -314,6 +536,19 @@ The screenshot sample spans three broad market presentation choices: (i) strikin
 - **Status:** \`DESIGN INTELLIGENCE ONLY\`. Original analytics and authorship unverified.
 
 ### CVI-20261023-021 — Flat infographic tile system
+<details>
+<summary>Reference screenshots (2) — private archive</summary>
+
+<img src="competitive_visual_assets/cvi_batch03_03.png" width="520" alt="Modular, flat coral/teal/yellow infographic canvas with stacked bands, donut indicators, pictograms and bars" />
+
+*Batch 3 · screenshot 03 — Modular, flat coral/teal/yellow infographic canvas with stacked bands, donut indicators, pictograms and bars*
+
+<img src="competitive_visual_assets/cvi_batch03_06.png" width="520" alt="Flat coral/teal/yellow modular infographic board substantially repeating image #03" />
+
+*Batch 3 · screenshot 06 — Flat coral/teal/yellow modular infographic board substantially repeating image #03*
+
+</details>
+
 
 **References:** batch 3 #03 and **near-duplicate** #06. **Subject/shape:** repeatable bright graphic tiles with stacked/striped bars, donut indicators, labeled circle nodes, stylized lines and callout panels on coral, mustard and teal backgrounds.
 
@@ -323,6 +558,19 @@ The screenshot sample spans three broad market presentation choices: (i) strikin
 - **Status:** \`VISUAL GRAMMAR REFERENCE\`. #06 is counted as an image but does **not** justify a new case or extra template.
 
 ### CVI-20261023-022 — Conceptual analytics hero imagery
+<details>
+<summary>Reference screenshots (2) — private archive</summary>
+
+<img src="competitive_visual_assets/cvi_batch03_04.png" width="520" alt="Person facing a wide wall of orange, white and charcoal dashboard screens" />
+
+*Batch 3 · screenshot 04 — Person facing a wide wall of orange, white and charcoal dashboard screens*
+
+<img src="competitive_visual_assets/cvi_batch03_08.png" width="520" alt="Person typing at laptop/calculator with transparent holographic pie charts, bars and indicators superimposed" />
+
+*Batch 3 · screenshot 08 — Person typing at laptop/calculator with transparent holographic pie charts, bars and indicators superimposed*
+
+</details>
+
 
 **References:** batch 3 #04 and #08. **Subject/shape:** a person examining dozens of dashboard panes, and an office worker using laptop/calculator with a holographic data overlay.
 
@@ -332,6 +580,15 @@ The screenshot sample spans three broad market presentation choices: (i) strikin
 - **Status:** \`WHAT TO AVOID OVERUSING\`; no evidence of competing account performance.
 
 ### CVI-20261023-023 — White analytical sheet with many charts
+<details>
+<summary>Reference screenshots (1) — private archive</summary>
+
+<img src="competitive_visual_assets/cvi_batch03_07.png" width="520" alt="White/gray editorial analytic sheets photographed diagonally, orange/yellow/black charts, circles and long labels" />
+
+*Batch 3 · screenshot 07 — White/gray editorial analytic sheets photographed diagonally, orange/yellow/black charts, circles and long labels*
+
+</details>
+
 
 **Reference:** batch 3 #07. **Subject/shape:** brightly lit report sheets/collage with assorted bar, line and ring charts, orange/yellow accents and technical text on white paper.
 
@@ -341,6 +598,15 @@ The screenshot sample spans three broad market presentation choices: (i) strikin
 - **Status:** \`BACKGROUND REFERENCE\`.
 
 ### CVI-20261023-024 — Compact valuation widgets
+<details>
+<summary>Reference screenshots (1) — private archive</summary>
+
+<img src="competitive_visual_assets/cvi_batch03_09.png" width="520" alt="Two dark valuation widgets: future cash-flow value with 22.0% Undervalued badge, and portfolio versus market P/E speedometer" />
+
+*Batch 3 · screenshot 09 — Two dark valuation widgets: future cash-flow value with 22.0% Undervalued badge, and portfolio versus market P/E speedometer*
+
+</details>
+
 
 **Reference:** batch 3 #09. **Subject/shape:** dark two-card UI, one comparing hypothetical or modelled future cash-flow value against displayed total value with "undervalued" output, the other a dial comparing portfolio P/E against a market P/E reference.
 
@@ -350,6 +616,15 @@ The screenshot sample spans three broad market presentation choices: (i) strikin
 - **Status:** \`VALUATION COMMUNICATION REFERENCE\`, **not** endorsement of 22% discount or of any P/E values.
 
 ### CVI-20261023-025 — Portfolio optimizer risk-return map
+<details>
+<summary>Reference screenshots (1) — private archive</summary>
+
+<img src="competitive_visual_assets/cvi_batch03_10.png" width="520" alt="White Optimizer / My Portfolio risk-return scatter, four highlighted alternatives, donut allocation and comparison bars" />
+
+*Batch 3 · screenshot 10 — White Optimizer / My Portfolio risk-return scatter, four highlighted alternatives, donut allocation and comparison bars*
+
+</details>
+
 
 **Reference:** batch 3 #10. **Subject/shape:** light browser interface with grey scenario cloud of portfolios, several colored points, axes labeled Ulcer Index and long-term withdrawal rate, plus allocation donut and optimized-versus-current bars.
 
@@ -359,6 +634,15 @@ The screenshot sample spans three broad market presentation choices: (i) strikin
 - **Status:** \`SPECIALIZED RESEARCH REFERENCE\`; no validated results or reuse permission.
 
 ### CVI-20261023-026 — Relative performance multi-line chart
+<details>
+<summary>Reference screenshots (1) — private archive</summary>
+
+<img src="competitive_visual_assets/cvi_batch03_11.png" width="520" alt="StockCharts-branded AMZN versus SPY multi-series percentage-performance time chart with many colored lines" />
+
+*Batch 3 · screenshot 11 — StockCharts-branded AMZN versus SPY multi-series percentage-performance time chart with many colored lines*
+
+</details>
+
 
 **Reference:** batch 3 #11. **Subject/shape:** StockCharts-branded website with many colored cumulative/relative return lines, common horizontal date scale and percentage levels.
 
@@ -368,6 +652,15 @@ The screenshot sample spans three broad market presentation choices: (i) strikin
 - **Status:** \`EVIDENCE ENCODING REFERENCE\`; chart returns unverified.
 
 ### CVI-20261023-027 — Holdings weighting plus bubble comparison
+<details>
+<summary>Reference screenshots (1) — private archive</summary>
+
+<img src="competitive_visual_assets/cvi_batch03_12.png" width="520" alt="Portfolio weightings horizontal ranked bars beside overlapped growth-versus-dividend bubble/scatter plot" />
+
+*Batch 3 · screenshot 12 — Portfolio weightings horizontal ranked bars beside overlapped growth-versus-dividend bubble/scatter plot*
+
+</details>
+
 
 **Reference:** batch 3 #12. **Subject/shape:** two overlaid analytical panels: ranked portfolio weights in horizontal teal bars; labelled bubbles placed against estimated growth and dividend-yield axes with average reference lines.
 
@@ -377,6 +670,15 @@ The screenshot sample spans three broad market presentation choices: (i) strikin
 - **Status:** \`PORTFOLIO VISUAL GRAMMAR\`, not a ready-made feature or template.
 
 ### CVI-20261023-028 — Infographic chart catalogue
+<details>
+<summary>Reference screenshots (1) — private archive</summary>
+
+<img src="competitive_visual_assets/cvi_batch03_13.png" width="520" alt="Turquoise, yellow and black INFOGRAPHICS 15 chart/dashboard mockup tiles" />
+
+*Batch 3 · screenshot 13 — Turquoise, yellow and black INFOGRAPHICS 15 chart/dashboard mockup tiles*
+
+</details>
+
 
 **Reference:** batch 3 #13. **Subject/shape:** turquoise/yellow/black set of generic numbered infographics, stylized bars, circles, timelines, columns and faux-depth objects.
 
@@ -386,6 +688,15 @@ The screenshot sample spans three broad market presentation choices: (i) strikin
 - **Status:** \`CATALOGUE / BACKGROUND ONLY\`.
 
 ### CVI-20261023-029 — Operational heatmap matrix
+<details>
+<summary>Reference screenshots (1) — private archive</summary>
+
+<img src="competitive_visual_assets/cvi_batch03_14.png" width="520" alt="Role × month resource-utilization percentage heatmap in green, amber and red; expandable rows, month labels" />
+
+*Batch 3 · screenshot 14 — Role × month resource-utilization percentage heatmap in green, amber and red; expandable rows, month labels*
+
+</details>
+
 
 **Reference:** batch 3 #14. **Subject/shape:** role × month percentage grid, expandable row list, traffic-light cell fills and values directly printed on cells.
 
@@ -395,6 +706,15 @@ The screenshot sample spans three broad market presentation choices: (i) strikin
 - **Status:** \`CROSS-DOMAIN INFORMATION DESIGN\`; no production action.
 
 ### CVI-20261023-030 — Report and slide layout family
+<details>
+<summary>Reference screenshots (1) — private archive</summary>
+
+<img src="competitive_visual_assets/cvi_batch03_15.png" width="520" alt="Cream, muted-teal and brick-red report/slide suite: multi-line chart, bars, a diagram and five-step horizontal path" />
+
+*Batch 3 · screenshot 15 — Cream, muted-teal and brick-red report/slide suite: multi-line chart, bars, a diagram and five-step horizontal path*
+
+</details>
+
 
 **Reference:** batch 3 #15. **Subject/shape:** warm-ivory report/slide pages with muted chart palettes, a primary page of side-by-side line and column charts, and smaller diagram/process panels beneath.
 
@@ -417,7 +737,7 @@ This batch sharpens a distinction: **dashboard quality, infographic novelty and 
 
 **Source and classification:** Seven screenshots supplied by the CEO in the PAM Marketing & GTM ChatGPT conversation on 2026-10-23. Six show TradingView-branded interactive stock/issuer screens (one broad stock screener, five Tesla detail views) and one shows Zacks Research's Micron research interface. They are **product-interface / research-visualization references**, **not verified original Blossom posts**, not evidence of account growth, and not validated security or analyst data. The screenshot UI shows vendor functionality; its presence here **does not establish equivalent PAM capabilities**.
 
-**Intake custody:** This repository records the **order, observed content and analytical lessons** of all seven screenshots. It does **not** contain copies of the third-party image pixels, a verified permalink for each screen, current feed data, rights to redistribute the UI, or independent verification of the displayed Tesla/Micron/other securities' price, earnings, market capitalization, options or forecast figures. The conversation's image upload is the intake evidence but is not a permanent repository-hosted original. Market screens may contain stale, vendor-specific, estimated or inconsistent readings; **do not reuse the displayed figures as authenticated market facts**. No template is added or modified.
+**Intake custody:** This repository records the **order, observed content and analytical lessons** of all seven screenshots. At original intake this repository did not contain screenshot image pixels; the private backfill will supply those files upon import. No original screen permalink, rights to redistribute the UI, verified feed data or independent verification of displayed Tesla/Micron prices, earnings, market capitalizations, options or forecasts has been established. The conversation's image upload is the intake evidence but is not a permanent repository-hosted original. Market screens may contain stale, vendor-specific, estimated or inconsistent readings; **do not reuse the displayed figures as authenticated market facts**. No template is added or modified.
 
 | Batch 4 image | Visible image / interface content (not fact-checked) | Case | Medium / provenance |
 |---|---|---|---|
@@ -432,6 +752,15 @@ This batch sharpens a distinction: **dashboard quality, infographic novelty and 
 **Specific source caveat:** Image #01 visibly includes symbols, names and prices that may not match real-world tradability or each other. For example, the row naming Space Exploration Technologies Corp / \`SPCX\` is **not evidence** that an exchange-traded SpaceX common stock exists. Images #02–#06 may reflect different date windows and metric definitions. This file deliberately does not reconcile or endorse their numerical claims. Platform UI chrome, tabs and side watchlists are not part of a standalone Blossom image design.
 
 ### CVI-20261023-031 — Multi-factor stock screener
+<details>
+<summary>Reference screenshots (1) — private archive</summary>
+
+<img src="competitive_visual_assets/cvi_batch04_01.png" width="520" alt="TradingView All stocks screen: filter chips (market, index, price, market cap, growth, sector, ROE, etc.), view tabs, ranked stock table with ticker, price, change, valuation/earnings and analyst-rating columns" />
+
+*Batch 4 · screenshot 01 — TradingView All stocks screen: filter chips (market, index, price, market cap, growth, sector, ROE, etc.), view tabs, ranked stock table with ticker, price, change, valuation/earnings and analyst-rating columns*
+
+</details>
+
 
 **Reference:** batch 4 #01. **Medium:** interactive table for exploring a large financial universe.
 
@@ -442,6 +771,19 @@ This batch sharpens a distinction: **dashboard quality, infographic novelty and 
 - **Action/outcome:** \`UI REFERENCE ONLY\`; neither a new template nor a live product requirement.
 
 ### CVI-20261023-032 — Issuer financial facts and forecast boundaries
+<details>
+<summary>Reference screenshots (2) — private archive</summary>
+
+<img src="competitive_visual_assets/cvi_batch04_02.png" width="520" alt="TradingView Tesla Earnings detail: recent reporting header, reported-versus-estimated EPS by year, surprise table, upcoming shaded forecasts and revenue section" />
+
+*Batch 4 · screenshot 02 — TradingView Tesla Earnings detail: recent reporting header, reported-versus-estimated EPS by year, surprise table, upcoming shaded forecasts and revenue section*
+
+<img src="competitive_visual_assets/cvi_batch04_03.png" width="520" alt="TradingView Tesla Financials Overview: valuation multiples history, growth/profitability charts, revenue-to-income waterfall, watchlist on the side" />
+
+*Batch 4 · screenshot 03 — TradingView Tesla Financials Overview: valuation multiples history, growth/profitability charts, revenue-to-income waterfall, watchlist on the side*
+
+</details>
+
 
 **References:** batch 4 #02 (earnings tab) and #03 (financials overview). **Medium:** deep issuer research UI, intentionally grouped into one case because both serve the same user journey.
 
@@ -453,6 +795,15 @@ This batch sharpens a distinction: **dashboard quality, infographic novelty and 
 - **Action/outcome:** \`RESEARCH-STRUCTURE REFERENCE\`, not a product maturity assertion or renderer change.
 
 ### CVI-20261023-033 — Annual seasonality overlay
+<details>
+<summary>Reference screenshots (1) — private archive</summary>
+
+<img src="competitive_visual_assets/cvi_batch04_04.png" width="520" alt="TradingView Tesla Seasonals: annual traces for different years on a common January–December axis, labels and user-selectable year window" />
+
+*Batch 4 · screenshot 04 — TradingView Tesla Seasonals: annual traces for different years on a common January–December axis, labels and user-selectable year window*
+
+</details>
+
 
 **Reference:** batch 4 #04. **Medium:** interactive yearly performance comparison.
 
@@ -463,6 +814,15 @@ This batch sharpens a distinction: **dashboard quality, infographic novelty and 
 - **Action/outcome:** \`OPTIONAL GRAPHICAL REFERENCE\`; not evidence that PAM can compute or forecast seasonality.
 
 ### CVI-20261023-034 — Analyst targets and consensus uncertainty
+<details>
+<summary>Reference screenshots (1) — private archive</summary>
+
+<img src="competitive_visual_assets/cvi_batch04_05.png" width="520" alt="TradingView Tesla Forecast: historic price path transitioning to an analyst 1-year target range, average/low/high shading, rating gauge and count bars" />
+
+*Batch 4 · screenshot 05 — TradingView Tesla Forecast: historic price path transitioning to an analyst 1-year target range, average/low/high shading, rating gauge and count bars*
+
+</details>
+
 
 **Reference:** batch 4 #05. **Medium:** vendor analyst-expectation display.
 
@@ -473,6 +833,15 @@ This batch sharpens a distinction: **dashboard quality, infographic novelty and 
 - **Action/outcome:** \`UNCERTAINTY-PRESENTATION REFERENCE\`; no endorsement of any rating or target.
 
 ### CVI-20261023-035 — Options-chain information density
+<details>
+<summary>Reference screenshots (1) — private archive</summary>
+
+<img src="competitive_visual_assets/cvi_batch04_06.png" width="520" alt="TradingView Tesla option chain: symmetric calls/puts table around strikes, expiration, bid/ask, implied volatility, delta, volume and open interest" />
+
+*Batch 4 · screenshot 06 — TradingView Tesla option chain: symmetric calls/puts table around strikes, expiration, bid/ask, implied volatility, delta, volume and open interest*
+
+</details>
+
 
 **Reference:** batch 4 #06. **Medium:** specialist derivative market-data table.
 
@@ -483,6 +852,15 @@ This batch sharpens a distinction: **dashboard quality, infographic novelty and 
 - **Action/outcome:** \`SPECIALIST UI REFERENCE\`; no template or data integration approved.
 
 ### CVI-20261023-036 — Research portal evidence hierarchy
+<details>
+<summary>Reference screenshots (1) — private archive</summary>
+
+<img src="competitive_visual_assets/cvi_batch04_07.png" width="520" alt="Zacks Research Micron (MU) page: price/consensus/EPS-surprise historical chart, quote overview, earnings/forward estimates and sales/EPS growth sections" />
+
+*Batch 4 · screenshot 07 — Zacks Research Micron (MU) page: price/consensus/EPS-surprise historical chart, quote overview, earnings/forward estimates and sales/EPS growth sections*
+
+</details>
+
 
 **Reference:** batch 4 #07 (Zacks Research / Micron MU). **Medium:** large desktop equity research portal.
 
