@@ -116,7 +116,7 @@ See [template library](MACRO_LENS_TEMPLATES.md) and the executable [Visual Kit](
 - `T2` **The Divergence**: two signals seemingly at odds, dates and definitions aligned.
 - `T3` **The Regime Shift**: a properly sourced historical context and what changed.
 
-The three real SVG/PNG layouts are rendered by the offline Visual Kit. They share PAM branding, typographic hierarchy, footer date/source convention and fact-validation contract—not the same filler modules. SVG/PNG rendering is **not** factual verification; an independent reviewer must inspect the exact image and caption. A non-watermarked export requires separately recorded independent-audit and CEO-approval references bound to the input hash; those references are workflow declarations, not cryptographic proof of review. Avoid daily dashboard repetition. Subject determines template. Do not invent charts simply to fill a slot. A template version is recorded for each published post.
+The three real SVG/PNG layouts are rendered by the offline Visual Kit. They share PAM branding, typographic hierarchy, footer date/source convention and fact-validation contract—not the same filler modules. SVG/PNG rendering is **not** factual verification; an independent reviewer must inspect the exact image and caption. A **RELEASE** export requires separately recorded independent-audit and CEO-approval references bound to the input hash; genuine-source DRAFT previews are also visually clean but remain unapproved. Those references are workflow declarations, not cryptographic proof of review. Avoid daily dashboard repetition. Subject determines template. Do not invent charts simply to fill a slot. A template version is recorded for each published post.
 
 ## 7. Audit, measure and learn — minimum CEO effort
 
