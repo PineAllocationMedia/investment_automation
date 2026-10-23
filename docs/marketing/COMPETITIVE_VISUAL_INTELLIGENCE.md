@@ -413,6 +413,94 @@ This batch sharpens a distinction: **dashboard quality, infographic novelty and 
 - **No performance inference:** zero competitor audience measurements or original post identities were established from these uploads.
 - **No action requested by these observations:** \`OBSERVE / OPTIONAL REFERENCE\`; no implementation ticket, new dashboard product claim, new template, renderer changes, publication or routine monitoring.
 
+## CEO screenshot intake — 2026-10-23, batch 4 (7 references; 6 analytical cases)
+
+**Source and classification:** Seven screenshots supplied by the CEO in the PAM Marketing & GTM ChatGPT conversation on 2026-10-23. Six show TradingView-branded interactive stock/issuer screens (one broad stock screener, five Tesla detail views) and one shows Zacks Research's Micron research interface. They are **product-interface / research-visualization references**, **not verified original Blossom posts**, not evidence of account growth, and not validated security or analyst data. The screenshot UI shows vendor functionality; its presence here **does not establish equivalent PAM capabilities**.
+
+**Intake custody:** This repository records the **order, observed content and analytical lessons** of all seven screenshots. It does **not** contain copies of the third-party image pixels, a verified permalink for each screen, current feed data, rights to redistribute the UI, or independent verification of the displayed Tesla/Micron/other securities' price, earnings, market capitalization, options or forecast figures. The conversation's image upload is the intake evidence but is not a permanent repository-hosted original. Market screens may contain stale, vendor-specific, estimated or inconsistent readings; **do not reuse the displayed figures as authenticated market facts**. No template is added or modified.
+
+| Batch 4 image | Visible image / interface content (not fact-checked) | Case | Medium / provenance |
+|---|---|---|---|
+| **01** | TradingView **All stocks** screen: filter chips (market, index, price, market cap, growth, sector, ROE, etc.), view tabs, ranked stock table with ticker, price, change, valuation/earnings and analyst-rating columns | [CVI-20261023-031](#cvi-20261023-031--multi-factor-stock-screener) | Vendor-branded screener screenshot; full result universe/values/rights unverified |
+| **02** | TradingView **Tesla Earnings** detail: recent reporting header, reported-versus-estimated EPS by year, surprise table, upcoming shaded forecasts and revenue section | [CVI-20261023-032](#cvi-20261023-032--issuer-financial-facts-and-forecast-boundaries) | Vendor-branded research UI; reported/forecast values not authenticated |
+| **03** | TradingView **Tesla Financials Overview**: valuation multiples history, growth/profitability charts, revenue-to-income waterfall, watchlist on the side | [CVI-20261023-032](#cvi-20261023-032--issuer-financial-facts-and-forecast-boundaries) | Vendor-branded multi-panel financial UI; metric basis unverified |
+| **04** | TradingView **Tesla Seasonals**: annual traces for different years on a common January–December axis, labels and user-selectable year window | [CVI-20261023-033](#cvi-20261023-033--annual-seasonality-overlay) | Interactive price seasonality interface, no outcome claims verified |
+| **05** | TradingView **Tesla Forecast**: historic price path transitioning to an analyst 1-year target range, average/low/high shading, rating gauge and count bars | [CVI-20261023-034](#cvi-20261023-034--analyst-targets-and-consensus-uncertainty) | Vendor-branded external-analyst consensus UI; forecast not fact |
+| **06** | TradingView **Tesla option chain**: symmetric calls/puts table around strikes, expiration, bid/ask, implied volatility, delta, volume and open interest | [CVI-20261023-035](#cvi-20261023-035--options-chain-information-density) | Vendor-branded trading-data interface; no live quote/license validation |
+| **07** | **Zacks Research Micron (MU)** page: price/consensus/EPS-surprise historical chart, quote overview, earnings/forward estimates and sales/EPS growth sections | [CVI-20261023-036](#cvi-20261023-036--research-portal-evidence-hierarchy) | Vendor-branded desktop research portal; figures and forecast vintages unverified |
+
+**Specific source caveat:** Image #01 visibly includes symbols, names and prices that may not match real-world tradability or each other. For example, the row naming Space Exploration Technologies Corp / \`SPCX\` is **not evidence** that an exchange-traded SpaceX common stock exists. Images #02–#06 may reflect different date windows and metric definitions. This file deliberately does not reconcile or endorse their numerical claims. Platform UI chrome, tabs and side watchlists are not part of a standalone Blossom image design.
+
+### CVI-20261023-031 — Multi-factor stock screener
+
+**Reference:** batch 4 #01. **Medium:** interactive table for exploring a large financial universe.
+
+- **Observed grammar:** a compact filter ribbon above multiple analysis-category tabs, sortable multi-column rows, neutral backgrounds, alignment for numbers and colored signs for gains/losses and ratings. The table is evidently designed for user filtering, sorting and drill-down rather than phone-feed reading.
+- **Potential strength (judgment):** gives users an immediately legible *comparison vocabulary* (growth, valuation, sector, volume, rating); consistent columns make relative differences easy to inspect. Small color accents don't replace labels.
+- **Tradeoffs:** crowded horizontal density, dependence on interactive filters and non-obvious source-vintage differences; value judgments like "Strong buy" are external consensus labels, not established investment quality. Some displayed security identities should be independently verified.
+- **Possible PAM design lesson:** choose only the two or three dimensions needed for one defensible research comparison; identify universe, ranking/sort rule, quote session, units and missing-data coverage; treat screening output as a starting point for analysis, **never an instruction to buy**. Do not reproduce this table or claim PAM has a live global screener.
+- **Action/outcome:** \`UI REFERENCE ONLY\`; neither a new template nor a live product requirement.
+
+### CVI-20261023-032 — Issuer financial facts and forecast boundaries
+
+**References:** batch 4 #02 (earnings tab) and #03 (financials overview). **Medium:** deep issuer research UI, intentionally grouped into one case because both serve the same user journey.
+
+- **Observed grammar (#02):** metric-specific EPS and revenue charts, year selector, reported-versus-estimate legends, shaded future periods, tabular historical surprises and concise reporting-period context. The shading communicates a **known-versus-not-yet-reported** boundary.
+- **Observed grammar (#03):** separate blocks for valuation ratios, operating growth/profitability and a revenue-to-income waterfall. Distinct chart types encode different financial questions, rather than filling identical cards. A side watchlist and navigation chrome add interaction context but are not part of a publication graphic.
+- **Potential strengths:** clearly segmented research tasks, persistent metric names and units, explicit actual/estimate distinction, meaningful decomposition from top-line revenue toward reported profit.
+- **Tradeoffs:** multiple chart axes and ratios increase explanation burden; EPS, P/E, P/S, valuation gauges, operating margins and financial statement data may have incompatible bases (TTM vs fiscal year, GAAP vs adjusted, shares/currency/vintage). Donut-like summaries may conflate quantities measured in different units if misunderstood.
+- **Possible PAM lesson:** for E1 or future research **only when technically supported**, make reported facts, consensus estimates and interpretations visibly distinct; organize \`signal → source-bound evidence → interpretation/uncertainty\`, and use the chart type that fits the financial relationship. Do not clone the interface, infer that PAM renders these chart families or accept external vendor figures without verification.
+- **Action/outcome:** \`RESEARCH-STRUCTURE REFERENCE\`, not a product maturity assertion or renderer change.
+
+### CVI-20261023-033 — Annual seasonality overlay
+
+**Reference:** batch 4 #04. **Medium:** interactive yearly performance comparison.
+
+- **Observed grammar:** several calendar-year cumulative traces rebased onto a shared January–December x-axis, separate colored end labels for years, a year-range selector and a conspicuous current/incomplete-year trace.
+- **Potential strengths:** visually reveals recurrent windows, unusual years and differences in path dependency; normalized calendar positioning can be easier to compare than five consecutive raw-price histories.
+- **Material caveats:** percentage rebasing, total-vs-price return, currency, trading-day alignment, partial current years, splits/dividends and selection of historical windows materially affect the story. Similar shapes are **not evidence of reliable predictive seasonality**.
+- **Possible PAM lesson:** seasonality comparisons need exact rebasing, sample length and uncertainty, plus an explanation of why the period is economically relevant. At mobile size, restrict or highlight only useful comparator years.
+- **Action/outcome:** \`OPTIONAL GRAPHICAL REFERENCE\`; not evidence that PAM can compute or forecast seasonality.
+
+### CVI-20261023-034 — Analyst targets and consensus uncertainty
+
+**Reference:** batch 4 #05. **Medium:** vendor analyst-expectation display.
+
+- **Observed grammar:** a historical observed price line enters a fan-shaped future area colored for analyst minimum/average/maximum targets; a separate dial and count bars summarize rating distribution. The screenshot visibly distinguishes historical prices from a forecast period.
+- **Potential strengths:** shows **dispersion** as well as the headline average, keeps an observed base level, and makes the analyst-count and ratings context inspectable rather than hiding disagreement behind one target.
+- **Risks:** min/average/max endpoints are **analyst opinions**, not outcome probabilities or a statistical confidence interval; straight fan-like polygon edges can misleadingly suggest paths through time. A dial saying "Buy" can imply prescriptive advice and should not be imported wholesale into a research account. Target definition, timestamps, universe selection and stale estimates matter.
+- **Possible PAM lesson:** separate observed price, outside consensus and PAM's own conditional hypotheses; foreground **assumption sensitivity and forecast disagreement** rather than implying target-price inevitability or an investment recommendation.
+- **Action/outcome:** \`UNCERTAINTY-PRESENTATION REFERENCE\`; no endorsement of any rating or target.
+
+### CVI-20261023-035 — Options-chain information density
+
+**Reference:** batch 4 #06. **Medium:** specialist derivative market-data table.
+
+- **Observed grammar:** mirror-image calls and puts columns anchored by a central strike, expiry-specific grouping, colored horizontal bars for open interest and dozens of numerical fields (delta, bid/ask, theoretical value, implied volatility, volume, breakeven).
+- **Potential strengths:** symmetry makes the call/put comparison natural; strikes remain central, while in-cell bars expose relative activity; expiration filter keeps each contract family coherent.
+- **Tradeoffs:** a dense trading interface is not a public-facing mobile infographic. Quotes, exchange, moneyness, expiry/time zone, delayed/live status, Greeks computation, stale/wide spreads and contract specification would need careful provenance. Implied volatility is not a realized-price forecast.
+- **Possible PAM lesson:** use this as **information hierarchy** inspiration only if a genuinely relevant, source-licensed options fact is the editorial story. Condense one interpretable asymmetry into a sourced chart; avoid reproducing a trading chain, prescribing option positions or claiming options-data capabilities.
+- **Action/outcome:** \`SPECIALIST UI REFERENCE\`; no template or data integration approved.
+
+### CVI-20261023-036 — Research portal evidence hierarchy
+
+**Reference:** batch 4 #07 (Zacks Research / Micron MU). **Medium:** large desktop equity research portal.
+
+- **Observed grammar:** persistent categorical sidebar, central chart marrying share price, earnings consensus and EPS surprises across years, quote summary to the right and lower fundamental estimate/growth tables. A heavily populated page serves multiple research questions through tabbed navigation and detail links.
+- **Potential strengths:** multiple evidence types can be cross-referenced while exploring an issuer; historical and forward expectations are presented in one workspace; summary plus drilldown gives experienced readers control.
+- **Tradeoffs:** overlays may share incompatible left/right axes, some value changes can reflect estimator revisions rather than reported fundamentals, forecast horizons differ and small legends can cause confusion. Desktop density and promotional calls to action would overwhelm a static Blossom post.
+- **Possible PAM lesson:** retain a crisp division between **issuer history, estimates, surprise/revision context and market response**, with source-vintage disclosures. An editorial graphic should answer a narrower question than this entire portal. No claim that Zacks' proprietary data is available to PAM or that its visuals may be copied.
+- **Action/outcome:** \`RESEARCH-PORTAL COMPARISON\`; publication impact **UNKNOWN**.
+
+### Cross-case synthesis — batch 4
+
+This batch illustrates that financial research platforms can offer broad exploration **because they are interactive**; a static Blossom image must be more selective. The most transferable conventions are **consistent financial units, easy comparisons, explicit reported-vs-estimated boundaries, shared time axes and meaningful variance/dispersion labels**.
+
+- **Useful for future conversation with designers:** the screener's metric-selection discipline, issuer financials' evidence groups, seasonality's same-calendar rebasing and forecast-range's depiction of disagreement.
+- **Especially easy to misuse:** extrapolating current prices into analyst-target fans, visually predicting cycles from a few seasonality lines, treating P/E dials as intrinsic-value truth or adding derivative-chain information without explaining its risk.
+- **Do not overread the reference:** neither TradingView nor Zacks screenshots are direct Blossom engagement benchmarks; these are product UX/source-presentation references. Displayed figures, licenses and account-level conversions were not verified.
+- **Current action:** \`NONE — OBSERVE\`. Do not implement new PAM research capabilities, alter the existing E1/M4/T-family templates, create a copying brief or imply an independent factual audit.
+
 ## How to consume this without restricting creative work
 
 1. **Creating a new image:** first identify a useful story and evidence, then optionally scan relevant CVI cases to understand common market presentation. Use the ideas critically; do not inherit the example's modules or style.
