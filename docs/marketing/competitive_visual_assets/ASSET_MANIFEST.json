@@ -1,0 +1,893 @@
+{
+  "archive": "PAM Competitive Visual Intelligence private image backfill",
+  "created_on": "2026-10-23",
+  "entries": [
+    {
+      "filename": "cvi_batch00_01.png",
+      "git_relative_path": "docs/marketing/competitive_visual_assets/cvi_batch00_01.png",
+      "relative_markdown_path": "competitive_visual_assets/cvi_batch00_01.png",
+      "batch": 0,
+      "image_number": 1,
+      "case_id": "CVI-20261023-001",
+      "description": "Leveraged Life dark pre-market board with indices, market story, futures and watch list",
+      "size_bytes": 233477,
+      "sha256": "e3fa39801951bf4f438b1930c75247bb56b9b1e5bac132cac6522cac280ff981",
+      "dimensions": [
+        848,
+        742
+      ],
+      "format": "PNG",
+      "provenance": "CEO-supplied screenshot in PAM ChatGPT conversation; original permalink/licensing not independently verified",
+      "use": "private internal design-reference analysis only; not licensed for external redistribution"
+    },
+    {
+      "filename": "cvi_batch01_01.png",
+      "git_relative_path": "docs/marketing/competitive_visual_assets/cvi_batch01_01.png",
+      "relative_markdown_path": "competitive_visual_assets/cvi_batch01_01.png",
+      "batch": 1,
+      "image_number": 1,
+      "case_id": "CVI-20261023-002",
+      "description": "Illustrated US market highlights with three indices, top movers and losers",
+      "size_bytes": 504199,
+      "sha256": "3aae27487cc368b47548998107a042b9fe8e7cfe7def9d801e040d44d20734cc",
+      "dimensions": [
+        873,
+        737
+      ],
+      "format": "PNG",
+      "provenance": "CEO-supplied screenshot in PAM ChatGPT conversation; original permalink/licensing not independently verified",
+      "use": "private internal design-reference analysis only; not licensed for external redistribution"
+    },
+    {
+      "filename": "cvi_batch01_02.png",
+      "git_relative_path": "docs/marketing/competitive_visual_assets/cvi_batch01_02.png",
+      "relative_markdown_path": "competitive_visual_assets/cvi_batch01_02.png",
+      "batch": 1,
+      "image_number": 2,
+      "case_id": "CVI-20261023-002",
+      "description": "Illustrated TSX market highlights with Canadian indices, top movers and losers",
+      "size_bytes": 557236,
+      "sha256": "ac64209b5ecd8ff5c46ea45cd837db01ee3016d356de6b48d9f7476643e75bce",
+      "dimensions": [
+        943,
+        779
+      ],
+      "format": "PNG",
+      "provenance": "CEO-supplied screenshot in PAM ChatGPT conversation; original permalink/licensing not independently verified",
+      "use": "private internal design-reference analysis only; not licensed for external redistribution"
+    },
+    {
+      "filename": "cvi_batch01_03.png",
+      "git_relative_path": "docs/marketing/competitive_visual_assets/cvi_batch01_03.png",
+      "relative_markdown_path": "competitive_visual_assets/cvi_batch01_03.png",
+      "batch": 1,
+      "image_number": 3,
+      "case_id": "CVI-20261023-004",
+      "description": "Nasdaq Composite single-series daily closes, highlighted record and latest level",
+      "size_bytes": 188361,
+      "sha256": "51a779cade606c0b145470958688e996eed0a3a6e75fd0046c7d1a0458e45f6a",
+      "dimensions": [
+        890,
+        743
+      ],
+      "format": "PNG",
+      "provenance": "CEO-supplied screenshot in PAM ChatGPT conversation; original permalink/licensing not independently verified",
+      "use": "private internal design-reference analysis only; not licensed for external redistribution"
+    },
+    {
+      "filename": "cvi_batch01_04.png",
+      "git_relative_path": "docs/marketing/competitive_visual_assets/cvi_batch01_04.png",
+      "relative_markdown_path": "competitive_visual_assets/cvi_batch01_04.png",
+      "batch": 1,
+      "image_number": 4,
+      "case_id": "CVI-20261023-005",
+      "description": "ZETA remaining performance obligations quarterly bars, 2022 to 2026",
+      "size_bytes": 239351,
+      "sha256": "aeae28e748d1eb1788f9083230f06014545dd43664f4432eab491d71d34f4f2e",
+      "dimensions": [
+        985,
+        747
+      ],
+      "format": "PNG",
+      "provenance": "CEO-supplied screenshot in PAM ChatGPT conversation; original permalink/licensing not independently verified",
+      "use": "private internal design-reference analysis only; not licensed for external redistribution"
+    },
+    {
+      "filename": "cvi_batch01_05.png",
+      "git_relative_path": "docs/marketing/competitive_visual_assets/cvi_batch01_05.png",
+      "relative_markdown_path": "competitive_visual_assets/cvi_batch01_05.png",
+      "batch": 1,
+      "image_number": 5,
+      "case_id": "CVI-20261023-003",
+      "description": "Canadian market update with index tiles and ranked gainers and decliners",
+      "size_bytes": 316770,
+      "sha256": "a01713ebc762b5a0516acf296113e3d280abd85f458c9f768ad6d67d9ab5d99f",
+      "dimensions": [
+        907,
+        656
+      ],
+      "format": "PNG",
+      "provenance": "CEO-supplied screenshot in PAM ChatGPT conversation; original permalink/licensing not independently verified",
+      "use": "private internal design-reference analysis only; not licensed for external redistribution"
+    },
+    {
+      "filename": "cvi_batch01_06.png",
+      "git_relative_path": "docs/marketing/competitive_visual_assets/cvi_batch01_06.png",
+      "relative_markdown_path": "competitive_visual_assets/cvi_batch01_06.png",
+      "batch": 1,
+      "image_number": 6,
+      "case_id": "CVI-20261023-006",
+      "description": "Triangular area graphic comparing tech company commitments and liabilities",
+      "size_bytes": 193401,
+      "sha256": "a0f946c02ccf99a1522642d7f872fc91a70f7b5cab59cdeb98d2424275f31af7",
+      "dimensions": [
+        1391,
+        749
+      ],
+      "format": "PNG",
+      "provenance": "CEO-supplied screenshot in PAM ChatGPT conversation; original permalink/licensing not independently verified",
+      "use": "private internal design-reference analysis only; not licensed for external redistribution"
+    },
+    {
+      "filename": "cvi_batch01_07.png",
+      "git_relative_path": "docs/marketing/competitive_visual_assets/cvi_batch01_07.png",
+      "relative_markdown_path": "competitive_visual_assets/cvi_batch01_07.png",
+      "batch": 1,
+      "image_number": 7,
+      "case_id": "CVI-20261023-006",
+      "description": "Paired bars for future commitments and recorded liabilities by issuer",
+      "size_bytes": 181563,
+      "sha256": "ce6fd59f48552c3d9d84ab3ef8503f32377b136ccae40f6b88296d5a1eb50210",
+      "dimensions": [
+        1286,
+        807
+      ],
+      "format": "PNG",
+      "provenance": "CEO-supplied screenshot in PAM ChatGPT conversation; original permalink/licensing not independently verified",
+      "use": "private internal design-reference analysis only; not licensed for external redistribution"
+    },
+    {
+      "filename": "cvi_batch01_08.png",
+      "git_relative_path": "docs/marketing/competitive_visual_assets/cvi_batch01_08.png",
+      "relative_markdown_path": "competitive_visual_assets/cvi_batch01_08.png",
+      "batch": 1,
+      "image_number": 8,
+      "case_id": "CVI-20261023-007",
+      "description": "SGOV versus BND yield and historical total-return bar comparison",
+      "size_bytes": 217140,
+      "sha256": "22e81e604011ece904952f35376e506f8270ce25e0c2f233a777361ed53562d6",
+      "dimensions": [
+        918,
+        769
+      ],
+      "format": "PNG",
+      "provenance": "CEO-supplied screenshot in PAM ChatGPT conversation; original permalink/licensing not independently verified",
+      "use": "private internal design-reference analysis only; not licensed for external redistribution"
+    },
+    {
+      "filename": "cvi_batch01_09.png",
+      "git_relative_path": "docs/marketing/competitive_visual_assets/cvi_batch01_09.png",
+      "relative_markdown_path": "competitive_visual_assets/cvi_batch01_09.png",
+      "batch": 1,
+      "image_number": 9,
+      "case_id": "CVI-20261023-008",
+      "description": "SOFI pre-earnings expectations and stock-price comparisons",
+      "size_bytes": 223645,
+      "sha256": "8a26e2c15f77a579a48c8ff9f2b9f7bc0b21a21c68e07f46d2929a02bc2b87ae",
+      "dimensions": [
+        807,
+        690
+      ],
+      "format": "PNG",
+      "provenance": "CEO-supplied screenshot in PAM ChatGPT conversation; original permalink/licensing not independently verified",
+      "use": "private internal design-reference analysis only; not licensed for external redistribution"
+    },
+    {
+      "filename": "cvi_batch01_10.png",
+      "git_relative_path": "docs/marketing/competitive_visual_assets/cvi_batch01_10.png",
+      "relative_markdown_path": "competitive_visual_assets/cvi_batch01_10.png",
+      "batch": 1,
+      "image_number": 10,
+      "case_id": "CVI-20261023-009",
+      "description": "SharkNinja revenue breakdown by category, brand and geographic region",
+      "size_bytes": 373522,
+      "sha256": "1a0af32477822b67dbf98038f35bad3cdefe1d1d4830c620cf842a447c223200",
+      "dimensions": [
+        1248,
+        673
+      ],
+      "format": "PNG",
+      "provenance": "CEO-supplied screenshot in PAM ChatGPT conversation; original permalink/licensing not independently verified",
+      "use": "private internal design-reference analysis only; not licensed for external redistribution"
+    },
+    {
+      "filename": "cvi_batch01_11.png",
+      "git_relative_path": "docs/marketing/competitive_visual_assets/cvi_batch01_11.png",
+      "relative_markdown_path": "competitive_visual_assets/cvi_batch01_11.png",
+      "batch": 1,
+      "image_number": 11,
+      "case_id": "CVI-20261023-009",
+      "description": "SharkNinja forward valuation peer comparison and 2031 scenarios",
+      "size_bytes": 242157,
+      "sha256": "199e6420326983ecb808cd6f0290d603c72bb1b338f3fc754aabb4cca70b572b",
+      "dimensions": [
+        1208,
+        673
+      ],
+      "format": "PNG",
+      "provenance": "CEO-supplied screenshot in PAM ChatGPT conversation; original permalink/licensing not independently verified",
+      "use": "private internal design-reference analysis only; not licensed for external redistribution"
+    },
+    {
+      "filename": "cvi_batch01_12.png",
+      "git_relative_path": "docs/marketing/competitive_visual_assets/cvi_batch01_12.png",
+      "relative_markdown_path": "competitive_visual_assets/cvi_batch01_12.png",
+      "batch": 1,
+      "image_number": 12,
+      "case_id": "CVI-20261023-009",
+      "description": "SharkNinja projected net sales and EPS three-scenario line charts",
+      "size_bytes": 280735,
+      "sha256": "b3e0880daee932b98411f58043d42e45869cc25cc40b7fb1a405a47cd2e4df8f",
+      "dimensions": [
+        1142,
+        674
+      ],
+      "format": "PNG",
+      "provenance": "CEO-supplied screenshot in PAM ChatGPT conversation; original permalink/licensing not independently verified",
+      "use": "private internal design-reference analysis only; not licensed for external redistribution"
+    },
+    {
+      "filename": "cvi_batch02_01.png",
+      "git_relative_path": "docs/marketing/competitive_visual_assets/cvi_batch02_01.png",
+      "relative_markdown_path": "competitive_visual_assets/cvi_batch02_01.png",
+      "batch": 2,
+      "image_number": 1,
+      "case_id": "CVI-20261023-010",
+      "description": "FINN top ten holdings June versus September with concentration changes",
+      "size_bytes": 531506,
+      "sha256": "4e1c5ae819bd188d74f0fee33f5ed416304306055cc16059c2c4aa8ba19013df",
+      "dimensions": [
+        868,
+        737
+      ],
+      "format": "PNG",
+      "provenance": "CEO-supplied screenshot in PAM ChatGPT conversation; original permalink/licensing not independently verified",
+      "use": "private internal design-reference analysis only; not licensed for external redistribution"
+    },
+    {
+      "filename": "cvi_batch02_02.png",
+      "git_relative_path": "docs/marketing/competitive_visual_assets/cvi_batch02_02.png",
+      "relative_markdown_path": "competitive_visual_assets/cvi_batch02_02.png",
+      "batch": 2,
+      "image_number": 2,
+      "case_id": "CVI-20261023-011",
+      "description": "Maclean magazine-cover-style illustration about generations and wealth",
+      "size_bytes": 384301,
+      "sha256": "af21fe1ab87c43d5099672abf62b72180008bf378edaa18e6080369799609b3d",
+      "dimensions": [
+        687,
+        807
+      ],
+      "format": "PNG",
+      "provenance": "CEO-supplied screenshot in PAM ChatGPT conversation; original permalink/licensing not independently verified",
+      "use": "private internal design-reference analysis only; not licensed for external redistribution"
+    },
+    {
+      "filename": "cvi_batch02_03.png",
+      "git_relative_path": "docs/marketing/competitive_visual_assets/cvi_batch02_03.png",
+      "relative_markdown_path": "competitive_visual_assets/cvi_batch02_03.png",
+      "batch": 2,
+      "image_number": 3,
+      "case_id": "CVI-20261023-012",
+      "description": "Canadian top five companies by market capitalization ranked poster",
+      "size_bytes": 403886,
+      "sha256": "53ef6d5d1cd0b544795872ceecdadc5e139d937189804afee2204a4494f352ea",
+      "dimensions": [
+        762,
+        718
+      ],
+      "format": "PNG",
+      "provenance": "CEO-supplied screenshot in PAM ChatGPT conversation; original permalink/licensing not independently verified",
+      "use": "private internal design-reference analysis only; not licensed for external redistribution"
+    },
+    {
+      "filename": "cvi_batch02_04.png",
+      "git_relative_path": "docs/marketing/competitive_visual_assets/cvi_batch02_04.png",
+      "relative_markdown_path": "competitive_visual_assets/cvi_batch02_04.png",
+      "batch": 2,
+      "image_number": 4,
+      "case_id": "CVI-20261023-002",
+      "description": "US market illustrated movers and losers variant with bull and cityscape",
+      "size_bytes": 598386,
+      "sha256": "f1d03388bb2022ccc59e21b23c2a9879ba7ed2003c032c489bafa5674ed44aa7",
+      "dimensions": [
+        818,
+        737
+      ],
+      "format": "PNG",
+      "provenance": "CEO-supplied screenshot in PAM ChatGPT conversation; original permalink/licensing not independently verified",
+      "use": "private internal design-reference analysis only; not licensed for external redistribution"
+    },
+    {
+      "filename": "cvi_batch02_05.png",
+      "git_relative_path": "docs/marketing/competitive_visual_assets/cvi_batch02_05.png",
+      "relative_markdown_path": "competitive_visual_assets/cvi_batch02_05.png",
+      "batch": 2,
+      "image_number": 5,
+      "case_id": "CVI-20261023-013",
+      "description": "Qlik financial reporting dashboard with pie, time series and transaction table",
+      "size_bytes": 196352,
+      "sha256": "14171f671d8626d5513ea4b7e74ac97f80c065e149d654e7be8c2cbb8e002afb",
+      "dimensions": [
+        743,
+        353
+      ],
+      "format": "PNG",
+      "provenance": "CEO-supplied screenshot in PAM ChatGPT conversation; original permalink/licensing not independently verified",
+      "use": "private internal design-reference analysis only; not licensed for external redistribution"
+    },
+    {
+      "filename": "cvi_batch02_06.png",
+      "git_relative_path": "docs/marketing/competitive_visual_assets/cvi_batch02_06.png",
+      "relative_markdown_path": "competitive_visual_assets/cvi_batch02_06.png",
+      "batch": 2,
+      "image_number": 6,
+      "case_id": "CVI-20261023-015",
+      "description": "Budget versus actual two-column income and expenses financial dashboard",
+      "size_bytes": 177357,
+      "sha256": "f0522f528fec4227475577fb427a3cea7da22cf27c19c2ab8a8c45592e03e5c2",
+      "dimensions": [
+        645,
+        565
+      ],
+      "format": "PNG",
+      "provenance": "CEO-supplied screenshot in PAM ChatGPT conversation; original permalink/licensing not independently verified",
+      "use": "private internal design-reference analysis only; not licensed for external redistribution"
+    },
+    {
+      "filename": "cvi_batch02_07.png",
+      "git_relative_path": "docs/marketing/competitive_visual_assets/cvi_batch02_07.png",
+      "relative_markdown_path": "competitive_visual_assets/cvi_batch02_07.png",
+      "batch": 2,
+      "image_number": 7,
+      "case_id": "CVI-20261023-013",
+      "description": "Year-to-date receivables and sales dashboard with KPI row and aging breakdown",
+      "size_bytes": 288351,
+      "sha256": "efd4d370ab2f59dea1a1b84a6dd794207add3047b6eda60c4dbda625eb51c3a8",
+      "dimensions": [
+        659,
+        570
+      ],
+      "format": "PNG",
+      "provenance": "CEO-supplied screenshot in PAM ChatGPT conversation; original permalink/licensing not independently verified",
+      "use": "private internal design-reference analysis only; not licensed for external redistribution"
+    },
+    {
+      "filename": "cvi_batch02_08.png",
+      "git_relative_path": "docs/marketing/competitive_visual_assets/cvi_batch02_08.png",
+      "relative_markdown_path": "competitive_visual_assets/cvi_batch02_08.png",
+      "batch": 2,
+      "image_number": 8,
+      "case_id": "CVI-20261023-013",
+      "description": "Executive financial health dashboard with revenue expenses and cash-flow plot",
+      "size_bytes": 238839,
+      "sha256": "7c1950fc9a8c1aacd937fd2e6840700827cc656bb9819387876b19a6a84339dd",
+      "dimensions": [
+        725,
+        401
+      ],
+      "format": "PNG",
+      "provenance": "CEO-supplied screenshot in PAM ChatGPT conversation; original permalink/licensing not independently verified",
+      "use": "private internal design-reference analysis only; not licensed for external redistribution"
+    },
+    {
+      "filename": "cvi_batch02_09.png",
+      "git_relative_path": "docs/marketing/competitive_visual_assets/cvi_batch02_09.png",
+      "relative_markdown_path": "competitive_visual_assets/cvi_batch02_09.png",
+      "batch": 2,
+      "image_number": 9,
+      "case_id": "CVI-20261023-014",
+      "description": "CashWise finance SaaS cash-flow dashboard",
+      "size_bytes": 271043,
+      "sha256": "19f155bf1a9415c83bdf8eb7b877998812aa2a5979a87b237fa41129fb38f0c5",
+      "dimensions": [
+        722,
+        476
+      ],
+      "format": "PNG",
+      "provenance": "CEO-supplied screenshot in PAM ChatGPT conversation; original permalink/licensing not independently verified",
+      "use": "private internal design-reference analysis only; not licensed for external redistribution"
+    },
+    {
+      "filename": "cvi_batch02_10.png",
+      "git_relative_path": "docs/marketing/competitive_visual_assets/cvi_batch02_10.png",
+      "relative_markdown_path": "competitive_visual_assets/cvi_batch02_10.png",
+      "batch": 2,
+      "image_number": 10,
+      "case_id": "CVI-20261023-016",
+      "description": "Conceptual data-to-chart-to-report flow infographic",
+      "size_bytes": 121952,
+      "sha256": "6ce1e685b1b0cd727aafa54d4208e7d1e3578643382183bdfc003d0d83ec0d3f",
+      "dimensions": [
+        743,
+        208
+      ],
+      "format": "PNG",
+      "provenance": "CEO-supplied screenshot in PAM ChatGPT conversation; original permalink/licensing not independently verified",
+      "use": "private internal design-reference analysis only; not licensed for external redistribution"
+    },
+    {
+      "filename": "cvi_batch02_11.png",
+      "git_relative_path": "docs/marketing/competitive_visual_assets/cvi_batch02_11.png",
+      "relative_markdown_path": "competitive_visual_assets/cvi_batch02_11.png",
+      "batch": 2,
+      "image_number": 11,
+      "case_id": "CVI-20261023-016",
+      "description": "Forty chart types catalogue collage",
+      "size_bytes": 374021,
+      "sha256": "7e2903d9306c5dd0e66b3c4a8004b7b211db339de2f31b28f9608ddd8f47aea2",
+      "dimensions": [
+        725,
+        482
+      ],
+      "format": "PNG",
+      "provenance": "CEO-supplied screenshot in PAM ChatGPT conversation; original permalink/licensing not independently verified",
+      "use": "private internal design-reference analysis only; not licensed for external redistribution"
+    },
+    {
+      "filename": "cvi_batch02_12.png",
+      "git_relative_path": "docs/marketing/competitive_visual_assets/cvi_batch02_12.png",
+      "relative_markdown_path": "competitive_visual_assets/cvi_batch02_12.png",
+      "batch": 2,
+      "image_number": 12,
+      "case_id": "CVI-20261023-017",
+      "description": "Light institutional Aurelius Wealth Fund research-report mockup",
+      "size_bytes": 169857,
+      "sha256": "5daec1b0bd5346697492d058904f3ba7962bf3f1f8d7967d44377fe7badd2345",
+      "dimensions": [
+        410,
+        543
+      ],
+      "format": "PNG",
+      "provenance": "CEO-supplied screenshot in PAM ChatGPT conversation; original permalink/licensing not independently verified",
+      "use": "private internal design-reference analysis only; not licensed for external redistribution"
+    },
+    {
+      "filename": "cvi_batch02_13.png",
+      "git_relative_path": "docs/marketing/competitive_visual_assets/cvi_batch02_13.png",
+      "relative_markdown_path": "competitive_visual_assets/cvi_batch02_13.png",
+      "batch": 2,
+      "image_number": 13,
+      "case_id": "CVI-20261023-017",
+      "description": "Dark Aethel Capital Management multi-asset fund dashboard mockup",
+      "size_bytes": 358422,
+      "sha256": "d4a6fe3d0f72c27a726d9753e2667a89b90ab392f5ea2ef07ed6576155949733",
+      "dimensions": [
+        732,
+        456
+      ],
+      "format": "PNG",
+      "provenance": "CEO-supplied screenshot in PAM ChatGPT conversation; original permalink/licensing not independently verified",
+      "use": "private internal design-reference analysis only; not licensed for external redistribution"
+    },
+    {
+      "filename": "cvi_batch02_14.png",
+      "git_relative_path": "docs/marketing/competitive_visual_assets/cvi_batch02_14.png",
+      "relative_markdown_path": "competitive_visual_assets/cvi_batch02_14.png",
+      "batch": 2,
+      "image_number": 14,
+      "case_id": "CVI-20261023-018",
+      "description": "Vogue Labs ecommerce conversion, revenue and channel dashboard",
+      "size_bytes": 353281,
+      "sha256": "7dde7d5ceea13accf464f6ef0e388223fbe28e8421ad2e5c9b01cb3f6fd93e78",
+      "dimensions": [
+        735,
+        453
+      ],
+      "format": "PNG",
+      "provenance": "CEO-supplied screenshot in PAM ChatGPT conversation; original permalink/licensing not independently verified",
+      "use": "private internal design-reference analysis only; not licensed for external redistribution"
+    },
+    {
+      "filename": "cvi_batch03_01.png",
+      "git_relative_path": "docs/marketing/competitive_visual_assets/cvi_batch03_01.png",
+      "relative_markdown_path": "competitive_visual_assets/cvi_batch03_01.png",
+      "batch": 3,
+      "image_number": 1,
+      "case_id": "CVI-20261023-019",
+      "description": "Framed black analytics wall of many colored charts",
+      "size_bytes": 406632,
+      "sha256": "0ca6b954a7382cdfafb2540d85c09f20dd6ee671ef11524a2551cc6becb78b05",
+      "dimensions": [
+        711,
+        451
+      ],
+      "format": "PNG",
+      "provenance": "CEO-supplied screenshot in PAM ChatGPT conversation; original permalink/licensing not independently verified",
+      "use": "private internal design-reference analysis only; not licensed for external redistribution"
+    },
+    {
+      "filename": "cvi_batch03_02.png",
+      "git_relative_path": "docs/marketing/competitive_visual_assets/cvi_batch03_02.png",
+      "relative_markdown_path": "competitive_visual_assets/cvi_batch03_02.png",
+      "batch": 3,
+      "image_number": 2,
+      "case_id": "CVI-20261023-020",
+      "description": "Pale executive dashboard with world map radial charts and rank panels",
+      "size_bytes": 414380,
+      "sha256": "2c1bb22ee6b661eff0aa1db21d10f05ba32e7af47a581b6ed6105330e164a086",
+      "dimensions": [
+        741,
+        419
+      ],
+      "format": "PNG",
+      "provenance": "CEO-supplied screenshot in PAM ChatGPT conversation; original permalink/licensing not independently verified",
+      "use": "private internal design-reference analysis only; not licensed for external redistribution"
+    },
+    {
+      "filename": "cvi_batch03_03.png",
+      "git_relative_path": "docs/marketing/competitive_visual_assets/cvi_batch03_03.png",
+      "relative_markdown_path": "competitive_visual_assets/cvi_batch03_03.png",
+      "batch": 3,
+      "image_number": 3,
+      "case_id": "CVI-20261023-021",
+      "description": "Flat coral teal yellow modular infographic tile system",
+      "size_bytes": 320220,
+      "sha256": "dd8723e518ba6ca27d9f23cd9a3c44616bcc39b6e31e929e07cbea80b491f05e",
+      "dimensions": [
+        603,
+        562
+      ],
+      "format": "PNG",
+      "provenance": "CEO-supplied screenshot in PAM ChatGPT conversation; original permalink/licensing not independently verified",
+      "use": "private internal design-reference analysis only; not licensed for external redistribution"
+    },
+    {
+      "filename": "cvi_batch03_04.png",
+      "git_relative_path": "docs/marketing/competitive_visual_assets/cvi_batch03_04.png",
+      "relative_markdown_path": "competitive_visual_assets/cvi_batch03_04.png",
+      "batch": 3,
+      "image_number": 4,
+      "case_id": "CVI-20261023-022",
+      "description": "Person viewing a large wall of analytics dashboard screens",
+      "size_bytes": 592184,
+      "sha256": "3a13868f0382f09b408684c6907929d07bb6254b6f795ea92bcffc7aef8b3fde",
+      "dimensions": [
+        734,
+        484
+      ],
+      "format": "PNG",
+      "provenance": "CEO-supplied screenshot in PAM ChatGPT conversation; original permalink/licensing not independently verified",
+      "use": "private internal design-reference analysis only; not licensed for external redistribution"
+    },
+    {
+      "filename": "cvi_batch03_05.png",
+      "git_relative_path": "docs/marketing/competitive_visual_assets/cvi_batch03_05.png",
+      "relative_markdown_path": "competitive_visual_assets/cvi_batch03_05.png",
+      "batch": 3,
+      "image_number": 5,
+      "case_id": "CVI-20261023-020",
+      "description": "Night blue multi-chart data visualization dashboard",
+      "size_bytes": 218230,
+      "sha256": "8aaf9f388177ea16174bed8c351b0f1ce9b0153915c9450c33dcd0ec65ee9a7e",
+      "dimensions": [
+        727,
+        384
+      ],
+      "format": "PNG",
+      "provenance": "CEO-supplied screenshot in PAM ChatGPT conversation; original permalink/licensing not independently verified",
+      "use": "private internal design-reference analysis only; not licensed for external redistribution"
+    },
+    {
+      "filename": "cvi_batch03_06.png",
+      "git_relative_path": "docs/marketing/competitive_visual_assets/cvi_batch03_06.png",
+      "relative_markdown_path": "competitive_visual_assets/cvi_batch03_06.png",
+      "batch": 3,
+      "image_number": 6,
+      "case_id": "CVI-20261023-021",
+      "description": "Near-duplicate flat coral teal yellow infographic composition",
+      "size_bytes": 320785,
+      "sha256": "f0e1a5c186a36fe017fcd73f8bf703f61d23cdb618290596d3231a42a895a05b",
+      "dimensions": [
+        615,
+        578
+      ],
+      "format": "PNG",
+      "provenance": "CEO-supplied screenshot in PAM ChatGPT conversation; original permalink/licensing not independently verified",
+      "use": "private internal design-reference analysis only; not licensed for external redistribution"
+    },
+    {
+      "filename": "cvi_batch03_07.png",
+      "git_relative_path": "docs/marketing/competitive_visual_assets/cvi_batch03_07.png",
+      "relative_markdown_path": "competitive_visual_assets/cvi_batch03_07.png",
+      "batch": 3,
+      "image_number": 7,
+      "case_id": "CVI-20261023-023",
+      "description": "White orange analytics sheet photo collage",
+      "size_bytes": 617113,
+      "sha256": "86484855f8826e5559168ea1c35a168f62321418139e953b35c3e8a8e7a8efc1",
+      "dimensions": [
+        729,
+        508
+      ],
+      "format": "PNG",
+      "provenance": "CEO-supplied screenshot in PAM ChatGPT conversation; original permalink/licensing not independently verified",
+      "use": "private internal design-reference analysis only; not licensed for external redistribution"
+    },
+    {
+      "filename": "cvi_batch03_08.png",
+      "git_relative_path": "docs/marketing/competitive_visual_assets/cvi_batch03_08.png",
+      "relative_markdown_path": "competitive_visual_assets/cvi_batch03_08.png",
+      "batch": 3,
+      "image_number": 8,
+      "case_id": "CVI-20261023-022",
+      "description": "Person at laptop with holographic finance dashboard overlay",
+      "size_bytes": 414484,
+      "sha256": "e34a426be9230684d473c90a78f3361d80c840b5095052ab172c8813d93835fb",
+      "dimensions": [
+        725,
+        453
+      ],
+      "format": "PNG",
+      "provenance": "CEO-supplied screenshot in PAM ChatGPT conversation; original permalink/licensing not independently verified",
+      "use": "private internal design-reference analysis only; not licensed for external redistribution"
+    },
+    {
+      "filename": "cvi_batch03_09.png",
+      "git_relative_path": "docs/marketing/competitive_visual_assets/cvi_batch03_09.png",
+      "relative_markdown_path": "competitive_visual_assets/cvi_batch03_09.png",
+      "batch": 3,
+      "image_number": 9,
+      "case_id": "CVI-20261023-024",
+      "description": "Dark future cash-flow undervaluation widget and portfolio P/E gauge",
+      "size_bytes": 134212,
+      "sha256": "1c91bba668f4956e506da3426defe74cb93d22d86eb8e4a9ecc24f621bf4863e",
+      "dimensions": [
+        712,
+        423
+      ],
+      "format": "PNG",
+      "provenance": "CEO-supplied screenshot in PAM ChatGPT conversation; original permalink/licensing not independently verified",
+      "use": "private internal design-reference analysis only; not licensed for external redistribution"
+    },
+    {
+      "filename": "cvi_batch03_10.png",
+      "git_relative_path": "docs/marketing/competitive_visual_assets/cvi_batch03_10.png",
+      "relative_markdown_path": "competitive_visual_assets/cvi_batch03_10.png",
+      "batch": 3,
+      "image_number": 10,
+      "case_id": "CVI-20261023-025",
+      "description": "White portfolio optimizer Ulcer Index versus withdrawal rate scatter",
+      "size_bytes": 99510,
+      "sha256": "b0cd82ffa31fef7c58a225f2fcea2f87460d8f0c8df63a25f3708874cf23588b",
+      "dimensions": [
+        554,
+        575
+      ],
+      "format": "PNG",
+      "provenance": "CEO-supplied screenshot in PAM ChatGPT conversation; original permalink/licensing not independently verified",
+      "use": "private internal design-reference analysis only; not licensed for external redistribution"
+    },
+    {
+      "filename": "cvi_batch03_11.png",
+      "git_relative_path": "docs/marketing/competitive_visual_assets/cvi_batch03_11.png",
+      "relative_markdown_path": "competitive_visual_assets/cvi_batch03_11.png",
+      "batch": 3,
+      "image_number": 11,
+      "case_id": "CVI-20261023-026",
+      "description": "StockCharts multiseries performance comparison",
+      "size_bytes": 307034,
+      "sha256": "3a5ce3c9d32be973cc4ff50f5bea17fa9d282d79dddf3e7e29de05a08f5a2c07",
+      "dimensions": [
+        740,
+        456
+      ],
+      "format": "PNG",
+      "provenance": "CEO-supplied screenshot in PAM ChatGPT conversation; original permalink/licensing not independently verified",
+      "use": "private internal design-reference analysis only; not licensed for external redistribution"
+    },
+    {
+      "filename": "cvi_batch03_12.png",
+      "git_relative_path": "docs/marketing/competitive_visual_assets/cvi_batch03_12.png",
+      "relative_markdown_path": "competitive_visual_assets/cvi_batch03_12.png",
+      "batch": 3,
+      "image_number": 12,
+      "case_id": "CVI-20261023-027",
+      "description": "Portfolio weightings bar chart with growth-versus-yield bubble scatter",
+      "size_bytes": 170083,
+      "sha256": "4536e3e1748695e7377e886fbe46073cd306c7cd8fd016cd265d8756c0562795",
+      "dimensions": [
+        741,
+        383
+      ],
+      "format": "PNG",
+      "provenance": "CEO-supplied screenshot in PAM ChatGPT conversation; original permalink/licensing not independently verified",
+      "use": "private internal design-reference analysis only; not licensed for external redistribution"
+    },
+    {
+      "filename": "cvi_batch03_13.png",
+      "git_relative_path": "docs/marketing/competitive_visual_assets/cvi_batch03_13.png",
+      "relative_markdown_path": "competitive_visual_assets/cvi_batch03_13.png",
+      "batch": 3,
+      "image_number": 13,
+      "case_id": "CVI-20261023-028",
+      "description": "Turquoise yellow black infographic chart catalogue",
+      "size_bytes": 368134,
+      "sha256": "71c6c2ef34aa90c0fa0c2b81ea31f70e840519726b8ad58e144942d6b90bfe20",
+      "dimensions": [
+        571,
+        535
+      ],
+      "format": "PNG",
+      "provenance": "CEO-supplied screenshot in PAM ChatGPT conversation; original permalink/licensing not independently verified",
+      "use": "private internal design-reference analysis only; not licensed for external redistribution"
+    },
+    {
+      "filename": "cvi_batch03_14.png",
+      "git_relative_path": "docs/marketing/competitive_visual_assets/cvi_batch03_14.png",
+      "relative_markdown_path": "competitive_visual_assets/cvi_batch03_14.png",
+      "batch": 3,
+      "image_number": 14,
+      "case_id": "CVI-20261023-029",
+      "description": "Role by month resource utilization percentage heatmap",
+      "size_bytes": 153798,
+      "sha256": "26f26915235cdbb4bde2b0c780b48bccf3457ebcf56026734eef1a55a8ce5c01",
+      "dimensions": [
+        749,
+        387
+      ],
+      "format": "PNG",
+      "provenance": "CEO-supplied screenshot in PAM ChatGPT conversation; original permalink/licensing not independently verified",
+      "use": "private internal design-reference analysis only; not licensed for external redistribution"
+    },
+    {
+      "filename": "cvi_batch03_15.png",
+      "git_relative_path": "docs/marketing/competitive_visual_assets/cvi_batch03_15.png",
+      "relative_markdown_path": "competitive_visual_assets/cvi_batch03_15.png",
+      "batch": 3,
+      "image_number": 15,
+      "case_id": "CVI-20261023-030",
+      "description": "Muted cream financial report and process slide design system",
+      "size_bytes": 286575,
+      "sha256": "8226e255623da73f05ab575cbad8d47a886f7bcbae5b8ec85565151dcb2ccfa6",
+      "dimensions": [
+        682,
+        568
+      ],
+      "format": "PNG",
+      "provenance": "CEO-supplied screenshot in PAM ChatGPT conversation; original permalink/licensing not independently verified",
+      "use": "private internal design-reference analysis only; not licensed for external redistribution"
+    },
+    {
+      "filename": "cvi_batch04_01.png",
+      "git_relative_path": "docs/marketing/competitive_visual_assets/cvi_batch04_01.png",
+      "relative_markdown_path": "competitive_visual_assets/cvi_batch04_01.png",
+      "batch": 4,
+      "image_number": 1,
+      "case_id": "CVI-20261023-031",
+      "description": "TradingView all-stocks screener with metrics and filters",
+      "size_bytes": 168158,
+      "sha256": "6eee3fd3d2a7090546febe3f63dd1b934b7905251d6f1a41466784c916a07dfa",
+      "dimensions": [
+        1908,
+        916
+      ],
+      "format": "PNG",
+      "provenance": "CEO-supplied screenshot in PAM ChatGPT conversation; original permalink/licensing not independently verified",
+      "use": "private internal design-reference analysis only; not licensed for external redistribution"
+    },
+    {
+      "filename": "cvi_batch04_02.png",
+      "git_relative_path": "docs/marketing/competitive_visual_assets/cvi_batch04_02.png",
+      "relative_markdown_path": "competitive_visual_assets/cvi_batch04_02.png",
+      "batch": 4,
+      "image_number": 2,
+      "case_id": "CVI-20261023-032",
+      "description": "TradingView Tesla earnings reported versus estimated EPS and revenue",
+      "size_bytes": 79973,
+      "sha256": "cb3e7868cde573157035ea7c407da40b8ee882747f265f33a9c21e477e4c0118",
+      "dimensions": [
+        1563,
+        874
+      ],
+      "format": "PNG",
+      "provenance": "CEO-supplied screenshot in PAM ChatGPT conversation; original permalink/licensing not independently verified",
+      "use": "private internal design-reference analysis only; not licensed for external redistribution"
+    },
+    {
+      "filename": "cvi_batch04_03.png",
+      "git_relative_path": "docs/marketing/competitive_visual_assets/cvi_batch04_03.png",
+      "relative_markdown_path": "competitive_visual_assets/cvi_batch04_03.png",
+      "batch": 4,
+      "image_number": 3,
+      "case_id": "CVI-20261023-032",
+      "description": "TradingView Tesla fundamentals valuation growth and revenue waterfall",
+      "size_bytes": 162028,
+      "sha256": "737b916911d54488e9120cb74465882cea8b3b09076ae1b9d318cc5a6a26a5e0",
+      "dimensions": [
+        1909,
+        884
+      ],
+      "format": "PNG",
+      "provenance": "CEO-supplied screenshot in PAM ChatGPT conversation; original permalink/licensing not independently verified",
+      "use": "private internal design-reference analysis only; not licensed for external redistribution"
+    },
+    {
+      "filename": "cvi_batch04_04.png",
+      "git_relative_path": "docs/marketing/competitive_visual_assets/cvi_batch04_04.png",
+      "relative_markdown_path": "competitive_visual_assets/cvi_batch04_04.png",
+      "batch": 4,
+      "image_number": 4,
+      "case_id": "CVI-20261023-033",
+      "description": "TradingView Tesla multiyear seasonality percentage lines",
+      "size_bytes": 213264,
+      "sha256": "e57b2fa319b1970573cf4e793a56dcbaa6ecb65f6ed97461950a0e51f533d80a",
+      "dimensions": [
+        1905,
+        873
+      ],
+      "format": "PNG",
+      "provenance": "CEO-supplied screenshot in PAM ChatGPT conversation; original permalink/licensing not independently verified",
+      "use": "private internal design-reference analysis only; not licensed for external redistribution"
+    },
+    {
+      "filename": "cvi_batch04_05.png",
+      "git_relative_path": "docs/marketing/competitive_visual_assets/cvi_batch04_05.png",
+      "relative_markdown_path": "competitive_visual_assets/cvi_batch04_05.png",
+      "batch": 4,
+      "image_number": 5,
+      "case_id": "CVI-20261023-034",
+      "description": "TradingView Tesla analyst forecast fan and rating distribution",
+      "size_bytes": 100881,
+      "sha256": "feedd5a6fe91b111c14bc4bdd35daa6035859330644c05d8586520ff0c48ab8a",
+      "dimensions": [
+        1560,
+        863
+      ],
+      "format": "PNG",
+      "provenance": "CEO-supplied screenshot in PAM ChatGPT conversation; original permalink/licensing not independently verified",
+      "use": "private internal design-reference analysis only; not licensed for external redistribution"
+    },
+    {
+      "filename": "cvi_batch04_06.png",
+      "git_relative_path": "docs/marketing/competitive_visual_assets/cvi_batch04_06.png",
+      "relative_markdown_path": "competitive_visual_assets/cvi_batch04_06.png",
+      "batch": 4,
+      "image_number": 6,
+      "case_id": "CVI-20261023-035",
+      "description": "TradingView Tesla options calls and puts chain table",
+      "size_bytes": 162066,
+      "sha256": "d18af66ddebf31025d74516a3a83e50c82c7a697ce8237bb19da6ddec8a6b4c1",
+      "dimensions": [
+        1544,
+        878
+      ],
+      "format": "PNG",
+      "provenance": "CEO-supplied screenshot in PAM ChatGPT conversation; original permalink/licensing not independently verified",
+      "use": "private internal design-reference analysis only; not licensed for external redistribution"
+    },
+    {
+      "filename": "cvi_batch04_07.png",
+      "git_relative_path": "docs/marketing/competitive_visual_assets/cvi_batch04_07.png",
+      "relative_markdown_path": "competitive_visual_assets/cvi_batch04_07.png",
+      "batch": 4,
+      "image_number": 7,
+      "case_id": "CVI-20261023-036",
+      "description": "Zacks Micron research portal with price consensus EPS surprises and estimates",
+      "size_bytes": 197632,
+      "sha256": "03ab3e568bc1a9a39a25b75ac7c0dda083e3aa8e0542d4d28cfda025c63e6b3f",
+      "dimensions": [
+        1199,
+        914
+      ],
+      "format": "PNG",
+      "provenance": "CEO-supplied screenshot in PAM ChatGPT conversation; original permalink/licensing not independently verified",
+      "use": "private internal design-reference analysis only; not licensed for external redistribution"
+    }
+  ],
+  "total_original_images": 49,
+  "total_original_bytes": 14126487,
+  "source": "Original CEO conversation uploads materialized from the files tool (not reconstructed)",
+  "license_status": "unverified third-party rights; private internal reference only",
+  "no_public_redistribution": true
+}
