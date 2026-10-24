@@ -937,10 +937,190 @@
       "format": "PNG",
       "provenance": "CEO-supplied screenshot in PAM ChatGPT conversation; original permalink/licensing not independently verified",
       "use": "private internal design-reference analysis only; not licensed for external redistribution"
+    },
+    {
+      "filename": "cvi_batch06_01.png",
+      "git_relative_path": "docs/marketing/competitive_visual_assets/cvi_batch06_01.png",
+      "relative_markdown_path": "competitive_visual_assets/cvi_batch06_01.png",
+      "batch": 6,
+      "image_number": 1,
+      "case_id": "CVI-20261023-040",
+      "description": "Blossom market-sector post with defensive-versus-offensive interpretation and horizontal weekly sector ETF return ranking",
+      "size_bytes": 198344,
+      "sha256": "a9532dffe6357e93fafd48c8caff6acfbffa562009df80f8beb9ddcb21904b83",
+      "dimensions": [
+        890,
+        729
+      ],
+      "format": "PNG",
+      "provenance": "CEO-supplied screenshot in PAM Marketing & GTM ChatGPT conversation; original URL/authorship/licensing not independently verified",
+      "use": "private internal comparative visual intelligence only; no external redistribution or source-data authentication"
+    },
+    {
+      "filename": "cvi_batch06_02.png",
+      "git_relative_path": "docs/marketing/competitive_visual_assets/cvi_batch06_02.png",
+      "relative_markdown_path": "competitive_visual_assets/cvi_batch06_02.png",
+      "batch": 6,
+      "image_number": 2,
+      "case_id": "CVI-20261023-041",
+      "description": "Dark Passive Income Tracker screenshot with income headline, portfolio valuation, yield-on-cost and six position contribution rows",
+      "size_bytes": 269496,
+      "sha256": "ac59afbee2a22882631bcbec32aa4818dc76cd1dccd7b6699e8dbe2c0541d2fe",
+      "dimensions": [
+        839,
+        743
+      ],
+      "format": "PNG",
+      "provenance": "CEO-supplied screenshot in PAM Marketing & GTM ChatGPT conversation; original URL/authorship/licensing not independently verified",
+      "use": "private internal comparative visual intelligence only; no external redistribution or source-data authentication"
+    },
+    {
+      "filename": "cvi_batch06_03.png",
+      "git_relative_path": "docs/marketing/competitive_visual_assets/cvi_batch06_03.png",
+      "relative_markdown_path": "competitive_visual_assets/cvi_batch06_03.png",
+      "batch": 6,
+      "image_number": 3,
+      "case_id": "CVI-20261023-042",
+      "description": "NFLX quarterly operating-income bars and operating-margin line in a Blossom post with short earnings commentary",
+      "size_bytes": 197722,
+      "sha256": "c11163a1a6dd1dc1e6d8128aeb4ec58be5e890de9f4419e5f3c0cc8895d64960",
+      "dimensions": [
+        914,
+        737
+      ],
+      "format": "PNG",
+      "provenance": "CEO-supplied screenshot in PAM Marketing & GTM ChatGPT conversation; original URL/authorship/licensing not independently verified",
+      "use": "private internal comparative visual intelligence only; no external redistribution or source-data authentication"
+    },
+    {
+      "filename": "cvi_batch06_04.png",
+      "git_relative_path": "docs/marketing/competitive_visual_assets/cvi_batch06_04.png",
+      "relative_markdown_path": "competitive_visual_assets/cvi_batch06_04.png",
+      "batch": 6,
+      "image_number": 4,
+      "case_id": "CVI-20261023-043",
+      "description": "High-saturation animated/cartoon finance graphic featuring a money bag and bold DIST EPS quarterly beat wording",
+      "size_bytes": 824945,
+      "sha256": "37ac83d4b3215cca8bb4962b843acf25fc7a79fe501edc96c2b0f2c3169d8499",
+      "dimensions": [
+        1223,
+        778
+      ],
+      "format": "PNG",
+      "provenance": "CEO-supplied screenshot in PAM Marketing & GTM ChatGPT conversation; original URL/authorship/licensing not independently verified",
+      "use": "private internal comparative visual intelligence only; no external redistribution or source-data authentication"
+    },
+    {
+      "filename": "cvi_batch06_05.png",
+      "git_relative_path": "docs/marketing/competitive_visual_assets/cvi_batch06_05.png",
+      "relative_markdown_path": "competitive_visual_assets/cvi_batch06_05.png",
+      "batch": 6,
+      "image_number": 5,
+      "case_id": "CVI-20261023-044",
+      "description": "Blossom post on Global X distributions showing two dark paired cumulative series charts and fund ticker holding badges",
+      "size_bytes": 156737,
+      "sha256": "91b484a7ece11f30312b02a33105e09f14d55ad0c76e5379cd468b10842a687e",
+      "dimensions": [
+        936,
+        743
+      ],
+      "format": "PNG",
+      "provenance": "CEO-supplied screenshot in PAM Marketing & GTM ChatGPT conversation; original URL/authorship/licensing not independently verified",
+      "use": "private internal comparative visual intelligence only; no external redistribution or source-data authentication"
+    },
+    {
+      "filename": "cvi_batch06_06.png",
+      "git_relative_path": "docs/marketing/competitive_visual_assets/cvi_batch06_06.png",
+      "relative_markdown_path": "competitive_visual_assets/cvi_batch06_06.png",
+      "batch": 6,
+      "image_number": 6,
+      "case_id": "CVI-20261023-045",
+      "description": "Moody dark oil-pumpjack illustration with a stylized declining market-price line beneath a macro commentary post",
+      "size_bytes": 422624,
+      "sha256": "68ef8f4c41a3ee6882a96e32b870326082f4782e0d56bac894aa62d737d5025a",
+      "dimensions": [
+        1021,
+        777
+      ],
+      "format": "PNG",
+      "provenance": "CEO-supplied screenshot in PAM Marketing & GTM ChatGPT conversation; original URL/authorship/licensing not independently verified",
+      "use": "private internal comparative visual intelligence only; no external redistribution or source-data authentication"
+    },
+    {
+      "filename": "cvi_batch06_07.png",
+      "git_relative_path": "docs/marketing/competitive_visual_assets/cvi_batch06_07.png",
+      "relative_markdown_path": "competitive_visual_assets/cvi_batch06_07.png",
+      "batch": 6,
+      "image_number": 7,
+      "case_id": "CVI-20261023-046",
+      "description": "Weekly Canadian all-equity ETF post showing cumulative multiseries returns, multi-horizon bar comparison and fund metrics table",
+      "size_bytes": 268225,
+      "sha256": "1a2777b36f5936ede78c7dadf5b6fe6ce494a1c087a6ea9831d6f15b3dac0ab6",
+      "dimensions": [
+        1004,
+        731
+      ],
+      "format": "PNG",
+      "provenance": "CEO-supplied screenshot in PAM Marketing & GTM ChatGPT conversation; original URL/authorship/licensing not independently verified",
+      "use": "private internal comparative visual intelligence only; no external redistribution or source-data authentication"
+    },
+    {
+      "filename": "cvi_batch06_08.png",
+      "git_relative_path": "docs/marketing/competitive_visual_assets/cvi_batch06_08.png",
+      "relative_markdown_path": "competitive_visual_assets/cvi_batch06_08.png",
+      "batch": 6,
+      "image_number": 8,
+      "case_id": "CVI-20261023-047",
+      "description": "Navy-and-gold AI capital-spending series announcement comparing Alphabet Microsoft Meta Amazon and SpaceX with narrative modules",
+      "size_bytes": 746915,
+      "sha256": "275e6d01e78c2dd6952ca39eab93ecdafa1501e069ea1b1fcba0a77b5f1aabd4",
+      "dimensions": [
+        808,
+        705
+      ],
+      "format": "PNG",
+      "provenance": "CEO-supplied screenshot in PAM Marketing & GTM ChatGPT conversation; original URL/authorship/licensing not independently verified",
+      "use": "private internal comparative visual intelligence only; no external redistribution or source-data authentication"
+    },
+    {
+      "filename": "cvi_batch06_09.png",
+      "git_relative_path": "docs/marketing/competitive_visual_assets/cvi_batch06_09.png",
+      "relative_markdown_path": "competitive_visual_assets/cvi_batch06_09.png",
+      "batch": 6,
+      "image_number": 9,
+      "case_id": "CVI-20261023-048",
+      "description": "Clean white macro chart comparing Canada and United States ten-year sovereign bond yields in green and black from 2021 to 2026",
+      "size_bytes": 149439,
+      "sha256": "9a9e0672cbedf3fcc8ba2619300a57edc2ffd8c7ae4ca89a91aa6f61c72acf0e",
+      "dimensions": [
+        910,
+        565
+      ],
+      "format": "PNG",
+      "provenance": "CEO-supplied screenshot in PAM Marketing & GTM ChatGPT conversation; original URL/authorship/licensing not independently verified",
+      "use": "private internal comparative visual intelligence only; no external redistribution or source-data authentication"
+    },
+    {
+      "filename": "cvi_batch06_10.png",
+      "git_relative_path": "docs/marketing/competitive_visual_assets/cvi_batch06_10.png",
+      "relative_markdown_path": "competitive_visual_assets/cvi_batch06_10.png",
+      "batch": 6,
+      "image_number": 10,
+      "case_id": "CVI-20261023-049",
+      "description": "Historical S&P 500 worst-day performance bars paired with event dates and one-year three-year five-year ten-year forward return table",
+      "size_bytes": 351095,
+      "sha256": "e3e47dfbbdbffd33b29ebeac54bfe87b0acd9cd01d325b361b313201fc3b28fd",
+      "dimensions": [
+        888,
+        730
+      ],
+      "format": "PNG",
+      "provenance": "CEO-supplied screenshot in PAM Marketing & GTM ChatGPT conversation; original URL/authorship/licensing not independently verified",
+      "use": "private internal comparative visual intelligence only; no external redistribution or source-data authentication"
     }
   ],
-  "total_original_images": 52,
-  "total_original_bytes": 15134687,
+  "total_original_images": 62,
+  "total_original_bytes": 18720229,
   "source": "Original CEO conversation uploads materialized from the files tool (not reconstructed)",
   "license_status": "unverified third-party rights; private internal reference only",
   "no_public_redistribution": true

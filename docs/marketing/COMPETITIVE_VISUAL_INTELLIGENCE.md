@@ -4,7 +4,7 @@
 **Owner / scope:** Marketing & GTM, bounded Blossom `@therealpam` mandate.
 **Purpose:** Understand visible finance/investing content conventions, learn from strong execution, spot overused motifs, and identify ways for PAM to deliver a distinct, more useful and credible reader experience.
 
-**Private archive (CEO-authorized, 2026-10-23):** This library embeds **52 original CEO-supplied screenshots** across **39 analytical cases** in the private directory `docs/marketing/competitive_visual_assets/`. The first 49 files were recovered under PR #227; batch 5 contributes 3 additional original PNGs with manifest checksums, descriptions and embedded Markdown previews. The adjacent `verify_assets.py` checks image byte sizes and SHA-256 hashes after checkout. Private design-reference use only; third-party rights, market figures and performance claims remain unverified.
+**Private archive (CEO-authorized; batch 6 received 2026-10-24):** This library embeds **62 original CEO-supplied screenshots** across **49 analytical cases** in the private directory `docs/marketing/competitive_visual_assets/`. The initial 49 images were recovered under PR #227, batch 5 added 3, and batch 6 adds 10 further original PNGs with manifest checksums, descriptions and visible Markdown previews. The adjacent `verify_assets.py` checks image byte sizes and SHA-256 hashes after checkout. Private design-reference use only; third-party rights, market figures and performance claims remain unverified.
 
 ## Operating principle
 
@@ -949,6 +949,153 @@ Together, these examples distinguish (i) consistent infographic building blocks,
 
 - **Current action:** `NONE — OBSERVE`. This intake does not authorize a PAM template change, product claim, marketing experiment or publication.
 
+
+## CEO screenshot intake — batch 6 (10 original references; 10 cases)
+
+**Received / archived:** 2026-10-24. **Case numbering:** `CVI-20261023-040` through `CVI-20261023-049` preserves the already proposed case IDs from the preceding CEO intake discussion. **Custody:** exact unaltered original PNG uploads in the private repository; each image below is visibly embedded in Markdown **and** linked to the full original file. Authorized agents with repository access can inspect the pixels by opening the PNG or rendered library page. The manifest independently records filename, case, dimensions, byte size and SHA-256.
+
+**Evidence classification:** descriptive design observations only; depicted sector returns, account balances, yields, financial statements, event-study results, earnings surprises, creators' licensing and social engagement are **UNVERIFIED**. No screenshot authorizes publication, copying source designs or implying PAM currently has the pictured functionality.
+
+| Image | Case | Visual family | Original file |
+|---|---|---|---|
+| 01 | CVI-20261023-040 | Sector leadership and risk-regime comparison | [PNG](competitive_visual_assets/cvi_batch06_01.png) |
+| 02 | CVI-20261023-041 | Premium dark-mode passive-income portfolio dashboard | [PNG](competitive_visual_assets/cvi_batch06_02.png) |
+| 03 | CVI-20261023-042 | Netflix quarterly operating income versus margin | [PNG](competitive_visual_assets/cvi_batch06_03.png) |
+| 04 | CVI-20261023-043 | Illustrated earnings beat with oversized headline | [PNG](competitive_visual_assets/cvi_batch06_04.png) |
+| 05 | CVI-20261023-044 | ETF distribution update with paired dark line charts | [PNG](competitive_visual_assets/cvi_batch06_05.png) |
+| 06 | CVI-20261023-045 | Oil-price inflation narrative illustration | [PNG](competitive_visual_assets/cvi_batch06_06.png) |
+| 07 | CVI-20261023-046 | Canadian all-equity ETF comparative scorecard | [PNG](competitive_visual_assets/cvi_batch06_07.png) |
+| 08 | CVI-20261023-047 | Five-company quarterly AI spending editorial scorecard | [PNG](competitive_visual_assets/cvi_batch06_08.png) |
+| 09 | CVI-20261023-048 | Canada versus United States ten-year yield chart | [PNG](competitive_visual_assets/cvi_batch06_09.png) |
+| 10 | CVI-20261023-049 | S&P 500 extreme-down-day forward-return event study | [PNG](competitive_visual_assets/cvi_batch06_10.png) |
+
+### CVI-20261023-040 — Sector leadership and risk-regime comparison
+
+<img src="competitive_visual_assets/cvi_batch06_01.png" width="620" alt="Blossom market-sector post and horizontal blue/red sector ETF return chart headed Defense led the week" />
+
+*[Open the original 890 × 729 PNG](competitive_visual_assets/cvi_batch06_01.png) · Batch 6 screenshot 01 · Private design-reference asset*
+
+- **Observed composition:** A Blossom feed screenshot combines a short risk-off sector commentary with a zero-centered horizontal ranking of weekly sector ETF moves. Positive sectors are blue, negative sectors red; the text highlights staples, utilities, financials and communication services.
+- **Strength / tradeoff (editorial judgment):** A single legible ranked comparison supports the written thesis and enables fast leader/laggard scanning. Blue/red direction cues and concise category names create clear reading order.
+- **Potential PAM application (IDEA, not an approved template):** For M2 or one-off sector research, show comparable sectors and one carefully defined time window; use the ranking to advance a specific leadership/breadth interpretation rather than list returns alone.
+- **Limitations and source status:** All ETF returns, regime classification and week-over-week gaps are unverified screenshot claims. The visible image is cropped at the bottom; the post's complete original source and social performance are unknown.
+- **Classification:** `SECTOR-RANKING / OBSERVE` — no engagement inference or design authorization.
+
+### CVI-20261023-041 — Premium dark-mode passive-income portfolio dashboard
+
+<img src="competitive_visual_assets/cvi_batch06_02.png" width="620" alt="Dark purple Passive Income Tracker dashboard with prominent income totals and six holdings income breakdowns" />
+
+*[Open the original 839 × 743 PNG](competitive_visual_assets/cvi_batch06_02.png) · Batch 6 screenshot 02 · Private design-reference asset*
+
+- **Observed composition:** A purple/black portfolio summary prominently presents monthly and annualized passive income, market value, annual receipts, combined return, and six holding-level progress bars with per-month income and return figures.
+- **Strength / tradeoff (editorial judgment):** Strong hierarchy and grouping: aggregate monthly cash generation dominates, while granular contributors and yield labels remain directly available. Typographic and color hierarchy helps scanning.
+- **Potential PAM application (IDEA, not an approved template):** Use as an information-architecture and interface reference for a future portfolio-income dashboard, not as evidence that PAM already provides these features. Highlight concentration and methodology if adapting.
+- **Limitations and source status:** The figures, unusually large indicated yields and returns are not independently verified and may reflect unusual securities/distributions. It is a third-party portfolio screenshot, not a PAM capability or redistribution asset.
+- **Classification:** `PORTFOLIO-INCOME UI / OBSERVE` — no engagement inference or design authorization.
+
+### CVI-20261023-042 — Netflix quarterly operating income versus margin
+
+<img src="competitive_visual_assets/cvi_batch06_03.png" width="620" alt="White quarterly Netflix financial chart with red operating-income bars and black operating-margin line" />
+
+*[Open the original 914 × 737 PNG](competitive_visual_assets/cvi_batch06_03.png) · Batch 6 screenshot 03 · Private design-reference asset*
+
+- **Observed composition:** A white-background 2021–2026 quarterly chart pairs red operating-income bars against a black operating-margin percentage line on separate vertical scales. Caption copy draws attention to operating-margin expansion.
+- **Strength / tradeoff (editorial judgment):** Pairing absolute earnings with an efficiency ratio makes operating leverage interpretable at a glance; a short caption anchors the analytical question.
+- **Potential PAM application (IDEA, not an approved template):** A company-research image can tell a stronger story using two economically linked measures than by crowding in disconnected KPIs. Clearly label both axes, basis and reporting periods.
+- **Limitations and source status:** The screenshot's quarter labels, operating-income numbers and margins are unverified. Mixed units and dual axes demand explicit validation and care; source logo/branding must not be copied.
+- **Classification:** `EARNINGS-COMBO-CHART / OBSERVE` — no engagement inference or design authorization.
+
+### CVI-20261023-043 — Illustrated earnings beat with oversized headline
+
+<img src="competitive_visual_assets/cvi_batch06_04.png" width="620" alt="Neon cartoon-style overflowing money bag with a central DIST EPS Q3 1.32 beat text overlay" />
+
+*[Open the original 1223 × 778 PNG](competitive_visual_assets/cvi_batch06_04.png) · Batch 6 screenshot 04 · Private design-reference asset*
+
+- **Observed composition:** A prominent neon cyan/green animated illustration of currency and a money bag is covered with a bold rectangular earnings-beat callout. The surrounding feed chrome suggests motion/video content rather than a static analytical data chart.
+- **Strength / tradeoff (editorial judgment):** Large shorthand headline has immediate feed visibility and demonstrates a different, emotion-led attention mechanism.
+- **Potential PAM application (IDEA, not an approved template):** Contrast/reference for selective expressive imagery: an occasional bold hook may help, but PAM should reserve attention for the verified earnings surprise, consensus basis and economic significance.
+- **Limitations and source status:** No earnings source, consensus methodology or performance impact is independently verified. High-saturation retail illustration clashes with PAM's default restrained research-note identity; do not copy graphic elements.
+- **Classification:** `RETAIL-ILLUSTRATION / CAUTION` — no engagement inference or design authorization.
+
+### CVI-20261023-044 — ETF distribution update with paired dark line charts
+
+<img src="competitive_visual_assets/cvi_batch06_05.png" width="620" alt="Blossom Global X ETFs distribution post with two side-by-side dark performance line charts" />
+
+*[Open the original 936 × 743 PNG](competitive_visual_assets/cvi_batch06_05.png) · Batch 6 screenshot 05 · Private design-reference asset*
+
+- **Observed composition:** The post presents a distribution-news hook with a pair of dark charts plotting two contrasting investment paths, alongside context about ETF distributions and fund symbols.
+- **Strength / tradeoff (editorial judgment):** A narrow investor question and two directly comparable plots are more memorable than a long unstructured ticker list. Dark charts can integrate into a finance-themed feed.
+- **Potential PAM application (IDEA, not an approved template):** For distribution stories, make payout basis and reinvestment assumptions explicit and distinguish price, total return, cash yield and income growth. Use paired charts only when their units and baselines align.
+- **Limitations and source status:** The underlying instruments, return calculations, distributions and screenshot commentary are not verified. Small axes/labels are hard to read at feed scale; the right to reproduce chart design or original branding is unknown.
+- **Classification:** `DISTRIBUTION-COMPARISON / OBSERVE` — no engagement inference or design authorization.
+
+### CVI-20261023-045 — Oil-price inflation narrative illustration
+
+<img src="competitive_visual_assets/cvi_batch06_06.png" width="620" alt="Dark oil pumpjack image against reddish cloudy sky with a stylized falling price graph" />
+
+*[Open the original 1021 × 777 PNG](competitive_visual_assets/cvi_batch06_06.png) · Batch 6 screenshot 06 · Private design-reference asset*
+
+- **Observed composition:** A short macro post relates energy, inflation and the Federal Reserve, supported by a cinematic oilfield/pumpjack illustration and a downward market-graph motif rather than sourced plotted price history.
+- **Strength / tradeoff (editorial judgment):** A recognizable commodity symbol makes a broad issue instantly intelligible; not every editorial visual must be a dense numeric chart.
+- **Potential PAM application (IDEA, not an approved template):** Use narrative art sparingly for conceptual macro explainers when a verified numerical chart adds little. Distinguish mood symbolism from actual market evidence.
+- **Limitations and source status:** The illustrated line must not be confused with a genuine historical series. The post's real-time macro claims and observable engagement are not independently authenticated; a dark dramatic effect is not a substitute for analysis.
+- **Classification:** `MACRO-ILLUSTRATION / LIMITED` — no engagement inference or design authorization.
+
+### CVI-20261023-046 — Canadian all-equity ETF comparative scorecard
+
+<img src="competitive_visual_assets/cvi_batch06_07.png" width="620" alt="Blossom Canadian all-equity ETF update with multicolor cumulative returns line chart, horizon bars and compact metrics table" />
+
+*[Open the original 1004 × 731 PNG](competitive_visual_assets/cvi_batch06_07.png) · Batch 6 screenshot 07 · Private design-reference asset*
+
+- **Observed composition:** A weekly ETF-comparison post shows five Canadian all-equity portfolios. Its two-panel embedded graphic combines cumulative-return lines with horizon-by-horizon grouped bars and a small tabular legend.
+- **Strength / tradeoff (editorial judgment):** Multiple views serve a coherent comparison question: relative performance over time and over specific periods. The dense tabular supplement offers precision beyond the chart.
+- **Potential PAM application (IDEA, not an approved template):** Build a comparable ETF scorecard with normalized starting levels, consistent observation dates, clearly defined total/price return and sensible labeling; reserve tabular details for readable companion material.
+- **Limitations and source status:** Displayed returns, dates and comparative rankings are unverified. At mobile width several table/legend labels shrink below useful size; screenshot has no verified historical fund-series provenance.
+- **Classification:** `ETF-PEER-SCORECARD / OBSERVE` — no engagement inference or design authorization.
+
+### CVI-20261023-047 — Five-company quarterly AI spending editorial scorecard
+
+<img src="competitive_visual_assets/cvi_batch06_08.png" width="620" alt="Navy and gold Quarterly AI Spending Scorecard poster with five company columns and bottom panels describing metrics and editorial questions" />
+
+*[Open the original 808 × 705 PNG](competitive_visual_assets/cvi_batch06_08.png) · Batch 6 screenshot 08 · Private design-reference asset*
+
+- **Observed composition:** A highly designed navy/gold announcement uses a large title, five illustrated company columns, a checklist of proposed tracked metrics (CapEx, growth, AI performance, free cash flow and management guidance), plus thematic editorial questions.
+- **Strength / tradeoff (editorial judgment):** Thematic packaging communicates a recurring research agenda and cross-company scope before the first issue; modular columns and lower framework establish expectations.
+- **Potential PAM application (IDEA, not an approved template):** For PAM research series, adapt the thematic scorecard approach to a genuinely comparable accounting/economic question and source cadence. Keep measured data separate from illustrative company positioning.
+- **Limitations and source status:** No actual quarterly company series or accounting harmonization is shown here, and SpaceX is not an SEC-reporting public-company peer to the other four. Third-party logos and photos have separate rights; the busy text is small for mobile.
+- **Classification:** `THEMATIC-RESEARCH-SERIES / OBSERVE` — no engagement inference or design authorization.
+
+### CVI-20261023-048 — Canada versus United States ten-year yield chart
+
+<img src="competitive_visual_assets/cvi_batch06_09.png" width="620" alt="White chart titled What Is Driving Bond Yields comparing green Canada and black US 10-year government bond yield time series" />
+
+*[Open the original 910 × 565 PNG](competitive_visual_assets/cvi_batch06_09.png) · Batch 6 screenshot 09 · Private design-reference asset*
+
+- **Observed composition:** A restrained white panel shows two labeled 10-year government-bond yield lines from 2021 through 2026, final-value labels, a small legend, sources printed near the bottom and ample horizontal scale.
+- **Strength / tradeoff (editorial judgment):** Minimal ornamentation, direct end labels and just two series communicate a relative-yield divergence clearly. White space keeps the macro point easy to read.
+- **Potential PAM application (IDEA, not an approved template):** Use two-source comparative yield charts when the story is a divergence; maintain matching maturity, frequency, as-of dates and source conventions, with short labels and one precise analytic takeaway.
+- **Limitations and source status:** The pictured yield levels, dates and implied causes are unverified screenshot content. Direct data retrieval and national basis/taxonomy checks remain necessary for any actual PAM post.
+- **Classification:** `TWO-SERIES-MACRO-CHART / HIGH-VALUE` — no engagement inference or design authorization.
+
+### CVI-20261023-049 — S&P 500 extreme-down-day forward-return event study
+
+<img src="competitive_visual_assets/cvi_batch06_10.png" width="620" alt="White S&P 500 Performance After Its Worst Days event study with grouped orange/gray/blue bar charts and a historical returns table" />
+
+*[Open the original 888 × 730 PNG](competitive_visual_assets/cvi_batch06_10.png) · Batch 6 screenshot 10 · Private design-reference asset*
+
+- **Observed composition:** The original image pairs a multicolor post-selloff horizon-return bar chart with a date-indexed table of the market's worst one-day declines and subsequent forward returns across several horizons.
+- **Strength / tradeoff (editorial judgment):** A useful event-study template for separating immediate drawdowns from longer horizons; a chart communicates shape while the adjacent table provides inspectable detail.
+- **Potential PAM application (IDEA, not an approved template):** For historical-market context, make event inclusion, survivorship/overlap, return type, horizon start and missing outcomes explicit. A smaller set of carefully sourced cases may beat a dense all-in-one panel at Blossom size.
+- **Limitations and source status:** Displayed data and averages are not independently recalculated. Overlapping event windows and hindsight selection can mislead, and past outcomes do not establish investment advice or predictions.
+- **Classification:** `HISTORICAL-EVENT-STUDY / HIGH-VALUE` — no engagement inference or design authorization.
+
+### Cross-case synthesis — batch 6
+
+These ten images compare five editorial functions: (1) clear relative-performance/rate charts, (2) structured company earnings and historical event studies, (3) peer-fund and multi-issuer comparison boards, (4) portfolio-interface information hierarchy, and (5) attention-first illustration. Their common reusable principles are **a specific investor question, accountable measure definitions, purposeful chart selection and mobile-first labels**. Their differences caution against assuming that decorative density, flashy illustrations, or an impressive dashboard imply either research quality or user engagement.
+
+For PAM Prompt 2, select the topic and evidence first, then selectively consult only relevant cases and produce an original subject-appropriate PAM composition. Keep the approved brand identity, accurate data/geometry, independent exact-post review, and CEO publication approval. Competitor/reference imagery remains private; do not redistribute or imitate distinctive third-party art.
+
+- **Archive action:** `REGISTERED — OBSERVE ONLY`. No PAM production template, product capability, content claim, social post or publishing permission is changed by this intake.
 
 ## How to consume this without restricting creative work
 
