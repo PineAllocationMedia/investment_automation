@@ -1,7 +1,7 @@
 # PAM | Blossom — editorial evidence & experiment log v1.1
 
 **Channel:** Blossom `@therealpam`.
-**Status:** 21 distinct accessible originals recorded through 2026-10-23: latest scan added 2 and refreshed 19 with appended observations. All 21 exposed permalinks inspected; historical completeness remains unproven and some discussion bodies remain PARTIAL. Earlier snapshots preserved. No private analytics or post-attributed follows established.
+**Status:** 22 distinct accessible originals recorded through 2026-10-24: latest scan added 1 and refreshed 21 with 22 appended observations. All 22 exposed permalinks inspected; historical completeness remains unproven and some discussion bodies remain PARTIAL. Earlier snapshots preserved. No private analytics or post-attributed follows established.
 **Instructions:** [Playbook](MACRO_LENS_PLAYBOOK.md) · [Templates](MACRO_LENS_TEMPLATES.md).
 
 This existing register now tracks all verified @therealpam original posts: Macro Lens and ordinary content alike. Do not invent approval history for past ordinary posts. Replies to others are distinct from original publications.
@@ -499,3 +499,66 @@ No reply, like, bookmark, trade or publication performed. Discussion quality is 
 > A Nasdaq selloff is real. Calling it a market-wide verdict without checking under the hood? Less convincing.
 >
 > Sources: Nasdaq, S&P Dow Jones Indices, Reuters and AP (Oct. 22, 2026 U.S. close). Not investment advice.
+
+## Profile scan — 2026-10-24 (authorized signed-in Cloud Browser)
+
+**Coverage:** 22 distinct @therealpam originals discovered / 22 individual permalinks inspected / 1 new original registered / 21 existing records refreshed / 0 discovered post URLs inaccessible. Original Posts tab used; Blooms, trades and replies to others excluded. Signed-in PAM header, Edit profile and authenticated Comment controls confirmed. Dynamic feed initially exposed 13 originals; bottom navigation loaded nine more, then no further posts or pagination control beyond the introduction. **All exposed originals captured; HISTORICAL COMPLETENESS UNPROVEN.** There is no authoritative all-history total. No login wall blocked the completed scan; some comment bodies remain inaccessible despite displayed totals.
+
+**Range/time:** newest permalink UI 2m, oldest 17d; approximately October 7–24, 2026 from rounded ages only. Exact publication timestamps NA. The same oldest post appeared as 17d yesterday; preserve both source labels rather than infer exact time from IDs. Counter observations: 2026-10-24 10:04:27.201–10:04:53.886 EDT, America/Toronto (UTC−04:00), per-row below. Discussion revisits 10:05:05.390–10:06:23.346 EDT.
+
+**Definitions/provenance:** every counter PUBLIC_OBSERVED, including authenticated views. Views = displayed cumulative views, uniqueness unknown; comments = displayed total, counting of replies not independently documented; shares = arrow counter (not proof of completed external shares/reposts); saves = bookmark counter; likes = numeric heart-only count; mixed emoji counts retained as total reactions with heart split NA. Absent numeric reactions remain NA, not zero. Profile visits and attributed follows NA. Account display 9 followers / 4 following; no per-post attribution. No private PLATFORM_VERIFIED analytics, CEO_SUPPLIED measurements or scheduled 24h/72h/7d observations invented.
+
+**History preservation:** all previous captions, theses, templates, editorial rationale and audit/approval evidence remain unchanged. This is a measurement scan, not independent verification of historical financial/source-rights claims. Prior discussion bodies are retained even when not exposed again. No account mutation, publication or background monitoring.
+
+### New original record — existing register continuation
+
+| Issue ID | Class/status | Subject/thesis from published text | Template/internal evidence | Stable permalink |
+|---|---|---|---|---|
+| BL-POST-1792850545800-gNzqcp6X | Macro commentary / PUBLISHED | Cooling composite PMI versus rising selling-price gauge; cost pass-through is a plausible channel, not an inflation forecast; watch realized inflation and orders | Image-bearing observed; exact template/version, pre-publication rationale, evidence register, audit and CEO approval references NA. Caption below preserves available thesis and uncertainty. Publication does not prove approval. | https://www.blossomsocial.com/posts/US-PMI-Eases-Price-Pressure-Rises-Inflation-Concerns__POST-1792850545800-gNzqcp6X_IwHhSPDG2aOMks63 |
+
+### Appended public metric snapshots
+
+| Issue ID | UI age (rounded; exact NA) | Observed at — America/Toronto EDT | Provenance | Views | Likes | Comments | Shares | Saves | Total reactions | Profile visits | Attributed follows |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| BL-POST-1792850545800-gNzqcp6X | 2m | 2026-10-24T10:04:27.201-04:00 | PUBLIC_OBSERVED | 0 | NA | 0 | 0 | 0 | NA | NA | NA |
+| BL-POST-1792773556527-n3zJCc9e | 21h | 2026-10-24T10:04:28.490-04:00 | PUBLIC_OBSERVED | 78 | NA | 0 | 0 | 0 | NA | NA | NA |
+| BL-POST-1792712380652-veFF6JIW | 1d | 2026-10-24T10:04:29.616-04:00 | PUBLIC_OBSERVED | 76 | 2 | 2 | 0 | 0 | 2 | NA | NA |
+| BL-POST-1792632635232-p3wDGaJ3 | 2d | 2026-10-24T10:04:30.677-04:00 | PUBLIC_OBSERVED | 30 | NA | 0 | 0 | 0 | NA | NA | NA |
+| BL-POST-1792618150646-9HYkfaqz | 2d | 2026-10-24T10:04:31.438-04:00 | PUBLIC_OBSERVED | 50 | NA | 0 | 0 | 0 | NA | NA | NA |
+| BL-POST-1792543338595-Ou0WyNVs | 3d | 2026-10-24T10:04:32.370-04:00 | PUBLIC_OBSERVED | 272 | NA | 0 | 1 | 0 | NA | NA | NA |
+| BL-POST-1792445839015-LojFs7Jp | 4d | 2026-10-24T10:04:33.623-04:00 | PUBLIC_OBSERVED | 274 | 4 | 2 | 0 | 0 | 4 | NA | NA |
+| BL-POST-1792413329799-4TDnXVvZ | 5d | 2026-10-24T10:04:34.663-04:00 | PUBLIC_OBSERVED | 58 | NA | 0 | 1 | 0 | NA | NA | NA |
+| BL-POST-1792285181556-dajQRiJ8 | 6d | 2026-10-24T10:04:35.942-04:00 | PUBLIC_OBSERVED | 128 | 1 | 2 | 0 | 0 | 1 | NA | NA |
+| BL-POST-1792243935166-5rY3pW0x | 7d | 2026-10-24T10:04:36.947-04:00 | PUBLIC_OBSERVED | 844 | NA | 0 | 2 | 0 | 6 | NA | NA |
+| BL-POST-1792154075898-WKgQpyWr | 8d | 2026-10-24T10:04:37.939-04:00 | PUBLIC_OBSERVED | 60 | NA | 0 | 0 | 0 | NA | NA | NA |
+| BL-POST-1792015357362-r0k28CcU | 9d | 2026-10-24T10:04:43.139-04:00 | PUBLIC_OBSERVED | 338 | NA | 0 | 0 | 0 | 7 | NA | NA |
+| BL-POST-1791924123452-n0SE9Lsf | 10d | 2026-10-24T10:04:44.534-04:00 | PUBLIC_OBSERVED | 174 | 4 | 1 | 0 | 0 | 4 | NA | NA |
+| BL-POST-1791820180736-IT7xZSEt | 11d | 2026-10-24T10:04:45.635-04:00 | PUBLIC_OBSERVED | 88 | 2 | 0 | 0 | 0 | 2 | NA | NA |
+| BL-POST-1791764804066-6p0ZcQRe | 12d | 2026-10-24T10:04:46.740-04:00 | PUBLIC_OBSERVED | 248 | NA | 0 | 0 | 0 | NA | NA | NA |
+| BL-POST-1791725403770-fzsmjWDJ | 13d | 2026-10-24T10:04:47.851-04:00 | PUBLIC_OBSERVED | 174 | 2 | 0 | 0 | 0 | 2 | NA | NA |
+| BL-POST-1791636358863-EDvN5sp6 | 14d | 2026-10-24T10:04:48.941-04:00 | PUBLIC_OBSERVED | 208 | 2 | 0 | 0 | 0 | 2 | NA | NA |
+| BL-POST-1791589339142-QZtwsSBo | 14d | 2026-10-24T10:04:49.940-04:00 | PUBLIC_OBSERVED | 390 | 3 | 3 | 0 | 0 | 3 | NA | NA |
+| BL-POST-1791501798381-vTsMLRu2 | 15d | 2026-10-24T10:04:50.866-04:00 | PUBLIC_OBSERVED | 124 | NA | 0 | 0 | 0 | 4 | NA | NA |
+| BL-POST-1791495336766-q7dQtifh | 15d | 2026-10-24T10:04:51.931-04:00 | PUBLIC_OBSERVED | 98 | NA | 0 | 0 | 0 | NA | NA | NA |
+| BL-POST-1791416148323-vptp1ie5 | 16d | 2026-10-24T10:04:52.911-04:00 | PUBLIC_OBSERVED | 76 | NA | 0 | 0 | 0 | NA | NA | NA |
+| BL-POST-1791303632255-hNbqeFsO | 17d | 2026-10-24T10:04:53.886-04:00 | PUBLIC_OBSERVED | 12 | NA | 0 | 0 | 0 | NA | NA | NA |
+
+### Meaningful discussion — PUBLIC_OBSERVED
+
+| Post | Observed at — EDT America/Toronto | Visible discussion and limits |
+|---|---|---|
+| BL-POST-1792712380652-veFF6JIW | 2026-10-24T10:05:05.390-04:00 | 2 displayed / 1 rendered: Shael @nickel333, UI 1d, “Rough day for the market today.....”, 1 like. Existing PAM reply captured yesterday not re-exposed; earlier evidence preserved. PARTIAL. |
+| BL-POST-1792445839015-LojFs7Jp | 2026-10-24T10:05:06.816-04:00 | 2 displayed / 1 rendered: Nate @hoodnate, UI 3d, worries about narrow-breadth rallies and asks buying versus waiting; 1 like. Missing body NA. PARTIAL. |
+| BL-POST-1792285181556-dajQRiJ8 | 2026-10-24T10:05:08.282-04:00 | 2 displayed / 1 rendered: solomon @ambessa, UI 5d, argues skills, scale, workforce and supply chains constrain reshoring, citing Tim Cook and TSMC; 1 like. Prior PAM reply remains historical evidence, not re-observed. PARTIAL. Claims not independently verified. |
+| BL-POST-1791924123452-n0SE9Lsf | 2026-10-24T10:05:09.578-04:00 | 1 displayed / 1 rendered: Nate @hoodnate, UI 10d, contrasts mood versus bank figures and asks whether charge-offs continue declining; 0 likes. |
+| BL-POST-1791589339142-QZtwsSBo | 2026-10-24T10:05:10.924-04:00 | 3 displayed / 1 rendered: Phil @diversifiedfill, UI 14d, attributes index strength to AI, questions earnings discipline and notes other stocks below highs; 1 like. Most Recent inspected again at 10:06:23.346 EDT and exposed the same body only. No expansion control exposed. PARTIAL; claims not independently verified. |
+
+### Exact new public caption — BL-POST-1792850545800-gNzqcp6X
+
+> Growth cooled. Price pressure didn't. That's a fun combination if you're trying to keep inflation contained.
+>
+> The October U.S. flash composite PMI eased to 57.6 from 58.4, still firmly in expansion. But the selling-prices gauge climbed to 59.8 from 58.4 — its highest since August 2022.
+>
+> My read: resilient orders can make it easier to pass higher energy and supply-chain costs along. That's a plausible transmission channel, not proof that inflation will accelerate or margins will expand. PMIs aren't CPI prints.
+>
+> The next test is whether those price signals show up in realized inflation while new orders stay strong. The Fed has a growth problem only in the sense that there's still plenty of it.
