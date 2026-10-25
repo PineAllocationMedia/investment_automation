@@ -1,7 +1,7 @@
 # PAM | Blossom — editorial evidence & experiment log v1.1
 
 **Channel:** Blossom `@therealpam`.
-**Status:** 22 distinct accessible originals recorded through 2026-10-24: latest scan added 1 and refreshed 21 with 22 appended observations. All 22 exposed permalinks inspected; historical completeness remains unproven and some discussion bodies remain PARTIAL. Earlier snapshots preserved. No private analytics or post-attributed follows established.
+**Status:** 24 distinct accessible originals recorded through 2026-10-25: latest scan added 2 and refreshed 22 with 24 appended snapshots. All 24 exposed permalinks inspected; historical completeness remains unproven and some discussion bodies remain PARTIAL. Earlier observations preserved. No private analytics or post-attributed follows established.
 **Instructions:** [Playbook](MACRO_LENS_PLAYBOOK.md) · [Templates](MACRO_LENS_TEMPLATES.md).
 
 This existing register now tracks all verified @therealpam original posts: Macro Lens and ordinary content alike. Do not invent approval history for past ordinary posts. Replies to others are distinct from original publications.
@@ -562,3 +562,88 @@ No reply, like, bookmark, trade or publication performed. Discussion quality is 
 > My read: resilient orders can make it easier to pass higher energy and supply-chain costs along. That's a plausible transmission channel, not proof that inflation will accelerate or margins will expand. PMIs aren't CPI prints.
 >
 > The next test is whether those price signals show up in realized inflation while new orders stay strong. The Fed has a growth problem only in the sense that there's still plenty of it.
+
+## Profile scan — 2026-10-25 (authorized signed-in Cloud Browser)
+
+**Coverage:** 24 distinct originals discovered / 24 individually inspected / 2 new records / 22 existing records refreshed with appended snapshots / 0 discovered post URLs inaccessible. Every individual post's @therealpam authorship link verified as /users/PAM__IwHhSPDG2aOMks63. Posts tab only; Blooms, trades and replies on other accounts excluded. Signed-in PAM header and Edit profile confirmed. Initially 13 posts exposed; bottom navigation loaded 11 more. Further bottom navigation exposed no additional originals beyond the introduction and no pagination control. **All exposed originals captured; HISTORICAL COMPLETENESS UNPROVEN.** No authoritative all-history total. No login restriction blocked the completed scan; partial discussion-body visibility remains.
+
+**Range/time:** UI ages 1m–19d, approximately October 6–25, 2026 from rounded labels only. Exact publication dates/times NA; post-ID digits not interpreted as timestamps. Preserve differing earlier UI ages as historical observations. Counters observed 2026-10-25 19:17:55.008–19:18:26.318 EDT, America/Toronto (UTC−04:00), exact per-post timestamps below. Discussion revisits 19:18:36.884–19:18:44.648 EDT.
+
+**Definitions/provenance:** PUBLIC_OBSERVED for every ordinary counter, even while signed in. Views = displayed cumulative views, unique-person meaning unknown. Comments = displayed total; reply semantics unknown. Shares = arrow counter, not proof of completed external sharing. Saves = bookmark counter. Likes = numeric heart-only count; mixed emoji totals are total reactions with individual-heart breakdown NA. Missing numeric reaction count = NA, not zero. Profile visits/attributed follows NA. Account-level 9 followers / 5 following; no causal post attribution. No private analytics or fabricated timed snapshots. No publication, reply, reaction, bookmark, trade, account alteration or background monitoring.
+
+**History reuse:** prior thesis, caption, template, rationale and audit/approval fields preserved. New records contain published thesis/caption; unavailable internal preparation and review history stays NA. This observation scan is not a financial/source-rights audit of participant claims.
+
+### New original records — existing register continuation
+
+| Issue ID | Class/status | Published thesis | Template/internal evidence | Stable permalink |
+|---|---|---|---|---|
+| BL-POST-1792970189363-fIdOdvGU | Company commentary / PUBLISHED | SLB data-center growth is rapid but small relative to company revenue; scaling costs and undisclosed segment margins matter | Image-bearing observed; exact template/version, pre-publication rationale, source register, audit/approval references NA | https://www.blossomsocial.com/posts/SLBs-Data-Center-Growth-76percent-Increase-in-Q3__POST-1792970189363-fIdOdvGU_IwHhSPDG2aOMks63 |
+| BL-POST-1792935816952-RmJBGgJl | Company commentary / PUBLISHED | Meta's legal charge changes headline operating-income interpretation; ex-charge margins and returns on incremental AI capital remain relevant | Image-bearing observed; exact template/version, pre-publication rationale, source register, audit/approval references NA | https://www.blossomsocial.com/posts/Metas-Revenue-Growth-and-Legal-Settlement-Impact__POST-1792935816952-RmJBGgJl_IwHhSPDG2aOMks63 |
+
+### Appended metric snapshots
+
+| Issue ID | UI age (rounded; exact NA) | Observed at — America/Toronto EDT | Provenance | Views | Likes | Comments | Shares | Saves | Total reactions | Profile visits | Attributed follows |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| BL-POST-1792970189363-fIdOdvGU | 1m | 2026-10-25T19:17:55.008-04:00 | PUBLIC_OBSERVED | 0 | NA | 0 | 0 | 0 | NA | NA | NA |
+| BL-POST-1792935816952-RmJBGgJl | 9h | 2026-10-25T19:17:56.038-04:00 | PUBLIC_OBSERVED | 270 | 2 | 4 | 1 | 0 | 2 | NA | NA |
+| BL-POST-1792850545800-gNzqcp6X | 1d | 2026-10-25T19:17:57.037-04:00 | PUBLIC_OBSERVED | 90 | NA | 0 | 0 | 0 | NA | NA | NA |
+| BL-POST-1792773556527-n3zJCc9e | 2d | 2026-10-25T19:17:58.031-04:00 | PUBLIC_OBSERVED | 112 | 1 | 0 | 0 | 0 | 1 | NA | NA |
+| BL-POST-1792712380652-veFF6JIW | 2d | 2026-10-25T19:17:59.107-04:00 | PUBLIC_OBSERVED | 84 | 2 | 2 | 0 | 0 | 2 | NA | NA |
+| BL-POST-1792632635232-p3wDGaJ3 | 3d | 2026-10-25T19:18:00.132-04:00 | PUBLIC_OBSERVED | 32 | NA | 0 | 0 | 0 | NA | NA | NA |
+| BL-POST-1792618150646-9HYkfaqz | 4d | 2026-10-25T19:18:01.886-04:00 | PUBLIC_OBSERVED | 52 | NA | 0 | 0 | 0 | NA | NA | NA |
+| BL-POST-1792543338595-Ou0WyNVs | 4d | 2026-10-25T19:18:02.869-04:00 | PUBLIC_OBSERVED | 272 | NA | 0 | 1 | 0 | NA | NA | NA |
+| BL-POST-1792445839015-LojFs7Jp | 6d | 2026-10-25T19:18:03.992-04:00 | PUBLIC_OBSERVED | 274 | 4 | 2 | 0 | 0 | 4 | NA | NA |
+| BL-POST-1792413329799-4TDnXVvZ | 6d | 2026-10-25T19:18:04.990-04:00 | PUBLIC_OBSERVED | 60 | NA | 0 | 1 | 0 | NA | NA | NA |
+| BL-POST-1792285181556-dajQRiJ8 | 7d | 2026-10-25T19:18:05.903-04:00 | PUBLIC_OBSERVED | 128 | 1 | 2 | 0 | 0 | 1 | NA | NA |
+| BL-POST-1792243935166-5rY3pW0x | 8d | 2026-10-25T19:18:07.170-04:00 | PUBLIC_OBSERVED | 844 | NA | 0 | 2 | 0 | 6 | NA | NA |
+| BL-POST-1792154075898-WKgQpyWr | 9d | 2026-10-25T19:18:14.830-04:00 | PUBLIC_OBSERVED | 60 | NA | 0 | 0 | 0 | NA | NA | NA |
+| BL-POST-1792015357362-r0k28CcU | 11d | 2026-10-25T19:18:15.829-04:00 | PUBLIC_OBSERVED | 340 | NA | 0 | 0 | 0 | 7 | NA | NA |
+| BL-POST-1791924123452-n0SE9Lsf | 12d | 2026-10-25T19:18:16.824-04:00 | PUBLIC_OBSERVED | 174 | 4 | 1 | 0 | 0 | 4 | NA | NA |
+| BL-POST-1791820180736-IT7xZSEt | 13d | 2026-10-25T19:18:17.715-04:00 | PUBLIC_OBSERVED | 88 | 2 | 0 | 0 | 0 | 2 | NA | NA |
+| BL-POST-1791764804066-6p0ZcQRe | 13d | 2026-10-25T19:18:18.793-04:00 | PUBLIC_OBSERVED | 248 | NA | 0 | 0 | 0 | NA | NA | NA |
+| BL-POST-1791725403770-fzsmjWDJ | 14d | 2026-10-25T19:18:19.890-04:00 | PUBLIC_OBSERVED | 174 | 2 | 0 | 0 | 0 | 2 | NA | NA |
+| BL-POST-1791636358863-EDvN5sp6 | 15d | 2026-10-25T19:18:20.863-04:00 | PUBLIC_OBSERVED | 208 | 2 | 0 | 0 | 0 | 2 | NA | NA |
+| BL-POST-1791589339142-QZtwsSBo | 15d | 2026-10-25T19:18:22.095-04:00 | PUBLIC_OBSERVED | 390 | 3 | 3 | 0 | 0 | 3 | NA | NA |
+| BL-POST-1791501798381-vTsMLRu2 | 16d | 2026-10-25T19:18:23.086-04:00 | PUBLIC_OBSERVED | 124 | NA | 0 | 0 | 0 | 4 | NA | NA |
+| BL-POST-1791495336766-q7dQtifh | 17d | 2026-10-25T19:18:24.098-04:00 | PUBLIC_OBSERVED | 98 | NA | 0 | 0 | 0 | NA | NA | NA |
+| BL-POST-1791416148323-vptp1ie5 | 17d | 2026-10-25T19:18:25.225-04:00 | PUBLIC_OBSERVED | 76 | NA | 0 | 0 | 0 | NA | NA | NA |
+| BL-POST-1791303632255-hNbqeFsO | 19d | 2026-10-25T19:18:26.318-04:00 | PUBLIC_OBSERVED | 12 | NA | 0 | 0 | 0 | NA | NA | NA |
+
+### Meaningful discussion — PUBLIC_OBSERVED
+
+| Post | Observed at — EDT America/Toronto | Visible bodies / substance / limits |
+|---|---|---|
+| BL-POST-1792935816952-RmJBGgJl | 2026-10-25T19:18:36.884-04:00 | 4 displayed / 4 rendered, two reader comments and two existing PAM replies; detailed capture below. |
+| BL-POST-1792712380652-veFF6JIW | 2026-10-25T19:18:38.491-04:00 | 2 displayed / 1 rendered: Shael @nickel333 (2d), “Rough day for the market today.....”, 1 like. Prior PAM reply retained historically, not re-exposed. PARTIAL. |
+| BL-POST-1792445839015-LojFs7Jp | 2026-10-25T19:18:39.739-04:00 | 2 displayed / 1 rendered: Nate @hoodnate (5d), concern about narrow breadth, asks buying versus waiting; 1 like. PARTIAL. |
+| BL-POST-1792285181556-dajQRiJ8 | 2026-10-25T19:18:41.745-04:00 | 2 displayed / 1 rendered: solomon @ambessa (7d), reshoring constrained by workforce, scale, skills, supply chains and flexibility, citing Cook/TSMC; 1 like. Prior PAM reply preserved, not re-exposed. PARTIAL. |
+| BL-POST-1791924123452-n0SE9Lsf | 2026-10-25T19:18:43.209-04:00 | 1 displayed / 1 rendered: Nate @hoodnate (12d) contrasts mood and numbers, asks whether charge-offs keep trending down; 0 likes. |
+| BL-POST-1791589339142-QZtwsSBo | 2026-10-25T19:18:44.648-04:00 | 3 displayed / 1 rendered: Phil @diversifiedfill (15d), AI-led index strength versus weaker non-AI stocks, questions earnings discipline; 1 like. PARTIAL. |
+
+Top Comments inspected. Missing bodies not inferred, and earlier captures remain intact. Discussion statements are participants' views, not independently validated facts.
+
+**Meta discussion detail:** Nate @hoodnate (1h, 1 like, existing Liked state) asks whether the spending pays off. Existing PAM reply (1h, 0 likes) distinguishes AI improving ad effectiveness from attractive returns on $135–145B capex; bullish on monetization but uncertain about every incremental infrastructure dollar, watching FCF and margins. Rudolf de Leeuw @rudolfdeleeuw (9h, 1 like, existing Liked state) highlights ~35% versus ~40% margin and argues depreciation will pressure margins through 2027; emphasizes ad pricing/engagement relative to depreciation. Existing PAM reply (1h, 0 likes) says depreciation lags commitments, watches incremental FCF/ROIC alongside ex-charge margin, and notes a strong ad business can still overpay for infrastructure. Both existing replies and Liked states observed only; none created or changed during this scan.
+
+### Exact new public captions
+
+#### BL-POST-1792970189363-fIdOdvGU
+
+> An oilfield-services company quietly grew its data-center business 76%.
+>
+> SLB's Q3 filing shows $230M in Data Center Solutions revenue, up from $131M a year earlier. That's real growth. It's also just 2.4% of SLB's $9.449B quarterly revenue.
+>
+> In other words: a fast-growing AI infrastructure business, not (yet) an AI infrastructure company.
+>
+> The interesting part isn't the 76% headline alone. It's whether SLB can scale modular data-center equipment without giving the gains back through project ramp-up costs. Management says those costs weighed on profitability in the broader All Other group, which includes the business. It does not separately disclose Data Center Solutions margins.
+>
+> I'll be watching that mix of growth, scale and profitability. The denominator matters. A lot.
+
+#### BL-POST-1792935816952-RmJBGgJl
+
+> Meta grew revenue 26%. GAAP operating income fell 37%.
+>
+> Before we declare the AI business model broken, read the rather expensive footnote: Q3 includes a $9.89B legal-settlement charge. Add that back, as Meta illustrates, and operating income would be roughly $22.88B—about 11% above a year earlier.
+>
+> But that doesn't make the margin question disappear. On that charge-exclusion basis, operating margin is still ~35.4%, versus ~40.1% last year.
+>
+> Meta now guides to $135–145B of 2026 capital spending, including finance-lease principal. The ad engine is working. An attractive return on all that incremental capital? Still an open question.
