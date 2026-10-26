@@ -7,6 +7,16 @@
 >
 > Exact remote state must always be verified before implementation.
 
+### Organizational reform sync — 2026-10-26
+
+PRs #232–234 are merged: [completion and provenance](governance/PAM_WORKLOG.md#2026-10-26--organizational-reform-governance-sync-wo-pam-reform-04).
+Financial Systems prioritizes private/family use; Media & Communication retains
+approved Blossom work with CEO publication approval. Shared specialists are
+callable by mandate with PM coordination. New unattended development-orchestration
+implementation is paused; the separate monthly blocker-signal watch is unchanged.
+The earlier technical roadmap/milestones and blocker statuses below are preserved;
+this sync reopens no financial work, changes no V1/V2 authority and authorizes no migration.
+
 ---
 
 ### WSL2 development-infrastructure mock milestone — 2026-10-17
