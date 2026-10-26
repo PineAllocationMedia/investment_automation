@@ -3672,3 +3672,98 @@ acquisition/archive evidence, not cryptographic remote SEC attestation. V1 remai
 frozen operational authority; V2 remains a challenger, with no production deployment,
 model-policy promotion or V2 promotion. **Be aggressive with economic risk, not
 information uncertainty.**
+
+## 2026-10-26 — Protected organizational reform foundation (WO-PAM-REFORM-02)
+
+### Authority and planning basis
+
+The CEO explicitly approved the following six directions on 2026-10-26
+(America/Toronto) and authorized their documentary translation in exactly the
+Constitution, Governance, Strategy and this append-only entry. The supplied
+WO-PAM-REFORM-02 is the approval source. The
+[Phase 1 decision package](docs/operations/PAM_REFORM_PHASE1_DECISION_PACKAGE.md),
+merged through [PR #232](https://github.com/PineAllocationMedia/investment_automation/pull/232),
+is the planning basis, not an independent authority grant. This amendment PR still
+requires separate CEO review and canonical merge approval.
+
+### Six CEO decisions
+
+1. **Two activities:** establish PAM Financial Systems and PAM Media &
+   Communication as organizational activities, not autonomous agents, legal
+   entities or separate repositories. The CEO retains overarching strategy, the
+   PM cross-organizational coordination, and specialists their shared mandates.
+2. **Callable specialists:** retire permanent ACTIVE / ON_CALL / WATCH / DORMANT /
+   ACTIVE BY TASK role activation classes. Roles are available when legitimately
+   invoked within an authorized mandate. Preserve Work Order, blocker and
+   capability statuses and exactly one primary responsible role per significant
+   WO. No self-activation, autonomous coordination, recurring execution or
+   unsupervised Codex task is authorized.
+3. **Coordination and Marketing:** PM coordinates shared priorities, dependencies
+   and meaningful cross-activity conflicts. Reversible ordinary steps already
+   covered by an explicitly approved mandate need no unnecessary repeated PM
+   approval. Marketing & GTM may organize editorial planning, research and draft
+   preparation within the already-approved Blossom mandate, with PM visibility.
+   CEO approval before publication remains mandatory. No autonomous posting,
+   paid campaign, new product launch, new commercial commitment, unauthorized
+   data publication or unapproved spending is granted. Ordinary discretion
+   creates no protected authority.
+4. **Financial priority:** Financial Systems prioritizes personal and family use;
+   financial research intelligence and portfolio intelligence remain its core.
+   Private multiportfolio analysis, independently and consolidated, is a future
+   product/design objective, not an implemented capability. Immediate financial
+   commercialization is deferred, while future commercialization remains an option
+   requiring a separate CEO decision. Media retains its separately authorized
+   Blossom activity and possible future commercial opportunities within existing
+   boundaries. Preserve human final investment decisions and research/advice
+   regulatory separation.
+5. **Convergence planning:** authorize planning toward a potentially unified
+   financial architecture, without merging codebases or changing branch roles,
+   execution authority or V1 behavior. V1 remains frozen operational baseline;
+   V2 remains challenger. An independent technical study and separate CEO
+   authorization are required before migration. Investment philosophy,
+   deterministic validation, historical evidence, source qualification, PIT
+   boundaries, model fingerprints and shadow/promotion gates remain intact.
+   One codebase never implies automatic V2 production authority.
+6. **Unattended-development pause:** pause new implementation toward unattended
+   Codex/development orchestration. Preserve research, experiments, GitHub issues,
+   security findings, blockers and evidence; mock-only tests are not real-worker
+   certification. No infrastructure install, uninstall, disable, restart or
+   operation is authorized. The separately authorized monthly blocker-signal
+   watch remains unchanged. Restart requires a new explicit CEO decision and
+   appropriate safety/cost evidence.
+
+### Supersession, transition and retained history
+
+This entry partially supersedes the
+[2026-09-30 institutional-governance decision](#2026-09-30---governance-reform-institutional-roles-and-shared-operational-memory)
+only where permanent activation classes or repeated PM routing/approval would
+conflict with decisions 1–3. Its protected-document safeguards, roster, one-owner
+rule, model-recommendation requirement and proportionate memory practices remain.
+Earlier commercial-first direction is superseded only as an immediate Financial
+Systems priority; future commercial optionality and source/use safeguards remain.
+
+Decision 6 pauses implementation under prior orchestration priorities, including
+the [2026-10-14 Chromebook scope record](PAM_ROADMAP.md#wo171-and-issue-161-scope-decision-2026-10-14).
+It neither replaces host strategy nor closes issues, clears quarantines, relaxes
+security/cost gates or invalidates historical findings. The
+[2026-10-11 separate monthly watch decision](#2026-10-11--separate-limited-monthly-blocker-signal-watch)
+remains unchanged; signals do not reactivate specialists or reopen blockers.
+The [2026-09-20 final development gates](#2026-09-20---approved-v2-completeness-and-final-development-gates)
+and [2026-10-08 hard data-cost constraint](#2026-10-08--hard-0-external-financial-data-cost-constraint)
+are preserved. Convergence planning does not waive cleanup, validation or shadow
+gates, or automatically reorder the financial roadmap.
+
+Organization-level policy is newly approved; role charters, AGENTS.md, CLAUDE.md,
+operational records and external agent instructions are unchanged in this WO.
+Charter and agent-instruction migration awaits separately authorized
+WO-PAM-REFORM-03 work; operational records require a separately authorized Sync.
+Stale role labels do not govern availability, but existing role-specific authorization
+constraints remain binding. No new discretionary authority beyond an existing
+approved mandate may be exercised until the affected charter and external agent
+instructions are updated. No specialist may use precedence to self-expand powers.
+
+All prior registry bytes are preserved; supersession is recorded here rather than
+rewriting old entries. No financial methodology, scoring, portfolio rule, model
+authority, data admissibility, source licensing policy or hard `$0` external
+financial-data constraint changes. No spending, migration, production, deployment,
+V2 promotion or canonical merge is authorized by this documentary task.

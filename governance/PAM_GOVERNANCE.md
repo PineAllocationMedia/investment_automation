@@ -59,6 +59,12 @@ explicitly authorized that separate action.
 The Program Manager is the primary CEO interface and normally routes work to the
 minimum necessary specialist. The CEO may override routing at any time.
 
+PAM Financial Systems and PAM Media & Communication are organizational activities,
+not autonomous agents, legal entities or separate repositories. The CEO retains
+overarching strategy. Specialists remain shared according to their mandates;
+the PM coordinates shared priorities, dependencies and meaningful cross-activity
+conflicts, with visibility into material commitments and outcomes.
+
 Every Work Order has exactly one primary responsible role:
 
 ```text
@@ -79,10 +85,38 @@ Program Manager
 CEO
 ```
 
-Canonical role states are `ACTIVE`, `ON_CALL`, `WATCH` and `DORMANT`. A charter's
-existence does not imply continuous activity. `ACTIVE BY TASK` means the role is
-active only for an explicitly bounded task. Do not manufacture weekly work merely
-because a role exists.
+Specialists are available when legitimately invoked within an authorized mandate.
+Permanent role activation classes `ACTIVE`, `ON_CALL`, `WATCH`, `DORMANT` and
+`ACTIVE BY TASK` are retired. Availability is not continuous work or permission
+for self-activation, autonomous coordination, recurring execution or unsupervised
+Codex tasks. Do not manufacture work merely because a role exists.
+
+Preserve Work Order and blocker statuses such as `QUEUED`, `BLOCKED`, `COMPLETED`
+and `TRIGGER-BASED`, and capability statuses such as `UNAVAILABLE` or `UNSUPPORTED`.
+Removing a role label does not complete, reopen or authorize a task or capability.
+
+### Bounded ordinary-work discretion
+
+Reversible ordinary steps already covered by an explicitly approved mandate do
+not need unnecessary repeated PM approval. Marketing & GTM may organize editorial
+planning, research and draft preparation within its already-approved Blossom
+mandate, with PM visibility and shared-resource coordination. CEO approval before
+publication remains required. No autonomous posting, paid campaign, new product
+launch, new commercial commitment, unauthorized data publication or unapproved
+spending is permitted. Escalate meaningful cross-activity conflicts through the
+PM; protected and authority-bearing decisions remain CEO-only. Ordinary
+operational discretion is not protected authority or permission to expand scope.
+
+### Transitional charter and instruction consistency
+
+WO-PAM-REFORM-02 establishes organization-level policy only; individual charters,
+AGENTS.md and external agent instructions await separately authorized migration
+under WO-PAM-REFORM-03. Stale permanent activation labels do not control role
+availability, but all existing role-specific authorization constraints and
+prohibitions remain binding. No new discretionary authority beyond an existing
+approved mandate may be exercised until the affected charter and external agent
+instructions are updated. This transition grants no self-amendment or ability to
+resolve an authority ambiguity in favor of broader powers; escalate it instead.
 
 ## 5. AI resource governance
 
@@ -164,5 +198,26 @@ Only a `PROMOTED` opportunity may become a Work Order or roadmap candidate.
 ## 11. Non-autonomy rule
 
 ChatGPT roles and projects do not pretend to wake or coordinate one another
-autonomously. They work only when invoked, routed or otherwise legitimately
-activated. Do not create fictional employee activity, conversations or logs.
+autonomously. They work only when legitimately invoked or routed within an
+authorized mandate. Callable-role availability and ordinary-work discretion do
+not authorize recurring execution or unsupervised Codex tasks. Do not create
+fictional employee activity, conversations or logs. The separate previously
+authorized monthly blocker-signal watch retains only its existing signal scope;
+it does not invoke specialists or reopen blockers automatically.
+
+## 12. Unattended development-orchestration pause
+
+By CEO decision dated 2026-10-26, new implementation work toward unattended
+Codex/development orchestration is paused. Preserve historical research,
+experiments, GitHub issues, security findings, blockers and evidence. Mock-only
+tests remain mock-only, never real-worker certification. The pause does not
+authorize installing, uninstalling, disabling, restarting or operating
+infrastructure, changing billing or spending, or modifying production.
+
+The separate previously authorized monthly blocker-signal monitoring remains
+unchanged. Any restart of unattended development requires a new explicit CEO
+decision and appropriate safety/cost evidence; earlier orchestration objectives,
+queued work or generic automation principles do not override this pause. It is
+neither a host-strategy replacement nor permission to close issues or erase
+historical acceptance limits. Bounded, explicitly authorized attended work remains
+subject to its own mandate and all existing safety and financial gates.

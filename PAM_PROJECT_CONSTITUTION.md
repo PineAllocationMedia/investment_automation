@@ -15,8 +15,16 @@
 **Project:** PAM
 **Repository:** `PineAllocationMedia/investment_automation`
 
-PAM began as a personal investment-allocation automation system and is evolving into
-a broader financial research and portfolio-intelligence platform.
+PAM has two organizational activities:
+
+- **PAM Financial Systems**, prioritizing personal and family financial research
+  and portfolio intelligence;
+- **PAM Media & Communication**, preserving the separately authorized Blossom
+  activity and possible future opportunities within existing approval boundaries.
+
+These are activities, not autonomous agents, legal entities or separate
+repositories. The CEO retains overarching strategy; the Program Manager
+coordinates across activities, with specialists shared according to their mandates.
 
 The long-term ambition is not merely to produce a buy/sell output. PAM should become
 a reliable, explainable and auditable research engine that can ingest financial
@@ -25,9 +33,15 @@ understand and manage a portfolio.
 
 ### Canonical product vision
 
-**PAM = financial research intelligence + portfolio intelligence.**
+**PAM Financial Systems = financial research intelligence + portfolio intelligence.**
 
-The commercial product should primarily help users:
+Personal and family use is the immediate Financial Systems priority. Financial
+commercialization is deferred as an immediate priority and remains an option
+requiring a separate CEO decision. Private multiportfolio analysis, independently
+and on a consolidated basis, is a future product/design objective, not an
+implemented capability or an implementation authorization.
+
+The financial system should primarily help users:
 
 - research companies and securities;
 - understand expected return, quality, durability, confidence and risk;
@@ -42,8 +56,9 @@ The **user keeps the final investment decision**.
 
 PAM should not be designed primarily as a personalized robo-adviser or a system that
 commercially tells each user exactly what to buy or sell. The internal/private model
-may still generate recommendations for the owner, but commercialization should first
-expose the research and portfolio-intelligence layers.
+may still generate recommendations for the owner. Any future commercialization
+should first expose research and portfolio intelligence, preserving the
+research/advice regulatory separation.
 
 A useful product analogy is:
 
@@ -327,6 +342,16 @@ Agents must always verify the current remote state rather than assuming this SHA
 V2 must earn authority through validation and shadow operation. It does not become
 authoritative merely because it is more sophisticated.
 
+### Potential architectural convergence
+
+Planning toward a potentially unified financial architecture is authorized. A
+subsequent independent technical study and separate CEO authorization are required
+before migration. No codebase merge, branch-role change, execution-authority
+change or existing V1 behavior change is authorized here. Preserve investment
+philosophy, deterministic validation, historical evidence, source qualification,
+PIT boundaries, model fingerprints and shadow/promotion gates. One codebase must
+never imply automatic V2 production authority.
+
 ---
 
 ## 8. Current V2 foundation
@@ -469,9 +494,12 @@ and provider cost, not infrastructure, hosting, broker or transaction costs.
 
 ---
 
-## 11. Commercial product direction
+## 11. Financial product direction and future commercialization
 
-The preferred commercialization path is:
+Financial Systems prioritizes personal and family use. These research and
+portfolio-intelligence surfaces remain design inputs for private utility and a
+possible future commercial product, not a current commercial launch plan.
+Financial commercialization requires a separate CEO decision.
 
 ### PAM Research
 
@@ -533,7 +561,7 @@ shorter reading time alone is not a reason to remove analytical information.
 
 ## 12. Potential business forms
 
-PAM may eventually support:
+Subject to separate CEO commercialization decisions, PAM may eventually support:
 
 - B2C subscription SaaS;
 - advanced investor research;
@@ -625,10 +653,24 @@ Protected amendments require explicit CEO approval; the CEO may command an
 amendment at any time.
 
 No role may expand its own authority, amend its own charter or reinterpret a
-protected document as permission to gain new powers. The Program Manager routes
-bounded work to one primary specialist role, with the CEO retaining final
-authority. `governance/PAM_GOVERNANCE.md` is the canonical administrative
-governance model.
+protected document as permission to gain new powers. The Program Manager
+coordinates shared priorities, dependencies and meaningful cross-activity
+conflicts, and routes bounded work to one primary responsible role. Reversible
+ordinary steps already covered by an explicitly approved mandate do not require
+unnecessary repeated PM approval. Ordinary discretion grants no protected
+authority. `governance/PAM_GOVERNANCE.md` is the canonical administrative model.
+
+Specialists are callable when legitimately invoked within an authorized mandate;
+permanent role activation classes no longer govern availability. This authorizes
+no self-activation, autonomous coordination, recurring execution or unsupervised
+Codex task. Task, blocker and capability statuses remain distinct and preserved.
+
+During the WO-PAM-REFORM-03 transition, organization-level policy does not expand
+role-specific powers. Existing charter authorization constraints remain binding;
+no new discretionary authority beyond an existing approved mandate may be used
+until the affected charter and external agent instructions are updated through
+authorized changes. Stale activation labels do not override callable-role policy;
+new policy must not be used to bypass existing prohibitions or CEO gates.
 
 ### Default role separation
 
@@ -708,6 +750,11 @@ Canonical engineering principle:
 > Build the smallest architecture that closes the real risk.
 
 ### Deterministic maintenance and final cleanup
+
+The 2026-10-26 pause on new unattended Codex/development-orchestration
+implementation is defined in `governance/PAM_GOVERNANCE.md` §12. General automation
+principles below do not override that pause or authorize infrastructure operation.
+The separate previously authorized monthly blocker-signal watch remains unchanged.
 
 Any recurring integrity, audit, validation or benchmark task that can be executed
 deterministically should be automated and condition-driven rather than becoming an
@@ -814,16 +861,22 @@ This separation is intended to prevent project memory from becoming another stal
 
 If an AI has only two minutes to understand PAM, it should retain this:
 
-> PAM is evolving from a frozen personal investment-allocation system (V1) into a
-> globally extensible, evidence-qualified research and portfolio-intelligence platform (V2).
-> The commercial vision is research + portfolio intelligence, with the human retaining
-> the final investment decision. V2 prioritizes provenance, PIT integrity, deterministic
+> PAM has two activities: Financial Systems and Media & Communication, coordinated
+> by the Program Manager under CEO strategy with shared specialists. Financial
+> Systems prioritizes personal/family research and portfolio intelligence;
+> multiportfolio analysis is a future objective and financial commercialization is
+> deferred pending a separate CEO decision. The human retains the final investment
+> decision; existing Blossom work retains CEO publication approval. V2 prioritizes
+> provenance, PIT integrity, deterministic
 > contracts, fail-closed evidence qualification and explainable long-term investing.
 > Its investment style is High-CAGR Quality Compounder — Asymmetric, built around
 > Quality, Durability, Expected Return, Confidence and Portfolio Room. V1 remains the
 > operational control while V2 earns authority through shadow validation. Never change
 > model rules because an output looks odd, never fabricate missing evidence, and never
-> confuse technical sophistication with validated investment superiority.
+> confuse technical sophistication with validated investment superiority. Potential
+> code convergence requires an independent study and separate migration approval;
+> it never promotes V2 automatically. New unattended development-orchestration
+> implementation is paused; the separate monthly blocker-signal watch is unchanged.
 
 ---
 
