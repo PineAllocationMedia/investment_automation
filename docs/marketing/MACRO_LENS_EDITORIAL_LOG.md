@@ -130,7 +130,7 @@ Coverage is PARTIAL unless full public original-post history was actually enumer
 
 | Experiment ID | Predetermined hypothesis | Single major variable | Comparator / matching criteria | Primary metric + observation window | Planned sample / constraints | Results / confounders | Status / confidence | CEO-approved change? |
 |---|---|---|---|---|---|---|---|---|
-| EXP-20261026-01 | Explicit closing research question may prompt more useful debate than the identical tripwire written declaratively; untested | Question vs statement in the final sentence only | Three naturally occurring matched pairs of earnings posts; source, depth, format, approximate length and daypart held as comparable as practicable; assignment before publication | Substantive non-PAM reader comments per 100 displayed views near UI 72h (target ±12h), with raw counts, body coverage and any NA disclosed | Aim 3 pairs (6 independently useful posts), no filler or forced posting; each exact publication requires CEO approval | NO RESULTS. Issuer salience, algorithmic distribution, dayparts, comments accessibility and market events are confounders | PROPOSED / untested | NO; CEO decision pending |
+| EXP-20261026-01 | Explicit closing research question may prompt more useful debate than the identical tripwire written declaratively; untested | Question vs statement in the final sentence only | Three naturally occurring matched pairs of earnings posts; source, depth, format, approximate length and daypart held as comparable as practicable; assignment before publication | Substantive non-PAM reader comments per 100 displayed views near UI 72h (target ±12h), with raw counts, body coverage and any NA disclosed | Aim 3 pairs (6 independently useful posts), no filler or forced posting; each exact publication requires CEO approval | NO RESULTS. Issuer salience, algorithmic distribution, dayparts, comments accessibility and market events are confounders | APPROVED DESIGN / not running; no posts assigned | Experiment authorization: CEO in-chat 2026-10-26; playbook change: NOT AUTHORIZED |
 
 Statuses: `PROPOSED`, `APPROVED`, `RUNNING`, `INCONCLUSIVE`, `SUPPORTED_TENTATIVE`, `NOT_SUPPORTED`, `ABANDONED`. **No published experiments are claimed by this initial template.**
 
@@ -140,6 +140,18 @@ Suggested first tests after a clean baseline:
 - **Declarative vs question-based headline**; does qualified discussion improve at comparable reach and post age?
 
 Choose **one** first. Do not lock experiment design to a fixed posting cadence.
+
+### EXP-20261026-01 — CEO experiment authorization (2026-10-26)
+
+**Approval evidence:** CEO replied **“yes I authorize it”** in the current chat directly to the question of authorizing the previously proposed small editorial experiment, after reporting PR #236 merged. This approves the **previously registered one-variable experiment design**, not a broader editorial-policy update. The existing design, intended primary measure, matching criteria, sample cap, no-filler principle and stated confounders remain unchanged.
+
+**Authorized next action:** Marketing & GTM may prospectively identify suitable *naturally useful* earnings stories, document the pre-publication reader-value hypothesis and question-versus-declarative ending assignment, draft the exact content, and request CEO review of each image/caption if and when selected. The test may collect only genuinely observed authorized metrics after individually CEO-approved publications. In the absence of such publications there is no trial or result.
+
+**Publication boundary:** CEO approval of **each exact finished post** remains required. This experiment authorization does not permit autonomous publication, new campaigns or channels, account mutation, paid distribution, unattended monitoring, extra filler posts, or causality claims from a small sample. No blanket factual/rights approval is inferred.
+
+**Separate unapproved proposal:** The proposed *playbook clarification* in the October 26 review is still **CEO DECISION PENDING** and has not been implemented. No template/renderer/playbook/CEO-protected document changed here.
+
+**State:** `APPROVED DESIGN / NOT RUNNING` — no post assigned, no publication under experiment, no 72-hour results, no performance conclusion.
 
 ## E. Approved playbook updates
 
