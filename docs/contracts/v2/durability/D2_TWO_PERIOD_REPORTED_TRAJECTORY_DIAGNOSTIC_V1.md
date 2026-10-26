@@ -140,8 +140,8 @@ no subscription, access charge, paid tier, hardware purchase, hosting or externa
 compute is needed. Runtime remains the repository-pinned 3.12.13, not the latest
 documentation patch. No broader candidate search is warranted for two comparisons
 and one exact rational expression. Main limitations are rational-integer size and
-the existing full-source replay's time/memory demand, linear in source inventory;
-no measured resource ceiling is asserted. Consulted
+the existing full-source replay's time/memory demand; inherited replay complexity
+and resource ceilings were not independently benchmarked here. Consulted
 [execution environments](../../../operations/PAM_EXECUTION_ENVIRONMENTS.md):
 existing CPU/Python only, no GPU/downloads/cache service. Mac tests establish only
 local compatibility; Chromebook/Linux compatibility is plausible but NOT VERIFIED,
@@ -159,6 +159,14 @@ Scope: this contract, one new D2 module and one targeted D2 test module only.
 D1, Contract A, Stage C, V1, configuration, four modes, fingerprints and
 `MODEL_RULES_VERSION` remain unchanged. Required tier: `FULL_PIT`, plus targeted
 and adjacent D1/Contract-A/issuer-Quality regression tests and Git integrity.
+
+Local validation on implementation commit
+`9ce8b40b88462a56654920ee61fb98ccce26a3d7`: pinned Python 3.12.13 / locked
+dependencies MATCH; 32 D1/D2 and 117 adjacent tests PASS; canonical isolated
+detached-worktree preflight PASS (43 quick checks, compilation, 3,604 FULL_PIT
+tests, 64 four-mode equivalence cases, both protected fingerprints and model rules
+unchanged). The subsequent documentation-only resource-cost clarification and
+validation record leave that tested code and test content identical.
 
 Authentic-positive D2 status: **NOT VERIFIED / PENDING**. No original Microsoft
 receipt/source archive was supplied or found among repository files; no replacement
