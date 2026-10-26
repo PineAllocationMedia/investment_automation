@@ -53,10 +53,39 @@ This is historical context, not a permanent expected SHA.
 
 ## 3. Role boundaries
 
-The canonical role charters and administrative authority model are in
-`governance/roles/` and `governance/PAM_GOVERNANCE.md`. Every Work Order has one
-primary responsible role. No role may expand its own authority, amend its own
-charter or merge to a canonical branch.
+The canonical role charters are in `governance/roles/`; follow
+[Governance §4](governance/PAM_GOVERNANCE.md#4-roles-routing-and-ownership) for
+invocation, coordination and transitional authority. PAM Financial Systems and
+PAM Media & Communication share specialist expertise; these are activities, not
+autonomous divisions, new agents, legal entities or separate repositories.
+
+Roles are callable when legitimately invoked within an authorized mandate;
+permanent role activation classes are retired. Availability grants no continuous
+execution, self-activation, automated inter-role communication, autonomous role
+invocation, new spending or autonomous work generation. Preserve Work Order,
+blocker and capability statuses; removing a role label never authorizes a task.
+
+The Program Manager coordinates organizational priorities, dependencies, shared
+resources and meaningful conflicts. Reversible ordinary steps already covered by
+an explicitly approved mandate need no repeated PM approval; keep PM visibility
+for meaningful commitments, dependencies and outcomes. Every Work Order retains
+one primary responsible role. Required validation and meaningful independent
+assurance remain; low-risk documentation does not automatically need exhaustive
+independent audits. Material financial, security, evidence, authority and
+production risks retain mandatory assurance.
+
+No role may expand its own authority or originate amendments to its own charter;
+mechanical implementation of a specifically CEO-directed protected amendment is
+subject to separate CEO review and merge. No protected policy change, material
+financial/model-policy decision, canonical merge, deployment or V2 promotion may
+be performed without explicit CEO authorization. Never fabricate data or
+unsupported financial conclusions. Existing charter limits remain binding.
+
+Repository instruction changes do not update external ChatGPT or independently
+configured Codex instructions. The organization-level foundation remains
+authoritative; conflicting legacy external text cannot expand authority. Until
+the affected external instructions are aligned, Governance's narrow transition
+rule bars new discretion beyond an existing approved mandate.
 
 ### Owner
 
@@ -114,15 +143,30 @@ Unless explicitly superseded by an approved contract:
 - No autonomous promotion of V2.
 - No production deployment as a side effect of development work.
 
+Planning toward potential V1/V2 architectural convergence is authorized; an
+independent technical study and separate CEO authorization are required before
+code migration. Branch roles, V1 behavior, evidence histories, model fingerprints
+and shadow/promotion gates remain unchanged; one codebase never promotes V2.
+
+New unattended Codex/development-orchestration implementation is paused under
+[Governance §12](governance/PAM_GOVERNANCE.md#12-unattended-development-orchestration-pause).
+Preserve experiments, issues, security findings, blockers and mock-only evidence;
+do not install, uninstall, disable, restart or operate infrastructure as a side
+effect. Restart requires a new explicit CEO decision and appropriate safety/cost
+evidence. The separately approved monthly blocker-signal watch remains unchanged;
+its signals do not reopen blockers or invoke specialists. Instruction alignment
+certifies no runtime worker, security boundary or spending control.
+
 ---
 
 ## 5. Product direction
 
-Remember that the target commercial product is:
+PAM Financial Systems prioritizes personal and family use. Its analytical direction
+remains:
 
-> **PAM = financial research intelligence + portfolio intelligence**
+> **financial research intelligence + portfolio intelligence**
 
-The commercial surface should prioritize:
+Research and portfolio workflows should prioritize:
 
 - research;
 - explanation;
@@ -137,7 +181,22 @@ The commercial surface should prioritize:
 
 The user retains the final investment decision.
 
-Do not redesign PAM primarily as a personalized recommendation bot unless the owner explicitly changes this vision.
+Private multiportfolio analysis, independently and consolidated, is a future
+product/design objective, not an implemented capability. Financial
+commercialization is deferred as an immediate priority; it remains an option
+requiring a separate CEO decision. Preserve research/advice regulatory separation;
+do not redesign PAM primarily as a personalized recommendation bot without an
+explicit owner decision.
+
+PAM Media & Communication preserves Marketing & GTM's bounded approved Blossom
+mandate. Editorial planning, research, drafts, revisions and learning retain PM
+visibility and shared-resource coordination; CEO approval before publication and
+Macro Lens sourcing/factual/visual assurance remain mandatory. No autonomous
+posting, new channel commitment, paid campaign, unauthorized affiliate activity,
+new product launch, new commercial commitment, unapproved spending or financial
+data publication authority is granted. Follow
+[Strategy](governance/PAM_STRATEGY.md) and the
+[Marketing charter](governance/roles/MARKETING_GTM.md) for the authoritative scope.
 
 ---
 
