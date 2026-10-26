@@ -1389,7 +1389,12 @@ there is no activated reminder, scheduled checkpoint or guaranteed execution.
   Worklog prefix preserved, contracts/protected policy/code/tests/config/CI unchanged.
   Reuse assessment: `NOT APPLICABLE` — pure documentation. Local `DOCS_ONLY`
   preflight and delivery state are reported in the handoff; no fresh financial
-  validation or successful GitHub CI is claimed. PR publication requires verified
-  automatic CI billing safety. The read-only budget query returned 404, so that
-  safety is not established; no billing setting/protection is changed and no
-  potentially chargeable PR workflow is triggered.
+  validation or successful GitHub CI is claimed. Publication was initially withheld
+  because the read-only budget query returned 404 and automatic CI billing safety
+  was not established. That historical hold was superseded by explicit CEO permission
+  under `WO-GOVERNANCE-SYNC-POST-PR238-D2-PUBLISH`, and
+  [PR #239](https://github.com/PineAllocationMedia/investment_automation/pull/239)
+  was published. GitHub CI remains unavailable/unsuccessful because of the CEO-reported
+  exhausted monthly free-minute quota; no GitHub CI PASS is claimed. No manual CI
+  rerun, paid CI execution, billing/budget change, spending or merge was authorized
+  or performed by that publication.

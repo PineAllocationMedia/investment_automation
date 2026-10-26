@@ -320,7 +320,11 @@
   revisited only if genuinely new qualified executable-quote, settled-funding and,
   where applicable, FX execution-cost evidence appears.
 - **Pending CEO decisions:** review and canonical merge of this post-PR #238
-  Governance Sync after financially safe PR publication is established.
+  Governance Sync, published as
+  [PR #239](https://github.com/PineAllocationMedia/investment_automation/pull/239)
+  after explicit CEO permission superseded the previous publication hold.
+  GitHub CI remains unavailable/unsuccessful because of the CEO-reported exhausted
+  monthly free-minute quota; no GitHub CI PASS is claimed.
   Separately, the next substantive technical scope is `PENDING_CEO_SELECTION_AND_AUTHORIZATION`;
   no new implementation Work Order is selected. Stage-C closure remains CEO-approved.
 

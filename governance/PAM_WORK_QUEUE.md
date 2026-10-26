@@ -478,8 +478,12 @@
   failed before any step, with no runner assigned; no passing rerun is established.
   This is not a demonstrated test failure. Resolution is recommended only, subject
   to financial safeguards; no CI/billing modification or manual rerun is authorized.
-  This sync's PR publication is withheld unless automatic CI zero-additional-spending
-  safety can be established; unavailable billing evidence is not assumed safe.
+  The previous publication hold was superseded by explicit CEO permission under
+  `WO-GOVERNANCE-SYNC-POST-PR238-D2-PUBLISH`; this sync was published as
+  [PR #239](https://github.com/PineAllocationMedia/investment_automation/pull/239).
+  GitHub CI remains unavailable/unsuccessful because of the CEO-reported exhausted
+  monthly free-minute quota; no GitHub CI PASS is claimed. This permission grants
+  no paid CI execution, billing change, spending or merge authority.
 
 ## QUEUED
 
