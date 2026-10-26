@@ -77,6 +77,34 @@
   is complete: historical WO171 remains `BLOCKED / NOT_CERTIFIED`, WO167 `MOCK ONLY`,
   and #154, kernel confinement and non-dangerous resume `NOT PROVEN`. No execution GO.
 
+- Bounded Stage-D D2 reported trajectory: `COMPLETE / CANONICAL` through
+  [PR #238](https://github.com/PineAllocationMedia/investment_automation/pull/238),
+  GitHub-verified merge `d543f6a1470eb1c6dcfe51863f951cffa3473159`, tree
+  `65110502eaf3d2a83de7c51f136ee07189e3d855`; reviewed HEAD
+  `d0f213b5f06a8d3e2723fbf2df073fd88985705b`.
+  - Native Contract A replay supports
+    `TWO_PERIOD_REPORTED_REVENUE_OPERATING_INCOME_TRAJECTORY`: exact reported
+    Revenue / Operating Income directions and rational relative Revenue change.
+    D1 and D2 are distinct complementary canonical diagnostics. Operational compact
+    report integration is absent; the future consumer is an interface contract only.
+  - CEO-supplied Architecture & Audit assessment:
+    `AUTHENTIC_POSITIVE_ACCEPTED — PROPORTIONATE ASSURANCE`. Original Microsoft
+    FY2025/FY2026 source integrity and four observations independently verified;
+    both directions `INCREASED`; exact Revenue change `16705/93908`. Native D2 replay
+    passed according to CEO-provided local output; semantic/evidence identities
+    were operator-reported, not independently regenerated. Codex previously reported
+    `FULL_PIT PASS` (3,604 tests) and targeted/adjacent validation; none is rerun here.
+  - Pre-merge technical verdict remained `BLOCKED` solely by unresolved Actions.
+    Run `40342520935`: `FAILURE`, pre-step, zero steps, no runner assigned; no passing
+    rerun established. CEO merge does not turn that into CI success, `MERGE READY`
+    or demonstrated test failure. See WAITING EXTERNAL / TOOL and the
+    [completion record](PAM_WORKLOG.md#2026-10-26--bounded-d2-canonical-after-pr-238-wo-governance-sync-post-pr238-d2).
+  - `CURRENT_CAPTURE_BOUND_ONLY` and diagnostic-only: no moat, future persistence,
+    sustained growth, aggregate Durability, PIT / `HISTORICAL_AS_OF`, investment
+    admission, allocation, execution, production or V2 promotion. V1 frozen / V2
+    challenger, PR5C multi-filing suspension, B2, source rights and `$0` external
+    financial-data-cost constraint remain unchanged. Stage D remains `INCOMPLETE`.
+
 - Bounded Stage-D D1 native implementation: `COMPLETE / CANONICAL`, separately
   CEO-authorized and merged in [PR #151](https://github.com/PineAllocationMedia/investment_automation/pull/151).
   - Contract A R3 two immediately adjacent annual Revenue / Operating Income
@@ -147,7 +175,7 @@
     `b8800c510220c7c8aba53b0923ffe5db5e16747f`. The
     [official closure decision](../DECISIONS.md#2026-10-12--official-bounded-stage-c-quality-closure)
     preserves the precise bounded completion and individual authority limits.
-    Separately authorized Stage-D preparation and bounded native D1 implementation
+    Separately authorized Stage-D preparation and bounded native D1/D2 implementations
     are subsequently complete as recorded above; Stage D as a whole remains incomplete.
     No new technical implementation chantier or dormant-specialist activation is selected.
   - **Trigger-review ID:** `BLK-STAGE-C-QUALITY-POSITIVE`.
@@ -268,7 +296,8 @@
     At the PR #147 milestone Stage C remained `ACTIVE / INCOMPLETE`, with closure
     review and a separate CEO decision pending. The subsequent final assurance and
     explicit CEO closure approval are recorded above; the subsequently authorized
-    bounded Stage-D D1 milestone is also complete, without further scope authorization.
+    bounded Stage-D D1 and D2 milestones are also complete, without authorizing
+    additional scope.
   - Historical profile-route evidence-feasibility investigations are complete;
     their negative findings are preserved under COMPLETED below. The later verified
     issuer route satisfies supplemented Option A without resolving PR5C multi-filing.
@@ -285,10 +314,9 @@
     in that review record. The subsequent issuer route is independent; legacy
     PR4C3/PR5B/PR5C qualification and eligibility boundaries remain unchanged.
     EPS directional consistency alone does not satisfy Option A's existing established foundation plus associated native `AVAILABLE` diagnostic requirement.
-  - **Current delivery action:** CEO review and canonical merge decision for this
-    post-PR #151 Governance Sync. Bounded native D1 is complete; no new implementation
-    chantier, acquisition, aggregate Quality score or further Stage-D scope is selected
-    or authorized.
+  - **Current delivery action:** bounded native D1 and D2 are canonical. Further
+    Stage-D scope requires separate CEO selection and authorization; no new
+    implementation chantier, acquisition or aggregate Quality score is authorized.
     Suspended technical investigations are not automatically reactivated. Closure
     establishes no universal issuer coverage, ROIC, moat, Durability, Microsoft
     Ordinary Compounder/global investment admission, PIT, Expected Return recalibration,
@@ -435,15 +463,27 @@
   and separately satisfy #154. This is no automatic implementation or activation.
   `DECISIONS.md` remains protected and untouched; a formal append needs separate authorization.
 - Next substantive technical scope — `PENDING_CEO_SELECTION_AND_AUTHORIZATION`.
-  Bounded native Stage-D D1 implementation, synthetic validation and independently
-  verified authentic Microsoft replay are complete through PR #151. Stage D as a
-  whole remains incomplete. No D2, additional Durability diagnostic, issuer acquisition,
-  deployment or other technical chantier is active or queued; no specialist activation
-  or execution follows automatically from the D1 merge or this sync.
+  Bounded native Stage-D D1 and D2 are complete through PR #151 and PR #238;
+  D2's unresolved CI validation evidence remains recorded despite CEO merge.
+  Stage D as a whole is `INCOMPLETE`. Recommend, without activating or queuing:
+  resolve the CI issue subject to financial safeguards, and assess remaining Stage-D
+  evidence/analytical gaps before selecting another implementation. No D3 specification,
+  new implementation, source campaign, model-policy change, Stage-D closure or
+  deployment is authorized. No specialist invocation follows automatically.
 
 ## WAITING EXTERNAL / TOOL
 
-None.
+- PR #238 CI validation evidence remains `UNRESOLVED`:
+  [Baseline V1 CI run 40342520935](https://github.com/PineAllocationMedia/investment_automation/actions/runs/40342520935)
+  failed before any step, with no runner assigned; no passing rerun is established.
+  This is not a demonstrated test failure. Resolution is recommended only, subject
+  to financial safeguards; no CI/billing modification or manual rerun is authorized.
+  The previous publication hold was superseded by explicit CEO permission under
+  `WO-GOVERNANCE-SYNC-POST-PR238-D2-PUBLISH`; this sync was published as
+  [PR #239](https://github.com/PineAllocationMedia/investment_automation/pull/239).
+  GitHub CI remains unavailable/unsuccessful because of the CEO-reported exhausted
+  monthly free-minute quota; no GitHub CI PASS is claimed. This permission grants
+  no paid CI execution, billing change, spending or merge authority.
 
 ## QUEUED
 

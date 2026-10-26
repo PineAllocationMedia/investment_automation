@@ -265,7 +265,7 @@ Existing documents remain:
 
 ---
 
-## 8. Current technical frontier — bounded Stage C closed; native Stage-D D1 complete
+## 8. Current technical frontier — bounded Stage C closed; native Stage-D D1 and D2 complete
 
 ### Real-source chain through PR5C comparable historical EPS presentation ✅
 
@@ -535,6 +535,8 @@ Stage-D scoping / D1 proposed contracts COMPLETE — canonical PR #149
     ↓
 Bounded Stage-D D1 native implementation COMPLETE — canonical PR #151
     ↓
+Bounded Stage-D D2 reported trajectory COMPLETE — canonical PR #238; CI evidence unresolved
+    ↓
 Next technical scope PENDING_CEO_SELECTION_AND_AUTHORIZATION
 ```
 
@@ -549,7 +551,7 @@ canonical analytical surfaces. Stage B — Expected Return is complete within th
 currently approved bounded supported scope. The CEO explicitly authorized transition
 to Stage C — Quality, subsequently closed by explicit CEO approval on 2026-10-12
 within its reviewed bounded scope. Stage-D limited preparation and bounded native
-D1 implementation are complete; additional Stage-D scope awaits separate CEO authorization.
+D1/D2 implementations are complete; additional Stage-D scope awaits separate CEO authorization.
 The first bounded Quality slice, `FIVE_PERIOD_DILUTED_EPS_DIRECTIONAL_CONSISTENCY`, is canonical. The
 paired current-annual basic/diluted EPS-denominator evidence foundation and bounded
 threshold-free `CURRENT_ANNUAL_EPS_DENOMINATOR_DILUTION` diagnostic are also
@@ -601,8 +603,9 @@ October 12 issuer-level supplement remain unchanged, with Microsoft's independen
 `AUTHENTIC_POSITIVE_VERIFIED` result satisfying the gate through PR #145 / #146's
 canonical route and PR #147's canonical governance record. No additional binding
 Stage-C exit requirement remains unmet in the supplied readiness assessment.
-Bounded Stage-D D1 native implementation is complete through PR #151, following
-PR #149 contract preparation. Additional implementation awaits separate CEO authorization.
+Bounded Stage-D D1 and D2 native implementations are complete through PR #151 and
+PR #238, following PR #149 contract preparation. The D2 CI validation-evidence issue
+remains unresolved; additional implementation awaits separate CEO authorization.
 Earlier profile-route feasibility
 and dependency-audit findings remain historical; PR5C and exploratory qualification
 suspensions remain unchanged. No new technical chantier is selected.
@@ -636,7 +639,7 @@ without activating or completing Stage N. The then-selected planning task,
 `PARTIALLY_FEASIBLE` (supplied Architecture & Audit handoff). Its historical
 read-only study granted no implementation, source campaign or substantive reopening
 authority. See `governance/PAM_WORK_QUEUE.md` for its completed record and the
-current post-PR #151 governance-sync delivery and the separate CEO authorization
+current post-PR #238 governance-sync delivery and the separate CEO authorization
 required for any next technical scope.
 
 No additional pre-Stage-B Expected Return architecture interlude is authorized in
@@ -671,11 +674,13 @@ the explicitly supported bounded first CURRENT route; this is not universal or
 global Real Fact Admission completeness. Stage B is complete only within its
 currently approved bounded supported scope. Stage C is closed within its bounded
 approved scope after independent readiness assurance and the explicit October 12
-CEO decision. Next delivery action is CEO review and canonical merge decision for
-this post-PR #151 sync. Bounded Stage-D D1 native implementation, synthetic validation
-and independently verified authentic Microsoft replay are complete through PR #151.
-Stage D as a whole remains incomplete. The next substantive technical scope awaits
-separate CEO selection and authorization. PR5C v1, its unresolved
+CEO decision. Bounded Stage-D D1 and D2 are canonical through PR #151 and PR #238;
+D2 assurance and unresolved CI evidence are recorded in the Stage-D section below.
+Stage D as a whole remains incomplete. Recommend resolution of the CI issue subject
+to financial safeguards and one bounded assessment of remaining evidence/analytical
+gaps before selecting another implementation; neither recommendation is activated.
+The next substantive technical scope requires separate CEO selection and authorization.
+PR5C v1, its unresolved
 multi-filing blocker and existing investigation suspensions remain unchanged.
 No new implementation, acquisition or aggregate Quality authority is granted.
 The unchanged pre-shadow sequence remains in section 9; no wider resequencing is approved.
@@ -1045,6 +1050,7 @@ bounded company-vs-VFV Expected Return comparator complete
 → Stage C — Quality: COMPLETE / CEO_APPROVED (bounded scope), 2026-10-12
 → Stage-D scoping / D1 proposed contracts COMPLETE — canonical PR #149
 → Bounded Stage-D D1 native implementation COMPLETE — canonical PR #151
+→ Bounded Stage-D D2 reported trajectory COMPLETE — canonical PR #238; CI evidence unresolved
 → Next technical scope PENDING_CEO_SELECTION_AND_AUTHORIZATION
 ```
 
@@ -1111,8 +1117,8 @@ These verification findings are attributed, not rerun by this documentation sync
 At the PR #147 milestone, Stage C remained `ACTIVE / INCOMPLETE` pending readiness
 review and a separate CEO decision. That review and explicit closure approval have
 since occurred; Stage C is now `COMPLETE / CEO_APPROVED (bounded scope)`. Bounded
-Stage-D D1 native implementation is now complete through PR #151; further
-implementation awaits separate CEO authorization.
+Stage-D D1 and D2 native implementations are complete through PR #151 and PR #238;
+further implementation awaits separate CEO authorization.
 Wider sequencing and V1 frozen / V2 challenger boundaries remain.
 
 PR #147 canonically recorded the supplemented gate at merge
@@ -1215,7 +1221,10 @@ records this later authority; this sync does not rerun the specialist assessment
   proposed contracts canonical through PR #149;
 - completed: separately CEO-authorized bounded D1 native implementation through
   PR #151, synthetic adversarial validation and independently verified authentic
-  Microsoft replay; no new implementation/acquisition queued;
+  Microsoft replay;
+- completed: bounded D2 reported trajectory through PR #238, with CEO-supplied
+  proportionate authentic-positive assurance and unresolved CI validation evidence;
+  no new implementation/acquisition queued;
 - revisit B2 only when genuinely new qualified evidence exists.
 
 Confidence applies to uncertainty inside an available analysis. Capability state
@@ -1238,8 +1247,8 @@ this sync records the explicit approval rather than inferring closure from gate
 satisfaction. Seven original kinds, six original foundations and the additional
 issuer route for an existing kind comprise the completed scope. Individual output
 contracts and authority limits remain unchanged; broader Quality ambitions remain future.
-Bounded Stage-D D1 native implementation is complete through PR #151; additional
-Stage-D technical scope awaits separate CEO selection and authorization.
+Bounded Stage-D D1 and D2 native implementations are complete through PR #151 and
+PR #238; additional Stage-D technical scope awaits separate CEO selection and authorization.
 
 The CEO previously authorized transition from completed bounded Stage B.
 The first bounded slice, `FIVE_PERIOD_DILUTED_EPS_DIRECTIONAL_CONSISTENCY`, is complete and canonical. Its
@@ -1505,7 +1514,10 @@ Avoid creating one opaque magic score.
 
 **Bounded Stage-D D1: `COMPLETE / CANONICAL` through
 [PR #151](https://github.com/PineAllocationMedia/investment_automation/pull/151).**
-Stage D as a whole remains incomplete; no additional technical scope is selected or authorized.
+
+**Bounded Stage-D D2: `COMPLETE / CANONICAL` through
+[PR #238](https://github.com/PineAllocationMedia/investment_automation/pull/238).**
+Stage D as a whole remains `INCOMPLETE`; no additional technical scope is selected or authorized.
 
 After bounded Stage-C closure, the CEO separately authorized architectural scoping
 and D1 preparation. The supplied post-PR #149 record preserves Data & Evidence's
@@ -1541,16 +1553,51 @@ PRIOR ratio `32132/70431`; CURRENT ratio `155237/331839`; exact difference
 These are attributed specialist findings; this Governance Sync performs no new
 source research, acquisition, contract review, evidence replay or technical validation.
 
-The comparison is descriptive and `CURRENT_CAPTURE_BOUND_ONLY`; it establishes no
-moat, forward economic persistence or aggregate Durability score and grants no PIT /
+PR #238 subsequently merged the standalone
+[D2 reported-trajectory diagnostic](docs/contracts/v2/durability/D2_TWO_PERIOD_REPORTED_TRAJECTORY_DIAGNOSTIC_V1.md)
+at `d543f6a1470eb1c6dcfe51863f951cffa3473159`, tree
+`65110502eaf3d2a83de7c51f136ee07189e3d855`, reviewed HEAD
+`d0f213b5f06a8d3e2723fbf2df073fd88985705b` (GitHub-verified merge).
+`TWO_PERIOD_REPORTED_REVENUE_OPERATING_INCOME_TRAJECTORY` replays native Contract A,
+preserving exact reported Revenue / Operating Income directions and rational
+relative Revenue change. D1 describes the operating-margin relationship; D2
+describes the underlying reported amount directions. Both are canonical and
+complementary. D2 is not wired into the operational compact report; its future
+bounded Durability context consumer remains a documented interface contract only.
+
+**CEO-supplied independent assurance:** Architecture & Audit's final assessment is
+`AUTHENTIC_POSITIVE_ACCEPTED — PROPORTIONATE ASSURANCE`. Original Microsoft
+FY2025/FY2026 source integrity and the four financial observations were independently
+verified; Revenue and Operating Income directions are both `INCREASED`, exact
+relative Revenue change `16705/93908`. Native D2 replay passed locally according to
+CEO-provided execution output. D2 semantic/evidence identities were operator-reported
+and were not independently regenerated. Codex previously reported local
+`FULL_PIT PASS` (3,604 tests), 32 D1/D2 and 117 adjacent tests. This sync does not rerun these
+financial tests, verify the private archive or regenerate analytical identities.
+
+**Unresolved CI evidence despite CEO merge:** Architecture & Audit's pre-merge
+technical verdict was `BLOCKED` solely because GitHub Actions remained unresolved.
+[Baseline V1 CI run 40342520935](https://github.com/PineAllocationMedia/investment_automation/actions/runs/40342520935)
+is `FAILURE`, pre-step, zero executed steps and no runner assigned, verified live
+(runner ID 0, empty name). No passing rerun is established. This is an unresolved
+CI validation-evidence issue, not `SUCCESS`, `MERGE READY` or a demonstrated test
+failure. Merge history does not erase that limitation.
+
+Both diagnostics are descriptive and `CURRENT_CAPTURE_BOUND_ONLY`; D2 authority is
+`DURABILITY_D2_TWO_PERIOD_REPORTED_TRAJECTORY_DIAGNOSTIC_ONLY`. Neither establishes
+sustained growth, a moat, forward economic persistence or aggregate Durability score.
+Neither grants PIT /
 `HISTORICAL_AS_OF`, PR5C / Ordinary Compounder admission, Quality recalibration,
 Confidence / Expected Return modification, investment, allocation, execution,
 production, deployment or V2-promotion authority. V1 remains frozen operational
 authority; V2 remains a challenger. PR5C multi-filing suspension, B2 gap,
 source/provenance/licensing safeguards and the `$0` external financial-data-cost
-constraint remain unchanged. The next substantive technical scope awaits separate
-CEO selection and authorization; no D2, other Durability diagnostic, issuer
-acquisition or deployment is automatically activated.
+constraint remain unchanged. Recommend only resolution of the outstanding GitHub
+CI validation issue, subject to financial safeguards, and one bounded assessment
+of remaining Stage-D evidence/analytical gaps before selecting another implementation.
+Neither recommendation is activated or queued. No D3 specification, new implementation,
+source campaign, model-policy change, Stage-D closure or deployment is authorized;
+any next substantive scope requires separate CEO selection and authorization.
 
 Assess whether economic advantages are likely to persist.
 
@@ -1882,8 +1929,8 @@ Stage N is neither activated nor complete. Stage C is
 `COMPLETE / CEO_APPROVED (bounded scope)` following the October 12 explicit CEO
 closure decision and independent readiness assurance; its supplemented authentic-
 positive gate remains satisfied and existing suspensions are preserved.
-Bounded Stage-D D1 native implementation is complete through PR #151; additional
-Stage-D technical scope awaits separate CEO selection and authorization.
+Bounded Stage-D D1 and D2 native implementations are complete through PR #151 and
+PR #238; additional Stage-D technical scope awaits separate CEO selection and authorization.
 
 ### Stage N1 — Validation Firewall
 
@@ -2664,8 +2711,9 @@ six original foundations and the separate native issuer path for an existing kin
 Microsoft's independent result satisfies the October 12 supplemented gate; final
 Architecture & Audit readiness assurance preceded the explicit CEO closure approval.
 Earlier profile-route feasibility/dependency findings and PR5C/exploratory suspensions
-remain unchanged. Bounded Stage-D D1 is complete through PR #151, following PR #149
-preparation. Stage D as a whole remains incomplete; no new implementation or
+remain unchanged. Bounded Stage-D D1 and D2 are complete through PR #151 and PR #238,
+following PR #149 preparation; D2's CI validation evidence remains unresolved.
+Stage D as a whole remains incomplete; no new implementation or
 acquisition is selected, and the next scope requires separate CEO authorization.
 V2 architecture remains incomplete and shadow cannot begin.
 
@@ -2734,3 +2782,9 @@ validation and Architecture & Audit's independent MERGE READY / authentic-positi
 verification. Stage C remains officially closed; Stage D as a whole is incomplete.
 Next technical scope awaits separate CEO selection and authorization. D1 remains
 CURRENT_CAPTURE_BOUND_ONLY, with PR5C/B2 and all downstream authority limits unchanged.*
+
+*Current 2026-10-26 post-PR #238 update: bounded D1 and D2 are COMPLETE / CANONICAL;
+Stage D remains INCOMPLETE. D2's CEO-supplied proportionate authentic-positive
+assurance does not resolve the pre-step GitHub CI failure. The 2026-10-12 update
+above is retained as historical. Recommended CI resolution and gap assessment are
+not activated; no further implementation, source campaign or Stage-D closure is authorized.*
