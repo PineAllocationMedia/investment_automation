@@ -4,15 +4,32 @@
 
 ## Product direction
 
-PAM is evolving from a personal investment-allocation system into:
+PAM is organized around **PAM Financial Systems** and **PAM Media & Communication**.
+These are activities, not autonomous agents, legal entities or separate
+repositories. The CEO retains overarching strategy; the Program Manager
+coordinates across activities and specialists remain shared by mandate.
+
+PAM Financial Systems prioritizes personal and family use, with the core direction:
 
 > **financial research intelligence + portfolio intelligence**
 
-The commercial product should provide durable research and decision
-infrastructure, not merely output “buy stock X.” It should emphasize research,
+The financial system should provide durable research and decision
+infrastructure. It should emphasize research,
 explanation, evidence, monitoring, comparisons, memory and portfolio context. The
 user retains the final investment decision. The owner's private PAM engine may
-remain more personalized or aggressive than the commercial surface.
+remain more personalized or aggressive than a future commercial surface.
+Private multiportfolio analysis, independently and on a consolidated basis, is a
+future product/design objective, not an implemented capability. Financial
+commercialization is deferred as an immediate priority and remains an option
+requiring a separate CEO decision; research/advice regulatory separation remains.
+
+PAM Media & Communication preserves Marketing & GTM's already-approved Blossom
+activity and possible future commercial opportunities within existing approval
+boundaries. Marketing may organize editorial planning, research and drafts within
+that mandate, with PM visibility and shared-resource coordination; CEO approval
+before publication remains mandatory. No autonomous posting, paid campaign, new
+product launch, new commercial commitment, unauthorized data publication or
+unapproved spending is granted.
 
 ## Durable value
 
@@ -40,9 +57,20 @@ hosting, broker or transaction costs.
 
 ## Commercial extraction
 
-Extract the commercial product progressively from validated PAM capabilities
+If separately selected by the CEO, extract a future financial commercial product
+progressively from validated PAM capabilities
 rather than inventing it independently of the real backend. Technical capability
 truth constrains product and marketing claims.
+
+## Financial architecture planning
+
+Planning toward a potentially unified financial architecture is authorized;
+an independent technical study and separate CEO authorization are required before
+migration. No codebase merge, branch-role change, execution-authority change or
+V1 behavior change follows. V1 remains the frozen operational baseline and V2 a
+challenger. Preserve investment philosophy, deterministic validation, historical
+evidence, source qualification, PIT boundaries, model fingerprints and shadow/
+promotion gates. Code unification never grants automatic V2 production authority.
 
 ## Strategic adaptability
 
@@ -62,3 +90,18 @@ and organizational improvements.
 Ideas do not become work automatically. They enter the Opportunity Backlog for
 triage, and only promoted ideas may become Work Order or roadmap candidates. The
 CEO retains final strategic and commercialization authority.
+
+Reversible ordinary steps already covered by an explicitly approved mandate do
+not require repeated PM approval. Shared priorities, dependencies and meaningful
+cross-activity conflicts remain PM coordination responsibilities. Callable roles
+do not self-activate. During charter/instruction migration, the narrow transitional
+rule in [Governance §4](PAM_GOVERNANCE.md#4-roles-routing-and-ownership) preserves
+existing role-specific constraints; ordinary discretion creates no new protected
+authority.
+
+New unattended Codex/development-orchestration implementation is paused under
+[Governance §12](PAM_GOVERNANCE.md#12-unattended-development-orchestration-pause).
+Preserve historical experiments, issues, blockers and evidence; do not operate
+infrastructure as a side effect. The separately authorized monthly blocker-signal
+watch is unchanged. A restart needs a new explicit CEO decision and appropriate
+safety/cost evidence. This pause grants no spending or production exception.
