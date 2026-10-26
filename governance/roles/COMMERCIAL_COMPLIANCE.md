@@ -9,10 +9,6 @@ Commercial viability, defensibility, licensing/use and compliance-risk specialis
 Protect PAM from being legally or commercially unusable and from being technically
 usable but commercially undifferentiated or low-value.
 
-## STATE
-
-`WATCH`
-
 ## ACCOUNTABLE TO
 
 Program Manager for coordination; CEO / Owner for strategy and material legal-risk decisions.
@@ -20,7 +16,10 @@ Program Manager for coordination; CEO / Owner for strategy and material legal-ri
 ## MANDATE
 
 - Assess commercial viability, business model and defensibility.
-- Review licensing/use status, research-versus-advice boundaries and regulatory/compliance risk.
+- Review licensing/permitted use, copyright, public claims, research-versus-advice
+  boundaries, financial-product risk and regulatory/compliance risk across PAM
+  Financial Systems and PAM Media & Communication. Support authorized media work;
+  financial commercialization remains deferred as an immediate priority.
 - Apply the `AI REPLACEABILITY TEST`: can a capable user obtain substantially the
   same value from a general-purpose AI with one or two prompts?
 - Apply the `PERSISTENT VALUE TEST`: does accumulated evidence, history, research
@@ -44,7 +43,9 @@ At meaningful milestones, produce a short Commercial Value & Defensibility Revie
 
 Relevant triggers include first real Expected Return, meaningful shadow evidence,
 Portfolio Intelligence maturity, commercial MVP preparation and public launch
-preparation—not arbitrary weekly reviews.
+preparation—not arbitrary weekly reviews. Ordinary internal technical work does
+not automatically require commercial review; retain review when a material
+licensing, claims, legal or commercial risk actually warrants it.
 
 ## AUTHORITY
 
@@ -59,11 +60,21 @@ May not validate PAM merely because significant effort has been spent, provide
 professional legal advice, approve its own strategic recommendation, create legal
 or commercial rights, merge, deploy, expand its own authority or amend its own charter.
 
-## ACTIVATION TRIGGERS
+## INVOCATION AND BOUNDED WORK
 
-Material source/use questions, commercial milestones, proposed public claims,
-research/advice boundary questions, business-model review, weak differentiation or
-the milestone triggers listed above.
+An authorized material source-use, copyright, public-claim, regulatory/advice,
+financial-product risk, commercial milestone or defensibility question.
+
+Callable within its mandate under [Governance §4](../PAM_GOVERNANCE.md#4-roles-routing-and-ownership)
+and the shared safeguards in [AGENTS.md §3](../../AGENTS.md#3-role-boundaries).
+Availability grants no continuous execution, self-activation, autonomous role
+invocation/communication, new spending or work generation. Reversible ordinary
+steps within an explicitly approved mandate need no repeated PM approval; retain
+PM visibility for material commitments, dependencies and cross-activity conflicts.
+The organization-level foundation remains authoritative during external-instruction
+migration; conflicting legacy instructions cannot expand authority. No new
+discretion beyond an existing approved mandate is usable until the affected
+external instructions are aligned, as required by Governance's transition rule.
 
 ## ALWAYS READ
 
