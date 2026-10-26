@@ -1345,3 +1345,51 @@ there is no activated reminder, scheduled checkpoint or guaranteed execution.
   policy, financial code/tests, CI and infrastructure are unchanged. Validation
   and the delivered branch/commit/PR are reported in the handoff. Reuse assessment:
   NOT APPLICABLE — pure documentation with no component or service adoption.
+
+## 2026-10-26 — Bounded D2 canonical after PR #238 (WO-GOVERNANCE-SYNC-POST-PR238-D2)
+
+- Codex Development verified [PR #238](https://github.com/PineAllocationMedia/investment_automation/pull/238)
+  merged into `PineAllocationMedia/investment_automation`,
+  `model-v2/expected-return-challenger`, at exact start HEAD
+  `d543f6a1470eb1c6dcfe51863f951cffa3473159`, tree
+  `65110502eaf3d2a83de7c51f136ee07189e3d855`; reviewed implementation HEAD
+  `d0f213b5f06a8d3e2723fbf2df073fd88985705b`. Initial worktree/index were clean;
+  unrelated refs/worktrees preserved. Bounded D2 is `COMPLETE / CANONICAL`:
+  `TWO_PERIOD_REPORTED_REVENUE_OPERATING_INCOME_TRAJECTORY`, native Contract A
+  replay, exact reported Revenue / Operating Income directions and rational
+  relative Revenue change. D1 and D2 are distinct complementary diagnostics.
+- CEO-provided Architecture & Audit final assessment:
+  `AUTHENTIC_POSITIVE_ACCEPTED — PROPORTIONATE ASSURANCE`. Original Microsoft
+  FY2025/FY2026 source integrity and four financial observations independently
+  verified; both directions `INCREASED`, exact Revenue change `16705/93908`.
+  Native D2 replay passed locally according to CEO-provided execution output;
+  D2 semantic/evidence identities were operator-reported, not independently
+  regenerated. Codex previously reported `FULL_PIT PASS` (3,604 tests), with
+  32 D1/D2 and 117 adjacent tests. This sync reruns no financial tests/replay,
+  original-source verification or identity generation and publishes no private archive.
+- Architecture & Audit's CEO-supplied pre-merge technical verdict was `BLOCKED`
+  solely by unresolved GitHub Actions. Live evidence confirms
+  [Baseline V1 CI run 40342520935](https://github.com/PineAllocationMedia/investment_automation/actions/runs/40342520935)
+  `FAILURE`, pre-step, zero executed steps, runner ID 0 / empty runner name.
+  No passing rerun is established. Despite subsequent CEO merge, this remains an
+  unresolved CI validation-evidence issue, never `SUCCESS`, `MERGE READY` or a
+  demonstrated test failure.
+- Stage D remains `INCOMPLETE`. D2 is not wired into the operational compact
+  report; its future consumer is an interface contract only. Authority remains
+  `CURRENT_CAPTURE_BOUND_ONLY` and diagnostic-only: no moat, future persistence,
+  sustained growth, aggregate Durability score, PIT / `HISTORICAL_AS_OF`, investment
+  admission, allocation, execution, production or V2 promotion. V1 frozen authority,
+  V2 challenger, PR5C multi-filing suspension, B2 gap, source rights and `$0`
+  external financial-data-cost constraint remain unchanged.
+- Recommend only CI-evidence resolution subject to financial safeguards and one
+  bounded remaining Stage-D evidence/analytical-gap assessment before selecting
+  another implementation. Neither is activated or queued; no D3 specification,
+  implementation, source campaign, model-policy change or Stage-D closure authorized.
+- Exactly four operational Markdown files changed; historical dated records retained,
+  Worklog prefix preserved, contracts/protected policy/code/tests/config/CI unchanged.
+  Reuse assessment: `NOT APPLICABLE` — pure documentation. Local `DOCS_ONLY`
+  preflight and delivery state are reported in the handoff; no fresh financial
+  validation or successful GitHub CI is claimed. PR publication requires verified
+  automatic CI billing safety. The read-only budget query returned 404, so that
+  safety is not established; no billing setting/protection is changed and no
+  potentially chargeable PR workflow is triggered.
