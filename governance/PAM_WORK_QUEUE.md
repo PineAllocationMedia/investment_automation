@@ -1,5 +1,11 @@
 # PAM Work Queue
 
+> **2026-10-26 reform sync:** new unattended development-orchestration
+> implementation remains paused under [Governance §12](PAM_GOVERNANCE.md#12-unattended-development-orchestration-pause).
+> Earlier queue entries confer no restart authority. The separate monthly signal
+> watch and approved Blossom work continue within existing limits. Role activation
+> classes are retired; task, capability and financial-blocker statuses below are unchanged.
+
 ## ACTIVE
 
 - Limited monthly blocker-signal watch (`ENABLED`, CEO-reported external ChatGPT task).
@@ -37,6 +43,11 @@
   - No autonomous posting, personalized investment advice, invented PAM capability or hidden affiliate promotion is authorized.
 
 ## COMPLETED
+
+- Organizational reform WOs 01–03: decision package, protected foundation, then
+  eight charters/AGENTS.md merged through PRs #232–234. See the
+  [verified merges and CEO-reported external-instruction update](PAM_WORKLOG.md#2026-10-26--organizational-reform-governance-sync-wo-pam-reform-04).
+  This completion grants no financial implementation, migration or authority change.
 
 - WO164/WO167 Debian WSL2 mock-only validation, dated `2026-10-17`:
   `MOCK_ACCEPTED / WSL2_MOCK_ACCEPTED` per CEO-provided outputs and independent

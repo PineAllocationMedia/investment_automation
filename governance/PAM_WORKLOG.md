@@ -1313,3 +1313,35 @@ there is no activated reminder, scheduled checkpoint or guaranteed execution.
   Local committed `DOCS_ONLY` preflight, scope, links, historical preservation and
   whitespace results are reported in the delivery handoff; PR delivery stops before
   merge and without polling Actions/reviews/mergeability.
+
+## 2026-10-26 — Organizational reform Governance Sync (WO-PAM-REFORM-04)
+
+- GitHub independently confirms all three merges into `model-v2/expected-return-challenger`:
+  [#232](https://github.com/PineAllocationMedia/investment_automation/pull/232),
+  decision package, `c733f3745a5c59ee7439153f211c1bfabd34b9a3`;
+  [#233](https://github.com/PineAllocationMedia/investment_automation/pull/233),
+  CEO-approved foundation, `5acbd78f7dbaf157265ea4c3f0d5c813529ebce0`;
+  [#234](https://github.com/PineAllocationMedia/investment_automation/pull/234),
+  eight charters and AGENTS.md alignment, `5aa96bc0efaf1c1c3ba738abede43bb5e156098a`.
+  Verified sync base is the latter commit, tree
+  `300b57e0669e817037649473bc0cf3b3fc7d4d56`; initial worktree/index were clean.
+- PAM Financial Systems and PAM Media & Communication share specialists under PM
+  coordination. Permanent specialist activation classes are retired; invocation
+  remains bounded. Private/family financial priority, approved Blossom activity
+  and CEO publication approval are preserved. V1 remains frozen operational
+  baseline; V2 remains challenger. No financial blocker, milestone or technical
+  status is changed or reopened; no convergence implementation is authorized.
+- New unattended development-orchestration implementation remains paused; prior
+  experiments, issues and evidence are retained. The separate monthly
+  blocker-signal monitoring is unchanged. No service or infrastructure was operated.
+- **CEO-reported external settings, not independently verified by repository tools:**
+  PM and six specialist ChatGPT project instructions have been updated:
+  Architecture & Audit, Data & Evidence, Data Analyst, Product & UX,
+  Commercial & Compliance, Marketing & GTM. Separate Codex workspace/global
+  instructions have not been independently inspected; repository AGENTS.md is
+  current through PR #234. This report establishes no broader external alignment,
+  runtime certification or new authority; canonical transition limits still apply.
+- Documentation-only Sync in the four authorized operational records; protected
+  policy, financial code/tests, CI and infrastructure are unchanged. Validation
+  and the delivered branch/commit/PR are reported in the handoff. Reuse assessment:
+  NOT APPLICABLE — pure documentation with no component or service adoption.

@@ -3,6 +3,22 @@
 > Two-to-five-minute operational snapshot. Refresh through Governance Sync after
 > durable state changes.
 
+- **2026-10-26 organizational reform (WO-PAM-REFORM-04):** GitHub confirms merges
+  of [PR #232](https://github.com/PineAllocationMedia/investment_automation/pull/232)
+  (decision package), [PR #233](https://github.com/PineAllocationMedia/investment_automation/pull/233)
+  (CEO-approved foundation) and [PR #234](https://github.com/PineAllocationMedia/investment_automation/pull/234)
+  (eight role charters and AGENTS.md). PAM Financial Systems prioritizes private/
+  family research and portfolio intelligence; PAM Media & Communication retains
+  the approved Blossom mandate and CEO publication approval. Specialists are
+  shared and callable by mandate, with PM coordination; permanent activation
+  classes are retired. V1 remains frozen operational baseline, V2 challenger;
+  convergence planning grants no migration or promotion authority. New unattended
+  development-orchestration implementation is paused; the separate monthly
+  blocker-signal watch is unchanged. Financial blockers, milestones and technical
+  statuses remain unchanged; earlier dated records below retain their scope.
+  External ChatGPT updates are **CEO-reported, not independently verified**; see
+  the [compact completion record](PAM_WORKLOG.md#2026-10-26--organizational-reform-governance-sync-wo-pam-reform-04).
+
 - **2026-10-17 WSL2 mock-only acceptance (CEO-supplied):** Architecture & Audit
   reportedly reviewed the native evidence archive and returned
   `MOCK_ACCEPTED / WSL2_MOCK_ACCEPTED` for the covered WO164/WO167 scenarios:
@@ -274,18 +290,12 @@
   Separately, the next substantive technical scope is `PENDING_CEO_SELECTION_AND_AUTHORIZATION`;
   no new implementation Work Order is selected. Stage-C closure remains CEO-approved.
 
-## Active role states
+## Role invocation
 
-| Role | State |
-| --- | --- |
-| Program Manager / Chief of Staff + Strategy & Innovation | `ACTIVE` |
-| Architecture & Audit | `ACTIVE` |
-| Data & Evidence | `ACTIVE` |
-| Data Analyst | `WATCH` |
-| Product & UX | `WATCH` |
-| Commercial & Compliance | `WATCH` |
-| Marketing & GTM | `ACTIVE — BLOSSOM ONLY` |
-| Codex Development | `ACTIVE BY TASK` |
+The eight [role charters](roles/PROGRAM_MANAGER.md) and [AGENTS.md](../AGENTS.md)
+now follow [mandate-based invocation](PAM_GOVERNANCE.md#4-roles-routing-and-ownership).
+Role availability is separate from task, capability and blocker status; it grants
+no self-activation or autonomous specialist coordination.
 
 ## Material current limitations
 
@@ -622,8 +632,9 @@
   retain their individual authority limits; no automatic reinterpretation, Expected
   Return recalibration, allocation, execution, historical/PIT, shadow, production,
   model-policy or V2 promotion is granted.
-- All seven conversational PAM role Projects/employees are configured. Codex
-  Development remains `ACTIVE BY TASK`, not an autonomous conversational employee.
+- Earlier configuration of the seven conversational role projects is historical.
+  The 2026-10-26 reform record above supersedes permanent role activation labels;
+  Codex remains an explicitly invoked bounded implementation capability.
 
 ## Canonical governance references
 
