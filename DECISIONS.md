@@ -3767,3 +3767,66 @@ rewriting old entries. No financial methodology, scoring, portfolio rule, model
 authority, data admissibility, source licensing policy or hard `$0` external
 financial-data constraint changes. No spending, migration, production, deployment,
 V2 promotion or canonical merge is authorized by this documentary task.
+
+## 2026-10-27 — Financial Systems 36-decision AI-native strategic reform
+
+### CEO decision and scope
+
+The CEO completed 36 sequential design decisions on 2026-10-27 and selected
+a **future AI-native Financial Systems direction**, preserving both the
+existing PAM Media & Communication activity and the organizational Program
+Manager. The 36-decision source-of-design record, interpretations,
+conflicts and implementation proposals are retained in the
+[Reform Master Blueprint](docs/strategy/PAM_FINANCIAL_SYSTEMS_AI_NATIVE_REFORM.md).
+This entry is the **single canonical registry entry** for the reform; the
+Blueprint is not a competing Decision Registry.
+
+### Selected target
+
+- Initial three ChatGPT Project environments: Financial Systems Command
+  Center, Investment Research and Portfolio Intelligence. Do not presume
+  autonomous cross-Project invocation or read-only Blossom/Work compatibility.
+- Preserve V2's Quality, Durability, Expected Return, Confidence and
+  Portfolio Room pillars. Interpret under explicitly approved investment
+  strategies; existing High-CAGR and V2 mode policies remain unchanged.
+- Use risk-proportionate source assurance, defensible partial analyses,
+  explicit estimates and scenarios, calibrated confidence, material numerical
+  checks and no hindsight-contaminated outcome claims.
+- Use portfolio observations only to the extent supported by visible,
+  authorized holdings and account context; favor new-contribution weights
+  over routine sales. The CEO/user controls every actual investment action.
+- Target weekly lightweight investment intelligence plus on-demand depth,
+  reports readable within ten minutes and around one hour of routine
+  human operation per week; targets require independent practical testing.
+- Use GitHub for approved methods, versioned prompts, major research history
+  and lessons, while keeping private financial material in separately
+  protected storage. No automatic self-modifying policy.
+- Pursue two **separately authorized** tracks: an end-to-end three-Project
+  pilot and read-only inventories of GitHub, Mac, Chromebook and PC, with
+  verified preservation before any separately approved cleanup.
+- Use `RESEARCH-READY`, `PORTFOLIO-READY` and `ROUTINE-READY`
+  as progressive, evidence-supported capability assessments.
+
+### Authority, preserved history and supersession limits
+
+The new **strategic design direction** displaces software complexity as the
+assumed *ultimate development destination*; it does not cancel, falsify,
+delete, close or reinterpret any historical V1/V2 contract, accepted evidence,
+Stage D status or Work Order. Earlier records remain unchanged and retain
+their original dated meaning. No production rule is superseded in this entry.
+
+V1 on `main` remains frozen operational authority; V2 remains challenger
+with Stage D incomplete. Existing point-in-time, immutable-evidence,
+qualification, deterministic validation, shadow/promotion and protected
+fingerprint controls remain binding within their existing scope.
+The $0 external financial-data-cost boundary and licensing checks persist.
+New unattended development orchestration remains paused. The separate
+monthly blocker-signal watch and the approved Blossom media/publication
+mandate are unchanged.
+
+The initial Blueprint was added through PR #244. This governance alignment
+records strategic direction only: it authorizes **no** AI Project creation,
+Blossom access, scheduled operation, device audit, migration, spending,
+model-rule change, production, trade, deletion or merge beyond the separately
+approved documentary PR workflow. Further implementation and any
+protected investment-policy amendments require separate CEO decisions.

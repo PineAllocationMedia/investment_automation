@@ -31,6 +31,40 @@ before publication remains mandatory. No autonomous posting, paid campaign, new
 product launch, new commercial commitment, unauthorized data publication or
 unapproved spending is granted.
 
+## AI-native Financial Systems strategy — selected 2026-10-27
+
+The CEO selected an AI-native direction through 36 design decisions. The
+[complete proposed Master Blueprint](../docs/strategy/PAM_FINANCIAL_SYSTEMS_AI_NATIVE_REFORM.md)
+records the design, limits and unresolved capability checks; it does not
+certify implementation. The initial target is a compact three-Project
+organization: Financial Systems Command Center, Investment Research and
+Portfolio Intelligence, with GitHub as approved institutional memory.
+Reduce avoidable software and coordination overhead while retaining selective
+deterministic checks where evidence or arithmetic accuracy requires them.
+
+Financial reasoning combines evidence-based quantitative and qualitative
+research; the five V2 pillars remain shared foundations, interpreted under
+each separately approved investment strategy. The existing High-CAGR policies
+are not generalized to capital preservation or silently amended. Use
+Blossom portfolio views only as far as authorized access and visible data
+permit. New-contribution recommendations take precedence over routine selling.
+The owner decides all actual investment actions.
+
+Operating targets, subject to practical verification, are lightweight weekly
+intelligence, user-initiated deep research, layered reports readable in at
+most ten minutes and about one hour of ordinary human interaction per week.
+No automatic cross-Project coordination, Work/Blossom integration or scheduled
+access is assumed. Preserve research provenance, relevant dated outcomes,
+versioned prompts and separate secure personal financial storage.
+
+Two coordinated but independently authorized tracks are planned: a minimal
+three-Project end-to-end demonstration and read-only legacy knowledge/device
+inventories. Capability gates are `RESEARCH-READY`, `PORTFOLIO-READY`
+and `ROUTINE-READY`; they do not promote a model, replace V1 or permit
+production, migration, investment-policy changes, device cleanup or spending.
+The existing $0 external financial-data-cost constraint, licensing controls,
+CEO approval rules and Media & Communication mandate remain unchanged.
+
 ## Durable value
 
 Potential durable value can emerge from the integrated system of structured

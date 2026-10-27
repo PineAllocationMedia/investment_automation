@@ -65,6 +65,56 @@ A useful product analogy is:
 > a more automated, explainable and evidence-aware research/portfolio platform,
 > not merely a recommendation bot.
 
+### CEO-selected AI-native Financial Systems direction (2026-10-27)
+
+The CEO selected a 36-decision **AI-native strategic design** for Financial
+Systems, documented in
+[`docs/strategy/PAM_FINANCIAL_SYSTEMS_AI_NATIVE_REFORM.md`](docs/strategy/PAM_FINANCIAL_SYSTEMS_AI_NATIVE_REFORM.md).
+This is the future design direction, **not** evidence of implemented capability,
+authorization to replace V1, or permission to change V2 model policy. Preserve
+existing knowledge and retain the smallest deterministic tools needed for exact
+financial facts, calculations, provenance and validation.
+
+The proposed first three **ChatGPT Project environments** are:
+
+1. **Financial Systems Command Center:** Interpret user mandates, assemble
+   engineered prompts, coordinate *supported* handoffs, integrate research and
+   propose reports and institutional-memory records.
+2. **Investment Research:** Research businesses, Quality, Durability, Expected
+   Return, Confidence, valuation, macro/sector context, risks and opportunities.
+3. **Portfolio Intelligence:** Interpret reliably visible Blossom portfolio
+   holdings, evaluate concentration, contribution allocations, costs and
+   exceptional thesis-driven position lifecycle decisions.
+
+The organizational Program Manager continues to coordinate **both** PAM
+activities; it is not replaced by the Financial Systems Command Center. ChatGPT
+Projects do not automatically communicate or self-invoke. Blossom/Work access
+and scheduled-task context access remain unverified until directly tested.
+A cloud-first target does not relocate or modify present V1 hosting.
+
+Research adapts the five V2 intellectual pillars to the **approved** investment
+strategy and explicit user mandate. High-CAGR policy and four V2 modes remain
+binding within their existing scope; no other strategy gains a new investment
+policy merely from this design. Distinguish evidence, estimates and conclusions;
+allow defensible partial research, never invented source facts or false
+historical point-in-time authority. The investor alone decides trades.
+
+The initial operating target is a concise weekly intelligence briefing plus
+on-demand research, reports readable in about ten minutes or less, and
+approximately one hour of routine human work per week; all are **unvalidated
+targets**. Use tiered institutional memory: GitHub for authoritative methods,
+decisions, prompt versions and selected research history; protect personal
+financial records separately. No private portfolio disclosure to Media.
+
+Implementation planning has two distinct tracks: (A) a bounded three-Project
+end-to-end research demonstration and (B) read-only GitHub/Mac/Chromebook/PC
+inventories before any separately authorized preservation/cleanup operations.
+Use progressive `RESEARCH-READY`, `PORTFOLIO-READY` and `ROUTINE-READY`
+acceptance gates. These gates authorize **neither** production promotion nor
+legacy retirement. Any implementation, device access, spending, protected
+policy change, source admission, merge or operational migration needs the
+approval applicable to that specific action.
+
 ---
 
 ## 2. Why PAM should exist
@@ -552,10 +602,13 @@ The proprietary engine should remain server-side where practical.
 
 ### Primary owner interface
 
-The compact HTML report is the owner's primary post-analysis human interface.
-Compact means consolidated, not information-poor. Preserve useful analytical content
-while improving organization, hierarchy, navigation, visual clarity and grouping;
-shorter reading time alone is not a reason to remove analytical information.
+For currently implemented V2 workflows, the compact HTML report remains the
+primary post-analysis human interface. The **proposed AI-native** interface is a
+layered, cited ChatGPT-readable executive report targeting no more than ten minutes
+to read, with detailed supporting analysis available separately. Neither interface
+is retired or operationally replaced by this proposed design. Preserve analytical
+substance, navigation, clarity and traceability; brevity alone is not an excuse
+to omit material evidence.
 
 ---
 
@@ -774,7 +827,7 @@ component exists, no deletion is required.
 
 ## 18. Production and machine roles
 
-Current operating philosophy:
+Current V1/V2 machine roles (retained throughout the AI-native pilot):
 
 - Mac is the development machine.
 - Chromebook/Linux is the operational V1 host.
