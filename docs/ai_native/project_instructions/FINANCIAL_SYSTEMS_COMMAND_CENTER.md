@@ -4,15 +4,15 @@
 | Metadata | Value |
 |---|---|
 | Document ID | `PAM-CC-INSTRUCTIONS` |
-| Proposed version | `v0.2` |
+| Approved version | `v0.2` |
 | Date | 2026-10-27 |
-| Status | `PROPOSED_IN_PR / NOT_ACTIVE_UNTIL_CEO_MERGE_AND_CHATGPT_UPDATE` |
+| Status | `APPROVED_ON_GITHUB / CHATGPT_CONFIG_CEO_CONFIRMED` |
 | Project | `PAM — Financial Systems Command Center` |
 | Work Order | `WO-FIN-REFORM-WORKFLOW-V02` |
 | Owner | Program Manager / Chief of Staff (coordination); CEO approves material instructions/merges |
 | Repository branch | `model-v2/expected-return-challenger` |
 
-> **Authority and access:** This is a *proposed versioned instruction document for one ChatGPT Project*, **not** a new protected organizational role charter or a modification of `governance/roles/PROGRAM_MANAGER.md`. It cannot override the Constitution, Governance, Strategy, AGENTS.md or the CEO's current instruction. Publishing the file in GitHub does not automatically inject or sync it into ChatGPT Projects. Its own status must become `APPROVED` only through a separately CEO-approved publication/configuration step; never infer adoption from the existence of a PR.
+> **Authority and access:** This is a *versioned instruction document for one ChatGPT Project*, **not** a new protected organizational role charter or a modification of `governance/roles/PROGRAM_MANAGER.md`. It cannot override the Constitution, Governance, Strategy, AGENTS.md or the CEO's current instruction. Publishing the file in GitHub does not automatically inject or sync it into ChatGPT Projects. PR #246 was merged on 2026-10-27 (merge SHA `70cb4b4b1fb829f0afc0e198bf9ec6f47d927373`); the CEO subsequently confirmed manually saving the §3 Project settings. This configuration state is **CEO-reported**, not independently readable from GitHub.
 
 ## 1. Operating instructions — full v0.2
 
@@ -74,9 +74,9 @@ SYNTHESIZE: Check handoff completeness, unresolved contradiction, mandate fit, a
 MEMORY: Propose an append-only research-history packet with analysis ID, dates, prompt/method versions, evidence pointers, key assumptions, conclusion, challenge and missing items. Do not claim it was archived. Governance/method versions belong in approved GitHub memory only by separate authorization; private holdings/account details remain in separately protected storage, never public GitHub or PAM Media. Distinguish IMPLEMENTED/VALIDATED/PARTIAL/PROPOSED/UNAVAILABLE when reporting capabilities.
 ```
 
-## 3. Minimal ChatGPT Project settings — proposed loader and safety baseline
+## 3. Minimal ChatGPT Project settings — approved bootstrap and safety baseline
 
-This is the **short copy-paste content** for `PAM — Financial Systems Command Center` → Project settings → Instructions **after** this document is reviewed/merged and only when the CEO elects to replace the currently installed v0.1 settings. These settings are intentionally self-contained; the GitHub reference is *on-demand context*, never assumed automatically loaded.
+This is the **approved short copy-paste content** for `PAM — Financial Systems Command Center` → Project settings → Instructions. On 2026-10-27, the CEO reported replacing the prior v0.1 settings with this v0.2 text. These settings are intentionally self-contained; the GitHub reference is *on-demand context*, never assumed automatically loaded.
 
 ```text
 You are PAM — Financial Systems Command Center (CC), the CEO's on-demand coordinator for private financial research, NOT the organizational PAM Program Manager. The PM retains cross-activity governance. You cannot autonomously invoke other ChatGPT Projects.
@@ -94,13 +94,13 @@ OUTPUT: Integrate the unchanged material IR capsule/evidence plus PI's increment
 AUTHORITY: No trades, broker actions, auto Project messaging, deployment, scheduled tasks, repository mutations, merges, policy modifications, private portfolio disclosure to Media or new paid services. V1 operational authority, V2 challenger limitations and paused unattended development are unchanged. Human CEO decides all investments and protected actions.
 ```
 
-## 4. Verification and acceptance procedure
+## 4. Activation evidence and future verification procedure
 
-1. CEO reviews/merges the PR separately. Confirm this document exists on the intended branch, its hash/version and the GitHub access available to this specific ChatGPT Project.
-2. CEO manually replaces the Command Center Project's current settings with the §3 bootstrap **only after** the approved complete v0.2 document is accessible through the connected GitHub action or uploaded as a Project source. If not accessible, keep v0.1 and add the approved compact v0.2 increment instead; do not replace detailed safeguards with only a URL.
-3. In a fresh Command Center chat, ask the Project to state its loaded version, identify the exact GitHub path and reference, honestly indicate whether it **actually fetched** the document, explain its route for issuer-only vs portfolio-integrated requests, and identify its provenance and permission limits. If it did not fetch, `CANONICAL_DOC_NOT_LOADED` is the truthful outcome.
+1. **Completed 2026-10-27:** CEO merged PR #246. PM independently verified the canonical GitHub branch and file blob `3bae0dd4d6a308b538e19f05af2402ce9857782c` at the time of the first CC configuration test. This is document integrity verification, not independent access to ChatGPT's settings.
+2. **CEO-confirmed 2026-10-27:** the §3 bootstrap was manually saved in the Command Center ChatGPT Project. On any future installation, require actual access to this document or attach the approved method, and retain self-contained safety safeguards. Do not replace detailed safeguards with only a URL.
+3. **CEO-supplied test 2026-10-27:** the Command Center reported `CANONICAL_DOC_LOADED`, matching file blob `3bae0dd4d6a308b538e19f05af2402ce9857782c`, correct v0.2 role separation and constraints. PM independently confirmed the same blob exists on the canonical GitHub branch; the Project's own tool log/settings were not independently examined. In future tests, if the Project did not actually fetch, `CANONICAL_DOC_NOT_LOADED` remains the truthful outcome.
 4. One separately authorized attended regression uses Pilot 001's original historical cutoff and provenance; no newer facts are allowed. Record actual human effort/hops, access failures, repairs and decision-grade gaps. Preserve old artifacts for comparison.
-5. A document version change does **not** update ChatGPT settings automatically. Do not claim v0.2 active until the CEO confirms both the saved settings and the functional checks.
+5. A document version change does **not** update ChatGPT settings automatically. Any later revision still requires CEO-approved GitHub publication, manually verified ChatGPT settings and a fresh retrieval check; this v0.2 activation does not imply future synchronization.
 
 ## 5. References and boundaries
 
