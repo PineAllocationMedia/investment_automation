@@ -1,3 +1,9 @@
+# Shared editorial palette
+
+Use the CEO-selected [Anthropic color reference](PAM_COLOR_REFERENCE.md) and
+`pam_theme.py` for every renderer and bespoke composition. Page background
+`#0F2429`, emphasis `#E7C691`; semantic map/chart scales retain their meaning.
+
 # PAM Macro Lens Visual Kit v1.0
 
 **Target:** Blossom @therealpam; native drafting canvas 1080×1350 (4:5). **Status:** proposed repository implementation; no publishing or market-data access. Companion: `docs/marketing/MACRO_LENS_PLAYBOOK.md` and `MACRO_LENS_TEMPLATES.md`.

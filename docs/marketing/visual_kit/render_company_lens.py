@@ -24,8 +24,7 @@ from render_macro_lens import (
     assert_clean_artwork,
 )
 
-DIVIDER = '#405A53'
-ROW_SHADE = '#172C30'
+from pam_theme import DIVIDER, ROW_SHADE, SYNTHETIC_BG
 FILING_TYPES = ('10-K', '10-Q', '8-K')
 BASIS = ('GAAP', 'NON_GAAP', 'OPERATING')
 ID_RE = re.compile(r'^CL-\d{8}-\d{2}$')
@@ -241,7 +240,7 @@ def draw_company_lens(p, logo_png=None, status='DRAFT'):
     # Genuine-filing previews are visually clean, but still unaudited drafts.
     # Their authorization status is kept in the separate exact-file record.
     if status != 'RELEASE' and demo:
-        out.append(rect(720, 205, 292, 46, '#503D25', 10, AMBER))
+        out.append(rect(720, 205, 292, 46, SYNTHETIC_BG, 10, AMBER))
         out.append(txt(866, 235, 'DRAFT · SYNTHETIC TEST',
                        16, AMBER, 730, anchor='middle'))
     out.append('</svg>')
@@ -304,3 +303,4 @@ def run(argv=None):
 
 if __name__ == '__main__':
     raise SystemExit(run())
+

@@ -20,11 +20,10 @@ from urllib.parse import urlparse
 from xml.sax.saxutils import escape
 
 W, H = 1080, 1350
-# Blossom profile identity: warm ivory seal, forest-green pine-cone illustration.
-# Preserve subdued dark editorial canvas; eliminate the old neon/teal brand badge.
-BG, PANEL, LIGHT = '#11242A', '#1A3233', '#F4F0E6'
-MUTED, TEAL, AMBER = '#BDC8BE', '#A6CBB1', '#E6C592'
-PINE, IVORY = '#284936', '#F4F0E6'
+from pam_theme import (
+    THEME_VERSION, BG, PANEL, LIGHT, MUTED, TEAL, AMBER, PINE, IVORY,
+    DIVIDER, HIGHLIGHT_BG, WATCH_BG, SYNTHETIC_BG,
+)
 # Exact CEO-approved RECONSTRUCTED v0.1 master; do not treat as historical original.
 # Source of asset metadata: visual_kit/assets/PAM_MACRO_LENS_LOGO_RECONSTRUCTED_v0.1.json
 APPROVED_LOGO_SHA256 = 'a352aa5dc6b9c5f1a142a36747eb4361a2d22cbc628805ee9a4e28da51ca9c75'
@@ -205,7 +204,7 @@ def common(p, typ, logo_png=None):
     out.extend([txt(169, 103, 'PAM', 29, LIGHT, 800),
            txt(263, 102, '/  THE MACRO LENS', 21, MUTED, 600),
            # Tracking issue IDs and renderer family codes are private metadata.
-           rule(68, 153, 1012, 153, '#3B554F', 2),
+           rule(68, 153, 1012, 153, DIVIDER, 2),
            txt(68, 195, p['issue_at'][:10]+'  /  @therealpam', 19, MUTED, 600),
            multiline(68, 276, p['headline'], 27, 2, 54, LIGHT, 800, 65, 'headline'),
            multiline(68, 403, p['deck'], 57, 2, 24, MUTED, 400, 37, 'deck')])
@@ -235,7 +234,7 @@ def footer(out, p, sources, asof, status):
         separator_y = 1172 if two_lines else 1210
         first_y = 1218 if two_lines else 1255
         bottom_y = 1320 if two_lines else 1315
-        out.append(rule(68, separator_y, 1012, separator_y, '#3B554F', 2))
+        out.append(rule(68, separator_y, 1012, separator_y, DIVIDER, 2))
         for i, source_line in enumerate(source_lines):
             out.append(txt(68, first_y + i*50, source_line, 32, MUTED, 600))
         out.extend([
@@ -244,16 +243,16 @@ def footer(out, p, sources, asof, status):
         ])
     else:
         # Preserve existing T2/T3 rendering unchanged.
-        out.extend([rule(68, 1224, 1012, 1224, '#3B554F', 2),
+        out.extend([rule(68, 1224, 1012, 1224, DIVIDER, 2),
                     txt(68, 1262, 'SOURCES: '+sources, 15, MUTED, 500),
                     txt(68, 1287, 'AS OF '+asof+'  ·  NOT INVESTMENT ADVICE', 15, MUTED, 500)])
     if status != 'RELEASE' and synthetic_issue(p):
-        out.append(rect(710, 151, 302, 53, '#503D25', 12, AMBER))
+        out.append(rect(710, 151, 302, 53, SYNTHETIC_BG, 12, AMBER))
         out.append(txt(861, 185, 'DRAFT · SYNTHETIC TEST', 18, AMBER, 750, anchor='middle'))
     return out
 
 def t1(out, p, f):
-    out.append(rect(68, 481, 944, 156, '#204039'))
+    out.append(rect(68, 481, 944, 156, HIGHLIGHT_BG))
     out.append(txt(97, 520, '01  /  THE VERIFIED SIGNAL', 21, TEAL, 800))
     out.append(txt(97, 587, f['display'], 49, LIGHT, 800))
     out.append(txt(470, 580, f['label'], 27, LIGHT, 600))
@@ -267,7 +266,7 @@ def t1(out, p, f):
             out.append(rule(x+299, 787, x+319, 787, TEAL, 3))
     out.append(txt(68, 909, '03  /  THE BLIND SPOT', 20, TEAL, 800))
     out.append(multiline(68, 954, p['blind_spot'], 64, 2, 25, LIGHT, 500, 36, 'blind_spot'))
-    out.append(rect(68, 1050, 944, 60, '#32433D', 10))
+    out.append(rect(68, 1050, 944, 60, WATCH_BG, 10))
     out.append(multiline(89, 1088, 'WATCH: '+p['tripwire'], 91, 1, 19, AMBER, 600, 23, 'tripwire'))
 
 
@@ -299,7 +298,7 @@ def t1_research_note(out, p, f):
                 for i, row in enumerate(rows)]
 
     out.extend([
-        rule(68, 464, 1012, 464, '#46615A', 2),
+        rule(68, 464, 1012, 464, DIVIDER, 2),
         txt(68, 504, 'MARKET OBSERVATION', 20, TEAL, 750),
         txt(1012, 504, 'PRIMARY SERIES / '+f['period'].upper(),
             18, MUTED, 600, anchor='end')
@@ -315,7 +314,7 @@ def t1_research_note(out, p, f):
                      name='signal.unit', color=MUTED))
     out.extend(lines(528, 651, f['period'], chars=34, cap=1, size=20, leading=25,
                      name='signal.period', color=MUTED))
-    out.append(rule(68, 679, 1012, 679, '#46615A', 2))
+    out.append(rule(68, 679, 1012, 679, DIVIDER, 2))
     out.append(txt(68, 720, 'TRANSMISSION / POSSIBLE CHANNELS', 20, TEAL, 750))
     for i, step in enumerate(p['mechanism']):
         x = 68 + i*325
@@ -324,12 +323,12 @@ def t1_research_note(out, p, f):
                          name=f'mechanism[{i}]', weight=600,
                          width=(282 if i < 2 else 289)))
         if i < 2:
-            out.append(rule(x+298, 751, x+298, 857, '#46615A', 2))
-    out.append(rule(68, 886, 1012, 886, '#46615A', 2))
+            out.append(rule(x+298, 751, x+298, 857, DIVIDER, 2))
+    out.append(rule(68, 886, 1012, 886, DIVIDER, 2))
     out.append(txt(68, 928, 'SECOND-ORDER CONSIDERATION', 20, TEAL, 750))
     out.extend(lines(68, 973, p['blind_spot'], chars=64, cap=2, size=26,
                      leading=34, name='blind_spot'))
-    out.append(rule(68, 1040, 1012, 1040, '#46615A', 2))
+    out.append(rule(68, 1040, 1012, 1040, DIVIDER, 2))
     out.append(txt(68, 1080, 'WHAT WOULD CHANGE THE VIEW?', 21, AMBER, 700))
     out.extend(lines(68, 1123, p['tripwire'], chars=60, cap=2, size=25,
                      leading=32, name='tripwire'))
@@ -357,7 +356,7 @@ def t3(out, p, a, b):
     for x, f, label in [(96,a,'THEN'),(611,b,'NOW')]:
         out.append(txt(x, 624, label+'  •  '+f['period'], 21, TEAL, 750))
         out.append(txt(x, 717, f['display'], (70 if len(f['display']) <= 6 else 48 if len(f['display']) <= 12 else 31), LIGHT, 850))
-    out.append(rule(506, 612, 506, 767, '#3A4B59', 3))
+    out.append(rule(506, 612, 506, 767, DIVIDER, 3))
     out.append(txt(68, 875, '02  /  WHAT MIGHT HAVE CHANGED', 21, TEAL, 800))
     out.append(multiline(68, 931, p['interpretation'], 63, 2, 27, LIGHT, 550, 39, 'interpretation'))
     out.append(txt(68, 1022, 'THE BLIND SPOT', 19, TEAL, 800))
@@ -395,7 +394,7 @@ def render(payload, status='DRAFT', logo_png=None):
 
 
 def payload_hash(payload):
-    return hashlib.sha256(json.dumps(payload,sort_keys=True,ensure_ascii=False,separators=(',',':')).encode('utf-8')).hexdigest()
+    return hashlib.sha256(json.dumps({"theme_version": THEME_VERSION, "payload": payload},sort_keys=True,ensure_ascii=False,separators=(',',':')).encode('utf-8')).hexdigest()
 
 
 def release_allowed(payload, approval):
