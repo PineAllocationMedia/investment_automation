@@ -1398,3 +1398,25 @@ there is no activated reminder, scheduled checkpoint or guaranteed execution.
   exhausted monthly free-minute quota; no GitHub CI PASS is claimed. No manual CI
   rerun, paid CI execution, billing/budget change, spending or merge was authorized
   or performed by that publication.
+
+## 2026-10-27 — Bounded private Durability research milestone recognized
+
+- Under `WO-GOVERNANCE-SYNC-STAGE-D-BOUNDED-RESEARCH-MILESTONE`, the CEO explicitly
+  recognized `COMPLETE — BOUNDED PRIVATE DURABILITY RESEARCH INFRASTRUCTURE` after
+  the CEO-supplied independent Architecture & Audit assessment
+  `BOUNDED_RESEARCH_MILESTONE_READY / FULL_STAGE_D_INCOMPLETE`.
+- Included: canonical D1/D2, manual qualitative note, unified private sheet,
+  assessed observation/mechanism/contrary-evidence/uncertainty/reassessment structure,
+  and Codex-reported synthetic local Python/HTML PASS. D1/D2 authentic-positive
+  findings remain attributed to specialist reviews, not re-executed by this sync.
+- Browser rendering and actual visual inspection: `NOT_RUN`; real-source local
+  acceptance: `PENDING`; final local authentic unified-sheet replay: `NOT_RUN`.
+  The supplied D2, PR #240 and PR #241 CI record reports failures before test-step
+  execution, with no passing rerun established; no executed-test outcome is inferred.
+- Documentation only; no technical implementation, financial tests or source
+  verification. Reuse assessment: `NOT APPLICABLE` — pure documentation.
+  **`STAGE D — INCOMPLETE`**. The
+  [bounded scope and unchanged authority limits](../PAM_ROADMAP.md#2026-10-27--ceo-recognized-bounded-research-milestone)
+  preserve the original economic-persistence objective, V1/V2 roles, source-use and
+  financial constraints. No new implementation, evidence admission, investment
+  authority, production readiness or Stage D closure follows.

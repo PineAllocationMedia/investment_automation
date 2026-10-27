@@ -3,6 +3,16 @@
 > Two-to-five-minute operational snapshot. Refresh through Governance Sync after
 > durable state changes.
 
+- **2026-10-27 CEO recognition:** `COMPLETE — BOUNDED PRIVATE DURABILITY RESEARCH
+  INFRASTRUCTURE`; **`STAGE D — INCOMPLETE`**. Following the CEO-supplied independent
+  assessment, the bounded D1/D2, manual-note, unified-sheet and qualitative-methodology
+  milestone is recognized, with Codex-reported synthetic Python/HTML PASS only.
+  Browser/visual checks and final authentic unified replay remain `NOT_RUN`;
+  real-source local acceptance is `PENDING`. D2 / PR #240 / PR #241 pre-test-step
+  CI failures have no established passing rerun. No new evidence, model, production
+  or follow-on implementation authority follows. See the
+  [milestone scope and limitations](../PAM_ROADMAP.md#2026-10-27--ceo-recognized-bounded-research-milestone).
+
 - **2026-10-26 bounded Stage-D D2:** `COMPLETE / CANONICAL` through
   [PR #238](https://github.com/PineAllocationMedia/investment_automation/pull/238),
   GitHub-verified merge `d543f6a1470eb1c6dcfe51863f951cffa3473159`, tree
