@@ -1,7 +1,7 @@
 # PAM | Blossom — editorial evidence & experiment log v1.1
 
 **Channel:** Blossom `@therealpam`.
-**Status:** 26 distinct accessible originals recorded through 2026-10-26: latest scan added 2 and refreshed 24 with 26 appended snapshots. All exposed permalinks inspected; historical completeness unproven and some discussion bodies PARTIAL. Earlier observations preserved. No private analytics or post-attributed follows established.
+**Status:** 27 distinct accessible originals recorded through 2026-10-27: latest scan added 1 and refreshed 26 with 27 appended snapshots. All exposed permalinks inspected; historical completeness unproven and some discussion bodies PARTIAL. Earlier observations preserved. No private analytics or post-attributed follows established.
 **Instructions:** [Playbook](MACRO_LENS_PLAYBOOK.md) · [Templates](MACRO_LENS_TEMPLATES.md).
 
 This existing register now tracks all verified @therealpam original posts: Macro Lens and ordinary content alike. Do not invent approval history for past ordinary posts. Replies to others are distinct from original publications.
@@ -779,3 +779,95 @@ Top Comments inspected; missing bodies not inferred. Earlier full captures retai
 > The real question isn't just what the Fed decides.
 >
 > It's whether the next day's data support the reasoning behind it.
+
+## Profile scan — 2026-10-27 (authorized signed-in Cloud Browser)
+
+**Coverage:** 27 originals discovered / 27 individually inspected / 1 new record / 26 existing records refreshed / 0 discovered post URLs inaccessible. Each individual @therealpam authorship link checked against /users/PAM__IwHhSPDG2aOMks63. Posts tab only, excluding Blooms, trades and replies on others' publications. Signed-in header/Edit profile and authenticated Comment controls confirmed. Feed loaded 13, then 23, then 27 posts; further bottom navigation exposed no additional posts or pagination after the introduction. **All exposed originals captured; HISTORICAL COMPLETENESS UNPROVEN.** No authoritative historical total; no login restriction blocked completion. Some discussion remains partially rendered.
+
+**Range/time:** newest UI 1m, oldest 20d, approximately October 7–27, 2026 from rounded ages only. Exact publication timestamps NA; ID digits not converted to dates. Counters captured 2026-10-27 09:20:43.707–09:21:12.387 EDT, America/Toronto (UTC−04:00); discussion revisits through 09:21:25.188 EDT. Prior differing ages retained as observed.
+
+**Definitions/provenance:** PUBLIC_OBSERVED throughout, including authenticated counters. Views = displayed cumulative views, uniqueness unknown. Comments = displayed total, reply-count semantics undocumented. Shares = arrow counter, not verified completed external sharing. Saves = bookmark counter. Likes = numeric heart-only count; mixed emoji totals retained as total reactions, heart breakdown NA. Missing numeric reactions = NA, not zero. Profile visits/attributed follows NA. Account display 10 followers / 5 following; no post attribution. No private analytics, invented timed snapshots, unattended monitoring or Blossom mutation.
+
+**History:** existing thesis, caption, rationale, template and audit/approval evidence preserved. Newly accessible older replies are observations of existing discussion, not new replies created by this scan. Claims in captions/comments were not independently fact-checked.
+
+### New record — existing register continuation
+
+| Issue ID | Class/status | Published thesis | Internal evidence | Permalink |
+|---|---|---|---|---|
+| BL-POST-1793107152966-YTBGWH9d | Company commentary / PUBLISHED | Boeing group improvement coexists with Commercial Airplanes losses; sustainable commercial margins are the next test | Image-bearing observed; exact template/version, preparation rationale, source register, audit and CEO approval references NA | https://www.blossomsocial.com/posts/Boeings-Turnaround-Uneven-Yet-Promising__POST-1793107152966-YTBGWH9d_IwHhSPDG2aOMks63 |
+
+### Appended snapshots
+
+| Issue ID | Rounded UI age (exact NA) | Observed at — America/Toronto EDT | Provenance | Views | Likes | Comments | Shares | Saves | Total reactions | Profile visits | Attributed follows |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| BL-POST-1793107152966-YTBGWH9d | 1m | 2026-10-27T09:20:43.707-04:00 | PUBLIC_OBSERVED | 0 | NA | 0 | 0 | 0 | NA | NA | NA |
+| BL-POST-1793060142652-bt1IJKAo | 13h | 2026-10-27T09:20:44.681-04:00 | PUBLIC_OBSERVED | 88 | NA | 0 | 0 | 0 | NA | NA | NA |
+| BL-POST-1793023468268-JghTaJye | 23h | 2026-10-27T09:20:45.566-04:00 | PUBLIC_OBSERVED | 44 | NA | 0 | 0 | 0 | NA | NA | NA |
+| BL-POST-1792970189363-fIdOdvGU | 1d | 2026-10-27T09:20:46.383-04:00 | PUBLIC_OBSERVED | 138 | 2 | 1 | 0 | 0 | 2 | NA | NA |
+| BL-POST-1792935816952-RmJBGgJl | 1d | 2026-10-27T09:20:47.359-04:00 | PUBLIC_OBSERVED | 412 | 4 | 4 | 1 | 0 | 4 | NA | NA |
+| BL-POST-1792850545800-gNzqcp6X | 2d | 2026-10-27T09:20:48.146-04:00 | PUBLIC_OBSERVED | 110 | 1 | 0 | 0 | 0 | 1 | NA | NA |
+| BL-POST-1792773556527-n3zJCc9e | 3d | 2026-10-27T09:20:49.072-04:00 | PUBLIC_OBSERVED | 116 | 1 | 0 | 0 | 0 | 1 | NA | NA |
+| BL-POST-1792712380652-veFF6JIW | 4d | 2026-10-27T09:20:50.039-04:00 | PUBLIC_OBSERVED | 86 | 2 | 2 | 0 | 0 | 2 | NA | NA |
+| BL-POST-1792632635232-p3wDGaJ3 | 5d | 2026-10-27T09:20:50.996-04:00 | PUBLIC_OBSERVED | 32 | NA | 0 | 0 | 0 | NA | NA | NA |
+| BL-POST-1792618150646-9HYkfaqz | 5d | 2026-10-27T09:20:52.444-04:00 | PUBLIC_OBSERVED | 52 | NA | 0 | 0 | 0 | NA | NA | NA |
+| BL-POST-1792543338595-Ou0WyNVs | 6d | 2026-10-27T09:20:53.299-04:00 | PUBLIC_OBSERVED | 272 | NA | 0 | 1 | 0 | NA | NA | NA |
+| BL-POST-1792445839015-LojFs7Jp | 7d | 2026-10-27T09:20:54.221-04:00 | PUBLIC_OBSERVED | 274 | 4 | 2 | 0 | 0 | 4 | NA | NA |
+| BL-POST-1792413329799-4TDnXVvZ | 8d | 2026-10-27T09:20:55.131-04:00 | PUBLIC_OBSERVED | 60 | NA | 0 | 1 | 0 | NA | NA | NA |
+| BL-POST-1792285181556-dajQRiJ8 | 9d | 2026-10-27T09:20:56.046-04:00 | PUBLIC_OBSERVED | 128 | 1 | 2 | 0 | 0 | 1 | NA | NA |
+| BL-POST-1792243935166-5rY3pW0x | 9d | 2026-10-27T09:21:01.517-04:00 | PUBLIC_OBSERVED | 844 | NA | 0 | 2 | 0 | 6 | NA | NA |
+| BL-POST-1792154075898-WKgQpyWr | 11d | 2026-10-27T09:21:02.368-04:00 | PUBLIC_OBSERVED | 60 | NA | 0 | 0 | 0 | NA | NA | NA |
+| BL-POST-1792015357362-r0k28CcU | 12d | 2026-10-27T09:21:03.251-04:00 | PUBLIC_OBSERVED | 340 | NA | 0 | 0 | 0 | 7 | NA | NA |
+| BL-POST-1791924123452-n0SE9Lsf | 13d | 2026-10-27T09:21:04.197-04:00 | PUBLIC_OBSERVED | 174 | 4 | 1 | 0 | 0 | 4 | NA | NA |
+| BL-POST-1791820180736-IT7xZSEt | 14d | 2026-10-27T09:21:05.178-04:00 | PUBLIC_OBSERVED | 88 | 2 | 0 | 0 | 0 | 2 | NA | NA |
+| BL-POST-1791764804066-6p0ZcQRe | 15d | 2026-10-27T09:21:06.014-04:00 | PUBLIC_OBSERVED | 248 | NA | 0 | 0 | 0 | NA | NA | NA |
+| BL-POST-1791725403770-fzsmjWDJ | 15d | 2026-10-27T09:21:06.990-04:00 | PUBLIC_OBSERVED | 174 | 2 | 0 | 0 | 0 | 2 | NA | NA |
+| BL-POST-1791636358863-EDvN5sp6 | 17d | 2026-10-27T09:21:07.884-04:00 | PUBLIC_OBSERVED | 208 | 2 | 0 | 0 | 0 | 2 | NA | NA |
+| BL-POST-1791589339142-QZtwsSBo | 17d | 2026-10-27T09:21:08.720-04:00 | PUBLIC_OBSERVED | 390 | 3 | 3 | 0 | 0 | 3 | NA | NA |
+| BL-POST-1791501798381-vTsMLRu2 | 18d | 2026-10-27T09:21:09.601-04:00 | PUBLIC_OBSERVED | 124 | NA | 0 | 0 | 0 | 4 | NA | NA |
+| BL-POST-1791495336766-q7dQtifh | 18d | 2026-10-27T09:21:10.435-04:00 | PUBLIC_OBSERVED | 98 | NA | 0 | 0 | 0 | NA | NA | NA |
+| BL-POST-1791416148323-vptp1ie5 | 19d | 2026-10-27T09:21:11.506-04:00 | PUBLIC_OBSERVED | 76 | NA | 0 | 0 | 0 | NA | NA | NA |
+| BL-POST-1791303632255-hNbqeFsO | 20d | 2026-10-27T09:21:12.387-04:00 | PUBLIC_OBSERVED | 12 | NA | 0 | 0 | 0 | NA | NA | NA |
+
+### Discussion observations — PUBLIC_OBSERVED
+
+Top Comments inspected; previously archived contributions retained when not rendered again. Existing Liked states observed only.
+
+| Post | Observed at — EDT | Visible discussion / limits |
+|---|---|---|
+| BL-POST-1792970189363-fIdOdvGU | 2026-10-27T09:21:19.399-04:00 | 1 displayed / 1 rendered: Mike L @noviceadvisor (1d), Venezuela involvement as growth prospect; 0 likes. |
+| BL-POST-1792935816952-RmJBGgJl | 2026-10-27T09:21:20.490-04:00 | 4 displayed / 2 rendered: Nate and Rudolf (both 1d), same capex-return and margin/depreciation discussion archived earlier, each 1 like. Prior PAM replies retained, not re-exposed. PARTIAL. |
+| BL-POST-1792712380652-veFF6JIW | 2026-10-27T09:21:21.523-04:00 | 2 displayed / 2 rendered: Shael @nickel333 and existing PAM rough-day reply (both 4d), each 1 like; Shael shows Liked. |
+| BL-POST-1792445839015-LojFs7Jp | 2026-10-27T09:21:22.334-04:00 | 2 displayed / 2 rendered: Nate @hoodnate (6d), buying/waiting question, 1 like and Liked. Existing PAM reply (6d, 0 likes) newly accessible in this scan: personal process balances buying/waiting, avoids chasing green indices or demanding perfect breadth, considers quality businesses with intact fundamentals after declines, cautious rather than automatically bearish; asks about opportunities outside big tech. Exact reply below. |
+| BL-POST-1792285181556-dajQRiJ8 | 2026-10-27T09:21:23.391-04:00 | 2 displayed / 1 rendered: solomon @ambessa (8d), same workforce/scale/supply-chain reshoring argument, 1 like. Prior PAM reply retained. PARTIAL. |
+| BL-POST-1791924123452-n0SE9Lsf | 2026-10-27T09:21:24.357-04:00 | 1 displayed / 1 rendered: Nate @hoodnate (13d), mood versus numbers and charge-off outlook question; 0 likes. |
+| BL-POST-1791589339142-QZtwsSBo | 2026-10-27T09:21:25.188-04:00 | 3 displayed / 3 rendered: Phil (17d), same AI-led index argument, 1 like/Liked; existing PAM reply (16d), 1 like, on AI financing loops and eventual paying customers; Phil follow-up (16d), 1 like/Liked, asserts bubble/collapse and speculates about taxpayer bailouts and debt. Previously missing contributions now exposed, summarized/archived below; participant claims are not verified findings. |
+
+**Newly exposed existing breadth reply, PAM:**
+
+> @hoodnate A bit of both, honestly. I'm not chasing the index just because it's green, but I'm not waiting for the whole market to look perfect either.
+>
+> If a quality business gets dragged down while its fundamentals hold up, that's where things get interesting.
+>
+> Narrow breadth makes me cautious, not automatically bearish. Are you seeing any opportunities outside big tech?
+
+**Newly exposed existing sentiment reply, PAM:**
+
+> @diversifiedfill Fair point. Nvidia's profits are very real, but I'm increasingly skeptical of how the AI boom is being financed.
+>
+> Big tech invests in AI companies, those companies spend billions on cloud computing, and cloud providers buy more chips. Add massive borrowing to the equation and things start looking pretty circular.
+>
+> That doesn't make the revenue fake, but it raises a serious question about how sustainable this growth really is.
+>
+> I'd be watching how much of that spending can eventually be supported by actual paying customers.
+
+Phil's existing follow-up argues confidently that AI is a bubble that will collapse, says government rescues shift losses to taxpayers, speculates about vastly larger future bailouts and debt of $100–200 trillion, and asks when debt matters. These are his opinions/speculation, not verified forecasts or adopted PAM conclusions.
+
+### Exact new public caption — BL-POST-1793107152966-YTBGWH9d
+
+> Boeing’s latest quarter shows why a turnaround can be real and uneven.
+>
+> Group GAAP operating earnings reached $354M, versus a $4.78B operating loss a year earlier. But Commercial Airplanes still lost $697M, while Defense earned $492M and Global Services earned $1.02B. Corporate and pension-accounting adjustments reconcile these segments to the group total.
+>
+> Commercial’s loss narrowed from $5.35B, although last year’s comparison included a 777X program charge.
+>
+> The real test now: sustainably positive commercial-airplane margins—not just a better group headline.
