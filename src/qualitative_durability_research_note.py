@@ -154,8 +154,10 @@ def _list(label, values):
     return '<h3>' + escape(label) + '</h3><ul>' + content + '</ul>'
 
 
-def render_qualitative_durability_research_note_v1(note):
-    """Return inert standalone HTML; never read/write files, fetch URLs or qualify facts."""
+def render_qualitative_durability_research_note_fragment_v1(note, *, include_conclusion=True):
+    """Return escaped note content without document wrappers or external assets."""
+    if type(include_conclusion) is not bool:
+        raise ResearchNoteError('Exact boolean conclusion-display option required')
     if type(note) is not QualitativeDurabilityResearchNoteV1:
         raise ResearchNoteError('Exact manual research note required')
     try:
@@ -163,12 +165,7 @@ def render_qualitative_durability_research_note_v1(note):
     except (AttributeError, TypeError):
         raise ResearchNoteError('Incomplete or malformed manual research note') from None
     parts = [
-        '<!doctype html><html lang="en"><head><meta charset="utf-8">',
-        '<meta http-equiv="Content-Security-Policy" content="default-src \'none\'; style-src \'unsafe-inline\'; base-uri \'none\'; form-action \'none\'">',
-        '<meta name="viewport" content="width=device-width, initial-scale=1">',
-        '<title>Manual qualitative Durability research note</title>',
-        '<style>body{max-width:64rem;margin:2rem auto;padding:0 1rem;font:1rem/1.5 system-ui;color:#172331;background:#fff}dt{font-weight:600}dd{margin:0 0 1rem;white-space:pre-wrap;overflow-wrap:anywhere}li{white-space:pre-wrap;overflow-wrap:anywhere}section{border-top:1px solid #aaa;margin-top:2rem}header{border-bottom:2px solid #172331}</style>',
-        '</head><body><header><h1>Qualitative Durability research note</h1>',
+        '<header><h1>Qualitative Durability research note</h1>',
         '<p>' + AUTHORITY + ' / ' + EVIDENCE_STATUS + '</p>',
         '<p>' + TEMPORAL_MODE + '</p>',
         '<p>Non-scored manual research; source grounding is not independently verified.</p></header>',
@@ -208,6 +205,19 @@ def render_qualitative_durability_research_note_v1(note):
             _list('Missing corroboration', item.missing_corroboration),
             _list('Uncertainties', item.uncertainties),
             _list('Possible falsification evidence', item.possible_falsification_evidence), '</section>'))
-    parts.append('<dl>' + _row('Manual research conclusion (operator supplied; not automated)',
-                              note.research_conclusion) + '</dl>')
-    return ''.join(parts) + '</body></html>'
+    if include_conclusion:
+        parts.append('<dl>' + _row('Manual research conclusion (operator supplied; not automated)',
+                                  note.research_conclusion) + '</dl>')
+    return ''.join(parts)
+
+
+def render_qualitative_durability_research_note_v1(note):
+    """Return inert standalone HTML; never read/write files, fetch URLs or qualify facts."""
+    head = (
+        '<!doctype html><html lang="en"><head><meta charset="utf-8">'
+        '<meta http-equiv="Content-Security-Policy" content="default-src \'none\'; style-src \'unsafe-inline\'; base-uri \'none\'; form-action \'none\'">'
+        '<meta name="viewport" content="width=device-width, initial-scale=1">'
+        '<title>Manual qualitative Durability research note</title>'
+        '<style>body{max-width:64rem;margin:2rem auto;padding:0 1rem;font:1rem/1.5 system-ui;color:#172331;background:#fff}dt{font-weight:600}dd{margin:0 0 1rem;white-space:pre-wrap;overflow-wrap:anywhere}li{white-space:pre-wrap;overflow-wrap:anywhere}section{border-top:1px solid #aaa;margin-top:2rem}header{border-bottom:2px solid #172331}</style>'
+        '</head><body>')
+    return head + render_qualitative_durability_research_note_fragment_v1(note) + '</body></html>'
