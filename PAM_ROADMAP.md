@@ -1512,6 +1512,45 @@ Avoid creating one opaque magic score.
 
 ### Stage D — Durability
 
+#### 2026-10-27 — CEO-recognized bounded research milestone
+
+**Bounded research infrastructure: `COMPLETE / CEO_RECOGNIZED` —
+`COMPLETE — BOUNDED PRIVATE DURABILITY RESEARCH INFRASTRUCTURE`.**
+**Full Stage D: `STAGE D — INCOMPLETE`.**
+
+The CEO explicitly recognized this bounded milestone following the CEO-supplied
+independent Architecture & Audit assessment
+`BOUNDED_RESEARCH_MILESTONE_READY / FULL_STAGE_D_INCOMPLETE`. It includes canonical
+D1 operating-profit continuity, D2 reported financial trajectory, the manual
+qualitative Durability research note, the unified private research sheet, an
+assessed methodology separating observations, economic mechanisms, contrary
+evidence, uncertainty and reassessment, and reported successful local synthetic
+Python/HTML validation. This is private research and presentation infrastructure,
+not an authenticated automated determination of persistent economic advantage;
+the original Stage D economic-persistence objective below is unchanged.
+
+D1/D2 authentic-positive findings remain attributed to their relevant specialist
+reviews. Codex reported PASS for the covered fictional Python API/HTML checks;
+browser rendering and actual visual inspection were `NOT_RUN`, real-source local
+acceptance remains `PENDING`, and authentic unified-sheet replay in that final
+exercise was `NOT_RUN`. The supplied record identifies D2, PR #240 and PR #241
+Actions failures before test-step execution, with no passing rerun established;
+these are not executed-test PASS or FAIL findings. This sync reruns no financial
+tests or source verification. See the
+[dated institutional record](governance/PAM_WORKLOG.md#2026-10-27--bounded-private-durability-research-milestone-recognized).
+
+No proven moat or forward persistence, automatic Durability determination/score,
+investment recommendation, native admission of manual/CMA/Jigsaw narrative evidence,
+authenticated narrative-to-financial join or new PIT / `HISTORICAL_AS_OF` authority
+is established. Quality, Confidence, Expected Return and investment rules remain
+unchanged. No allocation, execution, production, deployment or V2 promotion
+authority is granted. V1 remains the frozen operational baseline; V2 remains a
+challenger. Source provenance, permitted-use restrictions and the hard `$0`
+external financial-data-cost constraint remain. No D3, evidence campaign, visual
+testing task, Stage E implementation or other follow-on work is queued or activated;
+existing blockers, approved activities and the unattended orchestration pause persist.
+
+
 **Bounded Stage-D D1: `COMPLETE / CANONICAL` through
 [PR #151](https://github.com/PineAllocationMedia/investment_automation/pull/151).**
 
