@@ -221,3 +221,37 @@ queued work or generic automation principles do not override this pause. It is
 neither a host-strategy replacement nor permission to close issues or erase
 historical acceptance limits. Bounded, explicitly authorized attended work remains
 subject to its own mandate and all existing safety and financial gates.
+
+## 13. AI-native Financial Systems coordination and readiness
+
+The CEO-selected 2026-10-27 Financial Systems reform is described in
+[`docs/strategy/PAM_FINANCIAL_SYSTEMS_AI_NATIVE_REFORM.md`](../docs/strategy/PAM_FINANCIAL_SYSTEMS_AI_NATIVE_REFORM.md).
+The organizational Program Manager retains coordination across **both** PAM
+activities. The proposed Financial Systems Command Center is a task-specific
+research environment, not an additional autonomous governor or a replacement
+for the Program Manager. Research and Portfolio Intelligence are likewise
+proposed Project environments, not self-invoking roles.
+
+No cross-Project interaction, account/broker visibility, Blossom browsing,
+scheduled access, external integration or unattended execution is assumed.
+Use verifiable supported interactions, the smallest practical handoffs and
+explicitly recorded user effort; human transfer is the fallback until tested.
+
+Financial research controls continue to require traceable source facts,
+explicit assumptions, risk-proportionate independent checks and versioned
+methods. Significant research records belong in tiered memory; secret or
+private portfolio data require separately protected storage and permissions.
+No automatic rule improvement, data authority or research-output promotion.
+
+`RESEARCH-READY`, `PORTFOLIO-READY` and `ROUTINE-READY` are
+**scoped experimental capability milestones**, each requiring a documented
+evaluation and explicit owner acceptance. They confer no production,
+investment-policy, trade, deployment, V1 replacement, V2 promotion or
+legacy-retirement authority. The V1/V2 shadow and promotion gates remain
+separate and unchanged.
+
+Preparing a three-Project pilot and performing read-only Mac/Chromebook/PC
+inventories are separate Work Orders needing explicit bounded authority.
+Device access, movement, deletion or cleanup is not granted here. Existing
+unattended-development pause, $0 external financial-data-cost constraint,
+source licensing and the authorized Media & Communication scope persist.

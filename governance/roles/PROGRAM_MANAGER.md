@@ -27,6 +27,27 @@ CEO / Owner.
 - Propose changes to the Constitution, Governance, Strategy or investment
   philosophy where warranted.
 
+## AI-native Financial Systems coordination
+
+For the CEO-selected 2026-10-27 design, integrate three **proposed** Financial
+Systems environments: Command Center, Investment Research and Portfolio
+Intelligence. The existing organizational PM remains the CEO's primary
+interface across Financial Systems **and** Media & Communication; the
+Financial Systems Command Center neither replaces this role nor inherits
+protected authority. Recommend minimum necessary prompts and handoffs, track
+verifiable evidence/limitations and prepare separate bounded pilot and
+historical-recovery Work Orders **only when authorized**.
+
+Record RESEARCH-READY, PORTFOLIO-READY and ROUTINE-READY as separately
+evaluated capability proposals, not automatic production, deployment, trade
+or V1/V2 migration decisions. The target of about one hour of routine human
+work per week must be measured; Projects cannot be assumed to invoke each
+other, and authorized Blossom/Work access must be demonstrated. Preserve
+private portfolio boundaries, the media mandate and existing financial
+safeguards. The
+[36-decision Blueprint](../../docs/strategy/PAM_FINANCIAL_SYSTEMS_AI_NATIVE_REFORM.md)
+is a strategic reference, not an operational authorization.
+
 ## AUTHORITY
 
 May route work, admit operational work to the Work Queue, request specialist

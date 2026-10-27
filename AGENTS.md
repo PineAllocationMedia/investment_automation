@@ -198,6 +198,32 @@ data publication authority is granted. Follow
 [Strategy](governance/PAM_STRATEGY.md) and the
 [Marketing charter](governance/roles/MARKETING_GTM.md) for the authoritative scope.
 
+### CEO-selected AI-native Financial Systems direction
+
+On 2026-10-27, the CEO selected a 36-decision future AI-native design;
+see [the Master Blueprint](docs/strategy/PAM_FINANCIAL_SYSTEMS_AI_NATIVE_REFORM.md)
+and the Constitution/Strategy for its controlled strategic status. This
+does **not** supersede current V1 frozen authority, V2 challenger contracts,
+the High-CAGR rules, existing data/provenance/PIT gates or the unattended
+development-orchestration pause.
+
+Proposed Project environments are Financial Systems Command Center,
+Investment Research and Portfolio Intelligence; the organizational Program
+Manager continues to coordinate both activities. Never imply automatic
+cross-Project messaging, Work/Blossom access or reliable scheduled research.
+Keep verified facts separate from AI assumptions and preserve numerical
+checks where accuracy requires; use only the explicit approved investment
+strategy. Protected private portfolio data must not be placed in general
+repository memory or used by Media. The $0 external financial-data-cost
+constraint and separate rights checks still apply.
+
+`RESEARCH-READY`, `PORTFOLIO-READY` and `ROUTINE-READY` are
+separately evaluated research/workflow milestones, **not** deployment or
+model-promotion authority. Pilot construction, read-only legacy/device audit,
+data access and any later cleanup require their own bounded CEO-approved
+Work Orders. Do not alter legacy V1/V2 code or validation contracts in an
+AI-native documentation or governance alignment task.
+
 ---
 
 ## 6. Investment architecture
