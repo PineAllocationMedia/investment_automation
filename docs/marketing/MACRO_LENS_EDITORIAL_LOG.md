@@ -1,7 +1,7 @@
 # PAM | Blossom — editorial evidence & experiment log v1.1
 
 **Channel:** Blossom `@therealpam`.
-**Status:** 24 distinct accessible originals recorded through 2026-10-25: latest scan added 2 and refreshed 22 with 24 appended snapshots. All 24 exposed permalinks inspected; historical completeness remains unproven and some discussion bodies remain PARTIAL. Earlier observations preserved. No private analytics or post-attributed follows established.
+**Status:** 26 distinct accessible originals recorded through 2026-10-26: latest scan added 2 and refreshed 24 with 26 appended snapshots. All exposed permalinks inspected; historical completeness unproven and some discussion bodies PARTIAL. Earlier observations preserved. No private analytics or post-attributed follows established.
 **Instructions:** [Playbook](MACRO_LENS_PLAYBOOK.md) · [Templates](MACRO_LENS_TEMPLATES.md).
 
 This existing register now tracks all verified @therealpam original posts: Macro Lens and ordinary content alike. Do not invent approval history for past ordinary posts. Replies to others are distinct from original publications.
@@ -681,3 +681,101 @@ Top Comments inspected. Missing bodies not inferred, and earlier captures remain
 **Single controlled proposal:** `EXP-20261026-01` in Section D varies only the closing tripwire's **question-versus-statement form** in otherwise equally researched, naturally useful company-earnings posts. Prespecify at most three matched pairs, daypart and format matching, before publication; compare independently visible, thesis-specific third-party comments per 100 public views near rounded 72h, reporting raw counts and missing observations, and exclude PAM replies. No inference of causation from six posts; 'INCONCLUSIVE' is a valid outcome. No unnecessary postings to meet sample size.
 
 **CEO decision only:** Proposed *clarification* to the playbook: explicitly require a concise immutable **open-scan prepublication reader-value hypothesis and format rationale**, then an age-aware discussion review. The current playbook already gestures toward this; **no playbook amendment, template redesign, publication, audit approval or automation has been made**. Experiment status **PROPOSED**, not running. No public correction made.
+
+## Profile scan — 2026-10-26 (authorized signed-in Cloud Browser)
+
+**Coverage:** 26 originals discovered / 26 individually inspected / 2 new records / 24 existing records refreshed / 0 discovered post URLs inaccessible. Each individual @therealpam authorship link verified against /users/PAM__IwHhSPDG2aOMks63. Posts tab only; Blooms, trades and replies to others excluded. Feed exposed 13, then 13 more after bottom navigation; further bottom navigation exposed no additional posts or pagination beyond the introduction. **All exposed originals captured; HISTORICAL COMPLETENESS UNPROVEN.** No authoritative historical total. Authenticated Comment access worked; no login restriction blocked completion. Some discussion bodies remain unavailable.
+
+**Range/time:** UI ages 5m–20d, approximately October 6–26, 2026 from rounded labels only. Exact publication timestamps NA; no conversion of ID digits to dates. Counters captured October 26, 20:20:42.028–20:21:05.725 EDT, America/Toronto (UTC−04:00); UTC was October 27, 00:20–00:21. Discussion revisits through 20:21:23.387 EDT. Prior differing labels preserved, not retrospectively corrected.
+
+**Metric meanings:** all PUBLIC_OBSERVED, even authenticated. Views = displayed cumulative views, uniqueness unknown; comments = displayed total with reply semantics undocumented; shares = arrow counter, not proof of completed external shares; saves = bookmark counter. Likes = numeric heart-only count; mixed emoji total retained as total reactions, heart breakdown NA. Missing numeric count = NA, not zero. Profile visits and attributed follows NA. Account display 10 followers / 5 following at 20:21:14.193 EDT; account-level only, no post attribution. No private analytics, invented 24h/72h/7d snapshots, background monitoring or Blossom mutation.
+
+**History reuse:** prior caption, thesis, template, rationale and audit/approval evidence retained unchanged. New records preserve public thesis/caption; unavailable internal history remains NA. Measurement does not independently verify financial claims, source rights or participants' forecasts.
+
+### New original records — existing register continuation
+
+| Issue ID | Class/status | Published thesis | Internal evidence | Permalink |
+|---|---|---|---|---|
+| BL-POST-1793060142652-bt1IJKAo | Company/IPO commentary / PUBLISHED | Anthropic reported loss differs from cash compute spending; fair-value financing effects dominate headline loss; operating cash, compute economics and dilution remain relevant | Exact template/version, original rationale, audit, approval and source register NA | https://www.blossomsocial.com/posts/Anthropics-IPO-Understanding-the-dollar80B-Loss__POST-1793060142652-bt1IJKAo_IwHhSPDG2aOMks63 |
+| BL-POST-1793023468268-JghTaJye | Macro calendar commentary / PUBLISHED | Thursday data may alter interpretation of Wednesday Fed decision; growth/inflation combinations matter | Exact template/version, original rationale, audit, approval and source register NA | https://www.blossomsocial.com/posts/Fed-Rate-Decision-and-Inflation-Data-Key-Insights__POST-1793023468268-JghTaJye_IwHhSPDG2aOMks63 |
+
+### Appended snapshots
+
+| Issue ID | Rounded UI age (exact NA) | Observed at — America/Toronto EDT | Provenance | Views | Likes | Comments | Shares | Saves | Total reactions | Profile visits | Attributed follows |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| BL-POST-1793060142652-bt1IJKAo | 5m | 2026-10-26T20:20:42.028-04:00 | PUBLIC_OBSERVED | 6 | NA | 0 | 0 | 0 | NA | NA | NA |
+| BL-POST-1793023468268-JghTaJye | 10h | 2026-10-26T20:20:42.832-04:00 | PUBLIC_OBSERVED | 34 | NA | 0 | 0 | 0 | NA | NA | NA |
+| BL-POST-1792970189363-fIdOdvGU | 1d | 2026-10-26T20:20:43.560-04:00 | PUBLIC_OBSERVED | 124 | 2 | 1 | 0 | 0 | 2 | NA | NA |
+| BL-POST-1792935816952-RmJBGgJl | 1d | 2026-10-26T20:20:44.396-04:00 | PUBLIC_OBSERVED | 404 | 4 | 4 | 1 | 0 | 4 | NA | NA |
+| BL-POST-1792850545800-gNzqcp6X | 2d | 2026-10-26T20:20:45.145-04:00 | PUBLIC_OBSERVED | 110 | 1 | 0 | 0 | 0 | 1 | NA | NA |
+| BL-POST-1792773556527-n3zJCc9e | 3d | 2026-10-26T20:20:46.349-04:00 | PUBLIC_OBSERVED | 116 | 1 | 0 | 0 | 0 | 1 | NA | NA |
+| BL-POST-1792712380652-veFF6JIW | 4d | 2026-10-26T20:20:47.143-04:00 | PUBLIC_OBSERVED | 86 | 2 | 2 | 0 | 0 | 2 | NA | NA |
+| BL-POST-1792632635232-p3wDGaJ3 | 4d | 2026-10-26T20:20:47.915-04:00 | PUBLIC_OBSERVED | 32 | NA | 0 | 0 | 0 | NA | NA | NA |
+| BL-POST-1792618150646-9HYkfaqz | 5d | 2026-10-26T20:20:48.652-04:00 | PUBLIC_OBSERVED | 52 | NA | 0 | 0 | 0 | NA | NA | NA |
+| BL-POST-1792543338595-Ou0WyNVs | 5d | 2026-10-26T20:20:49.599-04:00 | PUBLIC_OBSERVED | 272 | NA | 0 | 1 | 0 | NA | NA | NA |
+| BL-POST-1792445839015-LojFs7Jp | 7d | 2026-10-26T20:20:50.362-04:00 | PUBLIC_OBSERVED | 274 | 4 | 2 | 0 | 0 | 4 | NA | NA |
+| BL-POST-1792413329799-4TDnXVvZ | 7d | 2026-10-26T20:20:51.072-04:00 | PUBLIC_OBSERVED | 60 | NA | 0 | 1 | 0 | NA | NA | NA |
+| BL-POST-1792285181556-dajQRiJ8 | 8d | 2026-10-26T20:20:51.826-04:00 | PUBLIC_OBSERVED | 128 | 1 | 2 | 0 | 0 | 1 | NA | NA |
+| BL-POST-1792243935166-5rY3pW0x | 9d | 2026-10-26T20:20:56.645-04:00 | PUBLIC_OBSERVED | 844 | NA | 0 | 2 | 0 | 6 | NA | NA |
+| BL-POST-1792154075898-WKgQpyWr | 10d | 2026-10-26T20:20:57.423-04:00 | PUBLIC_OBSERVED | 60 | NA | 0 | 0 | 0 | NA | NA | NA |
+| BL-POST-1792015357362-r0k28CcU | 12d | 2026-10-26T20:20:58.214-04:00 | PUBLIC_OBSERVED | 340 | NA | 0 | 0 | 0 | 7 | NA | NA |
+| BL-POST-1791924123452-n0SE9Lsf | 13d | 2026-10-26T20:20:58.984-04:00 | PUBLIC_OBSERVED | 174 | 4 | 1 | 0 | 0 | 4 | NA | NA |
+| BL-POST-1791820180736-IT7xZSEt | 14d | 2026-10-26T20:20:59.694-04:00 | PUBLIC_OBSERVED | 88 | 2 | 0 | 0 | 0 | 2 | NA | NA |
+| BL-POST-1791764804066-6p0ZcQRe | 14d | 2026-10-26T20:21:00.615-04:00 | PUBLIC_OBSERVED | 248 | NA | 0 | 0 | 0 | NA | NA | NA |
+| BL-POST-1791725403770-fzsmjWDJ | 15d | 2026-10-26T20:21:01.277-04:00 | PUBLIC_OBSERVED | 174 | 2 | 0 | 0 | 0 | 2 | NA | NA |
+| BL-POST-1791636358863-EDvN5sp6 | 16d | 2026-10-26T20:21:01.970-04:00 | PUBLIC_OBSERVED | 208 | 2 | 0 | 0 | 0 | 2 | NA | NA |
+| BL-POST-1791589339142-QZtwsSBo | 17d | 2026-10-26T20:21:02.702-04:00 | PUBLIC_OBSERVED | 390 | 3 | 3 | 0 | 0 | 3 | NA | NA |
+| BL-POST-1791501798381-vTsMLRu2 | 18d | 2026-10-26T20:21:03.441-04:00 | PUBLIC_OBSERVED | 124 | NA | 0 | 0 | 0 | 4 | NA | NA |
+| BL-POST-1791495336766-q7dQtifh | 18d | 2026-10-26T20:21:04.150-04:00 | PUBLIC_OBSERVED | 98 | NA | 0 | 0 | 0 | NA | NA | NA |
+| BL-POST-1791416148323-vptp1ie5 | 19d | 2026-10-26T20:21:04.860-04:00 | PUBLIC_OBSERVED | 76 | NA | 0 | 0 | 0 | NA | NA | NA |
+| BL-POST-1791303632255-hNbqeFsO | 20d | 2026-10-26T20:21:05.725-04:00 | PUBLIC_OBSERVED | 12 | NA | 0 | 0 | 0 | NA | NA | NA |
+
+### Accessible discussion — PUBLIC_OBSERVED
+
+Top Comments inspected; missing bodies not inferred. Earlier full captures retained. Existing Liked states/replies observed only.
+
+| Post | Observed at — EDT | Rendered discussion / limits |
+|---|---|---|
+| BL-POST-1792970189363-fIdOdvGU | 2026-10-26T20:21:14.193-04:00 | 1 displayed / 1 rendered: Mike L @noviceadvisor (23h), “Slb is also involved in Venezuela so it'll grow from there”; 0 likes. Participant forecast, not verified. |
+| BL-POST-1792935816952-RmJBGgJl | 2026-10-26T20:21:18.612-04:00 | 4 displayed / 4 rendered. Same two reader comments and two existing PAM replies archived October 25; all now labelled 1d. Nate asks whether AI spend pays off; Rudolf emphasizes margin/depreciation. PAM distinguishes ad effectiveness from capex returns, watching incremental FCF, ROIC and margins. Each of four contributions has 1 like; Nate/Rudolf show existing Liked state. No additional bodies exposed. |
+| BL-POST-1792712380652-veFF6JIW | 2026-10-26T20:21:19.580-04:00 | 2 displayed / 1 rendered: Shael @nickel333 (4d), rough market day; 1 like. Earlier PAM reply not re-exposed. PARTIAL. |
+| BL-POST-1792445839015-LojFs7Jp | 2026-10-26T20:21:20.474-04:00 | 2 displayed / 1 rendered: Nate @hoodnate (6d), narrow-breadth concern, asks buying versus waiting; 1 like. PARTIAL. |
+| BL-POST-1792285181556-dajQRiJ8 | 2026-10-26T20:21:21.425-04:00 | 2 displayed / 2 rendered: solomon @ambessa (8d) on workforce/supply-chain constraints, 1 like and existing Liked state. Existing PAM reply (7d, 0 likes) says tariffs act faster than skills/supply chains, notes semiconductor/TSMC potential and difficulties, emphasizes competitive industrial ecosystem and dollar headwind. Matches substance of prior archived reply; not a new action. |
+| BL-POST-1791924123452-n0SE9Lsf | 2026-10-26T20:21:22.448-04:00 | 1 displayed / 1 rendered: Nate @hoodnate (13d), mood versus bank figures and charge-off outlook question; 0 likes. |
+| BL-POST-1791589339142-QZtwsSBo | 2026-10-26T20:21:23.387-04:00 | 3 displayed / 1 rendered: Phil @diversifiedfill (16d), AI-led index strength versus weaker other stocks, questions earnings discipline; 1 like. PARTIAL. |
+
+### Exact new public captions
+
+#### BL-POST-1793060142652-bt1IJKAo
+
+> Anthropic filed to go public today. Its first-half numbers require two very different readings.
+>
+> Revenue: $16.286B. Operating loss: $693M. Reported net loss: $80.748B.
+>
+> So did it burn $80B running AI models? No. The filing attributes $72.388B of the net loss to fair-value changes on convertible notes, derivative liabilities and SAFEs — about 89.6% of the reported loss.
+>
+> That doesn't make the business risk-free. The company still reported an operating loss, $8.945B in compute and infrastructure expense, and significant financing and compute commitments. A fair-value adjustment isn't the same as cash spent on computing, but financing terms can still matter enormously to future shareholders.
+>
+> What I'd watch next: operating cash flow, compute economics, potential dilution and revised offering terms. The preliminary S-1 gives no IPO price or share count yet.
+
+#### BL-POST-1793023468268-JghTaJye
+
+> The Fed speaks Wednesday. Inflation gets another word in Thursday.
+>
+> Interesting timing.
+>
+> Wednesday, Oct. 28, at 2 PM ET: the Fed announces its rate decision.
+>
+> Thursday, Oct. 29, at 8:30 AM ET: the first Q3 GDP estimate and September PCE inflation data arrive together.
+>
+> Here's what I'm watching:
+>
+> Strong growth + stubborn inflation could make easier monetary policy harder to justify.
+>
+> Cooling inflation + weakening growth would tell a very different story.
+>
+> Of course, the Fed has more information than any single public release. But Thursday's figures could change how investors interpret Wednesday's message.
+>
+> The real question isn't just what the Fed decides.
+>
+> It's whether the next day's data support the reasoning behind it.
