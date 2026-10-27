@@ -3,8 +3,6 @@ from decimal import Decimal
 from enum import Enum
 from html import escape
 
-from economic_facts import sec_current_annual_issuer_two_period_revenue_operating_income as native
-from economic_facts.sec_archive import ArchiveError
 from src import d1_two_period_operating_profit_continuity as d1
 from src import d2_two_period_reported_trajectory as d2
 from src import qualitative_durability_research_note as manual
@@ -59,9 +57,7 @@ def _ratio(value):
     return None if value is None else str(value.numerator) + ' / ' + str(value.denominator)
 
 
-def _verified_financial_context(qualification):
-    if type(qualification) is not native.CurrentAnnualIssuerTwoPeriodRevenueOperatingIncomeQualificationV1:
-        raise ResearchSheetIntegrityError('Exact bound native Contract A qualification required')
+def _verified_financial_context(qualification, native):
     snapshot = native._verified_comparative_snapshot(qualification)
     first = d1.analyze_d1_two_period_operating_profit_continuity_v1(snapshot)
     second = d2.analyze_d2_two_period_reported_trajectory_v1(snapshot)
@@ -90,14 +86,21 @@ def _verified_financial_context(qualification):
 
 
 def _financial_fragment(qualification):
+    failure = ('<p class="integrity">INTEGRITY_FAILURE</p><p>Financial evidence could not '
+               'be verified or paired. No financial values or diagnostic outputs are displayed. '
+               'This is an integrity failure, not UNAVAILABLE and not a business judgment.</p>')
+    # Reuse the existing source-neutral analyzer's exact native type gate. Do not
+    # introduce a model-to-source import or a second evidence trust mechanism.
     try:
-        snapshot, first, second = _verified_financial_context(qualification)
-    except (ArchiveError, d1.D1DiagnosticError, d2.D2DiagnosticError,
+        native = d1._canonical_upstream_module(qualification)
+    except d1.D1DiagnosticError:
+        return failure
+    try:
+        snapshot, first, second = _verified_financial_context(qualification, native)
+    except (native.ArchiveError, d1.D1DiagnosticError, d2.D2DiagnosticError,
             ResearchSheetIntegrityError, OSError):
         # Do not expose caller-controlled IDs, values, paths or raw exception text.
-        return ('<p class="integrity">INTEGRITY_FAILURE</p><p>Financial evidence could not '
-                'be verified or paired. No financial values or diagnostic outputs are displayed. '
-                'This is an integrity failure, not UNAVAILABLE and not a business judgment.</p>')
+        return failure
     parts = ['<dl>', _row('Native Contract A status', snapshot.status),
         _row('Source CIK', snapshot.source_cik), _row('Reporting basis', snapshot.accounting_basis),
         _row('Namespace', snapshot.namespace), _row('Unit', snapshot.unit),

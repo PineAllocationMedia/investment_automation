@@ -40,7 +40,10 @@ independent corroboration; D1/D2 changes are not attributed to a manual hypothes
 
 ## Native financial verification and status handling
 
-The adapter first invokes Contract A's existing `_verified_comparative_snapshot`.
+The adapter resolves the native qualification module through D1's existing exact
+canonical type gate, preserving the model/source dependency direction without
+importing `economic_facts` into `src`. It invokes Contract A's existing
+`_verified_comparative_snapshot`.
 It derives D1 and D2 through their unchanged native analyzers from that same exact
 reconstructed bound qualification. Each analyzer independently replays through its
 existing trusted boundary. This intentionally retains three native replays rather

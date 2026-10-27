@@ -308,5 +308,4 @@ class UnifiedResearchSheetTests(D1Fixture):
         modules = {node.module if isinstance(node, ast.ImportFrom) else node.names[0].name
                    for node in ast.walk(ast.parse(inspect.getsource(sheet)))
                    if isinstance(node, (ast.Import, ast.ImportFrom))}
-        self.assertEqual(modules, {'decimal', 'enum', 'html', 'economic_facts',
-                                  'economic_facts.sec_archive', 'src'})
+        self.assertEqual(modules, {'decimal', 'enum', 'html', 'src'})
