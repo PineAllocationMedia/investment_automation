@@ -22,8 +22,7 @@ from render_macro_lens import (
     release_allowed, wrap,
 )
 
-NOTE_BG = '#152A2D'
-SEPARATOR = '#405751'
+from pam_theme import NOTE_BG, SEPARATOR, SYNTHETIC_BG
 SECTIONS = ('EQUITIES', 'RATES', 'FX', 'COMMODITIES')
 ID_RE = re.compile(r'^MB-\d{8}-\d{2}$')
 VALUE_RE = re.compile(r'^([+-]?\d+(?:,\d{3})*(?:\.\d{1,4})?)$')
@@ -245,7 +244,7 @@ def draw_market_brief(p, logo_png=None, status='DRAFT'):
     out.append(_text_checked(1012, 1312, 'NOT INVESTMENT ADVICE',
                              22, 351, color=MUTED, weight=550, anchor='end'))
     if status != 'RELEASE' and synthetic_issue(p):
-        out.append(rect(710, 151, 302, 53, '#503D25', 12, AMBER))
+        out.append(rect(710, 151, 302, 53, SYNTHETIC_BG, 12, AMBER))
         out.append(txt(861, 185, 'DRAFT · SYNTHETIC TEST', 18, AMBER, 750, anchor='middle'))
     out.append('</svg>')
     result = '\n'.join(out) + '\n'
@@ -304,3 +303,4 @@ def run(argv=None):
 
 if __name__ == '__main__':
     raise SystemExit(run())
+

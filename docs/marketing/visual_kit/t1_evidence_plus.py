@@ -10,12 +10,8 @@ import calendar
 import re
 from xml.sax.saxutils import escape
 
-BG = '#11242A'
-PANEL = '#1A3233'
-LIGHT = '#F4F0E6'
-MUTED = '#BDC8BE'
-SAGE = '#A6CBB1'
-AMBER = '#E6C592'
+from pam_theme import (BG, PANEL, LIGHT, MUTED, SAGE, AMBER,
+                       HIGHLIGHT_BG, WATCH_BG)
 FONT = 'DejaVu Sans, Liberation Sans, Arial, sans-serif'
 MONTH_RE = re.compile(r'^\d{4}-(0[1-9]|1[0-2])$')
 NUMBER_RE = re.compile(r'^[+\-]?(?:\d+(?:,\d{3})*)(?:\.\d{1,3})?%?$')
@@ -201,7 +197,7 @@ def draw_t1_plus(out, p, primary, evidence, need):
     """
     related = used_evidence(p, [primary], evidence)
     facts_by_id = {f['claim_id']: f for f in related}
-    out.append(_rect(68, 461, 944, 131, '#204039', 20))
+    out.append(_rect(68, 461, 944, 131, HIGHLIGHT_BG, 20))
     out.append(_text(97, 497, '01 / THE VERIFIED SIGNAL', 20, SAGE, 800))
     out.append(_text(97, 562, primary['display'], 48, LIGHT, 800))
     out.append(_text(438, 547, primary['label'], 26, LIGHT, 650))
@@ -258,6 +254,6 @@ def draw_t1_plus(out, p, primary, evidence, need):
     out.extend(_paragraph(68, 1044, p['blind_spot'], chars=65, lines=2,
                           title='blind_spot', need=need, size=23, leading=33))
     # Leave a nonoverlapping, 2-line source attribution area in the T1 footer.
-    out.append(_rect(68, 1096, 944, 66, '#32433D', 10))
+    out.append(_rect(68, 1096, 944, 66, WATCH_BG, 10))
     out.extend(_paragraph(89, 1137, 'WATCH: '+p['tripwire'], chars=93, lines=1,
                           title='tripwire', need=need, size=18, color=AMBER, weight=600))

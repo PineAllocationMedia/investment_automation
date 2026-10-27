@@ -24,6 +24,8 @@ from render_macro_lens import (
     valid_url, payload_hash, checked_logo, rect, rule, txt, wrap,
 )
 
+from pam_theme import PANEL, DIVIDER, SYNTHETIC_BG
+
 GEOMETRY = Path(__file__).parent/'assets'/'m1_natural_earth_50m_v5_1_1.json'
 # Pin the 177 original country IDs mapped to the genuine public-domain
 # Natural Earth 1:50m polygons; geometry upgraded for Arctic/coastal fidelity.
@@ -3806,9 +3808,9 @@ def _render_market_atlas_reference(p, geo, eligible, logo_png, status):
     dark = BG
     ocean = '#12282C'
     land = '#21393B'
-    panel = '#173033'
-    border = '#36585A'
-    soft = '#B5C8C4'
+    panel = PANEL
+    border = DIVIDER
+    soft = MUTED
     green = '#78C99D'
     red = '#E67C7A'
     def color(v):
@@ -3952,7 +3954,7 @@ def _render_market_atlas_reference(p, geo, eligible, logo_png, status):
         txt(1012,1334,'NOT INVESTMENT ADVICE',13,soft,540,anchor='end'),
     ])
     if status=='DRAFT' and p['rights_note']=='SYNTHETIC_LAYOUT_ONLY':
-        out.extend([rect(750,305,262,36,'#503D25',5),
+        out.extend([rect(750,305,262,36,SYNTHETIC_BG,5),
                     txt(881,329,'SYNTHETIC EXAMPLE',15,AMBER,750,anchor='middle')])
     out.append('</svg>')
     svg='\n'.join(out)+'\n'
@@ -4162,7 +4164,7 @@ def render_global_map(p, logo_png=None, status='DRAFT', geometry_path=GEOMETRY):
     # Market Atlas maps, including research-state views, are always clean on
     # the image. Audit/CEO state lives in the separate SHA-bound manifest.
     if status=='DRAFT' and p['rights_note']=='SYNTHETIC_LAYOUT_ONLY':
-        out.append(rect(720,202,292,48,'#503D25',10,AMBER))
+        out.append(rect(720,202,292,48,SYNTHETIC_BG,10,AMBER))
         out.append(txt(866,233,'DRAFT · SYNTHETIC' if
                        p['rights_note']=='SYNTHETIC_LAYOUT_ONLY'
                        else 'DRAFT · REAL DATA' if
@@ -4223,3 +4225,4 @@ def run(argv=None):
 
 if __name__=='__main__':
     raise SystemExit(run())
+

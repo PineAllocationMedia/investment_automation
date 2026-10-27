@@ -24,8 +24,7 @@ from render_macro_lens import (
     valid_url, wrap, release_allowed,
 )
 
-DARK_PANEL = '#172C30'
-DIVIDER = '#415A55'
+from pam_theme import DARK_PANEL, DIVIDER, SYNTHETIC_BG
 NEUTRAL = '#D5D3C9'
 SECTORS = (
     'Communication Services',
@@ -273,7 +272,7 @@ def render_sector_rotation(p, logo_png=None, status='DRAFT'):
     out.append(txt(1012, 1321, 'NOT INVESTMENT ADVICE', 19,
                    MUTED, 550, anchor='end'))
     if status != 'RELEASE' and p.get('rights_note') == 'SYNTHETIC_LAYOUT_ONLY':
-        out.append(rect(732, 159, 280, 45, '#503D25', 10, AMBER))
+        out.append(rect(732, 159, 280, 45, SYNTHETIC_BG, 10, AMBER))
         out.append(txt(872, 188, 'DRAFT · SYNTHETIC TEST',
                        16, AMBER, 750, anchor='middle'))
     out.append('</svg>')
@@ -334,3 +333,4 @@ def run(argv=None):
 
 if __name__ == '__main__':
     raise SystemExit(run())
+
