@@ -110,6 +110,6 @@ AUTHORITY: No trades, broker actions, auto Project messaging, deployment, schedu
 - [Program Manager charter](../../../governance/roles/PROGRAM_MANAGER.md) — organization-wide PM, **not** this Project.
 - [AI-native Reform Master Blueprint](../../strategy/PAM_FINANCIAL_SYSTEMS_AI_NATIVE_REFORM.md) — 36 design decisions, gates and known capability limitations.
 - [AGENTS.md](../../../AGENTS.md) — repository-agent operating rules (separate from ChatGPT Project instructions).
-- [Product & UX v0.2 proposal](../../strategy/PAM_FINANCIAL_SYSTEMS_AI_NATIVE_REFORM.md) — strategic foundation; exact WO-specific v0.2 templates were supplied in PM/Product & UX review, not yet archived as a distinct repo methodology.
+- **Workflow v0.2 design provenance:** `WO-FIN-REFORM-WORKFLOW-V02` Product & UX proposal was CEO-supplied and PM-reviewed in ChatGPT; the separate complete Product & UX proposal has not yet been committed to this repository. Do not mislabel the Blueprint as that proposal.
 
 **Explicit unchanged boundaries:** `main` V1 operational, V2 challenger/Stage D incomplete, PIT/provenance validation, $0 external financial-data cost and rights, protected amendments/merges requiring CEO approval, unattended development pause, separate unchanged Media & Communication publication scope. No production promotion, account access, scheduled execution, device cleanup or automatic inter-Project communication.
