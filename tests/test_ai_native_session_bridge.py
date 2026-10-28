@@ -280,4 +280,60 @@ class SessionBridgeTests(unittest.TestCase):
         self.assertEqual(out["storage"], "NONE")
         self.assertEqual(out["project_invocation"], "NONE")
 
+
+    def test_portfolio_room_review_reaches_final_report_on_ir_pi_route(self):
+        from unittest.mock import patch
+        req = self.request(portfolio_needed=True)
+        original = self.ir()
+        pi = self.pi(forwarded_ir=copy.deepcopy(original))
+        reviewed = {
+            "analysis_id":"CASE-A", "as_of":"2026-10-28", "observed_on":"2026-10-28",
+            "status":"ROOM_UNAVAILABLE",
+            "research_axes_private":{k:{"status":"UNKNOWN","ir_fact_ids":[]}
+                for k in ("QUALITY","DURABILITY","EXPECTED_RETURN","CONFIDENCE")},
+            "portfolio_checks_private":{k:{"status":"UNKNOWN","source_ref":None}
+                for k in ("CONCENTRATION","CORRELATED_DRIVERS","ALTERNATIVES","ACCOUNT_COSTS")},
+            "known_candidate_issuer_exposure_pct_private":None,
+            "unclassified_lookthrough_pct_private":None,
+            "missing_or_qualified":["ACCOUNT_TYPE_UNKNOWN"],
+            "portfolio_room_authority":"QUALITATIVE_SPECIALIST_REPORTED_ONLY",
+            "independent_evidence_check":"NOT_PERFORMED",
+            "contribution_or_sale_proposal":"NONE_NOT_AUTOMATED",
+            "trade_authority":"NONE_CEO_ONLY","public_memory_write":"NONE",
+        }
+        with patch("ai_native.session_bridge.prepare_observation_ledger",
+                   return_value={"observed_on":"2026-10-28", "known_scope_weights_pct":None}), \\
+             patch("ai_native.session_bridge.aggregate_portfolio_exposures",
+                   return_value={"status":"UNAVAILABLE_INCOMPLETE_P_LEDGER"}), \\
+             patch("ai_native.session_bridge.prepare_portfolio_room_review",
+                   return_value=reviewed):
+            result=complete_manual_session(
+                req, ir_capsule=original, pi_delta=pi,
+                observation_inputs={"analysis_id":"CASE-A","analysis_as_of":"2026-10-28"},
+                exposure_classifications={},
+                room_assessment_inputs={"synthetic":"inputs"},
+            )
+        self.assertIn("Portfolio Room — caller-reported", result["final_report_private"])
+        self.assertIn("ROOM_UNAVAILABLE", result["final_report_private"])
+        self.assertEqual(result["integrated_private"]["memory_proposal_nonprivate"]["archive_status"],
+                         "PROPOSED_NOT_COMMITTED")
+        self.assertNotIn("ACCOUNT_TYPE_UNKNOWN", str(result["integrated_private"]["memory_proposal_nonprivate"]))
+        self.assertEqual(result["portfolio_room_review_private"], reviewed)
+
+    def test_portfolio_room_no_pi_stays_pending(self):
+        from unittest.mock import patch
+        with patch("ai_native.session_bridge.prepare_observation_ledger",
+                   return_value={"observed_on":"2026-10-28"}), \\
+             patch("ai_native.session_bridge.aggregate_portfolio_exposures",
+                   return_value={"status":"UNAVAILABLE_INCOMPLETE_P_LEDGER"}), \\
+             patch("ai_native.session_bridge.prepare_portfolio_room_review",
+                   return_value={"analysis_id":"CASE-A"}):
+            output = complete_manual_session(
+                self.request(portfolio_needed=True), ir_capsule=self.ir(),
+                observation_inputs={"analysis_id":"CASE-A","analysis_as_of":"2026-10-28"},
+                exposure_classifications={}, room_assessment_inputs={"synthetic":"inputs"},
+            )
+        self.assertEqual(output["status"], "AWAITING_MANUAL_PI_DELTA")
+        self.assertIsNone(output["final_report_private"])
+
 if __name__ == "__main__": unittest.main()
