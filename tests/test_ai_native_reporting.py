@@ -243,13 +243,20 @@ class ReportingTests(unittest.TestCase):
         self.assertNotIn("SYN-TERMINAL", report)
 
     def test_explicit_zero_distributions_show_irrs_not_price_only(self):
-        item = self.valuation_packet()
-        from copy import deepcopy
-        for row in item["scenarios_private"].values():
-            row["return_measure"] = "YEAR_END_CASHFLOW_IRR_CONDITIONAL"
-            row["annual_distributions_status"] = "EXPLICITLY_SUPPLIED"
-            row["reason_codes"] = []
-        report = render_report(self.packet(valuation_scenarios_private=deepcopy(item)))
+        from ai_native.valuation_scenarios import evaluate_valuation_scenarios
+        scenarios = {}
+        for name, terminal in (("BEAR", "81"), ("BASE", "121"), ("BULL", "144")):
+            scenarios[name] = {
+                "valuation_method":"OTHER_EXPLICIT",
+                "assumption_basis":"PAM_ASSUMPTION", "rationale_ref":"SYN-RATIONALE",
+                "terminal_price_per_share":terminal, "terminal_value_ref":"SYN-TERMINAL",
+                "annual_distributions_per_share":[
+                    {"amount_per_share":"0.00", "source_ref":"SYN-DIST"} for _ in range(2)],
+            }
+        item = self.valuation_packet(scenarios=scenarios)
+        self.assertEqual(item["scenarios_private"]["BASE"]["return_measure"],
+                         "YEAR_END_CASHFLOW_IRR_CONDITIONAL")
+        report = render_report(self.packet(valuation_scenarios_private=item))
         self.assertIn("cash-flow IRR", report)
         self.assertNotIn("price-only CAGR", report)
 
@@ -293,6 +300,16 @@ class ReportingTests(unittest.TestCase):
         item = self.valuation_packet()
         del item["scenarios_private"]["BEAR"]
         with self.assertRaisesRegex(ValueError, "VALUATION_REPORT_SCENARIO_SET_INVALID"):
+            render_report(self.packet(valuation_scenarios_private=item))
+
+    def test_valuation_report_rejects_inconsistent_distribution_labels(self):
+        item = self.valuation_packet()
+        item["scenarios_private"]["BASE"]["annual_distributions_status"] = "EXPLICITLY_SUPPLIED"
+        with self.assertRaisesRegex(ValueError, "VALUATION_REPORT_DISTRIBUTION_BASIS_MISMATCH"):
+            render_report(self.packet(valuation_scenarios_private=item))
+        item = self.valuation_packet()
+        item["scenarios_private"]["BASE"]["reason_codes"] = []
+        with self.assertRaisesRegex(ValueError, "VALUATION_REPORT_DISTRIBUTION_BASIS_MISMATCH"):
             render_report(self.packet(valuation_scenarios_private=item))
 
     def test_valuation_without_scenarios_does_not_claim_forecast(self):
