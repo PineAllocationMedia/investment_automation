@@ -583,5 +583,71 @@ class ReportingTests(unittest.TestCase):
         output = render_report(self.packet())
         self.assertNotIn("Research candidate triage — private", output)
 
+
+    def candidate_case(self, currency="CAD"):
+        from ai_native.candidate_comparison import compare_candidates
+        rows = {}
+        def candidate(name, prices, quote="2026-10-28", unit="CAD"):
+            scenarios = {}
+            for label, price in zip(("BEAR", "BASE", "BULL"), prices):
+                scenarios[label] = {"valuation_method":"OTHER_EXPLICIT", "assumption_basis":"PAM_ASSUMPTION",
+                    "rationale_ref":"PRIVATE-RATIONALE","terminal_price_per_share":price,
+                    "terminal_value_ref":"PRIVATE-TERMINAL", "annual_distributions_per_share":None}
+            return {"candidate_id":name,"role":"SECURITY","research_method_version":"M2",
+                    "research_status":"SPECIALIST_REPORTED","portfolio_room_status":"NOT_EVALUATED",
+                    "principal_failure_ref":"PRIVATE-FAILURE",
+                    "valuation_inputs":{"analysis_id":"SYN-001","analysis_as_of":"2026-10-28",
+                        "security_id":name+":TSX","currency":unit,"quoted_at":quote,
+                        "quote_source_ref":"PRIVATE-QUOTE","price_per_share":"100","horizon_years":2,
+                        "security_basis_confirmed_by_caller":True,"currency_basis_confirmed_by_caller":True,
+                        "scenarios":scenarios}}
+        return compare_candidates(
+            analysis_id="SYN-001", analysis_as_of="2026-10-28", strategy_id="high-cagr",
+            account_currency="CAD", candidates=[candidate("A",("81","121","144")),
+                                                candidate("B",("64","100","121"),unit=currency)])
+
+    def test_candidate_comparison_report_is_arithmetic_not_ranking(self):
+        case = self.candidate_case()
+        rendered = render_report(self.packet(candidate_comparison_private=case))
+        self.assertIn("Cross-candidate scenario arithmetic",rendered)
+        self.assertIn("A minus B",rendered)
+        self.assertIn("BEAR: 10.00 pp (price-only CAGR)",rendered)
+        self.assertIn("BASE: 10.00 pp (price-only CAGR)",rendered)
+        self.assertIn("not ranked",rendered)
+        self.assertNotIn("PRIVATE-RATIONALE",rendered)
+        self.assertNotIn("PRIVATE-QUOTE",rendered)
+
+    def test_candidate_comparison_missing_fx_is_not_comparable(self):
+        output=render_report(self.packet(candidate_comparison_private=self.candidate_case(currency="USD")))
+        self.assertIn("BASE: NOT_COMPARABLE",output)
+        self.assertNotIn("BASE: 10.00 pp",output)
+
+    def test_candidate_comparison_forged_authority_rejected(self):
+        for key,value in (("analysis_id","OTHER"),("source_authentication","VERIFIED"),
+                          ("forward_alpha_or_superiority","CERTIFIED"),
+                          ("recommendation_or_ranking","BUY"),("trading_authority","EXECUTE")):
+            item=self.candidate_case()
+            item[key]=value
+            with self.subTest(key=key),self.assertRaisesRegex(ValueError,"COMPARISON_REPORT_ID_OR_AUTHORITY"):
+                render_report(self.packet(candidate_comparison_private=item))
+
+    def test_candidate_comparison_tampered_spreads_and_pairs_rejected(self):
+        item=self.candidate_case()
+        item["pairwise_scenario_differences_private"][0]["by_scenario"]["BASE"]["delta_first_minus_second_pp"]="99"
+        with self.assertRaisesRegex(ValueError,"COMPARISON_REPORT_SPREAD_MISMATCH"):
+            render_report(self.packet(candidate_comparison_private=item))
+        item=self.candidate_case()
+        item["pairwise_scenario_differences_private"][0]["by_scenario"]["BASE"]["delta_first_minus_second_pp"]="NaN"
+        with self.assertRaisesRegex(ValueError,"COMPARISON_REPORT_NUMBER_INVALID"):
+            render_report(self.packet(candidate_comparison_private=item))
+        item=self.candidate_case()
+        item["pairwise_scenario_differences_private"][0]["first_candidate_id"]="UNKNOWN"
+        with self.assertRaisesRegex(ValueError,"COMPARISON_REPORT_PAIR_MISMATCH"):
+            render_report(self.packet(candidate_comparison_private=item))
+
+    def test_candidate_comparison_no_input_does_not_fabricate_a_ranking(self):
+        output=render_report(self.packet())
+        self.assertNotIn("Cross-candidate scenario arithmetic",output)
+
 if __name__ == "__main__":
     unittest.main()
