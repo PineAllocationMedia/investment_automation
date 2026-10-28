@@ -13,6 +13,7 @@ from .request_assembly import prepare_manual_handoffs
 from .integrated_flow import assemble_manual_run
 from .reporting import render_report
 from .portfolio_observation import prepare_observation_ledger
+from .portfolio_exposure import aggregate_portfolio_exposures
 
 ROOM_STATUSES = frozenset({"ROOM_EVIDENCE_SUPPORTED", "ROOM_CONDITIONAL", "ROOM_UNAVAILABLE"})
 
@@ -45,6 +46,7 @@ def complete_manual_session(
     cost_inputs: Mapping[str, Any] | None = None,
     memory_inputs: Mapping[str, Any] | None = None,
     observation_inputs: Mapping[str, Any] | None = None,
+    exposure_classifications: Mapping[str, Any] | None = None,
     source_evidence_inputs: Mapping[str, Any] | None = None,
     valuation_inputs: Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
@@ -85,10 +87,22 @@ def complete_manual_session(
                 and observation["known_scope_weights_pct"] is None):
             raise ValueError("UNSUPPORTED_PORTFOLIO_ROOM_ASSERTION: incomplete observation")
 
+    exposures = None
+    if exposure_classifications is not None:
+        if observation is None:
+            raise ValueError("EXPOSURES_REQUIRE_PI_OBSERVATION")
+        exposures = aggregate_portfolio_exposures(
+            observation, classifications_by_p_id=exposure_classifications
+        )
+        if (pi_delta is not None and pi_delta.get("room_status") == "ROOM_EVIDENCE_SUPPORTED"
+                and exposures["status"] != "CALLER_REPORTED_SCOPED_EXPOSURES"):
+            raise ValueError("ROOM_ASSERTION_UNSUPPORTED_BY_PARTIAL_LOOKTHROUGH")
+
     private = {"status": "MANUAL_SESSION_PENDING", "route": route,
                "handoffs_private": handoffs, "final_report_private": None,
                "integrated_private": None, "pi_delta_private": None,
                "portfolio_observation_private": observation,
+               "portfolio_exposures_private": exposures,
                "method_load_verification": "NOT_PERFORMED", "project_invocation": "NONE",
                "source_authentication": "NOT_PERFORMED", "storage": "NONE",
                "readiness": "NOT_EVALUATED"}
