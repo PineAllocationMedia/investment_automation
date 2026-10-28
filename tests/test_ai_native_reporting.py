@@ -316,5 +316,108 @@ class ReportingTests(unittest.TestCase):
         report = render_report(self.packet())
         self.assertNotIn("Valuation scenarios — conditional", report)
 
+
+    def fundamental_packet(self, **patch):
+        dossier = {
+            "status":"INDICATIVE_FUNDAMENTAL_DOSSIER_NOT_CERTIFIED",
+            "analysis_id":"SYN-001", "analysis_as_of":"2026-10-28",
+            "economic_issuer":"PRIVATE-SYN-ISSUER", "instrument":"PRIVATE:TSX",
+            "metric_pairs_private":{
+                "REVENUE":{"status":"INDICATIVE_COMPARABLE"},
+                "OPERATING_INCOME":{"status":"INDICATIVE_COMPARABLE"},
+                "CFO":{"status":"INDICATIVE_COMPARABLE", "currency":"CAD", "unit":"M_CAD",
+                       "period_ends":["2024-12-31","2025-12-31"]},
+                "CASH_CAPEX":{"status":"INDICATIVE_COMPARABLE", "currency":"CAD", "unit":"M_CAD",
+                              "period_ends":["2024-12-31","2025-12-31"]},
+                "DILUTED_AVG_SHARES":{"status":"INDICATIVE_COMPARABLE"},
+            },
+            "descriptive_metrics_private":{
+                "reported_revenue_change_pct":"20.00",
+                "reported_operating_margin_pct":["10.00","15.00"],
+                "cfo_less_cash_capex_descriptive":["15","17"],
+                "cfo_less_capex_label":"NOT_NORMALIZED_OWNER_EARNINGS",
+                "diluted_share_count_change_pct":"10.00",
+            },
+            "qualitative_axes_private":{
+                k:{"status":"SPECIALIST_REPORTED","ir_fact_ids":["F1"],
+                   "rationale":"PRIVATE-IR-NARRATIVE", "countercase":"PRIVATE-COUNTERCASE"}
+                for k in ("COMPETITIVE_POSITION","REINVESTMENT","PERMANENT_LOSS")
+            },
+            "limitations":[],
+            "organic_growth_status":"UNKNOWN_ACQUISITIONS_AND_MIX_NOT_EVALUATED",
+            "normalized_owner_earnings_status":"NOT_ESTABLISHED",
+            "quality_or_durability_verdict":"NOT_AUTOMATICALLY_ESTABLISHED",
+            "expected_return_or_trade":"NOT_ESTABLISHED",
+            "evidence_authority":"CALLER_REPORTED_ONLY_NOT_ORIGINAL_AUTHENTICATED",
+            "writes":"NONE",
+        }
+        dossier.update(patch)
+        return dossier
+
+    def test_fundamental_metrics_reach_report_only_as_indicative(self):
+        item = self.fundamental_packet()
+        output = render_report(self.packet(fundamental_dossier_private=item))
+        self.assertIn("Reported revenue change", output)
+        self.assertIn("20.00%", output)
+        self.assertIn("10.00% → 15.00%", output)
+        self.assertIn("15 → 17 M_CAD (CAD)", output)
+        self.assertIn("not normalized owner earnings", output)
+        self.assertIn("Diluted average-share count change: 10.00%", output)
+        self.assertIn("NOT ESTABLISHED", output)
+        for sensitive in ("PRIVATE-SYN-ISSUER","PRIVATE-IR-NARRATIVE","PRIVATE-COUNTERCASE"):
+            self.assertNotIn(sensitive, output)
+
+    def test_fundamental_unavailable_cannot_silently_display_derived_growth(self):
+        item = self.fundamental_packet()
+        item["metric_pairs_private"]["REVENUE"]["status"] = "UNAVAILABLE"
+        with self.assertRaisesRegex(ValueError, "FUNDAMENTAL_REPORT_UNSUPPORTED_DERIVATION"):
+            render_report(self.packet(fundamental_dossier_private=item))
+        del item["descriptive_metrics_private"]["reported_revenue_change_pct"]
+        del item["descriptive_metrics_private"]["reported_operating_margin_pct"]
+        output = render_report(self.packet(fundamental_dossier_private=item))
+        self.assertIn("Reported revenue growth: UNAVAILABLE", output)
+        self.assertNotIn("20.00%", output)
+
+    def test_fundamental_invalid_cashflow_basis_is_rejected(self):
+        item = self.fundamental_packet()
+        item["metric_pairs_private"]["CFO"]["currency"] = "USD"
+        with self.assertRaisesRegex(ValueError, "FUNDAMENTAL_REPORT_CASHFLOW_BASIS_MISMATCH"):
+            render_report(self.packet(fundamental_dossier_private=item))
+
+    def test_fundamental_nonauthentic_evidence_cannot_be_relabelled_certified(self):
+        for k, v in [
+            ("evidence_authority", "INDEPENDENTLY_CERTIFIED"),
+            ("quality_or_durability_verdict", "PAM_QUALITY_APPROVED"),
+            ("normalized_owner_earnings_status", "ESTABLISHED"),
+            ("expected_return_or_trade", "BUY"),
+            ("analysis_id", "WRONG"),
+            ("analysis_as_of", "2026-10-27"),
+        ]:
+            with self.subTest(k=k), self.assertRaisesRegex(ValueError, "FUNDAMENTAL_REPORT_ID_OR_AUTHORITY_MISMATCH"):
+                render_report(self.packet(fundamental_dossier_private=self.fundamental_packet(**{k:v})))
+
+    def test_fundamental_nonfinite_or_markup_injection_is_rejected(self):
+        for value in ["NaN", "Infinity", "1E100", "not-a-number"]:
+            item = self.fundamental_packet()
+            item["descriptive_metrics_private"]["reported_revenue_change_pct"] = value
+            with self.subTest(value=value), self.assertRaisesRegex(ValueError, "FUNDAMENTAL_REPORT_NUMBER_INVALID"):
+                render_report(self.packet(fundamental_dossier_private=item))
+        item = self.fundamental_packet()
+        item["metric_pairs_private"]["CFO"]["unit"] = "USD\n# FALSE REPORT"
+        with self.assertRaisesRegex(ValueError, "FUNDAMENTAL_REPORT_CASHFLOW_UNIT_INVALID"):
+            render_report(self.packet(fundamental_dossier_private=item))
+
+    def test_fundamental_rationale_stays_private_even_if_unknown(self):
+        item = self.fundamental_packet()
+        item["qualitative_axes_private"]["COMPETITIVE_POSITION"]["status"] = "UNKNOWN"
+        item["qualitative_axes_private"]["COMPETITIVE_POSITION"]["ir_fact_ids"] = []
+        output = render_report(self.packet(fundamental_dossier_private=item))
+        self.assertIn("Competitive Position: UNKNOWN (no linked IR facts)", output)
+        self.assertNotIn("PRIVATE-IR-NARRATIVE", output)
+
+    def test_report_without_fundamental_inputs_does_not_invent_issuer_economics(self):
+        output = render_report(self.packet())
+        self.assertNotIn("Fundamental economics — indicative", output)
+
 if __name__ == "__main__":
     unittest.main()
