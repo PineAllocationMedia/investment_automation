@@ -317,6 +317,22 @@ def assemble_manual_run(
         # Only the private report consumer sees structural source-use warnings.
         # The original IR capsule and its reported labels remain unchanged.
         packet["fact_source_alignment_private"] = fact_alignment
+    if contribution is not None:
+        # Only safe, caller-declared NEW-capital percentages and mechanical
+        # calculation statuses reach the private report. No position balances,
+        # cash amounts, cost quotations or tax assumptions enter public memory.
+        packet["new_contribution_summary_private"] = {
+            "analysis_id": run_id,
+            "portfolio_as_of": pi_date,
+            "gross_status": contribution["status"],
+            "allocations_pct": (dict(contribution_inputs["allocations_pct"])
+                                if contribution["status"] == "GROSS_PROJECTION_ONLY"
+                                else None),
+            "cost_status": costs["status"] if costs is not None else "NOT_SUPPLIED",
+            "funded_status": (funded_contribution["status"] if funded_contribution is not None
+                              else "NOT_ASSESSED"),
+            "source_authentication": "NOT_PERFORMED",
+        }
     markdown = render_report(packet)
     # Memory proposal excludes portfolio data, issuer narrative and full claims.
     memory = {

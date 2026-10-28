@@ -405,5 +405,31 @@ class ManualIntegrationTests(unittest.TestCase):
         self.assertIn("not independently authenticated", out["markdown"])
         self.assertEqual(out["source_verification"], "NOT_PERFORMED_BY_INTEGRATION")
 
+
+    def test_report_shows_new_contribution_percentages_without_private_balances(self):
+        ci = {"positions_base": {"ABC:TSX": "400.00", "VFV:TSX": "600.00"},
+              "allocations_pct": {"ABC:TSX": "60", "VFV:TSX": "40"},
+              "contribution_base": "1000.00", "currency": "CAD", "as_of": "2026-10-28",
+              "scope_complete": True, "cash_accounted_for": True,
+              "same_currency_basis_verified": True, "instrument_identity_verified": True}
+        out = assemble_manual_run(self.request(), self.ir(), pi_delta=self.pi(), contribution_inputs=ci)
+        self.assertIn("60% of new capital", out["markdown"])
+        self.assertIn("40% of new capital", out["markdown"])
+        self.assertIn("Costs/funding NOT ASSESSED", out["markdown"])
+        self.assertNotIn("400.00", out["markdown"])
+        self.assertNotIn("600.00", out["markdown"])
+        self.assertNotIn("1000.00", out["markdown"])
+        self.assertNotIn("ABC:TSX", str(out["memory_proposal_nonprivate"]))
+
+    def test_unavailable_gross_contribution_shows_no_made_up_weights(self):
+        ci = {"positions_base": {"ABC:TSX": "400.00"},
+              "allocations_pct": {"ABC:TSX": "100"},
+              "contribution_base": "1000.00", "currency": "CAD", "as_of": "2026-10-28",
+              "scope_complete": False, "cash_accounted_for": True,
+              "same_currency_basis_verified": True, "instrument_identity_verified": True}
+        out = assemble_manual_run(self.request(), self.ir(), pi_delta=self.pi(), contribution_inputs=ci)
+        self.assertIn("Gross contribution projection UNAVAILABLE", out["markdown"])
+        self.assertNotIn("100% of new capital", out["markdown"])
+
 if __name__ == "__main__":
     unittest.main()
