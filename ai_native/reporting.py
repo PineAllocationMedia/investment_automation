@@ -54,7 +54,7 @@ def _facts(value: Any) -> list[Mapping[str, Any]]:
 
 
 def render_report(packet: Mapping[str, Any]) -> str:
-    """Render a concise markdown research or weekly brief from supplied observations.
+    """Render a concise markdown research report or user-requested follow-up.
 
     The presence of evidence metadata does not independently validate a claim.
     Portfolio-sensitive packets must remain in the user's private environment.
@@ -62,8 +62,8 @@ def render_report(packet: Mapping[str, Any]) -> str:
     if not isinstance(packet, Mapping):
         raise ValueError("packet: mapping required")
     kind = _string(packet.get("kind"), "kind")
-    if kind not in {"DECISION", "WEEKLY"}:
-        raise ValueError("kind: DECISION or WEEKLY required")
+    if kind not in {"DECISION", "FOLLOWUP"}:
+        raise ValueError("kind: DECISION or FOLLOWUP required")
     analysis_id = _string(packet.get("analysis_id"), "analysis_id")
     as_of = _iso_date(packet.get("as_of"), "as_of")
     strategy = _string(packet.get("strategy"), "strategy")
@@ -80,7 +80,7 @@ def render_report(packet: Mapping[str, Any]) -> str:
         _string(item, f"summary[{i}]")
     facts = _facts(packet.get("facts"))
     lines = [
-        f"# {'Weekly intelligence' if kind == 'WEEKLY' else 'Investment decision research'} — {analysis_id}",
+        f"# {'User-requested reassessment' if kind == 'FOLLOWUP' else 'Investment decision research'} — {analysis_id}",
         f"**As of:** {as_of} | **Strategy:** {strategy} | **Method:** {method_version} | **Status:** {status}",
         f"**Question:** {objective}",
         "", "## Decision line", decision_line, "", "## Key findings",
@@ -96,15 +96,27 @@ def render_report(packet: Mapping[str, Any]) -> str:
             lines.append(f"- [{ref} / {evidence_status}] {item['claim'].strip()} (period: {period}; source: {locator})")
     else:
         lines.append("No underlying fact records supplied; no factual verification is asserted.")
-    if kind == "WEEKLY":
-        start = _iso_date(packet.get("period_start"), "period_start")
-        end = _iso_date(packet.get("period_end"), "period_end")
-        if start > end or end > as_of:
-            raise ValueError("weekly period must be ordered and end by as_of")
+    if kind == "FOLLOWUP":
+        previous_id = packet.get("prior_analysis_id")
+        if previous_id is None:
+            prior_line = "BASELINE_NOT_AVAILABLE: no previous analysis was provided."
+        else:
+            prior_line = f"Prior analysis: {_string(previous_id, 'prior_analysis_id')}"
+        start_raw, end_raw = packet.get("period_start"), packet.get("period_end")
+        if (start_raw is None) != (end_raw is None):
+            raise ValueError("follow-up comparison dates must be supplied together")
+        if start_raw is None:
+            window_label = "no fixed reporting window"
+        else:
+            start = _iso_date(start_raw, "period_start")
+            end = _iso_date(end_raw, "period_end")
+            if start > end or end > as_of:
+                raise ValueError("follow-up period must be ordered and end by as_of")
+            window_label = f"{start} to {end}"
         changes = packet.get("changes")
         if not isinstance(changes, list):
             raise ValueError("changes: list required, possibly empty")
-        lines += ["", f"## Changes reviewed ({start} to {end})"]
+        lines += ["", f"## Requested comparison ({window_label})", prior_line]
         if not changes:
             lines.append("No changes entered in this packet; this is NOT proof that no market or thesis events occurred.")
         else:

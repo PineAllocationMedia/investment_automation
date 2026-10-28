@@ -11,7 +11,7 @@
 | 02 | Complete integrated investment intelligence | Research | `NOT_IMPLEMENTED` | T13 30 multi-market research cases only; no full workflow | End-to-end discovery→analysis→portfolio→report chain, with alternate routes for missing context |
 | 03 | Deep contextual intelligence within boundaries | Core | `NOT_IMPLEMENTED` | Blueprint design exists; cross-strategy behavior unverified | Explicit mandate/context adaptation and challenges; no implicit policy updates |
 | 04 | Central Command Center + specialized Projects | Coordination | `NOT_IMPLEMENTED` | CC/IR/PI instructions v0.2; Projects do not self-invoke | CC routing protocol and supported manual handoff between three Projects |
-| 05 | Hybrid on-demand / selective scheduled / event driven | Operations | `NOT_IMPLEMENTED` | No weekly/scheduled/live event process verified | On-demand workflow, manual weekly cadence; opt-in scheduling only after capability/authority confirmation |
+| 05 | Hybrid on-demand / selective scheduled / event driven | Operations | `NOT_IMPLEMENTED` | Historical 36-choice label; CEO clarified no default recurring/scheduled analyses | CEO-triggered on-demand analysis and optional reassessment, no automatic triggers |
 | 06 | Evidence hierarchy with adaptive verification | Evidence | `PARTIAL` | T13 13 issuer primary checks, 144 referenced primary claims, 6 conflicts | Fact-by-fact source routing, original-evidence checks and conflict management |
 | 07 | Two confidence levels, with flexible judgment | Evidence | `PARTIAL` | T13 exploratory status, confidence/unknowns surfaced; decision-grade unverified | Exploratory and decision-grade output with data lineage and calibrated confidence |
 | 08 | Universal intelligence + specialized investment philosophies | Strategy | `PARTIAL` | V2 High-CAGR principles canonical; distinct module NOT_LOADED in T13 | Universal lenses and High-CAGR module; non-High-CAGR policies require distinct CEO approval |
@@ -37,7 +37,7 @@
 | 28 | Progressive validation and shadow comparison | Validation | `PARTIAL` | T05–T13 exploratory evidence; full integrated test not run | Whole-system end-of-assembly evaluation, representative source-grounded cases and legacy shadow comparators |
 | 29 | Modular progressive specialization | Coordination | `PARTIAL` | Project instructions v0.2; human time target unverified | Small specialized Projects; record actual handoff count and weekly time, avoid autonomous assumptions |
 | 30 | Three integrated Projects | Coordination | `PARTIAL` | Three instruction docs v0.2; integrated experience not evidenced | CC + IR + PI instruction/configuration pack and explicit manual connectivity |
-| 31 | Lightweight weekly intelligence + on demand | Operations | `NOT_IMPLEMENTED` | Weekly digest and scheduled checks not demonstrated | Weekly briefing template and on-demand flow; scheduling only when verified/authorized |
+| 31 | Lightweight weekly intelligence + on demand | Operations | `NOT_IMPLEMENTED` | Historical 36-choice label; CEO clarified no regular cadence is required or desired | User-requested comparison of previous analysis at any interval, no default weekly briefing |
 | 32 | Tiered institutional memory | Memory | `NOT_IMPLEMENTED` | Tiered-memory design approved; private-data flow untested | Three-tier public governed memory, research evidence and separately protected private financial records |
 | 33 | Two coordinated implementation workstreams | Transition | `PARTIAL` | Both workstreams planned; no full archival audit | Integrated-build workstream alongside read-only archival/inventory stream |
 | 34 | Progressive readiness with separate gates | Validation | `PARTIAL` | Readiness gates defined; none accepted | Distinct research/portfolio/routine readiness checklists separate from promotion |
@@ -54,3 +54,5 @@ For each row at build time, add: `component/version`, `method/prompt version`, `
 - All 30 secondary quotes are indicative; 5 corroborated secondarily at the same date, 0 primary-certified price observations. 6 material conflicts remain.
 - Research-only priority cases: GEN, Celestica, THEON, Cairn Homes and Collegium. No normalized Expected Return, verified overall rank or Portfolio Room; separate High-CAGR method not loaded.
 - Keep T09–T12 historical archives intact. T13 evidence artifact is kept outside GitHub; do not upload private/large research archives to ordinary governance memory.
+
+**CEO clarification (2026-10-28):** The historical labels of decisions 05/31 above remain unchanged as documentary history; operational scope is CEO-initiated research only, without weekly obligations, recurring checks or background tasks. This does not by itself revise a CEO-protected document.
