@@ -1,6 +1,6 @@
 # M5 R1 — Source-neutral fact compatibility and bounded arithmetic
 
-**Primary specialist role:** Data & Evidence. **Status:** CANDIDATE / COMPONENT-TESTED LOCALLY / NOT INTEGRATED.  
+**Primary specialist role:** Data & Evidence. **Status:** CANDIDATE / COMPONENT-TESTED LOCALLY / CONDITIONAL MANUAL INTEGRATION ONLY.  
 **Module:** `ai_native.evidence_math.audit_calculation` (Python stdlib only). **Scope:** arithmetic checks on caller-supplied facts in the Financial Systems integrated build, not a replacement of V1/V2 qualification contracts.
 
 ## Why this module exists
@@ -34,3 +34,11 @@ result = audit_calculation("OPERATING_MARGIN", op_income_fact, revenue_fact, as_
 Use this helper as an **optional component check** in a genuinely accessible IR session or Work process, passing a complete fact record and returning K calculation IDs in IR_CAPSULE/EVIDENCE_ANNEX. An inaccessible GitHub URL does not mean a ChatGPT Project loaded or ran Python. M4 cannot independently verify source labels. Do not use this helper to infer portfolio allocations, expected returns, FX, backtested PIT or compliance with any investment-admission gate.
 
 **Review gaps:** applicability to nonstandard accounting periods and taxonomy-specific revenue/operating-income concepts requires explicit economic analysis; the simple adjacency/duration gate is intentionally conservative and may refuse valid reports. Provenance rights may be uncertain; no automated cross-source authentication is claimed. No automatic schedules, recurring research, personal holdings or external spending.
+
+## M5 continuation — private IR fact-to-source alignment
+
+`ai_native.fact_evidence_alignment.align_ir_facts_to_sources` compares an **original caller-supplied IR fact list** with an already assembled **private** M2 source annex, using exact analysis ID and cutoff. It never opens sources, certifies authenticity, upgrades `INDICATIVE` to `VERIFIED`, or supplies investment confidence. Each fact receives review flags for missing observations, conflicts, incomplete/unavailable provenance or a `VERIFIED` IR label unsupported by the supplied annex. A fact with both a seemingly usable observation and an unusable one still requires review. An IR fact marked `MISSING` or `CONFLICTED` remains unresolved regardless of an apparent source match.
+
+With `source_evidence_inputs` explicitly passed in the manual M7a route, the assembler returns `fact_source_alignment_private`. Report text contains only a general qualification when review is required; fact IDs, observation IDs, detailed flags and sensitive source content stay in the private return value. If the source annex was not supplied, no alignment check is claimed or fabricated. This is **structural reconciliation**, not source-use permission, truth, two-level confidence acceptance or source certification.
+
+The 17 newly written synthetic helper tests passed locally with exact source/test blobs; three additional direct integration tests were authored but **not run on a full canonical checkout**. Final 36-decision acceptance, genuine evidence checks and actual analyst source review remain outstanding. Decisions #06, #07 and #28 stay `PARTIAL`.

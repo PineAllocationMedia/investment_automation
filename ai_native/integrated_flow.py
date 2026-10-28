@@ -15,6 +15,7 @@ from .research_memory import prepare_research_history
 from .research_case_comparison import compare_supplied_cases
 from .evidence_math import audit_calculation
 from .source_fusion import assemble_source_fusion
+from .fact_evidence_alignment import align_ir_facts_to_sources
 from .valuation_scenarios import evaluate_valuation_scenarios
 from .candidate_comparison import compare_candidates
 from .fundamental_dossier import prepare_fundamental_dossier
@@ -167,6 +168,7 @@ def assemble_manual_run(
         status = "CONDITIONAL"
 
     source_annex = None
+    fact_alignment = None
     if source_evidence_inputs is not None:
         if not isinstance(source_evidence_inputs, Mapping):
             raise ValueError("source_evidence_inputs: mapping required")
@@ -180,6 +182,12 @@ def assemble_manual_run(
         if not supported_ids.issubset(ir_fact_ids):
             raise ValueError("SOURCE_ANNEX_UNKNOWN_IR_FACT_ID")
         source_annex["uncovered_ir_fact_ids"] = sorted(ir_fact_ids - supported_ids)
+        fact_alignment = align_ir_facts_to_sources(
+            analysis_id=run_id, analysis_as_of=as_of,
+            ir_facts=facts, source_annex=source_annex)
+        if fact_alignment["facts_needing_review"]:
+            limits.append("Some IR fact evidence labels do not structurally align with supplied source observations; see private review flags. No evidence was upgraded or authenticated.")
+            status = "CONDITIONAL"
         if (source_annex["unresolved_count"] or source_annex["uncovered_ir_fact_ids"] or
                 source_annex["noncomparable_basis_groups"]):
             limits.append("Some research evidence is missing, disputed or noncomparable; see private source annex. No source was independently certified.")
@@ -291,6 +299,7 @@ def assemble_manual_run(
         "markdown": markdown,
         "calculation_checks": checks,
         "source_evidence_annex_private": source_annex,
+        "fact_source_alignment_private": fact_alignment,
         "valuation_scenarios_private": valuation_scenarios,
         "candidate_comparison_private": candidate_comparison,
         "fundamental_dossier_private": fundamental_dossier,
