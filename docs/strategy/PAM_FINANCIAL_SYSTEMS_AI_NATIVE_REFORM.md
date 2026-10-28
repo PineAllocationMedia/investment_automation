@@ -346,7 +346,47 @@ Numerical thresholds beyond these proposed safeguards must be selected after pil
 ---
 ## 10. Phased implementation roadmap — two controlled workstreams
 
-All phases below are **proposals, not active Work Orders**. They define sequence, dependencies, deliverables and authority gates. No work has been initiated or authorized by creating this Blueprint. The two workstreams run in coordination: **A = AI-native proof of value**, **B = institutional recovery and device organization**. A common governance/assurance gate controls both.
+> **2026-10-28 CEO sequencing supersession:** the original pilot-first phased
+> table below remains historical planning context, **not** the current AI-native
+> implementation order. Its 36 substantive design decisions are unchanged.
+
+### 10.0 CEO-directed first complete integrated AI-native version
+
+**Trigger:** after receipt of the pending Command Center T13 return, prepare
+and execute bounded authorized design/build work as one coherent full-version
+program. Do not run repeating small pilots as mandatory prerequisites to
+completing the design. Implement the full functional target described by
+**all 36 decisions**: multisource and global economic discovery, differentiated
+investment philosophy, Quality/Durability/Expected Return/Confidence,
+Portfolio Room, portfolio/Blossom-supported or demonstrated manual fallback,
+prompt and workflow coordination, reports, monitoring where supported, versioned
+research and governed institutional memory. Keep read-only legacy/device audit
+and preservation planning within its separately approved boundary.
+
+**Evidence of completeness:** a per-decision 01–36 matrix, recording actual
+implementation and verification, `PARTIAL`, `BLOCKED_BY_CAPABILITY_OR_RIGHTS`
+or `REQUIRES_CEO_DECISION` with a named missing capability or approval. Do not
+pretend that three Projects communicate automatically, that a source covers a
+worldwide investable universe, or that a feature was delivered by merely
+writing a prompt. A material inability requires a CEO choice of acceptable
+fallback or deferred scope; no silent downgrades or new investment policies.
+
+**Validation order:** basic component, data, numerical, source, rights and
+security checks throughout the build; the first **comprehensive integrated
+acceptance assessment after functional assembly**; ongoing selective
+regression and controlled method improvement from human-reviewed usage.
+Real usage never substitutes for required source integrity, research-readiness,
+portfolio-readiness, routine-readiness, production or V1/V2 shadow/promotion
+gates. Retain immutable historical evidence and identify all unresolved gates.
+
+**No blanket authority:** each substantive Work Order remains bounded;
+reversible implementation within its authorized scope need not seek repeated
+PM approval. CEO approval is still separate for canonical merges, protected
+investment policy, spending, production, deployment, source-rights exceptions,
+brokerage actions, device modification and unattended orchestration restart.
+The old V1/V2 stage roadmap, Stage D status, and Media mandate remain intact.
+
+All phases below are **original proposals, not active Work Orders**. They define sequence, dependencies, deliverables and authority gates. No work has been initiated or authorized by creating this Blueprint. The two workstreams run in coordination: **A = AI-native proof of value**, **B = institutional recovery and device organization**. A common governance/assurance gate controls both.
 
 | Sequence | Track | Milestone and accountable outcome | Dependencies / exit condition | Authority status |
 |---|---|---|---|---|

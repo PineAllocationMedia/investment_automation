@@ -106,14 +106,23 @@ targets**. Use tiered institutional memory: GitHub for authoritative methods,
 decisions, prompt versions and selected research history; protect personal
 financial records separately. No private portfolio disclosure to Media.
 
-Implementation planning has two distinct tracks: (A) a bounded three-Project
-end-to-end research demonstration and (B) read-only GitHub/Mac/Chromebook/PC
-inventories before any separately authorized preservation/cleanup operations.
-Use progressive `RESEARCH-READY`, `PORTFOLIO-READY` and `ROUTINE-READY`
-acceptance gates. These gates authorize **neither** production promotion nor
-legacy retirement. Any implementation, device access, spending, protected
-policy change, source admission, merge or operational migration needs the
-approval applicable to that specific action.
+The **2026-10-28 CEO decision** supersedes the pilot-first sequence **only for
+new AI-native Financial Systems delivery**. After the pending Command Center
+T13 return, build one first **complete integrated functional version covering
+all 36 selected design decisions** before its comprehensive system-wide
+acceptance evaluation. Keep a 01–36 implementation/evidence matrix: absent,
+blocked or policy-dependent functionality cannot be called complete. Preserve
+V2's global architecture and economic philosophy; minimal source, arithmetic,
+component and security checks remain necessary during construction. Continue
+read-only knowledge/device inventory and preservation proposals, with any
+actual movement or cleanup separately approved.
+
+Subsequent real-world refinement must be versioned, human-reviewed and tested.
+`RESEARCH-READY`, `PORTFOLIO-READY` and `ROUTINE-READY` remain separate scoped
+gates; they do **not** grant production, V1/V2 promotion or legacy retirement.
+Actual implementation, device access, spending, protected policy changes,
+source admission, merge and operational migration retain applicable approval
+requirements. See `DECISIONS.md` (2026-10-28) and the reform Blueprint §10.0.
 
 ---
 
