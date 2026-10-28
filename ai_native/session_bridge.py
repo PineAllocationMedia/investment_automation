@@ -15,6 +15,7 @@ from .reporting import render_report
 from .portfolio_observation import prepare_observation_ledger
 from .portfolio_exposure import aggregate_portfolio_exposures
 from .portfolio_room import prepare_portfolio_room_review
+from .new_capital_flow import prepare_new_capital_projection
 
 ROOM_STATUSES = frozenset({"ROOM_EVIDENCE_SUPPORTED", "ROOM_CONDITIONAL", "ROOM_UNAVAILABLE"})
 
@@ -65,8 +66,10 @@ def complete_manual_session(
     route = handoffs["route"]
     if pi_delta is not None and not request["portfolio_needed"]:
         raise ValueError("PI_DELTA_UNREQUESTED")
-    if (contribution_inputs is not None or cost_inputs is not None) and route != "CC_IR_PI_CC":
-        raise ValueError("PORTFOLIO_ARITHMETIC_REQUIRES_IR_PI_M7A_ROUTE")
+    if (contribution_inputs is not None or cost_inputs is not None) and route not in {"CC_PI_CC", "CC_IR_PI_CC"}:
+        raise ValueError("PORTFOLIO_ARITHMETIC_REQUIRES_PI_ROUTE")
+    if cost_inputs is not None and contribution_inputs is None:
+        raise ValueError("COST_INPUTS_REQUIRE_CONTRIBUTION_INPUTS")
     if memory_inputs is not None and route not in {"CC_IR_CC", "CC_IR_PI_CC"}:
         raise ValueError("MEMORY_PACKET_REQUIRES_IR_CAPSULE")
     if calculation_requests is not None and route not in {"CC_IR_CC", "CC_IR_PI_CC"}:
@@ -121,6 +124,9 @@ def complete_manual_session(
                "portfolio_observation_private": observation,
                "portfolio_exposures_private": exposures,
                "portfolio_room_review_private": None,
+               "gross_contribution_private": None,
+               "supplied_costs_private": None,
+               "funded_contribution_private": None,
                "method_load_verification": "NOT_PERFORMED", "project_invocation": "NONE",
                "source_authentication": "NOT_PERFORMED", "storage": "NONE",
                "readiness": "NOT_EVALUATED"}
@@ -178,6 +184,21 @@ def complete_manual_session(
                             _required(pi_delta, "limitations")),
             "next_action": _required(pi_delta, "next_action"),
         }
+        if contribution_inputs is not None:
+            if (observation is not None
+                    and observation.get("known_scope_weights_pct") is None
+                    and contribution_inputs.get("scope_complete") is True):
+                raise ValueError("PI_CONTRIBUTION_SCOPE_CONFLICTS_WITH_OBSERVATION")
+            bundle = prepare_new_capital_projection(
+                analysis_id=packet["analysis_id"], analysis_as_of=cutoff,
+                portfolio_as_of=pi_observed_on,
+                contribution_inputs=contribution_inputs, cost_inputs=cost_inputs,
+            )
+            packet["new_contribution_summary_private"] = bundle["report_summary_private"]
+            packet["limitations"] += " " + " ".join(bundle["limitations"])
+            private["gross_contribution_private"] = bundle["gross_contribution_private"]
+            private["supplied_costs_private"] = bundle["supplied_costs_private"]
+            private["funded_contribution_private"] = bundle["funded_contribution_private"]
         if packet["kind"] == "FOLLOWUP":
             packet["changes"] = []
             for key in ("prior_analysis_id", "period_start", "period_end"):
