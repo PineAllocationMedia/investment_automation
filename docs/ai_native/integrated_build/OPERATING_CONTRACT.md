@@ -77,6 +77,8 @@ Minimal shared envelope: `ANALYSIS_ID`, `PROMPT_VERSION`, `METHOD_VERSION`, `OBJ
 
 Store significant research as dated, source-referenced and versioned **analysis/case records** with separate public/institutional method memory and protected private financial storage. Never put user holdings, account identifiers or brokerage data in ordinary GitHub records. Prompt improvements require a change rationale, relevant case comparison, human approval when material and non-hindsight outcome reviews.
 
+**Manual integrated construction smoke — no acceptance claim:** `python -m unittest -v tests.test_ai_native_r1_integrated_smoke` (run only from an authentic local checkout) exercises real stdlib M1→M2→M3→M4→M7a functions with **synthetic-only** source/valuation/portfolio/fee inputs: user-requested CC→IR→PI→CC, evidence, research triage, scenario comparisons, scoped portfolio, qualitative Portfolio Room, new capital and private report. It asserts missing PI stays pending and source/identity/date errors fail closed, without mocking the assembler. `python scripts/ci_unittest_runner.py --tier STANDARD` is the existing broader suite. A passing synthetic smoke would demonstrate only constructed seams, **not** live Projects, Blossom, rights/authenticity, account finance, system-wide 36-decision acceptance, promotion or trades. No workflow/CI billing settings changed.
+
 ## 5. Acceptance counterexamples retained from T13
 
 - GEN: SEC GAAP EPS 0.36 versus Google/issuer adjusted EPS 0.71 — not interchangeable.
