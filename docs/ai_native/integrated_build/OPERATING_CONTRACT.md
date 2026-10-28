@@ -57,6 +57,8 @@ Minimal shared envelope: `ANALYSIS_ID`, `PROMPT_VERSION`, `METHOD_VERSION`, `OBJ
 
 **Final report template:** (1) decision question and what was actually checked; (2) top conclusions and counter-arguments; (3) Quality/Durability/Expected Return/Confidence; (4) price and after-cost/portfolio implications **only if supported**; (5) missing decisive facts and recommended next action; (6) evidence annex reference. For a CEO-requested follow-up compare with the actual earlier analysis regardless of elapsed time, including thesis/invalidation changes and justified no-action. There is no scheduled or default weekly analysis. No auto-trading.
 
+**New-contribution reporting seam (M3→M4):** if a scoped, dated PI contribution projection is available, the private CC report may display up to eight **caller-supplied percentages of NEW capital**, never portfolio target weights. The report keeps cost/funding outcomes separate: gross only, conditionally reconciled supplied fixed fees, or unavailable. The summary excludes balances, purchase amounts and detailed cost quotes, and nothing is copied to public GitHub memory. More destinations stay in the private annex. No recommendation, authentication, executable order, or net Expected Return follows from this display.
+
 ## 4. Case and memory contract
 
 Store significant research as dated, source-referenced and versioned **analysis/case records** with separate public/institutional method memory and protected private financial storage. Never put user holdings, account identifiers or brokerage data in ordinary GitHub records. Prompt improvements require a change rationale, relevant case comparison, human approval when material and non-hindsight outcome reviews.
