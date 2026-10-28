@@ -300,6 +300,9 @@ def assemble_manual_run(
         if pi_delta is None:
             raise ValueError("ROOM_REPORT_REQUIRES_PI_DELTA")
         packet["portfolio_room_review_private"] = portfolio_room_review_private
+    if opportunity_triage is not None:
+        # A private research queue is not a market screen or investment ranking.
+        packet["opportunity_triage_private"] = opportunity_triage
     if fundamental_dossier is not None:
         # Only private report; the institutional memory proposal remains
         # the same non-sensitive schema without issuer financial details.
