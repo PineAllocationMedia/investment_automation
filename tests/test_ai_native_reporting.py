@@ -494,5 +494,94 @@ class ReportingTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "ROOM_REPORT_LIMITATIONS_INVALID"):
             render_report(self.packet(portfolio_room_review_private=room))
 
+
+    def triage_summary(self, **patch):
+        obj = {
+            "status":"PRIVATE_RESEARCH_TRIAGE_PREPARED_NOT_RANKED",
+            "analysis_id":"SYN-001","analysis_as_of":"2026-10-28",
+            "strategy_id":"high-cagr","universe_scope":"WATCHLIST",
+            "universe_note_private":"PRIVATE-WATCHLIST",
+            "declared_candidate_count":2,
+            "stage_counts":{"EVIDENCE_RESOLUTION":1,"HUMAN_DEEP_DIVE":1},
+            "candidates_private_in_supplied_order":[
+                {"candidate_id_private":"C2",
+                 "research_work_stage":"EVIDENCE_RESOLUTION",
+                 "review_reasons":["NO_SOURCE_OBSERVATION"],
+                 "selection_status":"CEO_OR_ANALYST_REVIEW_ONLY",
+                 "investability":"NOT_EVALUATED",
+                 "economic_issuer_private":"PRIVATE-ISSUER-2",
+                 "research_question_private":"PRIVATE-QUESTION-2"},
+                {"candidate_id_private":"C1",
+                 "research_work_stage":"HUMAN_DEEP_DIVE",
+                 "review_reasons":[],
+                 "selection_status":"CEO_OR_ANALYST_REVIEW_ONLY",
+                 "investability":"NOT_EVALUATED",
+                 "economic_issuer_private":"PRIVATE-ISSUER-1",
+                 "research_question_private":"PRIVATE-QUESTION-1"},
+            ],
+            "universe_completeness":"NOT_VERIFIED_NOT_GLOBAL_SCREENING",
+            "source_authentication":"NOT_PERFORMED",
+            "normalized_expected_return":"NOT_ESTABLISHED",
+            "ranking_or_buy_recommendation":"NONE",
+            "portfolio_allocation":"NONE",
+            "external_discovery_or_storage":"NONE",
+        }
+        obj.update(patch)
+        return obj
+
+    def test_research_triage_report_shows_work_not_stock_ranking(self):
+        output = render_report(self.packet(opportunity_triage_private=self.triage_summary()))
+        self.assertIn("Research candidate triage — private, not ranked", output)
+        self.assertIn("1 awaiting evidence resolution", output)
+        self.assertIn("1 queued for human deep dive", output)
+        self.assertLess(output.index("**C2**"), output.index("**C1**"))
+        self.assertIn("NO_SOURCE_OBSERVATION", output)
+        self.assertIn("No global market screening", output)
+        for private in ("PRIVATE-WATCHLIST","PRIVATE-QUESTION-1","PRIVATE-ISSUER-2"):
+            self.assertNotIn(private, output)
+
+    def test_research_triage_rejects_forged_authority(self):
+        for key,val in (
+            ("analysis_id","OTHER"),
+            ("analysis_as_of","2026-10-27"),
+            ("strategy_id","UNAPPROVED-STRATEGY"),
+            ("status","EXECUTION_READY"),
+            ("source_authentication","AUTHENTICATED"),
+            ("ranking_or_buy_recommendation","BUY"),
+            ("portfolio_allocation","APPROVED"),
+            ("normalized_expected_return","CERTIFIED"),
+        ):
+            with self.subTest(key=key), self.assertRaisesRegex(ValueError, "TRIAGE_REPORT_ID_OR_AUTHORITY"):
+                render_report(self.packet(opportunity_triage_private=self.triage_summary(**{key:val})))
+
+    def test_research_triage_rejects_count_and_stage_tampering(self):
+        for patch in (
+            {"declared_candidate_count":3},
+            {"stage_counts":{"EVIDENCE_RESOLUTION":0,"HUMAN_DEEP_DIVE":2}},
+            {"stage_counts":{"EVIDENCE_RESOLUTION":True,"HUMAN_DEEP_DIVE":1}},
+        ):
+            with self.subTest(patch=patch), self.assertRaisesRegex(ValueError, "TRIAGE_REPORT"):
+                render_report(self.packet(opportunity_triage_private=self.triage_summary(**patch)))
+        import copy
+        case = copy.deepcopy(self.triage_summary())
+        case["candidates_private_in_supplied_order"][0]["research_work_stage"]="HUMAN_DEEP_DIVE"
+        with self.assertRaisesRegex(ValueError, "TRIAGE_REPORT_CANDIDATE_STATUS"):
+            render_report(self.packet(opportunity_triage_private=case))
+
+    def test_research_triage_does_not_render_untrusted_candidate_markup(self):
+        item = self.triage_summary()
+        item["candidates_private_in_supplied_order"][0]["candidate_id_private"] = "C2\\n# FAKE_APPROVAL"
+        output = render_report(self.packet(opportunity_triage_private=item))
+        self.assertNotIn("FAKE_APPROVAL", output)
+        self.assertIn("candidate #1", output)
+        item = self.triage_summary()
+        item["candidates_private_in_supplied_order"][0]["review_reasons"] = ["\n# FRAUD"]
+        with self.assertRaisesRegex(ValueError, "TRIAGE_REPORT_CANDIDATE_STATUS"):
+            render_report(self.packet(opportunity_triage_private=item))
+
+    def test_research_triage_no_packet_does_not_invent_a_screen(self):
+        output = render_report(self.packet())
+        self.assertNotIn("Research candidate triage — private", output)
+
 if __name__ == "__main__":
     unittest.main()
