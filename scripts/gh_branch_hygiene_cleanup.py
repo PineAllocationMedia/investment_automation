@@ -182,7 +182,8 @@ def main():
             if args.execute:
                 # Recheck no new PR and the current SHA directly before each mutation.
                 assert_no_open_prs()
-                assert_canonical()
+                if assert_canonical() != v2_sha:
+                    raise SafetyAbort("CANONICAL_HEAD_CHANGED_DURING_EXECUTION")
                 again = branch_info(name)
                 if (again is None or again.get("commit", {}).get("sha") != sha
                         or again.get("protected") is not False):
