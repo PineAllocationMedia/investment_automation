@@ -12,4 +12,4 @@
 
 **Validation & stop:** one time-boxed code delivery and isolated synthetic adapter tests; exact blob parity, 36-row matrix and diff scope. Full integration tests and real Work/Blossom compatibility intentionally NOT RUN; remaining capability requires a separate authorized read-only Work session when the full assembly reaches the appropriate capability-evidence step. Do not pass PORTFOLIO-READY or all-36 acceptance. Stop at one PR before CEO merge.
 
-**Status:** `ADAPTER_PREPARED / WORK_BLOSSOM_ACCESS_UNVERIFIED / FALLBACK_DEFINED`.
+**Status:** `ADAPTER_PREPARED / SIGNED_IN_WORK_BLOSSOM_POSTS_ACCESS_PROJECT_DOCUMENTED / PRIVATE_PORTFOLIO_VIEW_NOT_OBSERVED / FALLBACK_DEFINED`. See Media Prompt 4 and the 2026-10-22/2026-10-28 authenticated profile observations; these prove signed-in website navigation, **not** private position visibility or additional financial authorization.

@@ -81,3 +81,19 @@ if prepared["observation_inputs_private"] is not None:
 **Platform limitations:** OpenAI documents Work's cloud-browser and secure signed-in website flow, subject to site restrictions; Blossom documents a webapp with potentially fewer features than mobile and public portfolio percentage visibility. The URLs to verify at actual future capability checking are `https://help.openai.com/en/articles/20001280-using-cloud-browser-in-chatgpt`, `https://intercom.help/blossom-social-inc/en/articles/8167582-is-blossom-available-on-web-desktop` and `https://intercom.help/blossom-social-inc/en/articles/8158797-i-m-a-new-user-how-do-i-use-blossom`. These public documents do **not** prove the CEO account is accessible.
 
 **Effort boundary for eventual compatibility check (not performed):** one CEO-initiated authorized, read-only Work attempt to access the intended private view and capture a complete scoped position list. Stop at first definitive result: accessible and suitably transcribed, restricted/incomplete, or login/rights blocked. No repeated exploratory account logins, brokerage reconnects or alternate credential handling. No comprehensive 36-decision acceptance until full functional assembly.
+
+## Evidence inherited from PAM Media & Communication — verified signed-in Blossom browser use
+
+The **same Blossom website is already used successfully with an authorized signed-in ChatGPT Work Cloud Browser** in PAM Media & Communication's separate `@therealpam` Prompt 4 measurement workflow. This is **actual project-recorded evidence**, not only a hypothetical platform ability:
+
+- `docs/marketing/MACRO_LENS_PLAYBOOK.md`, Prompt 4 (CEO-approved 2026-10-22), documents Work + signed-in Cloud Browser as the default read-only route, including human-completed secure login, page navigation and GitHub retention of observations when authorized.
+- `docs/marketing/MACRO_LENS_EDITORIAL_LOG.md`, `Authenticated profile scan — 2026-10-22 continuation`, records CEO-completed sign-in and inspection of 19 original-post permalinks, compared with four accessible through an earlier public-only scan.
+- The same log's `Profile scan — 2026-10-28 (authorized signed-in Cloud Browser)` records **29 original publications individually inspected**, with the feed dynamically loading 13 → 23 → 29 records and existing measurements appended. Historical completeness remains unproven.
+
+**Capability classification:**
+- `WORK_BLOSSOM_AUTHENTICATED_PROFILE_NAVIGATION = PROJECT_DOCUMENTED` — access, browser interaction, signed-in Posts feed and read-only metrics retrieval are demonstrated in the Media activity.
+- `WORK_BLOSSOM_PRIVATE_PORTFOLIO_VISIBILITY = NOT_OBSERVED` — those Media observations are of the signed-in **Posts** view, **not** a private holdings page; neither private account position list nor brokerage statements were inspected in this evidence.
+- `WORK_TO_PI_HANDOFF = MANUAL_CONTRACT_ONLY` — no proven automatic cross-Project invocation, direct Work-to-Python runtime or permanent portfolio sync.
+- `AUTHORITY = PER_MANDATE` — Media's publication/measurement permissions **do not extend** to private financial portfolio access. Any Work observation of personal holdings requires a separate CEO-requested read-only scope and secure sign-in, if needed.
+
+**Practical implication:** Do not repeat broad Work login/navigation feasibility experiments already supported by the Media history. For Financial Systems, the **single narrow outstanding capability question** is whether the same authorized Work browser can open and read a sufficiently complete **private Portfolio view** on Blossom (including account scope, positions, cash, "Other" and currency), without changing account state. If that page proves accessible, supply one private observation packet to the already built M3 adapter; if not, use a dated screenshot fallback. The full integrated 36-decision acceptance remains deferred until functional assembly.
