@@ -649,5 +649,67 @@ class ReportingTests(unittest.TestCase):
         output=render_report(self.packet())
         self.assertNotIn("Cross-candidate scenario arithmetic",output)
 
+
+    def history(self, **changes):
+        x = {"status":"STRUCTURAL_REVIEW_PREPARED",
+             "subject_id_private":"PRIVATE-ISSUER","prior_analysis_id_private":"OLD",
+             "current_analysis_id_private":"SYN-001","prior_as_of":"2026-10-01",
+             "current_as_of":"2026-10-28","strategy_changed":False,"method_changed":False,
+             "review_items_private":[{"prior_fact_id":"F-OLD","current_fact_id":"F-CUR",
+                 "prior_claim_private":"PRIVATE-OLD-CLAIM","current_claim_private":"PRIVATE-NEW-CLAIM",
+                 "prior_evidence_status":"INDICATIVE","current_evidence_status":"CONFLICTED",
+                 "text_check":"TEXT_DIFF_NOT_CERTIFIED_ECONOMIC_CHANGE"}],
+             "comparability":"ANALYST_MUST_VERIFY_IDENTITY_METRIC_UNITS_PERIODS_AND_RIGHTS",
+             "baseline_authentication":"CALLER_SUPPLIED_RECORD_STRUCTURALLY_CHECKED_ONLY",
+             "source_authentication":"NOT_PERFORMED","economic_change_status":"NOT_EVALUATED",
+             "privacy":"PRIVATE_ONLY"}
+        x.update(changes)
+        return x
+
+    def test_structural_followup_reaches_private_report(self):
+        text=render_report(self.packet(kind="FOLLOWUP",changes=[],prior_analysis_id="OLD",
+            historical_research_comparison_private=self.history()))
+        self.assertIn("INDICATIVE → CONFLICTED",text)
+        self.assertIn("economic change UNVERIFIED",text)
+        self.assertIn("no certified thesis change",text)
+        self.assertNotIn("PRIVATE-OLD-CLAIM",text)
+        self.assertNotIn("PRIVATE-ISSUER",text)
+
+    def test_missing_baseline_or_unlinked_facts_remain_unknown(self):
+        a=self.history(status="BASELINE_NOT_AVAILABLE",review_items_private=[])
+        del a["prior_analysis_id_private"]
+        text=render_report(self.packet(kind="FOLLOWUP",changes=[],historical_research_comparison_private=a))
+        self.assertIn("BASELINE_NOT_AVAILABLE: no earlier case",text)
+        b=self.history(status="NO_FACT_LINKS_SUPPLIED",review_items_private=[],method_changed=True)
+        text=render_report(self.packet(kind="FOLLOWUP",changes=[],
+            historical_research_comparison_private=b))
+        self.assertIn("NO_FACT_LINKS_SUPPLIED",text)
+        self.assertIn("method version changed",text)
+
+    def test_followup_rejects_forged_evidence_status_or_nonfollowup(self):
+        for field,value in (("source_authentication","CERTIFIED"),("economic_change_status","TRUE_CHANGE"),
+                            ("privacy","PUBLIC")):
+            with self.subTest(field=field),self.assertRaisesRegex(ValueError,"HISTORY_REPORT_AUTHORITY"):
+                render_report(self.packet(kind="FOLLOWUP",changes=[],
+                    historical_research_comparison_private=self.history(**{field:value})))
+        with self.assertRaisesRegex(ValueError,"HISTORY_REPORT_AUTHORITY"):
+            render_report(self.packet(historical_research_comparison_private=self.history()))
+
+    def test_followup_rejects_wrong_dates_and_claim_links(self):
+        case=self.history(current_as_of="2026-10-27")
+        with self.assertRaisesRegex(ValueError,"HISTORY_REPORT_ID_OR_BASIS"):
+            render_report(self.packet(kind="FOLLOWUP",changes=[],
+                historical_research_comparison_private=case))
+        case=self.history()
+        case["review_items_private"][0]["text_check"]="CERTIFIED_ECONOMIC_CHANGE"
+        with self.assertRaisesRegex(ValueError,"HISTORY_REPORT_LINK_INVALID"):
+            render_report(self.packet(kind="FOLLOWUP",changes=[],
+                historical_research_comparison_private=case))
+        case=self.history()
+        case["review_items_private"][0]["prior_fact_id"]="F-OLD\\n# FORGED"
+        with self.assertRaisesRegex(ValueError,"HISTORY_REPORT_LINK_INVALID"):
+            render_report(self.packet(kind="FOLLOWUP",changes=[],
+                historical_research_comparison_private=case))
+
 if __name__ == "__main__":
     unittest.main()

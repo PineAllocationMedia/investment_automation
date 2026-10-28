@@ -179,6 +179,8 @@ class ManualIntegrationTests(unittest.TestCase):
         self.assertEqual(annex["status"], "STRUCTURAL_REVIEW_PREPARED")
         self.assertEqual(annex["economic_change_status"], "NOT_EVALUATED")
         self.assertIn("SENSITIVE PRIOR CLAIM", str(annex))
+        self.assertIn("Prior/current research — structural follow-up only",result["markdown"])
+        self.assertIn("INDICATIVE → INDICATIVE",result["markdown"])
         self.assertNotIn("SENSITIVE PRIOR CLAIM", result["markdown"])
         self.assertNotIn("SENSITIVE PRIOR CLAIM", str(result["memory_proposal_nonprivate"]))
         self.assertIn("CONDITIONAL", result["markdown"])
