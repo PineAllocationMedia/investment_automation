@@ -132,5 +132,61 @@ class ManualCLIContractTests(unittest.TestCase):
         self.assertEqual(output,"")
         self.assertNotIn("CONFIDENTIAL_ACCOUNT_123",error)
 
+
+    def test_private_case_export_is_user_requested_and_followup_compatible(self):
+        from ai_native.research_case_comparison import compare_supplied_cases
+        prior_request=self.fx.request(subject_id="SYN-ISSUER")
+        ir=self.fx.ir()
+        payload={"request":prior_request, "ir_capsule":ir,
+                 "memory_inputs":{"report_id":"REPORT-A","instruction_version":"R1-SYN",
+                                  "recorded_at":"2026-10-28"}}
+        original=deepcopy(payload)
+        code,output,error=self.invoke(payload,output="private-case")
+        self.assertEqual((code,error),(0,""))
+        saved=json.loads(output)
+        self.assertEqual(saved["schema_version"],"RESEARCH_HISTORY_R1")
+        self.assertEqual(saved["archive_status"],"PROPOSED_NOT_COMMITTED")
+        self.assertEqual(saved["privacy_tier"],"PRIVATE_PENDING_REVIEW")
+        self.assertEqual(saved["original_ir_capsule"],ir)
+        self.assertEqual(saved["original_request"]["subject_id"],"SYN-ISSUER")
+        self.assertEqual(payload,original)
+        current={"kind":"FOLLOWUP","analysis_id":"CASE-B","subject_id":"SYN-ISSUER",
+                 "as_of":"2026-10-29","method_version":"UNKNOWN_NOT_LOADED",
+                 "strategy_id":"EXPLORATORY","prior_analysis_id":"CASE-A"}
+        current_ir={"analysis_id":"CASE-B","research_as_of":"2026-10-29",
+                    "facts":[{"id":"F2","claim":"New synthetic research claim",
+                              "status":"INDICATIVE"}]}
+        review=compare_supplied_cases(
+            request=current,ir_capsule=current_ir,prior_case=saved,
+            subject_id="SYN-ISSUER",
+            fact_links=[{"prior_fact_id":"F1","current_fact_id":"F2"}])
+        self.assertEqual(review["status"],"STRUCTURAL_REVIEW_PREPARED")
+        self.assertEqual(review["economic_change_status"],"NOT_EVALUATED")
+
+    def test_private_case_export_requires_explicit_memory_inputs(self):
+        payload={"request":self.fx.request(),"ir_capsule":self.fx.ir()}
+        code,output,error=self.invoke(payload,output="private-case")
+        self.assertEqual((code,error),(0,""))
+        self.assertEqual(output,"PRIVATE_CASE_NOT_PREPARED: explicit memory_inputs required.\n")
+        self.assertNotIn("Synthetic",output)
+
+    def test_private_case_export_is_unavailable_during_missing_ir_handoff(self):
+        code,output,error=self.invoke({"request":self.fx.request()},output="private-case")
+        self.assertEqual((code,error),(0,""))
+        self.assertIn("PRIVATE_CASE_NOT_AVAILABLE: AWAITING_MANUAL_IR_CAPSULE",output)
+        self.assertNotIn("original_ir_capsule",output)
+
+    def test_private_case_export_never_changes_default_redacted_status(self):
+        payload={"request":self.fx.request(subject_id="SYN-ISSUER"),
+                 "ir_capsule":self.fx.ir(),
+                 "memory_inputs":{"report_id":"REPORT-A","instruction_version":"R1-SYN",
+                                  "recorded_at":"2026-10-28"}}
+        code,output,error=self.invoke(payload)
+        self.assertEqual((code,error),(0,""))
+        self.assertNotIn("SYN-ISSUER",output)
+        self.assertNotIn("REPORT-A",output)
+        self.assertNotIn("original_request",output)
+        self.assertEqual(json.loads(output)["storage"],"NONE")
+
 if __name__ == "__main__":
     unittest.main()

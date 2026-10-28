@@ -112,6 +112,27 @@ def run(*, output: str, instream: TextIO, outstream: TextIO,
             outstream.write("REPORT_NOT_AVAILABLE: " + result["status"] + "\n")
         else:
             outstream.write(report + ("\n" if not report.endswith("\n") else ""))
+    elif output == "private-case":
+        # Explicit output is a private PROPOSAL, not a committed archive.
+        # Caller decides how to protect it outside GitHub.
+        integrated = result.get("integrated_private")
+        if not isinstance(integrated, dict):
+            outstream.write("PRIVATE_CASE_NOT_AVAILABLE: " + result["status"] + "\n")
+        else:
+            record = integrated.get("private_research_history_proposal")
+            gate = integrated.get("github_memory_review_gate")
+            if record is None:
+                outstream.write("PRIVATE_CASE_NOT_PREPARED: explicit memory_inputs required.\n")
+            elif (not isinstance(record, dict) or not isinstance(gate, dict)
+                  or record.get("schema_version") != "RESEARCH_HISTORY_R1"
+                  or record.get("privacy_tier") != "PRIVATE_PENDING_REVIEW"
+                  or record.get("archive_status") != "PROPOSED_NOT_COMMITTED"
+                  or gate.get("approved_for_publication") is not False
+                  or gate.get("status") != "WITHHELD_PENDING_HUMAN_PRIVACY_AND_RIGHTS_REVIEW"):
+                outstream.write("PRIVATE_CASE_NOT_AVAILABLE: review gate or private status invalid.\n")
+            else:
+                outstream.write(json.dumps(record, ensure_ascii=False,
+                                           sort_keys=True, indent=2, allow_nan=False) + "\n")
     elif output == "handoffs":
         handoffs = result["handoffs_private"]["copy_ready_private"]
         # These packets may include private research/account context and are
@@ -131,9 +152,9 @@ def main(argv: list[str] | None = None, *, instream: TextIO | None = None,
          outstream: TextIO | None = None,
          errstream: TextIO | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--output", choices=("status", "report", "handoffs"),
+    parser.add_argument("--output", choices=("status", "report", "handoffs", "private-case"),
                         default="status",
-                        help="status is redacted; report and handoffs can contain private details")
+                        help="status is redacted; report, handoffs and private-case contain private details")
     opts = parser.parse_args(argv)
     return run(output=opts.output, instream=instream or sys.stdin,
                outstream=outstream or sys.stdout, errstream=errstream or sys.stderr)
