@@ -54,6 +54,7 @@ def complete_manual_session(
     candidate_comparison_inputs: Mapping[str, Any] | None = None,
     fundamental_inputs: Mapping[str, Any] | None = None,
     historical_comparison_inputs: Mapping[str, Any] | None = None,
+    opportunity_triage_inputs: Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
     """One CEO-initiated manual session, possibly awaiting a human transfer.
 
@@ -80,6 +81,8 @@ def complete_manual_session(
         raise ValueError("FUNDAMENTAL_REQUIRES_IR_CAPSULE")
     if historical_comparison_inputs is not None and route not in {"CC_IR_CC", "CC_IR_PI_CC"}:
         raise ValueError("HISTORICAL_COMPARISON_REQUIRES_IR_ROUTE")
+    if opportunity_triage_inputs is not None and route not in {"CC_IR_CC", "CC_IR_PI_CC"}:
+        raise ValueError("OPPORTUNITY_TRIAGE_REQUIRES_IR_ROUTE")
 
     if room_assessment_inputs is not None and route != "CC_IR_PI_CC":
         raise ValueError("PORTFOLIO_ROOM_REQUIRES_IR_AND_PI_ROUTE")
@@ -207,6 +210,7 @@ def complete_manual_session(
         candidate_comparison_inputs=candidate_comparison_inputs,
         fundamental_inputs=fundamental_inputs,
         historical_comparison_inputs=historical_comparison_inputs,
+        opportunity_triage_inputs=opportunity_triage_inputs,
     )
     private["integrated_private"] = integrated
     private["final_report_private"] = integrated["markdown"]

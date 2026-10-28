@@ -257,5 +257,62 @@ class ManualIntegrationTests(unittest.TestCase):
 
 
 
+    def synthetic_opportunity_inputs(self):
+        row = {"observation_id":"SYN-O1", "fact_id":"SYN-F1", "source_id":"SYN-SEC",
+               "economic_issuer":"SYN-CO", "instrument":"SYN:NYSE",
+               "metric":"REVENUE", "period_start":"2025-01-01", "period_end":"2025-12-31",
+               "currency":"USD", "unit":"MILLIONS", "definition_basis":"US_GAAP",
+               "consolidation":"GROUP", "value":"100.00", "observed_at":"2026-10-28",
+               "published_at":"2026-02-01", "original_checked_at":"2026-10-28",
+               "source_kind":"ISSUER_OR_REGULATOR", "classification":"SOURCE_FACT",
+               "source_locator":"https://example.org/syn-source", "rights_status":"PERMITTED",
+               "verification_status":"INDICATIVE"}
+        evidence = {"analysis_id":"SYN-001", "analysis_as_of":"2026-10-28",
+                    "observations":[row]}
+        research = {"analysis_id":"SYN-001", "analysis_as_of":"2026-10-28",
+                    "strategy_id":"high-cagr", "universe_scope":"WATCHLIST",
+                    "universe_note":"Synthetic supplied subset",
+                    "candidates":[{"candidate_id":"C1", "economic_issuer":"SYN-CO",
+                                   "instrument":"SYN:NYSE", "target_type":"ISSUER",
+                                   "origin_scope":"WATCHLIST",
+                                   "research_question":"Research customer economics",
+                                   "ir_fact_ids":["SYN-F1"],
+                                   "open_questions":["Primary durability evidence?"],
+                                   "known_risks":["Concentration"]}]}
+        return evidence, research
+
+    def test_m2_opportunity_triage_is_private_nonranking(self):
+        evidence, research = self.synthetic_opportunity_inputs()
+        out = assemble_manual_run(self.request(), self.ir(),
+                                  source_evidence_inputs=evidence,
+                                  opportunity_triage_inputs=research)
+        triage = out["opportunity_triage_private"]
+        self.assertEqual(triage["status"], "PRIVATE_RESEARCH_TRIAGE_PREPARED_NOT_RANKED")
+        self.assertEqual(triage["stage_counts"], {"EVIDENCE_RESOLUTION":0, "HUMAN_DEEP_DIVE":1})
+        self.assertEqual(triage["ranking_or_buy_recommendation"], "NONE")
+        self.assertIn("CONDITIONAL", out["markdown"])
+        self.assertIn("private analyst follow-up queues", out["markdown"])
+        self.assertNotIn("SYN-CO", out["markdown"])
+        self.assertNotIn("SYN-CO", str(out["memory_proposal_nonprivate"]))
+
+    def test_m2_opportunity_triage_cannot_invent_source_annex(self):
+        _, research = self.synthetic_opportunity_inputs()
+        with self.assertRaisesRegex(ValueError, "OPPORTUNITY_TRIAGE_REQUIRES_SOURCE_ANNEX"):
+            assemble_manual_run(self.request(), self.ir(),
+                                opportunity_triage_inputs=research)
+
+    def test_m2_opportunity_triage_preserves_source_gap_without_ranking(self):
+        evidence, research = self.synthetic_opportunity_inputs()
+        evidence["observations"] = []
+        out = assemble_manual_run(self.request(), self.ir(),
+                                  source_evidence_inputs=evidence,
+                                  opportunity_triage_inputs=research)
+        triage = out["opportunity_triage_private"]
+        self.assertEqual(triage["stage_counts"]["EVIDENCE_RESOLUTION"], 1)
+        self.assertIn("NO_SOURCE_OBSERVATION", triage["candidates_private_in_supplied_order"][0]["review_reasons"])
+        self.assertEqual(triage["source_authentication"], "NOT_PERFORMED")
+
+
+
 if __name__ == "__main__":
     unittest.main()

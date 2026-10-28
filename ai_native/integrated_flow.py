@@ -16,6 +16,7 @@ from .research_case_comparison import compare_supplied_cases
 from .evidence_math import audit_calculation
 from .source_fusion import assemble_source_fusion
 from .fact_evidence_alignment import align_ir_facts_to_sources
+from .opportunity_triage import prepare_opportunity_triage
 from .valuation_scenarios import evaluate_valuation_scenarios
 from .candidate_comparison import compare_candidates
 from .fundamental_dossier import prepare_fundamental_dossier
@@ -55,6 +56,7 @@ def assemble_manual_run(
     candidate_comparison_inputs: Mapping[str, Any] | None = None,
     fundamental_inputs: Mapping[str, Any] | None = None,
     historical_comparison_inputs: Mapping[str, Any] | None = None,
+    opportunity_triage_inputs: Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Assemble a PRIVATE report without claiming live Project connectivity.
 
@@ -192,6 +194,26 @@ def assemble_manual_run(
                 source_annex["noncomparable_basis_groups"]):
             limits.append("Some research evidence is missing, disputed or noncomparable; see private source annex. No source was independently certified.")
             status = "CONDITIONAL"
+    opportunity_triage = None
+    if opportunity_triage_inputs is not None:
+        if source_annex is None:
+            raise ValueError("OPPORTUNITY_TRIAGE_REQUIRES_SOURCE_ANNEX")
+        if not isinstance(opportunity_triage_inputs, Mapping):
+            raise ValueError("OPPORTUNITY_TRIAGE_INPUT_MAPPING_REQUIRED")
+        required = {"analysis_id", "analysis_as_of", "strategy_id",
+                    "universe_scope", "universe_note", "candidates"}
+        if set(opportunity_triage_inputs) != required:
+            raise ValueError("OPPORTUNITY_TRIAGE_EXACT_SCHEMA_REQUIRED")
+        if (opportunity_triage_inputs["analysis_id"] != run_id
+                or opportunity_triage_inputs["analysis_as_of"] != as_of
+                or opportunity_triage_inputs["strategy_id"] != strategy):
+            raise ValueError("OPPORTUNITY_TRIAGE_MANDATE_MISMATCH")
+        opportunity_triage = prepare_opportunity_triage(
+            ir_facts=facts, source_annex=source_annex, **opportunity_triage_inputs
+        )
+        limits.append("Research candidates were organized into private analyst follow-up queues only; no global screening, source certification, ranking or investability conclusion.")
+        status = "CONDITIONAL"
+
     fundamental_dossier = None
     if fundamental_inputs is not None:
         if source_annex is None:
@@ -300,6 +322,7 @@ def assemble_manual_run(
         "calculation_checks": checks,
         "source_evidence_annex_private": source_annex,
         "fact_source_alignment_private": fact_alignment,
+        "opportunity_triage_private": opportunity_triage,
         "valuation_scenarios_private": valuation_scenarios,
         "candidate_comparison_private": candidate_comparison,
         "fundamental_dossier_private": fundamental_dossier,
