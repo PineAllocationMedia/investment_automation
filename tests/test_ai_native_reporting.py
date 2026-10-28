@@ -85,5 +85,63 @@ class ReportingTests(unittest.TestCase):
         self.assertIn("No source checks, monitoring, archival", text)
 
 
+
+    def source_review(self, **updates):
+        row = {"fact_id_private":"F1", "ir_reported_status":"INDICATIVE",
+               "observation_ids_private":[], "source_use_statuses":[],
+               "review_flags":["NO_OBSERVATION_FOR_IR_FACT"],
+               "alignment":"REVIEW_REQUIRED"}
+        record = {"status":"PRIVATE_FACT_SOURCE_ALIGNMENT_NOT_CERTIFIED",
+                  "analysis_id":"SYN-001", "analysis_as_of":"2026-10-28",
+                  "facts_private":[row], "facts_needing_review":1,
+                  "source_authentication":"NOT_PERFORMED",
+                  "evidence_upgrade":"NONE", "decision_grade_status":"NOT_ESTABLISHED"}
+        record.update(updates)
+        return record
+
+    def test_structural_source_flags_are_visible_without_upgrading_ir_label(self):
+        text = render_report(self.packet(
+            fact_source_alignment_private=self.source_review()))
+        self.assertIn("1/1 facts require human source-use review", text)
+        self.assertIn("NO_OBSERVATION_FOR_IR_FACT", text)
+        self.assertIn("[F1 / INDICATIVE]", text)
+        self.assertIn("not independently authenticated", text)
+
+    def test_report_without_annex_marks_ir_verification_as_reported_only(self):
+        text = render_report(self.packet())
+        self.assertIn("research-reported, not independently authenticated", text)
+        self.assertNotIn("Source reconciliation:", text)
+
+    def test_source_review_does_not_accept_conflicting_authority_or_identity(self):
+        for key, value in (("analysis_as_of", "2026-10-27"),
+                           ("evidence_upgrade", "VERIFIED"),
+                           ("source_authentication", "INDEPENDENTLY_CHECKED"),
+                           ("facts_needing_review", 0)):
+            with self.subTest(key=key), self.assertRaisesRegex(ValueError, "REPORT_SOURCE_REVIEW"):
+                render_report(self.packet(fact_source_alignment_private=self.source_review(**{key:value})))
+
+    def test_source_review_rejects_missing_extra_and_mismatched_fact_labels(self):
+        record = self.source_review()
+        record["facts_private"] = []
+        with self.assertRaisesRegex(ValueError, "REPORT_SOURCE_REVIEW_COVERAGE"):
+            render_report(self.packet(fact_source_alignment_private=record))
+        record = self.source_review()
+        record["facts_private"][0]["ir_reported_status"] = "VERIFIED"
+        with self.assertRaisesRegex(ValueError, "REPORT_SOURCE_REVIEW_FACT_MISMATCH"):
+            render_report(self.packet(fact_source_alignment_private=record))
+        record = self.source_review()
+        record["facts_private"][0]["review_flags"] = ["injected markdown\\n# false approval"]
+        with self.assertRaisesRegex(ValueError, "REPORT_SOURCE_REVIEW_FLAGS_INVALID"):
+            render_report(self.packet(fact_source_alignment_private=record))
+
+    def test_structurally_aligned_source_is_still_not_independently_verified(self):
+        record = self.source_review(facts_needing_review=0)
+        record["facts_private"][0]["review_flags"] = []
+        record["facts_private"][0]["alignment"] = "CALLER_REPORTED_STRUCTURALLY_ALIGNED_ONLY"
+        text = render_report(self.packet(fact_source_alignment_private=record))
+        self.assertIn("0/1 facts", text)
+        self.assertNotIn("Source review required:", text)
+        self.assertIn("no status was upgraded", text)
+
 if __name__ == "__main__":
     unittest.main()
