@@ -95,10 +95,12 @@ class SessionBridgeTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError,"PI_DELTA_UNREQUESTED"):
             complete_manual_session(self.request(),pi_delta=self.pi())
 
-    def test_pi_only_arithmetic_requires_ir_m7a_route(self):
-        with self.assertRaisesRegex(ValueError,"PORTFOLIO_ARITHMETIC_REQUIRES_IR_PI_M7A_ROUTE"):
-            complete_manual_session(self.request(research_needed=False,portfolio_needed=True),
-                                    pi_delta=self.pi(),contribution_inputs={})
+    def test_arithmetic_requires_a_pi_route_and_cost_requires_contribution(self):
+        with self.assertRaisesRegex(ValueError, "PORTFOLIO_ARITHMETIC_REQUIRES_PI_ROUTE"):
+            complete_manual_session(self.request(), contribution_inputs={})
+        with self.assertRaisesRegex(ValueError, "COST_INPUTS_REQUIRE_CONTRIBUTION_INPUTS"):
+            complete_manual_session(self.request(research_needed=False, portfolio_needed=True),
+                                    pi_delta=self.pi(), cost_inputs={})
 
     def test_memory_without_ir_blocked(self):
         with self.assertRaisesRegex(ValueError,"MEMORY_PACKET_REQUIRES_IR_CAPSULE"):
@@ -175,5 +177,95 @@ class SessionBridgeTests(unittest.TestCase):
         self.assertIn("Source reconciliation:", output["final_report_private"])
         self.assertEqual(output["integrated_private"]["fact_source_alignment_private"]["facts_needing_review"], 1)
         self.assertEqual(output["storage"], "NONE")
+
+
+    def new_contribution_inputs(self, **patch):
+        out = {"positions_base":{"ABC:TSX":"400.00","VFV:TSX":"600.00"},
+               "allocations_pct":{"ABC:TSX":"60","VFV:TSX":"40"},
+               "contribution_base":"1000.00","currency":"CAD","as_of":"2026-10-28",
+               "scope_complete":True,"cash_accounted_for":True,
+               "same_currency_basis_verified":True,"instrument_identity_verified":True}
+        out.update(patch)
+        return out
+
+    def new_cost_inputs(self, funding="FROM_CONTRIBUTION"):
+        kinds = ("commission","bid_ask_spread","fx_conversion","purchase_tax","other_fees")
+        costs = {key:{k:{"amount_base":"0.00","source_ref":"SYN-ZERO"} for k in kinds}
+                 for key in ("ABC:TSX","VFV:TSX")}
+        costs["ABC:TSX"]["commission"] = {"amount_base":"5.00","source_ref":"SYN-FEE"}
+        return {"charges_by_destination":costs,"cost_currency":"CAD",
+                "cost_quote_as_of":"2026-10-28","analysis_as_of":"2026-10-28",
+                "funding":funding}
+
+    def test_pi_only_new_contribution_without_fake_ir(self):
+        request = self.request(research_needed=False, portfolio_needed=True)
+        source = self.new_contribution_inputs()
+        before = copy.deepcopy(source)
+        out = complete_manual_session(request, pi_delta=self.pi(), contribution_inputs=source)
+        self.assertEqual(source, before)
+        self.assertIsNone(out["integrated_private"])
+        self.assertEqual(out["status"], "PI_ONLY_CONDITIONAL_REPORT_ASSEMBLED")
+        self.assertEqual(out["gross_contribution_private"]["status"], "GROSS_PROJECTION_ONLY")
+        self.assertIn("60% of new capital", out["final_report_private"])
+        self.assertIn("Costs/funding NOT ASSESSED", out["final_report_private"])
+        self.assertNotIn("400.00", out["final_report_private"])
+        self.assertNotIn("1000.00", out["final_report_private"])
+        self.assertNotIn("IR_REQUEST", out["handoffs_private"]["copy_ready_private"])
+        self.assertEqual(out["storage"], "NONE")
+        self.assertEqual(out["project_invocation"], "NONE")
+
+    def test_pi_only_fixed_cost_funding_remains_conditional(self):
+        out = complete_manual_session(
+            self.request(research_needed=False, portfolio_needed=True),
+            pi_delta=self.pi(), contribution_inputs=self.new_contribution_inputs(),
+            cost_inputs=self.new_cost_inputs(),
+        )
+        self.assertEqual(out["funded_contribution_private"]["conditional_purchase_budget_base"], "995.00")
+        self.assertIn("CONDITIONALLY RECONCILED", out["final_report_private"])
+        self.assertNotIn("995.00", out["final_report_private"])
+        self.assertEqual(out["funded_contribution_private"]["execution_status"],
+                         "UNAVAILABLE_NOT_EXECUTION_CERTIFIED")
+
+    def test_pi_only_unknown_funding_cannot_claim_net_projection(self):
+        out = complete_manual_session(
+            self.request(research_needed=False, portfolio_needed=True),
+            pi_delta=self.pi(), contribution_inputs=self.new_contribution_inputs(),
+            cost_inputs=self.new_cost_inputs(funding="UNKNOWN"),
+        )
+        self.assertEqual(out["funded_contribution_private"]["status"], "UNAVAILABLE_FUNDING_UNKNOWN")
+        self.assertIn("After-cost funded allocation UNAVAILABLE", out["final_report_private"])
+
+    def test_pi_only_unavailable_scope_displays_no_allocation(self):
+        out = complete_manual_session(
+            self.request(research_needed=False, portfolio_needed=True),
+            pi_delta=self.pi(), contribution_inputs=self.new_contribution_inputs(scope_complete=False),
+        )
+        self.assertEqual(out["gross_contribution_private"]["status"], "UNAVAILABLE")
+        self.assertIn("Gross contribution projection UNAVAILABLE", out["final_report_private"])
+        self.assertNotIn("60% of new capital", out["final_report_private"])
+
+    def test_pi_only_date_mismatch_and_no_pi_are_guarded(self):
+        req = self.request(research_needed=False, portfolio_needed=True)
+        pending = complete_manual_session(req, contribution_inputs=self.new_contribution_inputs())
+        self.assertEqual(pending["status"], "AWAITING_MANUAL_PI_DELTA")
+        self.assertIsNone(pending["gross_contribution_private"])
+        with self.assertRaisesRegex(ValueError, "exact PI portfolio observation date"):
+            complete_manual_session(req, pi_delta=self.pi(),
+                contribution_inputs=self.new_contribution_inputs(as_of="2026-10-27"))
+        with self.assertRaisesRegex(ValueError, "analysis cutoff"):
+            complete_manual_session(req, pi_delta=self.pi(),
+                contribution_inputs=self.new_contribution_inputs(),
+                cost_inputs={**self.new_cost_inputs(), "analysis_as_of":"2026-10-27"})
+
+    def test_pi_only_cannot_upgrade_incomplete_observation_scope(self):
+        from unittest.mock import patch
+        request = self.request(research_needed=False, portfolio_needed=True)
+        with patch("ai_native.session_bridge.prepare_observation_ledger",
+                   return_value={"observed_on":"2026-10-28","known_scope_weights_pct":None}):
+            with self.assertRaisesRegex(ValueError, "PI_CONTRIBUTION_SCOPE_CONFLICTS_WITH_OBSERVATION"):
+                complete_manual_session(
+                    request, pi_delta=self.pi(), observation_inputs={
+                        "analysis_id":"CASE-A", "analysis_as_of":"2026-10-28"},
+                    contribution_inputs=self.new_contribution_inputs())
 
 if __name__ == "__main__": unittest.main()

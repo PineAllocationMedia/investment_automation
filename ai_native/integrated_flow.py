@@ -8,9 +8,7 @@ from __future__ import annotations
 from datetime import date
 from typing import Any, Mapping
 
-from .contribution_math import project_gross_contribution
-from .known_costs import tally_supplied_costs
-from .funded_costs_reconciliation import reconcile_funded_contribution
+from .new_capital_flow import prepare_new_capital_projection
 from .research_memory import prepare_research_history
 from .research_case_comparison import compare_supplied_cases
 from .evidence_math import audit_calculation
@@ -125,45 +123,25 @@ def assemble_manual_run(
         limits.append("One or more requested financial calculations are unavailable; see private calculation annex.")
         status = "CONDITIONAL"
 
+    contribution_bundle = None
     contribution = None
+    costs = None
+    funded_contribution = None
     if contribution_inputs is not None:
         if pi_delta is None:
             raise ValueError("Cannot calculate a contribution without a PI capsule")
-        if not isinstance(contribution_inputs, Mapping):
-            raise ValueError("contribution_inputs must be a mapping")
-        if contribution_inputs.get("as_of") != pi_date:
-            raise ValueError("Contribution input must use exact PI portfolio observation date")
-        contribution = project_gross_contribution(**contribution_inputs)
-        if contribution["status"] == "UNAVAILABLE":
-            limits.append("Gross contribution projection unavailable: required scope flags were not established.")
+        contribution_bundle = prepare_new_capital_projection(
+            analysis_id=run_id, analysis_as_of=as_of, portfolio_as_of=pi_date,
+            contribution_inputs=contribution_inputs, cost_inputs=cost_inputs,
+        )
+        contribution = contribution_bundle["gross_contribution_private"]
+        costs = contribution_bundle["supplied_costs_private"]
+        funded_contribution = contribution_bundle["funded_contribution_private"]
+        limits.extend(contribution_bundle["limitations"])
+        if contribution["status"] == "UNAVAILABLE" or cost_inputs is not None:
             status = "CONDITIONAL"
-        else:
-            limits.append("Gross contribution math only; real account costs, taxes, FX and execution not assessed.")
-
-    costs = None
-    funded_contribution = None
-    if cost_inputs is not None:
-        if contribution is None:
-            raise ValueError("cost_inputs require an available PI gross contribution projection")
-        if not isinstance(cost_inputs, Mapping):
-            raise ValueError("cost_inputs must be a mapping")
-        if cost_inputs.get("analysis_as_of") != as_of:
-            raise ValueError("cost_inputs analysis cutoff must match request as_of")
-        costs = tally_supplied_costs(gross_projection=contribution, **cost_inputs)
-        if costs["status"] != "SUPPLIED_COST_TALLY_ONLY":
-            limits.append("After-cost analysis unavailable: incomplete or infeasible supplied purchase costs.")
-        else:
-            limits.append("Supplied-cost tally only; quotes, taxes and net execution not certified.")
-            if costs.get("gross_allocation_funding_conflict"):
-                limits.append("Gross allocation uses the full contribution; deducting fees from that same contribution needs a revised plan.")
-        funded_contribution = reconcile_funded_contribution(
-            contribution_inputs=contribution_inputs, gross_projection=contribution,
-            cost_tally=costs)
-        if funded_contribution["status"] == "CONDITIONAL_SUPPLIED_COST_BUDGET_RECONCILED":
-            limits.append("Conditional new-capital budget reconciled to stated costs; order-size-dependent fees and real execution must be rechecked. See private annex.")
-        else:
-            limits.append("Funded new-capital budget unavailable; missing or incompatible cost/funding data. Gross projection remains separately labeled.")
-        status = "CONDITIONAL"
+    elif cost_inputs is not None:
+        raise ValueError("cost_inputs require an available PI gross contribution projection")
 
     facts = ir_capsule["facts"]
     if any(isinstance(f, Mapping) and f.get("status") in {"MISSING", "CONFLICTED"} for f in facts):
@@ -317,22 +295,8 @@ def assemble_manual_run(
         # Only the private report consumer sees structural source-use warnings.
         # The original IR capsule and its reported labels remain unchanged.
         packet["fact_source_alignment_private"] = fact_alignment
-    if contribution is not None:
-        # Only safe, caller-declared NEW-capital percentages and mechanical
-        # calculation statuses reach the private report. No position balances,
-        # cash amounts, cost quotations or tax assumptions enter public memory.
-        packet["new_contribution_summary_private"] = {
-            "analysis_id": run_id,
-            "portfolio_as_of": pi_date,
-            "gross_status": contribution["status"],
-            "allocations_pct": (dict(contribution_inputs["allocations_pct"])
-                                if contribution["status"] == "GROSS_PROJECTION_ONLY"
-                                else None),
-            "cost_status": costs["status"] if costs is not None else "NOT_SUPPLIED",
-            "funded_status": (funded_contribution["status"] if funded_contribution is not None
-                              else "NOT_ASSESSED"),
-            "source_authentication": "NOT_PERFORMED",
-        }
+    if contribution_bundle is not None:
+        packet["new_contribution_summary_private"] = contribution_bundle["report_summary_private"]
     markdown = render_report(packet)
     # Memory proposal excludes portfolio data, issuer narrative and full claims.
     memory = {
