@@ -149,4 +149,20 @@ class SessionBridgeTests(unittest.TestCase):
 
 
 
+
+    def test_ir_evidence_annex_roundtrip_through_pi_stays_private_and_unchanged(self):
+        evidence = {"analysis_id":"CASE-A", "analysis_as_of":"2026-10-28",
+                    "observations":[]}
+        capsule = self.ir(EVIDENCE_ANNEX=evidence)
+        before = copy.deepcopy(capsule)
+        pi = self.pi(forwarded_ir=copy.deepcopy(capsule))
+        out = complete_manual_session(
+            self.request(portfolio_needed=True), ir_capsule=capsule, pi_delta=pi)
+        self.assertEqual(capsule, before)
+        self.assertEqual(out["handoffs_private"]["pi_request_private"]["FORWARD_UNCHANGED"], before)
+        self.assertEqual(out["integrated_private"]["source_evidence_annex_private"]["observation_count"], 0)
+        self.assertEqual(out["integrated_private"]["fact_source_alignment_private"]["facts_needing_review"], 1)
+        self.assertEqual(out["project_invocation"], "NONE")
+        self.assertEqual(out["storage"], "NONE")
+
 if __name__ == "__main__": unittest.main()

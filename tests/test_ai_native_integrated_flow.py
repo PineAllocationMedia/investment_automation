@@ -314,5 +314,64 @@ class ManualIntegrationTests(unittest.TestCase):
 
 
 
+    def embedded_source_inputs(self, **row_changes):
+        row = dict(
+            observation_id="SYN-O1", fact_id="SYN-F1", source_id="SYN-S1",
+            economic_issuer="SYN", instrument="SYN:NYSE", metric="EPS",
+            period_start="2025-01-01", period_end="2025-12-31",
+            currency="USD", unit="PER_SHARE", definition_basis="US_GAAP",
+            consolidation="GROUP", value="1.00", observed_at="2026-10-28",
+            published_at="2026-02-01", original_checked_at="2026-10-28",
+            source_kind="ISSUER_OR_REGULATOR", classification="SOURCE_FACT",
+            source_locator="https://example.org/private-synthetic-source",
+            rights_status="PERMITTED", verification_status="INDICATIVE",
+        )
+        row.update(row_changes)
+        return {"analysis_id":"SYN-001", "analysis_as_of":"2026-10-28",
+                "observations":[row]}
+
+    def test_embedded_ir_evidence_flows_to_private_alignment_without_reentry(self):
+        import copy
+        evidence = self.embedded_source_inputs()
+        capsule = self.ir(research_as_of="2026-10-28", EVIDENCE_ANNEX=evidence)
+        before = copy.deepcopy(capsule)
+        out = assemble_manual_run(self.request(), capsule)
+        self.assertEqual(capsule, before)
+        self.assertEqual(out["source_evidence_annex_private"]["observation_count"], 1)
+        self.assertEqual(out["fact_source_alignment_private"]["facts_needing_review"], 0)
+        self.assertEqual(out["source_verification"], "NOT_PERFORMED_BY_INTEGRATION")
+        self.assertIn("not independently certified", out["markdown"])
+        self.assertNotIn("private-synthetic-source", str(out["memory_proposal_nonprivate"]))
+
+    def test_embedded_and_explicit_source_annexes_are_not_silently_combined(self):
+        evidence = self.embedded_source_inputs()
+        capsule = self.ir(research_as_of="2026-10-28", EVIDENCE_ANNEX=evidence)
+        with self.assertRaisesRegex(ValueError, "AMBIGUOUS_SOURCE_ANNEX"):
+            assemble_manual_run(self.request(), capsule,
+                                source_evidence_inputs=evidence)
+
+    def test_embedded_source_packet_must_match_request_identity_and_date(self):
+        for key, other in (("analysis_id", "WRONG"), ("analysis_as_of", "2026-10-27")):
+            evidence = self.embedded_source_inputs()
+            evidence[key] = other
+            with self.subTest(key=key), self.assertRaisesRegex(
+                ValueError, "SOURCE_ANNEX_ANALYSIS_OR_DATE_MISMATCH"
+            ):
+                assemble_manual_run(self.request(), self.ir(EVIDENCE_ANNEX=evidence))
+
+    def test_ir_cannot_claim_an_observation_made_after_research_cutoff(self):
+        with self.assertRaisesRegex(ValueError, "IR_SOURCE_OBSERVED_AFTER_RESEARCH_AS_OF"):
+            assemble_manual_run(self.request(), self.ir(EVIDENCE_ANNEX=self.embedded_source_inputs()))
+
+    def test_embedded_source_cannot_reference_unknown_ir_fact(self):
+        evidence = self.embedded_source_inputs(fact_id="NOT_AN_IR_FACT")
+        with self.assertRaisesRegex(ValueError, "SOURCE_ANNEX_UNKNOWN_IR_FACT_ID"):
+            assemble_manual_run(self.request(),
+                                self.ir(research_as_of="2026-10-28", EVIDENCE_ANNEX=evidence))
+
+    def test_embedded_source_requires_mapping(self):
+        with self.assertRaisesRegex(ValueError, "IR_EVIDENCE_ANNEX_MAPPING_REQUIRED"):
+            assemble_manual_run(self.request(), self.ir(EVIDENCE_ANNEX=[]))
+
 if __name__ == "__main__":
     unittest.main()

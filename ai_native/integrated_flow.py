@@ -169,6 +169,17 @@ def assemble_manual_run(
     if any(isinstance(f, Mapping) and f.get("status") in {"MISSING", "CONFLICTED"} for f in facts):
         status = "CONDITIONAL"
 
+    # IR may carry its private evidence in the *same unchanged capsule* used by
+    # manual CC -> PI -> CC transfers. Avoid duplicating sensitive source records
+    # in a second CC-only argument. Legacy separate inputs remain supported.
+    embedded_annex = "EVIDENCE_ANNEX" in ir_capsule
+    if embedded_annex:
+        if source_evidence_inputs is not None:
+            raise ValueError("AMBIGUOUS_SOURCE_ANNEX: choose one authoritative packet")
+        source_evidence_inputs = ir_capsule["EVIDENCE_ANNEX"]
+        if not isinstance(source_evidence_inputs, Mapping):
+            raise ValueError("IR_EVIDENCE_ANNEX_MAPPING_REQUIRED")
+
     source_annex = None
     fact_alignment = None
     if source_evidence_inputs is not None:
@@ -179,6 +190,12 @@ def assemble_manual_run(
         if source_evidence_inputs["analysis_id"] != run_id or source_evidence_inputs["analysis_as_of"] != as_of:
             raise ValueError("SOURCE_ANNEX_ANALYSIS_OR_DATE_MISMATCH")
         source_annex = assemble_source_fusion(**source_evidence_inputs)
+        if embedded_annex and any(
+            observation["observed_at"] > ir_cutoff.isoformat()
+            for observation in source_annex["observations_private"]
+        ):
+            raise ValueError("IR_SOURCE_OBSERVED_AFTER_RESEARCH_AS_OF")
+        limits.append("Supplied source observations were structurally reviewed only; original-source authenticity and usage rights were not independently certified. See private annex.")
         ir_fact_ids = {x["id"] for x in facts if isinstance(x, Mapping) and isinstance(x.get("id"), str)}
         supported_ids = {x["fact_id"] for x in source_annex["observations_private"]}
         if not supported_ids.issubset(ir_fact_ids):
