@@ -188,5 +188,19 @@ class ManualCLIContractTests(unittest.TestCase):
         self.assertNotIn("original_request",output)
         self.assertEqual(json.loads(output)["storage"],"NONE")
 
+
+    def test_macro_sector_input_allowed_but_never_direct_without_ir_source_annex(self):
+        payload={"request":self.fx.request(),"ir_capsule":self.fx.ir(),
+                 "macro_sector_inputs":{"analysis_id":"CASE-A",
+                                        "analysis_as_of":"2026-10-28",
+                                        "strategy_id":"EXPLORATORY","drivers":[]}}
+        code,output,error=self.invoke(payload,output="report")
+        self.assertEqual(code,2)
+        self.assertEqual(output,"")
+        self.assertIn("R1_INPUT_REJECTED",error)
+        # The failure must be from the missing source annex, not a rejected
+        # unknown top-level CLI key. Source content is never echoed on error.
+        self.assertNotIn("UNKNOWN_OR_MISSING_SESSION_FIELD",error)
+
 if __name__ == "__main__":
     unittest.main()
