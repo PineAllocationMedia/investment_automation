@@ -53,6 +53,48 @@ def _facts(value: Any) -> list[Mapping[str, Any]]:
     return value
 
 
+def _source_review(packet: Mapping[str, Any], analysis_id: str, as_of: str,
+                   facts: list[Mapping[str, Any]]) -> tuple[dict[str, list[str]], int] | None:
+    """Validate private structural-review handoff, never certify research facts."""
+    review = packet.get("fact_source_alignment_private")
+    if review is None:
+        return None
+    if not isinstance(review, Mapping) or (
+        review.get("status") != "PRIVATE_FACT_SOURCE_ALIGNMENT_NOT_CERTIFIED"
+        or review.get("analysis_id") != analysis_id
+        or review.get("analysis_as_of") != as_of
+        or review.get("source_authentication") != "NOT_PERFORMED"
+        or review.get("evidence_upgrade") != "NONE"
+        or review.get("decision_grade_status") != "NOT_ESTABLISHED"
+    ):
+        raise ValueError("REPORT_SOURCE_REVIEW_AUTHORITY_OR_ID_MISMATCH")
+    expected = {f["id"]: f["status"] for f in facts}
+    rows = review.get("facts_private")
+    if not isinstance(rows, list):
+        raise ValueError("REPORT_SOURCE_REVIEW_FACTS_REQUIRED")
+    by_id: dict[str, list[str]] = {}
+    for entry in rows:
+        if not isinstance(entry, Mapping):
+            raise ValueError("REPORT_SOURCE_REVIEW_ENTRY_INVALID")
+        fid = entry.get("fact_id_private")
+        if fid not in expected or fid in by_id or entry.get("ir_reported_status") != expected[fid]:
+            raise ValueError("REPORT_SOURCE_REVIEW_FACT_MISMATCH")
+        flags = entry.get("review_flags")
+        if not isinstance(flags, list) or any(
+            not isinstance(f, str) or not f or not all(c.isascii() and (c.isupper() or c.isdigit() or c == "_") for c in f)
+            for f in flags
+        ):
+            raise ValueError("REPORT_SOURCE_REVIEW_FLAGS_INVALID")
+        alignment = "REVIEW_REQUIRED" if flags else "CALLER_REPORTED_STRUCTURALLY_ALIGNED_ONLY"
+        if entry.get("alignment") != alignment:
+            raise ValueError("REPORT_SOURCE_REVIEW_ALIGNMENT_MISMATCH")
+        by_id[fid] = flags
+    count = sum(bool(x) for x in by_id.values())
+    if set(by_id) != set(expected) or review.get("facts_needing_review") != count:
+        raise ValueError("REPORT_SOURCE_REVIEW_COVERAGE_MISMATCH")
+    return by_id, count
+
+
 def render_report(packet: Mapping[str, Any]) -> str:
     """Render a concise markdown research report or user-requested follow-up.
 
@@ -79,6 +121,7 @@ def render_report(packet: Mapping[str, Any]) -> str:
     for i, item in enumerate(packet["summary"]):
         _string(item, f"summary[{i}]")
     facts = _facts(packet.get("facts"))
+    source_review = _source_review(packet, analysis_id, as_of, facts)
     lines = [
         f"# {'User-requested reassessment' if kind == 'FOLLOWUP' else 'Investment decision research'} — {analysis_id}",
         f"**As of:** {as_of} | **Strategy:** {strategy} | **Method:** {method_version} | **Status:** {status}",
@@ -86,6 +129,16 @@ def render_report(packet: Mapping[str, Any]) -> str:
         "", "## Decision line", decision_line, "", "## Key findings",
     ]
     lines += [f"- {item.strip()}" for item in packet["summary"]]
+    lines += [
+        "", "**Source assurance:** IR evidence statuses are research-reported, not "
+        "independently authenticated by this report (including rights and historical availability)."
+    ]
+    if source_review is not None:
+        _, flagged_count = source_review
+        lines.append(
+            f"**Source reconciliation:** {flagged_count}/{len(facts)} facts require "
+            "human source-use review based on supplied observations; no status was upgraded."
+        )
     lines += ["", "## Supporting observations"]
     if facts:
         for item in facts:
@@ -94,6 +147,9 @@ def render_report(packet: Mapping[str, Any]) -> str:
             locator = item.get("source_url") or "SOURCE_NOT_SUPPLIED"
             period = item.get("period") or "PERIOD_UNKNOWN"
             lines.append(f"- [{ref} / {evidence_status}] {item['claim'].strip()} (period: {period}; source: {locator})")
+            if source_review is not None and source_review[0][ref]:
+                flags = ", ".join(source_review[0][ref])
+                lines.append(f"  - **Source review required:** {flags}. IR-reported label is not independently corroborated.")
     else:
         lines.append("No underlying fact records supplied; no factual verification is asserted.")
     if kind == "FOLLOWUP":
