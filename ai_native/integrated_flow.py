@@ -15,6 +15,7 @@ from .evidence_math import audit_calculation
 from .source_fusion import assemble_source_fusion
 from .fact_evidence_alignment import align_ir_facts_to_sources
 from .opportunity_triage import prepare_opportunity_triage
+from .macro_sector_context import prepare_macro_sector_context
 from .valuation_scenarios import evaluate_valuation_scenarios
 from .candidate_comparison import compare_candidates
 from .fundamental_dossier import prepare_fundamental_dossier
@@ -55,6 +56,7 @@ def assemble_manual_run(
     fundamental_inputs: Mapping[str, Any] | None = None,
     historical_comparison_inputs: Mapping[str, Any] | None = None,
     opportunity_triage_inputs: Mapping[str, Any] | None = None,
+    macro_sector_inputs: Mapping[str, Any] | None = None,
     portfolio_room_review_private: Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Assemble a PRIVATE report without claiming live Project connectivity.
@@ -210,6 +212,22 @@ def assemble_manual_run(
         limits.append("Research candidates were organized into private analyst follow-up queues only; no global screening, source certification, ranking or investability conclusion.")
         status = "CONDITIONAL"
 
+    macro_sector_context = None
+    if macro_sector_inputs is not None:
+        if source_annex is None:
+            raise ValueError("MACRO_SECTOR_REQUIRES_SOURCE_ANNEX")
+        if (not isinstance(macro_sector_inputs, Mapping)
+                or set(macro_sector_inputs) != {"analysis_id", "analysis_as_of", "strategy_id", "drivers"}):
+            raise ValueError("MACRO_SECTOR_EXACT_SCHEMA_REQUIRED")
+        if (macro_sector_inputs["analysis_id"] != run_id
+                or macro_sector_inputs["analysis_as_of"] != as_of
+                or macro_sector_inputs["strategy_id"] != strategy):
+            raise ValueError("MACRO_SECTOR_MANDATE_MISMATCH")
+        macro_sector_context = prepare_macro_sector_context(
+            ir_facts=facts, source_annex=source_annex, **macro_sector_inputs)
+        limits.append("Macro/sector research context is caller-reported and source-linked only; causal magnitude, returns and timing are not inferred or authenticated.")
+        status = "CONDITIONAL"
+
     fundamental_dossier = None
     if fundamental_inputs is not None:
         if source_annex is None:
@@ -303,6 +321,8 @@ def assemble_manual_run(
     if opportunity_triage is not None:
         # A private research queue is not a market screen or investment ranking.
         packet["opportunity_triage_private"] = opportunity_triage
+    if macro_sector_context is not None:
+        packet["macro_sector_context_private"] = macro_sector_context
     if candidate_comparison is not None:
         # Private scenario spreads never enter the institutional memory proposal.
         packet["candidate_comparison_private"] = candidate_comparison
@@ -345,6 +365,7 @@ def assemble_manual_run(
         "source_evidence_annex_private": source_annex,
         "fact_source_alignment_private": fact_alignment,
         "opportunity_triage_private": opportunity_triage,
+        "macro_sector_context_private": macro_sector_context,
         "valuation_scenarios_private": valuation_scenarios,
         "candidate_comparison_private": candidate_comparison,
         "fundamental_dossier_private": fundamental_dossier,
