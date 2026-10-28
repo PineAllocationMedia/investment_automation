@@ -3,7 +3,7 @@
 **Primary role:** Investment Research, subject review pending. **Applies only when:** approved `high-cagr` strategy explicitly selected; 5–10-year horizon is the constitutional default intent, not a substituted user mandate.
 
 ## Policy inheritance — source, no inventions
-Read [Constitution §3–4](../../../PAM_PROJECT_CONSTITUTION.md) (repo-root-relative; see corrected reference below) before treating a conclusion as policy. High-CAGR Quality Compounder — Asymmetric is built on five distinct lenses:
+Read [Constitution §3–4](../../../../PAM_PROJECT_CONSTITUTION.md) before treating a conclusion as policy. High-CAGR Quality Compounder — Asymmetric is built on five distinct lenses:
 
 1. **QUALITY:** recurring economics, margin/capital discipline, cash after *all* material reinvestment, leverage and per-share financing effects.
 2. **DURABILITY:** evidence-backed moat, runway, disruption and structural permanent-capital-loss routes; distinguish cyclical drawdowns from thesis breaks.
