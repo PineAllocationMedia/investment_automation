@@ -1,0 +1,89 @@
+import unittest
+
+from ai_native.reporting import render_report
+
+
+class ReportingTests(unittest.TestCase):
+    def packet(self, **changes):
+        packet = {
+            "kind": "DECISION", "analysis_id": "SYN-001", "as_of": "2026-10-28",
+            "strategy": "high-cagr", "method_version": "CANDIDATE_R1",
+            "status": "EXPLORATORY", "objective": "Compare synthetic businesses",
+            "decision_line": "No decision-grade ranking established.",
+            "summary": ["A fact conflict blocks numerical comparison."],
+            "facts": [{"id": "F1", "claim": "Synthetic unverified margin 12%", "status": "INDICATIVE"}],
+            "countercase": "Reported figures may be non-comparable.",
+            "limitations": "No verified price or portfolio values.",
+            "next_action": "Verify original financial statements.",
+        }
+        packet.update(changes)
+        return packet
+
+    def test_decision_preserves_indicative_status_and_no_url(self):
+        text = render_report(self.packet())
+        self.assertIn("[F1 / INDICATIVE]", text)
+        self.assertIn("SOURCE_NOT_SUPPLIED", text)
+        self.assertIn("No source checks", text)
+
+    def test_original_checked_fact_requires_metadata(self):
+        with self.assertRaisesRegex(ValueError, "source_url"):
+            render_report(self.packet(facts=[{"id": "F1", "claim": "Test", "status": "VERIFIED"}]))
+
+    def test_original_checked_fact_has_attribution(self):
+        facts = [{"id": "F1", "claim": "Synthetic report number", "status": "VERIFIED",
+                  "source_url": "https://example.com/filing", "period": "FY2025",
+                  "checked_by": "Synthetic reviewer", "checked_at": "2026-10-28"}]
+        self.assertIn("F1 / VERIFIED", render_report(self.packet(facts=facts)))
+
+    def test_invalid_status_and_duplicate_ids_rejected(self):
+        with self.assertRaisesRegex(ValueError, "invalid evidence status"):
+            render_report(self.packet(facts=[{"id": "F1", "claim": "x", "status": "CONFIRMED"}]))
+        with self.assertRaisesRegex(ValueError, "duplicate evidence ID"):
+            render_report(self.packet(facts=[{"id": "F1", "claim": "a", "status": "MISSING"},
+                                             {"id": "F1", "claim": "b", "status": "MISSING"}]))
+
+    def test_followup_without_changes_does_not_claim_market_stasis(self):
+        text = render_report(self.packet(kind="FOLLOWUP", period_start="2026-10-21",
+                                         period_end="2026-10-28", changes=[]))
+        self.assertIn("NOT proof", text)
+        self.assertIn("User-requested reassessment", text)
+
+    def test_followup_change_keeps_low_confidence_label(self):
+        text = render_report(self.packet(kind="FOLLOWUP", period_start="2026-10-21",
+                                         period_end="2026-10-28", changes=[
+                                             {"subject": "Synthetic company", "finding": "Hypothesis requires checking", "status": "CONFLICTED"}]))
+        self.assertIn("[CONFLICTED]", text)
+
+    def test_followup_future_period_rejected(self):
+        with self.assertRaisesRegex(ValueError, "ordered"):
+            render_report(self.packet(kind="FOLLOWUP", period_start="2026-10-21",
+                                      period_end="2026-11-01", changes=[]))
+
+    def test_no_made_up_status_or_missing_baseline(self):
+        with self.assertRaisesRegex(ValueError, "unsupported report status"):
+            render_report(self.packet(status="PRODUCTION_READY"))
+        with self.assertRaisesRegex(ValueError, "summary"):
+            render_report(self.packet(summary=[]))
+
+    def test_followup_has_no_mandatory_cadence_or_prior_baseline(self):
+        text = render_report(self.packet(kind="FOLLOWUP", changes=[]))
+        self.assertIn("no fixed reporting window", text)
+        self.assertIn("BASELINE_NOT_AVAILABLE", text)
+
+    def test_followup_can_reference_prior_analysis_after_arbitrary_interval(self):
+        text = render_report(self.packet(
+            kind="FOLLOWUP", prior_analysis_id="SYN-2025-001",
+            period_start="2025-01-01", period_end="2026-10-28", changes=[]))
+        self.assertIn("SYN-2025-001", text)
+
+    def test_followup_partial_calendar_window_rejected(self):
+        with self.assertRaisesRegex(ValueError, "supplied together"):
+            render_report(self.packet(kind="FOLLOWUP", period_start="2026-01-01", changes=[]))
+
+    def test_synthetic_packet_does_not_write_to_disk(self):
+        text = render_report(self.packet())
+        self.assertIn("No source checks, monitoring, archival", text)
+
+
+if __name__ == "__main__":
+    unittest.main()

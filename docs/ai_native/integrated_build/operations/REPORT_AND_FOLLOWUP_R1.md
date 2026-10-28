@@ -1,0 +1,32 @@
+# M4 R1 — Decision reports and CEO-requested follow-up analyses
+**Owner:** Financial Systems Command Center; Product & UX review pending.  
+**Status:** `CANDIDATE_TEMPLATE / USER_INITIATED_ONLY`. No report or analysis is generated automatically.
+
+## Decision report — conclusions first, evidence after
+Use [Operating Contract](../OPERATING_CONTRACT.md) and the actual, accessible R1 handoffs. Target at most ten minutes of reading where possible, without making report length an artificial minimum.
+
+1. **Decision line/status:** distinguish exploratory, conditional and supported conclusions; explicit no-action when justified.
+2. **Mandate:** CEO request, strategy, horizon, dated information cutoff, currencies and relevant account context only if authorized.
+3. **Economic lenses:** separate Quality, Durability, Expected Return status, Confidence, and Portfolio Room only when PI has genuine dated holdings.
+4. **Countercase and alternatives:** strongest contrary evidence, permanent-loss risk, material conflicting facts, qualified benchmark when available.
+5. **Action or no-action:** contribution percentages only when actually justified and adding to 100%; known transaction costs, otherwise conditional.
+6. **Recoverable evidence:** precise S/F/K/V/P identifiers, source dates and status, without false verification.
+7. **Memory proposal:** versioned research record with analysis ID, original cutoff, actual method/prompt version and **PROPOSED_NOT_COMMITTED** archival status.
+
+`ai_native.reporting.render_report(packet)` optionally formats a supplied packet; it does **not** collect evidence, certify facts, preserve data, schedule analyses or initiate trades.
+
+## Reassessment — only when the CEO asks
+The CEO may ask for the first analysis of a company or request re-evaluation **at any interval**. No weekly, monthly or annual default exists. A user-specified week is simply one possible historical window, never a recurring obligation.
+
+When an actually accessible relevant previous analysis exists, compare:
+- The original report ID, source cutoff, strategy/method version, thesis, assumptions, valuation and confidence as they were documented.
+- Newly checked source facts with **their own** observation date, reporting basis, security class and evidence status.
+- Which changes actually affect Quality, Durability, Expected Return assumptions, Confidence or Portfolio Room (the last only with a newly observed authorized portfolio).
+- Contradictions, new information, key invalidation conditions, benchmark relevance and whether no investment action is justified.
+
+Keep original findings immutable; corrections are appended, not rewritten. If no prior report is accessible, state `BASELINE_NOT_AVAILABLE` rather than claiming a change or inventing previous analysis. No update since the last user request means **NOT_CHECKED**, not no event.
+
+## On-demand execution and required fields
+The CC produces a result **only after a CEO-initiated request**. Neither these templates nor Project instructions authorize background monitoring, reminders, notifications, automatic weekly briefings or recurring analysis.
+
+Minimum fields: `ANALYSIS_ID`, `REPORT_KIND=DECISION|FOLLOWUP`, `AS_OF`, actual `STRATEGY_ID@VERSION`, `METHOD_ID@VERSION` or `UNKNOWN_NOT_LOADED`, `FACT_IDS`, `SOURCE_LOCATORS`, `EVIDENCE_STATUS`, `CONFLICTS`, `DECISION_LINE`, `COUNTERCASE`, `NEXT_ACTION`. If FOLLOWUP: optional actual `PRIOR_ANALYSIS_ID`, with source cutoff, and optional CEO-defined interval. A comparison cannot be claimed when the previous report is inaccessible. No retrospective PIT claim.

@@ -10,7 +10,7 @@ A request carries **only supplied or explicitly confirmed values**, not fabricat
 {
   "analysis_id": "user-selected-or-generated-ID",
   "as_of": "YYYY-MM-DD",
-  "objective": "research | compare | portfolio_contribution | weekly_brief",
+  "objective": "research | compare | portfolio_contribution | user_requested_followup",
   "strategy_id": "approved-strategy-and-version",
   "horizon": "explicit-user-horizon",
   "risk_constraints": ["supplied"],
@@ -53,7 +53,7 @@ If two sources disagree, compare accounting definitions, periods, currency, corp
 
 Minimal shared envelope: `ANALYSIS_ID`, `PROMPT_VERSION`, `METHOD_VERSION`, `OBJECTIVE`, `AS_OF`, `SOURCE_REFERENCES`, `FACTS_VERIFIED`, `INTERPRETATIONS`, `ASSUMPTIONS`, `UNKNOWN_OR_DISPUTED`, `SCENARIOS`, `IMPACT_ON_DECISION`, `CONFIDENCE_RATIONALE`, `FURTHER_CHECK_REQUIRED`, `NEXT_OWNER`, `OUTPUT_BUDGET`. Transfer only the compact delta plus exact archive references; keep needed attachments when source locators are unavailable.
 
-**Final report template:** (1) decision question and what was actually checked; (2) top conclusions and counter-arguments; (3) Quality/Durability/Expected Return/Confidence; (4) price and after-cost/portfolio implications **only if supported**; (5) missing decisive facts and recommended next action; (6) evidence annex reference. For a weekly brief substitute meaningful thesis/invalidation changes and no-action outcomes for stock rankings. No auto-trading.
+**Final report template:** (1) decision question and what was actually checked; (2) top conclusions and counter-arguments; (3) Quality/Durability/Expected Return/Confidence; (4) price and after-cost/portfolio implications **only if supported**; (5) missing decisive facts and recommended next action; (6) evidence annex reference. For a CEO-requested follow-up compare with the actual earlier analysis regardless of elapsed time, including thesis/invalidation changes and justified no-action. There is no scheduled or default weekly analysis. No auto-trading.
 
 ## 4. Case and memory contract
 
