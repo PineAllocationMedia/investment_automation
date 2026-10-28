@@ -654,6 +654,86 @@ def _candidate_comparison_lines(packet: Mapping[str, Any], analysis_id: str,
     lines.append("No source/FX/tax/cost certification, probability-weighted Expected Return, VFV forecast, expected alpha, ranking, portfolio allocation or trading authority.")
     return lines
 
+
+def _historical_comparison_lines(packet: Mapping[str, Any],
+                                 analysis_id: str, as_of: str, kind: str) -> list[str]:
+    """Human-only review of supplied prior/current claims, never certified change."""
+    result = packet.get("historical_research_comparison_private")
+    if result is None:
+        return []
+    if (kind != "FOLLOWUP" or not isinstance(result, Mapping)
+            or result.get("source_authentication") != "NOT_PERFORMED"
+            or result.get("economic_change_status") != "NOT_EVALUATED"
+            or result.get("privacy") != "PRIVATE_ONLY"):
+        raise ValueError("HISTORY_REPORT_AUTHORITY_OR_KIND_MISMATCH")
+    status = result.get("status")
+    items = result.get("review_items_private")
+    if status not in {"BASELINE_NOT_AVAILABLE", "NO_FACT_LINKS_SUPPLIED",
+                      "STRUCTURAL_REVIEW_PREPARED"} or not isinstance(items, list) or len(items) > 200:
+        raise ValueError("HISTORY_REPORT_STATUS_OR_ITEMS_INVALID")
+    lines = ["", "### Prior/current research — structural follow-up only"]
+    if status == "BASELINE_NOT_AVAILABLE":
+        if items or result.get("prior_analysis_id_private") is not None:
+            raise ValueError("HISTORY_REPORT_BASELINE_INCONSISTENT")
+        lines.append("BASELINE_NOT_AVAILABLE: no earlier case was supplied; no historical conclusion is possible.")
+        return lines
+    prior_id = result.get("prior_analysis_id_private")
+    if (not isinstance(prior_id, str) or not prior_id or prior_id == analysis_id
+            or result.get("current_analysis_id_private") != analysis_id
+            or result.get("current_as_of") != as_of
+            or (packet.get("prior_analysis_id") is not None
+                and packet["prior_analysis_id"] != prior_id)
+            or result.get("comparability") != "ANALYST_MUST_VERIFY_IDENTITY_METRIC_UNITS_PERIODS_AND_RIGHTS"
+            or result.get("baseline_authentication") != "CALLER_SUPPLIED_RECORD_STRUCTURALLY_CHECKED_ONLY"
+            or type(result.get("strategy_changed")) is not bool
+            or type(result.get("method_changed")) is not bool):
+        raise ValueError("HISTORY_REPORT_ID_OR_BASIS_MISMATCH")
+    old_date = _iso_date(result.get("prior_as_of"), "history.prior_as_of")
+    if old_date >= as_of:
+        raise ValueError("HISTORY_REPORT_PRIOR_DATE_INVALID")
+    if (status == "STRUCTURAL_REVIEW_PREPARED") != bool(items):
+        raise ValueError("HISTORY_REPORT_LINK_STATUS_MISMATCH")
+    lines.append(f"Supplied earlier case dated {old_date}; current {as_of}. Evidence and metric comparability are not independently verified.")
+    changes = []
+    if result["strategy_changed"]:
+        changes.append("strategy")
+    if result["method_changed"]:
+        changes.append("method version")
+    if changes:
+        lines.append("Comparability WARNING: " + " and ".join(changes) + " changed between cases.")
+    seen_old, seen_new = set(), set()
+    same, different = 0, 0
+    for index, item in enumerate(items):
+        if not isinstance(item, Mapping):
+            raise ValueError("HISTORY_REPORT_LINK_INVALID")
+        old, new = item.get("prior_fact_id"), item.get("current_fact_id")
+        valid = lambda v: (isinstance(v, str) and 1 <= len(v) <= 80
+                           and v[0].isascii() and v[0].isalnum()
+                           and all(c.isascii() and (c.isalnum() or c in "._:-") for c in v))
+        if (not valid(old) or not valid(new) or old in seen_old or new in seen_new
+                or item.get("prior_evidence_status") not in EVIDENCE_STATUSES
+                or item.get("current_evidence_status") not in EVIDENCE_STATUSES
+                or item.get("text_check") not in {
+                    "TEXT_SAME_NOT_EVIDENCE_OF_NO_CHANGE",
+                    "TEXT_DIFF_NOT_CERTIFIED_ECONOMIC_CHANGE"}):
+            raise ValueError("HISTORY_REPORT_LINK_INVALID")
+        seen_old.add(old)
+        seen_new.add(new)
+        is_diff = item["text_check"] == "TEXT_DIFF_NOT_CERTIFIED_ECONOMIC_CHANGE"
+        different += is_diff
+        same += not is_diff
+        if index < 6:
+            label = "wording differs, economic change UNVERIFIED" if is_diff else "wording unchanged, stability NOT PROVEN"
+            lines.append(f"- {old} → {new}: {item['prior_evidence_status']} → {item['current_evidence_status']}; {label}.")
+    if items:
+        lines.append(f"{len(items)} linked facts: {different} wording differences, {same} unchanged; no certified thesis change.")
+    else:
+        lines.append("NO_FACT_LINKS_SUPPLIED: no linked claims to review; do not infer no change.")
+    if len(items) > 6:
+        lines.append(f"{len(items) - 6} further links remain in the private annex.")
+    lines.append("Human review required for comparable definitions, original evidence, sources, rights and thesis changes. No automatic archive search or investment action.")
+    return lines
+
 def render_report(packet: Mapping[str, Any]) -> str:
     """Render a concise markdown research report or user-requested follow-up.
 
@@ -750,6 +830,7 @@ def render_report(packet: Mapping[str, Any]) -> str:
                 if cstatus not in EVIDENCE_STATUSES:
                     raise ValueError(f"changes[{i}]: invalid status")
                 lines.append(f"- **{subject}** [{cstatus}]: {finding}")
+        lines += _historical_comparison_lines(packet, analysis_id, as_of, kind)
     lines += [
         "", "## Strongest countercase / limitation",
         _string(packet.get("countercase"), "countercase"),
