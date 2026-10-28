@@ -8,7 +8,6 @@ from __future__ import annotations
 
 import argparse
 import json
-import re
 import sys
 from typing import Any, TextIO
 
@@ -30,7 +29,11 @@ NEXT_ACTIONS = {
     "M7A_COMPONENT_ASSEMBLED_NOT_END_TO_END_ACCEPTANCE": "Review the private research report; end-to-end acceptance was NOT performed.",
     "CC_DIRECT_NO_SPECIALIST_REPORT_REQUIRED": "No specialist report requested; no automatic Project work.",
 }
-SAFE_CODE = re.compile(r"[A-Z][A-Z0-9_]{3,80}\Z")
+SAFE_ERROR_CODES = frozenset({
+    "DUPLICATE_JSON_FIELD", "NONFINITE_JSON_NUMBER",
+    "TOP_LEVEL_OBJECT_REQUIRED", "UNKNOWN_OR_MISSING_SESSION_FIELD",
+    "INPUT_TOO_LARGE", "CEO_INITIATION_REQUIRED",
+})
 
 
 def _unique_pairs(pairs: list[tuple[str, Any]]) -> dict[str, Any]:
@@ -49,7 +52,7 @@ def _no_nonfinite(raw: str) -> None:
 def _code(error: BaseException) -> str:
     # Never print arbitrary exception text: it may contain private data.
     candidate = str(error).split(":", 1)[0]
-    return candidate if SAFE_CODE.fullmatch(candidate) else "INPUT_CONTRACT_REJECTED"
+    return candidate if candidate in SAFE_ERROR_CODES else "INPUT_CONTRACT_REJECTED"
 
 
 def evaluate(payload: Any) -> dict[str, Any]:
