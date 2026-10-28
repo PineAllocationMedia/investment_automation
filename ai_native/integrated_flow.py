@@ -303,6 +303,9 @@ def assemble_manual_run(
     if opportunity_triage is not None:
         # A private research queue is not a market screen or investment ranking.
         packet["opportunity_triage_private"] = opportunity_triage
+    if candidate_comparison is not None:
+        # Private scenario spreads never enter the institutional memory proposal.
+        packet["candidate_comparison_private"] = candidate_comparison
     if fundamental_dossier is not None:
         # Only private report; the institutional memory proposal remains
         # the same non-sensitive schema without issuer financial details.
