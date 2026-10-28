@@ -290,6 +290,10 @@ class ManualIntegrationTests(unittest.TestCase):
         self.assertEqual(triage["status"], "PRIVATE_RESEARCH_TRIAGE_PREPARED_NOT_RANKED")
         self.assertEqual(triage["stage_counts"], {"EVIDENCE_RESOLUTION":0, "HUMAN_DEEP_DIVE":1})
         self.assertEqual(triage["ranking_or_buy_recommendation"], "NONE")
+        self.assertIn("Research candidate triage", out["markdown"])
+        self.assertIn("1 queued for human deep dive", out["markdown"])
+        self.assertIn("**C1**", out["markdown"])
+        self.assertNotIn("C1", str(out["memory_proposal_nonprivate"]))
         self.assertIn("CONDITIONAL", out["markdown"])
         self.assertIn("private analyst follow-up queues", out["markdown"])
         self.assertNotIn("SYN-CO", out["markdown"])
@@ -310,6 +314,8 @@ class ManualIntegrationTests(unittest.TestCase):
         triage = out["opportunity_triage_private"]
         self.assertEqual(triage["stage_counts"]["EVIDENCE_RESOLUTION"], 1)
         self.assertIn("NO_SOURCE_OBSERVATION", triage["candidates_private_in_supplied_order"][0]["review_reasons"])
+        self.assertIn("NO_SOURCE_OBSERVATION", out["markdown"])
+        self.assertIn("evidence resolution", out["markdown"])
         self.assertEqual(triage["source_authentication"], "NOT_PERFORMED")
 
 
