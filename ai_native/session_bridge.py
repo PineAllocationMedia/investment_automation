@@ -12,6 +12,7 @@ from typing import Any, Mapping
 from .request_assembly import prepare_manual_handoffs
 from .integrated_flow import assemble_manual_run
 from .reporting import render_report
+from .portfolio_observation import prepare_observation_ledger
 
 ROOM_STATUSES = frozenset({"ROOM_EVIDENCE_SUPPORTED", "ROOM_CONDITIONAL", "ROOM_UNAVAILABLE"})
 
@@ -43,6 +44,7 @@ def complete_manual_session(
     contribution_inputs: Mapping[str, Any] | None = None,
     cost_inputs: Mapping[str, Any] | None = None,
     memory_inputs: Mapping[str, Any] | None = None,
+    observation_inputs: Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
     """One CEO-initiated manual session, possibly awaiting a human transfer.
 
@@ -60,9 +62,27 @@ def complete_manual_session(
     if calculation_requests is not None and route not in {"CC_IR_CC", "CC_IR_PI_CC"}:
         raise ValueError("FINANCIAL_CHECKS_REQUIRE_IR_CAPSULE")
 
+    observation = None
+    if observation_inputs is not None:
+        if route not in {"CC_PI_CC", "CC_IR_PI_CC"}:
+            raise ValueError("PORTFOLIO_OBSERVATION_REQUIRES_PI_ROUTE")
+        if not isinstance(observation_inputs, Mapping):
+            raise ValueError("observation_inputs: mapping required")
+        if observation_inputs.get("analysis_id") != request.get("analysis_id"):
+            raise ValueError("OBSERVATION_ANALYSIS_ID_MISMATCH")
+        if observation_inputs.get("analysis_as_of") != request.get("as_of"):
+            raise ValueError("OBSERVATION_ANALYSIS_CUTOFF_MISMATCH")
+        observation = prepare_observation_ledger(**observation_inputs)
+        if pi_delta is not None and observation["observed_on"] != pi_delta.get("portfolio_as_of"):
+            raise ValueError("OBSERVATION_PI_DATE_MISMATCH")
+        if (pi_delta is not None and pi_delta.get("room_status") == "ROOM_EVIDENCE_SUPPORTED"
+                and observation["known_scope_weights_pct"] is None):
+            raise ValueError("UNSUPPORTED_PORTFOLIO_ROOM_ASSERTION: incomplete observation")
+
     private = {"status": "MANUAL_SESSION_PENDING", "route": route,
                "handoffs_private": handoffs, "final_report_private": None,
                "integrated_private": None, "pi_delta_private": None,
+               "portfolio_observation_private": observation,
                "method_load_verification": "NOT_PERFORMED", "project_invocation": "NONE",
                "source_authentication": "NOT_PERFORMED", "storage": "NONE",
                "readiness": "NOT_EVALUATED"}
@@ -83,8 +103,8 @@ def complete_manual_session(
         if _required(pi_delta, "analysis_id") != _required(request, "analysis_id"):
             raise ValueError("PI_ANALYSIS_ID_MISMATCH")
         cutoff = _date(_required(request, "as_of"), "request.as_of")
-        observation = _date(_required(pi_delta, "portfolio_as_of"), "portfolio_as_of")
-        if observation > cutoff:
+        pi_observed_on = _date(_required(pi_delta, "portfolio_as_of"), "portfolio_as_of")
+        if pi_observed_on > cutoff:
             raise ValueError("PI_OBSERVATION_NEWER_THAN_CUTOFF")
         room = _required(pi_delta, "room_status")
         if room not in ROOM_STATUSES:
@@ -103,7 +123,7 @@ def complete_manual_session(
             "summary": ["PI-reported, not independently verified: " + _required(pi_delta, "summary")],
             "facts": [],
             "countercase": "Invisible accounts, cash, currency or stale holdings may change this conclusion.",
-            "limitations": ("PI-reported Portfolio Room: " + room + "; portfolio observed as of " + observation +
+            "limitations": ("PI-reported Portfolio Room: " + room + "; portfolio observed as of " + pi_observed_on +
                             ". Source and account coverage NOT authenticated by this assembler. " +
                             _required(pi_delta, "limitations")),
             "next_action": _required(pi_delta, "next_action"),
