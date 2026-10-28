@@ -38,3 +38,14 @@ The supplied cost quote date may not be after the stated analysis cutoff. The he
 Funding must be one of `FROM_CONTRIBUTION`, `EXTERNAL_CASH`, `UNKNOWN`. When costs are paid from the contribution, the function returns a **maximum remaining contribution budget**, flags that the gross full-budget allocation conflicts with fee funding and never pretends to generate new net weights. External-cash costs are listed separately, without deducting them again from position purchases. Unknown funding yields no investable-budget claim. In all cases `net_economics_status=UNAVAILABLE_NOT_EXECUTION_CERTIFIED`: price, bid/ask, share quantities, actual execution, tax applicability and after-tax Expected Return still need external human/source verification.
 
 The existing manual assembler accepts an **optional** `cost_inputs` only alongside an authorized PI gross contribution, checks the same analysis cutoff, stores cost details in the **private** `supplied_costs_private` return field, and keeps the overall report `CONDITIONAL`. No fees, amounts, account data or source IDs are written to the GitHub memory proposal. Neither this code nor the synthetic unit checks pass the whole-system M7 acceptance.
+
+
+## Conditional funded-contribution reconciliation — proposed R1 component
+
+The pure private helper ai_native.funded_costs_reconciliation.reconcile_funded_contribution consumes the same scoped gross projection, original supplied percentages and output of tally_supplied_costs. It rechecks gross-input consistency and requires source locators covering all five types for each positive original contribution destination. It does not authenticate sources.
+
+With FROM_CONTRIBUTION, all five charges per positive trade must be supplied; the fixed stated monetary subtotal reduces the available new capital. The existing cents-conserving allocation is rerun using the original supplied percentages. If rounding removes an originally positive trade, the conditional projection is withheld because the cost tally would describe a different trade set. Infeasible costs likewise block.
+
+With EXTERNAL_CASH, the full new contribution is preserved and extra supplied fees are shown separately. UNKNOWN funding and incomplete/mismatched costs return UNAVAILABLE without invented zeros. This remains **conditional budget arithmetic only**: actual broker fees, spread, FX, quantities, taxes and other size-dependent charges may change when orders are resized and must be reverified. It is not a certified after-tax/net-return model or an executable investment recommendation.
+
+The result is returned in M7a only as funded_contribution_private, with a general limitation in the concise report. Source and portfolio amounts are not added to the nonprivate GitHub memory proposal. Decision rows #22 and #25 remain PARTIAL; live evidence, real account inputs, complete integration assessment and readiness are not certified.

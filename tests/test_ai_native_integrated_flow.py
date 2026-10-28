@@ -116,5 +116,45 @@ class ManualIntegrationTests(unittest.TestCase):
             assemble_manual_run(self.request(), ir)
 
 
+    def test_funded_contribution_is_private_and_conditional(self):
+        ci = {"positions_base": {"ABC:TSX": "400.00", "VFV:TSX": "600.00"},
+              "allocations_pct": {"ABC:TSX": "60", "VFV:TSX": "40"},
+              "contribution_base": "1000.00", "currency": "CAD", "as_of": "2026-10-28",
+              "scope_complete": True, "cash_accounted_for": True,
+              "same_currency_basis_verified": True, "instrument_identity_verified": True}
+        types = ("commission", "bid_ask_spread", "fx_conversion", "purchase_tax", "other_fees")
+        costs = {dest: {kind: {"amount_base": "0.00", "source_ref": "SYN-ZERO"}
+                        for kind in types} for dest in ci["allocations_pct"]}
+        costs["ABC:TSX"]["commission"] = {"amount_base": "5.00", "source_ref": "SYN-FEE"}
+        out = assemble_manual_run(
+            self.request(), self.ir(), pi_delta=self.pi(), contribution_inputs=ci,
+            cost_inputs=dict(charges_by_destination=costs, cost_currency="CAD",
+                             cost_quote_as_of="2026-10-28",
+                             analysis_as_of="2026-10-28", funding="FROM_CONTRIBUTION"))
+        self.assertEqual(out["funded_contribution_private"]["conditional_purchase_budget_base"], "995.00")
+        self.assertEqual(out["funded_contribution_private"]["conditional_projection_private"]["allocations_base"],
+                         {"ABC:TSX": "597.00", "VFV:TSX": "398.00"})
+        self.assertEqual(out["funded_contribution_private"]["execution_status"],
+                         "UNAVAILABLE_NOT_EXECUTION_CERTIFIED")
+        self.assertNotIn("597.00", str(out["memory_proposal_nonprivate"]))
+        self.assertNotIn("597.00", out["markdown"])
+        self.assertIn("CONDITIONAL", out["markdown"])
+
+    def test_unknown_funding_stays_unavailable(self):
+        ci = {"positions_base": {"A": "50.00"}, "allocations_pct": {"A": "100"},
+              "contribution_base": "10.00", "currency": "CAD", "as_of": "2026-10-28",
+              "scope_complete": True, "cash_accounted_for": True,
+              "same_currency_basis_verified": True, "instrument_identity_verified": True}
+        kinds = ("commission", "bid_ask_spread", "fx_conversion", "purchase_tax", "other_fees")
+        costs = {"A": {k: {"amount_base": "0.00", "source_ref": "SYN-ZERO"} for k in kinds}}
+        out = assemble_manual_run(self.request(), self.ir(), pi_delta=self.pi(),
+                                  contribution_inputs=ci,
+                                  cost_inputs=dict(charges_by_destination=costs,
+                                                   cost_currency="CAD",
+                                                   cost_quote_as_of="2026-10-28",
+                                                   analysis_as_of="2026-10-28", funding="UNKNOWN"))
+        self.assertEqual(out["funded_contribution_private"]["status"], "UNAVAILABLE_FUNDING_UNKNOWN")
+        self.assertNotIn("conditional_projection_private", out["funded_contribution_private"])
+
 if __name__ == "__main__":
     unittest.main()
