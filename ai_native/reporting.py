@@ -372,6 +372,97 @@ def _fundamental_lines(packet: Mapping[str, Any], analysis_id: str,
     lines.append("Quality, durability, organic growth, normalized owner earnings and Expected Return remain NOT ESTABLISHED. No investment ranking, source certification or trade authority.")
     return lines
 
+
+def _portfolio_room_lines(packet: Mapping[str, Any], analysis_id: str,
+                          as_of: str) -> list[str]:
+    """Display M3 Portfolio Room qualifications, not an allocation decision."""
+    room = packet.get("portfolio_room_review_private")
+    if room is None:
+        return []
+    if not isinstance(room, Mapping) or (
+        room.get("analysis_id") != analysis_id
+        or room.get("as_of") != as_of
+        or room.get("portfolio_room_authority") != "QUALITATIVE_SPECIALIST_REPORTED_ONLY"
+        or room.get("independent_evidence_check") != "NOT_PERFORMED"
+        or room.get("contribution_or_sale_proposal") != "NONE_NOT_AUTOMATED"
+        or room.get("trade_authority") != "NONE_CEO_ONLY"
+        or room.get("public_memory_write") != "NONE"
+    ):
+        raise ValueError("ROOM_REPORT_AUTHORITY_OR_ID_MISMATCH")
+    status = room.get("status")
+    if status not in {"ROOM_CONDITIONAL", "ROOM_UNAVAILABLE"}:
+        raise ValueError("ROOM_REPORT_STATUS_INVALID")
+    observed = _iso_date(room.get("observed_on"), "room.observed_on")
+    if observed > as_of:
+        raise ValueError("ROOM_REPORT_FUTURE_OBSERVATION")
+    axes = room.get("research_axes_private")
+    checks = room.get("portfolio_checks_private")
+    research_names = ("QUALITY", "DURABILITY", "EXPECTED_RETURN", "CONFIDENCE")
+    check_names = ("CONCENTRATION", "CORRELATED_DRIVERS", "ALTERNATIVES", "ACCOUNT_COSTS")
+    if not isinstance(axes, Mapping) or set(axes) != set(research_names):
+        raise ValueError("ROOM_REPORT_RESEARCH_AXES_INVALID")
+    if not isinstance(checks, Mapping) or set(checks) != set(check_names):
+        raise ValueError("ROOM_REPORT_PORTFOLIO_CHECKS_INVALID")
+    for name in research_names:
+        row = axes[name]
+        if not isinstance(row, Mapping) or row.get("status") not in {"SPECIALIST_REPORTED", "UNKNOWN"}:
+            raise ValueError("ROOM_REPORT_RESEARCH_STATUS_INVALID")
+        refs = row.get("ir_fact_ids")
+        if not isinstance(refs, list) or any(not isinstance(x, str) or not x for x in refs):
+            raise ValueError("ROOM_REPORT_RESEARCH_REFS_INVALID")
+    for name in check_names:
+        row = checks[name]
+        if not isinstance(row, Mapping) or row.get("status") not in {"SPECIALIST_REPORTED", "UNKNOWN"}:
+            raise ValueError("ROOM_REPORT_CHECK_STATUS_INVALID")
+        ref = row.get("source_ref")
+        if ref is not None and (not isinstance(ref, str) or not ref.strip()):
+            raise ValueError("ROOM_REPORT_CHECK_REF_INVALID")
+    warnings = room.get("missing_or_qualified")
+    if not isinstance(warnings, list) or len(warnings) > 60 or any(
+        not isinstance(code, str) or not 1 <= len(code) <= 100
+        or any(c not in "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_:" for c in code)
+        for code in warnings
+    ):
+        raise ValueError("ROOM_REPORT_LIMITATIONS_INVALID")
+
+    def percentage(raw: Any) -> str | None:
+        if raw is None:
+            return None
+        if not isinstance(raw, str) or not 1 <= len(raw) <= 48:
+            raise ValueError("ROOM_REPORT_PERCENT_INVALID")
+        try:
+            number = Decimal(raw)
+        except InvalidOperation as exc:
+            raise ValueError("ROOM_REPORT_PERCENT_INVALID") from exc
+        if not number.is_finite() or not 0 <= number <= 100:
+            raise ValueError("ROOM_REPORT_PERCENT_INVALID")
+        return format(number, "f")
+
+    known = percentage(room.get("known_candidate_issuer_exposure_pct_private"))
+    unknown = percentage(room.get("unclassified_lookthrough_pct_private"))
+    lines = ["", "## Portfolio Room — caller-reported, not certified",
+             f"**Portfolio Room:** {status}; portfolio observed {observed}. No independent verification of holdings or investment admission."]
+    if known is None:
+        lines.append("- Known supplied candidate-issuer exposure: UNKNOWN.")
+    else:
+        lines.append(f"- Known supplied candidate-issuer exposure: {known}% of the scoped portfolio (conditional lower bound, not complete look-through).")
+    if unknown is None:
+        lines.append("- Unclassified fund exposure: UNKNOWN.")
+    else:
+        lines.append(f"- Unclassified/unknown fund look-through: {unknown}% of scoped portfolio; may conceal additional correlated exposures.")
+    for axis in research_names:
+        row = axes[axis]
+        label = "linked IR facts supplied" if row["ir_fact_ids"] else "no linked IR facts"
+        lines.append(f"- {axis.replace('_', ' ').title()}: {row['status']} ({label}; not independently certified).")
+    for check in check_names:
+        row = checks[check]
+        label = "source reference supplied" if row["source_ref"] else "source reference missing"
+        lines.append(f"- Portfolio {check.replace('_', ' ').lower()}: {row['status']} ({label}).")
+    if warnings:
+        lines.append(f"- **{len(warnings)} unresolved/qualified condition(s)** in private Portfolio Room annex; review before considering any new capital.")
+    lines.append("No target allocation, selling decision, ranking, after-cost alpha or trading permission is established; analysis remains human-reviewed.")
+    return lines
+
 def render_report(packet: Mapping[str, Any]) -> str:
     """Render a concise markdown research report or user-requested follow-up.
 
@@ -432,6 +523,7 @@ def render_report(packet: Mapping[str, Any]) -> str:
     lines += _fundamental_lines(packet, analysis_id, as_of)
     lines += _valuation_lines(packet, analysis_id, as_of)
     lines += _new_contribution_lines(packet, analysis_id, as_of)
+    lines += _portfolio_room_lines(packet, analysis_id, as_of)
     if kind == "FOLLOWUP":
         previous_id = packet.get("prior_analysis_id")
         if previous_id is None:

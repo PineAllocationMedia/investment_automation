@@ -232,6 +232,7 @@ def complete_manual_session(
         fundamental_inputs=fundamental_inputs,
         historical_comparison_inputs=historical_comparison_inputs,
         opportunity_triage_inputs=opportunity_triage_inputs,
+        portfolio_room_review_private=private["portfolio_room_review_private"],
     )
     private["integrated_private"] = integrated
     private["final_report_private"] = integrated["markdown"]

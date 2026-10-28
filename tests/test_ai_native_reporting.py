@@ -419,5 +419,80 @@ class ReportingTests(unittest.TestCase):
         output = render_report(self.packet())
         self.assertNotIn("Fundamental economics — indicative", output)
 
+
+    def room_review(self, **patch):
+        record = {
+            "status":"ROOM_CONDITIONAL", "analysis_id":"SYN-001",
+            "as_of":"2026-10-28", "observed_on":"2026-10-28",
+            "research_axes_private":{k:{"status":"SPECIALIST_REPORTED",
+                "ir_fact_ids":["F1"],"rationale":"PRIVATE_RATIONALE"}
+                for k in ("QUALITY","DURABILITY","EXPECTED_RETURN","CONFIDENCE")},
+            "portfolio_checks_private":{k:{"status":"SPECIALIST_REPORTED",
+                "source_ref":"SYN-REF","finding":"PRIVATE_FINDING"}
+                for k in ("CONCENTRATION","CORRELATED_DRIVERS","ALTERNATIVES","ACCOUNT_COSTS")},
+            "known_candidate_issuer_exposure_pct_private":"25.50",
+            "unclassified_lookthrough_pct_private":"30.00",
+            "missing_or_qualified":["LOOKTHROUGH_PARTIAL"],
+            "account_scope_private":"PRIVATE_ACCOUNT", "analyst_view_private":"PRIVATE_VIEW",
+            "portfolio_room_authority":"QUALITATIVE_SPECIALIST_REPORTED_ONLY",
+            "independent_evidence_check":"NOT_PERFORMED",
+            "contribution_or_sale_proposal":"NONE_NOT_AUTOMATED",
+            "trade_authority":"NONE_CEO_ONLY", "public_memory_write":"NONE",
+        }
+        record.update(patch)
+        return record
+
+    def test_portfolio_room_report_preserves_qualifications_and_privacy(self):
+        report = render_report(self.packet(portfolio_room_review_private=self.room_review()))
+        self.assertIn("ROOM_CONDITIONAL", report)
+        self.assertIn("25.50% of the scoped portfolio", report)
+        self.assertIn("30.00% of scoped portfolio", report)
+        self.assertIn("Quality: SPECIALIST_REPORTED", report)
+        self.assertIn("Portfolio account costs: SPECIALIST_REPORTED", report)
+        self.assertIn("1 unresolved/qualified", report)
+        self.assertIn("No target allocation", report)
+        for private in ("PRIVATE_RATIONALE","PRIVATE_FINDING","PRIVATE_VIEW","PRIVATE_ACCOUNT"):
+            self.assertNotIn(private, report)
+
+    def test_portfolio_room_unknown_exposure_not_silently_zero(self):
+        room = self.room_review(
+            status="ROOM_UNAVAILABLE",
+            known_candidate_issuer_exposure_pct_private=None,
+            unclassified_lookthrough_pct_private=None)
+        report = render_report(self.packet(portfolio_room_review_private=room))
+        self.assertIn("exposure: UNKNOWN", report)
+        self.assertIn("look-through: UNKNOWN", report)
+        self.assertNotIn("0% of the scoped portfolio", report)
+
+    def test_portfolio_room_rejects_false_authority_and_mismatched_identity(self):
+        for key, val in (
+            ("analysis_id","SYN-OTHER"), ("as_of","2026-10-27"),
+            ("trade_authority","AUTO_TRADE"), ("public_memory_write","APPROVED"),
+            ("portfolio_room_authority","INDEPENDENT_CERTIFICATION"),
+            ("independent_evidence_check","VERIFIED"),
+            ("contribution_or_sale_proposal","BUY"),
+        ):
+            with self.subTest(key=key), self.assertRaisesRegex(ValueError, "ROOM_REPORT_AUTHORITY_OR_ID"):
+                render_report(self.packet(portfolio_room_review_private=self.room_review(**{key:val})))
+
+    def test_portfolio_room_rejects_unsupported_statuses_and_future_data(self):
+        for key, val, reason in (
+            ("status","ROOM_EVIDENCE_SUPPORTED","STATUS_INVALID"),
+            ("observed_on","2026-10-29","FUTURE_OBSERVATION"),
+            ("known_candidate_issuer_exposure_pct_private","NaN","PERCENT_INVALID"),
+            ("unclassified_lookthrough_pct_private","-1","PERCENT_INVALID"),
+        ):
+            with self.subTest(key=key), self.assertRaisesRegex(ValueError, "ROOM_REPORT_"+reason):
+                render_report(self.packet(portfolio_room_review_private=self.room_review(**{key:val})))
+
+    def test_portfolio_room_does_not_accept_missing_axes_or_forged_reasons(self):
+        room=self.room_review()
+        room["research_axes_private"].pop("EXPECTED_RETURN")
+        with self.assertRaisesRegex(ValueError, "ROOM_REPORT_RESEARCH_AXES_INVALID"):
+            render_report(self.packet(portfolio_room_review_private=room))
+        room=self.room_review(missing_or_qualified=["OK\\n# CERTIFIED"])
+        with self.assertRaisesRegex(ValueError, "ROOM_REPORT_LIMITATIONS_INVALID"):
+            render_report(self.packet(portfolio_room_review_private=room))
+
 if __name__ == "__main__":
     unittest.main()
