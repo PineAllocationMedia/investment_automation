@@ -167,7 +167,7 @@ class ManualCLIContractTests(unittest.TestCase):
         payload={"request":self.fx.request(),"ir_capsule":self.fx.ir()}
         code,output,error=self.invoke(payload,output="private-case")
         self.assertEqual((code,error),(0,""))
-        self.assertEqual(output,"PRIVATE_CASE_NOT_PREPARED: explicit memory_inputs required.\\n")
+        self.assertEqual(output,"PRIVATE_CASE_NOT_PREPARED: explicit memory_inputs required.\n")
         self.assertNotIn("Synthetic",output)
 
     def test_private_case_export_is_unavailable_during_missing_ir_handoff(self):
