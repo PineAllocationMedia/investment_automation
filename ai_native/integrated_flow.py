@@ -14,6 +14,7 @@ from .research_memory import prepare_research_history
 from .evidence_math import audit_calculation
 from .source_fusion import assemble_source_fusion
 from .valuation_scenarios import evaluate_valuation_scenarios
+from .candidate_comparison import compare_candidates
 from .reporting import render_report
 
 ROOM_STATUSES = frozenset({"ROOM_EVIDENCE_SUPPORTED", "ROOM_CONDITIONAL", "ROOM_UNAVAILABLE"})
@@ -47,6 +48,7 @@ def assemble_manual_run(
     memory_inputs: Mapping[str, Any] | None = None,
     source_evidence_inputs: Mapping[str, Any] | None = None,
     valuation_inputs: Mapping[str, Any] | None = None,
+    candidate_comparison_inputs: Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Assemble a PRIVATE report without claiming live Project connectivity.
 
@@ -179,6 +181,21 @@ def assemble_manual_run(
         limits.append("Valuation scenario arithmetic is conditional on source, security, currency and terminal assumptions; see private valuation annex. No probability-weighted Expected Return or VFV alpha certified.")
         status = "CONDITIONAL"
 
+
+    candidate_comparison = None
+    if candidate_comparison_inputs is not None:
+        if not isinstance(candidate_comparison_inputs, Mapping):
+            raise ValueError("candidate_comparison_inputs: mapping required")
+        if set(candidate_comparison_inputs) != {"analysis_id", "analysis_as_of", "strategy_id", "account_currency", "candidates"}:
+            raise ValueError("CANDIDATE_COMPARISON_EXACT_SCHEMA_REQUIRED")
+        if (candidate_comparison_inputs["analysis_id"] != run_id
+                or candidate_comparison_inputs["analysis_as_of"] != as_of
+                or candidate_comparison_inputs["strategy_id"] != strategy):
+            raise ValueError("CANDIDATE_COMPARISON_MANDATE_MISMATCH")
+        candidate_comparison = compare_candidates(**candidate_comparison_inputs)
+        limits.append("Candidate comparison contains scenario-to-scenario arithmetic only; no authenticated source, FX-based account return, probability-weighted Expected Return, VFV forward alpha, ranking or trade authority. See private annex.")
+        status = "CONDITIONAL"
+
     packet: dict[str, Any] = {
         "kind": kind,
         "analysis_id": run_id,
@@ -228,6 +245,7 @@ def assemble_manual_run(
         "calculation_checks": checks,
         "source_evidence_annex_private": source_annex,
         "valuation_scenarios_private": valuation_scenarios,
+        "candidate_comparison_private": candidate_comparison,
         "gross_contribution_private": contribution,
         "supplied_costs_private": costs,
         "portfolio_room_status": room,
