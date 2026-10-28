@@ -220,8 +220,21 @@ def _valuation_lines(packet: Mapping[str, Any], analysis_id: str,
         ):
             raise ValueError("VALUATION_REPORT_REASON_CODES_INVALID")
         if measure == "UNAVAILABLE":
+            if not any(v in reasons for v in (
+                "SECURITY_SHARE_CLASS_OR_CORPORATE_ACTION_BASIS_UNCONFIRMED",
+                "CURRENCY_OR_FX_BASIS_UNCONFIRMED",
+            )):
+                raise ValueError("VALUATION_REPORT_UNAVAILABLE_REASON_MISSING")
             lines.append(f"- **{name}: UNAVAILABLE** — security/share-class or currency basis unconfirmed.")
             continue
+        if measure == "PRICE_ONLY_CAGR_NOT_TOTAL_RETURN":
+            if (row.get("annual_distributions_status") != "UNKNOWN"
+                    or "DISTRIBUTIONS_UNKNOWN_PRICE_RETURN_ONLY" not in reasons):
+                raise ValueError("VALUATION_REPORT_DISTRIBUTION_BASIS_MISMATCH")
+        else:
+            if (row.get("annual_distributions_status") != "EXPLICITLY_SUPPLIED"
+                    or "DISTRIBUTIONS_UNKNOWN_PRICE_RETURN_ONLY" in reasons):
+                raise ValueError("VALUATION_REPORT_DISTRIBUTION_BASIS_MISMATCH")
         if not isinstance(value, str) or len(value) > 40:
             raise ValueError("VALUATION_REPORT_RETURN_INVALID")
         try:
