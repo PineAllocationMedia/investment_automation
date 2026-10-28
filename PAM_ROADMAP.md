@@ -7,6 +7,26 @@
 >
 > Exact remote state must always be verified before implementation.
 
+### AI-native Financial Systems — CEO build-first decision (2026-10-28)
+
+The CEO approves a new AI-native development sequence, **activated after the
+pending Command Center T13 return**: build a **first complete integrated
+Financial Systems version covering all 36 selections** in the Reform Blueprint,
+instead of continuing repeated small pilot-first delivery gates. Maintain
+01–36 decision/capability evidence, preserve global multisource research,
+strategy-specific V2 economic foundations, portfolio work, workflows,
+monitoring where supported and tiered memory. Complete targeted component,
+provenance and safety checks during construction; conduct system-wide acceptance
+after the full functional assembly, then refine from versioned reviewed usage.
+
+This supersedes **only the initial AI-native reform delivery sequence**.
+It does not modify legacy V2's roadmap, Stage D, V1 main authority, rights,
+$0 external-data-cost, safety, separate readiness and production gates, CEO
+merge/policy authority or the unattended-orchestration pause. No unverified
+capability may be called implemented. See `DECISIONS.md` (2026-10-28).
+
+---
+
 ### Organizational reform sync — 2026-10-26
 
 PRs #232–234 are merged: [completion and provenance](governance/PAM_WORKLOG.md#2026-10-26--organizational-reform-governance-sync-wo-pam-reform-04).

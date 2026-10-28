@@ -57,13 +57,20 @@ No automatic cross-Project coordination, Work/Blossom integration or scheduled
 access is assumed. Preserve research provenance, relevant dated outcomes,
 versioned prompts and separate secure personal financial storage.
 
-Two coordinated but independently authorized tracks are planned: a minimal
-three-Project end-to-end demonstration and read-only legacy knowledge/device
-inventories. Capability gates are `RESEARCH-READY`, `PORTFOLIO-READY`
-and `ROUTINE-READY`; they do not promote a model, replace V1 or permit
-production, migration, investment-policy changes, device cleanup or spending.
-The existing $0 external financial-data-cost constraint, licensing controls,
-CEO approval rules and Media & Communication mandate remain unchanged.
+**CEO update (2026-10-28):** after the pending Command Center T13 handoff,
+prioritize **a first complete integrated AI-native Financial Systems build**
+covering all 36 selected decisions, rather than another sequence of mandatory
+small pilot-first gates. Keep the 01–36 decision/capability/evidence map and
+escalate material unsupported functionality; do not silently omit decisions.
+Run necessary component and integrity checks during construction, then one
+comprehensive system-wide acceptance evaluation and controlled, versioned
+refinement through human-reviewed use. Read-only institutional/device inventory
+remains a coordinated workstream with independent access/cleanup authority.
+
+`RESEARCH-READY`, `PORTFOLIO-READY` and `ROUTINE-READY` confer no automatic
+production or V1/V2 authority. This sequencing change does not alter the
+existing $0 external data cost, licensing, permissions, protected amendments,
+CEO merge control, paused unattended orchestration or Media & Communication.
 
 ## Durable value
 

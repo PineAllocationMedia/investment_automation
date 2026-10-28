@@ -3,6 +3,16 @@
 > Two-to-five-minute operational snapshot. Refresh through Governance Sync after
 > durable state changes.
 
+- **2026-10-28 CEO AI-native development-sequence update — APPROVED / NOT STARTED:**
+  Once the pending Command Center T13 return arrives, deliver one first complete
+  integrated Financial Systems version against the 36-decision coverage matrix,
+  then perform comprehensive system-wide assessment and versioned refinement.
+  Basic component/evidence/security checks continue during construction. This
+  does not change V1/V2 authority, readiness gates, $0 external financial-data
+  cost, privacy, rights, spending, protected approval, merge, device cleanup,
+  unattended-orchestration pause or production/trading prohibitions. See
+  `DECISIONS.md` (2026-10-28) and Blueprint §10.0.
+
 - **2026-10-27 CEO recognition:** `COMPLETE — BOUNDED PRIVATE DURABILITY RESEARCH
   INFRASTRUCTURE`; **`STAGE D — INCOMPLETE`**. Following the CEO-supplied independent
   assessment, the bounded D1/D2, manual-note, unified-sheet and qualitative-methodology

@@ -3830,3 +3830,29 @@ Blossom access, scheduled operation, device audit, migration, spending,
 model-rule change, production, trade, deletion or merge beyond the separately
 approved documentary PR workflow. Further implementation and any
 protected investment-policy amendments require separate CEO decisions.
+
+---
+
+## [2026-10-28] AI-native Financial Systems — integrated-first development sequence
+
+### CEO decision
+
+The CEO explicitly **replaces repeated small pilot-first delivery** for the new AI-native Financial Systems with **build-first development of a coherent, first complete integrated version** that addresses **all 36 CEO-selected design decisions** in `docs/strategy/PAM_FINANCIAL_SYSTEMS_AI_NATIVE_REFORM.md`. This is an approved change of delivery sequence, **effective for the next implementation program once the pending Command Center T13 return has been received**. It is not a claim of implemented capability or authorization to begin work before that handoff.
+
+The first version must preserve V2's Quality, Durability, Expected Return, Confidence, Portfolio Room, high-CAGR policy within its approved scope, international/source-neutral ambition, and the Blueprint's complete functional target: multisource research, discovery, portfolio intelligence and Blossom-supported/manual fallback, differentiated mandates, contribution-focused reporting, monitoring where supported, three-Project coordination, prompt assembly, evidence/memory, and controlled legacy knowledge preservation. Source limitations do not justify silently reducing the objective to a US-only scanner or another partial pilot.
+
+### Completion contract and sequence
+
+Prepare a traceable **36-decision implementation matrix (01–36)**: `IMPLEMENTED_AND_CHECKED`, `PARTIAL`, `BLOCKED_BY_CAPABILITY_OR_RIGHTS` or `REQUIRES_CEO_DECISION`, with actual capability evidence, method/reference and outstanding work. No missing feature can be declared complete; if a decision depends on unavailable integrations, platform abilities, rights or separate policy, record the gap, seek a supported fallback, and escalate material trade-offs to the CEO without inventing authority.
+
+Build the first integrated version using bounded authorized implementation tasks and the minimum necessary deterministic tools. **Essential component, arithmetic, source, security and regression checks occur during construction**. The first **comprehensive system-wide acceptance evaluation** follows completion of the integrated functional build, rather than becoming another precondition composed of recurring miniature pilots. Refine afterwards through versioned human-reviewed real usage, explicit failure evidence, regression checks and controlled corrections. Usage alone is never readiness or performance evidence.
+
+### Scope, safeguards and supersession
+
+This decision supersedes **only the initial reform Blueprint's pilot-first development order**, not its 36 substantive selections, existing V1/V2 technical roadmap, archived T05–T13 results or investment policy. V1 on `main` remains operational authority; V2 remains challenger / Stage D incomplete. Preserve PIT, provenance, genuine-source checks, global-evidence semantics, the hard **$0 incremental external financial-data-cost** constraint, permissions, source rights and privacy, and the existing pause on unattended development orchestration. No automatic trades, autonomous Projects, spending, device transfers, deletion, production, deployment, model-policy changes, source-rights exceptions or V1/V2 promotions are granted.
+
+Read-only inventory and verified-preservation planning remain part of the design; cleanup always requires separate CEO authorization. `RESEARCH-READY`, `PORTFOLIO-READY`, `ROUTINE-READY`, shadow/promotion and protected governance rules remain separately gated. Every substantive implementation Work Order retains bounded scope and authority; approved reversible steps need no repetitive PM permission. **Canonical merges require a separate CEO decision**. PAM Media & Communication is unchanged.
+
+### Expected impact
+
+Focus resources on a complete, coherent first functional release candidate and then evaluate and refine the whole user experience, without redoing isolated discovery pilots indefinitely. If all 36 cannot be realized, return the explicit coverage gaps and a CEO decision package, not an unsupported claim of completion.

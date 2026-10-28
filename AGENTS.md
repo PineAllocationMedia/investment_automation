@@ -219,10 +219,17 @@ constraint and separate rights checks still apply.
 
 `RESEARCH-READY`, `PORTFOLIO-READY` and `ROUTINE-READY` are
 separately evaluated research/workflow milestones, **not** deployment or
-model-promotion authority. Pilot construction, read-only legacy/device audit,
-data access and any later cleanup require their own bounded CEO-approved
-Work Orders. Do not alter legacy V1/V2 code or validation contracts in an
-AI-native documentation or governance alignment task.
+model-promotion authority. **CEO sequencing update (2026-10-28):** after the pending Command Center T13
+return, deliver the **complete integrated AI-native Financial Systems version**
+addressing all 36 selected decisions before the comprehensive system test, not
+through mandatory repeated miniature pilot gates. Read `DECISIONS.md`
+(2026-10-28) and the Blueprint §10.0; preserve a 01–36 evidence/status matrix
+and escalate material missing capabilities. Basic component/source/security
+checks continue during build; gates and authority remain independent.
+
+Implementation, read-only device/legacy audit, data access and cleanup still
+require bounded CEO-approved Work Orders. Do not alter legacy V1/V2 code or
+validation contracts in a documentation-only change.
 
 ---
 
