@@ -14,6 +14,7 @@ from .integrated_flow import assemble_manual_run
 from .reporting import render_report
 from .portfolio_observation import prepare_observation_ledger
 from .portfolio_exposure import aggregate_portfolio_exposures
+from .portfolio_room import prepare_portfolio_room_review
 
 ROOM_STATUSES = frozenset({"ROOM_EVIDENCE_SUPPORTED", "ROOM_CONDITIONAL", "ROOM_UNAVAILABLE"})
 
@@ -47,6 +48,7 @@ def complete_manual_session(
     memory_inputs: Mapping[str, Any] | None = None,
     observation_inputs: Mapping[str, Any] | None = None,
     exposure_classifications: Mapping[str, Any] | None = None,
+    room_assessment_inputs: Mapping[str, Any] | None = None,
     source_evidence_inputs: Mapping[str, Any] | None = None,
     valuation_inputs: Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
@@ -69,6 +71,9 @@ def complete_manual_session(
         raise ValueError("SOURCE_ANNEX_REQUIRES_IR_CAPSULE")
     if valuation_inputs is not None and route not in {"CC_IR_CC", "CC_IR_PI_CC"}:
         raise ValueError("VALUATION_REQUIRES_IR_CAPSULE")
+
+    if room_assessment_inputs is not None and route != "CC_IR_PI_CC":
+        raise ValueError("PORTFOLIO_ROOM_REQUIRES_IR_AND_PI_ROUTE")
 
     observation = None
     if observation_inputs is not None:
@@ -103,6 +108,7 @@ def complete_manual_session(
                "integrated_private": None, "pi_delta_private": None,
                "portfolio_observation_private": observation,
                "portfolio_exposures_private": exposures,
+               "portfolio_room_review_private": None,
                "method_load_verification": "NOT_PERFORMED", "project_invocation": "NONE",
                "source_authentication": "NOT_PERFORMED", "storage": "NONE",
                "readiness": "NOT_EVALUATED"}
@@ -113,6 +119,18 @@ def complete_manual_session(
     if route in {"CC_IR_CC", "CC_IR_PI_CC"} and ir_capsule is None:
         private["status"] = "AWAITING_MANUAL_IR_CAPSULE"
         return private
+    if room_assessment_inputs is not None:
+        if observation is None or exposures is None:
+            raise ValueError("PORTFOLIO_ROOM_REQUIRES_SCOPED_OBSERVATION_AND_EXPOSURES")
+        if not isinstance(room_assessment_inputs, Mapping):
+            raise ValueError("room_assessment_inputs: mapping required")
+        room_review = prepare_portfolio_room_review(
+            request, ir_capsule, observation, exposures, room_assessment_inputs
+        )
+        private["portfolio_room_review_private"] = room_review
+        if (pi_delta is not None and pi_delta.get("room_status") == "ROOM_EVIDENCE_SUPPORTED"):
+            raise ValueError("ROOM_SUPPORTED_NOT_CERTIFIED_BY_REPORTED_REVIEW")
+
     if route in {"CC_IR_PI_CC", "CC_PI_CC"} and pi_delta is None:
         private["status"] = "AWAITING_MANUAL_PI_DELTA"
         return private
