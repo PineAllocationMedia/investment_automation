@@ -74,3 +74,21 @@ cost_inputs = {
 ```
 
 These `source_ref` strings are **fictional test locators**, not proof of zero fees or verified brokerage economics. `cost_inputs.analysis_as_of` must match `request.as_of`. Actual omission or unknown costs yields conditional/incomplete status, never a zero. Outputs `supplied_costs_private` and `gross_contribution_private` stay in private execution only. Cost records are not added to the GitHub memory proposal. Neither the cost tally nor the gross contribution is an executable order, after-tax return, or a complete net-weight projection.
+
+## Optional private research-history proposal (M4 continuation)
+
+A human-supplied `memory_inputs` object may be passed to `assemble_manual_run` *after* the private IR capsule exists, for example:
+
+```python
+memory_inputs = {
+    "report_id": "R-SYN-001",
+    "instruction_version": "R1",
+    "recorded_at": "2026-10-28",
+    "parent_report_id": None,  # optional; prior case is NOT fetched automatically
+}
+# result = assemble_manual_run(request, ir, memory_inputs=memory_inputs)
+# Keep result["private_research_history_proposal"] in a private, authorized context.
+# result["github_memory_review_gate"] always refuses publication pending human review.
+```
+
+No file is written, no remote research is retrieved, no portfolio payload is copied into any GitHub-ready output, and the helper does not claim knowledge of previously archived reports. The optional `accessible_parent` merely checks supplied ID/date; it is not a storage or authenticity check. Never paste the private proposal into repository docs or PR descriptions.

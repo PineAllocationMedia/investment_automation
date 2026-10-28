@@ -10,6 +10,7 @@ from typing import Any, Mapping
 
 from .contribution_math import project_gross_contribution
 from .known_costs import tally_supplied_costs
+from .research_memory import prepare_research_history
 from .evidence_math import audit_calculation
 from .reporting import render_report
 
@@ -41,6 +42,7 @@ def assemble_manual_run(
     calculation_requests: list[Mapping[str, Any]] | None = None,
     contribution_inputs: Mapping[str, Any] | None = None,
     cost_inputs: Mapping[str, Any] | None = None,
+    memory_inputs: Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Assemble a PRIVATE report without claiming live Project connectivity.
 
@@ -178,6 +180,15 @@ def assemble_manual_run(
         "privacy_review": "REQUIRED_BEFORE_ANY_WRITE",
         "source_authentication": "NOT_PERFORMED_BY_INTEGRATION",
     }
+    private_history = None
+    github_review_gate = None
+    if memory_inputs is not None:
+        if not isinstance(memory_inputs, Mapping):
+            raise ValueError("memory_inputs: mapping required")
+        prepared = prepare_research_history(request, ir_capsule, **memory_inputs)
+        private_history = prepared["private_research_history_proposal"]
+        github_review_gate = prepared["github_review_gate"]
+
     return {
         "status": "ASSEMBLED_COMPONENT_ONLY_NOT_END_TO_END_ACCEPTANCE",
         "markdown": markdown,
@@ -186,6 +197,8 @@ def assemble_manual_run(
         "supplied_costs_private": costs,
         "portfolio_room_status": room,
         "memory_proposal_nonprivate": memory,
+        "private_research_history_proposal": private_history,
+        "github_memory_review_gate": github_review_gate,
         "handoff": "MANUAL_TRANSFER_NOT_PROJECT_AUTOMATION",
         "source_verification": "NOT_PERFORMED_BY_INTEGRATION",
     }
