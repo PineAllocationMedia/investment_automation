@@ -12,6 +12,7 @@ from .contribution_math import project_gross_contribution
 from .known_costs import tally_supplied_costs
 from .funded_costs_reconciliation import reconcile_funded_contribution
 from .research_memory import prepare_research_history
+from .research_case_comparison import compare_supplied_cases
 from .evidence_math import audit_calculation
 from .source_fusion import assemble_source_fusion
 from .valuation_scenarios import evaluate_valuation_scenarios
@@ -52,6 +53,7 @@ def assemble_manual_run(
     valuation_inputs: Mapping[str, Any] | None = None,
     candidate_comparison_inputs: Mapping[str, Any] | None = None,
     fundamental_inputs: Mapping[str, Any] | None = None,
+    historical_comparison_inputs: Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Assemble a PRIVATE report without claiming live Project connectivity.
 
@@ -225,6 +227,22 @@ def assemble_manual_run(
         limits.append("Candidate comparison contains scenario-to-scenario arithmetic only; no authenticated source, FX-based account return, probability-weighted Expected Return, VFV forward alpha, ranking or trade authority. See private annex.")
         status = "CONDITIONAL"
 
+    historical_comparison = None
+    if historical_comparison_inputs is not None:
+        if kind != "FOLLOWUP":
+            raise ValueError("HISTORICAL_COMPARISON_REQUIRES_FOLLOWUP")
+        if (not isinstance(historical_comparison_inputs, Mapping)
+                or set(historical_comparison_inputs) != {"prior_case", "subject_id", "fact_links"}):
+            raise ValueError("HISTORICAL_COMPARISON_EXACT_SCHEMA_REQUIRED")
+        historical_comparison = compare_supplied_cases(
+            request=request, ir_capsule=ir_capsule, **historical_comparison_inputs
+        )
+        if historical_comparison["status"] == "STRUCTURAL_REVIEW_PREPARED":
+            limits.append("Prior and current caller-supplied research compared structurally in private annex; no independently certified economic or thesis change.")
+        else:
+            limits.append("Historical research comparison unavailable or has no explicitly linked facts; not evidence of no change.")
+        status = "CONDITIONAL"
+
     packet: dict[str, Any] = {
         "kind": kind,
         "analysis_id": run_id,
@@ -282,6 +300,7 @@ def assemble_manual_run(
         "portfolio_room_status": room,
         "memory_proposal_nonprivate": memory,
         "private_research_history_proposal": private_history,
+        "historical_research_comparison_private": historical_comparison,
         "github_memory_review_gate": github_review_gate,
         "handoff": "MANUAL_TRANSFER_NOT_PROJECT_AUTOMATION",
         "source_verification": "NOT_PERFORMED_BY_INTEGRATION",

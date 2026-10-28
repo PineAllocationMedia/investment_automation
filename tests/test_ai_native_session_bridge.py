@@ -114,4 +114,19 @@ class SessionBridgeTests(unittest.TestCase):
         self.assertEqual(out["storage"],"NONE")
         self.assertEqual(out["readiness"],"NOT_EVALUATED")
 
+    def test_private_history_comparison_handoff_preserves_subject(self):
+        from unittest.mock import patch
+        payload = {"prior_case":None, "subject_id":"SYN-ISSUER", "fact_links":[]}
+        req = self.request(kind="FOLLOWUP", subject_id="SYN-ISSUER",
+                           prior_analysis_id="SYN-OLD")
+        with patch("ai_native.session_bridge.assemble_manual_run",
+                   return_value={"markdown":"SYNTHETIC REPORT"}) as call:
+            out = complete_manual_session(req, ir_capsule=self.ir(),
+                                          historical_comparison_inputs=payload)
+        self.assertEqual(call.call_args.args[0]["subject_id"], "SYN-ISSUER")
+        self.assertEqual(call.call_args.kwargs["historical_comparison_inputs"], payload)
+        self.assertEqual(out["project_invocation"], "NONE")
+        self.assertEqual(out["storage"], "NONE")
+
+
 if __name__ == "__main__": unittest.main()

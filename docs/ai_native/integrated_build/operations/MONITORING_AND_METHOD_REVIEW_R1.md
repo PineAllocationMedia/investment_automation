@@ -24,3 +24,10 @@ The prior ~1-human-hour-per-week target is **not** a required cadence or promise
 
 ## Governed improvements
 When the CEO requests another case, a method issue can be recorded and proposed for future versioned correction. Preserve original decisions, source dates and counter-theses; do not retroactively change historical conclusions or chase realized returns. Specialist owns technical method assessment, PM coordinates, CEO retains protected policy and merge authority. Proposed refinements are never self-applied.
+
+
+## Optional R1 private prior-case structural comparison
+
+`ai_native.research_case_comparison.compare_supplied_cases` implements a *caller-supplied*, explicitly CEO-requested follow-up review aid. The prior input must be an actual accessible **private** `RESEARCH_HISTORY_R1` case proposal with original request and IR capsule; there is no archive lookup or authenticity claim. The CEO-requested current IR packet must state the same explicit `subject_id` as the prior request. An analyst may provide `fact_links` pairing original fact IDs with current fact IDs. Missing links mean **NO_FACT_LINKS_SUPPLIED**, never no change; inaccessible baseline means **BASELINE_NOT_AVAILABLE**. ID/date/strategy/method continuity and supported evidence labels are checked, but comparable metrics, units, source rights, authentic source values, valuation and thesis changes remain the analyst's task.
+
+Even when both factual claim texts differ, output is `TEXT_DIFF_NOT_CERTIFIED_ECONOMIC_CHANGE`; identical wording is not proof of stasis. Changes in strategy or method are flagged, not reconciled automatically. This pure component is attached optionally to the already manual CC/IR M7a session as `historical_research_comparison_private`, after an explicitly requested FOLLOWUP. The public-facing report contains only a generic qualification, no prior/private claim text. Nothing is persisted, transmitted to another Project, scheduled, notified or committed. Decision #31 stays PARTIAL until real consented historical records and analyst review are demonstrated.
