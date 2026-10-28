@@ -101,5 +101,36 @@ class ManualCLIContractTests(unittest.TestCase):
         self.assertNotIn("PRIVATE_SECRET",error)
 
 
+
+    def test_exponent_overflow_rejected_before_any_session_execution(self):
+        for literal in ("1e999", "-1e999", "9.99e9999"):
+            with self.subTest(literal=literal):
+                raw='{"request":{"ceo_initiated":true,"risk_constraints":[' + literal + ']}}'
+                code, output, error=self.invoke(raw, raw=True)
+                self.assertEqual(code,2)
+                self.assertEqual(output,"")
+                self.assertIn("NONFINITE_JSON_NUMBER",error)
+                self.assertNotIn("1e999",error)
+
+    def test_finite_decimal_json_does_not_trigger_nonfinite_guard(self):
+        # The financial method itself may reject a non-string numeric amount;
+        # distinguish that contract failure from overflowing the JSON decoder.
+        raw='{"request":{"ceo_initiated":true,"research_needed":true,"portfolio_needed":false,' + \
+            '"analysis_id":"SYN","as_of":"2026-10-28","kind":"DECISION",' + \
+            '"objective":"Human review","risk_constraints":[1.5]}}'
+        code, output, error=self.invoke(raw, raw=True)
+        self.assertEqual(code,2)
+        self.assertEqual(output,"")
+        self.assertNotIn("NONFINITE_JSON_NUMBER",error)
+
+    def test_private_input_validation_error_has_no_raw_user_string(self):
+        code,output,error=self.invoke({"request":{
+            "ceo_initiated":False,"objective":"CONFIDENTIAL_ACCOUNT_123",
+            "analysis_id":"SYN","as_of":"2026-10-28","kind":"DECISION",
+            "research_needed":True,"portfolio_needed":False}})
+        self.assertEqual(code,2)
+        self.assertEqual(output,"")
+        self.assertNotIn("CONFIDENTIAL_ACCOUNT_123",error)
+
 if __name__ == "__main__":
     unittest.main()
