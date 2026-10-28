@@ -734,6 +734,65 @@ def _historical_comparison_lines(packet: Mapping[str, Any],
     lines.append("Human review required for comparable definitions, original evidence, sources, rights and thesis changes. No automatic archive search or investment action.")
     return lines
 
+
+def _macro_sector_context_lines(packet: Mapping[str, Any], analysis_id: str,
+                                as_of: str, strategy: str) -> list[str]:
+    """Only structural macro/sector review labels, never causal or trading advice."""
+    context = packet.get("macro_sector_context_private")
+    if context is None:
+        return []
+    if (not isinstance(context, Mapping)
+            or context.get("status") != "PRIVATE_MACRO_SECTOR_CONTEXT_PREPARED_NOT_CERTIFIED"
+            or context.get("analysis_id") != analysis_id
+            or context.get("analysis_as_of") != as_of
+            or context.get("strategy_id") != strategy
+            or context.get("source_authentication") != "NOT_PERFORMED"
+            or context.get("causal_inference") != "ANALYST_HYPOTHESIS_NOT_CERTIFIED"
+            or context.get("market_timing_or_price_prediction") != "NONE"
+            or context.get("ranking_or_trading_authority") != "NONE"
+            or context.get("public_memory_write") != "NONE"):
+        raise ValueError("CONTEXT_REPORT_AUTHORITY_OR_MANDATE_MISMATCH")
+    rows, counts = context.get("drivers_private_in_supplied_order"), context.get("stage_counts")
+    if not isinstance(rows, list) or not 1 <= len(rows) <= 8 or not isinstance(counts, Mapping):
+        raise ValueError("CONTEXT_REPORT_ROWS_INVALID")
+    actual = {"EVIDENCE_RESOLUTION": 0, "HUMAN_CAUSAL_REVIEW": 0}
+    seen = set()
+    lines = ["", "## Macro and sector context — conditional research links",
+             "Reported drivers tied to IR/source IDs only; causal claims, timing and returns are not verified."]
+    for row in rows:
+        if not isinstance(row, Mapping):
+            raise ValueError("CONTEXT_REPORT_ROW_INVALID")
+        did = row.get("driver_id")
+        if (not isinstance(did, str) or not 1 <= len(did) <= 80
+                or not did[0].isascii() or not did[0].isalnum()
+                or any(not c.isascii() or not (c.isalnum() or c in "._:-") for c in did)
+                or did in seen or row.get("scope") not in {"MACRO", "SECTOR"}
+                or row.get("reported_effect") not in {
+                    "TAILWIND_REPORTED", "HEADWIND_REPORTED", "MIXED_REPORTED", "UNKNOWN"}
+                or row.get("research_work_stage") not in actual
+                or row.get("causal_authentication") != "NOT_PERFORMED"):
+            raise ValueError("CONTEXT_REPORT_ROW_AUTHORITY_INVALID")
+        refs, observations, reasons = (row.get("ir_fact_ids_private"),
+                                        row.get("source_observation_ids_private"),
+                                        row.get("review_reasons"))
+        if (not isinstance(refs, list) or not refs
+                or not isinstance(observations, list) or not isinstance(reasons, list)
+                or (row["research_work_stage"] == "EVIDENCE_RESOLUTION") != bool(reasons)
+                or any(not isinstance(code, str) or not 1 <= len(code) <= 80
+                       or any(not c.isascii() or not (c.isupper() or c.isdigit() or c == "_")
+                              for c in code) for code in reasons)):
+            raise ValueError("CONTEXT_REPORT_EVIDENCE_INVALID")
+        seen.add(did)
+        actual[row["research_work_stage"]] += 1
+        lines.append(f"- {did} [{row['scope']}]: {row['reported_effect']}; "
+                     f"{row['research_work_stage']}, {len(reasons)} unresolved qualifier(s).")
+    if counts != actual or context.get("driver_count") != len(rows):
+        raise ValueError("CONTEXT_REPORT_COUNT_MISMATCH")
+    lines.append(f"**Research queue:** {actual['EVIDENCE_RESOLUTION']} evidence-resolution, "
+                 f"{actual['HUMAN_CAUSAL_REVIEW']} human causal-review item(s). "
+                 "Private hypotheses, source locators, countercases and checks stay in the annex.")
+    return lines
+
 def render_report(packet: Mapping[str, Any]) -> str:
     """Render a concise markdown research report or user-requested follow-up.
 
@@ -794,6 +853,7 @@ def render_report(packet: Mapping[str, Any]) -> str:
     else:
         lines.append("No underlying fact records supplied; no factual verification is asserted.")
     lines += _opportunity_triage_lines(packet, analysis_id, as_of, strategy)
+    lines += _macro_sector_context_lines(packet, analysis_id, as_of, strategy)
     lines += _fundamental_lines(packet, analysis_id, as_of)
     lines += _valuation_lines(packet, analysis_id, as_of)
     lines += _candidate_comparison_lines(packet, analysis_id, as_of, strategy)
