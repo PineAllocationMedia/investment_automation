@@ -36,7 +36,8 @@ class ManualCLIContractTests(unittest.TestCase):
         self.assertEqual(result["storage"],"NONE")
         self.assertEqual(result["readiness"],"NOT_EVALUATED")
         self.assertNotIn("PRIVATE-ACCOUNT",output)
-        self.assertNotIn("IR_REQUEST",output)
+        self.assertNotIn("\"packet_type\"",output)
+        self.assertNotIn("FORWARD_UNCHANGED",output)
 
     def test_explicit_handoffs_preserve_manual_ir_packet(self):
         request=self.fx.request()
