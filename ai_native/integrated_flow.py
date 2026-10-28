@@ -12,6 +12,7 @@ from .contribution_math import project_gross_contribution
 from .known_costs import tally_supplied_costs
 from .research_memory import prepare_research_history
 from .evidence_math import audit_calculation
+from .source_fusion import assemble_source_fusion
 from .reporting import render_report
 
 ROOM_STATUSES = frozenset({"ROOM_EVIDENCE_SUPPORTED", "ROOM_CONDITIONAL", "ROOM_UNAVAILABLE"})
@@ -43,6 +44,7 @@ def assemble_manual_run(
     contribution_inputs: Mapping[str, Any] | None = None,
     cost_inputs: Mapping[str, Any] | None = None,
     memory_inputs: Mapping[str, Any] | None = None,
+    source_evidence_inputs: Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Assemble a PRIVATE report without claiming live Project connectivity.
 
@@ -146,6 +148,25 @@ def assemble_manual_run(
     facts = ir_capsule["facts"]
     if any(isinstance(f, Mapping) and f.get("status") in {"MISSING", "CONFLICTED"} for f in facts):
         status = "CONDITIONAL"
+
+    source_annex = None
+    if source_evidence_inputs is not None:
+        if not isinstance(source_evidence_inputs, Mapping):
+            raise ValueError("source_evidence_inputs: mapping required")
+        if set(source_evidence_inputs) != {"analysis_id", "analysis_as_of", "observations"}:
+            raise ValueError("source_evidence_inputs: exact private schema required")
+        if source_evidence_inputs["analysis_id"] != run_id or source_evidence_inputs["analysis_as_of"] != as_of:
+            raise ValueError("SOURCE_ANNEX_ANALYSIS_OR_DATE_MISMATCH")
+        source_annex = assemble_source_fusion(**source_evidence_inputs)
+        ir_fact_ids = {x["id"] for x in facts if isinstance(x, Mapping) and isinstance(x.get("id"), str)}
+        supported_ids = {x["fact_id"] for x in source_annex["observations_private"]}
+        if not supported_ids.issubset(ir_fact_ids):
+            raise ValueError("SOURCE_ANNEX_UNKNOWN_IR_FACT_ID")
+        source_annex["uncovered_ir_fact_ids"] = sorted(ir_fact_ids - supported_ids)
+        if (source_annex["unresolved_count"] or source_annex["uncovered_ir_fact_ids"] or
+                source_annex["noncomparable_basis_groups"]):
+            limits.append("Some research evidence is missing, disputed or noncomparable; see private source annex. No source was independently certified.")
+            status = "CONDITIONAL"
     packet: dict[str, Any] = {
         "kind": kind,
         "analysis_id": run_id,
@@ -193,6 +214,7 @@ def assemble_manual_run(
         "status": "ASSEMBLED_COMPONENT_ONLY_NOT_END_TO_END_ACCEPTANCE",
         "markdown": markdown,
         "calculation_checks": checks,
+        "source_evidence_annex_private": source_annex,
         "gross_contribution_private": contribution,
         "supplied_costs_private": costs,
         "portfolio_room_status": room,
