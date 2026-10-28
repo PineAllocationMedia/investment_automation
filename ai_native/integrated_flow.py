@@ -10,6 +10,7 @@ from typing import Any, Mapping
 
 from .contribution_math import project_gross_contribution
 from .known_costs import tally_supplied_costs
+from .funded_costs_reconciliation import reconcile_funded_contribution
 from .research_memory import prepare_research_history
 from .evidence_math import audit_calculation
 from .source_fusion import assemble_source_fusion
@@ -135,6 +136,7 @@ def assemble_manual_run(
             limits.append("Gross contribution math only; real account costs, taxes, FX and execution not assessed.")
 
     costs = None
+    funded_contribution = None
     if cost_inputs is not None:
         if contribution is None:
             raise ValueError("cost_inputs require an available PI gross contribution projection")
@@ -149,6 +151,13 @@ def assemble_manual_run(
             limits.append("Supplied-cost tally only; quotes, taxes and net execution not certified.")
             if costs.get("gross_allocation_funding_conflict"):
                 limits.append("Gross allocation uses the full contribution; deducting fees from that same contribution needs a revised plan.")
+        funded_contribution = reconcile_funded_contribution(
+            contribution_inputs=contribution_inputs, gross_projection=contribution,
+            cost_tally=costs)
+        if funded_contribution["status"] == "CONDITIONAL_SUPPLIED_COST_BUDGET_RECONCILED":
+            limits.append("Conditional new-capital budget reconciled to stated costs; order-size-dependent fees and real execution must be rechecked. See private annex.")
+        else:
+            limits.append("Funded new-capital budget unavailable; missing or incompatible cost/funding data. Gross projection remains separately labeled.")
         status = "CONDITIONAL"
 
     facts = ir_capsule["facts"]
@@ -269,6 +278,7 @@ def assemble_manual_run(
         "fundamental_dossier_private": fundamental_dossier,
         "gross_contribution_private": contribution,
         "supplied_costs_private": costs,
+        "funded_contribution_private": funded_contribution,
         "portfolio_room_status": room,
         "memory_proposal_nonprivate": memory,
         "private_research_history_proposal": private_history,
