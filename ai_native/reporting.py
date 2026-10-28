@@ -148,7 +148,7 @@ def _new_contribution_lines(packet: Mapping[str, Any], analysis_id: str,
         ordered = sorted(exact, key=lambda key: (-exact[key], key))
         for instrument in ordered[:8]:
             safe = instrument.replace("\\", "\\\\").replace("`", "\\`").replace("<", "&lt;").replace(">", "&gt;")
-            lines.append(f"- `{safe}`: {format(exact[instrument], 'f')}% of new capital")
+            lines.append(f"- `{safe}`: {format(exact[instrument], 'g')}% of new capital")
         if len(ordered) > 8:
             lines.append(f"- {len(ordered) - 8} other destinations in private M3 annex.")
     if costs == "NOT_SUPPLIED" and funded == "NOT_ASSESSED":
