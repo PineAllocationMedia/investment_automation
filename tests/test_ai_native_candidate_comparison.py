@@ -1,0 +1,151 @@
+import copy
+import unittest
+from ai_native.candidate_comparison import compare_candidates
+
+
+class CandidateComparisonTests(unittest.TestCase):
+    def item(self, name, security, price="100", values=("81", "121", "144"), currency="CAD"):
+        scenarios = {}
+        for label, val in zip(("BEAR", "BASE", "BULL"), values):
+            scenarios[label] = dict(valuation_method="OTHER_EXPLICIT", assumption_basis="PAM_ASSUMPTION",
+                rationale_ref=f"SYN-R-{name}-{label}", terminal_value_ref=f"SYN-T-{name}-{label}",
+                terminal_price_per_share=val, annual_distributions_per_share=None)
+        return dict(candidate_id=name, role="SECURITY", research_method_version="SYN-M1",
+            research_status="SPECIALIST_REPORTED", portfolio_room_status="ROOM_CONDITIONAL",
+            principal_failure_ref=f"SYN-FAIL-{name}", valuation_inputs=dict(analysis_id="SYN-C",
+            analysis_as_of="2026-10-28", security_id=security, currency=currency, quoted_at="2026-10-27",
+            quote_source_ref=f"SYN-Q-{name}", price_per_share=price, horizon_years=2,
+            security_basis_confirmed_by_caller=True, currency_basis_confirmed_by_caller=True,
+            scenarios=scenarios))
+
+    def data(self):
+        return dict(analysis_id="SYN-C",analysis_as_of="2026-10-28",strategy_id="EXPLORATORY",
+            account_currency="CAD",candidates=[self.item("A","ABC:TSX"),self.item("B","DEF:TSX",values=("64","100","121"))])
+
+    def run_comparison(self, **patch):
+        d=self.data();d.update(patch)
+        return compare_candidates(**d)
+
+    def test_same_currency_price_scenario_differences(self):
+        res=self.run_comparison()
+        pair=res["pairwise_scenario_differences_private"][0]["by_scenario"]
+        self.assertEqual(pair["BASE"]["delta_first_minus_second_pp"],"10.00")
+        self.assertEqual(pair["BEAR"]["delta_first_minus_second_pp"],"10.00")
+        self.assertEqual(pair["BASE"]["comparison_status"],"SCENARIO_ARITHMETIC_ONLY")
+        self.assertIn("PRICE_ONLY_NOT_TOTAL_RETURN",pair["BASE"]["reason_codes"])
+
+    def test_never_expected_return_alpha_or_ranking(self):
+        o=self.run_comparison()
+        self.assertEqual(o["forward_alpha_or_superiority"],"NOT_ESTABLISHED")
+        self.assertEqual(o["recommendation_or_ranking"],"NOT_AUTHORIZED")
+        self.assertEqual(o["portfolio_allocation"],"NOT_CALCULATED")
+        self.assertEqual(o["trading_authority"],"NONE_CEO_ONLY")
+
+    def test_foreign_currency_blocks_account_comparison(self):
+        d=self.data();d["candidates"][1]["valuation_inputs"]["currency"]="USD"
+        p=compare_candidates(**d)["pairwise_scenario_differences_private"][0]["by_scenario"]["BASE"]
+        self.assertEqual(p["comparison_status"],"NOT_COMPARABLE")
+        self.assertIn("ACCOUNT_CURRENCY_FX_MODEL_MISSING",p["reason_codes"])
+
+    def test_both_foreign_currency_still_blocked(self):
+        d=self.data()
+        for c in d["candidates"]: c["valuation_inputs"]["currency"]="USD"
+        p=compare_candidates(**d)["pairwise_scenario_differences_private"][0]["by_scenario"]["BASE"]
+        self.assertIsNone(p["delta_first_minus_second_pp"])
+
+    def test_price_cagr_versus_dividend_irr_not_comparable(self):
+        d=self.data()
+        for v in d["candidates"][1]["valuation_inputs"]["scenarios"].values():
+            v["annual_distributions_per_share"]=[{"amount_per_share":"0","source_ref":"SYN-Z"}]*2
+        p=compare_candidates(**d)["pairwise_scenario_differences_private"][0]["by_scenario"]["BASE"]
+        self.assertIn("RETURN_MEASURE_NOT_COMPARABLE",p["reason_codes"])
+        self.assertIsNone(p["delta_first_minus_second_pp"])
+
+    def test_two_irr_scenarios_are_arithmetic_only(self):
+        d=self.data()
+        for c in d["candidates"]:
+            for v in c["valuation_inputs"]["scenarios"].values():
+                v["annual_distributions_per_share"]=[{"amount_per_share":"0","source_ref":"SYN-Z"}]*2
+        p=compare_candidates(**d)["pairwise_scenario_differences_private"][0]["by_scenario"]["BASE"]
+        self.assertIn("YEAR_END_IRR_ASSUMPTIONS_UNVERIFIED",p["reason_codes"])
+        self.assertEqual(p["delta_first_minus_second_pp"],"10.00")
+
+    def test_inconsistent_bear_base_bull_blocks_comparison(self):
+        d=self.data();d["candidates"][0]["valuation_inputs"]["scenarios"]["BEAR"]["terminal_price_per_share"]="225"
+        p=compare_candidates(**d)["pairwise_scenario_differences_private"][0]["by_scenario"]["BASE"]
+        self.assertIn("SCENARIO_ORDER_INCONSISTENT",p["reason_codes"])
+
+    def test_candidate_count_guards(self):
+        d=self.data()
+        for items in ([],[d["candidates"][0]],d["candidates"]*4):
+            with self.subTest(n=len(items)),self.assertRaisesRegex(ValueError,"COUNT_MUST_BE"):
+                self.run_comparison(candidates=items)
+
+    def test_duplicate_security_and_candidate_ids(self):
+        d=self.data();d["candidates"][1]["candidate_id"]="A"
+        with self.assertRaisesRegex(ValueError,"DUPLICATE_CANDIDATE_ID"):compare_candidates(**d)
+        d=self.data();d["candidates"][1]["valuation_inputs"]["security_id"]="ABC:TSX"
+        with self.assertRaisesRegex(ValueError,"DUPLICATE_SECURITY_ID"):compare_candidates(**d)
+
+    def test_wrong_analysis_id_and_asof_not_silently_mixed(self):
+        for key,val in (("analysis_id","OTHER"),("analysis_as_of","2026-10-27")):
+            d=self.data();d["candidates"][1]["valuation_inputs"][key]=val
+            with self.subTest(key=key),self.assertRaisesRegex(ValueError,"ID_OR_DATE_MISMATCH"):
+                compare_candidates(**d)
+
+    def test_quote_dates_must_match_for_spread(self):
+        d=self.data();d["candidates"][1]["valuation_inputs"]["quoted_at"]="2026-10-26"
+        p=compare_candidates(**d)["pairwise_scenario_differences_private"][0]["by_scenario"]["BASE"]
+        self.assertIn("QUOTE_OBSERVATION_DATE_MISMATCH",p["reason_codes"])
+        self.assertIsNone(p["delta_first_minus_second_pp"])
+
+    def test_intra_candidate_mixed_measures_block_spreads(self):
+        d=self.data()
+        row=d["candidates"][1]["valuation_inputs"]["scenarios"]["BEAR"]
+        row["annual_distributions_per_share"]=[{"amount_per_share":"0","source_ref":"SYN-Z"}]*2
+        p=compare_candidates(**d)["pairwise_scenario_differences_private"][0]["by_scenario"]["BASE"]
+        self.assertIn("INTRA_CANDIDATE_RETURN_MEASURES_INCONSISTENT",p["reason_codes"])
+
+    def test_different_horizon_rejected(self):
+        d=self.data();d["candidates"][1]["valuation_inputs"]["horizon_years"]=3
+        with self.assertRaisesRegex(ValueError,"SAME_HORIZON"):compare_candidates(**d)
+
+    def test_incompatible_share_basis_yields_no_spread(self):
+        d=self.data();d["candidates"][1]["valuation_inputs"]["security_basis_confirmed_by_caller"]=False
+        p=compare_candidates(**d)["pairwise_scenario_differences_private"][0]["by_scenario"]["BASE"]
+        self.assertEqual(p["comparison_status"],"NOT_COMPARABLE")
+
+    def test_reference_etf_does_not_acquire_vfv_expected_return(self):
+        d=self.data();d["candidates"][1]["role"]="REFERENCE_ETF"
+        o=compare_candidates(**d)
+        self.assertEqual(o["benchmark_expected_return"],"NOT_ESTABLISHED")
+        self.assertEqual(o["candidates_private"][1]["role"],"REFERENCE_ETF")
+
+    def test_unknown_research_and_room_remain_unknown(self):
+        d=self.data();d["candidates"][1]["research_status"]="UNKNOWN"
+        d["candidates"][1]["portfolio_room_status"]="NOT_EVALUATED"
+        x=compare_candidates(**d)["candidates_private"][1]
+        self.assertIn("RESEARCH_STATUS_UNKNOWN",x["qualification_codes"])
+        self.assertIn("PORTFOLIO_ROOM_UNAVAILABLE_OR_NOT_EVALUATED",x["qualification_codes"])
+
+    def test_cannot_assert_evidence_supported_from_comparator(self):
+        d=self.data();d["candidates"][1]["portfolio_room_status"]="ROOM_EVIDENCE_SUPPORTED"
+        with self.assertRaisesRegex(ValueError,"MUST_NOT_BE_CERTIFIED"): compare_candidates(**d)
+
+    def test_three_way_pairwise_count_no_implicit_rank(self):
+        d=self.data();d["candidates"].append(self.item("C","GHI:TSX",values=("49","81","100")))
+        r=compare_candidates(**d)
+        self.assertEqual(len(r["pairwise_scenario_differences_private"]),3)
+        self.assertEqual(r["recommendation_or_ranking"], "NOT_AUTHORIZED")
+
+    def test_exact_input_unchanged(self):
+        d=self.data();before=copy.deepcopy(d)
+        compare_candidates(**d)
+        self.assertEqual(d,before)
+
+    def test_no_source_fetch_or_writes(self):
+        o=self.run_comparison()
+        self.assertEqual(o["source_authentication"],"NOT_PERFORMED")
+        self.assertEqual(o["writes"],"NONE")
+
+if __name__ == "__main__": unittest.main()
