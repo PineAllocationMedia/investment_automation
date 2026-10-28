@@ -316,6 +316,8 @@ def assemble_manual_run(
         packet["valuation_scenarios_private"] = valuation_scenarios
     if contribution_bundle is not None:
         packet["new_contribution_summary_private"] = contribution_bundle["report_summary_private"]
+    if historical_comparison is not None:
+        packet["historical_research_comparison_private"] = historical_comparison
     markdown = render_report(packet)
     # Memory proposal excludes portfolio data, issuer narrative and full claims.
     memory = {
