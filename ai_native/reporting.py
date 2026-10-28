@@ -6,6 +6,7 @@ All input statuses are caller-provided and preserved, never upgraded.
 from __future__ import annotations
 
 from datetime import date
+from decimal import Decimal, InvalidOperation
 from typing import Any, Mapping
 
 EVIDENCE_STATUSES = frozenset({"VERIFIED", "INDICATIVE", "CONFLICTED", "MISSING"})
@@ -95,6 +96,76 @@ def _source_review(packet: Mapping[str, Any], analysis_id: str, as_of: str,
     return by_id, count
 
 
+
+def _new_contribution_lines(packet: Mapping[str, Any], analysis_id: str,
+                            as_of: str) -> list[str]:
+    """Show only supplied NEW-capital percentages, never private positions.
+
+    The gross/funded statuses are computed by the existing M3 helpers. This
+    renderer cannot independently validate brokerage economics or holdings.
+    """
+    summary = packet.get("new_contribution_summary_private")
+    if summary is None:
+        return []
+    if not isinstance(summary, Mapping) or (
+        summary.get("analysis_id") != analysis_id
+        or summary.get("source_authentication") != "NOT_PERFORMED"
+    ):
+        raise ValueError("CONTRIBUTION_REPORT_ID_OR_AUTHORITY_MISMATCH")
+    observed_at = _iso_date(summary.get("portfolio_as_of"), "portfolio_as_of")
+    if observed_at > as_of:
+        raise ValueError("CONTRIBUTION_REPORT_OBSERVATION_AFTER_CUTOFF")
+    gross = summary.get("gross_status")
+    costs = summary.get("cost_status")
+    funded = summary.get("funded_status")
+    if gross not in {"GROSS_PROJECTION_ONLY", "UNAVAILABLE"} or not isinstance(costs, str) or not isinstance(funded, str):
+        raise ValueError("CONTRIBUTION_REPORT_INVALID_STATUS")
+    lines = ["", "## New contributions — private, caller-supplied plan"]
+    if gross != "GROSS_PROJECTION_ONLY":
+        if summary.get("allocations_pct") is not None:
+            raise ValueError("CONTRIBUTION_REPORT_UNSUPPORTED_PERCENTAGES")
+        lines.append("Gross contribution projection UNAVAILABLE: portfolio scope, cash, currency or identity inputs are not established.")
+    else:
+        allocations = summary.get("allocations_pct")
+        if not isinstance(allocations, Mapping) or not allocations:
+            raise ValueError("CONTRIBUTION_REPORT_ALLOCATIONS_REQUIRED")
+        exact = {}
+        for instrument, raw in allocations.items():
+            if (not isinstance(instrument, str) or not instrument.strip()
+                    or len(instrument) > 80 or any(ord(c) < 32 for c in instrument)
+                    or not isinstance(raw, str)):
+                raise ValueError("CONTRIBUTION_REPORT_INVALID_ALLOCATION")
+            try:
+                pct = Decimal(raw)
+            except InvalidOperation as exc:
+                raise ValueError("CONTRIBUTION_REPORT_INVALID_ALLOCATION") from exc
+            if not pct.is_finite() or pct < 0 or pct > 100:
+                raise ValueError("CONTRIBUTION_REPORT_INVALID_ALLOCATION")
+            exact[instrument] = pct
+        if sum(exact.values()) != 100:
+            raise ValueError("CONTRIBUTION_REPORT_PERCENTAGES_NOT_100")
+        lines.append("Percentages of **NEW contribution only** (user/analyst supplied, gross of costs; not portfolio target weights):")
+        ordered = sorted(exact, key=lambda key: (-exact[key], key))
+        for instrument in ordered[:8]:
+            safe = instrument.replace("\\", "\\\\").replace("`", "\\`").replace("<", "&lt;").replace(">", "&gt;")
+            lines.append(f"- `{safe}`: {format(exact[instrument], 'f')}% of new capital")
+        if len(ordered) > 8:
+            lines.append(f"- {len(ordered) - 8} other destinations in private M3 annex.")
+    if costs == "NOT_SUPPLIED" and funded == "NOT_ASSESSED":
+        lines.append("Costs/funding NOT ASSESSED: gross plan only; no executable allocation.")
+    elif (costs == "SUPPLIED_COST_TALLY_ONLY"
+          and funded == "CONDITIONAL_SUPPLIED_COST_BUDGET_RECONCILED"
+          and gross == "GROSS_PROJECTION_ONLY"):
+        lines.append("Cost-funded budget CONDITIONALLY RECONCILED using caller-supplied fixed fees; percentages are unchanged, but net amounts and funding differ. Requote size-dependent costs and verify account taxes/FX before any decision.")
+    elif (costs in {"NOT_SUPPLIED", "INCOMPLETE_COST_INPUTS", "UNAVAILABLE_GROSS_PROJECTION",
+                     "UNAVAILABLE_COSTS_EXCEED_CONTRIBUTION", "SUPPLIED_COST_TALLY_ONLY"}
+          and (funded == "NOT_ASSESSED" or funded.startswith("UNAVAILABLE_"))):
+        lines.append("After-cost funded allocation UNAVAILABLE: charges, funding or scope are incomplete or inconsistent. Do not treat the gross percentages as an executable plan.")
+    else:
+        raise ValueError("CONTRIBUTION_REPORT_COST_FUNDING_STATUS_MISMATCH")
+    lines.append("PI observations and allocations are caller-supplied; no holdings authentication, source certification, price, trade or investment recommendation.")
+    return lines
+
 def render_report(packet: Mapping[str, Any]) -> str:
     """Render a concise markdown research report or user-requested follow-up.
 
@@ -152,6 +223,7 @@ def render_report(packet: Mapping[str, Any]) -> str:
                 lines.append(f"  - **Source review required:** {flags}. IR-reported label is not independently corroborated.")
     else:
         lines.append("No underlying fact records supplied; no factual verification is asserted.")
+    lines += _new_contribution_lines(packet, analysis_id, as_of)
     if kind == "FOLLOWUP":
         previous_id = packet.get("prior_analysis_id")
         if previous_id is None:
