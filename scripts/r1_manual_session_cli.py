@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import math
 import sys
 from typing import Any, TextIO
 
@@ -49,6 +50,14 @@ def _no_nonfinite(raw: str) -> None:
     raise ValueError("NONFINITE_JSON_NUMBER")
 
 
+def _finite_json_float(raw: str) -> float:
+    """Python JSON can silently turn 1e999 into infinity; reject that too."""
+    number = float(raw)
+    if not math.isfinite(number):
+        raise ValueError("NONFINITE_JSON_NUMBER")
+    return number
+
+
 def _code(error: BaseException) -> str:
     # Never print arbitrary exception text: it may contain private data.
     candidate = str(error).split(":", 1)[0]
@@ -74,6 +83,7 @@ def run(*, output: str, instream: TextIO, outstream: TextIO,
         if len(raw) > MAX_INPUT_CHARACTERS:
             raise ValueError("INPUT_TOO_LARGE")
         payload = json.loads(raw, parse_constant=_no_nonfinite,
+                             parse_float=_finite_json_float,
                              object_pairs_hook=_unique_pairs)
         result = evaluate(payload)
     except (ValueError, TypeError, KeyError, RecursionError) as exc:
@@ -108,6 +118,7 @@ def run(*, output: str, instream: TextIO, outstream: TextIO,
         # displayed only when specifically requested, never saved automatically.
         outstream.write(json.dumps({
             label: json.loads(value, parse_constant=_no_nonfinite,
+                              parse_float=_finite_json_float,
                               object_pairs_hook=_unique_pairs)
             for label, value in handoffs.items()
         }, ensure_ascii=False, sort_keys=True, indent=2) + "\n")
