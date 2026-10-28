@@ -67,4 +67,21 @@ class Tests(unittest.TestCase):
         a=self.sample();before=copy.deepcopy(a);compare_supplied_cases(**a)
         self.assertEqual(a,before)
 
+
+    def test_real_prior_case_comparator_reaches_m4_report_without_claim_leak(self):
+        from ai_native.reporting import render_report
+        d=compare_supplied_cases(**self.sample())
+        packet={"kind":"FOLLOWUP","analysis_id":"NEW","as_of":"2026-10-28",
+                "strategy":"EXPLORATORY","method_version":"IR-R1","status":"CONDITIONAL",
+                "objective":"CEO-triggered research followup","decision_line":"No verified change",
+                "summary":["Prior/current compared structurally"],"facts":[],
+                "countercase":"Not authenticated","limitations":"No source rights certification",
+                "next_action":"Check original sources","changes":[],"prior_analysis_id":"OLD",
+                "historical_research_comparison_private":d}
+        text=render_report(packet)
+        self.assertIn("INDICATIVE → CONFLICTED",text)
+        self.assertIn("wording unchanged",text)
+        self.assertNotIn("Margin estimate A",text)
+        self.assertNotIn("Margin estimate B",text)
+
 if __name__=='__main__':unittest.main()
