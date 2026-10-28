@@ -54,3 +54,9 @@ The helper groups **comparable economic concepts only**, so two different same-p
 The M7a optional `source_evidence_inputs` path checks exact ANALYSIS_ID/cutoff and that every annex `fact_id` appears in the original IR capsule. It reports **uncovered IR fact IDs** and constrains the report to `CONDITIONAL` when the supplied annex is unresolved, incomplete or noncomparable. `source_evidence_annex_private` stays private; the helper writes nothing to GitHub and makes no automatic changes to the original IR capsule or factual status. This complements, rather than duplicates, the existing `evidence_math.audit_calculation` (which operates on two supplied monetary facts).
 
 **Validation:** 21 synthetic component tests with two-decimal source conflicts, GAAP/adjusted comparisons, rights, dates, missing sources and no data mutation. These tests are construction checks, **not an authentic original-source examination** or the comprehensive end-of-assembly evaluation.
+
+## M2 source-linked fundamental economics dossier
+
+The optional `fundamental_dossier.prepare_fundamental_dossier` consumes **this exact source-fusion annex**, not new untracked financial figures. It returns a private 2-period evidence-linked description of reported revenue, operating margins, CFO less cash capex and diluted shares only where identity, definitions, periods, units, currency, rights and claim usability allow. It pairs this with three analyst-supplied qualitative theses and strongest countercases bound to original IR fact IDs, preserving missing/contradictory source limitations and never presenting an automatically validated moat, quality grade or normalized owner cash.
+
+See `FUNDAMENTAL_ECONOMICS_R1.md` for the precise source and optional M7a contract. Full original-document source verification, business-type selection, acquisition/FX decomposition and normalized per-share economics remain analyst tasks; no synthetic tests count as external evidence.

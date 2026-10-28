@@ -15,6 +15,7 @@ from .evidence_math import audit_calculation
 from .source_fusion import assemble_source_fusion
 from .valuation_scenarios import evaluate_valuation_scenarios
 from .candidate_comparison import compare_candidates
+from .fundamental_dossier import prepare_fundamental_dossier
 from .reporting import render_report
 
 ROOM_STATUSES = frozenset({"ROOM_EVIDENCE_SUPPORTED", "ROOM_CONDITIONAL", "ROOM_UNAVAILABLE"})
@@ -49,6 +50,7 @@ def assemble_manual_run(
     source_evidence_inputs: Mapping[str, Any] | None = None,
     valuation_inputs: Mapping[str, Any] | None = None,
     candidate_comparison_inputs: Mapping[str, Any] | None = None,
+    fundamental_inputs: Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Assemble a PRIVATE report without claiming live Project connectivity.
 
@@ -171,6 +173,24 @@ def assemble_manual_run(
                 source_annex["noncomparable_basis_groups"]):
             limits.append("Some research evidence is missing, disputed or noncomparable; see private source annex. No source was independently certified.")
             status = "CONDITIONAL"
+    fundamental_dossier = None
+    if fundamental_inputs is not None:
+        if source_annex is None:
+            raise ValueError("FUNDAMENTAL_REQUIRES_SOURCE_ANNEX")
+        if not isinstance(fundamental_inputs, Mapping):
+            raise ValueError("fundamental_inputs: mapping required")
+        required = {"economic_issuer", "instrument", "period_pairs",
+                    "annual_periods_comparable_reported", "qualitative_axes"}
+        if set(fundamental_inputs) != required:
+            raise ValueError("FUNDAMENTAL_INPUT_SCHEMA_MISMATCH")
+        ir_ids = [x["id"] for x in facts
+                  if isinstance(x, Mapping) and isinstance(x.get("id"), str)]
+        fundamental_dossier = prepare_fundamental_dossier(
+            analysis_id=run_id, analysis_as_of=as_of, source_annex=source_annex,
+            original_ir_fact_ids=ir_ids, **fundamental_inputs)
+        limits.append("Fundamental metrics use caller-reported original-source observations only: organic growth, normalized owner cash, moat durability, Expected Return and source authenticity remain unverified. See private dossier.")
+        status = "CONDITIONAL"
+
     valuation_scenarios = None
     if valuation_inputs is not None:
         if not isinstance(valuation_inputs, Mapping):
@@ -246,6 +266,7 @@ def assemble_manual_run(
         "source_evidence_annex_private": source_annex,
         "valuation_scenarios_private": valuation_scenarios,
         "candidate_comparison_private": candidate_comparison,
+        "fundamental_dossier_private": fundamental_dossier,
         "gross_contribution_private": contribution,
         "supplied_costs_private": costs,
         "portfolio_room_status": room,
