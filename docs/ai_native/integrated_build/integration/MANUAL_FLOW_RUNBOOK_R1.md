@@ -51,3 +51,26 @@ Private `gross_contribution_private`, PI summaries and the final Markdown **may 
 - Actual cross-Project UX, method loading, real portfolio visibility, 36-decision coverage and readiness gates are **outstanding**.
 
 **Next:** intentionally install/adopt three Project setting candidates with CEO approval, make the agreed methods genuinely accessible, then evaluate the *whole* system once assembled. The separate authorized M6 inventory/preservation scope remains open; no Mac/PC/Chromebook action is granted by this function.
+
+## Optional bounded known-costs tally (M3 continuation)
+
+`assemble_manual_run(..., cost_inputs=None)` now accepts a separately supplied, **private** purchase cost ledger only when `pi_delta` and `contribution_inputs` yield a gross projection. Example cost-input shape (all values synthetic and no real fee schedule implied):
+
+```python
+cost_inputs = {
+    "cost_currency": "CAD", "cost_quote_as_of": "2026-10-28",
+    "analysis_as_of": "2026-10-28", "funding": "FROM_CONTRIBUTION",
+    "charges_by_destination": {
+        "ABC:TSX": {
+            "commission": {"amount_base": "5.00", "source_ref": "S-SYN-1"},
+            "bid_ask_spread": {"amount_base": "0.00", "source_ref": "S-SYN-2"},
+            "fx_conversion": {"amount_base": "0.00", "source_ref": "S-SYN-2"},
+            "purchase_tax": {"amount_base": "0.00", "source_ref": "S-SYN-2"},
+            "other_fees": {"amount_base": "0.00", "source_ref": "S-SYN-2"},
+        },
+        # Repeat all five explicitly evidenced entries for every positive gross destination.
+    },
+}
+```
+
+These `source_ref` strings are **fictional test locators**, not proof of zero fees or verified brokerage economics. `cost_inputs.analysis_as_of` must match `request.as_of`. Actual omission or unknown costs yields conditional/incomplete status, never a zero. Outputs `supplied_costs_private` and `gross_contribution_private` stay in private execution only. Cost records are not added to the GitHub memory proposal. Neither the cost tally nor the gross contribution is an executable order, after-tax return, or a complete net-weight projection.
