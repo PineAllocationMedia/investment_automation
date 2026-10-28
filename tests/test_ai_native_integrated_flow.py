@@ -191,5 +191,71 @@ class ManualIntegrationTests(unittest.TestCase):
                                                               "fact_links":[]})
 
 
+    def test_m5_alignment_flags_unsupported_ir_verified_label_privately(self):
+        verified = {"id":"SYN-F1", "claim":"SYN PRIVATE FACT", "status":"VERIFIED",
+                    "source_url":"https://example.org/synthetic-report",
+                    "period":"2025", "checked_by":"SYN_RESEARCHER", "checked_at":"2026-10-28"}
+        out = assemble_manual_run(
+            self.request(), self.ir(facts=[verified]),
+            source_evidence_inputs={"analysis_id":"SYN-001", "analysis_as_of":"2026-10-28",
+                                    "observations":[]})
+        audit = out["fact_source_alignment_private"]
+        self.assertEqual(audit["facts_needing_review"], 1)
+        self.assertEqual(audit["evidence_upgrade"], "NONE")
+        self.assertIn("IR_VERIFIED_LABEL_NOT_SUPPORTED_BY_SUPPLIED_ANNEX",
+                      audit["facts_private"][0]["review_flags"])
+        self.assertIn("CONDITIONAL", out["markdown"])
+        self.assertIn("do not structurally align", out["markdown"])
+        self.assertNotIn("SYN PRIVATE FACT", str(audit))
+        self.assertNotIn("SYN PRIVATE FACT", str(out["memory_proposal_nonprivate"]))
+
+    def test_m5_alignment_preserves_indicative_with_clean_caller_source(self):
+        observation = dict(
+            observation_id="O1", fact_id="SYN-F1", source_id="S1",
+            economic_issuer="SYN", instrument="SYN:NYSE", metric="EPS",
+            period_start="2025-01-01", period_end="2025-12-31",
+            currency="USD", unit="PER_SHARE", definition_basis="US_GAAP",
+            consolidation="GROUP", value="1.00", observed_at="2026-10-28",
+            published_at="2026-02-01", original_checked_at="2026-10-28",
+            source_kind="ISSUER_OR_REGULATOR", classification="SOURCE_FACT",
+            source_locator="https://example.org/synthetic-source",
+            rights_status="PERMITTED", verification_status="INDICATIVE")
+        out = assemble_manual_run(
+            self.request(), self.ir(),
+            source_evidence_inputs={"analysis_id":"SYN-001", "analysis_as_of":"2026-10-28",
+                                    "observations":[observation]})
+        audit = out["fact_source_alignment_private"]
+        self.assertEqual(audit["facts_needing_review"], 0)
+        self.assertEqual(audit["decision_grade_status"], "NOT_ESTABLISHED")
+        self.assertEqual(audit["facts_private"][0]["ir_reported_status"], "INDICATIVE")
+        self.assertNotIn("https://example.org/synthetic-source", str(audit))
+        self.assertNotIn("https://example.org/synthetic-source",
+                         str(out["memory_proposal_nonprivate"]))
+
+    def test_m5_alignment_flags_uncertain_rights_without_source_promotion(self):
+        observation = dict(
+            observation_id="O1", fact_id="SYN-F1", source_id="S1",
+            economic_issuer="SYN", instrument="SYN:NYSE", metric="EPS",
+            period_start="2025-01-01", period_end="2025-12-31",
+            currency="USD", unit="PER_SHARE", definition_basis="US_GAAP",
+            consolidation="GROUP", value="1.00", observed_at="2026-10-28",
+            published_at="2026-02-01", original_checked_at="2026-10-28",
+            source_kind="ISSUER_OR_REGULATOR", classification="SOURCE_FACT",
+            source_locator="https://example.org/synthetic-source",
+            rights_status="UNCERTAIN", verification_status="VERIFIED")
+        verified = {"id":"SYN-F1","claim":"SYN PRIVATE FACT","status":"VERIFIED",
+                    "source_url":"https://example.org/synthetic-source",
+                    "period":"2025","checked_by":"SYN_RESEARCHER","checked_at":"2026-10-28"}
+        out = assemble_manual_run(
+            self.request(), self.ir(facts=[verified]),
+            source_evidence_inputs={"analysis_id":"SYN-001", "analysis_as_of":"2026-10-28",
+                                    "observations":[observation]})
+        flags = out["fact_source_alignment_private"]["facts_private"][0]["review_flags"]
+        self.assertIn("SOURCE_INCOMPLETE", flags)
+        self.assertIn("IR_VERIFIED_LABEL_NOT_SUPPORTED_BY_SUPPLIED_ANNEX", flags)
+        self.assertIn("CONDITIONAL", out["markdown"])
+
+
+
 if __name__ == "__main__":
     unittest.main()
