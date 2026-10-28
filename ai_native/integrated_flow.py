@@ -55,6 +55,7 @@ def assemble_manual_run(
     fundamental_inputs: Mapping[str, Any] | None = None,
     historical_comparison_inputs: Mapping[str, Any] | None = None,
     opportunity_triage_inputs: Mapping[str, Any] | None = None,
+    portfolio_room_review_private: Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Assemble a PRIVATE report without claiming live Project connectivity.
 
@@ -295,6 +296,10 @@ def assemble_manual_run(
         # Only the private report consumer sees structural source-use warnings.
         # The original IR capsule and its reported labels remain unchanged.
         packet["fact_source_alignment_private"] = fact_alignment
+    if portfolio_room_review_private is not None:
+        if pi_delta is None:
+            raise ValueError("ROOM_REPORT_REQUIRES_PI_DELTA")
+        packet["portfolio_room_review_private"] = portfolio_room_review_private
     if fundamental_dossier is not None:
         # Only private report; the institutional memory proposal remains
         # the same non-sensitive schema without issuer financial details.
