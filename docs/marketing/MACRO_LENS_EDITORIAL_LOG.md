@@ -1,7 +1,7 @@
 # PAM | Blossom — editorial evidence & experiment log v1.1
 
 **Channel:** Blossom `@therealpam`.
-**Status:** 27 distinct accessible originals recorded through 2026-10-27: latest scan added 1 and refreshed 26 with 27 appended snapshots. All exposed permalinks inspected; historical completeness unproven and some discussion bodies PARTIAL. Earlier observations preserved. No private analytics or post-attributed follows established.
+**Status:** 29 distinct accessible originals recorded through 2026-10-28: latest scan added 2 and refreshed 27 with 29 appended snapshots. All exposed permalinks inspected; historical completeness unproven and some discussion bodies PARTIAL. Earlier observations preserved. No private analytics or post-attributed follows established.
 **Instructions:** [Playbook](MACRO_LENS_PLAYBOOK.md) · [Templates](MACRO_LENS_TEMPLATES.md).
 
 This existing register now tracks all verified @therealpam original posts: Macro Lens and ordinary content alike. Do not invent approval history for past ordinary posts. Replies to others are distinct from original publications.
@@ -871,3 +871,90 @@ Phil's existing follow-up argues confidently that AI is a bubble that will colla
 > Commercial’s loss narrowed from $5.35B, although last year’s comparison included a 777X program charge.
 >
 > The real test now: sustainably positive commercial-airplane margins—not just a better group headline.
+
+## Profile scan — 2026-10-28 (authorized signed-in Cloud Browser)
+
+**Coverage:** 29 original posts discovered / 29 individually inspected / 2 new records / 27 existing records refreshed / 0 discovered post URLs inaccessible. Each individual post's @therealpam authorship link verified against /users/PAM__IwHhSPDG2aOMks63. Posts tab only; Blooms, trades and replies to others excluded. Dynamic loading exposed 13, then 23, then 29 posts; additional bottom navigation exposed no more posts or pagination after the introduction. **All exposed originals captured; HISTORICAL COMPLETENESS UNPROVEN.** No authoritative all-history total. Authenticated Comment controls available; no login restriction blocked completion. Discussion bodies remain partly exposed.
+
+**Range/time:** newest UI 1m, oldest 21d, approximately October 7–28, 2026 based only on rounded labels. Exact publication timestamps NA; no post-ID timestamp inference. Counter capture 2026-10-28 10:31:14.281–10:31:47.314 EDT, America/Toronto (UTC−04:00). Discussion revisits through 10:32:03.662 EDT. Earlier labels and snapshots preserved.
+
+**Metric definitions:** PUBLIC_OBSERVED for all ordinary counters even authenticated. Views = displayed cumulative views, unique-person meaning unknown. Comments = displayed total, reply-count semantics unknown. Shares = arrow counter, not verified completed external shares. Saves = bookmark counter. Likes = numeric heart-only count; mixed emoji totals recorded separately as total reactions, heart breakdown NA. Missing numeric reactions = NA, not zero. Profile visits/attributed follows NA. No private PLATFORM_VERIFIED analytics or CEO_SUPPLIED measurements. No invented timed snapshots, unattended monitoring, publication or account mutation.
+
+**History reuse:** prior thesis, captions, templates, rationale and audit/approval evidence remain unchanged. New published captions/theses recorded below; unavailable internal history remains NA. This measurement scan does not independently verify financial claims, source rights or discussion forecasts.
+
+### New records — existing register continuation
+
+| Issue ID | Class/status | Published thesis | Internal evidence | Stable permalink |
+|---|---|---|---|---|
+| BL-POST-1793197767496-cFctFOpJ | Company commentary / PUBLISHED | Coca-Cola global volume growth masks flat North America; watch regional recovery and sustained international momentum | Image-bearing observed; exact template/version, preparation rationale, source register, audit and approval references NA | https://www.blossomsocial.com/posts/Coca-Cola-Q3-Growth-Global-Rise-North-America-Flat__POST-1793197767496-cFctFOpJ_IwHhSPDG2aOMks63 |
+| BL-POST-1793149368867-cLFb5NMa | Macro commentary / PUBLISHED | Improved confidence differs from spending intent and realized demand; distinguish present conditions from expectations | Image-bearing observed; exact template/version, preparation rationale, source register, audit and approval references NA | https://www.blossomsocial.com/posts/Consumer-Confidence-Rises-but-Spending-Uncertain__POST-1793149368867-cLFb5NMa_IwHhSPDG2aOMks63 |
+
+### Appended snapshots
+
+| Issue ID | Rounded UI age (exact NA) | Observed at — America/Toronto EDT | Provenance | Views | Likes | Comments | Shares | Saves | Total reactions | Profile visits | Attributed follows |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| BL-POST-1793197767496-cFctFOpJ | 1m | 2026-10-28T10:31:14.281-04:00 | PUBLIC_OBSERVED | 0 | NA | 0 | 0 | 0 | NA | NA | NA |
+| BL-POST-1793149368867-cLFb5NMa | 13h | 2026-10-28T10:31:15.252-04:00 | PUBLIC_OBSERVED | 42 | NA | 0 | 0 | 0 | NA | NA | NA |
+| BL-POST-1793107152966-YTBGWH9d | 1d | 2026-10-28T10:31:16.128-04:00 | PUBLIC_OBSERVED | 58 | NA | 0 | 0 | 0 | NA | NA | NA |
+| BL-POST-1793060142652-bt1IJKAo | 1d | 2026-10-28T10:31:17.015-04:00 | PUBLIC_OBSERVED | 118 | NA | 0 | 0 | 0 | NA | NA | NA |
+| BL-POST-1793023468268-JghTaJye | 2d | 2026-10-28T10:31:17.872-04:00 | PUBLIC_OBSERVED | 52 | NA | 0 | 0 | 0 | NA | NA | NA |
+| BL-POST-1792970189363-fIdOdvGU | 2d | 2026-10-28T10:31:18.685-04:00 | PUBLIC_OBSERVED | 140 | 2 | 1 | 0 | 0 | 2 | NA | NA |
+| BL-POST-1792935816952-RmJBGgJl | 3d | 2026-10-28T10:31:19.565-04:00 | PUBLIC_OBSERVED | 420 | 5 | 4 | 1 | 0 | 5 | NA | NA |
+| BL-POST-1792850545800-gNzqcp6X | 4d | 2026-10-28T10:31:20.491-04:00 | PUBLIC_OBSERVED | 110 | 1 | 0 | 0 | 0 | 1 | NA | NA |
+| BL-POST-1792773556527-n3zJCc9e | 4d | 2026-10-28T10:31:21.167-04:00 | PUBLIC_OBSERVED | 116 | 1 | 0 | 0 | 0 | 1 | NA | NA |
+| BL-POST-1792712380652-veFF6JIW | 5d | 2026-10-28T10:31:22.004-04:00 | PUBLIC_OBSERVED | 86 | 2 | 2 | 0 | 0 | 2 | NA | NA |
+| BL-POST-1792632635232-p3wDGaJ3 | 6d | 2026-10-28T10:31:22.790-04:00 | PUBLIC_OBSERVED | 32 | NA | 0 | 0 | 0 | NA | NA | NA |
+| BL-POST-1792618150646-9HYkfaqz | 6d | 2026-10-28T10:31:23.661-04:00 | PUBLIC_OBSERVED | 52 | NA | 0 | 0 | 0 | NA | NA | NA |
+| BL-POST-1792543338595-Ou0WyNVs | 7d | 2026-10-28T10:31:24.557-04:00 | PUBLIC_OBSERVED | 272 | NA | 0 | 1 | 0 | NA | NA | NA |
+| BL-POST-1792445839015-LojFs7Jp | 8d | 2026-10-28T10:31:25.440-04:00 | PUBLIC_OBSERVED | 274 | 4 | 2 | 0 | 0 | 4 | NA | NA |
+| BL-POST-1792413329799-4TDnXVvZ | 9d | 2026-10-28T10:31:26.231-04:00 | PUBLIC_OBSERVED | 60 | NA | 0 | 1 | 0 | NA | NA | NA |
+| BL-POST-1792285181556-dajQRiJ8 | 10d | 2026-10-28T10:31:35.821-04:00 | PUBLIC_OBSERVED | 128 | 1 | 2 | 0 | 0 | 1 | NA | NA |
+| BL-POST-1792243935166-5rY3pW0x | 11d | 2026-10-28T10:31:36.907-04:00 | PUBLIC_OBSERVED | 844 | NA | 0 | 2 | 0 | 6 | NA | NA |
+| BL-POST-1792154075898-WKgQpyWr | 12d | 2026-10-28T10:31:37.469-04:00 | PUBLIC_OBSERVED | 60 | NA | 0 | 0 | 0 | NA | NA | NA |
+| BL-POST-1792015357362-r0k28CcU | 13d | 2026-10-28T10:31:38.288-04:00 | PUBLIC_OBSERVED | 340 | NA | 0 | 0 | 0 | 7 | NA | NA |
+| BL-POST-1791924123452-n0SE9Lsf | 14d | 2026-10-28T10:31:39.169-04:00 | PUBLIC_OBSERVED | 174 | 4 | 1 | 0 | 0 | 4 | NA | NA |
+| BL-POST-1791820180736-IT7xZSEt | 15d | 2026-10-28T10:31:40.099-04:00 | PUBLIC_OBSERVED | 88 | 2 | 0 | 0 | 0 | 2 | NA | NA |
+| BL-POST-1791764804066-6p0ZcQRe | 16d | 2026-10-28T10:31:41.099-04:00 | PUBLIC_OBSERVED | 248 | NA | 0 | 0 | 0 | NA | NA | NA |
+| BL-POST-1791725403770-fzsmjWDJ | 17d | 2026-10-28T10:31:41.970-04:00 | PUBLIC_OBSERVED | 174 | 2 | 0 | 0 | 0 | 2 | NA | NA |
+| BL-POST-1791636358863-EDvN5sp6 | 18d | 2026-10-28T10:31:42.773-04:00 | PUBLIC_OBSERVED | 208 | 2 | 0 | 0 | 0 | 2 | NA | NA |
+| BL-POST-1791589339142-QZtwsSBo | 18d | 2026-10-28T10:31:43.690-04:00 | PUBLIC_OBSERVED | 390 | 3 | 3 | 0 | 0 | 3 | NA | NA |
+| BL-POST-1791501798381-vTsMLRu2 | 19d | 2026-10-28T10:31:44.725-04:00 | PUBLIC_OBSERVED | 124 | NA | 0 | 0 | 0 | 4 | NA | NA |
+| BL-POST-1791495336766-q7dQtifh | 19d | 2026-10-28T10:31:45.583-04:00 | PUBLIC_OBSERVED | 98 | NA | 0 | 0 | 0 | NA | NA | NA |
+| BL-POST-1791416148323-vptp1ie5 | 20d | 2026-10-28T10:31:46.434-04:00 | PUBLIC_OBSERVED | 76 | NA | 0 | 0 | 0 | NA | NA | NA |
+| BL-POST-1791303632255-hNbqeFsO | 21d | 2026-10-28T10:31:47.314-04:00 | PUBLIC_OBSERVED | 12 | NA | 0 | 0 | 0 | NA | NA | NA |
+
+### Discussion observations — PUBLIC_OBSERVED
+
+Top Comments inspected. Earlier bodies preserved even when not exposed again. Existing replies and Liked states observed, not created/changed. Participant claims are not verified financial findings.
+
+| Post | Observed at — EDT | Rendered discussion / limits |
+|---|---|---|
+| BL-POST-1792970189363-fIdOdvGU | 2026-10-28T10:31:57.388-04:00 | 1 displayed / 1 rendered: Mike L @noviceadvisor (2d), Venezuela growth comment; 0 likes. |
+| BL-POST-1792935816952-RmJBGgJl | 2026-10-28T10:31:58.637-04:00 | 4 displayed / 2 rendered: Nate (2d) asks if AI spend pays off; Rudolf (3d) discusses margin compression/depreciation versus ad economics. Each 1 like. Prior PAM replies retained, not re-exposed. PARTIAL. |
+| BL-POST-1792712380652-veFF6JIW | 2026-10-28T10:31:59.697-04:00 | 2 displayed / 1 rendered: Shael @nickel333 (5d), rough market day; 1 like. Prior PAM reply retained, not re-exposed. PARTIAL. |
+| BL-POST-1792445839015-LojFs7Jp | 2026-10-28T10:32:00.280-04:00 | 2 displayed / 2 rendered: Nate (7d), buying/waiting question, 1 like/Liked. Existing PAM reply (7d, 0 likes) matches exact October 27 archive: balance buying/waiting, avoid chasing index, seek quality with intact fundamentals, cautious not automatically bearish, asks about non-tech opportunities. |
+| BL-POST-1792285181556-dajQRiJ8 | 2026-10-28T10:32:01.467-04:00 | 2 displayed / 1 rendered: solomon @ambessa (9d), workforce/skills/scale/supply-chain constraints to reshoring; 1 like. Prior PAM reply retained, not re-exposed. PARTIAL. |
+| BL-POST-1791924123452-n0SE9Lsf | 2026-10-28T10:32:02.525-04:00 | 1 displayed / 1 rendered: Nate (14d), mood versus numbers and charge-off question; 0 likes. |
+| BL-POST-1791589339142-QZtwsSBo | 2026-10-28T10:32:03.662-04:00 | 3 displayed / 1 rendered: Phil (18d), AI-led index strength versus non-AI weakness, earnings skepticism; 1 like. October 27 PAM reply/Phil follow-up preserved, not re-exposed. PARTIAL. |
+
+### Exact new public captions
+
+#### BL-POST-1793197767496-cFctFOpJ
+
+> Coca-Cola grew worldwide. North America didn't.
+>
+> In Q3, Coca-Cola's global unit-case volume rose 5% year over year. But North America was flat, while Latin America and Asia Pacific each grew 6%, and Europe, the Middle East and Africa grew 5%.
+>
+> That's the useful distinction behind the headline: volume is about beverage sales, not simply charging more. In North America, growth in Trademark Coca-Cola was offset by declines in water, sports, coffee and tea.
+>
+> The next test? Whether North American volumes recover without the rest of the world losing momentum.
+
+#### BL-POST-1793149368867-cLFb5NMa
+
+> Consumer confidence bounced in October. That doesn't mean households are ready to spend freely.
+>
+> The Conference Board's U.S. index rose 7.5 points to 91.7. Americans rated present business and job conditions at 120.4, but expectations for the next six months were only 72.6. Both improved from September.
+>
+> The distinction matters: a better mood can support demand, but sentiment is not a receipt. The same survey found consumers planning less spending on services and durable goods.
+>
+> What would change the picture? A sustained pickup in spending intentions and actual consumer demand—not just one stronger survey.
