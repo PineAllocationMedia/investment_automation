@@ -46,6 +46,7 @@ def complete_manual_session(
     memory_inputs: Mapping[str, Any] | None = None,
     observation_inputs: Mapping[str, Any] | None = None,
     source_evidence_inputs: Mapping[str, Any] | None = None,
+    valuation_inputs: Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
     """One CEO-initiated manual session, possibly awaiting a human transfer.
 
@@ -64,6 +65,8 @@ def complete_manual_session(
         raise ValueError("FINANCIAL_CHECKS_REQUIRE_IR_CAPSULE")
     if source_evidence_inputs is not None and route not in {"CC_IR_CC", "CC_IR_PI_CC"}:
         raise ValueError("SOURCE_ANNEX_REQUIRES_IR_CAPSULE")
+    if valuation_inputs is not None and route not in {"CC_IR_CC", "CC_IR_PI_CC"}:
+        raise ValueError("VALUATION_REQUIRES_IR_CAPSULE")
 
     observation = None
     if observation_inputs is not None:
@@ -159,6 +162,7 @@ def complete_manual_session(
         cost_inputs=cost_inputs,
         memory_inputs=memory_inputs,
         source_evidence_inputs=source_evidence_inputs,
+        valuation_inputs=valuation_inputs,
     )
     private["integrated_private"] = integrated
     private["final_report_private"] = integrated["markdown"]

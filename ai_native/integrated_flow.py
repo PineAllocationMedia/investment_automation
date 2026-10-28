@@ -13,6 +13,7 @@ from .known_costs import tally_supplied_costs
 from .research_memory import prepare_research_history
 from .evidence_math import audit_calculation
 from .source_fusion import assemble_source_fusion
+from .valuation_scenarios import evaluate_valuation_scenarios
 from .reporting import render_report
 
 ROOM_STATUSES = frozenset({"ROOM_EVIDENCE_SUPPORTED", "ROOM_CONDITIONAL", "ROOM_UNAVAILABLE"})
@@ -45,6 +46,7 @@ def assemble_manual_run(
     cost_inputs: Mapping[str, Any] | None = None,
     memory_inputs: Mapping[str, Any] | None = None,
     source_evidence_inputs: Mapping[str, Any] | None = None,
+    valuation_inputs: Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Assemble a PRIVATE report without claiming live Project connectivity.
 
@@ -167,6 +169,16 @@ def assemble_manual_run(
                 source_annex["noncomparable_basis_groups"]):
             limits.append("Some research evidence is missing, disputed or noncomparable; see private source annex. No source was independently certified.")
             status = "CONDITIONAL"
+    valuation_scenarios = None
+    if valuation_inputs is not None:
+        if not isinstance(valuation_inputs, Mapping):
+            raise ValueError("valuation_inputs: mapping required")
+        if valuation_inputs.get("analysis_id") != run_id or valuation_inputs.get("analysis_as_of") != as_of:
+            raise ValueError("VALUATION_ANALYSIS_OR_DATE_MISMATCH")
+        valuation_scenarios = evaluate_valuation_scenarios(**valuation_inputs)
+        limits.append("Valuation scenario arithmetic is conditional on source, security, currency and terminal assumptions; see private valuation annex. No probability-weighted Expected Return or VFV alpha certified.")
+        status = "CONDITIONAL"
+
     packet: dict[str, Any] = {
         "kind": kind,
         "analysis_id": run_id,
@@ -215,6 +227,7 @@ def assemble_manual_run(
         "markdown": markdown,
         "calculation_checks": checks,
         "source_evidence_annex_private": source_annex,
+        "valuation_scenarios_private": valuation_scenarios,
         "gross_contribution_private": contribution,
         "supplied_costs_private": costs,
         "portfolio_room_status": room,
