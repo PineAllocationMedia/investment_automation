@@ -56,7 +56,7 @@ class ManualCLIContractTests(unittest.TestCase):
         code, report, error=self.invoke(packet,output="report")
         self.assertEqual((code,error),(0,""))
         self.assertIn("Investment decision research",report)
-        self.assertIn("NOT_PERFORMED",report)
+        self.assertIn("not independently authenticated",report)
         self.assertEqual(packet,saved)
 
     def test_missing_pi_stays_pending_and_handoff_preserves_original_ir(self):
