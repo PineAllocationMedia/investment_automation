@@ -295,6 +295,10 @@ def assemble_manual_run(
         # Only the private report consumer sees structural source-use warnings.
         # The original IR capsule and its reported labels remain unchanged.
         packet["fact_source_alignment_private"] = fact_alignment
+    if fundamental_dossier is not None:
+        # Only private report; the institutional memory proposal remains
+        # the same non-sensitive schema without issuer financial details.
+        packet["fundamental_dossier_private"] = fundamental_dossier
     if valuation_scenarios is not None:
         # Private, arithmetic-only M2 packet: no probability model, net return,
         # source verification, Expected Return certification or VFV alpha.

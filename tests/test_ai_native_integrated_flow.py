@@ -479,5 +479,49 @@ class ManualIntegrationTests(unittest.TestCase):
             assemble_manual_run(self.request(), self.ir(),
                                 valuation_inputs=self.valuation_inputs(analysis_id="OTHER"))
 
+
+    def test_m2_fundamental_dossier_is_shown_in_report_not_public_memory(self):
+        from unittest.mock import patch
+        import copy
+        from ai_native.reporting import _fundamental_lines
+        source_input = self.embedded_source_inputs()
+        capsule = self.ir(EVIDENCE_ANNEX=source_input, research_as_of="2026-10-28")
+        # M2 factual extraction itself is covered by the fundamental dossier
+        # tests; this test checks the real M7a→M4 report handoff.
+        fake = {
+            "status":"INDICATIVE_FUNDAMENTAL_DOSSIER_NOT_CERTIFIED",
+            "analysis_id":"SYN-001", "analysis_as_of":"2026-10-28",
+            "metric_pairs_private":{"REVENUE":{"status":"INDICATIVE_COMPARABLE"}},
+            "descriptive_metrics_private":{"reported_revenue_change_pct":"20.00"},
+            "qualitative_axes_private":{
+                k:{"status":"UNKNOWN","ir_fact_ids":[]} for k in
+                ("COMPETITIVE_POSITION","REINVESTMENT","PERMANENT_LOSS")},
+            "limitations":["CFO_LESS_CAPEX_UNAVAILABLE_OR_NONCOMPARABLE"],
+            "organic_growth_status":"UNKNOWN_ACQUISITIONS_AND_MIX_NOT_EVALUATED",
+            "normalized_owner_earnings_status":"NOT_ESTABLISHED",
+            "quality_or_durability_verdict":"NOT_AUTOMATICALLY_ESTABLISHED",
+            "expected_return_or_trade":"NOT_ESTABLISHED",
+            "evidence_authority":"CALLER_REPORTED_ONLY_NOT_ORIGINAL_AUTHENTICATED",
+            "writes":"NONE",
+        }
+        original = copy.deepcopy(capsule)
+        with patch("ai_native.integrated_flow.prepare_fundamental_dossier",
+                   return_value=fake) as called:
+            out = assemble_manual_run(
+                self.request(), capsule,
+                fundamental_inputs={"economic_issuer":"SYN","instrument":"SYN:TSX",
+                    "period_pairs":{"REVENUE":["OLD","NEW"]},
+                    "annual_periods_comparable_reported":True,
+                    "qualitative_axes":{k:{} for k in
+                        ("COMPETITIVE_POSITION","REINVESTMENT","PERMANENT_LOSS")}},
+            )
+        self.assertTrue(called.called)
+        self.assertEqual(capsule, original)
+        self.assertIn("20.00%", out["markdown"])
+        self.assertIn("Fundamental economics — indicative", out["markdown"])
+        self.assertEqual(out["fundamental_dossier_private"], fake)
+        self.assertNotIn("20.00", str(out["memory_proposal_nonprivate"]))
+        self.assertIn("Status:** CONDITIONAL", out["markdown"])
+
 if __name__ == "__main__":
     unittest.main()

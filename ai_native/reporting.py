@@ -252,6 +252,126 @@ def _valuation_lines(packet: Mapping[str, Any], analysis_id: str,
     lines.append("These are alternative scenario calculations, not probabilities, not probability-weighted Expected Return, not FX-adjusted account performance and not forecast alpha versus VFV. No investment or trade authority.")
     return lines
 
+
+def _fundamental_lines(packet: Mapping[str, Any], analysis_id: str,
+                       as_of: str) -> list[str]:
+    """Display M2 descriptive issuer economics, not verified Quality or ER."""
+    dossier = packet.get("fundamental_dossier_private")
+    if dossier is None:
+        return []
+    if not isinstance(dossier, Mapping) or (
+        dossier.get("status") != "INDICATIVE_FUNDAMENTAL_DOSSIER_NOT_CERTIFIED"
+        or dossier.get("analysis_id") != analysis_id
+        or dossier.get("analysis_as_of") != as_of
+        or dossier.get("evidence_authority") != "CALLER_REPORTED_ONLY_NOT_ORIGINAL_AUTHENTICATED"
+        or dossier.get("normalized_owner_earnings_status") != "NOT_ESTABLISHED"
+        or dossier.get("quality_or_durability_verdict") != "NOT_AUTOMATICALLY_ESTABLISHED"
+        or dossier.get("expected_return_or_trade") != "NOT_ESTABLISHED"
+        or dossier.get("organic_growth_status") != "UNKNOWN_ACQUISITIONS_AND_MIX_NOT_EVALUATED"
+        or dossier.get("writes") != "NONE"
+    ):
+        raise ValueError("FUNDAMENTAL_REPORT_ID_OR_AUTHORITY_MISMATCH")
+
+    pairs = dossier.get("metric_pairs_private")
+    metrics = dossier.get("descriptive_metrics_private")
+    axes = dossier.get("qualitative_axes_private")
+    limits = dossier.get("limitations")
+    if not isinstance(pairs, Mapping) or not isinstance(metrics, Mapping) or not isinstance(limits, list):
+        raise ValueError("FUNDAMENTAL_REPORT_INVALID_STRUCTURE")
+    allowed_metrics = {"reported_revenue_change_pct", "reported_operating_margin_pct",
+                       "cfo_less_cash_capex_descriptive", "cfo_less_capex_label",
+                       "diluted_share_count_change_pct"}
+    if set(metrics) - allowed_metrics:
+        raise ValueError("FUNDAMENTAL_REPORT_UNKNOWN_METRIC")
+    if not isinstance(axes, Mapping) or set(axes) != {
+        "COMPETITIVE_POSITION", "REINVESTMENT", "PERMANENT_LOSS"
+    }:
+        raise ValueError("FUNDAMENTAL_REPORT_QUALITATIVE_AXES_REQUIRED")
+    for name, pair in pairs.items():
+        if name not in {"REVENUE", "OPERATING_INCOME", "CFO", "CASH_CAPEX", "DILUTED_AVG_SHARES"}:
+            raise ValueError("FUNDAMENTAL_REPORT_UNKNOWN_SOURCE_METRIC")
+        if not isinstance(pair, Mapping) or pair.get("status") not in {
+            "INDICATIVE_COMPARABLE", "UNAVAILABLE"
+        }:
+            raise ValueError("FUNDAMENTAL_REPORT_PAIR_STATUS_INVALID")
+    def supported(*names: str) -> bool:
+        return all(name in pairs and pairs[name].get("status") == "INDICATIVE_COMPARABLE"
+                   for name in names)
+    def decimal(value: Any) -> str:
+        if not isinstance(value, str) or not 1 <= len(value) <= 50:
+            raise ValueError("FUNDAMENTAL_REPORT_NUMBER_INVALID")
+        try:
+            number = Decimal(value)
+        except InvalidOperation as exc:
+            raise ValueError("FUNDAMENTAL_REPORT_NUMBER_INVALID") from exc
+        if not number.is_finite() or (number and number.copy_abs().adjusted() > 15):
+            raise ValueError("FUNDAMENTAL_REPORT_NUMBER_INVALID")
+        return format(number, "f")
+    def two_numbers(key: str) -> tuple[str, str]:
+        values = metrics[key]
+        if not isinstance(values, list) or len(values) != 2:
+            raise ValueError("FUNDAMENTAL_REPORT_PERIOD_VALUES_INVALID")
+        return decimal(values[0]), decimal(values[1])
+
+    lines = ["", "## Fundamental economics — indicative, private",
+             "Caller-reported issuer observations only; comparability checks are structural, not original-source authentication."]
+    if "reported_revenue_change_pct" in metrics:
+        if not supported("REVENUE"):
+            raise ValueError("FUNDAMENTAL_REPORT_UNSUPPORTED_DERIVATION")
+        lines.append("- Reported revenue change (two supplied annual periods): " +
+                     decimal(metrics["reported_revenue_change_pct"]) + "%; not confirmed organic growth.")
+    else:
+        lines.append("- Reported revenue growth: UNAVAILABLE or noncomparable.")
+    if "reported_operating_margin_pct" in metrics:
+        if not supported("REVENUE", "OPERATING_INCOME"):
+            raise ValueError("FUNDAMENTAL_REPORT_UNSUPPORTED_DERIVATION")
+        before, after = two_numbers("reported_operating_margin_pct")
+        lines.append(f"- Reported operating margin, prior → later period: {before}% → {after}%.")
+    else:
+        lines.append("- Reported operating margin: UNAVAILABLE or noncomparable.")
+    if "cfo_less_cash_capex_descriptive" in metrics:
+        if not supported("CFO", "CASH_CAPEX") or metrics.get("cfo_less_capex_label") != "NOT_NORMALIZED_OWNER_EARNINGS":
+            raise ValueError("FUNDAMENTAL_REPORT_UNSUPPORTED_CASHFLOW")
+        left, right = pairs["CFO"], pairs["CASH_CAPEX"]
+        if any(left.get(k) != right.get(k) for k in ("period_ends", "currency", "unit")):
+            raise ValueError("FUNDAMENTAL_REPORT_CASHFLOW_BASIS_MISMATCH")
+        curr, unit = left.get("currency"), left.get("unit")
+        if any(not isinstance(v, str) or not 1 <= len(v) <= 20 or
+               any(c not in "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_/" for c in v)
+               for v in (curr, unit)):
+            raise ValueError("FUNDAMENTAL_REPORT_CASHFLOW_UNIT_INVALID")
+        before, after = two_numbers("cfo_less_cash_capex_descriptive")
+        lines.append(f"- CFO less cash capex (prior → later): {before} → {after} {unit} ({curr}); "
+                     "**not normalized owner earnings**.")
+    elif "cfo_less_capex_label" in metrics:
+        raise ValueError("FUNDAMENTAL_REPORT_ORPHAN_CASHFLOW_LABEL")
+    else:
+        lines.append("- CFO less cash capex: UNAVAILABLE or noncomparable.")
+    if "diluted_share_count_change_pct" in metrics:
+        if not supported("DILUTED_AVG_SHARES"):
+            raise ValueError("FUNDAMENTAL_REPORT_UNSUPPORTED_DERIVATION")
+        lines.append("- Diluted average-share count change: " +
+                     decimal(metrics["diluted_share_count_change_pct"]) + "% (not a share-price return).")
+    else:
+        lines.append("- Diluted share count change: UNAVAILABLE.")
+    for axis in ("COMPETITIVE_POSITION", "REINVESTMENT", "PERMANENT_LOSS"):
+        row = axes[axis]
+        if not isinstance(row, Mapping) or row.get("status") not in {"SPECIALIST_REPORTED", "UNKNOWN"}:
+            raise ValueError("FUNDAMENTAL_REPORT_INVALID_QUALITATIVE_STATUS")
+        ids = row.get("ir_fact_ids")
+        if not isinstance(ids, list) or any(not isinstance(x, str) or not x for x in ids):
+            raise ValueError("FUNDAMENTAL_REPORT_INVALID_QUALITATIVE_LINKS")
+        evidence = "linked IR facts" if ids else "no linked IR facts"
+        lines.append(f"- {axis.replace('_', ' ').title()}: {row['status']} ({evidence}); no independent verdict.")
+    if any(not isinstance(s, str) or not s or len(s) > 140
+           or any(c not in "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_:_" for c in s)
+           for s in limits):
+        raise ValueError("FUNDAMENTAL_REPORT_LIMITATIONS_INVALID")
+    if limits:
+        lines.append(f"- {len(limits)} comparability/evidence limitation(s) remain; see private dossier.")
+    lines.append("Quality, durability, organic growth, normalized owner earnings and Expected Return remain NOT ESTABLISHED. No investment ranking, source certification or trade authority.")
+    return lines
+
 def render_report(packet: Mapping[str, Any]) -> str:
     """Render a concise markdown research report or user-requested follow-up.
 
@@ -309,6 +429,7 @@ def render_report(packet: Mapping[str, Any]) -> str:
                 lines.append(f"  - **Source review required:** {flags}. IR-reported label is not independently corroborated.")
     else:
         lines.append("No underlying fact records supplied; no factual verification is asserted.")
+    lines += _fundamental_lines(packet, analysis_id, as_of)
     lines += _valuation_lines(packet, analysis_id, as_of)
     lines += _new_contribution_lines(packet, analysis_id, as_of)
     if kind == "FOLLOWUP":
