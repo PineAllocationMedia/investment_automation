@@ -156,5 +156,40 @@ class ManualIntegrationTests(unittest.TestCase):
         self.assertEqual(out["funded_contribution_private"]["status"], "UNAVAILABLE_FUNDING_UNKNOWN")
         self.assertNotIn("conditional_projection_private", out["funded_contribution_private"])
 
+    def test_user_requested_prior_research_comparison_is_private_only(self):
+        prior = {
+            "schema_version":"RESEARCH_HISTORY_R1", "analysis_id":"SYN-OLD",
+            "as_of":"2026-10-01", "recorded_at":"2026-10-02",
+            "method_version":"CANDIDATE_R1", "strategy_id":"high-cagr",
+            "original_request":{"analysis_id":"SYN-OLD", "as_of":"2026-10-01",
+                                "subject_id":"SYN-ISSUER", "method_version":"CANDIDATE_R1",
+                                "strategy_id":"high-cagr"},
+            "original_ir_capsule":{"analysis_id":"SYN-OLD", "research_as_of":"2026-09-30",
+                                   "facts":[{"id":"OLD-F1","claim":"SENSITIVE PRIOR CLAIM",
+                                             "status":"INDICATIVE"}]},
+        }
+        request = self.request(kind="FOLLOWUP", subject_id="SYN-ISSUER",
+                               prior_analysis_id="SYN-OLD")
+        result = assemble_manual_run(
+            request, self.ir(),
+            historical_comparison_inputs={"prior_case":prior, "subject_id":"SYN-ISSUER",
+                                          "fact_links":[{"prior_fact_id":"OLD-F1",
+                                                         "current_fact_id":"SYN-F1"}]})
+        annex = result["historical_research_comparison_private"]
+        self.assertEqual(annex["status"], "STRUCTURAL_REVIEW_PREPARED")
+        self.assertEqual(annex["economic_change_status"], "NOT_EVALUATED")
+        self.assertIn("SENSITIVE PRIOR CLAIM", str(annex))
+        self.assertNotIn("SENSITIVE PRIOR CLAIM", result["markdown"])
+        self.assertNotIn("SENSITIVE PRIOR CLAIM", str(result["memory_proposal_nonprivate"]))
+        self.assertIn("CONDITIONAL", result["markdown"])
+
+    def test_historical_comparison_requires_explicit_followup(self):
+        with self.assertRaisesRegex(ValueError, "HISTORICAL_COMPARISON_REQUIRES_FOLLOWUP"):
+            assemble_manual_run(self.request(), self.ir(),
+                                historical_comparison_inputs={"prior_case":None,
+                                                              "subject_id":"ISSUER",
+                                                              "fact_links":[]})
+
+
 if __name__ == "__main__":
     unittest.main()
