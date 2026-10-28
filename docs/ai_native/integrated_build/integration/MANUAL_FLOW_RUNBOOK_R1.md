@@ -92,3 +92,34 @@ memory_inputs = {
 ```
 
 No file is written, no remote research is retrieved, no portfolio payload is copied into any GitHub-ready output, and the helper does not claim knowledge of previously archived reports. The optional `accessible_parent` merely checks supplied ID/date; it is not a storage or authenticity check. Never paste the private proposal into repository docs or PR descriptions.
+
+## M1 dynamic manual request assembly (construction-time component)
+
+`ai_native.request_assembly.prepare_manual_handoffs` converts **explicit CEO-initiated** request fields into *private human-copyable* request objects. It does **not** interpret the CEO's financial objective using an AI model, access ChatGPT Project settings, load GitHub methods automatically, communicate between Projects, or initiate trades/schedules. The CEO/CC must select `research_needed` and `portfolio_needed` and confirm relevant investment strategy before using any investment policy.
+
+```python
+from ai_native.request_assembly import prepare_manual_handoffs
+
+request = {
+    "ceo_initiated": True,  # caller assertion, NOT independent CEO authentication
+    "analysis_id": "SYN-REQUEST-001", "as_of": "2026-10-28",
+    "kind": "DECISION", "objective": "Research a synthetic issuer",
+    "research_needed": True, "portfolio_needed": True,
+    "strategy_id": "EXPLORATORY",  # no implicit High-CAGR or VFV mandate
+}
+prepared = prepare_manual_handoffs(request)
+# Human copies prepared["copy_ready_private"]["IR_REQUEST"] to IR.
+# PI_REQUEST is NOT created yet: pending original IR capsule.
+original_ir = {
+    "analysis_id": "SYN-REQUEST-001", "research_as_of": "2026-10-28",
+    "evidence_annex": {"S": [], "F": [], "K": [], "V": []},
+    "facts": [],  # synthetic structural illustration, NOT real-source research
+}
+follow_on = prepare_manual_handoffs(request, ir_capsule=original_ir)
+# Human copies follow_on["copy_ready_private"]["PI_REQUEST"] to PI.
+# It has ONE unchanged original_ir under FORWARD_UNCHANGED.
+```
+
+The copy-ready strings are **private**: do not put actual holdings, account information or source-restricted content in GitHub, PRs, public tools or PAM Media. `portfolio_context`, if supplied by an authorized human, must carry an actually dated and scoped observation; this helper labels it USER_SUPPLIED_NOT_VERIFIED_BY_ASSEMBLER. A missing portfolio view is NOT_SUPPLIED, not a zero position. The caller must manually deliver and verify the actual Project response; the returned transfer IDs and JSON are not proof of communication. Existing `ai_native.integrated_flow.assemble_manual_run` remains the later *already-researched* packet assembler, not an automatic part of this preliminary request-construction function.
+
+The M1 helper references R1 research/portfolio methods **by name only**: receiving Projects must genuinely retrieve and version-check them. Research source verification, private broker/Blossom access, governed historical storage and **complete-system evaluation remain outstanding**.
