@@ -146,5 +146,26 @@ class OpportunityTriageTests(unittest.TestCase):
         self.assertEqual(out["stage_counts"], {"EVIDENCE_RESOLUTION": 1, "HUMAN_DEEP_DIVE": 1})
 
 
+
+    def test_real_triage_results_render_without_issuer_private_details(self):
+        from ai_native.reporting import render_report
+        triage = prepare_opportunity_triage(**self.setup_case())
+        packet = {
+            "kind":"DECISION", "analysis_id":"SYN-R1","as_of":"2026-10-28",
+            "strategy":"high-cagr","method_version":"M2_SYN","status":"CONDITIONAL",
+            "objective":"Synthetic supplied watchlist review",
+            "decision_line":"Research only","summary":["Indication only"],
+            "facts":[],"countercase":"Research may be incomplete",
+            "limitations":"Original source not authenticated",
+            "next_action":"Review original issuer source",
+            "opportunity_triage_private":triage,
+        }
+        output = render_report(packet)
+        self.assertIn("1 queued for human deep dive", output)
+        self.assertIn("C1", output)
+        self.assertNotIn("SYN-CO", output)
+        self.assertNotIn("What drives durability?", output)
+        self.assertNotIn("500.00", output)
+
 if __name__ == "__main__":
     unittest.main()
