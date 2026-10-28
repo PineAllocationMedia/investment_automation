@@ -9,6 +9,7 @@ from datetime import date
 from typing import Any, Mapping
 
 from .contribution_math import project_gross_contribution
+from .known_costs import tally_supplied_costs
 from .evidence_math import audit_calculation
 from .reporting import render_report
 
@@ -39,6 +40,7 @@ def assemble_manual_run(
     pi_delta: Mapping[str, Any] | None = None,
     calculation_requests: list[Mapping[str, Any]] | None = None,
     contribution_inputs: Mapping[str, Any] | None = None,
+    cost_inputs: Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Assemble a PRIVATE report without claiming live Project connectivity.
 
@@ -122,6 +124,23 @@ def assemble_manual_run(
         else:
             limits.append("Gross contribution math only; real account costs, taxes, FX and execution not assessed.")
 
+    costs = None
+    if cost_inputs is not None:
+        if contribution is None:
+            raise ValueError("cost_inputs require an available PI gross contribution projection")
+        if not isinstance(cost_inputs, Mapping):
+            raise ValueError("cost_inputs must be a mapping")
+        if cost_inputs.get("analysis_as_of") != as_of:
+            raise ValueError("cost_inputs analysis cutoff must match request as_of")
+        costs = tally_supplied_costs(gross_projection=contribution, **cost_inputs)
+        if costs["status"] != "SUPPLIED_COST_TALLY_ONLY":
+            limits.append("After-cost analysis unavailable: incomplete or infeasible supplied purchase costs.")
+        else:
+            limits.append("Supplied-cost tally only; quotes, taxes and net execution not certified.")
+            if costs.get("gross_allocation_funding_conflict"):
+                limits.append("Gross allocation uses the full contribution; deducting fees from that same contribution needs a revised plan.")
+        status = "CONDITIONAL"
+
     facts = ir_capsule["facts"]
     if any(isinstance(f, Mapping) and f.get("status") in {"MISSING", "CONFLICTED"} for f in facts):
         status = "CONDITIONAL"
@@ -164,6 +183,7 @@ def assemble_manual_run(
         "markdown": markdown,
         "calculation_checks": checks,
         "gross_contribution_private": contribution,
+        "supplied_costs_private": costs,
         "portfolio_room_status": room,
         "memory_proposal_nonprivate": memory,
         "handoff": "MANUAL_TRANSFER_NOT_PROJECT_AUTOMATION",
