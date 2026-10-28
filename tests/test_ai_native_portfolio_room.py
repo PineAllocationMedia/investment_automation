@@ -140,4 +140,20 @@ class RoomTests(unittest.TestCase):
         self.assertEqual(x["status"],"ROOM_CONDITIONAL")
         self.assertEqual(x["independent_evidence_check"],"NOT_PERFORMED")
 
+    def test_real_portfolio_room_review_renders_only_conditional_exposure(self):
+        from ai_native.reporting import render_report
+        room=self.runroom()
+        packet={"kind":"DECISION", "analysis_id":"SYN-A", "as_of":"2026-10-28",
+                "strategy":"SYN-EXPLORATORY", "method_version":"UNKNOWN_NOT_LOADED",
+                "status":"CONDITIONAL", "objective":"Synthetic capital room",
+                "decision_line":"No trade", "summary":["Synthetic observation only"],
+                "facts":[], "countercase":"Unknown drivers",
+                "limitations":"Not authenticated", "next_action":"Review facts",
+                "portfolio_room_review_private":room}
+        text=render_report(packet)
+        self.assertIn("90.00% of the scoped portfolio",text)
+        self.assertIn("ROOM_CONDITIONAL",text)
+        self.assertIn("No target allocation",text)
+        self.assertNotIn("Room may merit more review",text)
+
 if __name__=='__main__': unittest.main()
