@@ -148,4 +148,21 @@ class CandidateComparisonTests(unittest.TestCase):
         self.assertEqual(o["source_authentication"],"NOT_PERFORMED")
         self.assertEqual(o["writes"],"NONE")
 
+
+    def test_real_comparator_to_report_is_conditional_not_authorized(self):
+        from ai_native.reporting import render_report
+        item=self.run_comparison()
+        packet={"kind":"DECISION","analysis_id":"SYN-C","as_of":"2026-10-28",
+                "strategy":"EXPLORATORY","method_version":"M2_SYN","status":"CONDITIONAL",
+                "objective":"Synthetic comparison","decision_line":"No authorized ranking",
+                "summary":["Unverified premises"],"facts":[],
+                "countercase":"Cashflow assumptions are not certified",
+                "limitations":"Original-source checks missing","next_action":"Check sources",
+                "candidate_comparison_private":item}
+        report=render_report(packet)
+        self.assertIn("BASE: 10.00 pp",report)
+        self.assertIn("not ranked",report)
+        self.assertNotIn("SYN-FAIL",report)
+        self.assertNotIn("SYN-R-",report)
+
 if __name__ == "__main__": unittest.main()

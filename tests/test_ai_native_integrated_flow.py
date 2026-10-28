@@ -529,5 +529,45 @@ class ManualIntegrationTests(unittest.TestCase):
         self.assertNotIn("20.00", str(out["memory_proposal_nonprivate"]))
         self.assertIn("Status:** CONDITIONAL", out["markdown"])
 
+
+    def comparison_args(self, *, foreign=False):
+        import copy
+        first = self.valuation_inputs()
+        second = copy.deepcopy(first)
+        second["security_id"] = "SYN-B:TSX"
+        for name, value in (("BEAR","64"), ("BASE","100"), ("BULL","121")):
+            second["scenarios"][name]["terminal_price_per_share"] = value
+        if foreign:
+            second["currency"] = "USD"
+        return {"analysis_id":"SYN-001","analysis_as_of":"2026-10-28",
+                "strategy_id":"high-cagr","account_currency":"CAD","candidates":[
+                    {"candidate_id":"A","role":"SECURITY","research_method_version":"M2",
+                     "research_status":"SPECIALIST_REPORTED","portfolio_room_status":"NOT_EVALUATED",
+                     "principal_failure_ref":"PRIVATE-LOSS","valuation_inputs":first},
+                    {"candidate_id":"B","role":"SECURITY","research_method_version":"M2",
+                     "research_status":"SPECIALIST_REPORTED","portfolio_room_status":"NOT_EVALUATED",
+                     "principal_failure_ref":"PRIVATE-LOSS","valuation_inputs":second}]}
+
+    def test_m2_candidate_spreads_reach_m4_without_public_memory(self):
+        case=assemble_manual_run(self.request(),self.ir(),candidate_comparison_inputs=self.comparison_args())
+        self.assertIn("BASE: 10.00 pp",case["markdown"])
+        self.assertIn("not ranked",case["markdown"])
+        self.assertEqual(case["candidate_comparison_private"]["forward_alpha_or_superiority"],"NOT_ESTABLISHED")
+        self.assertNotIn("PRIVATE-LOSS",case["markdown"])
+        self.assertNotIn("PRIVATE-LOSS",str(case["memory_proposal_nonprivate"]))
+        self.assertIn("Status:** CONDITIONAL",case["markdown"])
+
+    def test_m2_candidate_comparison_requires_same_currency_basis(self):
+        case=assemble_manual_run(self.request(),self.ir(),
+                                 candidate_comparison_inputs=self.comparison_args(foreign=True))
+        self.assertIn("BASE: NOT_COMPARABLE",case["markdown"])
+        self.assertNotIn("BASE: 10.00 pp",case["markdown"])
+
+    def test_m2_candidate_wrong_mandate_rejected(self):
+        d=self.comparison_args()
+        d["strategy_id"]="UNKNOWN_STRATEGY"
+        with self.assertRaisesRegex(ValueError,"CANDIDATE_COMPARISON_MANDATE_MISMATCH"):
+            assemble_manual_run(self.request(),self.ir(),candidate_comparison_inputs=d)
+
 if __name__ == "__main__":
     unittest.main()
