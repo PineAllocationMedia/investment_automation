@@ -129,4 +129,24 @@ class SessionBridgeTests(unittest.TestCase):
         self.assertEqual(out["storage"], "NONE")
 
 
+    def test_opportunity_research_packet_forwards_only_to_ir_flow(self):
+        from unittest.mock import patch
+        payload = {"analysis_id":"CASE-A", "analysis_as_of":"2026-10-28",
+                   "strategy_id":"EXPLORATORY", "universe_scope":"WATCHLIST",
+                   "universe_note":"Synthetic only", "candidates":[]}
+        with patch("ai_native.session_bridge.assemble_manual_run",
+                   return_value={"markdown":"SYNTHETIC REPORT"}) as called:
+            out = complete_manual_session(self.request(), ir_capsule=self.ir(),
+                                          opportunity_triage_inputs=payload)
+        self.assertEqual(called.call_args.kwargs["opportunity_triage_inputs"], payload)
+        self.assertEqual(out["project_invocation"], "NONE")
+        self.assertEqual(out["storage"], "NONE")
+
+    def test_opportunity_research_not_accepted_without_ir_route(self):
+        with self.assertRaisesRegex(ValueError, "OPPORTUNITY_TRIAGE_REQUIRES_IR_ROUTE"):
+            complete_manual_session(self.request(research_needed=False,portfolio_needed=True),
+                                    pi_delta=self.pi(),opportunity_triage_inputs={})
+
+
+
 if __name__ == "__main__": unittest.main()
