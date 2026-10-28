@@ -302,9 +302,9 @@ class SessionBridgeTests(unittest.TestCase):
             "trade_authority":"NONE_CEO_ONLY","public_memory_write":"NONE",
         }
         with patch("ai_native.session_bridge.prepare_observation_ledger",
-                   return_value={"observed_on":"2026-10-28", "known_scope_weights_pct":None}), \\
+                   return_value={"observed_on":"2026-10-28", "known_scope_weights_pct":None}), \
              patch("ai_native.session_bridge.aggregate_portfolio_exposures",
-                   return_value={"status":"UNAVAILABLE_INCOMPLETE_P_LEDGER"}), \\
+                   return_value={"status":"UNAVAILABLE_INCOMPLETE_P_LEDGER"}), \
              patch("ai_native.session_bridge.prepare_portfolio_room_review",
                    return_value=reviewed):
             result=complete_manual_session(
@@ -323,9 +323,9 @@ class SessionBridgeTests(unittest.TestCase):
     def test_portfolio_room_no_pi_stays_pending(self):
         from unittest.mock import patch
         with patch("ai_native.session_bridge.prepare_observation_ledger",
-                   return_value={"observed_on":"2026-10-28"}), \\
+                   return_value={"observed_on":"2026-10-28"}), \
              patch("ai_native.session_bridge.aggregate_portfolio_exposures",
-                   return_value={"status":"UNAVAILABLE_INCOMPLETE_P_LEDGER"}), \\
+                   return_value={"status":"UNAVAILABLE_INCOMPLETE_P_LEDGER"}), \
              patch("ai_native.session_bridge.prepare_portfolio_room_review",
                    return_value={"analysis_id":"CASE-A"}):
             output = complete_manual_session(
