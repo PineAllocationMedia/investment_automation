@@ -166,6 +166,79 @@ def _new_contribution_lines(packet: Mapping[str, Any], analysis_id: str,
     lines.append("PI observations and allocations are caller-supplied; no holdings authentication, source certification, price, trade or investment recommendation.")
     return lines
 
+
+def _valuation_lines(packet: Mapping[str, Any], analysis_id: str,
+                     as_of: str) -> list[str]:
+    """Show the existing M2 scenario measures without inventing Expected Return."""
+    result = packet.get("valuation_scenarios_private")
+    if result is None:
+        return []
+    if not isinstance(result, Mapping) or (
+        result.get("analysis_id") != analysis_id
+        or result.get("analysis_as_of") != as_of
+        or result.get("source_authentication") != "NOT_PERFORMED"
+        or result.get("trade_or_portfolio_authority") != "NONE"
+        or result.get("expected_return_status") != "NOT_ESTABLISHED_NO_PROBABILITIES_OR_ASSUMPTION_CERTIFICATION"
+        or result.get("benchmark_expected_return_status") != "VFV_ER_UNAVAILABLE_UNLESS_SEPARATELY_EVIDENCED"
+        or result.get("calculation_scope") != "CURRENT_SUPPLIED_INPUTS_ONLY_NO_PIT"
+    ):
+        raise ValueError("VALUATION_REPORT_ID_OR_AUTHORITY_MISMATCH")
+    status = result.get("status")
+    if status not in {"CONDITIONAL_SCENARIO_ARITHMETIC_ONLY", "UNAVAILABLE_INCOMPATIBLE_BASIS"}:
+        raise ValueError("VALUATION_REPORT_STATUS_INVALID")
+    _iso_date(result.get("quoted_at"), "valuation.quoted_at")
+    if result["quoted_at"] > as_of:
+        raise ValueError("VALUATION_REPORT_FUTURE_QUOTE")
+    currency, horizon = result.get("currency"), result.get("horizon_years")
+    if (not isinstance(currency, str) or len(currency) != 3 or not currency.isascii()
+            or not currency.isalpha() or currency != currency.upper()
+            or type(horizon) is not int or not 1 <= horizon <= 30):
+        raise ValueError("VALUATION_REPORT_BASIS_INVALID")
+    scenarios = result.get("scenarios_private")
+    if not isinstance(scenarios, Mapping) or set(scenarios) != {"BEAR", "BASE", "BULL"}:
+        raise ValueError("VALUATION_REPORT_SCENARIO_SET_INVALID")
+    lines = ["", "## Valuation scenarios — conditional, private",
+             f"Caller-supplied {horizon}-year scenario arithmetic in {currency}; issuer value assumptions and quotation remain unverified."]
+    for name in ("BEAR", "BASE", "BULL"):
+        row = scenarios[name]
+        if not isinstance(row, Mapping) or row.get("assumption_validation") != "NOT_PERFORMED":
+            raise ValueError("VALUATION_REPORT_ASSUMPTIONS_NOT_CERTIFIED")
+        measure, value = row.get("return_measure"), row.get("scenario_return_pct_annual")
+        if measure not in {"PRICE_ONLY_CAGR_NOT_TOTAL_RETURN",
+                           "YEAR_END_CASHFLOW_IRR_CONDITIONAL", "UNAVAILABLE"}:
+            raise ValueError("VALUATION_REPORT_MEASURE_INVALID")
+        if status == "UNAVAILABLE_INCOMPATIBLE_BASIS":
+            if measure != "UNAVAILABLE" or value is not None:
+                raise ValueError("VALUATION_REPORT_INVALID_UNAVAILABLE")
+        elif measure == "UNAVAILABLE":
+            raise ValueError("VALUATION_REPORT_INVALID_AVAILABLE")
+        reasons = row.get("reason_codes")
+        if not isinstance(reasons, list) or any(
+            not isinstance(v, str) or not v or len(v) > 100 or
+            any(c not in "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_" for c in v)
+            for v in reasons
+        ):
+            raise ValueError("VALUATION_REPORT_REASON_CODES_INVALID")
+        if measure == "UNAVAILABLE":
+            lines.append(f"- **{name}: UNAVAILABLE** — security/share-class or currency basis unconfirmed.")
+            continue
+        if not isinstance(value, str) or len(value) > 40:
+            raise ValueError("VALUATION_REPORT_RETURN_INVALID")
+        try:
+            annual = Decimal(value)
+        except InvalidOperation as exc:
+            raise ValueError("VALUATION_REPORT_RETURN_INVALID") from exc
+        if not annual.is_finite() or annual < -100 or annual > Decimal("1000000000"):
+            raise ValueError("VALUATION_REPORT_RETURN_INVALID")
+        formatted = format(annual, "f")
+        if measure == "PRICE_ONLY_CAGR_NOT_TOTAL_RETURN":
+            label = "price-only CAGR; distributions UNKNOWN, not total return"
+        else:
+            label = "conditional year-end cash-flow IRR on explicitly supplied distributions"
+        lines.append(f"- **{name}: {formatted}% annualized** — {label}.")
+    lines.append("These are alternative scenario calculations, not probabilities, not probability-weighted Expected Return, not FX-adjusted account performance and not forecast alpha versus VFV. No investment or trade authority.")
+    return lines
+
 def render_report(packet: Mapping[str, Any]) -> str:
     """Render a concise markdown research report or user-requested follow-up.
 
@@ -223,6 +296,7 @@ def render_report(packet: Mapping[str, Any]) -> str:
                 lines.append(f"  - **Source review required:** {flags}. IR-reported label is not independently corroborated.")
     else:
         lines.append("No underlying fact records supplied; no factual verification is asserted.")
+    lines += _valuation_lines(packet, analysis_id, as_of)
     lines += _new_contribution_lines(packet, analysis_id, as_of)
     if kind == "FOLLOWUP":
         previous_id = packet.get("prior_analysis_id")
