@@ -184,6 +184,12 @@ class ReportingTests(unittest.TestCase):
         self.assertIn("After-cost funded allocation UNAVAILABLE", output)
         self.assertNotIn("CONDITIONALLY RECONCILED", output)
 
+    def test_tiny_decimal_percentage_does_not_expand_unbounded_string(self):
+        output = render_report(self.packet(new_contribution_summary_private=self.new_contribution(
+            allocations_pct={"ABC:TSX":"100", "TRACE":"0E-1000000"})))
+        self.assertIn("100% of new capital", output)
+        self.assertLess(len(output), 4000)
+
     def test_new_contribution_rejects_forged_or_incompatible_statuses(self):
         for patch in (
             {"analysis_id":"DIFFERENT"},
