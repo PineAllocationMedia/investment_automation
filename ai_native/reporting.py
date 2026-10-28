@@ -534,6 +534,126 @@ def _opportunity_triage_lines(packet: Mapping[str, Any],
     lines.append("Research work queue only. No global market screening, independently checked original source, probabilistic Expected Return, investability verdict, recommendation, portfolio allocation or trades.")
     return lines
 
+
+def _candidate_comparison_lines(packet: Mapping[str, Any], analysis_id: str,
+                                as_of: str, strategy: str) -> list[str]:
+    """Show only scenario-to-scenario arithmetic, not Expected Return or rank."""
+    comp = packet.get("candidate_comparison_private")
+    if comp is None:
+        return []
+    if not isinstance(comp, Mapping) or (
+        comp.get("status") != "CONDITIONAL_RESEARCH_COMPARISON_ONLY"
+        or comp.get("analysis_id") != analysis_id
+        or comp.get("analysis_as_of") != as_of
+        or comp.get("strategy_id") != strategy
+        or comp.get("probability_weighted_expected_return") != "NOT_ESTABLISHED"
+        or comp.get("benchmark_expected_return") != "NOT_ESTABLISHED"
+        or comp.get("forward_alpha_or_superiority") != "NOT_ESTABLISHED"
+        or comp.get("recommendation_or_ranking") != "NOT_AUTHORIZED"
+        or comp.get("portfolio_allocation") != "NOT_CALCULATED"
+        or comp.get("source_authentication") != "NOT_PERFORMED"
+        or comp.get("rights_and_costs") != "NOT_VERIFIED"
+        or comp.get("trading_authority") != "NONE_CEO_ONLY"
+        or comp.get("writes") != "NONE"
+    ):
+        raise ValueError("COMPARISON_REPORT_ID_OR_AUTHORITY_MISMATCH")
+    candidates = comp.get("candidates_private")
+    pairs = comp.get("pairwise_scenario_differences_private")
+    horizon = comp.get("comparison_horizon_years")
+    currency = comp.get("account_currency")
+    if (not isinstance(candidates, list) or not 2 <= len(candidates) <= 6
+            or not isinstance(pairs, list)
+            or len(pairs) != len(candidates) * (len(candidates) - 1) // 2
+            or type(horizon) is not int or not 1 <= horizon <= 30
+            or not isinstance(currency, str) or len(currency) != 3
+            or not currency.isascii() or not currency.isalpha() or currency != currency.upper()):
+        raise ValueError("COMPARISON_REPORT_STRUCTURE_INVALID")
+    ids = []
+    for candidate in candidates:
+        if not isinstance(candidate, Mapping):
+            raise ValueError("COMPARISON_REPORT_CANDIDATE_INVALID")
+        name = candidate.get("candidate_id")
+        if (not isinstance(name, str) or not name.strip() or len(name) > 160
+                or name in ids or candidate.get("source_authentication") != "NOT_PERFORMED"
+                or candidate.get("role") not in {"SECURITY", "REFERENCE_ETF"}
+                or candidate.get("research_status") not in {"SPECIALIST_REPORTED", "UNKNOWN"}
+                or candidate.get("portfolio_room_status") not in {"ROOM_CONDITIONAL", "ROOM_UNAVAILABLE", "NOT_EVALUATED"}
+                or candidate.get("horizon_years") != horizon):
+            raise ValueError("COMPARISON_REPORT_CANDIDATE_INVALID")
+        ids.append(name)
+    def dec(raw: Any) -> Decimal:
+        if not isinstance(raw, str) or not 1 <= len(raw) <= 48:
+            raise ValueError("COMPARISON_REPORT_NUMBER_INVALID")
+        try:
+            number = Decimal(raw)
+        except InvalidOperation as exc:
+            raise ValueError("COMPARISON_REPORT_NUMBER_INVALID") from exc
+        if not number.is_finite() or not Decimal("-1000000000") <= number <= Decimal("1000000000"):
+            raise ValueError("COMPARISON_REPORT_NUMBER_INVALID")
+        return number
+    def shown(name: str) -> str:
+        return name if all(c.isascii() and (c.isalnum() or c in "._:-") for c in name) else "private candidate"
+    stages = ("BEAR", "BASE", "BULL")
+    lines = ["", "## Cross-candidate scenario arithmetic — private, not ranked",
+             f"{len(candidates)} caller-supplied candidates over {horizon} years; account currency {currency}. "
+             "Shown differences are first-minus-second in percentage points, not investment merit."]
+    expected = [(i, j) for i in range(len(candidates)) for j in range(i + 1, len(candidates))]
+    for idx, (pair, (i, j)) in enumerate(zip(pairs, expected)):
+        a, b = candidates[i], candidates[j]
+        if (not isinstance(pair, Mapping)
+                or pair.get("first_candidate_id") != ids[i]
+                or pair.get("second_candidate_id") != ids[j]
+                or not isinstance(pair.get("by_scenario"), Mapping)
+                or set(pair["by_scenario"]) != set(stages)):
+            raise ValueError("COMPARISON_REPORT_PAIR_MISMATCH")
+        entries = []
+        for scenario in stages:
+            row = pair["by_scenario"][scenario]
+            if not isinstance(row, Mapping):
+                raise ValueError("COMPARISON_REPORT_ROW_INVALID")
+            status, delta, reasons = (row.get("comparison_status"), row.get("delta_first_minus_second_pp"),
+                                      row.get("reason_codes"))
+            if (status not in {"SCENARIO_ARITHMETIC_ONLY", "NOT_COMPARABLE"}
+                    or not isinstance(reasons, list) or not 1 <= len(reasons) <= 20
+                    or any(not isinstance(code, str) or not 1 <= len(code) <= 100
+                           or any(c not in "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_" for c in code)
+                           for code in reasons)):
+                raise ValueError("COMPARISON_REPORT_ROW_STATUS_INVALID")
+            if status == "NOT_COMPARABLE":
+                if delta is not None:
+                    raise ValueError("COMPARISON_REPORT_UNSUPPORTED_SPREAD")
+                result = "NOT_COMPARABLE"
+            else:
+                methods = [c.get("scenario_return_measure") for c in (a, b)]
+                returns = [c.get("scenario_return_pct_annual") for c in (a, b)]
+                if any(not isinstance(x, Mapping) or set(x) != set(stages)
+                       for x in methods + returns):
+                    raise ValueError("COMPARISON_REPORT_CANDIDATE_SCENARIOS_INVALID")
+                method_a, method_b = (x[scenario] for x in methods)
+                issues = a.get("qualification_codes", []) + b.get("qualification_codes", [])
+                if (method_a != method_b or method_a not in {
+                    "PRICE_ONLY_CAGR_NOT_TOTAL_RETURN", "YEAR_END_CASHFLOW_IRR_CONDITIONAL"}
+                    or a.get("currency") != currency or b.get("currency") != currency
+                    or a.get("quoted_at") != b.get("quoted_at")
+                    or "BEAR_BASE_BULL_ORDER_INCONSISTENT" in issues
+                    or "MIXED_RETURN_MEASURE_WITHIN_CANDIDATE" in issues):
+                    raise ValueError("COMPARISON_REPORT_UNSUPPORTED_SPREAD")
+                difference = dec(delta)
+                if difference != dec(returns[0][scenario]) - dec(returns[1][scenario]):
+                    raise ValueError("COMPARISON_REPORT_SPREAD_MISMATCH")
+                basis = ("PRICE_ONLY_NOT_TOTAL_RETURN" if method_a == "PRICE_ONLY_CAGR_NOT_TOTAL_RETURN"
+                         else "YEAR_END_IRR_ASSUMPTIONS_UNVERIFIED")
+                if reasons != [basis]:
+                    raise ValueError("COMPARISON_REPORT_RETURN_BASIS_MISMATCH")
+                result = f"{format(difference, 'f')} pp ({'price-only CAGR' if method_a == 'PRICE_ONLY_CAGR_NOT_TOTAL_RETURN' else 'conditional year-end IRR'})"
+            entries.append(f"{scenario}: {result}")
+        if idx < 4:
+            lines.append(f"- **{shown(ids[i])} minus {shown(ids[j])}** — " + "; ".join(entries) + ".")
+    if len(pairs) > 4:
+        lines.append(f"- {len(pairs) - 4} additional pair comparisons in the private annex.")
+    lines.append("No source/FX/tax/cost certification, probability-weighted Expected Return, VFV forecast, expected alpha, ranking, portfolio allocation or trading authority.")
+    return lines
+
 def render_report(packet: Mapping[str, Any]) -> str:
     """Render a concise markdown research report or user-requested follow-up.
 
@@ -594,6 +714,7 @@ def render_report(packet: Mapping[str, Any]) -> str:
     lines += _opportunity_triage_lines(packet, analysis_id, as_of, strategy)
     lines += _fundamental_lines(packet, analysis_id, as_of)
     lines += _valuation_lines(packet, analysis_id, as_of)
+    lines += _candidate_comparison_lines(packet, analysis_id, as_of, strategy)
     lines += _new_contribution_lines(packet, analysis_id, as_of)
     lines += _portfolio_room_lines(packet, analysis_id, as_of)
     if kind == "FOLLOWUP":
