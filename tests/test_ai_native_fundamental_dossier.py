@@ -113,4 +113,23 @@ class FundamentalDossierTests(unittest.TestCase):
         i=self.inputs();i["qualitative_axes"]["REINVESTMENT"]["status"]="BROKER_VERIFIED"
         with self.assertRaisesRegex(ValueError,"NO_AUTOMATIC"):prepare_fundamental_dossier(**i)
 
+
+    def test_real_m2_fundamentals_feed_m4_report_without_quality_promotion(self):
+        from ai_native.reporting import render_report
+        d = prepare_fundamental_dossier(**self.inputs())
+        packet = {
+            "kind":"DECISION","analysis_id":"SYN-01","as_of":"2026-10-28",
+            "strategy":"HIGH_CAGR_EXPLORATORY","method_version":"M2_SYN",
+            "status":"CONDITIONAL","objective":"Synthetic issuer review",
+            "decision_line":"Research incomplete", "summary":["No decision-grade recommendation"],
+            "facts":[],"countercase":"Durability uncertain","limitations":"Original sources not independently authenticated",
+            "next_action":"Verify sources","fundamental_dossier_private":d,
+        }
+        report = render_report(packet)
+        self.assertIn("20.00%", report)
+        self.assertIn("10.00% → 15.00%", report)
+        self.assertIn("15 → 17 M_CAD (CAD)", report)
+        self.assertIn("NOT ESTABLISHED", report)
+        self.assertNotIn("normalized owner earnings: established", report)
+
 if __name__ == '__main__': unittest.main()
