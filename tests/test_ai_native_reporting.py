@@ -204,5 +204,117 @@ class ReportingTests(unittest.TestCase):
                 ValueError, "CONTRIBUTION_REPORT"):
                 render_report(self.packet(new_contribution_summary_private=self.new_contribution(**patch)))
 
+
+    def valuation_packet(self, **changes):
+        from ai_native.valuation_scenarios import evaluate_valuation_scenarios
+        assumptions = {}
+        for name, terminal in (("BEAR", "81"), ("BASE", "121"), ("BULL", "144")):
+            assumptions[name] = {
+                "valuation_method":"OTHER_EXPLICIT",
+                "assumption_basis":"PAM_ASSUMPTION",
+                "rationale_ref":"SYN-RATIONALE",
+                "terminal_price_per_share":terminal,
+                "terminal_value_ref":"SYN-TERMINAL",
+                "annual_distributions_per_share":None,
+            }
+        inputs = {
+            "analysis_id":"SYN-001", "analysis_as_of":"2026-10-28",
+            "security_id":"SYN:TSX", "currency":"CAD",
+            "quoted_at":"2026-10-28", "quote_source_ref":"SYN-QUOTE",
+            "price_per_share":"100.00", "horizon_years":2,
+            "security_basis_confirmed_by_caller":True,
+            "currency_basis_confirmed_by_caller":True,
+            "scenarios":assumptions,
+        }
+        inputs.update(changes)
+        return evaluate_valuation_scenarios(**inputs)
+
+    def test_scenarios_in_report_as_price_only_not_expected_return(self):
+        result = self.valuation_packet()
+        before = dict(result)
+        report = render_report(self.packet(valuation_scenarios_private=result))
+        self.assertIn("BEAR: -10.00% annualized", report)
+        self.assertIn("BASE: 10.00% annualized", report)
+        self.assertIn("BULL: 20.00% annualized", report)
+        self.assertIn("price-only CAGR", report)
+        self.assertIn("not probability-weighted Expected Return", report)
+        self.assertIn("not forecast alpha versus VFV", report)
+        self.assertEqual(result, before)
+        self.assertNotIn("SYN-TERMINAL", report)
+
+    def test_explicit_zero_distributions_show_irrs_not_price_only(self):
+        from ai_native.valuation_scenarios import evaluate_valuation_scenarios
+        scenarios = {}
+        for name, terminal in (("BEAR", "81"), ("BASE", "121"), ("BULL", "144")):
+            scenarios[name] = {
+                "valuation_method":"OTHER_EXPLICIT",
+                "assumption_basis":"PAM_ASSUMPTION", "rationale_ref":"SYN-RATIONALE",
+                "terminal_price_per_share":terminal, "terminal_value_ref":"SYN-TERMINAL",
+                "annual_distributions_per_share":[
+                    {"amount_per_share":"0.00", "source_ref":"SYN-DIST"} for _ in range(2)],
+            }
+        item = self.valuation_packet(scenarios=scenarios)
+        self.assertEqual(item["scenarios_private"]["BASE"]["return_measure"],
+                         "YEAR_END_CASHFLOW_IRR_CONDITIONAL")
+        report = render_report(self.packet(valuation_scenarios_private=item))
+        self.assertIn("cash-flow IRR", report)
+        self.assertNotIn("price-only CAGR", report)
+
+    def test_unconfirmed_security_basis_never_shows_numbers(self):
+        item = self.valuation_packet(security_basis_confirmed_by_caller=False)
+        report = render_report(self.packet(valuation_scenarios_private=item))
+        self.assertIn("BEAR: UNAVAILABLE", report)
+        self.assertIn("BASE: UNAVAILABLE", report)
+        self.assertNotIn("10.00% annualized", report)
+
+    def test_valuation_report_rejects_forged_authority_and_dates(self):
+        for key, value in (
+            ("analysis_id", "WRONG"),
+            ("analysis_as_of", "2026-10-27"),
+            ("source_authentication", "AUTHENTICATED"),
+            ("trade_or_portfolio_authority", "EXECUTE"),
+            ("expected_return_status", "CERTIFIED"),
+            ("benchmark_expected_return_status", "CERTIFIED"),
+            ("quoted_at", "2026-10-29"),
+        ):
+            with self.subTest(key=key):
+                item = self.valuation_packet()
+                item[key] = value
+                with self.assertRaisesRegex(ValueError, "VALUATION_REPORT"):
+                    render_report(self.packet(valuation_scenarios_private=item))
+
+    def test_valuation_report_rejects_tampered_scenario_values_and_set(self):
+        for key, value in (
+            ("scenario_return_pct_annual", "NaN"),
+            ("scenario_return_pct_annual", "Infinity"),
+            ("scenario_return_pct_annual", "200000000000000000"),
+            ("return_measure", "CERTIFIED_EXPECTED_RETURN"),
+            ("assumption_validation", "INDEPENDENTLY_CERTIFIED"),
+            ("reason_codes", ["\n# FAKE APPROVAL"]),
+        ):
+            with self.subTest(key=key):
+                item = self.valuation_packet()
+                item["scenarios_private"]["BASE"][key] = value
+                with self.assertRaisesRegex(ValueError, "VALUATION_REPORT"):
+                    render_report(self.packet(valuation_scenarios_private=item))
+        item = self.valuation_packet()
+        del item["scenarios_private"]["BEAR"]
+        with self.assertRaisesRegex(ValueError, "VALUATION_REPORT_SCENARIO_SET_INVALID"):
+            render_report(self.packet(valuation_scenarios_private=item))
+
+    def test_valuation_report_rejects_inconsistent_distribution_labels(self):
+        item = self.valuation_packet()
+        item["scenarios_private"]["BASE"]["annual_distributions_status"] = "EXPLICITLY_SUPPLIED"
+        with self.assertRaisesRegex(ValueError, "VALUATION_REPORT_DISTRIBUTION_BASIS_MISMATCH"):
+            render_report(self.packet(valuation_scenarios_private=item))
+        item = self.valuation_packet()
+        item["scenarios_private"]["BASE"]["reason_codes"] = []
+        with self.assertRaisesRegex(ValueError, "VALUATION_REPORT_DISTRIBUTION_BASIS_MISMATCH"):
+            render_report(self.packet(valuation_scenarios_private=item))
+
+    def test_valuation_without_scenarios_does_not_claim_forecast(self):
+        report = render_report(self.packet())
+        self.assertNotIn("Valuation scenarios — conditional", report)
+
 if __name__ == "__main__":
     unittest.main()

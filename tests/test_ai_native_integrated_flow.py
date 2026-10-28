@@ -431,5 +431,53 @@ class ManualIntegrationTests(unittest.TestCase):
         self.assertIn("Gross contribution projection UNAVAILABLE", out["markdown"])
         self.assertNotIn("100% of new capital", out["markdown"])
 
+
+    def valuation_inputs(self, **patch):
+        rows = {}
+        for name, terminal in (("BEAR", "81"), ("BASE", "121"), ("BULL", "144")):
+            rows[name] = {
+                "valuation_method":"OTHER_EXPLICIT", "assumption_basis":"PAM_ASSUMPTION",
+                "rationale_ref":"SYN-R", "terminal_price_per_share":terminal,
+                "terminal_value_ref":"SYN-TERMINAL",
+                "annual_distributions_per_share":None,
+            }
+        obj = {
+            "analysis_id":"SYN-001", "analysis_as_of":"2026-10-28",
+            "security_id":"SYN:TSX", "currency":"CAD",
+            "quoted_at":"2026-10-28", "quote_source_ref":"SYN-QUOTE",
+            "price_per_share":"100.00", "horizon_years":2,
+            "security_basis_confirmed_by_caller":True,
+            "currency_basis_confirmed_by_caller":True,
+            "scenarios":rows,
+        }
+        obj.update(patch)
+        return obj
+
+    def test_m2_valuation_scenario_measures_reach_m4_report_with_limits(self):
+        out = assemble_manual_run(self.request(), self.ir(),
+                                  valuation_inputs=self.valuation_inputs())
+        text = out["markdown"]
+        self.assertIn("BEAR: -10.00% annualized", text)
+        self.assertIn("BASE: 10.00% annualized", text)
+        self.assertIn("BULL: 20.00% annualized", text)
+        self.assertIn("price-only CAGR", text)
+        self.assertIn("not probability-weighted Expected Return", text)
+        self.assertIn("Status:** CONDITIONAL", text)
+        self.assertEqual(out["valuation_scenarios_private"]["source_authentication"],
+                         "NOT_PERFORMED")
+        self.assertNotIn("SYN-TERMINAL", str(out["memory_proposal_nonprivate"]))
+
+    def test_m2_valuation_incompatible_basis_is_unavailable_not_er(self):
+        out = assemble_manual_run(
+            self.request(), self.ir(),
+            valuation_inputs=self.valuation_inputs(currency_basis_confirmed_by_caller=False))
+        self.assertIn("BASE: UNAVAILABLE", out["markdown"])
+        self.assertNotIn("BASE: 10.00% annualized", out["markdown"])
+
+    def test_m2_valuation_wrong_analysis_identity_refused(self):
+        with self.assertRaisesRegex(ValueError, "VALUATION_ANALYSIS_OR_DATE_MISMATCH"):
+            assemble_manual_run(self.request(), self.ir(),
+                                valuation_inputs=self.valuation_inputs(analysis_id="OTHER"))
+
 if __name__ == "__main__":
     unittest.main()

@@ -268,4 +268,16 @@ class SessionBridgeTests(unittest.TestCase):
                         "analysis_id":"CASE-A", "analysis_as_of":"2026-10-28"},
                     contribution_inputs=self.new_contribution_inputs())
 
+
+    def test_valuation_scenarios_pass_through_manual_ir_route_without_upgrade(self):
+        from unittest.mock import patch
+        args = {"analysis_id":"CASE-A", "analysis_as_of":"2026-10-28"}
+        with patch("ai_native.session_bridge.assemble_manual_run",
+                   return_value={"markdown":"SYN REPORT"}) as call:
+            out = complete_manual_session(self.request(), ir_capsule=self.ir(),
+                                          valuation_inputs=args)
+        self.assertEqual(call.call_args.kwargs["valuation_inputs"], args)
+        self.assertEqual(out["storage"], "NONE")
+        self.assertEqual(out["project_invocation"], "NONE")
+
 if __name__ == "__main__": unittest.main()
