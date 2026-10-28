@@ -463,6 +463,77 @@ def _portfolio_room_lines(packet: Mapping[str, Any], analysis_id: str,
     lines.append("No target allocation, selling decision, ranking, after-cost alpha or trading permission is established; analysis remains human-reviewed.")
     return lines
 
+
+def _opportunity_triage_lines(packet: Mapping[str, Any],
+                              analysis_id: str, as_of: str,
+                              strategy: str) -> list[str]:
+    """Summarize an explicitly supplied non-ranking M2 research queue."""
+    triage = packet.get("opportunity_triage_private")
+    if triage is None:
+        return []
+    if not isinstance(triage, Mapping) or (
+        triage.get("status") != "PRIVATE_RESEARCH_TRIAGE_PREPARED_NOT_RANKED"
+        or triage.get("analysis_id") != analysis_id
+        or triage.get("analysis_as_of") != as_of
+        or triage.get("strategy_id") != strategy
+        or triage.get("universe_completeness") != "NOT_VERIFIED_NOT_GLOBAL_SCREENING"
+        or triage.get("source_authentication") != "NOT_PERFORMED"
+        or triage.get("normalized_expected_return") != "NOT_ESTABLISHED"
+        or triage.get("ranking_or_buy_recommendation") != "NONE"
+        or triage.get("portfolio_allocation") != "NONE"
+        or triage.get("external_discovery_or_storage") != "NONE"
+    ):
+        raise ValueError("TRIAGE_REPORT_ID_OR_AUTHORITY_MISMATCH")
+    scope = triage.get("universe_scope")
+    if scope not in {"OWN_PORTFOLIO", "WATCHLIST", "GLOBAL_DISCOVERY", "MIXED_REQUEST"}:
+        raise ValueError("TRIAGE_REPORT_UNIVERSE_SCOPE_INVALID")
+    candidates = triage.get("candidates_private_in_supplied_order")
+    counts = triage.get("stage_counts")
+    total = triage.get("declared_candidate_count")
+    stages = ("EVIDENCE_RESOLUTION", "HUMAN_DEEP_DIVE")
+    if (not isinstance(candidates, list) or type(total) is not int
+            or not 1 <= total <= 30 or len(candidates) != total
+            or not isinstance(counts, Mapping) or set(counts) != set(stages)
+            or any(type(counts[s]) is not int or counts[s] < 0 for s in stages)
+            or sum(counts.values()) != total):
+        raise ValueError("TRIAGE_REPORT_COUNT_MISMATCH")
+    actual = {s: 0 for s in stages}
+    seen: set[str] = set()
+    lines = ["", "## Research candidate triage — private, not ranked",
+             f"**Supplied {scope.replace('_', ' ').lower()} subset:** {total} candidates; "
+             f"{counts['EVIDENCE_RESOLUTION']} awaiting evidence resolution and "
+             f"{counts['HUMAN_DEEP_DIVE']} queued for human deep dive."]
+    for index, item in enumerate(candidates):
+        if not isinstance(item, Mapping):
+            raise ValueError("TRIAGE_REPORT_CANDIDATE_INVALID")
+        name, stage = item.get("candidate_id_private"), item.get("research_work_stage")
+        reasons = item.get("review_reasons")
+        if (not isinstance(name, str) or not 1 <= len(name) <= 160
+                or any(ord(c) < 32 for c in name) or name in seen
+                or stage not in stages or not isinstance(reasons, list)
+                or len(reasons) != len(set(reasons))
+                or any(not isinstance(code, str) or not 1 <= len(code) <= 100
+                       or any(c not in "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_" for c in code)
+                       for code in reasons)
+                or (stage == "EVIDENCE_RESOLUTION") != bool(reasons)
+                or item.get("selection_status") != "CEO_OR_ANALYST_REVIEW_ONLY"
+                or item.get("investability") != "NOT_EVALUATED"):
+            raise ValueError("TRIAGE_REPORT_CANDIDATE_STATUS_INVALID")
+        seen.add(name)
+        actual[stage] += 1
+        if index < 8:
+            safe_name = name if all(c.isascii() and (c.isalnum() or c in "._:-") for c in name) else f"candidate #{index + 1}"
+            reason = ", ".join(reasons[:3]) if reasons else "source-use structure appears aligned; authenticity not verified"
+            if len(reasons) > 3:
+                reason += f" (+{len(reasons) - 3} more in private annex)"
+            lines.append(f"- **{safe_name}** — {stage.replace('_', ' ').lower()}: {reason}.")
+    if actual != dict(counts):
+        raise ValueError("TRIAGE_REPORT_STAGE_COUNT_MISMATCH")
+    if total > 8:
+        lines.append(f"- {total - 8} additional supplied candidates retained in private research annex (original order, no rank).")
+    lines.append("Research work queue only. No global market screening, independently checked original source, probabilistic Expected Return, investability verdict, recommendation, portfolio allocation or trades.")
+    return lines
+
 def render_report(packet: Mapping[str, Any]) -> str:
     """Render a concise markdown research report or user-requested follow-up.
 
@@ -520,6 +591,7 @@ def render_report(packet: Mapping[str, Any]) -> str:
                 lines.append(f"  - **Source review required:** {flags}. IR-reported label is not independently corroborated.")
     else:
         lines.append("No underlying fact records supplied; no factual verification is asserted.")
+    lines += _opportunity_triage_lines(packet, analysis_id, as_of, strategy)
     lines += _fundamental_lines(packet, analysis_id, as_of)
     lines += _valuation_lines(packet, analysis_id, as_of)
     lines += _new_contribution_lines(packet, analysis_id, as_of)
