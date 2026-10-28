@@ -745,6 +745,8 @@ def render_report(packet: Mapping[str, Any]) -> str:
     kind = _string(packet.get("kind"), "kind")
     if kind not in {"DECISION", "FOLLOWUP"}:
         raise ValueError("kind: DECISION or FOLLOWUP required")
+    if kind != "FOLLOWUP" and packet.get("historical_research_comparison_private") is not None:
+        raise ValueError("HISTORY_REPORT_AUTHORITY_OR_KIND_MISMATCH")
     analysis_id = _string(packet.get("analysis_id"), "analysis_id")
     as_of = _iso_date(packet.get("as_of"), "as_of")
     strategy = _string(packet.get("strategy"), "strategy")
