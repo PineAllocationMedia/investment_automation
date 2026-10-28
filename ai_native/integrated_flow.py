@@ -313,6 +313,10 @@ def assemble_manual_run(
             packet["period_start"] = request.get("period_start")
             packet["period_end"] = request.get("period_end")
 
+    if fact_alignment is not None:
+        # Only the private report consumer sees structural source-use warnings.
+        # The original IR capsule and its reported labels remain unchanged.
+        packet["fact_source_alignment_private"] = fact_alignment
     markdown = render_report(packet)
     # Memory proposal excludes portfolio data, issuer narrative and full claims.
     memory = {

@@ -373,5 +373,37 @@ class ManualIntegrationTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "IR_EVIDENCE_ANNEX_MAPPING_REQUIRED"):
             assemble_manual_run(self.request(), self.ir(EVIDENCE_ANNEX=[]))
 
+
+    def test_source_review_flags_surface_in_final_report_without_label_upgrade(self):
+        obs = self.embedded_source_inputs(rights_status="UNCERTAIN",
+                                          verification_status="VERIFIED")
+        reported_verified = {
+            "id":"SYN-F1", "claim":"Synthetic reported EPS", "status":"VERIFIED",
+            "source_url":"https://example.org/private-synthetic-source",
+            "period":"FY2025", "checked_by":"Synthetic analyst",
+            "checked_at":"2026-10-28",
+        }
+        capsule = self.ir(research_as_of="2026-10-28",
+                          facts=[reported_verified], EVIDENCE_ANNEX=obs)
+        out = assemble_manual_run(self.request(), capsule)
+        text = out["markdown"]
+        self.assertIn("Source reconciliation:", text)
+        self.assertIn("1/1 facts require human source-use review", text)
+        self.assertIn("SOURCE_INCOMPLETE", text)
+        self.assertIn("IR_VERIFIED_LABEL_NOT_SUPPORTED_BY_SUPPLIED_ANNEX", text)
+        self.assertIn("[SYN-F1 / VERIFIED]", text)
+        self.assertIn("Status:** CONDITIONAL", text)
+        self.assertEqual(capsule["facts"][0]["status"], "VERIFIED")
+        self.assertNotIn("private-synthetic-source", str(out["memory_proposal_nonprivate"]))
+
+    def test_source_review_clean_structural_alignment_still_not_authentication(self):
+        out = assemble_manual_run(
+            self.request(),
+            self.ir(research_as_of="2026-10-28",
+                    EVIDENCE_ANNEX=self.embedded_source_inputs()))
+        self.assertIn("0/1 facts", out["markdown"])
+        self.assertIn("not independently authenticated", out["markdown"])
+        self.assertEqual(out["source_verification"], "NOT_PERFORMED_BY_INTEGRATION")
+
 if __name__ == "__main__":
     unittest.main()

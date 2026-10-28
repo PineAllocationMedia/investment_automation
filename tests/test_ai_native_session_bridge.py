@@ -165,4 +165,15 @@ class SessionBridgeTests(unittest.TestCase):
         self.assertEqual(out["project_invocation"], "NONE")
         self.assertEqual(out["storage"], "NONE")
 
+
+    def test_source_review_visible_in_session_report_not_only_private_annex(self):
+        capsule = self.ir(EVIDENCE_ANNEX={
+            "analysis_id":"CASE-A", "analysis_as_of":"2026-10-28",
+            "observations":[]})
+        output = complete_manual_session(self.request(), ir_capsule=capsule)
+        self.assertIn("NO_OBSERVATION_FOR_IR_FACT", output["final_report_private"])
+        self.assertIn("Source reconciliation:", output["final_report_private"])
+        self.assertEqual(output["integrated_private"]["fact_source_alignment_private"]["facts_needing_review"], 1)
+        self.assertEqual(output["storage"], "NONE")
+
 if __name__ == "__main__": unittest.main()
