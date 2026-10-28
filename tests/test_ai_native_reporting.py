@@ -143,5 +143,60 @@ class ReportingTests(unittest.TestCase):
         self.assertNotIn("Source review required:", text)
         self.assertIn("no status was upgraded", text)
 
+
+    def new_contribution(self, **updates):
+        item = {
+            "analysis_id":"SYN-001", "portfolio_as_of":"2026-10-28",
+            "gross_status":"GROSS_PROJECTION_ONLY",
+            "allocations_pct":{"ABC:TSX":"60","VFV:TSX":"40"},
+            "cost_status":"NOT_SUPPLIED", "funded_status":"NOT_ASSESSED",
+            "source_authentication":"NOT_PERFORMED",
+        }
+        item.update(updates)
+        return item
+
+    def test_new_contribution_report_is_percentage_only_and_gross_labelled(self):
+        output = render_report(self.packet(new_contribution_summary_private=self.new_contribution()))
+        self.assertIn("60% of new capital", output)
+        self.assertIn("40% of new capital", output)
+        self.assertIn("NOT ASSESSED", output)
+        self.assertIn("not portfolio target weights", output)
+        self.assertNotIn("597.00", output)
+
+    def test_new_contribution_funding_is_conditional_not_execution(self):
+        output = render_report(self.packet(new_contribution_summary_private=self.new_contribution(
+            cost_status="SUPPLIED_COST_TALLY_ONLY",
+            funded_status="CONDITIONAL_SUPPLIED_COST_BUDGET_RECONCILED")))
+        self.assertIn("CONDITIONALLY RECONCILED", output)
+        self.assertIn("Requote", output)
+        self.assertNotIn("executable allocation.", output)
+
+    def test_new_contribution_incomplete_scope_never_displays_percentages(self):
+        output = render_report(self.packet(new_contribution_summary_private=self.new_contribution(
+            gross_status="UNAVAILABLE", allocations_pct=None,
+            cost_status="NOT_SUPPLIED", funded_status="NOT_ASSESSED")))
+        self.assertIn("Gross contribution projection UNAVAILABLE", output)
+        self.assertNotIn("60% of new capital", output)
+
+    def test_new_contribution_missing_cost_or_funding_is_not_net(self):
+        output = render_report(self.packet(new_contribution_summary_private=self.new_contribution(
+            cost_status="SUPPLIED_COST_TALLY_ONLY", funded_status="UNAVAILABLE_FUNDING_UNKNOWN")))
+        self.assertIn("After-cost funded allocation UNAVAILABLE", output)
+        self.assertNotIn("CONDITIONALLY RECONCILED", output)
+
+    def test_new_contribution_rejects_forged_or_incompatible_statuses(self):
+        for patch in (
+            {"analysis_id":"DIFFERENT"},
+            {"portfolio_as_of":"2026-10-29"},
+            {"source_authentication":"INDEPENDENTLY_VERIFIED"},
+            {"funded_status":"EXECUTION_READY"},
+            {"allocations_pct":{"ABC:TSX":"75","VFV:TSX":"40"}},
+            {"allocations_pct":{"ABC:TSX":"NaN","VFV:TSX":"40"}},
+            {"gross_status":"UNAVAILABLE"},
+        ):
+            with self.subTest(patch=patch), self.assertRaisesRegex(
+                ValueError, "CONTRIBUTION_REPORT"):
+                render_report(self.packet(new_contribution_summary_private=self.new_contribution(**patch)))
+
 if __name__ == "__main__":
     unittest.main()
