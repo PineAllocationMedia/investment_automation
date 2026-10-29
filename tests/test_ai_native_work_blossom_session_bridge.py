@@ -207,6 +207,68 @@ class BlossomSessionBridgeTests(unittest.TestCase):
         self.assertIn("CAPTURE_AUTHORIZED_PORTFOLIO_SCREENSHOT",queue)
         self.assertNotIn("SYNTHETIC_ACCOUNT_SECRET",queue)
 
+    def test_visible_private_ledger_is_in_copy_ready_pi_request(self):
+        captured = self.report()
+        out = complete_manual_session(self.pi_only(), work_blossom_inputs=captured)
+        self.assertEqual(out["status"], "AWAITING_MANUAL_PI_DELTA")
+        pi_request = out["handoffs_private"]["pi_request_private"]
+        original = out["portfolio_observation_private"]
+        self.assertEqual(pi_request["P_LEDGER_FOR_REVIEW_PRIVATE"], original)
+        self.assertEqual(
+            pi_request["P_LEDGER_HANDOFF_AUTHORITY"],
+            "CALLER_REPORTED_PRIVATE_OBSERVATION_MANUAL_REVIEW_ONLY",
+        )
+        self.assertEqual(
+            json.loads(out["handoffs_private"]["copy_ready_private"]["PI_REQUEST"]),
+            pi_request,
+        )
+        self.assertNotIn("TOKEN_THAT_MUST_NOT_PASS", json.dumps(pi_request))
+        self.assertEqual(original["known_scope_weights_pct"]["P1"], "80.00")
+        self.assertEqual(out["project_invocation"], "NONE")
+
+    def test_partial_visual_ledger_is_forwarded_without_upgrading_scope(self):
+        partial = self.report()
+        partial["coverage_evidence"]["cash_checked"] = False
+        out = complete_manual_session(self.pi_only(), work_blossom_inputs=partial)
+        forwarded = out["handoffs_private"]["pi_request_private"]["P_LEDGER_FOR_REVIEW_PRIVATE"]
+        self.assertIsNone(forwarded["known_scope_weights_pct"])
+        self.assertEqual(forwarded["portfolio_room_status"], "ROOM_UNAVAILABLE")
+        self.assertIn("SCOPED_HOLDINGS_INCOMPLETE", forwarded["missing_or_qualified"])
+
+    def test_ir_plus_pi_handoff_carries_both_unmodified_ir_and_visual_ledger(self):
+        req = self.fx.request(portfolio_needed=True)
+        original_ir = self.fx.ir()
+        out = complete_manual_session(
+            req, ir_capsule=original_ir, work_blossom_inputs=self.report())
+        pi_request = out["handoffs_private"]["pi_request_private"]
+        self.assertEqual(pi_request["FORWARD_UNCHANGED"], original_ir)
+        self.assertEqual(
+            pi_request["P_LEDGER_FOR_REVIEW_PRIVATE"],
+            out["portfolio_observation_private"],
+        )
+
+    def test_conflicting_account_context_blocks_visual_pi_handoff(self):
+        with self.assertRaisesRegex(ValueError, "PI_CONTEXT_CONFLICTS_WITH_OBSERVED_P_LEDGER"):
+            complete_manual_session(
+                self.pi_only(), work_blossom_inputs=self.report(),
+                portfolio_context={"observed_at": "2026-10-28", "account_scope": "OTHER_SCOPE"},
+            )
+
+    def test_public_observation_cannot_enter_private_pi_handoff(self):
+        from ai_native.work_blossom_adapter import prepare_work_blossom_observation
+
+        observed = prepare_work_blossom_observation(self.report())["observation_inputs_private"]
+        observed["source_type"] = "PUBLIC_BLOSSOM_REFERENCE"
+        observed["private_scope"] = False
+        with self.assertRaisesRegex(ValueError, "PUBLIC_OBSERVATION_CANNOT_BECOME_PRIVATE_PI"):
+            complete_manual_session(self.pi_only(), observation_inputs=observed)
+
+    def test_pi_handoff_without_visual_ledger_has_no_implied_observation(self):
+        out = complete_manual_session(self.pi_only())
+        pi_request = out["handoffs_private"]["pi_request_private"]
+        self.assertNotIn("P_LEDGER_FOR_REVIEW_PRIVATE", pi_request)
+        self.assertNotIn("P_LEDGER_HANDOFF_AUTHORITY", pi_request)
+
     def test_existing_pi_path_without_visual_packet_unchanged(self):
         result=complete_manual_session(self.pi_only(),pi_delta=self.fx.pi())
         self.assertEqual(result["status"],"PI_ONLY_CONDITIONAL_REPORT_ASSEMBLED")
