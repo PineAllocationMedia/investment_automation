@@ -10,6 +10,8 @@ from decimal import Decimal, InvalidOperation
 from typing import Any, Mapping
 
 from .exceptional_lifecycle import EVENTS, VIEWS
+from .strategy_authority import assess_r1_mode
+from .strategy_research_brief import prepare_strategy_research_brief
 
 FINAL = frozenset({
     "M7A_COMPONENT_ASSEMBLED_NOT_END_TO_END_ACCEPTANCE",
@@ -22,7 +24,7 @@ WAITING = frozenset({
     "AWAITING_MANUAL_PORTFOLIO_SCREENSHOT",
 })
 ROUTES = frozenset({"CC_DIRECT", "CC_IR_CC", "CC_PI_CC", "CC_IR_PI_CC"})
-MAX_ITEMS = 14  # At most one additional dated-snapshot human review step.
+MAX_ITEMS = 16  # Bounded snapshot plus two strategy-policy/evidence review steps.
 
 
 LIFECYCLE_STATUSES = frozenset({
@@ -309,6 +311,159 @@ def _snapshot_review_action(
     raise ValueError("REVIEW_QUEUE_SNAPSHOT_STATUS_INVALID")
 
 
+def _strategy_review_actions(
+    session: Mapping[str, Any],
+) -> list[tuple[str, str, str]]:
+    """Two fixed actions at most; actual six-mode gate and IR/PI question traces.
+
+    Do not surface user-controlled strategy text, IR fact IDs, P_IDs,
+    holdings, questions, account metadata or source locators in review queue.
+    This is NOT approval of any policy or proof that a Project loaded it.
+    Synthetic standalone queue shells may omit handoffs for legacy tests.
+    """
+    if session.get("status") not in {
+            "M7A_COMPONENT_ASSEMBLED_NOT_END_TO_END_ACCEPTANCE",
+            "PI_ONLY_CONDITIONAL_REPORT_ASSEMBLED"}:
+        return []
+    handoffs = session.get("handoffs_private")
+    if handoffs is None:
+        # Existing queue-only test shells do not carry original handoffs.
+        if (session.get("mode_portfolio_trace_private") is not None
+                or (isinstance(session.get("integrated_private"), Mapping)
+                    and session["integrated_private"].get("mode_research_trace_private")
+                    is not None)):
+            raise ValueError("REVIEW_QUEUE_MODE_HANDOFF_REQUIRED")
+        return []
+    if not isinstance(handoffs, Mapping):
+        raise ValueError("REVIEW_QUEUE_MODE_HANDOFF_INVALID")
+    route = session.get("route")
+    ir = handoffs.get("ir_request_private")
+    pi = handoffs.get("pi_request_private")
+    if ((route in {"CC_IR_CC", "CC_IR_PI_CC"}) != isinstance(ir, Mapping)
+            or (route in {"CC_PI_CC", "CC_IR_PI_CC"}) != isinstance(pi, Mapping)):
+        raise ValueError("REVIEW_QUEUE_MODE_HANDOFF_ROUTE_INVALID")
+    requests = [item for item in (ir, pi) if isinstance(item, Mapping)]
+    modes = [item.get("strategy_id") for item in requests]
+    if (not modes or any(not isinstance(mode, str) or not mode.strip()
+                         for mode in modes)
+            or len(set(mode.strip().lower() for mode in modes)) != 1):
+        raise ValueError("REVIEW_QUEUE_MODE_STRATEGY_MISMATCH")
+    try:
+        gate = assess_r1_mode(modes[0])
+        brief = prepare_strategy_research_brief(modes[0])
+    except ValueError as exc:
+        raise ValueError("REVIEW_QUEUE_MODE_STRATEGY_INVALID") from exc
+    if (handoffs.get("strategy_policy_gate") != gate
+            or any(item.get("r1_strategy_policy_authority") != gate["policy_authority"]
+                   or item.get("r1_strategy_method_load") != "NOT_VERIFIED"
+                   or item.get("analysis_id") != requests[0].get("analysis_id")
+                   or item.get("as_of") != requests[0].get("as_of")
+                   for item in requests)):
+        raise ValueError("REVIEW_QUEUE_MODE_POLICY_PARITY_INVALID")
+    aid, cutoff = requests[0]["analysis_id"], requests[0]["as_of"]
+    actions: list[tuple[str, str, str]] = []
+    if gate["policy_authority"] == "R1_POLICY_REQUIRES_CEO_APPROVAL":
+        actions.append((
+            "RESOLVE_SELECTED_R1_MODE_POLICY", "CEO_DECISION_REQUIRED",
+            "The selected R1 strategy has research design questions but no "
+            "approved full investment policy. Obtain separate CEO approval "
+            "of mode-specific risks, eligible assets, costs, allocation and "
+            "lifecycle boundaries before actionable conclusions.",
+        ))
+    elif gate["policy_authority"] == "V2_HIGH_CAGR_EXISTING_SCOPE_ONLY":
+        actions.append((
+            "CONFIRM_APPROVED_HIGH_CAGR_SCOPE", "HUMAN_VERIFICATION",
+            "Confirm the exact actually loaded High-CAGR method and approved "
+            "V2 scope. A named method and synthetic trace do not verify "
+            "research evidence, portfolio room or trading authority.",
+        ))
+    else:
+        actions.append((
+            "NO_APPROVED_R1_MODE_POLICY", "OPERATOR_REVIEW",
+            "Exploratory or unrecognized strategy input has no approved R1 "
+            "allocation/sale policy. Human must select a valid mandate "
+            "and obtain applicable approval; keep research conditional.",
+        ))
+    integrated = session.get("integrated_private")
+    ir_trace = (integrated.get("mode_research_trace_private")
+                if isinstance(integrated, Mapping) else None)
+    pi_trace = session.get("mode_portfolio_trace_private")
+    if (route == "CC_IR_PI_CC" and isinstance(integrated, Mapping)
+            and integrated.get("mode_portfolio_trace_private") != pi_trace):
+        raise ValueError("REVIEW_QUEUE_MODE_PI_INTEGRATED_PARITY_INVALID")
+    if (route == "CC_PI_CC" and ir_trace is not None
+            or route == "CC_IR_CC" and pi_trace is not None):
+        raise ValueError("REVIEW_QUEUE_MODE_TRACE_ROUTE_INVALID")
+    unresolved = False
+    present = False
+    for specialist, trace in (("IR", ir_trace), ("PI", pi_trace)):
+        if trace is None:
+            continue
+        present = True
+        if not isinstance(trace, Mapping):
+            raise ValueError("REVIEW_QUEUE_MODE_TRACE_INVALID")
+        expected_status = (
+            "PRIVATE_MODE_RESEARCH_TRACE_NOT_CERTIFIED" if specialist == "IR"
+            else "PRIVATE_MODE_PI_TRACE_NOT_AUTHENTICATED"
+        )
+        if (trace.get("status") != expected_status
+                or trace.get("analysis_id") != aid
+                or trace.get("analysis_as_of") != cutoff
+                or not isinstance(trace.get("strategy_id"), str)
+                or trace["strategy_id"].strip().lower() != modes[0].strip().lower()
+                or trace.get("source_authentication") != "NOT_PERFORMED"
+                or trace.get("method_load") != "NOT_VERIFIED"
+                or trace.get("investment_or_trade_authority") != "NONE"
+                or trace.get("storage") != "NONE"):
+            raise ValueError("REVIEW_QUEUE_MODE_TRACE_AUTHORITY_OR_ID_INVALID")
+        if specialist == "PI" and trace.get("portfolio_room_authority") != "NONE":
+            raise ValueError("REVIEW_QUEUE_MODE_PI_ROOM_AUTHORITY_INVALID")
+        expected_questions = (
+            brief["ir_research_questions"] if specialist == "IR"
+            else brief["pi_portfolio_questions"]
+        )
+        rows = trace.get("questions_private")
+        if (not isinstance(rows, list) or len(rows) != len(expected_questions)):
+            raise ValueError("REVIEW_QUEUE_MODE_QUESTIONS_INVALID")
+        for number, (row, question) in enumerate(zip(rows, expected_questions), start=1):
+            refs_key = "ir_fact_ids_private" if specialist == "IR" else "p_ids_private"
+            if not isinstance(row, Mapping):
+                raise ValueError("REVIEW_QUEUE_MODE_QUESTION_ROW_INVALID")
+            stage = row.get("review_stage")
+            status = row.get("reported_status")
+            ids = row.get(refs_key)
+            if (row.get("question_index") != number
+                    or row.get("question_text") != question
+                    or status not in {"SPECIALIST_REPORTED", "UNKNOWN"}
+                    or stage not in {
+                        "NOT_ASSESSED", "EVIDENCE_RESOLUTION",
+                        "HUMAN_RESEARCH_REVIEW_ONLY", "HUMAN_PORTFOLIO_REVIEW_ONLY"}
+                    or not isinstance(ids, list)
+                    or (status == "UNKNOWN") != (stage == "NOT_ASSESSED")
+                    or (status == "UNKNOWN") == bool(ids)
+                    or any(not isinstance(x, str) or not x for x in ids)
+                    or len(set(ids)) != len(ids)):
+                raise ValueError("REVIEW_QUEUE_MODE_QUESTION_ROW_INVALID")
+            if stage in {"NOT_ASSESSED", "EVIDENCE_RESOLUTION"}:
+                unresolved = True
+    if present:
+        if unresolved:
+            actions.append((
+                "RESOLVE_MODE_QUESTION_EVIDENCE", "EVIDENCE_RESOLUTION",
+                "Complete unanswered mode-specific IR/PI questions and inspect "
+                "the linked original facts or dated private observations. "
+                "Specialist-reported links are not certified evidence.",
+            ))
+        else:
+            actions.append((
+                "VERIFY_MODE_QUESTION_ORIGINALS", "HUMAN_VERIFICATION",
+                "Verify underlying source records and dated private positions "
+                "for all specialist-reported mode questions; this does not "
+                "approve mode-specific financial policy or portfolio actions.",
+            ))
+    return actions
+
+
 def prepare_manual_review_queue(session: Mapping[str, Any]) -> dict[str, Any]:
     """Private human next-action queue; one code per distinct issue.
 
@@ -360,6 +515,8 @@ def prepare_manual_review_queue(session: Mapping[str, Any]) -> dict[str, Any]:
     else:
         add("CONFIRM_METHOD_CONTEXT", "OPERATOR_REVIEW",
             "Confirm the relevant Project instructions, method version, mandate and strategy were actually loaded; not validated by the local runner.")
+        for code, stage, action in _strategy_review_actions(session):
+            add(code, stage, action)
         if status == "AWAITING_MANUAL_IR_CAPSULE":
             if route not in {"CC_IR_CC", "CC_IR_PI_CC"}:
                 raise ValueError("REVIEW_QUEUE_IR_ROUTE_MISMATCH")
