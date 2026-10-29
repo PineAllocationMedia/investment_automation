@@ -128,6 +128,7 @@ class AlternativeSuppliedCostsTests(unittest.TestCase):
             contribution_inputs=self.plan(), cost_inputs=self.costs())
         self.assertIn("Alternative 1 with its OWN supplied fixed costs",
                       out["final_report_private"])
+        self.assertIn("+0.5000 percentage points", out["final_report_private"])
         self.assertEqual(out["integrated_private"]["alternative_cost_details_private"],
                          out["alternative_cost_details_private"])
         self.assertEqual(out["alternative_cost_details_private"][1][
@@ -145,6 +146,8 @@ class AlternativeSuppliedCostsTests(unittest.TestCase):
         self.assertEqual(a["cost_status"], "INCOMPLETE_COST_INPUTS")
         self.assertEqual(a["funded_status"], "UNAVAILABLE_COST_INPUTS")
         self.assertIsNone(a["one_time_supplied_cost_share_pct"])
+        self.assertIsNone(a["cost_burden_delta_vs_baseline_pp"])
+        self.assertEqual(a["cost_burden_comparison_basis"], "NOT_COMPARABLE")
         self.assertEqual(b["one_time_supplied_cost_share_pct"], "0.0000")
 
     def test_count_destination_and_quote_date_mismatch_fail_closed(self):
@@ -163,6 +166,19 @@ class AlternativeSuppliedCostsTests(unittest.TestCase):
         c["alternative_cost_inputs"][0]["analysis_as_of"] = "2026-10-27"
         with self.assertRaisesRegex(ValueError,"ALTERNATIVE_COST_QUOTE_SCHEMA_OR_DATE"):
             self.project(costs=c)
+
+    def test_mismatched_cost_basis_report_explains_no_relative_delta(self):
+        costs = self.costs()
+        costs["alternative_cost_inputs"][0]["funding"] = "EXTERNAL_CASH"
+        out = complete_manual_session(
+            self.fx.request(research_needed=False, portfolio_needed=True),
+            pi_delta=self.fx.pi(), contribution_inputs=self.plan(),
+            cost_inputs=costs)
+        report = out["final_report_private"]
+        self.assertIn("comparison is UNAVAILABLE", report)
+        self.assertNotIn("+0.5000 percentage points", report)
+        self.assertIn("-0.5000 percentage points", report)
+        self.assertEqual(out["storage"], "NONE")
 
     def test_gross_alternatives_without_new_quotes_keep_original_contract(self):
         c = self.fx.new_cost_inputs()
