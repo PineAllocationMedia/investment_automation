@@ -93,4 +93,64 @@ class SourceFusionTests(unittest.TestCase):
         self.assertEqual((o["observation_count"],o["unresolved_count"]),(0,0))
         self.assertEqual(o["source_authentication"],"NOT_PERFORMED_BY_CODE")
 
+    def test_original_check_cannot_precede_publication_and_remain_usable(self):
+        # All dates are before analysis cutoff and the check is before the
+        # later observation, but it cannot have verified an unpublished filing.
+        observed=self.sample(
+            original_checked_at="2026-02-09", published_at="2026-02-10")
+        out=self.run_fusion([observed])
+        item=out["observations_private"][0]
+        self.assertEqual(item["claim_use_status"], "UNAVAILABLE")
+        self.assertIn("ORIGINAL_CHECK_BEFORE_PUBLICATION", item["reason_codes"])
+        self.assertEqual(out["source_authentication"], "NOT_PERFORMED_BY_CODE")
+
+    def test_completed_source_fact_cannot_be_observed_before_period_end(self):
+        # An annual actual 2025 EPS fact is unavailable in October 2025 even
+        # if metadata falsely claims that its filing and check were earlier.
+        observed=self.sample(
+            observed_at="2025-10-01", published_at="2025-08-01",
+            original_checked_at="2025-09-01")
+        result=self.run_fusion([observed])
+        item=result["observations_private"][0]
+        self.assertIn("FINANCIAL_PERIOD_END_AFTER_OBSERVATION",
+                      item["reason_codes"])
+        self.assertEqual(item["claim_use_status"], "UNAVAILABLE")
+        self.assertEqual(result["unresolved_count"], 1)
+
+    def test_future_period_estimate_not_mislabeled_completed_source_fact(self):
+        # A reported third-party FY forecast may legitimately predate the
+        # period end, though it is not a certified source fact.
+        estimate=self.sample(
+            observed_at="2025-10-01", published_at="2025-08-01",
+            original_checked_at=None, source_kind="SECONDARY",
+            classification="THIRD_PARTY_ESTIMATE",
+            verification_status="INDICATIVE")
+        item=self.run_fusion([estimate])["observations_private"][0]
+        self.assertNotIn("FINANCIAL_PERIOD_END_AFTER_OBSERVATION",
+                         item["reason_codes"])
+        self.assertEqual(item["claim_use_status"], "CALLER_REPORTED_ONLY")
+        self.assertEqual(item["independent_source_authentication"], "NOT_PERFORMED")
+
+    def test_malformed_https_locator_qualifies_single_source_not_whole_case(self):
+        malformed=self.sample(source_locator="https://[invalid-host")
+        good=self.sample(observation_id="O2", source_id="S2")
+        out=self.run_fusion([malformed, good])
+        bad_item=out["observations_private"][0]
+        self.assertIn("RECOVERABLE_HTTPS_SOURCE_NOT_SUPPLIED",
+                      bad_item["reason_codes"])
+        self.assertEqual(bad_item["claim_use_status"], "INCOMPLETE")
+        self.assertEqual(out["observations_private"][1]["claim_use_status"],
+                         "CALLER_REPORTED_ONLY")
+
+    def test_observation_on_period_end_not_rejected_by_new_guard(self):
+        row=self.sample(
+            observed_at="2025-12-31", published_at="2025-12-31",
+            original_checked_at="2025-12-31")
+        item=self.run_fusion([row])["observations_private"][0]
+        self.assertNotIn("FINANCIAL_PERIOD_END_AFTER_OBSERVATION",
+                         item["reason_codes"])
+        self.assertNotIn("ORIGINAL_CHECK_BEFORE_PUBLICATION",
+                         item["reason_codes"])
+        self.assertEqual(item["claim_use_status"], "CALLER_REPORTED_ONLY")
+
 if __name__ == '__main__':unittest.main()
