@@ -7,6 +7,7 @@ from __future__ import annotations
 
 from copy import deepcopy
 from datetime import date
+import json
 from typing import Any, Mapping
 
 from .request_assembly import prepare_manual_handoffs
@@ -14,6 +15,9 @@ from .integrated_flow import assemble_manual_run
 from .reporting import render_report
 from .portfolio_observation import prepare_observation_ledger
 from .work_blossom_adapter import prepare_work_blossom_observation
+from .public_portfolio_reference import (
+    prepare_public_portfolio_reference, render_public_portfolio_reference,
+)
 from .portfolio_exposure import aggregate_portfolio_exposures
 from .portfolio_room import prepare_portfolio_room_review
 from .new_capital_flow import prepare_new_capital_projection
@@ -50,6 +54,7 @@ def complete_manual_session(
     memory_inputs: Mapping[str, Any] | None = None,
     observation_inputs: Mapping[str, Any] | None = None,
     work_blossom_inputs: Mapping[str, Any] | None = None,
+    public_reference_inputs: Mapping[str, Any] | None = None,
     exposure_classifications: Mapping[str, Any] | None = None,
     room_assessment_inputs: Mapping[str, Any] | None = None,
     source_evidence_inputs: Mapping[str, Any] | None = None,
@@ -97,6 +102,54 @@ def complete_manual_session(
 
     if room_assessment_inputs is not None and route != "CC_IR_PI_CC":
         raise ValueError("PORTFOLIO_ROOM_REQUIRES_IR_AND_PI_ROUTE")
+
+    # Publicly observed profile holdings are RESEARCH REFERENCE only, not PI,
+    # never M3 private P-ledger or Portfolio Room. Work output is separately
+    # transferred by the CEO; no web access, automatic research or ownership
+    # authority. Do not let any PI inputs silently mix into this route.
+    public_reference = None
+    public_reference_report = None
+    if public_reference_inputs is not None:
+        if route not in {"CC_DIRECT", "CC_IR_CC"}:
+            raise ValueError("PUBLIC_REFERENCE_ONLY_CC_OR_IR_ROUTE")
+        if (pi_delta is not None or observation_inputs is not None
+                or work_blossom_inputs is not None
+                or portfolio_context is not None or contribution_inputs is not None
+                or cost_inputs is not None or exposure_classifications is not None
+                or room_assessment_inputs is not None):
+            raise ValueError("PUBLIC_REFERENCE_CANNOT_BECOME_PRIVATE_PORTFOLIO")
+        public_reference = prepare_public_portfolio_reference(
+            public_reference_inputs,
+            analysis_id=_required(request, "analysis_id"),
+            analysis_as_of=_date(_required(request, "as_of"), "request.as_of"),
+        )
+        public_reference_report = render_public_portfolio_reference(public_reference)
+        if route == "CC_IR_CC":
+            # Portable manual IR request only; never self-invoke a Project.
+            # Keep the source values marked as a reference, not IR-verified.
+            ir_request = handoffs["ir_request_private"]
+            ir_request["public_reference_context"] = {
+                "status": "CALLER_REPORTED_REFERENCE_NOT_SOURCE_AUTHENTICATED",
+                "analysis_id": public_reference["analysis_id"],
+                "analysis_as_of": public_reference["analysis_as_of"],
+                "observation_as_of": public_reference["observation_as_of"],
+                "visibility_context": public_reference["visibility_context"],
+                "positions_visible": [
+                    {"security_id": row["security_id"],
+                     "displayed_weight_pct": row["weight_pct"]}
+                    for row in public_reference["positions_private"]
+                ],
+                "limits": list(public_reference["missing_or_qualified"]),
+                "task": ("Research only the explicit visible securities and "
+                         "investigate apparent overlaps with actual dated source "
+                         "evidence; do not assume these are the CEO's holdings, "
+                         "certify public accessibility, recommend trades or infer "
+                         "complete fund composition."),
+            }
+            handoffs["copy_ready_private"]["IR_REQUEST"] = json.dumps(
+                ir_request, ensure_ascii=False, sort_keys=True, indent=2,
+                allow_nan=False,
+            )
 
     # Existing Work/screenshot adapter is a user-controlled MANUAL source,
     # not a way to invoke Work or infer that the real Blossom view was seen.
@@ -154,6 +207,8 @@ def complete_manual_session(
                "integrated_private": None, "pi_delta_private": None,
                "portfolio_observation_private": observation,
                "work_blossom_capture_private": visual_capture,
+               "public_reference_private": public_reference,
+               "public_reference_report_private": public_reference_report,
                "portfolio_exposures_private": exposures,
                "portfolio_room_review_private": None,
                "gross_contribution_private": None,
@@ -164,7 +219,11 @@ def complete_manual_session(
                "readiness": "NOT_EVALUATED"}
 
     if route == "CC_DIRECT":
-        private["status"] = "CC_DIRECT_NO_SPECIALIST_REPORT_REQUIRED"
+        if public_reference is not None:
+            private["status"] = "PUBLIC_REFERENCE_DESCRIPTIVE_REPORT_READY"
+            private["final_report_private"] = public_reference_report
+        else:
+            private["status"] = "CC_DIRECT_NO_SPECIALIST_REPORT_REQUIRED"
         return private
     if route in {"CC_IR_CC", "CC_IR_PI_CC"} and ir_capsule is None:
         private["status"] = "AWAITING_MANUAL_IR_CAPSULE"
@@ -277,6 +336,12 @@ def complete_manual_session(
         portfolio_room_review_private=private["portfolio_room_review_private"],
     )
     private["integrated_private"] = integrated
+    if public_reference is not None:
+        # Public profile observation remains separate from the IR model's
+        # facts/pillars and the unchanged private institutional memory proposal.
+        integrated["public_reference_private"] = public_reference
+        integrated["public_reference_report_private"] = public_reference_report
+        integrated["markdown"] += "\n\n" + public_reference_report
     private["final_report_private"] = integrated["markdown"]
     private["pi_delta_private"] = deepcopy(dict(pi_delta)) if pi_delta is not None else None
     private["status"] = "M7A_COMPONENT_ASSEMBLED_NOT_END_TO_END_ACCEPTANCE"
