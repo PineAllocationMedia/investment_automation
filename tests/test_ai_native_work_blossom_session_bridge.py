@@ -167,6 +167,40 @@ class BlossomSessionBridgeTests(unittest.TestCase):
                 self.assertIn("R1_INPUT_REJECTED", error)
                 self.assertNotIn("SYNTHETIC_ACCOUNT_SECRET", error)
 
+
+    def test_two_explicit_work_and_pi_specialist_envelopes_preserve_private_report(self):
+        original_ir = self.fx.ir()
+        original_work = self.report()
+        request = self.fx.request(portfolio_needed=True)
+        pi = self.fx.pi()
+        payload = {
+            "request": request, "ir_capsule": original_ir,
+            "work_portfolio_result": {"work_blossom_inputs": original_work},
+            "specialist_result": {
+                "PI_DELTA": pi, "FORWARD_UNCHANGED": deepcopy(original_ir),
+            },
+        }
+        before = deepcopy(payload)
+        code, report, error = self.cli(payload, "report")
+        self.assertEqual((code, error), (0, ""))
+        self.assertIn("Private portfolio observation — coverage and provenance", report)
+        self.assertIn("CALLER_REPORTED_SCOPED_DENOMINATOR_ONLY", report)
+        self.assertIn("Investment decision research", report)
+        self.assertNotIn("SYNTHETIC_ACCOUNT_SECRET", report)
+        self.assertNotIn("SYNTHETIC-HOLDING", report)
+        self.assertNotIn("TOKEN_THAT_MUST_NOT_PASS", report)
+        direct = complete_manual_session(
+            request, ir_capsule=original_ir,
+            work_blossom_inputs=original_work,
+            pi_delta=self.fx.pi(forwarded_ir=deepcopy(original_ir)),
+        )
+        self.assertEqual(report.strip(), direct["final_report_private"].strip())
+        self.assertEqual(payload, before)
+        code, status, error = self.cli(payload, "status")
+        self.assertEqual((code, error), (0, ""))
+        self.assertEqual(json.loads(status)["readiness"], "NOT_EVALUATED")
+        self.assertNotIn("SYNTHETIC_ACCOUNT_SECRET", status)
+
     def test_authorized_work_view_reaches_pi_only_report_without_ir(self):
         req, pi, packet=self.pi_only(), self.fx.pi(), self.report()
         copy=deepcopy((req,pi,packet))

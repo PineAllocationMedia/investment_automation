@@ -24,6 +24,143 @@ class ManualCLIContractTests(unittest.TestCase):
                     outstream=stdout, errstream=stderr)
         return code, stdout.getvalue(), stderr.getvalue()
 
+
+    def test_single_ir_capsule_envelope_routes_to_final_private_cc_report(self):
+        req = self.fx.request()
+        ir = self.fx.ir()
+        payload = {"request": req, "specialist_result": {"IR_CAPSULE": ir}}
+        before = deepcopy(payload)
+        code, report, error = self.invoke(payload, "report")
+        self.assertEqual((code, error), (0, ""))
+        self.assertIn("Investment decision research", report)
+        self.assertEqual(
+            report,
+            self.invoke({"request": req, "ir_capsule": ir}, "report")[1],
+        )
+        self.assertEqual(payload, before)
+        code, status, error = self.invoke(payload)
+        self.assertEqual((code, error), (0, ""))
+        self.assertEqual(json.loads(status)["readiness"], "NOT_EVALUATED")
+        self.assertNotIn("Synthetic", status)
+
+    def test_original_ir_envelope_unblocks_only_next_pi_transfer(self):
+        request = self.fx.request(portfolio_needed=True)
+        ir = self.fx.ir()
+        code, output, error = self.invoke(
+            {"request": request, "specialist_result": {"IR_CAPSULE": ir}},
+            output="next-handoff",
+        )
+        self.assertEqual((code, error), (0, ""))
+        self.assertEqual(set(json.loads(output)), {"PI_REQUEST"})
+        self.assertEqual(json.loads(output)["PI_REQUEST"]["FORWARD_UNCHANGED"], ir)
+
+    def test_pi_return_envelope_matches_original_ir_and_builds_integrated_report(self):
+        req, ir = self.fx.request(portfolio_needed=True), self.fx.ir()
+        pi = self.fx.pi()
+        payload = {"request": req, "ir_capsule": ir,
+                   "specialist_result": {"PI_DELTA": pi, "FORWARD_UNCHANGED": deepcopy(ir)}}
+        snapshot = deepcopy(payload)
+        code, report, error = self.invoke(payload, "report")
+        self.assertEqual((code, error), (0, ""))
+        expected = self.invoke({"request": req, "ir_capsule": ir,
+                                "pi_delta": self.fx.pi(forwarded_ir=deepcopy(ir))},
+                               "report")
+        self.assertEqual((expected[0], expected[2]), (0, ""))
+        self.assertEqual(report, expected[1])
+        self.assertEqual(payload, snapshot)
+        code, status, error = self.invoke(payload)
+        self.assertEqual((code, error), (0, ""))
+        self.assertEqual(json.loads(status)["status"],
+                         "M7A_COMPONENT_ASSEMBLED_NOT_END_TO_END_ACCEPTANCE")
+
+    def test_pi_only_return_envelope_requires_no_invented_research(self):
+        req = self.fx.request(research_needed=False, portfolio_needed=True)
+        pi = self.fx.pi()
+        payload = {"request": req, "specialist_result": {"PI_DELTA": pi}}
+        code, report, error = self.invoke(payload, "report")
+        self.assertEqual((code, error), (0, ""))
+        self.assertIn("Portfolio-only interpretation", report)
+        self.assertNotIn("Investment decision research", report)
+        self.assertEqual(
+            report,
+            self.invoke({"request": req, "pi_delta": pi}, "report")[1],
+        )
+
+    def test_pi_forwarded_ir_requires_original_independent_capsule(self):
+        req, ir = self.fx.request(portfolio_needed=True), self.fx.ir()
+        pi = self.fx.pi()
+        for original in (None, {"analysis_id": "CASE-A", "altered": True}):
+            with self.subTest(original=original):
+                payload = {"request": req, "specialist_result": {
+                    "PI_DELTA": pi, "FORWARD_UNCHANGED": ir}}
+                if original is not None:
+                    payload["ir_capsule"] = original
+                code, output, error = self.invoke(payload, "report")
+                self.assertEqual(code, 2)
+                self.assertEqual(output, "")
+                self.assertIn(
+                    "SPECIALIST_ORIGINAL_IR_REQUIRED" if original is None
+                    else "SPECIALIST_FORWARDED_IR_MISMATCH", error,
+                )
+        pi_changed = self.fx.pi(forwarded_ir={"altered": True})
+        code, output, error = self.invoke(
+            {"request": req, "ir_capsule": ir, "specialist_result": {
+                "PI_DELTA": pi_changed, "FORWARD_UNCHANGED": ir}}, "report")
+        self.assertEqual(code, 2)
+        self.assertEqual(output, "")
+        self.assertIn("SPECIALIST_FORWARDED_IR_MISMATCH", error)
+
+    def test_specialist_envelope_rejects_malformed_and_duplicate_sources(self):
+        req = self.fx.request()
+        ir = self.fx.ir()
+        for wrapped in (None, {}, {"IR_CAPSULE": ir, "PI_DELTA": self.fx.pi()},
+                        {"IR_CAPSULE": "not-an-object"}, {"BAD_KEY": ir},
+                        {"PI_DELTA": []}, {"PI_DELTA": {}, "FORWARD_UNCHANGED": None}):
+            with self.subTest(wrapped=type(wrapped).__name__):
+                code, output, error = self.invoke(
+                    {"request": req, "specialist_result": wrapped}, "status")
+                self.assertEqual(code, 2)
+                self.assertEqual(output, "")
+                self.assertIn("SPECIALIST_RESULT_INVALID", error)
+        for wrapped, direct in (
+            ({"IR_CAPSULE": ir}, {"ir_capsule": ir}),
+            ({"PI_DELTA": self.fx.pi()}, {"pi_delta": self.fx.pi()}),
+        ):
+            with self.subTest(keys=tuple(wrapped)):
+                code, output, error = self.invoke(
+                    {"request": self.fx.request(portfolio_needed=True),
+                     "specialist_result": wrapped, **direct}, "status")
+                self.assertEqual(code, 2)
+                self.assertEqual(output, "")
+                self.assertIn("SPECIALIST_RESULT_AMBIGUOUS", error)
+
+    def test_specialist_envelope_rejects_unrequested_route_and_pi_only_forward(self):
+        ir = self.fx.ir()
+        pi = self.fx.pi()
+        cases = (
+            {"request": self.fx.request(research_needed=False, portfolio_needed=True),
+             "specialist_result": {"IR_CAPSULE": ir}},
+            {"request": self.fx.request(),
+             "specialist_result": {"PI_DELTA": pi}},
+            {"request": self.fx.request(research_needed=False, portfolio_needed=True),
+             "specialist_result": {"PI_DELTA": pi,
+                                   "FORWARD_UNCHANGED": ir}},
+        )
+        for payload in cases:
+            with self.subTest(keys=tuple(payload["specialist_result"])):
+                code, output, error = self.invoke(payload)
+                self.assertEqual(code, 2)
+                self.assertEqual(output, "")
+                self.assertIn("R1_INPUT_REJECTED", error)
+        code, output, error = self.invoke(
+            {"request": self.fx.request(portfolio_needed=True),
+             "ir_capsule": ir,
+             "specialist_result": {"PI_DELTA": pi}}, "report")
+        # A PI-only fragment cannot silently synthesize FORWARD_UNCHANGED
+        # for an IR+PI request.
+        self.assertEqual(code, 2)
+        self.assertEqual(output, "")
+
     def test_default_status_redacts_handoffs_and_private_details(self):
         request = self.fx.request()
         code, output, error = self.invoke({"request":request})

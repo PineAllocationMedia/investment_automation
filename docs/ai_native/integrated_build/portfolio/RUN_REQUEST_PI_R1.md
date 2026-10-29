@@ -1,6 +1,8 @@
 # M3 PI R1 — Operator-ready CC → Portfolio Intelligence request
 **Status:** candidate copy/paste template; not evidence of Blossom access or method installation.
 
+**JSON return to CC (manual):** Supply a complete original `PI_DELTA` JSON mapping. In an IR+PI request, return the original untouched research evidence as a *separate* `FORWARD_UNCHANGED` field alongside `PI_DELTA`, e.g. outer `{"PI_DELTA": {...}, "FORWARD_UNCHANGED": {...}}` (the ellipses are placeholders, not valid JSON). The CEO/CC must separately retain the original received IR capsule and present it as `ir_capsule` with `request` when calling the local CLI with `specialist_result`; R1 rejects any mismatch. On PI-only mandates, return only `{"PI_DELTA": {...}}`, with no fabricated IR. Original observations and any private source data remain private; no Project invocation, broker authentication, release or trade is implied.
+
 Use with the actual PI v0.2 / R1 instructions and the companion Portfolio Intelligence M3 methods when accessible. If the receiving Project has not loaded a method, state METHOD_NOT_LOADED and limit claims accordingly. Send only the private inputs needed, through a private authorized chat, not a GitHub issue/PR.
 
 ~~~text
