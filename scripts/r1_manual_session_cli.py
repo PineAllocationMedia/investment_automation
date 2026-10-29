@@ -356,6 +356,7 @@ def _resume_manual_transfer(envelope: Any) -> tuple[dict[str, Any], dict[str, An
 def run(*, output: str, instream: TextIO, outstream: TextIO,
         errstream: TextIO) -> int:
     """Read one bounded JSON payload from stdin, send results to stdout only."""
+    guided_resuming = False
     try:
         raw = instream.read(MAX_INPUT_CHARACTERS + 1)
         if len(raw) > MAX_INPUT_CHARACTERS:
@@ -383,6 +384,7 @@ def run(*, output: str, instream: TextIO, outstream: TextIO,
         elif (output == "guided-operator" and isinstance(payload, dict)
               and ("continuation_private" in payload
                    or ("specialist_result" in payload and "request" not in payload))):
+            guided_resuming = True
             resume_payload, result = _resume_manual_transfer(payload)
         else:
             result = evaluate(payload)
@@ -421,8 +423,7 @@ def run(*, output: str, instream: TextIO, outstream: TextIO,
         # One explicitly PRIVATE packet from the existing operator and method
         # components. Assemble fully before emitting any sensitive output.
         try:
-            actual_payload = (resume_payload if "resume_payload" in locals()
-                              else payload)
+            actual_payload = resume_payload if guided_resuming else payload
             operator = _private_operator_packet(actual_payload, result)
             continuation = operator["continuation_private"]
             prompt = None
