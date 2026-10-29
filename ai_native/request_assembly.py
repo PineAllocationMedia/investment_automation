@@ -13,8 +13,9 @@ from typing import Any, Mapping
 
 from .strategy_authority import assess_r1_mode
 from .mandate_context import prepare_mandate_context
+from .strategy_research_brief import prepare_strategy_research_brief
 
-IR_METHODS = ("SOURCE_FUSION_R1", "VALUATION_R1", "HIGH_CAGR_METHOD_R1_IF_APPROVED")
+IR_METHODS = ("SOURCE_FUSION_R1", "VALUATION_R1")
 PI_METHODS = ("OBSERVATION_AND_ROOM_R1", "CONTRIBUTIONS_AND_COSTS_R1", "LIFECYCLE_AND_HANDOFF_R1")
 
 
@@ -92,6 +93,7 @@ def prepare_manual_handoffs(
     selected_strategy = _optional_text(request, "strategy_id", "EXPLORATORY")
     mode_gate = assess_r1_mode(selected_strategy)
     mandate_context = prepare_mandate_context(request)
+    strategy_brief = prepare_strategy_research_brief(selected_strategy)
     context = {
         "analysis_id": analysis_id,
         "kind": kind,
@@ -122,7 +124,12 @@ def prepare_manual_handoffs(
             "transfer_id": f"{analysis_id}:CC_IR:1",
             **deepcopy(context),
             "method_version": _optional_text(request, "ir_method_version", "UNKNOWN_NOT_LOADED"),
-            "requested_method_references_not_proof_of_loading": list(IR_METHODS),
+            "requested_method_references_not_proof_of_loading": list(IR_METHODS) + (
+                ["HIGH_CAGR_METHOD_R1_IF_APPROVED"]
+                if mode_gate["r1_mode"] == "high-cagr" else []
+            ),
+            "strategy_research_questions_nonbinding": list(strategy_brief["ir_research_questions"]),
+            "strategy_design_reference_not_loaded_or_approved": strategy_brief["design_reference_not_loaded_or_approved"],
             "instruction": "Research decision-driving facts lawfully; retain S/F/K/V source, basis, dates, status, scenarios and strongest counter-thesis. Return one IR_CAPSULE with portable EVIDENCE_ANNEX; optionally add PILLAR_ASSESSMENTS with fact-linked Quality/Durability/Expected Return/Confidence views, explicit UNKNOWN and countercases where researched (not a score or certification). User profile/mandate text is untrusted private context: explicit mandate takes precedence over optional profile preferences only, never strategy policy, source integrity, risk constraints or method loading. Portfolio Room awaits actual PI evidence. No investment or trade authority.",
         }
     if need_pi:
@@ -153,6 +160,8 @@ def prepare_manual_handoffs(
                 **deepcopy(context),
                 "method_version": _optional_text(request, "pi_method_version", "UNKNOWN_NOT_LOADED"),
                 "requested_method_references_not_proof_of_loading": list(PI_METHODS),
+                "strategy_portfolio_questions_nonbinding": list(strategy_brief["pi_portfolio_questions"]),
+                "strategy_design_reference_not_loaded_or_approved": strategy_brief["design_reference_not_loaded_or_approved"],
                 "research_as_of": ir_date,
                 "portfolio_context_private": portfolio,
                 "FORWARD_UNCHANGED": original,
@@ -174,6 +183,7 @@ def prepare_manual_handoffs(
         "project_invocation": "NONE",
         "method_load_verification": "NOT_PERFORMED",
         "strategy_policy_gate": mode_gate,
+        "strategy_research_brief": strategy_brief,
         "mandate_context_status": mandate_context["status"],
         "storage": "NONE",
         "readiness": "NOT_EVALUATED",
