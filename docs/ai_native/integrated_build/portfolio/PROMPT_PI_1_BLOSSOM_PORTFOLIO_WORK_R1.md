@@ -1,7 +1,7 @@
 # PROMPT PI-1 — BLOSSOM PORTFOLIO (WORK + CLOUD BROWSER DEFAULT)
 
-**Version:** `PI-WORK-PORTFOLIO-R1.2` — 2026-10-29  
-**Status:** VERSIONED / COPY-READY / TARGET PORTFOLIO CONTENT NOT YET VERIFIED  
+**Version:** `PI-WORK-PORTFOLIO-R1.3` — 2026-10-29  
+**Status:** VERSIONED / COPY-READY / CEO-REPORTED SIGNED-IN PROFILE PORTFOLIO OBSERVATION PARTIAL  
 **Owner:** PAM Financial Systems — Portfolio Intelligence, with PM integration  
 **Trigger:** CEO/user-initiated **only**. No recurrence, polling, task installation or autonomous account access.  
 **Companions:** [Work/Blossom handoff](WORK_BLOSSOM_HANDOFF_R1.md) · [PI R1 request](RUN_REQUEST_PI_R1.md) · `ai_native/work_blossom_adapter.py` · `ai_native/session_bridge.py`.
@@ -25,7 +25,7 @@ SELECTED_ACCOUNT_SCOPE: OBSERVE_ACTUAL_VISIBLE_SCOPE (not assumed to belong to m
 CASE IDENTITY
 ANALYSIS_ID: [use the exact ANALYSIS_ID from the Financial Systems Command Center when supplied; otherwise assign one new unique identifier, report it and reuse it unchanged in every handoff]
 ANALYSIS_AS_OF: [use the exact YYYY-MM-DD cutoff supplied by CC; otherwise use today's actual date in the intended account timezone, and state the timezone; do not silently backdate holdings]
-OUTPUT_CONTRACT: work_blossom_inputs / PI-WORK-PORTFOLIO-R1.2
+OUTPUT_CONTRACT: work_blossom_inputs / PI-WORK-PORTFOLIO-R1.3
 
 EXECUTION
 1. Use ChatGPT Work Cloud Browser. Start at the exact user-supplied BLOSSOM_TARGET_URL, with the HTTPS hostname exactly blossomsocial.com or www.blossomsocial.com. Do not invent URLs, substitute profiles, follow off-domain redirects, bypass rights or use sign-in tokens. If a login is required for MY private view, I will complete it securely within the browser; never ask for credentials in chat.
@@ -49,14 +49,16 @@ EXECUTION
 
 REQUIRED OUTPUT — CHOOSE THE BRANCH MATCHING THE ACTUAL TARGET, NOT A GUESSED OWNER
 
-A. PUBLIC_REFERENCE — the specified profile has visible public Portfolio content:
+A. PUBLIC_REFERENCE — the target profile has a visible Portfolio listing treated as REFERENCE DATA, even if inspected in a signed-in session:
 Return one JSON object with top-level "public_portfolio_reference" (NOT "work_blossom_inputs"), containing:
-- status: "PUBLIC_REFERENCE_ONLY", analysis_id and analysis_as_of from the case, observation_as_of as actually shown or "UNKNOWN";
-- visible_scope: what the URL actually displays; account ownership: "NOT_ASSUMED_USER";
-- positions_visible: for each displayed security its exact visible ticker/name, displayed portfolio weight (%) as a decimal string or null, publicly displayed market value and currency only if actually shown (else null), and visibility "VISIBLE" or "UNCERTAIN";
-- coverage: booleans for all_rows_visible, other_group_expanded_or_absent, cash_visible, weights_comparable; set false where not established;
-- unknowns: essential missing observations, inaccessible rows or unknown denominator.
-After this JSON, produce a useful SHORT ANALYSIS of the portfolio actually visible at that profile: largest displayed holdings, concentration, what shares of visible weights can legitimately be compared, any evidence-supported sector/issuer/ETF duplication, downside/overlap questions, unknowns, and one useful next research question. Never guess hidden positions, FX, cash, weights, market values or unseen ETF holdings. Do NOT call this the user's private portfolio or produce precise personal allocation/trade guidance. This is a Work-only descriptive public-reference report: the current private M3 R1 adapter does not accept it.
+- status: "PUBLIC_REFERENCE_ONLY", analysis_id and analysis_as_of from the case, observation_as_of as actually shown or "UNKNOWN", captured_at as actually observed or "UNKNOWN";
+- visibility_context: "ANONYMOUS_PUBLIC_CONFIRMED" ONLY if the exact same portfolio was actually observed without signing in; otherwise "SIGNED_IN_VISIBILITY_ONLY" or "UNKNOWN". A profile "Edit profile" control does not prove anonymous public access or a portfolio/account filter;
+- visible_scope: what the URL actually shows; account_ownership: "NOT_ASSUMED_USER";
+- positions_visible: one record per displayed row with visible security name/ticker, weight_pct as the displayed decimal string or null, value/currency only if visibly supplied (else null) and visibility VISIBLE or UNCERTAIN;
+- coverage: booleans for all_rows_visible, other_group_expanded_or_absent, cash_visible, weights_comparable, account_filter_visible and sync_date_visible, false when not established;
+- displayed_weight_sum_pct: exact sum of the displayed weights if every needed weight was actually read, else null. NEVER rescale displayed percentages just to total 100%; preserve rounding discrepancy as a limitation;
+- unknowns: missing account scope, cash, denominator, currency, sync date, offscreen holdings or limits.
+After that JSON, produce a SHORT DESCRIPTIVE ANALYSIS of the portfolio visible at that URL: largest displayed positions and concentrations, supported overlap hypotheses, unresolved ETF look-through and missing source evidence. Quantify only observed/comparable rows. Do not call the reference the user's own private holdings, assert full household diversification, calculate brokerage-verified weights, issue personal allocations or trade advice. "PUBLIC_REFERENCE_ONLY" is a handling label, NOT independent proof of anonymous access. This public report is NOT accepted by the existing M3 private adapter.
 
 B. OWN_PRIVATE_AUTHORIZED — an explicitly authorized view of MY own private account is actually established, with account-base currency, scope, observation date and at least one position:
 Return exactly one fenced JSON object with TOP-LEVEL key "work_blossom_inputs". Its nested object must match the existing M3 PRIVATE adapter fields, with exactly:
@@ -87,7 +89,7 @@ AFTER THE JSON
 Summarize whether the specified target URL's Portfolio was actually visible, its observed category (PUBLIC_REFERENCE, OWN_PRIVATE_AUTHORIZED, INACCESSIBLE_OR_AMBIGUOUS) and the missing coverage. State WORK_COMPATIBILITY as OBSERVED_VISIBLE, PARTIAL or UNAVAILABLE as supported, never broker authentication. Public branch includes its short descriptive portfolio analysis; private branch provides the private structured observation for manual PI transfer. Do not advise trades, schedule access, publish or self-invoke another Project. STOP.
 ```
 
-**Target URL and scope:** The CEO supplies the target Blossom profile URL only; Work discovers whether its actual displayed Portfolio is public, authorized private, or unavailable. No arbitrary private/public preselection. Public profiles produce a separate descriptive observation in Work; the existing private adapter never treats other investors' positions as the user's own. The URL is navigational only and is never saved to GitHub.
+**Target URL and scope:** The CEO supplies the Blossom target URL only, and Work classifies actual visible Portfolio data. A signed-in page, even with "Edit profile", does not establish the selected brokerage-account scope or that anonymous visitors see the same positions. Treat reference-only results as distinct from private M3 holdings; never write the target URL or account data to GitHub.
 
 **Screenshot fallback (CEO-provided image):** In a new, explicitly requested Work/PI task with the authorized dated screenshot, use the same observational rules and case identity, but `capture_mode=USER_SCREENSHOT`. Never claim Work login, browser hostname or live Blossom access based on the screenshot. This is a new human-supplied input, not an automated background retry. The adapter ignores the hostname/sign-in fields in screenshot mode; prefer omitting them.
 
@@ -125,8 +127,14 @@ python -m scripts.r1_manual_session_cli --output status < private_case.json
 python -m scripts.r1_manual_session_cli --output review-queue < private_case.json
 ```
 
-## 3. Capability conclusion boundary
+## 3. Bounded first observation — CEO-supplied Work result
 
-The existing signed-in **Media Posts** workflow supports using Work as a reasonable **first attempt**, not a claim of private holdings access. The adapter tests only a caller-reported structured packet; it does not fetch Blossom or verify rights. The CEO must run the real one-off private-view check in Work. Its outcome will be `OBSERVED_VISIBLE`, `PARTIAL`, or `UNAVAILABLE` **based on what Work actually reports**, not on this prompt's existence. Never store the resulting portfolio data, credentials or screenshots in this repository.
+**October 29, 2026 (CEO report):** Work successfully displayed the **See all stocks** portfolio list on the targeted Blossom profile in a signed-in browser and reported 20 visible securities and their displayed percentage weights. The displayed weights summed to slightly above 100%; rounding is plausible, **not** a validated portfolio denominator. The result is a **usable partial visual observation**, not independently authenticated broker evidence, whole-account holdings, anonymous access, portfolio-sync date, cost/FX evidence or an imported R1 packet. The session also showed an account/profile-editing control, which does not itself prove the intended ownership or public availability of all positions. No authentic ticker, position weight, exact profile URL or private account identifier is stored in this repo.
+
+**Scope status:** Work signed-in profile navigation and visible positions are `PROJECT_REPORTED_PARTIAL`. The **public-reference-style** Work output is separate from the private M3 `work_blossom_inputs` contract. Structured ingestion of that public reference, real CC handoff, complete private source verification and comprehensive 36-decision acceptance are not implemented or not verified. No additional automatic research or follow-ups follow from this record.
+
+## 4. Capability conclusion boundary
+
+The CEO-reported signed-in Work Portfolio observation advances the visibility leg but does not prove public anonymous access, comprehensive scope, source authenticity, private ownership or end-to-end R1. The private adapter still only consumes caller-reported private packets; it cannot browse Blossom or verify rights. Never store the resulting portfolio data, credentials or screenshots in this repository.
 
 **36-decision coverage:** #16, #18, #29 and #35 remain `PARTIAL`. One Work task and one handoff do not equal complete R1 acceptance, `PORTFOLIO-READY`, source certification or production authority.
