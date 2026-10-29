@@ -36,6 +36,7 @@ def prepare_opportunity_triage(
     universe_scope: str, universe_note: str,
     candidates: list[Mapping[str, Any]],
     ir_facts: list[Mapping[str, Any]], source_annex: Mapping[str, Any],
+    ir_research_as_of: str | None = None,
 ) -> dict[str, Any]:
     """Preserve nominated candidates and classify *research work*, without ranking.
 
@@ -51,6 +52,14 @@ def prepare_opportunity_triage(
         raise ValueError("ANALYSIS_DATE_INVALID") from exc
     if parsed_cutoff.isoformat() != cutoff:
         raise ValueError("ANALYSIS_DATE_INVALID")
+    ir_cutoff = None
+    if ir_research_as_of is not None:
+        try:
+            ir_cutoff = date.fromisoformat(ir_research_as_of)
+            if ir_cutoff.isoformat() != ir_research_as_of or ir_cutoff > parsed_cutoff:
+                raise ValueError
+        except (TypeError, ValueError) as exc:
+            raise ValueError("OPPORTUNITY_IR_CUTOFF_INVALID") from exc
     strategy = _text(strategy_id, "strategy_id")
     scope = _text(universe_scope, "universe_scope")
     note = _text(universe_note, "universe_note")
@@ -78,6 +87,7 @@ def prepare_opportunity_triage(
         raise ValueError("SOURCE_OBSERVATIONS_INVALID")
     by_fact: dict[str, list[Mapping[str, Any]]] = defaultdict(list)
     seen_observations: set[str] = set()
+    post_ir_ids: set[str] = set()
     for raw in observations:
         if not isinstance(raw, Mapping):
             raise ValueError("SOURCE_OBSERVATION_INVALID")
@@ -86,6 +96,16 @@ def prepare_opportunity_triage(
         status = _text(raw.get("claim_use_status"), "source.claim_use_status")
         if oid in seen_observations or fid not in facts or status not in SOURCE_STATUSES:
             raise ValueError("SOURCE_OBSERVATION_ID_OR_STATUS_INVALID")
+        if ir_cutoff is not None:
+            try:
+                raw_observed = raw.get("observed_at")
+                observed = date.fromisoformat(raw_observed)
+                if observed.isoformat() != raw_observed or observed > parsed_cutoff:
+                    raise ValueError
+            except (TypeError, ValueError) as exc:
+                raise ValueError("OPPORTUNITY_OBSERVATION_DATE_INVALID") from exc
+            if observed > ir_cutoff:
+                post_ir_ids.add(oid)
         seen_observations.add(oid)
         by_fact[fid].append(raw)
     if not isinstance(candidates, list) or not 1 <= len(candidates) <= 30:
@@ -126,6 +146,8 @@ def prepare_opportunity_triage(
                 issues.add("NO_SOURCE_OBSERVATION")
             for observation in linked:
                 obs_ids.append(observation["observation_id"])
+                if observation["observation_id"] in post_ir_ids:
+                    issues.add("CC_SOURCE_POSTDATES_ORIGINAL_IR")
                 if (observation.get("economic_issuer") != issuer
                         or observation.get("instrument") != instrument):
                     issues.add("SOURCE_SECURITY_IDENTITY_MISMATCH")

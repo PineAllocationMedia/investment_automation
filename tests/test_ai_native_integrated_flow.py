@@ -285,7 +285,7 @@ class ManualIntegrationTests(unittest.TestCase):
 
     def test_m2_opportunity_triage_is_private_nonranking(self):
         evidence, research = self.synthetic_opportunity_inputs()
-        out = assemble_manual_run(self.request(), self.ir(),
+        out = assemble_manual_run(self.request(), self.ir(research_as_of="2026-10-28"),
                                   source_evidence_inputs=evidence,
                                   opportunity_triage_inputs=research)
         triage = out["opportunity_triage_private"]
@@ -300,6 +300,18 @@ class ManualIntegrationTests(unittest.TestCase):
         self.assertIn("private analyst follow-up queues", out["markdown"])
         self.assertNotIn("SYN-CO", out["markdown"])
         self.assertNotIn("SYN-CO", str(out["memory_proposal_nonprivate"]))
+
+
+    def test_later_cc_source_keeps_original_ir_candidate_in_evidence_resolution(self):
+        evidence, research = self.synthetic_opportunity_inputs()
+        out = assemble_manual_run(
+            self.request(), self.ir(),
+            source_evidence_inputs=evidence, opportunity_triage_inputs=research)
+        candidate = out["opportunity_triage_private"]["candidates_private_in_supplied_order"][0]
+        self.assertEqual(candidate["research_work_stage"], "EVIDENCE_RESOLUTION")
+        self.assertIn("CC_SOURCE_POSTDATES_ORIGINAL_IR", candidate["review_reasons"])
+        self.assertIn("CC_SOURCE_POSTDATES_ORIGINAL_IR", out["markdown"])
+        self.assertEqual(out["source_verification"], "NOT_PERFORMED_BY_INTEGRATION")
 
     def test_m2_opportunity_triage_cannot_invent_source_annex(self):
         _, research = self.synthetic_opportunity_inputs()
@@ -596,6 +608,46 @@ class ManualIntegrationTests(unittest.TestCase):
             assemble_manual_run(self.request(), self.ir(),
                                 valuation_inputs=self.valuation_inputs(analysis_id="OTHER"))
 
+
+
+    def test_later_cc_fundamental_observation_cannot_make_retrospective_revenue_growth(self):
+        import copy
+        prior = self.embedded_source_inputs()["observations"][0]
+        prior.update(observation_id="REV-2024", source_id="REV-S-2024",
+                     metric="REVENUE", period_start="2024-01-01",
+                     period_end="2024-12-31", value="100",
+                     unit="MILLIONS", observed_at="2026-10-27",
+                     original_checked_at="2026-10-27")
+        later = dict(prior, observation_id="REV-2025", source_id="REV-S-2025",
+                     period_start="2025-01-01", period_end="2025-12-31",
+                     value="120", observed_at="2026-10-28",
+                     original_checked_at="2026-10-28")
+        evidence = {"analysis_id": "SYN-001", "analysis_as_of": "2026-10-28",
+                    "observations": [prior, later]}
+        dossier = {
+            "economic_issuer": "SYN", "instrument": "SYN:NYSE",
+            "period_pairs": {"REVENUE": ["REV-2024", "REV-2025"]},
+            "annual_periods_comparable_reported": True,
+            "qualitative_axes": {
+                name: {"status": "SPECIALIST_REPORTED", "ir_fact_ids": ["SYN-F1"],
+                       "rationale": "Synthetic caller report",
+                       "countercase": "Durability unknown"}
+                for name in ("COMPETITIVE_POSITION", "REINVESTMENT", "PERMANENT_LOSS")},
+        }
+        ir = self.ir()
+        before = copy.deepcopy(ir)
+        out = assemble_manual_run(
+            self.request(), ir, source_evidence_inputs=evidence,
+            fundamental_inputs=dossier)
+        self.assertEqual(ir, before)
+        pair = out["fundamental_dossier_private"]["metric_pairs_private"]["REVENUE"]
+        self.assertEqual(pair["status"], "UNAVAILABLE")
+        self.assertIn("SOURCE_OBSERVED_AFTER_ORIGINAL_IR", pair["reason_codes"])
+        self.assertNotIn("reported_revenue_change_pct",
+                         out["fundamental_dossier_private"]["descriptive_metrics_private"])
+        self.assertIn("Reported revenue growth: UNAVAILABLE", out["markdown"])
+        self.assertNotIn("20.00%", out["markdown"])
+        self.assertNotIn("100", str(out["memory_proposal_nonprivate"]))
 
     def test_m2_fundamental_dossier_is_shown_in_report_not_public_memory(self):
         from unittest.mock import patch

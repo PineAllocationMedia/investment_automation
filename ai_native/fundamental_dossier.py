@@ -27,6 +27,7 @@ def prepare_fundamental_dossier(
     annual_periods_comparable_reported: bool,
     qualitative_axes: Mapping[str, Mapping[str, Any]],
     original_ir_fact_ids: list[str],
+    ir_research_as_of: str | None = None,
 ) -> dict[str, Any]:
     """Extract only compatible reported observations, preserving unsupported gaps.
 
@@ -37,6 +38,14 @@ def prepare_fundamental_dossier(
     issuer = _string(economic_issuer, "economic_issuer")
     security = _string(instrument, "instrument")
     cutoff = date.fromisoformat(_string(analysis_as_of, "analysis_as_of"))
+    ir_cutoff = None
+    if ir_research_as_of is not None:
+        try:
+            ir_cutoff = date.fromisoformat(ir_research_as_of)
+            if ir_cutoff.isoformat() != ir_research_as_of or ir_cutoff > cutoff:
+                raise ValueError
+        except (TypeError, ValueError) as exc:
+            raise ValueError("FUNDAMENTAL_IR_CUTOFF_INVALID") from exc
     if not isinstance(source_annex, Mapping) or source_annex.get("analysis_id") != aid or source_annex.get("analysis_as_of") != analysis_as_of:
         raise ValueError("SOURCE_ANNEX_ID_OR_DATE_MISMATCH")
     if type(annual_periods_comparable_reported) is not bool:
@@ -98,6 +107,17 @@ def prepare_fundamental_dossier(
         # Only annual periods; different fiscal lengths remain explicit uncertainty.
         lengths = [(end - start).days + 1 for end, start in zip(ends, (earlier, later))]
         reasons = []
+        if ir_cutoff is not None:
+            for row in rows:
+                try:
+                    raw_observed = row.get("observed_at")
+                    observed = date.fromisoformat(raw_observed)
+                    if observed.isoformat() != raw_observed or observed > cutoff:
+                        raise ValueError
+                except (TypeError, ValueError) as exc:
+                    raise ValueError("FUNDAMENTAL_SOURCE_OBSERVATION_DATE_INVALID") from exc
+                if observed > ir_cutoff:
+                    reasons.append("SOURCE_OBSERVED_AFTER_ORIGINAL_IR")
         if not annual_periods_comparable_reported:
             reasons.append("ANNUAL_COMPARABILITY_UNCONFIRMED")
         if min(lengths) < 350 or max(lengths) > 378 or abs(lengths[0] - lengths[1]) > 7:

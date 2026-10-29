@@ -167,5 +167,52 @@ class OpportunityTriageTests(unittest.TestCase):
         self.assertNotIn("What drives durability?", output)
         self.assertNotIn("500.00", output)
 
+
+    def test_late_cc_observation_downgrades_candidate_to_evidence_resolution(self):
+        case = self.setup_case()
+        case["ir_research_as_of"] = "2026-10-27"
+        case["source_annex"]["observations_private"][0]["observed_at"] = "2026-10-28"
+        original = copy.deepcopy(case)
+        result = prepare_opportunity_triage(**case)
+        item = result["candidates_private_in_supplied_order"][0]
+        self.assertEqual(item["research_work_stage"], "EVIDENCE_RESOLUTION")
+        self.assertIn("CC_SOURCE_POSTDATES_ORIGINAL_IR", item["review_reasons"])
+        self.assertEqual(result["stage_counts"], {"EVIDENCE_RESOLUTION": 1, "HUMAN_DEEP_DIVE": 0})
+        self.assertEqual(case, original)
+
+    def test_older_source_does_not_erase_later_cc_review_requirement(self):
+        case = self.setup_case()
+        case["ir_research_as_of"] = "2026-10-27"
+        original = case["source_annex"]["observations_private"][0]
+        original["observed_at"] = "2026-10-27"
+        case["source_annex"]["observations_private"].append(
+            dict(original, observation_id="O2", observed_at="2026-10-28"))
+        result = prepare_opportunity_triage(**case)
+        self.assertIn("CC_SOURCE_POSTDATES_ORIGINAL_IR",
+                      result["candidates_private_in_supplied_order"][0]["review_reasons"])
+
+    def test_same_date_source_stays_research_only_not_ranking(self):
+        case = self.setup_case()
+        case["ir_research_as_of"] = "2026-10-27"
+        case["source_annex"]["observations_private"][0]["observed_at"] = "2026-10-27"
+        result = prepare_opportunity_triage(**case)
+        self.assertEqual(result["stage_counts"]["HUMAN_DEEP_DIVE"], 1)
+        self.assertEqual(result["ranking_or_buy_recommendation"], "NONE")
+
+    def test_missing_or_future_source_date_refused_with_ir_cutoff(self):
+        for value in (None, "2026-10-29"):
+            case = self.setup_case()
+            case["ir_research_as_of"] = "2026-10-27"
+            case["source_annex"]["observations_private"][0]["observed_at"] = value
+            with self.subTest(value=value), self.assertRaisesRegex(
+                ValueError, "OPPORTUNITY_OBSERVATION_DATE_INVALID"):
+                prepare_opportunity_triage(**case)
+
+    def test_invalid_or_future_ir_cutoff_refused(self):
+        for cutoff in ("2026-10-29", "2026-1-1", "BAD"):
+            with self.subTest(cutoff=cutoff), self.assertRaisesRegex(
+                ValueError, "OPPORTUNITY_IR_CUTOFF_INVALID"):
+                prepare_opportunity_triage(**dict(self.setup_case(), ir_research_as_of=cutoff))
+
 if __name__ == "__main__":
     unittest.main()
