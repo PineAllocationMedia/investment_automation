@@ -219,7 +219,7 @@ def prepare_public_reference_from_work_table(
         # A descriptive label after the ticker is permitted but discarded.
         # The ticker is the ONLY source identity retained downstream.
         match = re.fullmatch(
-            r"([A-Za-z0-9][A-Za-z0-9.:-]{0,31})(?:\\s+[—–-]\\s+[^|]{1,120})?",
+            r"([A-Za-z0-9][A-Za-z0-9.:-]{0,31})(?:\s+[—–-]\s+[^|]{1,120})?",
             security,
         )
         if match is None:
@@ -229,7 +229,7 @@ def prepare_public_reference_from_work_table(
             weight = None
             complete = False
         else:
-            number = re.fullmatch(r"(\\d+(?:[.,]\\d{1,2})?)\\s*%", raw_weight)
+            number = re.fullmatch(r"(\d+(?:[.,]\d{1,2})?)\s*%", raw_weight)
             if number is None:
                 raise ValueError("PUBLIC_REFERENCE_TABLE_WEIGHT_FORMAT_INVALID")
             weight = number.group(1).replace(",", ".")
