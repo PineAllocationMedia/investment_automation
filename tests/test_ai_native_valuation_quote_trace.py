@@ -123,9 +123,22 @@ class ValuationQuoteTraceTests(unittest.TestCase):
                 self.assertEqual(trace["review_stage"], "EVIDENCE_RESOLUTION")
                 self.assertTrue(trace["reason_codes"])
 
-    def test_later_capture_cannot_be_backdated_into_prior_ir(self):
-        with self.assertRaisesRegex(ValueError, "AFTER_IR_RESEARCH"):
+    def test_quote_newer_than_research_cutoff_is_rejected(self):
+        with self.assertRaisesRegex(ValueError, "QUOTE_VALUATION_ID_DATE_OR_BASIS_MISMATCH"):
             self.trace(research_as_of="2026-10-27")
+
+    def test_observation_captured_after_ir_cutoff_rejected_even_if_quote_date_old(self):
+        # Citation was dated 2026-10-28 but discovered only 2026-10-29.
+        source = assemble_source_fusion(
+            analysis_id="SYN-01", analysis_as_of="2026-10-30",
+            observations=[self.source(
+                observed_at="2026-10-29", original_checked_at="2026-10-29")])
+        valuation = self.fx.case(analysis_as_of="2026-10-30",
+                                 quote_source_ref="QUOTE-O1")
+        with self.assertRaisesRegex(ValueError, "AFTER_IR_RESEARCH"):
+            trace_valuation_quote(
+                valuation=valuation, source_annex=source,
+                ir_research_as_of="2026-10-28")
 
     def test_source_authentication_spoof_not_accepted(self):
         annex = self.annex()

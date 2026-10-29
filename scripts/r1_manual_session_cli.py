@@ -13,6 +13,7 @@ import sys
 from typing import Any, TextIO
 
 from ai_native.session_bridge import complete_manual_session
+from ai_native.manual_review_queue import prepare_manual_review_queue
 
 MAX_INPUT_CHARACTERS = 5_000_000
 OPTIONAL_FIELDS = frozenset({
@@ -113,6 +114,11 @@ def run(*, output: str, instream: TextIO, outstream: TextIO,
             outstream.write("REPORT_NOT_AVAILABLE: " + result["status"] + "\n")
         else:
             outstream.write(report + ("\n" if not report.endswith("\n") else ""))
+    elif output == "review-queue":
+        # Deterministic privacy-minimal human tasks, not source certification.
+        outstream.write(json.dumps(prepare_manual_review_queue(result),
+                                   ensure_ascii=False, sort_keys=True,
+                                   indent=2, allow_nan=False) + "\n")
     elif output == "private-case":
         # Explicit output is a private PROPOSAL, not a committed archive.
         # Caller decides how to protect it outside GitHub.
@@ -153,9 +159,9 @@ def main(argv: list[str] | None = None, *, instream: TextIO | None = None,
          outstream: TextIO | None = None,
          errstream: TextIO | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--output", choices=("status", "report", "handoffs", "private-case"),
+    parser.add_argument("--output", choices=("status", "report", "handoffs", "private-case", "review-queue"),
                         default="status",
-                        help="status is redacted; report, handoffs and private-case contain private details")
+                        help="status is redacted; report, handoffs, private-case and review-queue require a private terminal")
     opts = parser.parse_args(argv)
     return run(output=opts.output, instream=instream or sys.stdin,
                outstream=outstream or sys.stdout, errstream=errstream or sys.stderr)
