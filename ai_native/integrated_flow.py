@@ -406,6 +406,8 @@ def assemble_manual_run(
             packet["period_start"] = request.get("period_start")
             packet["period_end"] = request.get("period_end")
 
+    if checks:
+        packet["calculation_checks_private"] = checks
     if pillar_trace is not None:
         packet["pillar_trace_private"] = pillar_trace
     if mode_research_trace is not None:

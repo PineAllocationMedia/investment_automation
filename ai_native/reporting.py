@@ -7,6 +7,7 @@ from __future__ import annotations
 
 from datetime import date
 from decimal import Decimal, InvalidOperation, ROUND_DOWN
+import re
 from typing import Any, Mapping
 
 from .strategy_authority import assess_r1_mode
@@ -1300,6 +1301,101 @@ def _mode_portfolio_lines(packet: Mapping[str, Any], analysis_id: str,
     return lines
 
 
+
+_CALCULATION_METRICS = {
+    "OPERATING_MARGIN": "OPERATING_MARGIN_PERCENT",
+    "REVENUE_GROWTH_YOY": "REVENUE_GROWTH_YOY_PERCENT",
+    "CFO_LESS_PPE": "CFO_MINUS_PPE_PROXY_NOT_NORMALIZED_FCF",
+}
+
+
+def _calculation_lines(packet: Mapping[str, Any]) -> list[str]:
+    """Present M5 results in the private report, without source or PIT promotion."""
+    checks = packet.get("calculation_checks_private")
+    if checks is None:
+        return []
+    if not isinstance(checks, list):
+        raise ValueError("CALCULATION_REPORT_LIST_REQUIRED")
+    if not checks:
+        return []
+    lines = [
+        "", "## Descriptive financial calculations — conditional",
+        "M5 checks supplied current-observation arithmetic only. Source authenticity, "
+        "original-IR point-in-time availability, normalized economics and investment "
+        "authority are NOT established.",
+    ]
+    for i, item in enumerate(checks):
+        if not isinstance(item, Mapping):
+            raise ValueError("CALCULATION_REPORT_ENTRY_INVALID")
+        op = item.get("operation")
+        status = item.get("status")
+        if (not isinstance(op, str) or op not in _CALCULATION_METRICS
+                or not isinstance(status, str)
+                or status not in {"FORMALLY_CALCULATED", "UNAVAILABLE"}
+                or item.get("source_verification") != "NOT_PERFORMED"
+                or item.get("temporal_authority") != "CURRENT_OBSERVATION_ONLY"):
+            raise ValueError("CALCULATION_REPORT_AUTHORITY_OR_OPERATION_INVALID")
+        ids = item.get("fact_ids")
+        if (not isinstance(ids, list) or len(ids) != 2
+                or any(not isinstance(x, str) or not x.strip() for x in ids)):
+            raise ValueError("CALCULATION_REPORT_FACT_IDS_INVALID")
+        if status == "UNAVAILABLE":
+            if set(item) != {"status", "operation", "fact_ids", "reason_codes",
+                             "source_verification", "temporal_authority"}:
+                raise ValueError("CALCULATION_REPORT_UNAVAILABLE_SCHEMA_INVALID")
+            reasons = item["reason_codes"]
+            if (not isinstance(reasons, list) or not reasons or len(reasons) > 24
+                    or any(not isinstance(x, str)
+                           or re.fullmatch(r"[A-Z][A-Z0-9_]{0,79}", x) is None
+                           for x in reasons)):
+                raise ValueError("CALCULATION_REPORT_REASONS_INVALID")
+            if i < 8:
+                lines.append(f"- {op}: UNAVAILABLE ({', '.join(sorted(set(reasons)))}).")
+            continue
+        mandatory = {"status", "operation", "metric", "value", "unit",
+                     "fact_ids", "input_evidence_labels", "source_rights_statuses",
+                     "source_verification", "temporal_authority", "decision_grade"}
+        rights = item.get("source_rights_statuses")
+        labels = item.get("input_evidence_labels")
+        if (set(item) not in (mandatory, mandatory | {"permission_caveat"})
+                or item.get("metric") != _CALCULATION_METRICS[op]
+                or item.get("decision_grade") is not False
+                or not isinstance(labels, list) or len(labels) != 2
+                or any(not isinstance(x, str)
+                       or x not in {"VERIFIED", "INDICATIVE", "CONFLICTED", "MISSING"}
+                       for x in labels)
+                or not isinstance(rights, list) or len(rights) != 2
+                or any(not isinstance(x, str)
+                       or x not in {"PERMITTED", "UNCERTAIN", "RESTRICTED"}
+                       for x in rights)):
+            raise ValueError("CALCULATION_REPORT_FORMAL_SCHEMA_INVALID")
+        uncertain = "UNCERTAIN" in rights
+        if (("permission_caveat" in item) != uncertain
+                or (uncertain and item["permission_caveat"]
+                    != "SOURCE_USE_UNCERTAIN_REVIEW_REQUIRED")):
+            raise ValueError("CALCULATION_REPORT_RIGHTS_CAVEAT_INVALID")
+        value = item.get("value")
+        if (not isinstance(value, str) or len(value) > 48
+                or re.fullmatch(r"-?[0-9]{1,24}\.[0-9]{2}", value) is None):
+            raise ValueError("CALCULATION_REPORT_VALUE_INVALID")
+        unit = item.get("unit")
+        if op != "CFO_LESS_PPE":
+            if unit != "PERCENT":
+                raise ValueError("CALCULATION_REPORT_UNIT_INVALID")
+            shown = value + "%"
+        else:
+            if (not isinstance(unit, str)
+                    or re.fullmatch(r"[A-Za-z0-9_./-]{1,40} [A-Z]{3}", unit) is None):
+                raise ValueError("CALCULATION_REPORT_UNIT_INVALID")
+            shown = value + " " + unit
+        if i < 8:
+            qualifier = "; source rights require review" if uncertain else ""
+            lines.append(f"- {op}: {shown} (formal arithmetic only{qualifier}).")
+    if len(checks) > 8:
+        lines.append(f"- {len(checks) - 8} additional check(s) retained in the private annex.")
+    return lines
+
+
 def render_report(packet: Mapping[str, Any]) -> str:
     """Render a concise markdown research report or user-requested follow-up.
 
@@ -1370,6 +1466,7 @@ def render_report(packet: Mapping[str, Any]) -> str:
     lines += _opportunity_triage_lines(packet, analysis_id, as_of, strategy)
     lines += _macro_sector_context_lines(packet, analysis_id, as_of, strategy)
     lines += _fundamental_lines(packet, analysis_id, as_of)
+    lines += _calculation_lines(packet)
     lines += _valuation_lines(packet, analysis_id, as_of)
     lines += _weighted_cashflow_lines(packet, analysis_id, as_of)
     lines += _candidate_comparison_lines(packet, analysis_id, as_of, strategy)

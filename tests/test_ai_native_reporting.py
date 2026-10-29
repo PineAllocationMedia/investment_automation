@@ -1,6 +1,8 @@
 import unittest
 
 from ai_native.reporting import render_report
+from ai_native.evidence_math import audit_calculation
+import copy
 
 
 class ReportingTests(unittest.TestCase):
@@ -18,6 +20,89 @@ class ReportingTests(unittest.TestCase):
         }
         packet.update(changes)
         return packet
+
+
+    def m5_fact(self, **overrides):
+        row = {"id": "PRIVATE-LEFT", "economic_issuer": "SYN", "metric": "OPERATING_INCOME",
+               "value": "25", "currency": "USD", "unit": "MILLIONS",
+               "accounting_basis": "US_GAAP", "consolidation": "CONSOLIDATED",
+               "period_start": "2025-01-01", "period_end": "2025-12-31",
+               "observed_at": "2026-01-15", "source_url": "https://example.org/private-m5",
+               "rights_status": "PERMITTED", "verification_status": "INDICATIVE"}
+        row.update(overrides)
+        return row
+
+    def m5_check(self, **right_overrides):
+        return audit_calculation(
+            "OPERATING_MARGIN", self.m5_fact(),
+            self.m5_fact(id="PRIVATE-RIGHT", metric="REVENUE", value="100", **right_overrides),
+            as_of="2026-10-28")
+
+    def test_private_report_shows_real_formal_m5_arithmetic_not_original_ir_evidence(self):
+        check = self.m5_check()
+        report = render_report(self.packet(calculation_checks_private=[check]))
+        self.assertIn("Descriptive financial calculations — conditional", report)
+        self.assertIn("OPERATING_MARGIN: 25.00%", report)
+        self.assertIn("formal arithmetic only", report)
+        self.assertIn("original-IR point-in-time availability", report)
+        self.assertNotIn("PRIVATE-LEFT", report)
+        self.assertNotIn("PRIVATE-RIGHT", report)
+        self.assertNotIn("private-m5", report)
+        self.assertNotIn("independently verified", report.lower())
+
+    def test_unavailable_m5_calculation_reports_reason_without_fake_value(self):
+        check = self.m5_check(currency="CAD")
+        report = render_report(self.packet(calculation_checks_private=[check]))
+        self.assertIn("OPERATING_MARGIN: UNAVAILABLE", report)
+        self.assertIn("CURRENCY_MISMATCH", report)
+        self.assertNotIn("25.00%", report)
+
+    def test_no_calculation_section_when_not_supplied(self):
+        self.assertNotIn("Descriptive financial calculations",
+                         render_report(self.packet()))
+
+    def test_uncertain_rights_caveat_remains_visible(self):
+        check = self.m5_check(rights_status="UNCERTAIN")
+        report = render_report(self.packet(calculation_checks_private=[check]))
+        self.assertIn("source rights require review", report)
+        self.assertIn("25.00%", report)
+
+    def test_m5_report_rejects_source_or_decision_authority_spoof(self):
+        for key, value in (
+            ("source_verification", "INDEPENDENTLY_VERIFIED"),
+            ("temporal_authority", "ORIGINAL_IR_CERTIFIED"),
+            ("decision_grade", True),
+            ("metric", "EXPECTED_RETURN"),
+            ("status", "INVESTABLE"),
+            ("operation", "BUY_NOW"),
+            ("value", "NaN"),
+            ("unit", "CAD_PERCENT"),
+        ):
+            row = self.m5_check()
+            row[key] = value
+            with self.subTest(key=key), self.assertRaisesRegex(
+                ValueError, "CALCULATION_REPORT"):
+                render_report(self.packet(calculation_checks_private=[row]))
+
+    def test_m5_report_rejects_injected_reason_and_extra_fields(self):
+        row = self.m5_check(currency="CAD")
+        row["reason_codes"] = ["CURRENCY_MISMATCH\\n# EXECUTE"]
+        with self.assertRaisesRegex(ValueError, "CALCULATION_REPORT_REASONS"):
+            render_report(self.packet(calculation_checks_private=[row]))
+        row = self.m5_check()
+        row["investment_instruction"] = "BUY"
+        with self.assertRaisesRegex(ValueError, "CALCULATION_REPORT_FORMAL_SCHEMA"):
+            render_report(self.packet(calculation_checks_private=[row]))
+        row = self.m5_check()
+        row["permission_caveat"] = "SOURCE_USE_UNCERTAIN_REVIEW_REQUIRED"
+        with self.assertRaisesRegex(ValueError, "CALCULATION_REPORT_RIGHTS_CAVEAT"):
+            render_report(self.packet(calculation_checks_private=[row]))
+
+    def test_m5_report_summarizes_more_than_eight_without_leaking_source_details(self):
+        result = render_report(self.packet(
+            calculation_checks_private=[copy.deepcopy(self.m5_check()) for _ in range(9)]))
+        self.assertEqual(result.count("OPERATING_MARGIN: 25.00%"), 8)
+        self.assertIn("1 additional check(s)", result)
 
     def test_decision_preserves_indicative_status_and_no_url(self):
         text = render_report(self.packet())
