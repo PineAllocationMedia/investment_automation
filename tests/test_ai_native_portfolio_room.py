@@ -55,6 +55,73 @@ class RoomTests(unittest.TestCase):
     def test_never_evidence_supported(self):
         x=self.runroom();self.assertNotEqual(x["status"],"ROOM_EVIDENCE_SUPPORTED")
         self.assertEqual(x["independent_evidence_check"],"NOT_PERFORMED")
+    def test_unknown_portfolio_check_cannot_support_conditional_room(self):
+        for check in ("CONCENTRATION", "CORRELATED_DRIVERS", "ALTERNATIVES",
+                      "ACCOUNT_COSTS"):
+            with self.subTest(check=check):
+                inputs = self.inputs()
+                inputs["portfolio_checks"][check]["status"] = "UNKNOWN"
+                packet = self.runroom(room_inputs=inputs)
+                self.assertEqual(packet["status"], "ROOM_UNAVAILABLE")
+                self.assertIn(check + "_UNSUPPORTED_OR_UNKNOWN",
+                              packet["missing_or_qualified"])
+                self.assertEqual(packet["independent_evidence_check"], "NOT_PERFORMED")
+
+    def test_unsourced_portfolio_check_cannot_support_conditional_room(self):
+        for check in ("CONCENTRATION", "CORRELATED_DRIVERS", "ALTERNATIVES",
+                      "ACCOUNT_COSTS"):
+            with self.subTest(check=check):
+                inputs = self.inputs()
+                inputs["portfolio_checks"][check]["source_ref"] = None
+                packet = self.runroom(room_inputs=inputs)
+                self.assertEqual(packet["status"], "ROOM_UNAVAILABLE")
+                self.assertIn(check + "_UNSUPPORTED_OR_UNKNOWN",
+                              packet["missing_or_qualified"])
+
+    def test_report_rejects_forged_conditional_room_when_check_unknown(self):
+        from ai_native.reporting import render_report
+        def report(room):
+            return render_report({
+                "kind":"DECISION", "analysis_id":"SYN-A", "as_of":"2026-10-28",
+                "strategy":"SYN-EXPLORATORY", "method_version":"UNKNOWN_NOT_LOADED",
+                "status":"CONDITIONAL", "objective":"Synthetic",
+                "decision_line":"No trade", "summary":["SYN"], "facts":[],
+                "countercase":"Unknown", "limitations":"Unverified",
+                "next_action":"Review", "portfolio_room_review_private":room,
+            })
+        original = self.runroom()
+        self.assertIn("ROOM_CONDITIONAL", report(original))
+        for key, value in (("status", "UNKNOWN"), ("source_ref", None)):
+            with self.subTest(key=key):
+                forged = copy.deepcopy(original)
+                forged["portfolio_checks_private"]["ACCOUNT_COSTS"][key] = value
+                with self.assertRaisesRegex(ValueError, "CONDITIONAL_SUPPORT_MISSING"):
+                    report(forged)
+        forged = copy.deepcopy(original)
+        forged["research_axes_private"]["CONFIDENCE"]["ir_fact_ids"] = []
+        with self.assertRaisesRegex(ValueError, "CONDITIONAL_SUPPORT_MISSING"):
+            report(forged)
+
+    def test_historical_fund_room_cannot_be_forged_conditional(self):
+        from ai_native.reporting import render_report
+        c = {"P1":dict(security_id="ABC:TSX", kind="FUND",
+            source_ref="SYN-OLD", rights_status="PERMITTED",
+            as_of="2026-10-27", composition_complete_reported=True,
+            constituents=[dict(economic_issuer_id="ABC",sector="TECH",
+                               region="CANADA",fund_weight_pct="100")])}
+        room = self.runroom(exposures=self.exposure(classifications=c))
+        self.assertEqual(room["status"], "ROOM_UNAVAILABLE")
+        forged = copy.deepcopy(room)
+        forged["status"] = "ROOM_CONDITIONAL"
+        packet={"kind":"DECISION", "analysis_id":"SYN-A", "as_of":"2026-10-28",
+                "strategy":"SYN-EXPLORATORY", "method_version":"UNKNOWN_NOT_LOADED",
+                "status":"CONDITIONAL", "objective":"Synthetic",
+                "decision_line":"No trade", "summary":["SYN"], "facts":[],
+                "countercase":"Unknown", "limitations":"Not verified",
+                "next_action":"Review", "portfolio_room_review_private":forged}
+        with self.assertRaisesRegex(ValueError, "HISTORICAL_FUND_CANNOT_BE_CONDITIONAL"):
+            render_report(packet)
+
     def test_an_unknown_axis_unavailable(self):
         p=self.inputs();p["research_axes"]["EXPECTED_RETURN"]["status"]="UNKNOWN"
         x=self.runroom(room_inputs=p)

@@ -188,6 +188,12 @@ def prepare_portfolio_room_review(
         and all(axis_data[k]["status"] == "SPECIALIST_REPORTED" and axis_data[k]["ir_fact_ids"]
                 and not any(original_facts[x].get("status") in {"MISSING", "CONFLICTED"}
                             for x in axis_data[k]["ir_fact_ids"]) for k in RESEARCH_AXES)
+        # The four Portfolio Room checks are substantive gates, not merely
+        # required JSON fields. A reported finding without a source reference,
+        # or any UNKNOWN check, cannot support even conditional room.
+        and all(check_data[k]["status"] == "SPECIALIST_REPORTED"
+                and check_data[k]["source_ref"] is not None
+                for k in PORTFOLIO_CHECKS)
     ) else "ROOM_UNAVAILABLE"
     return {
         "status": review_status,

@@ -1049,6 +1049,17 @@ def _portfolio_room_lines(packet: Mapping[str, Any], analysis_id: str,
         ref = row.get("source_ref")
         if ref is not None and (not isinstance(ref, str) or not ref.strip()):
             raise ValueError("ROOM_REPORT_CHECK_REF_INVALID")
+    # A structurally forged conditional status cannot bypass M3's checks.
+    # All source locators are still caller-supplied and NOT authenticated.
+    if status == "ROOM_CONDITIONAL" and (
+            room.get("account_type_private") == "UNKNOWN"
+            or any(axes[k]["status"] != "SPECIALIST_REPORTED"
+                   or not axes[k]["ir_fact_ids"] for k in research_names)
+            or any(checks[k]["status"] != "SPECIALIST_REPORTED"
+                   or checks[k]["source_ref"] is None for k in check_names)
+            or room.get("known_candidate_issuer_exposure_pct_private") is None
+            or room.get("unclassified_lookthrough_pct_private") is None):
+        raise ValueError("ROOM_REPORT_CONDITIONAL_SUPPORT_MISSING")
     warnings = room.get("missing_or_qualified")
     if not isinstance(warnings, list) or len(warnings) > 60 or any(
         not isinstance(code, str) or not 1 <= len(code) <= 100
@@ -1072,6 +1083,8 @@ def _portfolio_room_lines(packet: Mapping[str, Any], analysis_id: str,
 
     known = percentage(room.get("known_candidate_issuer_exposure_pct_private"))
     unknown = percentage(room.get("unclassified_lookthrough_pct_private"))
+    if status == "ROOM_CONDITIONAL" and "HISTORICAL_FUND_COMPOSITION_NOT_CURRENT" in warnings:
+        raise ValueError("ROOM_REPORT_HISTORICAL_FUND_CANNOT_BE_CONDITIONAL")
     lines = ["", "## Portfolio Room — caller-reported, not certified",
              f"**Portfolio Room:** {status}; portfolio observed {observed}. No independent verification of holdings or investment admission."]
     if known is None:
