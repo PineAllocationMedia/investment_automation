@@ -59,9 +59,14 @@ def _value(value: Any) -> Decimal | None:
 def _https_locator(value: Any) -> bool:
     if not isinstance(value, str):
         return False
-    parts = urlsplit(value)
-    return (parts.scheme == "https" and bool(parts.hostname)
-            and not parts.username and not parts.password)
+    try:
+        parts = urlsplit(value)
+        return (parts.scheme == "https" and bool(parts.hostname)
+                and not parts.username and not parts.password)
+    except ValueError:
+        # Invalid URL syntax qualifies the observation, rather than rejecting
+        # the entire multi-source research case.
+        return False
 
 
 def assemble_source_fusion(
@@ -105,6 +110,11 @@ def assemble_source_fusion(
         reasons = []
         if start > cutoff or end > cutoff:
             reasons.append("FINANCIAL_PERIOD_AFTER_CUTOFF")
+        # A completed issuer SOURCE_FACT cannot have been observed before
+        # the reported period ended. Forecasts and analyst assumptions are
+        # different classes and must not be silently reclassified as facts.
+        if classification == "SOURCE_FACT" and end > seen_date:
+            reasons.append("FINANCIAL_PERIOD_END_AFTER_OBSERVATION")
         if seen_date > cutoff:
             reasons.append("OBSERVED_AFTER_CUTOFF")
         if pub_date is not None and pub_date > cutoff:
@@ -115,6 +125,8 @@ def assemble_source_fusion(
             reasons.append("PUBLICATION_AFTER_OBSERVATION")
         if checked_date is not None and checked_date > seen_date:
             reasons.append("CHECK_AFTER_OBSERVATION")
+        if checked_date is not None and pub_date is not None and checked_date < pub_date:
+            reasons.append("ORIGINAL_CHECK_BEFORE_PUBLICATION")
         if checked_date is not None and checked_date > cutoff:
             reasons.append("ORIGINAL_CHECK_AFTER_CUTOFF")
         if rights == "RESTRICTED":
@@ -172,7 +184,9 @@ def assemble_source_fusion(
         item["claim_use_status"] = ("UNAVAILABLE" if any(x in codes for x in (
             "RESTRICTED_SOURCE_USE", "FINANCIAL_PERIOD_AFTER_CUTOFF",
             "OBSERVED_AFTER_CUTOFF", "PUBLISHED_AFTER_CUTOFF", "ORIGINAL_CHECK_AFTER_CUTOFF",
-            "PUBLICATION_AFTER_OBSERVATION", "CHECK_AFTER_OBSERVATION"))
+            "PUBLICATION_AFTER_OBSERVATION", "CHECK_AFTER_OBSERVATION",
+            "ORIGINAL_CHECK_BEFORE_PUBLICATION",
+            "FINANCIAL_PERIOD_END_AFTER_OBSERVATION"))
             else "CONFLICTED" if "SAME_BASIS_VALUE_CONFLICT" in codes else
             "INCOMPLETE" if codes or item["reported_verification_status"] in {"MISSING", "CONFLICTED"}
             else "CALLER_REPORTED_ONLY")
