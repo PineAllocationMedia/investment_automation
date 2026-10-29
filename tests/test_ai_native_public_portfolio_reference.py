@@ -68,6 +68,70 @@ class PublicReferenceTests(unittest.TestCase):
         )
         return base
 
+
+    def test_pi1_wrapped_public_json_reaches_direct_and_ir_without_private_holdings(self):
+        wrapped = {"public_portfolio_reference": self.data()}
+        direct = {"request": self.req(), "work_portfolio_result": wrapped}
+        before = copy.deepcopy(direct)
+        out, err = StringIO(), StringIO()
+        code = main(["--output", "status"], instream=StringIO(json.dumps(direct)),
+                    outstream=out, errstream=err)
+        self.assertEqual((code, err.getvalue()), (0, ""))
+        self.assertEqual(json.loads(out.getvalue())["status"],
+                         "PUBLIC_REFERENCE_DESCRIPTIVE_REPORT_READY")
+        self.assertNotIn("SYN-A", out.getvalue())
+        out, err = StringIO(), StringIO()
+        code = main(["--output", "report"], instream=StringIO(json.dumps(direct)),
+                    outstream=out, errstream=err)
+        self.assertEqual((code, err.getvalue()), (0, ""))
+        self.assertIn("SYN-A", out.getvalue())
+        self.assertNotIn("SYN_ACCOUNT_MUST_NOT_LEAK_IN_REPORT", out.getvalue())
+        self.assertEqual(before, direct)
+        research = {"request": self.req(research=True),
+                    "work_portfolio_result": wrapped}
+        out, err = StringIO(), StringIO()
+        code = main(["--output", "next-handoff"],
+                    instream=StringIO(json.dumps(research)),
+                    outstream=out, errstream=err)
+        self.assertEqual((code, err.getvalue()), (0, ""))
+        ir_request = json.loads(out.getvalue())["IR_REQUEST"]
+        self.assertEqual(ir_request["public_reference_context"]["status"],
+                         "CALLER_REPORTED_REFERENCE_NOT_SOURCE_AUTHENTICATED")
+        self.assertEqual(ir_request["public_reference_context"]["positions_visible"][0],
+                         {"security_id": "SYN-A", "displayed_weight_pct": "40.1"})
+        self.assertNotIn("PI_REQUEST", out.getvalue())
+        direct_result = complete_manual_session(
+            self.req(research=True), public_reference_inputs=self.data())
+        self.assertEqual(
+            ir_request,
+            direct_result["handoffs_private"]["ir_request_private"],
+        )
+
+    def test_pi1_wrapped_public_json_cannot_enter_private_pi_route(self):
+        payload = {"request": self.req(portfolio=True),
+                   "work_portfolio_result": {"public_portfolio_reference": self.data()}}
+        out, err = StringIO(), StringIO()
+        code = main(["--output", "next-handoff"],
+                    instream=StringIO(json.dumps(payload)),
+                    outstream=out, errstream=err)
+        self.assertEqual(code, 2)
+        self.assertEqual(out.getvalue(), "")
+        self.assertNotIn("SYN_ACCOUNT_MUST_NOT_LEAK_IN_REPORT", err.getvalue())
+        self.assertIn("R1_INPUT_REJECTED", err.getvalue())
+
+    def test_pi1_wrapped_public_json_rejects_mismatched_case_cutoff(self):
+        wrong = self.data()
+        wrong["analysis_id"] = "OTHER"
+        payload = {"request": self.req(),
+                   "work_portfolio_result": {"public_portfolio_reference": wrong}}
+        out, err = StringIO(), StringIO()
+        code = main(["--output", "report"],
+                    instream=StringIO(json.dumps(payload)),
+                    outstream=out, errstream=err)
+        self.assertEqual(code, 2)
+        self.assertEqual(out.getvalue(), "")
+        self.assertNotIn("SYN_ACCOUNT_MUST_NOT_LEAK_IN_REPORT", err.getvalue())
+
     def test_work_table_reuses_exact_public_reference_without_normalizing(self):
         table=self.table()
         original=copy.deepcopy(table)

@@ -69,6 +69,104 @@ class BlossomSessionBridgeTests(unittest.TestCase):
                   outstream=stdout,errstream=stderr)
         return code,stdout.getvalue(),stderr.getvalue()
 
+
+    def test_pi1_wrapped_private_work_packet_reaches_original_pi_ledger(self):
+        source = self.report()
+        payload = {"request": self.pi_only(),
+                   "work_portfolio_result": {"work_blossom_inputs": source}}
+        before = deepcopy(payload)
+        code, output, error = self.cli(payload, "next-handoff")
+        self.assertEqual((code, error), (0, ""))
+        packet = json.loads(output)
+        self.assertEqual(set(packet), {"PI_REQUEST"})
+        original = complete_manual_session(
+            self.pi_only(), work_blossom_inputs=source)
+        self.assertEqual(packet["PI_REQUEST"],
+                         original["handoffs_private"]["pi_request_private"])
+        self.assertEqual(
+            packet["PI_REQUEST"]["P_LEDGER_FOR_REVIEW_PRIVATE"]["known_scope_weights_pct"]["P1"],
+            "80.00",
+        )
+        self.assertNotIn("TOKEN_THAT_MUST_NOT_PASS", output)
+        self.assertEqual(payload, before)
+        code, redacted, error = self.cli(payload, "status")
+        self.assertEqual((code, error), (0, ""))
+        self.assertNotIn("SYNTHETIC_ACCOUNT_SECRET", redacted)
+        self.assertNotIn("SYNTHETIC-HOLDING", redacted)
+
+    def test_pi1_wrapped_private_work_stays_ir_first(self):
+        payload = {"request": self.fx.request(portfolio_needed=True),
+                   "work_portfolio_result": {"work_blossom_inputs": self.report()}}
+        code, handoff, error = self.cli(payload, "next-handoff")
+        self.assertEqual((code, error), (0, ""))
+        self.assertEqual(set(json.loads(handoff)), {"IR_REQUEST"})
+        self.assertNotIn("P_LEDGER_FOR_REVIEW_PRIVATE", handoff)
+        self.assertNotIn("SYNTHETIC_ACCOUNT_SECRET", handoff)
+
+    def test_pi1_wrapped_private_unavailable_does_not_invent_holdings(self):
+        unavailable = {
+            "capture_mode": "WORK_BROWSER", "view_status": "UNAVAILABLE",
+            "analysis_id": "CASE-A", "analysis_as_of": "2026-10-28",
+        }
+        payload = {"request": self.pi_only(),
+                   "work_portfolio_result": {"work_blossom_inputs": unavailable}}
+        code, output, error = self.cli(payload, "status")
+        self.assertEqual((code, error), (0, ""))
+        self.assertEqual(json.loads(output)["status"],
+                         "AWAITING_MANUAL_PORTFOLIO_SCREENSHOT")
+        code, next_handoff, error = self.cli(payload, "next-handoff")
+        self.assertEqual((code, error), (0, ""))
+        self.assertIn("NEXT_HANDOFF_NOT_AVAILABLE", next_handoff)
+        self.assertNotIn("PI_REQUEST", next_handoff)
+
+    def test_pi1_wrapper_rejects_ambiguous_and_malformed_shapes_without_leaks(self):
+        source = self.report()
+        for wrapper in (
+            {},
+            {"work_blossom_inputs": source, "public_portfolio_reference": {}},
+            {"work_blossom_inputs": "not-a-mapping"},
+            {"unexpected_key": source},
+        ):
+            with self.subTest(wrapper=list(wrapper)):
+                code, output, error = self.cli(
+                    {"request": self.pi_only(), "work_portfolio_result": wrapper})
+                self.assertEqual(code, 2)
+                self.assertEqual(output, "")
+                self.assertIn("WORK_PORTFOLIO_RESULT_INVALID", error)
+                self.assertNotIn("SYNTHETIC_ACCOUNT_SECRET", error)
+        for conflicting in (
+            {"work_blossom_inputs": source},
+            {"observation_inputs": {"analysis_id": "CASE-A"}},
+            {"public_reference_inputs": {}},
+            {"public_reference_table_inputs": {}},
+        ):
+            with self.subTest(conflicting=list(conflicting)):
+                code, output, error = self.cli({
+                    "request": self.pi_only(),
+                    "work_portfolio_result": {"work_blossom_inputs": source},
+                    **conflicting,
+                })
+                self.assertEqual(code, 2)
+                self.assertEqual(output, "")
+                self.assertIn("WORK_PORTFOLIO_RESULT_AMBIGUOUS", error)
+                self.assertNotIn("SYNTHETIC_ACCOUNT_SECRET", error)
+
+    def test_pi1_wrapped_private_work_rejects_identity_and_non_pi_routes(self):
+        source = self.report(analysis_id="WRONG")
+        cases = (
+            {"request": self.pi_only(), "work_portfolio_result": {
+                "work_blossom_inputs": source}},
+            {"request": self.fx.request(), "work_portfolio_result": {
+                "work_blossom_inputs": self.report()}},
+        )
+        for payload in cases:
+            with self.subTest(route=payload["request"]["portfolio_needed"]):
+                code, output, error = self.cli(payload, "next-handoff")
+                self.assertEqual(code, 2)
+                self.assertEqual(output, "")
+                self.assertIn("R1_INPUT_REJECTED", error)
+                self.assertNotIn("SYNTHETIC_ACCOUNT_SECRET", error)
+
     def test_authorized_work_view_reaches_pi_only_report_without_ir(self):
         req, pi, packet=self.pi_only(), self.fx.pi(), self.report()
         copy=deepcopy((req,pi,packet))
