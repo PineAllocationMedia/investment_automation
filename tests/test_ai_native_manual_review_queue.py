@@ -1,0 +1,231 @@
+"""Synthetic operator-workflow tests: one finite review queue, never a readiness claim."""
+from __future__ import annotations
+
+from copy import deepcopy
+from io import StringIO
+import json
+import unittest
+
+from ai_native.manual_review_queue import prepare_manual_review_queue
+from scripts.r1_manual_session_cli import main
+from tests.test_ai_native_session_bridge import SessionBridgeTests
+
+
+class ManualReviewQueueTests(unittest.TestCase):
+    def setUp(self):
+        self.fx = SessionBridgeTests()
+
+    def shell(self, status, route="CC_IR_PI_CC", **extra):
+        return dict(
+            status=status, route=route,
+            method_load_verification="NOT_PERFORMED",
+            source_authentication="NOT_PERFORMED", project_invocation="NONE",
+            storage="NONE", readiness="NOT_EVALUATED", **extra)
+
+    def queue(self, status, route="CC_IR_PI_CC", **extra):
+        return prepare_manual_review_queue(self.shell(status, route, **extra))
+
+    @staticmethod
+    def codes(out):
+        return [row["code"] for row in out["items"]]
+
+    def test_ir_pending_only_requests_manual_ir(self):
+        out = self.queue("AWAITING_MANUAL_IR_CAPSULE", "CC_IR_PI_CC")
+        self.assertEqual(self.codes(out), ["CONFIRM_METHOD_CONTEXT", "TRANSFER_IR_CAPSULE"])
+        self.assertEqual(out["readiness"], "NOT_EVALUATED")
+        self.assertEqual(out["trading_authority"], "NONE")
+
+    def test_pi_pending_only_requests_manual_pi_not_both(self):
+        out = self.queue("AWAITING_MANUAL_PI_DELTA")
+        self.assertEqual(self.codes(out), ["CONFIRM_METHOD_CONTEXT", "TRANSFER_PI_DELTA"])
+
+    def test_ir_only_never_asks_for_portfolio_data(self):
+        integrated = dict(status="ASSEMBLED_COMPONENT_ONLY_NOT_END_TO_END_ACCEPTANCE",
+                          source_evidence_annex_private=None, valuation_quote_trace_private=None)
+        out = self.queue("M7A_COMPONENT_ASSEMBLED_NOT_END_TO_END_ACCEPTANCE",
+                         "CC_IR_CC", integrated_private=integrated)
+        self.assertIn("SOURCE_ANNEX_NOT_PRESENT", self.codes(out))
+        self.assertNotIn("VERIFY_DATED_PORTFOLIO", self.codes(out))
+        self.assertIn("REVIEW_CONDITIONAL_REPORT", self.codes(out))
+
+    def test_source_fact_and_quote_evidence_remain_human_actions(self):
+        integrated = {
+            "status":"ASSEMBLED_COMPONENT_ONLY_NOT_END_TO_END_ACCEPTANCE",
+            "source_evidence_annex_private":{
+                "status":"PRIVATE_SOURCE_ANNEX_PREPARED_NOT_CERTIFIED",
+                "observations_private":[{"source_locator":"PRIVATE_ACCOUNT_TOKEN_SECRET"}]},
+            "fact_source_alignment_private":{
+                "status":"PRIVATE_FACT_SOURCE_ALIGNMENT_NOT_CERTIFIED",
+                "facts_needing_review":2},
+            "valuation_quote_trace_private":{
+                "status":"PRIVATE_QUOTE_SOURCE_TRACE_NOT_CERTIFIED",
+                "source_authentication":"NOT_PERFORMED",
+                "original_market_price_verification":"NOT_ESTABLISHED",
+                "market_price_or_fx_authority":"NONE",
+                "review_stage":"EVIDENCE_RESOLUTION",
+                "quote_reference_private":"PRIVATE_ACCOUNT_TOKEN_SECRET",
+            },
+            "valuation_scenarios_private":{"private_price":"12345.67",
+                                            "terminal_value_ref":"PRIVATE_ACCOUNT_TOKEN_SECRET"},
+        }
+        out = self.queue("M7A_COMPONENT_ASSEMBLED_NOT_END_TO_END_ACCEPTANCE",
+                         "CC_IR_CC", integrated_private=integrated)
+        self.assertEqual(self.codes(out), [
+            "CONFIRM_METHOD_CONTEXT", "VERIFY_ORIGINAL_SOURCES",
+            "RECONCILE_IR_FACTS", "RESOLVE_VALUATION_QUOTE",
+            "VALIDATE_VALUATION_ASSUMPTIONS", "REVIEW_CONDITIONAL_REPORT"])
+        self.assertNotIn("PRIVATE_ACCOUNT_TOKEN_SECRET", json.dumps(out))
+        self.assertNotIn("12345.67", json.dumps(out))
+        self.assertEqual(out["source_authentication"], "NOT_PERFORMED")
+
+    def test_matched_quote_does_not_hide_original_source_review(self):
+        integrated = {
+            "status":"ASSEMBLED_COMPONENT_ONLY_NOT_END_TO_END_ACCEPTANCE",
+            "source_evidence_annex_private":{},
+            "valuation_quote_trace_private":{
+                "status":"PRIVATE_QUOTE_SOURCE_TRACE_NOT_CERTIFIED",
+                "source_authentication":"NOT_PERFORMED",
+                "original_market_price_verification":"NOT_ESTABLISHED",
+                "market_price_or_fx_authority":"NONE",
+                "review_stage":"HUMAN_QUOTE_REVIEW_ONLY",
+            },
+        }
+        codes = self.codes(self.queue("M7A_COMPONENT_ASSEMBLED_NOT_END_TO_END_ACCEPTANCE",
+                                      "CC_IR_CC", integrated_private=integrated))
+        self.assertIn("CHECK_ORIGINAL_QUOTE", codes)
+        self.assertIn("VERIFY_ORIGINAL_SOURCES", codes)
+        self.assertNotIn("RESOLVE_VALUATION_QUOTE", codes)
+
+    def test_portfolio_without_dated_observation_requires_transcription(self):
+        out = self.queue("PI_ONLY_CONDITIONAL_REPORT_ASSEMBLED", "CC_PI_CC",
+                         portfolio_observation_private=None)
+        self.assertIn("VERIFY_DATED_PORTFOLIO", self.codes(out))
+        self.assertNotIn("SOURCE_ANNEX_NOT_PRESENT", self.codes(out))
+
+    def test_incomplete_portfolio_cannot_be_called_verified(self):
+        out = self.queue("PI_ONLY_CONDITIONAL_REPORT_ASSEMBLED", "CC_PI_CC",
+                         portfolio_observation_private={
+                             "known_scope_weights_pct":None,
+                             "account_scope":"PRIVATE_ACCOUNT_TOKEN_SECRET"})
+        self.assertIn("RECONCILE_PORTFOLIO_SCOPE", self.codes(out))
+        self.assertNotIn("PRIVATE_ACCOUNT_TOKEN_SECRET",json.dumps(out))
+
+    def test_complete_caller_reported_weights_still_manual_check(self):
+        out = self.queue("PI_ONLY_CONDITIONAL_REPORT_ASSEMBLED", "CC_PI_CC",
+                         portfolio_observation_private={
+                             "known_scope_weights_pct":"100.00",
+                             "account_scope":"PRIVATE_ACCOUNT_TOKEN_SECRET"})
+        self.assertIn("CHECK_PORTFOLIO_ORIGINAL", self.codes(out))
+        self.assertNotIn("RECONCILE_PORTFOLIO_SCOPE", self.codes(out))
+
+    def test_account_costs_not_omitted_for_new_capital(self):
+        out = self.queue("PI_ONLY_CONDITIONAL_REPORT_ASSEMBLED", "CC_PI_CC",
+                         gross_contribution_private={"gross_amount":"1500",
+                                                     "private_security":"SECRET"})
+        self.assertIn("RECHECK_ACCOUNT_COSTS", self.codes(out))
+        self.assertNotIn("1500", json.dumps(out))
+
+    def test_followup_comparison_always_requests_human_review(self):
+        integrated = dict(
+            status="ASSEMBLED_COMPONENT_ONLY_NOT_END_TO_END_ACCEPTANCE",
+            historical_research_comparison_private={"status":"STRUCTURAL_REVIEW_PREPARED"})
+        codes = self.codes(self.queue("M7A_COMPONENT_ASSEMBLED_NOT_END_TO_END_ACCEPTANCE",
+                                      "CC_IR_CC", integrated_private=integrated))
+        self.assertIn("CHECK_RESEARCH_CHANGES", codes)
+
+    def test_no_unrequested_specialist_starts_work(self):
+        out = self.queue("CC_DIRECT_NO_SPECIALIST_REPORT_REQUIRED", "CC_DIRECT")
+        self.assertEqual(self.codes(out), ["CC_DIRECT_REVIEW"])
+
+    def test_forged_authority_and_inconsistent_routes_rejected(self):
+        for field, value in (
+            ("source_authentication", "CERTIFIED"),
+            ("method_load_verification", "VERIFIED"),
+            ("storage", "COMMITTED"),
+            ("readiness", "RESEARCH_READY"),
+            ("project_invocation", "AUTO_RUN"),
+        ):
+            with self.subTest(field=field), self.assertRaises(ValueError):
+                obj=self.shell("AWAITING_MANUAL_IR_CAPSULE", "CC_IR_CC")
+                obj[field] = value
+                prepare_manual_review_queue(obj)
+        for status, route in (
+            ("AWAITING_MANUAL_PI_DELTA", "CC_IR_CC"),
+            ("AWAITING_MANUAL_IR_CAPSULE", "CC_PI_CC"),
+            ("PI_ONLY_CONDITIONAL_REPORT_ASSEMBLED", "CC_IR_CC"),
+            ("M7A_COMPONENT_ASSEMBLED_NOT_END_TO_END_ACCEPTANCE", "CC_PI_CC"),
+        ):
+            with self.subTest(status=status,route=route), self.assertRaises(ValueError):
+                prepare_manual_review_queue(self.shell(status,route))
+
+    def test_session_inputs_unmodified_and_output_bounded(self):
+        raw=self.shell("M7A_COMPONENT_ASSEMBLED_NOT_END_TO_END_ACCEPTANCE",
+                       integrated_private=dict(
+                           status="ASSEMBLED_COMPONENT_ONLY_NOT_END_TO_END_ACCEPTANCE",
+                           source_evidence_annex_private={},
+                           fact_source_alignment_private={
+                               "status":"PRIVATE_FACT_SOURCE_ALIGNMENT_NOT_CERTIFIED",
+                               "facts_needing_review":0},
+                           valuation_quote_trace_private=None,
+                           candidate_comparison_private={},
+                           historical_research_comparison_private={}),
+                       portfolio_observation_private=None)
+        saved=deepcopy(raw)
+        out=prepare_manual_review_queue(raw)
+        self.assertEqual(raw,saved)
+        self.assertLessEqual(out["item_count"],12)
+        self.assertEqual(out["item_count"],len(out["items"]))
+        self.assertEqual(len(self.codes(out)),len(set(self.codes(out))))
+
+    def cli(self, payload, output="review-queue"):
+        stdin=StringIO(json.dumps(payload))
+        stdout,stderr=StringIO(),StringIO()
+        result=main(["--output",output],
+                    instream=stdin,outstream=stdout,errstream=stderr)
+        return result,stdout.getvalue(),stderr.getvalue()
+
+    def test_actual_manual_ir_handoff_cli_returns_queue_not_credentials(self):
+        request=self.fx.request()
+        request["objective"]="PRIVATE_ACCOUNT_TOKEN_SECRET"
+        payload={"request":request}
+        original=deepcopy(payload)
+        code, output, err = self.cli(payload)
+        self.assertEqual((code,err),(0,""))
+        data=json.loads(output)
+        self.assertIn("TRANSFER_IR_CAPSULE",self.codes(data))
+        self.assertNotIn("PRIVATE_ACCOUNT_TOKEN_SECRET",output)
+        self.assertEqual(payload,original)
+
+    def test_actual_completed_ir_cli_queue_and_default_status_distinct(self):
+        payload={"request":self.fx.request(),"ir_capsule":self.fx.ir()}
+        code, output, err=self.cli(payload)
+        self.assertEqual((code,err),(0,""))
+        data=json.loads(output)
+        self.assertEqual(data["status"],"MANUAL_REVIEW_QUEUE_NOT_ACCEPTANCE")
+        self.assertIn("SOURCE_ANNEX_NOT_PRESENT",self.codes(data))
+        code, default_output, err=self.cli(payload,"status")
+        self.assertEqual((code,err),(0,""))
+        self.assertNotIn("items",json.loads(default_output))
+        self.assertEqual(json.loads(default_output)["readiness"],"NOT_EVALUATED")
+
+    def test_missing_pi_real_session_does_not_construct_fake_report(self):
+        payload={"request":self.fx.request(portfolio_needed=True),
+                 "ir_capsule":self.fx.ir()}
+        code, output, err=self.cli(payload)
+        self.assertEqual((code,err),(0,""))
+        data=json.loads(output)
+        self.assertIn("TRANSFER_PI_DELTA",self.codes(data))
+        self.assertNotIn("REVIEW_CONDITIONAL_REPORT",self.codes(data))
+
+    def test_no_archive_or_automatic_research_even_with_checklist(self):
+        payload={"request":self.fx.request()}
+        code, output, err=self.cli(payload)
+        self.assertEqual((code,err),(0,""))
+        data=json.loads(output)
+        self.assertEqual(data["storage"],"NONE")
+        self.assertEqual(data["project_invocation"],"NONE")
+        self.assertEqual(data["trading_authority"],"NONE")
+
+
+if __name__ == "__main__":
+    unittest.main()
