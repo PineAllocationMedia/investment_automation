@@ -845,5 +845,48 @@ class ManualCLIContractTests(unittest.TestCase):
         self.assertEqual(out, "")
         self.assertNotIn("original_ir_capsule", err)
 
+
+    def test_specialist_prompt_ir_pi_route_only_manual_ready_text(self):
+        input_packet = {"request": self.fx.request(
+            portfolio_needed=True, strategy_id="balanced",
+            account_context={"label": "PRIVATE_ACCOUNT_SENTINEL"})}
+        snapshot = deepcopy(input_packet)
+        code, output, error = self.invoke(input_packet, "specialist-prompt")
+        self.assertEqual((code, error), (0, ""))
+        self.assertIn("Recipient: Investment Research (IR)", output)
+        self.assertIn("REQUEST_JSON (IR_REQUEST)", output)
+        self.assertIn("METHOD_PATH:", output)
+        self.assertNotIn("resume_input", output)
+        self.assertNotIn("specialist_result", output)
+        self.assertIn("PRIVATE_ACCOUNT_SENTINEL", output)
+        self.assertEqual(input_packet, snapshot)
+        code, status, error = self.invoke(input_packet, "status")
+        self.assertEqual((code, error), (0, ""))
+        self.assertNotIn("PRIVATE_ACCOUNT_SENTINEL", status)
+        second = {**input_packet, "ir_capsule": self.fx.ir()}
+        code, output, error = self.invoke(second, "specialist-prompt")
+        self.assertEqual((code, error), (0, ""))
+        self.assertIn("Recipient: Portfolio Intelligence (PI)", output)
+        self.assertIn("REQUEST_JSON (PI_REQUEST)", output)
+        self.assertIn('"FORWARD_UNCHANGED"', output)
+        self.assertIn("unchanged in every field", output)
+
+    def test_specialist_prompt_does_not_manufacture_completed_or_unavailable_step(self):
+        for payload in (
+            {"request": self.fx.request(research_needed=False)},
+            {"request": self.fx.request(), "ir_capsule": self.fx.ir()},
+            {"request": self.fx.request(research_needed=False, portfolio_needed=True),
+             "work_portfolio_result": {"work_blossom_inputs": {
+                 "capture_mode": "WORK_BROWSER", "view_status": "UNAVAILABLE",
+                 "analysis_id": "CASE-A", "analysis_as_of": "2026-10-28",
+                 "raw_html": "SECRET_BROWSER_TOKEN"}}},
+        ):
+            with self.subTest(request=payload["request"]):
+                code, out, error = self.invoke(payload, "specialist-prompt")
+                self.assertEqual((code, error), (0, ""))
+                self.assertIn("SPECIALIST_PROMPT_NOT_AVAILABLE:", out)
+                self.assertNotIn("SECRET_BROWSER_TOKEN", out)
+                self.assertNotIn("METHOD_PATH:", out)
+
 if __name__ == "__main__":
     unittest.main()

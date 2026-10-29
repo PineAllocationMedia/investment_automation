@@ -107,5 +107,63 @@ class PinnedMethodHandoffTests(unittest.TestCase):
                 prepare_verified_method_handoff(_next(), repository_root=Path(tmp))
 
 
+
+    def test_copy_paste_prompt_exposes_only_specialist_packet_not_cc_resume(self):
+        from ai_native.method_handoff_bundle import render_manual_specialist_prompt
+        for specialist in ("IR", "PI"):
+            with self.subTest(specialist=specialist):
+                pending = _next("balanced", specialist=specialist)
+                pending["resume_input"]["private_cc_only_secret"] = (
+                    "CC_RESUME_SECRET_NOT_FOR_SPECIALIST")
+                bundle = prepare_verified_method_handoff(pending)
+                before = deepcopy(bundle)
+                prompt = render_manual_specialist_prompt(bundle)
+                self.assertIn("REQUEST_JSON (" + specialist + "_REQUEST)", prompt)
+                self.assertIn("CONTENT_BEGIN", prompt)
+                self.assertIn("CONTENT_END", prompt)
+                self.assertIn("UNAPPROVED_R1_STRATEGY_POLICY_PROPOSAL", prompt)
+                self.assertNotIn("CC_RESUME_SECRET_NOT_FOR_SPECIALIST", prompt)
+                self.assertNotIn('"resume_input"', prompt)
+                self.assertNotIn('"specialist_result"', prompt)
+                self.assertEqual(bundle, before)
+
+    def test_copy_paste_prompt_never_alters_original_forwarded_ir(self):
+        from ai_native.method_handoff_bundle import render_manual_specialist_prompt
+        pending = _next("high-cagr", specialist="PI")
+        forwarded = {"analysis_id": "SYN-METHOD", "facts": [
+            {"id": "F1", "claim": "Original synthetic evidence"}]}
+        pending["next_handoff"]["PI_REQUEST"]["FORWARD_UNCHANGED"] = (
+            deepcopy(forwarded))
+        result = prepare_verified_method_handoff(pending)
+        prompt = render_manual_specialist_prompt(result)
+        self.assertIn('"FORWARD_UNCHANGED"', prompt)
+        self.assertIn('"Original synthetic evidence"', prompt)
+        self.assertIn("unchanged in every field", prompt)
+        self.assertIn("EXISTING_HIGH_CAGR_V2_SCOPE_REFERENCE", prompt)
+        self.assertEqual(
+            result["continuation_private"]["next_handoff"]["PI_REQUEST"]
+            ["FORWARD_UNCHANGED"], forwarded)
+
+    def test_prompt_does_not_claim_ir_exists_on_pi_only_route(self):
+        from ai_native.method_handoff_bundle import render_manual_specialist_prompt
+        output = render_manual_specialist_prompt(
+            prepare_verified_method_handoff(_next("EXPLORATORY", specialist="PI")))
+        self.assertIn("Do not invent a prior IR_CAPSULE", output)
+        self.assertNotIn('"FORWARD_UNCHANGED"; the latter', output)
+        self.assertNotIn("UNAPPROVED_R1_STRATEGY_POLICY_PROPOSAL", output)
+
+    def test_prompt_rejects_modified_method_content_or_fake_authority(self):
+        from ai_native.method_handoff_bundle import render_manual_specialist_prompt
+        original = prepare_verified_method_handoff(_next("balanced"))
+        with self.assertRaisesRegex(ValueError, "DOCUMENT_BLOB_MISMATCH"):
+            tampered = deepcopy(original)
+            tampered["document_contents_private"][0]["content"] += (
+                "\nFAKE FINANCIAL POLICY")
+            render_manual_specialist_prompt(tampered)
+        forged = deepcopy(original)
+        forged["project_method_load_verification"] = "PROVED_LOADED"
+        with self.assertRaisesRegex(ValueError, "SPECIALIST_PROMPT_BUNDLE_INVALID"):
+            render_manual_specialist_prompt(forged)
+
 if __name__ == "__main__":
     unittest.main()
