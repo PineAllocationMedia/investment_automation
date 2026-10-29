@@ -16,6 +16,7 @@ from .source_fusion import assemble_source_fusion
 from .fact_evidence_alignment import align_ir_facts_to_sources
 from .pillar_trace import prepare_pillar_trace
 from .mode_research_trace import prepare_mode_research_trace
+from .mode_portfolio_trace import prepare_mode_portfolio_trace
 from .opportunity_triage import prepare_opportunity_triage
 from .macro_sector_context import prepare_macro_sector_context
 from .valuation_scenarios import evaluate_valuation_scenarios
@@ -133,6 +134,14 @@ def assemble_manual_run(
             status = "CONDITIONAL"
         if room != "ROOM_EVIDENCE_SUPPORTED":
             status = "CONDITIONAL"
+    mode_portfolio_trace = (
+        prepare_mode_portfolio_trace(
+            request=request, pi_delta=pi_delta, observation=portfolio_observation_private
+        ) if pi_delta is not None else None
+    )
+    if mode_portfolio_trace is not None:
+        limits.append("Mode-specific PI answers cite caller-reported P records only; no account or strategy suitability certification.")
+        status = "CONDITIONAL"
     if method == "UNKNOWN_NOT_LOADED":
         limits.append("Specialized method was not loaded; research remains exploratory.")
         status = "CONDITIONAL"
@@ -380,6 +389,8 @@ def assemble_manual_run(
         packet["pillar_trace_private"] = pillar_trace
     if mode_research_trace is not None:
         packet["mode_research_trace_private"] = mode_research_trace
+    if mode_portfolio_trace is not None:
+        packet["mode_portfolio_trace_private"] = mode_portfolio_trace
     if fact_alignment is not None:
         # Only the private report consumer sees structural source-use warnings.
         # The original IR capsule and its reported labels remain unchanged.
@@ -446,6 +457,7 @@ def assemble_manual_run(
         "fact_source_alignment_private": fact_alignment,
         "pillar_trace_private": pillar_trace,
         "mode_research_trace_private": mode_research_trace,
+        "mode_portfolio_trace_private": mode_portfolio_trace,
         "opportunity_triage_private": opportunity_triage,
         "macro_sector_context_private": macro_sector_context,
         "valuation_scenarios_private": valuation_scenarios,
