@@ -91,5 +91,31 @@ class StrategyResearchBriefTests(unittest.TestCase):
         self.assertEqual(prepared["strategy_research_brief"]["decision_grade_authority"], "NONE")
 
 
+
+    def test_references_are_mode_scoped_and_non_authorizing(self):
+        modes = list(R1_MODES) + ["EXPLORATORY"]
+        for strategy in modes:
+            with self.subTest(strategy=strategy):
+                result = prepare_manual_handoffs(self.request(strategy))
+                ir = result["ir_request_private"]
+                pins = ir["pinned_method_references_not_loaded_or_approved"]
+                self.assertEqual(pins["project_method_load_verification"],
+                                 "NOT_PERFORMED")
+                self.assertEqual(pins["strategy_policy_approval"],
+                                 "NOT_GRANTED_BY_MANIFEST")
+                self.assertEqual(pins["source_authentication"], "NOT_PERFORMED")
+                mode_docs = [x for x in pins["documents"] if
+                             x["reference_role"] != "COMMON_CANDIDATE_METHOD"]
+                self.assertEqual(len(mode_docs), strategy != "EXPLORATORY")
+                if strategy == "high-cagr":
+                    self.assertEqual(
+                        mode_docs[0]["reference_role"],
+                        "EXISTING_HIGH_CAGR_V2_SCOPE_REFERENCE")
+                elif strategy != "EXPLORATORY":
+                    self.assertEqual(
+                        mode_docs[0]["reference_role"],
+                        "UNAPPROVED_R1_STRATEGY_POLICY_PROPOSAL")
+                self.assertEqual(result["method_load_verification"], "NOT_PERFORMED")
+
 if __name__ == "__main__":
     unittest.main()

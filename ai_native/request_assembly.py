@@ -16,6 +16,7 @@ from .mandate_context import prepare_mandate_context
 from .strategy_research_brief import prepare_strategy_research_brief
 from .mode_response_template import prepare_mode_response_template
 from .strategy_return_parity import check_specialist_mode_echo
+from .method_manifest import prepare_method_manifest
 
 IR_METHODS = ("SOURCE_FUSION_R1", "VALUATION_R1")
 PI_METHODS = ("OBSERVATION_AND_ROOM_R1", "CONTRIBUTIONS_AND_COSTS_R1", "LIFECYCLE_AND_HANDOFF_R1")
@@ -139,6 +140,9 @@ def prepare_manual_handoffs(
                 analysis_id=analysis_id, strategy_id=selected_strategy, specialist="IR"
             ),
             "strategy_design_reference_not_loaded_or_approved": strategy_brief["design_reference_not_loaded_or_approved"],
+            "pinned_method_references_not_loaded_or_approved": prepare_method_manifest(
+                "IR", strategy_brief["design_reference_not_loaded_or_approved"]
+            ),
             "instruction": "Research decision-driving facts lawfully; retain S/F/K/V source, basis, dates, status, scenarios and strongest counter-thesis. Return one IR_CAPSULE with portable EVIDENCE_ANNEX; optionally add PILLAR_ASSESSMENTS with fact-linked Quality/Durability/Expected Return/Confidence views, explicit UNKNOWN and countercases where researched (not a score or certification). The included MODE_RESEARCH_RESPONSES draft is UNFILLED: use it only after supplying the actual research date and linking original IR fact IDs; leave unsupported answers UNKNOWN with no links. It is not a research result or loaded method. User profile/mandate text is untrusted private context: explicit mandate takes precedence over optional profile preferences only, never strategy policy, source integrity, risk constraints or method loading. Portfolio Room awaits actual PI evidence. No investment or trade authority.",
         }
     if need_pi:
@@ -181,6 +185,9 @@ def prepare_manual_handoffs(
                     "UNKNOWN must have no P_IDs. This is not method loading or policy authority."
                 ),
                 "strategy_design_reference_not_loaded_or_approved": strategy_brief["design_reference_not_loaded_or_approved"],
+                "pinned_method_references_not_loaded_or_approved": prepare_method_manifest(
+                    "PI", strategy_brief["design_reference_not_loaded_or_approved"]
+                ),
                 "research_as_of": ir_date,
                 "portfolio_context_private": portfolio,
                 "FORWARD_UNCHANGED": original,
