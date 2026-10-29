@@ -8,6 +8,8 @@ from __future__ import annotations
 
 import argparse
 from copy import deepcopy
+from datetime import date
+import re
 import json
 import math
 import sys
@@ -57,6 +59,11 @@ SAFE_ERROR_CODES = frozenset({
     "MANUAL_RESUME_ENVELOPE_INVALID",
     "MANUAL_RESUME_CONTINUATION_MISMATCH",
     "MANUAL_RESUME_STAGE_MISMATCH",
+    "SEALED_FOLLOWUP_INPUT_INVALID",
+    "SEALED_FOLLOWUP_EXPLICIT_MANDATE_REQUIRED",
+    "SEALED_FOLLOWUP_PRIOR_ID_OR_SUBJECT_MISMATCH",
+    "SEALED_FOLLOWUP_DATE_INVALID",
+    "SEALED_FOLLOWUP_FACT_LINKS_INVALID",
 })
 
 
@@ -353,6 +360,66 @@ def _resume_manual_transfer(envelope: Any) -> tuple[dict[str, Any], dict[str, An
     return current, evaluate(current)
 
 
+
+_FOLLOWUP_SAFE_ID = re.compile(r"[A-Za-z0-9][A-Za-z0-9._:-]{0,79}\Z")
+
+
+def _reenter_sealed_followup(envelope: Any) -> tuple[dict[str, Any], dict[str, Any]]:
+    """Explicitly recover a checksum-matched case for a NEW CEO follow-up.
+
+    Restored history is used only as a supplied private comparison baseline;
+    no prior request, account context, holdings, costs, or IR conclusion is
+    promoted into the fresh mandate. The checksum is not authentication.
+    """
+    if (not isinstance(envelope, dict)
+            or set(envelope) != {"private_case_envelope", "session", "fact_links"}
+            or not isinstance(envelope["session"], dict)):
+        raise ValueError("SEALED_FOLLOWUP_INPUT_INVALID")
+    case = verify_private_case_envelope(envelope["private_case_envelope"])
+    # Reuse the independently checked original-request/fact/date contract.
+    draft = prepare_explicit_followup_draft(case)
+    inherited = draft["input_template"]["request"]
+    current = deepcopy(envelope["session"])
+    req = current.get("request")
+    if not isinstance(req, dict):
+        raise ValueError("SEALED_FOLLOWUP_INPUT_INVALID")
+    if (req.get("ceo_initiated") is not True
+            or req.get("research_needed") is not True
+            or req.get("kind") != "FOLLOWUP"):
+        raise ValueError("SEALED_FOLLOWUP_EXPLICIT_MANDATE_REQUIRED")
+    new_id = req.get("analysis_id")
+    if (req.get("subject_id") != inherited["subject_id"]
+            or req.get("prior_analysis_id") != inherited["prior_analysis_id"]
+            or not isinstance(new_id, str)
+            or new_id == inherited["prior_analysis_id"]):
+        raise ValueError("SEALED_FOLLOWUP_PRIOR_ID_OR_SUBJECT_MISMATCH")
+    raw_date = req.get("as_of")
+    try:
+        current_date = date.fromisoformat(raw_date)
+        if (not isinstance(raw_date, str) or current_date.isoformat() != raw_date
+                or raw_date < case["recorded_at"]):
+            raise ValueError
+    except (ValueError, TypeError) as exc:
+        raise ValueError("SEALED_FOLLOWUP_DATE_INVALID") from exc
+    links = envelope["fact_links"]
+    if (not isinstance(links, list) or len(links) > 100
+            or any(not isinstance(link, dict)
+                   or set(link) != {"prior_fact_id", "current_fact_id"}
+                   or any(not isinstance(link[key], str)
+                          or not _FOLLOWUP_SAFE_ID.fullmatch(link[key])
+                          for key in ("prior_fact_id", "current_fact_id"))
+                   for link in links)):
+        raise ValueError("SEALED_FOLLOWUP_FACT_LINKS_INVALID")
+    if "historical_comparison_inputs" in current:
+        raise ValueError("SEALED_FOLLOWUP_INPUT_INVALID")
+    current["historical_comparison_inputs"] = {
+        "prior_case": case, "subject_id": inherited["subject_id"],
+        "fact_links": deepcopy(links)}
+    # Existing session bridge and source/IR/PI checks remain authoritative,
+    # including when the new IR capsule is still pending.
+    return current, evaluate(current)
+
+
 def run(*, output: str, instream: TextIO, outstream: TextIO,
         errstream: TextIO) -> int:
     """Read one bounded JSON payload from stdin, send results to stdout only."""
@@ -381,6 +448,8 @@ def run(*, output: str, instream: TextIO, outstream: TextIO,
             result = None
         elif output == "resume-operator":
             resume_payload, result = _resume_manual_transfer(payload)
+        elif output == "sealed-followup-operator":
+            restored_payload, result = _reenter_sealed_followup(payload)
         elif (output == "guided-operator" and isinstance(payload, dict)
               and ("continuation_private" in payload
                    or ("specialist_result" in payload and "request" not in payload))):
@@ -405,12 +474,17 @@ def run(*, output: str, instream: TextIO, outstream: TextIO,
     elif output == "status":
         outstream.write(json.dumps(_redacted_status(result),
                                    ensure_ascii=False, sort_keys=True) + "\n")
-    elif output in {"operator-packet", "resume-operator"}:
+    elif output in {"operator-packet", "resume-operator", "sealed-followup-operator"}:
         # PRIVATE opt-in. Resume reuses exactly the original validated operator
         # packet contract after a separate, manually received specialist result.
         try:
-            case_payload = resume_payload if output == "resume-operator" else payload
+            case_payload = (resume_payload if output == "resume-operator"
+                            else restored_payload if output == "sealed-followup-operator"
+                            else payload)
             packet = _private_operator_packet(case_payload, result)
+            if output == "sealed-followup-operator":
+                packet["manual_copy_integrity"] = "SHA256_MATCHED_RETAINED_COPY_ONLY"
+                packet["record_authenticity"] = "NOT_ESTABLISHED"
             encoded = json.dumps(packet, ensure_ascii=False, sort_keys=True,
                                  indent=2, allow_nan=False)
             if len(encoded) > MAX_INPUT_CHARACTERS:
@@ -569,9 +643,9 @@ def main(argv: list[str] | None = None, *, instream: TextIO | None = None,
          outstream: TextIO | None = None,
          errstream: TextIO | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--output", choices=("status", "report", "handoffs", "next-handoff", "continuation", "operator-packet", "resume-operator", "guided-operator", "method-handoff", "specialist-prompt", "followup-draft", "sealed-followup-draft", "private-case", "private-case-envelope", "review-queue"),
+    parser.add_argument("--output", choices=("status", "report", "handoffs", "next-handoff", "continuation", "operator-packet", "resume-operator", "guided-operator", "method-handoff", "specialist-prompt", "followup-draft", "sealed-followup-draft", "sealed-followup-operator", "private-case", "private-case-envelope", "review-queue"),
                         default="status",
-                        help="status is redacted; report, handoffs, next-handoff, continuation, operator-packet, resume-operator, guided-operator, method-handoff, specialist-prompt, followup-draft, sealed-followup-draft, private-case, private-case-envelope and review-queue require a private terminal")
+                        help="status is redacted; report, handoffs, next-handoff, continuation, operator-packet, resume-operator, guided-operator, method-handoff, specialist-prompt, followup-draft, sealed-followup-draft, sealed-followup-operator, private-case, private-case-envelope and review-queue require a private terminal")
     opts = parser.parse_args(argv)
     return run(output=opts.output, instream=instream or sys.stdin,
                outstream=outstream or sys.stdout, errstream=errstream or sys.stderr)

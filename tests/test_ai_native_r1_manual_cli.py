@@ -25,6 +25,138 @@ class ManualCLIContractTests(unittest.TestCase):
         return code, stdout.getvalue(), stderr.getvalue()
 
 
+
+    def _sealed_prior_for_followup(self):
+        # Old private account scope must never be inferred in a new mandate.
+        original = {
+            "request": self.fx.request(
+                subject_id="SYN-ISSUER",
+                account_context={"account": "PRIVATE_PRIOR_ACCOUNT_SENTINEL"}),
+            "ir_capsule": self.fx.ir(),
+            "memory_inputs": {
+                "report_id": "REPORT-A", "instruction_version": "R1-SYN",
+                "recorded_at": "2026-10-28"},
+        }
+        code, data, err = self.invoke(original, "private-case-envelope")
+        self.assertEqual((code, err), (0, ""))
+        return json.loads(data)
+
+    def _new_sealed_followup(self, envelope=None, *, include_ir=False,
+                             fact_links=None, **request_changes):
+        new_request = self.fx.request(
+            analysis_id="CASE-B", as_of="2026-10-29",
+            kind="FOLLOWUP", subject_id="SYN-ISSUER",
+            prior_analysis_id="CASE-A", objective="CEO on-demand follow-up")
+        new_request.update(request_changes)
+        session = {"request": new_request}
+        if include_ir:
+            session["ir_capsule"] = self.fx.ir(
+                analysis_id="CASE-B", research_as_of="2026-10-29",
+                facts=[{"id":"F2","status":"INDICATIVE","claim":"New private fact"}])
+        return {
+            "private_case_envelope": (
+                self._sealed_prior_for_followup() if envelope is None else envelope),
+            "session": session,
+            "fact_links": ([{"prior_fact_id":"F1","current_fact_id":"F2"}]
+                           if fact_links is None else fact_links),
+        }
+
+    def test_sealed_followup_operator_creates_private_ir_handoff_only_on_new_ceo_request(self):
+        data = self._new_sealed_followup()
+        before = deepcopy(data)
+        code, body, err = self.invoke(data, "sealed-followup-operator")
+        self.assertEqual((code, err), (0, ""))
+        result = json.loads(body)
+        self.assertEqual(result["session"]["status"], "AWAITING_MANUAL_IR_CAPSULE")
+        self.assertEqual(set(result["continuation_private"]["next_handoff"]),
+                         {"IR_REQUEST"})
+        self.assertIsNone(result["report_private"])
+        self.assertEqual(result["manual_copy_integrity"],
+                         "SHA256_MATCHED_RETAINED_COPY_ONLY")
+        self.assertEqual(result["record_authenticity"], "NOT_ESTABLISHED")
+        handoff = json.dumps(result["continuation_private"]["next_handoff"])
+        self.assertNotIn("PRIVATE_PRIOR_ACCOUNT_SENTINEL", handoff)
+        self.assertEqual(result["project_invocation"], "NONE")
+        self.assertEqual(result["storage"], "NONE")
+        self.assertEqual(data, before)
+
+    def test_sealed_followup_manual_ir_return_reaches_real_private_comparison(self):
+        data = self._new_sealed_followup()
+        first = json.loads(self.invoke(data, "sealed-followup-operator")[1])
+        received = self.fx.ir(
+            analysis_id="CASE-B", research_as_of="2026-10-29",
+            facts=[{"id":"F2","status":"INDICATIVE","claim":"New private fact"}])
+        response = {
+            "continuation_private": first["continuation_private"],
+            "specialist_result": {"IR_CAPSULE": received}}
+        code, body, err = self.invoke(response, "resume-operator")
+        self.assertEqual((code, err), (0, ""))
+        final = json.loads(body)
+        self.assertEqual(final["session"]["status"],
+                         "M7A_COMPONENT_ASSEMBLED_NOT_END_TO_END_ACCEPTANCE")
+        self.assertIsNone(final["continuation_private"])
+        self.assertIn("Prior/current research", final["report_private"])
+        self.assertIn("Evidence and metric comparability", final["report_private"])
+        self.assertNotIn("PRIVATE_PRIOR_ACCOUNT_SENTINEL",
+                         final["report_private"])
+        self.assertEqual(final["storage"], "NONE")
+        self.assertEqual(final["trading_authority"], "NONE")
+
+    def test_sealed_followup_can_use_already_received_new_ir_without_forged_transfer(self):
+        data = self._new_sealed_followup(include_ir=True)
+        code, body, err = self.invoke(data, "sealed-followup-operator")
+        self.assertEqual((code, err), (0, ""))
+        packet = json.loads(body)
+        self.assertIsNone(packet["continuation_private"])
+        self.assertIn("Prior/current research", packet["report_private"])
+        self.assertEqual(packet["record_authenticity"], "NOT_ESTABLISHED")
+
+    def test_sealed_followup_rejects_changed_archive_and_hides_private_input(self):
+        data = self._new_sealed_followup()
+        data["private_case_envelope"]["private_case"]["original_request"][
+            "account_context"]["account"] = "SECRET_NEVER_PRINT_ME"
+        code, body, err = self.invoke(data, "sealed-followup-operator")
+        self.assertEqual(code, 2)
+        self.assertEqual(body, "")
+        self.assertIn("PRIVATE_CASE_SHA256_MISMATCH", err)
+        self.assertNotIn("SECRET_NEVER_PRINT_ME", err)
+
+    def test_sealed_followup_refuses_implicit_old_case_or_wrong_ceo_mandate(self):
+        for patch, expected in (
+            ({"ceo_initiated":False}, "SEALED_FOLLOWUP_EXPLICIT_MANDATE_REQUIRED"),
+            ({"kind":"DECISION"}, "SEALED_FOLLOWUP_EXPLICIT_MANDATE_REQUIRED"),
+            ({"research_needed":False}, "SEALED_FOLLOWUP_EXPLICIT_MANDATE_REQUIRED"),
+            ({"subject_id":"OTHER"}, "SEALED_FOLLOWUP_PRIOR_ID_OR_SUBJECT_MISMATCH"),
+            ({"prior_analysis_id":"OTHER"}, "SEALED_FOLLOWUP_PRIOR_ID_OR_SUBJECT_MISMATCH"),
+            ({"analysis_id":"CASE-A"}, "SEALED_FOLLOWUP_PRIOR_ID_OR_SUBJECT_MISMATCH"),
+            ({"as_of":"2026-10-27"}, "SEALED_FOLLOWUP_DATE_INVALID"),
+            ({"as_of":"2026-1-1"}, "SEALED_FOLLOWUP_DATE_INVALID"),
+        ):
+            with self.subTest(patch=patch):
+                data = self._new_sealed_followup(**patch)
+                code, body, err = self.invoke(data, "sealed-followup-operator")
+                self.assertEqual((code, body), (2, ""))
+                self.assertIn(expected, err)
+
+    def test_sealed_followup_rejects_link_injection_and_ambiguous_historical_baseline(self):
+        for links in (
+            [{"prior_fact_id":"F1","current_fact_id":"F2\\n# SECRET"}],
+            [{"prior_fact_id":"F1"}],
+            "not a list",
+            [{"prior_fact_id":"F1","current_fact_id":"F2"}] * 101,
+        ):
+            with self.subTest(links=str(links)[:40]):
+                data = self._new_sealed_followup(fact_links=links)
+                code, body, err = self.invoke(data, "sealed-followup-operator")
+                self.assertEqual((code, body), (2, ""))
+                self.assertIn("SEALED_FOLLOWUP_FACT_LINKS_INVALID", err)
+        data = self._new_sealed_followup()
+        data["session"]["historical_comparison_inputs"] = {
+            "prior_case": {}, "subject_id":"SYN-ISSUER", "fact_links":[]}
+        code, body, err = self.invoke(data, "sealed-followup-operator")
+        self.assertEqual((code, body), (2, ""))
+        self.assertIn("SEALED_FOLLOWUP_INPUT_INVALID", err)
+
     def test_single_ir_capsule_envelope_routes_to_final_private_cc_report(self):
         req = self.fx.request()
         ir = self.fx.ir()

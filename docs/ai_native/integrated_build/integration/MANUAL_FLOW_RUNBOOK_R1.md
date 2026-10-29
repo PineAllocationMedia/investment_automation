@@ -307,3 +307,31 @@ These are **current-observation calculations**, not retroactive source evidence 
 The M2 macro/sector stage now follows the same source chronology as original-IR fundamentals and opportunity triage. A source **first observed by CC after** the unchanged `IR_CAPSULE.research_as_of` remains available in the private CC evidence annex, but its linked driver receives `CC_SOURCE_POSTDATES_ORIGINAL_IR` and stays in `EVIDENCE_RESOLUTION` rather than `HUMAN_CAUSAL_REVIEW`. This avoids failing the entire current CC report merely because a later externally supplied observation is present; a fresh CEO-initiated IR session is required to establish new original IR research. An observation at the original IR research date remains structurally reviewable but is never authenticated or used to predict timing/returns.
 
 The original hard refusal is retained for future-dated observations **embedded inside the original IR capsule**, since that would misrepresent what IR knew. Direct standalone `prepare_macro_sector_context` callers without the optional cutoff keep their earlier behavior; the connected manual R1 flow always supplies the original cutoff. No portfolio trades, financial policy changes, source retrieval or Project automation. Focused synthetic tests authored, canonical Python tests NOT_RUN.
+
+## Direct, CEO-initiated follow-up from a manually retained sealed case (2026-10-29)
+
+A CEO who has **manually** kept the PRIVATE output of `--output private-case-envelope` can now begin a **new** research comparison without manually extracting and transplanting its historical case JSON. In a PRIVATE terminal, run `python -m scripts.r1_manual_session_cli --output sealed-followup-operator` and pass exactly:
+
+```json
+{
+  "private_case_envelope": {"...": "the unchanged saved private-case-envelope"},
+  "session": {
+    "request": {
+      "ceo_initiated": true, "research_needed": true,
+      "portfolio_needed": false, "kind": "FOLLOWUP",
+      "analysis_id": "NEW-CASE-ID", "as_of": "YYYY-MM-DD",
+      "subject_id": "SAME-SUBJECT-ID",
+      "prior_analysis_id": "ORIGINAL-CASE-ID",
+      "objective": "CEO's new research question",
+      "strategy_id": "CURRENT-CEO-SELECTED-STRATEGY"
+    }
+  },
+  "fact_links": [
+    {"prior_fact_id": "OLD-F-ID", "current_fact_id": "NEW-F-ID"}
+  ]
+}
+```
+
+The example shows core fields; the normal session contract still requires all applicable method/mandate inputs and existing validations. `fact_links` may be an empty list pending a later explicitly reviewed comparison. The command verifies the unkeyed SHA-256 copy, reuses the existing private-case structural/date/fact gates, requires a fresh CEO-initiated FOLLOWUP mandate, a *distinct* new analysis ID, the same original subject and exact prior analysis ID, and a current research date not earlier than the saved record. An already received new IR capsule may be supplied inside `session`; otherwise, the existing operator packet contains the **one** next IR handoff. Submit the returned `continuation_private` plus a separately received IR response to `--output resume-operator` as before. The historical private case remains in that CC continuation; **do not forward the continuation to IR**. Only `next_handoff.IR_REQUEST` goes to the IR Project.
+
+This reuses existing original-IR/PI/evidence/report safeguards and permits the existing analyst-only `compare_supplied_cases` result in the CEO's private report. The stored prior case is a *comparison baseline*, NOT a copied current request: old holdings, broker/account data, costs, old IR conclusions or rights do not become current facts or transfer to the new IR handoff. The command makes no Project call, storage write, scheduled task, GitHub private-record upload or trade. A matching **unkeyed** digest shows retained-copy consistency only, not ownership, source authenticity, storage encryption, backup, or restoration reliability. Approved real private archive location, retention and disaster recovery are still unverified. Python tests authored NOT_RUN.
