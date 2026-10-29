@@ -166,6 +166,9 @@ def complete_manual_session(
     if route == "CC_DIRECT":
         private["status"] = "CC_DIRECT_NO_SPECIALIST_REPORT_REQUIRED"
         return private
+    if route in {"CC_IR_CC", "CC_IR_PI_CC"} and ir_capsule is None:
+        private["status"] = "AWAITING_MANUAL_IR_CAPSULE"
+        return private
     if (visual_capture is not None
             and visual_capture["status"] == "VISUAL_SOURCE_UNAVAILABLE_USE_SCREENSHOT_FALLBACK"):
         # The inaccessible Work view cannot justify portfolio claims, even
@@ -173,9 +176,6 @@ def complete_manual_session(
         if pi_delta is not None:
             raise ValueError("WORK_BLOSSOM_UNAVAILABLE_CONFLICTS_WITH_PI_DELTA")
         private["status"] = "AWAITING_MANUAL_PORTFOLIO_SCREENSHOT"
-        return private
-    if route in {"CC_IR_CC", "CC_IR_PI_CC"} and ir_capsule is None:
-        private["status"] = "AWAITING_MANUAL_IR_CAPSULE"
         return private
     if room_assessment_inputs is not None:
         if observation is None or exposures is None:
