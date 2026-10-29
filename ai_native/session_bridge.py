@@ -13,6 +13,7 @@ from .request_assembly import prepare_manual_handoffs
 from .integrated_flow import assemble_manual_run
 from .reporting import render_report
 from .portfolio_observation import prepare_observation_ledger
+from .work_blossom_adapter import prepare_work_blossom_observation
 from .portfolio_exposure import aggregate_portfolio_exposures
 from .portfolio_room import prepare_portfolio_room_review
 from .new_capital_flow import prepare_new_capital_projection
@@ -48,6 +49,7 @@ def complete_manual_session(
     cost_inputs: Mapping[str, Any] | None = None,
     memory_inputs: Mapping[str, Any] | None = None,
     observation_inputs: Mapping[str, Any] | None = None,
+    work_blossom_inputs: Mapping[str, Any] | None = None,
     exposure_classifications: Mapping[str, Any] | None = None,
     room_assessment_inputs: Mapping[str, Any] | None = None,
     source_evidence_inputs: Mapping[str, Any] | None = None,
@@ -96,6 +98,27 @@ def complete_manual_session(
     if room_assessment_inputs is not None and route != "CC_IR_PI_CC":
         raise ValueError("PORTFOLIO_ROOM_REQUIRES_IR_AND_PI_ROUTE")
 
+    # Existing Work/screenshot adapter is a user-controlled MANUAL source,
+    # not a way to invoke Work or infer that the real Blossom view was seen.
+    visual_capture = None
+    if work_blossom_inputs is not None:
+        if route not in {"CC_PI_CC", "CC_IR_PI_CC"}:
+            raise ValueError("WORK_BLOSSOM_REQUIRES_PI_ROUTE")
+        if observation_inputs is not None:
+            raise ValueError("AMBIGUOUS_PORTFOLIO_OBSERVATION_INPUTS")
+        if not isinstance(work_blossom_inputs, Mapping):
+            raise ValueError("WORK_BLOSSOM_INPUT_MAPPING_REQUIRED")
+        # The adapter intentionally short-circuits inaccessible views. Enforce
+        # analysis identity *before* it can return the fallback status.
+        if (work_blossom_inputs.get("analysis_id") != request.get("analysis_id")
+                or work_blossom_inputs.get("analysis_as_of") != request.get("as_of")):
+            raise ValueError("WORK_BLOSSOM_ANALYSIS_ID_OR_DATE_MISMATCH")
+        visual_capture = prepare_work_blossom_observation(work_blossom_inputs)
+        if visual_capture["status"] == "PRIVATE_OBSERVATION_PACKET_PREPARED_NOT_SENT":
+            observation_inputs = visual_capture["observation_inputs_private"]
+        elif visual_capture["status"] != "VISUAL_SOURCE_UNAVAILABLE_USE_SCREENSHOT_FALLBACK":
+            raise ValueError("WORK_BLOSSOM_ADAPTER_STATUS_INVALID")
+
     observation = None
     if observation_inputs is not None:
         if route not in {"CC_PI_CC", "CC_IR_PI_CC"}:
@@ -107,6 +130,8 @@ def complete_manual_session(
         if observation_inputs.get("analysis_as_of") != request.get("as_of"):
             raise ValueError("OBSERVATION_ANALYSIS_CUTOFF_MISMATCH")
         observation = prepare_observation_ledger(**observation_inputs)
+        if visual_capture is not None and observation != visual_capture["p_ledger_private"]:
+            raise ValueError("WORK_BLOSSOM_LEDGER_PARITY_MISMATCH")
         if pi_delta is not None and observation["observed_on"] != pi_delta.get("portfolio_as_of"):
             raise ValueError("OBSERVATION_PI_DATE_MISMATCH")
         if (pi_delta is not None and pi_delta.get("room_status") == "ROOM_EVIDENCE_SUPPORTED"
@@ -128,6 +153,7 @@ def complete_manual_session(
                "handoffs_private": handoffs, "final_report_private": None,
                "integrated_private": None, "pi_delta_private": None,
                "portfolio_observation_private": observation,
+               "work_blossom_capture_private": visual_capture,
                "portfolio_exposures_private": exposures,
                "portfolio_room_review_private": None,
                "gross_contribution_private": None,
@@ -139,6 +165,14 @@ def complete_manual_session(
 
     if route == "CC_DIRECT":
         private["status"] = "CC_DIRECT_NO_SPECIALIST_REPORT_REQUIRED"
+        return private
+    if (visual_capture is not None
+            and visual_capture["status"] == "VISUAL_SOURCE_UNAVAILABLE_USE_SCREENSHOT_FALLBACK"):
+        # The inaccessible Work view cannot justify portfolio claims, even
+        # when a PI_DELTA was independently typed into the same request.
+        if pi_delta is not None:
+            raise ValueError("WORK_BLOSSOM_UNAVAILABLE_CONFLICTS_WITH_PI_DELTA")
+        private["status"] = "AWAITING_MANUAL_PORTFOLIO_SCREENSHOT"
         return private
     if route in {"CC_IR_CC", "CC_IR_PI_CC"} and ir_capsule is None:
         private["status"] = "AWAITING_MANUAL_IR_CAPSULE"
