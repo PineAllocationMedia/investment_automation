@@ -211,6 +211,104 @@ def _portfolio_observation_lines(packet: Mapping[str, Any], analysis_id: str,
     ]
 
 
+def _portfolio_exposure_lines(packet: Mapping[str, Any], analysis_id: str,
+                              as_of: str) -> list[str]:
+    """Summarize only M3 CURRENT scoped known/unknown/cash fractions.
+
+    Existing private M3 classification and its historical fund scenarios stay
+    in the annex. No issuer, security, account, raw amount or source reference
+    is reproduced in the concise CC report.
+    """
+    exposures = packet.get("portfolio_exposures_private")
+    if exposures is None:
+        return []
+    if not isinstance(exposures, Mapping):
+        raise ValueError("REPORT_EXPOSURE_INVALID")
+    if exposures.get("status") == "UNAVAILABLE_INCOMPLETE_P_LEDGER":
+        if (exposures.get("economic_issuer_pct_private") is not None
+                or exposures.get("source_authentication") != "NOT_PERFORMED"
+                or exposures.get("portfolio_room_status") != "ROOM_UNAVAILABLE"):
+            raise ValueError("REPORT_EXPOSURE_UNAVAILABLE_AUTHORITY_MISMATCH")
+        return ["", "## Scoped portfolio exposures — unavailable",
+                "Complete and reconcile the private dated portfolio ledger before "
+                "using any sector, region or economic issuer percentages."]
+    if (exposures.get("status") not in {
+            "CALLER_REPORTED_SCOPED_EXPOSURES",
+            "PARTIAL_KNOWN_EXPOSURE_LOWER_BOUNDS"}
+            or exposures.get("analysis_id") != analysis_id
+            or exposures.get("source_authentication") !=
+                "CALLER_REPORTED_NOT_INDEPENDENTLY_VERIFIED"
+            or exposures.get("coverage_scope") !=
+                "EXPLICIT_LEDGER_SCOPE_ONLY_NOT_HOUSEHOLD_TOTAL"
+            or exposures.get("portfolio_room_status") != "ROOM_UNAVAILABLE"
+            or exposures.get("trading_authority") != "NONE"
+            or exposures.get("writes") != "NONE"):
+        raise ValueError("REPORT_EXPOSURE_AUTHORITY_OR_ID_MISMATCH")
+    observed = _iso_date(exposures.get("observation_as_of"), "exposures.observed_on")
+    observation = packet.get("portfolio_observation_private")
+    if (observed > as_of or not isinstance(observation, Mapping)
+            or observation.get("analysis_id") != analysis_id
+            or observation.get("observed_on") != observed
+            or observation.get("status") != "SCOPED_WEIGHTS_DERIVED_FROM_CALLER_VISIBLE_DATA"
+            or observation.get("private_scope") is not True):
+        raise ValueError("REPORT_EXPOSURE_OBSERVATION_MISMATCH")
+
+    def read_pct(name: str) -> Decimal:
+        raw = exposures.get(name)
+        if not isinstance(raw, str) or not 1 <= len(raw) <= 7:
+            raise ValueError("REPORT_EXPOSURE_PERCENT_INVALID")
+        try:
+            value = Decimal(raw)
+        except InvalidOperation as exc:
+            raise ValueError("REPORT_EXPOSURE_PERCENT_INVALID") from exc
+        if (not value.is_finite() or not 0 <= value <= 100
+                or value != value.quantize(Decimal("0.01"))):
+            raise ValueError("REPORT_EXPOSURE_PERCENT_INVALID")
+        return value
+
+    known, unknown, cash = (read_pct(key) for key in (
+        "known_exposure_pct", "unclassified_or_unknown_fund_pct", "cash_pct"))
+    # M3 rounds each component to 0.01 percentage points. Accounting for
+    # the independent rounding, their scoped total must still equal 100.
+    if abs(known + unknown + cash - Decimal("100")) > Decimal("0.02"):
+        raise ValueError("REPORT_EXPOSURE_SCOPE_SUM_MISMATCH")
+    if ((unknown > 0 and exposures["status"] != "PARTIAL_KNOWN_EXPOSURE_LOWER_BOUNDS")
+            or (unknown == 0 and exposures["status"] != "CALLER_REPORTED_SCOPED_EXPOSURES")):
+        raise ValueError("REPORT_EXPOSURE_COVERAGE_STATUS_MISMATCH")
+    historical = exposures.get("fund_composition_date_alignment")
+    if historical not in {
+        "NO_PRIOR_DATED_FUND_SNAPSHOTS_REPORTED",
+        "PRIOR_DATED_FUND_SNAPSHOTS",
+    }:
+        raise ValueError("REPORT_EXPOSURE_FUND_DATE_STATUS_INVALID")
+    if historical == "PRIOR_DATED_FUND_SNAPSHOTS":
+        if (unknown == 0
+                or exposures.get("economic_issuer_rank_coverage_reported_complete") is not False
+                or not isinstance(exposures.get("historical_fund_scenario_private"), Mapping)
+                or not isinstance(exposures.get("historical_fund_p_ids_private"), list)
+                or not exposures["historical_fund_p_ids_private"]):
+            raise ValueError("REPORT_EXPOSURE_HISTORICAL_AUTHORITY_MISMATCH")
+    elif exposures.get("historical_fund_scenario_private") is not None:
+        raise ValueError("REPORT_EXPOSURE_FUND_DATE_STATUS_INVALID")
+    lines = ["", "## Scoped portfolio exposures — caller-reported, not certified",
+             f"Observed {observed}: {known:.2f}% known classified exposure, "
+             f"{unknown:.2f}% unknown/unclassified and {cash:.2f}% cash "
+             "of the explicitly observed private scope (not all household accounts)."]
+    if historical == "PRIOR_DATED_FUND_SNAPSHOTS":
+        lines.append(
+            "Older ETF/fund constituents are excluded from CURRENT known exposures; "
+            "their entire reported fund value is in the unknown share. "
+            "Any historical scenario is PRIVATE and illustrative, not current look-through.")
+    if unknown > 0:
+        lines.append(
+            "Issuer, sector and region overlap may be larger than the reported known portion; "
+            "verify original fund constituents, dates, rights, cash and account coverage.")
+    lines.append(
+        "No underlying holdings, individual weights, issuer IDs, broker values or source "
+        "links are reproduced. This is not verified Portfolio Room, advice or a trade.")
+    return lines
+
+
 def _new_contribution_lines(packet: Mapping[str, Any], analysis_id: str,
                             as_of: str) -> list[str]:
     """Show only supplied NEW-capital percentages, never private positions.
@@ -1496,6 +1594,7 @@ def render_report(packet: Mapping[str, Any]) -> str:
     lines += _candidate_comparison_lines(packet, analysis_id, as_of, strategy)
     lines += _new_contribution_lines(packet, analysis_id, as_of)
     lines += _portfolio_observation_lines(packet, analysis_id, as_of)
+    lines += _portfolio_exposure_lines(packet, analysis_id, as_of)
     lines += _portfolio_room_lines(packet, analysis_id, as_of)
     lines += _five_pillar_lines(packet, analysis_id, as_of, strategy)
     lines += _exceptional_lifecycle_lines(packet, analysis_id, as_of, strategy)

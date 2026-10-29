@@ -67,6 +67,7 @@ def assemble_manual_run(
     macro_sector_inputs: Mapping[str, Any] | None = None,
     portfolio_room_review_private: Mapping[str, Any] | None = None,
     portfolio_observation_private: Mapping[str, Any] | None = None,
+    portfolio_exposures_private: Mapping[str, Any] | None = None,
     exceptional_lifecycle_review_private: Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Assemble a PRIVATE report without claiming live Project connectivity.
@@ -440,6 +441,10 @@ def assemble_manual_run(
         packet["historical_research_comparison_private"] = historical_comparison
     if portfolio_observation_private is not None:
         packet["portfolio_observation_private"] = portfolio_observation_private
+    if portfolio_exposures_private is not None:
+        if pi_delta is None or portfolio_observation_private is None:
+            raise ValueError("EXPOSURE_REPORT_REQUIRES_PI_OBSERVATION")
+        packet["portfolio_exposures_private"] = portfolio_exposures_private
     if exceptional_lifecycle_review_private is not None:
         if pi_delta is None:
             raise ValueError("LIFECYCLE_REPORT_REQUIRES_PI_DELTA")
