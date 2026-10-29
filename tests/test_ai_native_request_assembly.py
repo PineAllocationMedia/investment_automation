@@ -115,5 +115,52 @@ class RequestAssemblyTests(unittest.TestCase):
         self.assertEqual(o["storage"], "NONE")
 
 
+
+    def test_pinned_method_documents_are_transferred_without_loading_claims(self):
+        cases = (("high-cagr", "HIGH_CAGR_METHOD_R1.md"),
+                 ("balanced", "POLICY_PROPOSAL_BALANCED_R1.md"),
+                 ("family-office", "POLICY_PROPOSAL_FAMILY_OFFICE_R1.md"),
+                 ("rational-aggressive", "POLICY_PROPOSAL_RATIONAL_AGGRESSIVE_R1.md"),
+                 ("intelligent-dividend-harvester",
+                  "POLICY_PROPOSAL_INTELLIGENT_DIVIDEND_HARVESTER_R1.md"),
+                 ("modern-adaptive-browne", "POLICY_PROPOSAL_MODERN_ADAPTIVE_BROWNE_R1.md"),
+                 ("EXPLORATORY", None))
+        for mode, design in cases:
+            with self.subTest(mode=mode):
+                req = self.request(strategy_id=mode, portfolio_needed=True)
+                ir = self.capsule()
+                packet = prepare_manual_handoffs(req, ir_capsule=ir)
+                for name, label in (("ir_request_private", "IR"),
+                                    ("pi_request_private", "PI")):
+                    spec = packet[name]["pinned_method_references_not_loaded_or_approved"]
+                    self.assertEqual(spec["specialist"], label)
+                    self.assertEqual(spec["status"],
+                                     "PINNED_REPOSITORY_REFERENCES_NOT_PROJECT_LOADING")
+                    self.assertEqual(spec["project_method_load_verification"],
+                                     "NOT_PERFORMED")
+                    docs = spec["documents"]
+                    self.assertEqual(len(docs), (2 if label == "IR" else 3) +
+                                     (1 if design is not None else 0))
+                    self.assertTrue(all(len(entry["git_blob_sha"]) == 40 for entry in docs))
+                    self.assertEqual(
+                        [entry["path"] for entry in docs if
+                         entry["reference_role"] not in {
+                             "COMMON_CANDIDATE_METHOD"}],
+                        ([] if design is None else [
+                            "docs/ai_native/integrated_build/research/" + design]))
+                    self.assertEqual(json.loads(packet["copy_ready_private"][
+                        label + "_REQUEST"])[
+                        "pinned_method_references_not_loaded_or_approved"], spec)
+                self.assertEqual(packet["pi_request_private"]["FORWARD_UNCHANGED"], ir)
+
+    def test_method_manifest_is_inert_for_direct_route(self):
+        req = self.request(research_needed=False, portfolio_needed=False,
+                           strategy_id="balanced")
+        result = prepare_manual_handoffs(req)
+        self.assertEqual(result["copy_ready_private"], {})
+        self.assertIsNone(result["ir_request_private"])
+        self.assertIsNone(result["pi_request_private"])
+        self.assertEqual(result["method_load_verification"], "NOT_PERFORMED")
+
 if __name__ == "__main__":
     unittest.main()
