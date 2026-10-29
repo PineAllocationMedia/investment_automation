@@ -41,8 +41,9 @@ class ValuationQuoteTraceTests(unittest.TestCase):
         )
 
     def price(self, **changes):
-        result = self.fx.case(quote_source_ref="QUOTE-O1", **changes)
-        return result
+        inputs = {"quote_source_ref": "QUOTE-O1"}
+        inputs.update(changes)
+        return self.fx.case(**inputs)
 
     def trace(self, *, observations=None, research_as_of="2026-10-28", **changes):
         source = self.annex(observations)
