@@ -16,7 +16,8 @@ from .reporting import render_report
 from .portfolio_observation import prepare_observation_ledger
 from .work_blossom_adapter import prepare_work_blossom_observation
 from .public_portfolio_reference import (
-    prepare_public_portfolio_reference, render_public_portfolio_reference,
+    prepare_public_portfolio_reference, prepare_public_reference_from_work_table,
+    render_public_portfolio_reference,
 )
 from .portfolio_exposure import aggregate_portfolio_exposures
 from .portfolio_room import prepare_portfolio_room_review
@@ -55,6 +56,7 @@ def complete_manual_session(
     observation_inputs: Mapping[str, Any] | None = None,
     work_blossom_inputs: Mapping[str, Any] | None = None,
     public_reference_inputs: Mapping[str, Any] | None = None,
+    public_reference_table_inputs: Mapping[str, Any] | None = None,
     exposure_classifications: Mapping[str, Any] | None = None,
     room_assessment_inputs: Mapping[str, Any] | None = None,
     source_evidence_inputs: Mapping[str, Any] | None = None,
@@ -109,7 +111,9 @@ def complete_manual_session(
     # authority. Do not let any PI inputs silently mix into this route.
     public_reference = None
     public_reference_report = None
-    if public_reference_inputs is not None:
+    if public_reference_inputs is not None and public_reference_table_inputs is not None:
+        raise ValueError("PUBLIC_REFERENCE_AMBIGUOUS_SOURCE_FORMAT")
+    if public_reference_inputs is not None or public_reference_table_inputs is not None:
         if route not in {"CC_DIRECT", "CC_IR_CC"}:
             raise ValueError("PUBLIC_REFERENCE_ONLY_CC_OR_IR_ROUTE")
         if (pi_delta is not None or observation_inputs is not None
@@ -118,11 +122,16 @@ def complete_manual_session(
                 or cost_inputs is not None or exposure_classifications is not None
                 or room_assessment_inputs is not None):
             raise ValueError("PUBLIC_REFERENCE_CANNOT_BECOME_PRIVATE_PORTFOLIO")
-        public_reference = prepare_public_portfolio_reference(
-            public_reference_inputs,
-            analysis_id=_required(request, "analysis_id"),
-            analysis_as_of=_date(_required(request, "as_of"), "request.as_of"),
-        )
+        case_identity = {
+            "analysis_id": _required(request, "analysis_id"),
+            "analysis_as_of": _date(_required(request, "as_of"), "request.as_of"),
+        }
+        if public_reference_table_inputs is not None:
+            public_reference = prepare_public_reference_from_work_table(
+                public_reference_table_inputs, **case_identity)
+        else:
+            public_reference = prepare_public_portfolio_reference(
+                public_reference_inputs, **case_identity)
         public_reference_report = render_public_portfolio_reference(public_reference)
         if route == "CC_IR_CC":
             # Portable manual IR request only; never self-invoke a Project.
