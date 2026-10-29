@@ -15,6 +15,7 @@ from .evidence_math import audit_calculation
 from .source_fusion import assemble_source_fusion
 from .fact_evidence_alignment import align_ir_facts_to_sources
 from .pillar_trace import prepare_pillar_trace
+from .mode_research_trace import prepare_mode_research_trace
 from .opportunity_triage import prepare_opportunity_triage
 from .macro_sector_context import prepare_macro_sector_context
 from .valuation_scenarios import evaluate_valuation_scenarios
@@ -220,6 +221,11 @@ def assemble_manual_run(
     if pillar_trace is not None:
         limits.append("Four research-pillar views are caller-reported and not independently certified; Portfolio Room requires a separate PI review.")
         status = "CONDITIONAL"
+    mode_research_trace = prepare_mode_research_trace(
+        request=request, ir_capsule=ir_capsule, fact_alignment=fact_alignment)
+    if mode_research_trace is not None:
+        limits.append("Mode-specific IR question-to-fact links are caller-reported research, not verified policy or evidence. See private trace.")
+        status = "CONDITIONAL"
 
     opportunity_triage = None
     if opportunity_triage_inputs is not None:
@@ -372,6 +378,8 @@ def assemble_manual_run(
 
     if pillar_trace is not None:
         packet["pillar_trace_private"] = pillar_trace
+    if mode_research_trace is not None:
+        packet["mode_research_trace_private"] = mode_research_trace
     if fact_alignment is not None:
         # Only the private report consumer sees structural source-use warnings.
         # The original IR capsule and its reported labels remain unchanged.
@@ -437,6 +445,7 @@ def assemble_manual_run(
         "source_evidence_annex_private": source_annex,
         "fact_source_alignment_private": fact_alignment,
         "pillar_trace_private": pillar_trace,
+        "mode_research_trace_private": mode_research_trace,
         "opportunity_triage_private": opportunity_triage,
         "macro_sector_context_private": macro_sector_context,
         "valuation_scenarios_private": valuation_scenarios,
