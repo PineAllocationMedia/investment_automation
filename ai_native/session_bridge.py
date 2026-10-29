@@ -282,6 +282,7 @@ def complete_manual_session(
                "gross_contribution_private": None,
                "supplied_costs_private": None,
                "funded_contribution_private": None,
+               "alternative_cost_details_private": None,
                "method_load_verification": "NOT_PERFORMED", "project_invocation": "NONE",
                "source_authentication": "NOT_PERFORMED", "storage": "NONE",
                "readiness": "NOT_EVALUATED",
@@ -372,6 +373,7 @@ def complete_manual_session(
             private["gross_contribution_private"] = bundle["gross_contribution_private"]
             private["supplied_costs_private"] = bundle["supplied_costs_private"]
             private["funded_contribution_private"] = bundle["funded_contribution_private"]
+            private["alternative_cost_details_private"] = bundle["alternative_cost_details_private"]
         if packet["kind"] == "FOLLOWUP":
             packet["changes"] = []
             for key in ("prior_analysis_id", "period_start", "period_end"):
@@ -433,6 +435,7 @@ def complete_manual_session(
     private["gross_contribution_private"] = integrated.get("gross_contribution_private")
     private["supplied_costs_private"] = integrated.get("supplied_costs_private")
     private["funded_contribution_private"] = integrated.get("funded_contribution_private")
+    private["alternative_cost_details_private"] = integrated.get("alternative_cost_details_private")
     # Old IR-only or IR+PI returns with no optional question answers are
     # supported. A specialist-supplied answer, however, may not vanish from
     # M7a even if an intermediate key exists with a null or unrelated value.

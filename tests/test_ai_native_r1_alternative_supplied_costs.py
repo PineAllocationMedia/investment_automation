@@ -77,6 +77,25 @@ class AlternativeSuppliedCostsTests(unittest.TestCase):
         for secret in ("SYN-ALT-SOURCE", "10.00", "1000.00", "995.00"):
             self.assertNotIn(secret, report)
         self.assertEqual(out["storage"], "NONE")
+        self.assertEqual(out["alternative_cost_details_private"][0][
+            "supplied_costs_private"]["total_supplied_costs_base"], "10.00")
+
+    def test_full_ir_pi_route_keeps_independent_private_quote_annex(self):
+        ir = self.fx.ir()
+        out = complete_manual_session(
+            self.fx.request(research_needed=True, portfolio_needed=True),
+            ir_capsule=ir, pi_delta=self.fx.pi(forwarded_ir=deepcopy(ir)),
+            contribution_inputs=self.plan(), cost_inputs=self.costs())
+        self.assertIn("Alternative 1 with its OWN supplied fixed costs",
+                      out["final_report_private"])
+        self.assertEqual(out["integrated_private"]["alternative_cost_details_private"],
+                         out["alternative_cost_details_private"])
+        self.assertEqual(out["alternative_cost_details_private"][1][
+            "funded_contribution_private"]["status"],
+            "CONDITIONAL_SUPPLIED_COST_BUDGET_RECONCILED")
+        self.assertNotIn("SYN-ALT-SOURCE", out["final_report_private"])
+        self.assertNotIn("alternative_cost_details_private",
+                         str(out["integrated_private"]["memory_proposal_nonprivate"]))
 
     def test_incomplete_separately_quoted_alt_stays_unavailable(self):
         x = self.costs()

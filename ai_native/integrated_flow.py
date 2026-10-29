@@ -488,6 +488,9 @@ def assemble_manual_run(
         "gross_contribution_private": contribution,
         "supplied_costs_private": costs,
         "funded_contribution_private": funded_contribution,
+        "alternative_cost_details_private": (
+            contribution_bundle["alternative_cost_details_private"]
+            if contribution_bundle is not None else None),
         "portfolio_room_status": room,
         "strategy_policy_gate": mode_gate,
         "specialist_mode_echo": {"IR": ir_mode_echo, "PI": pi_mode_echo},
