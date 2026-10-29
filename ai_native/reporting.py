@@ -10,6 +10,7 @@ from decimal import Decimal, InvalidOperation, ROUND_DOWN
 from typing import Any, Mapping
 
 from .strategy_authority import assess_r1_mode
+from .strategy_research_brief import prepare_strategy_research_brief
 
 EVIDENCE_STATUSES = frozenset({"VERIFIED", "INDICATIVE", "CONFLICTED", "MISSING"})
 REPORT_STATUSES = frozenset({"EXPLORATORY", "CONDITIONAL", "COMPONENT_SUPPORTED"})
@@ -1210,6 +1211,48 @@ def _pillar_trace_lines(packet: Mapping[str, Any], analysis_id: str,
     return lines
 
 
+def _mode_research_lines(packet: Mapping[str, Any], analysis_id: str,
+                         as_of: str, strategy: str) -> list[str]:
+    """Display only fixed mode questions, trace stage and count (no IR narrative)."""
+    trace = packet.get("mode_research_trace_private")
+    if trace is None:
+        return []
+    if (not isinstance(trace, Mapping)
+            or trace.get("status") != "PRIVATE_MODE_RESEARCH_TRACE_NOT_CERTIFIED"
+            or trace.get("analysis_id") != analysis_id
+            or trace.get("analysis_as_of") != as_of
+            or not isinstance(trace.get("strategy_id"), str)
+            or trace["strategy_id"].strip().lower() != strategy.strip().lower()
+            or trace.get("source_authentication") != "NOT_PERFORMED"
+            or trace.get("method_load") != "NOT_VERIFIED"
+            or trace.get("investment_or_trade_authority") != "NONE"
+            or trace.get("storage") != "NONE"
+            or _iso_date(trace.get("research_as_of"), "mode.research_as_of") > as_of):
+        raise ValueError("MODE_RESEARCH_REPORT_AUTHORITY_MISMATCH")
+    questions = prepare_strategy_research_brief(strategy)["ir_research_questions"]
+    rows = trace.get("questions_private")
+    if not isinstance(rows, list) or len(rows) != len(questions):
+        raise ValueError("MODE_RESEARCH_REPORT_QUESTION_COUNT_INVALID")
+    lines = ["", "## Mode-specific IR research — evidence links, not certification"]
+    for i, row in enumerate(rows, 1):
+        if not isinstance(row, Mapping):
+            raise ValueError("MODE_RESEARCH_REPORT_ROW_INVALID")
+        status, stage, refs = row.get("reported_status"), row.get("review_stage"), row.get("ir_fact_ids_private")
+        if (row.get("question_index") != i
+                or row.get("question_text") != questions[i - 1]
+                or status not in {"SPECIALIST_REPORTED", "UNKNOWN"}
+                or stage not in {"NOT_ASSESSED", "EVIDENCE_RESOLUTION", "HUMAN_RESEARCH_REVIEW_ONLY"}
+                or (status == "UNKNOWN") != (stage == "NOT_ASSESSED")
+                or not isinstance(refs, list) or len(refs) > 12
+                or (status == "SPECIALIST_REPORTED" and not refs)
+                or any(not isinstance(ref, str) or not ref for ref in refs)):
+            raise ValueError("MODE_RESEARCH_REPORT_LINK_OR_STAGE_INVALID")
+        lines.append(f"- Q{i}: {questions[i - 1]} — {stage}; {len(refs)} referenced IR fact(s).")
+    lines.append("Links are specialist-reported, not verified economic conclusions. "
+                 "Portfolio-specific questions require separate dated PI evidence.")
+    return lines
+
+
 def render_report(packet: Mapping[str, Any]) -> str:
     """Render a concise markdown research report or user-requested follow-up.
 
@@ -1262,6 +1305,7 @@ def render_report(packet: Mapping[str, Any]) -> str:
             "human source-use review based on supplied observations; no status was upgraded."
         )
     lines += _pillar_trace_lines(packet, analysis_id, as_of, strategy)
+    lines += _mode_research_lines(packet, analysis_id, as_of, strategy)
     lines += ["", "## Supporting observations"]
     if facts:
         for item in facts:
