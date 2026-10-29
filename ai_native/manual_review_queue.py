@@ -5,6 +5,7 @@ storage or Project invocation. Codes/actions deliberately exclude private values
 """
 from __future__ import annotations
 
+from decimal import Decimal, InvalidOperation
 from typing import Any, Mapping
 
 from .exceptional_lifecycle import EVENTS, VIEWS
@@ -124,6 +125,86 @@ def _lifecycle_review_action(session: Mapping[str, Any],
                 "Volatility or temporary uncertainty alone does not establish a High-CAGR sell trigger; check the original thesis without recommending a sale.")
     return ("REVIEW_LIFECYCLE_THESIS_AND_COSTS", "HUMAN_VERIFICATION",
             "Independently review original and current thesis evidence, portfolio identity and account costs; specialist view is not trading approval.")
+
+
+def _portfolio_exposure_review_action(
+    exposure: Mapping[str, Any] | None, observation: Mapping[str, Any],
+) -> tuple[str, str, str]:
+    """Choose ONE non-sensitive human task from computed M3 exposure limits.
+
+    Does not trust specialist prose or reclassify funds. M3's actual private
+    computation must already exist, and only its bounded status flags are read.
+    """
+    original = ("CHECK_PORTFOLIO_ORIGINAL", "HUMAN_VERIFICATION",
+                "Check dated source image/export, holdings and account scope before "
+                "trusting caller-reported scoped portfolio weights.")
+    if exposure is None:
+        return original
+    if not isinstance(exposure, Mapping):
+        raise ValueError("REVIEW_QUEUE_EXPOSURE_INVALID")
+    status = exposure.get("status")
+    if status not in {
+        "UNAVAILABLE_INCOMPLETE_P_LEDGER",
+        "PARTIAL_KNOWN_EXPOSURE_LOWER_BOUNDS",
+        "CALLER_REPORTED_SCOPED_EXPOSURES",
+    }:
+        raise ValueError("REVIEW_QUEUE_EXPOSURE_STATUS_INVALID")
+    if status == "UNAVAILABLE_INCOMPLETE_P_LEDGER":
+        # Structural loss of the P-ledger cannot silently be presented as a
+        # valid exposure breakdown, even by a forged output packet.
+        raise ValueError("REVIEW_QUEUE_EXPOSURE_LEDGER_MISMATCH")
+    if (observation.get("private_scope") is not True
+            or exposure.get("analysis_id") != observation.get("analysis_id")
+            or exposure.get("observation_as_of") != observation.get("observed_on")
+            or exposure.get("account_scope_private") != observation.get("account_scope")
+            or exposure.get("currency") != observation.get("currency")
+            or exposure.get("source_authentication") !=
+                "CALLER_REPORTED_NOT_INDEPENDENTLY_VERIFIED"
+            or exposure.get("coverage_scope") !=
+                "EXPLICIT_LEDGER_SCOPE_ONLY_NOT_HOUSEHOLD_TOTAL"
+            or exposure.get("portfolio_room_status") != "ROOM_UNAVAILABLE"
+            or exposure.get("trading_authority") != "NONE"
+            or exposure.get("writes") != "NONE"):
+        raise ValueError("REVIEW_QUEUE_EXPOSURE_AUTHORITY_OR_SCOPE_MISMATCH")
+    def pct(name: str) -> Decimal:
+        raw = exposure.get(name)
+        if not isinstance(raw, str) or len(raw) > 6:
+            raise ValueError("REVIEW_QUEUE_EXPOSURE_PERCENT_INVALID")
+        try:
+            amount = Decimal(raw)
+        except InvalidOperation as exc:
+            raise ValueError("REVIEW_QUEUE_EXPOSURE_PERCENT_INVALID") from exc
+        if (not amount.is_finite() or amount < 0 or amount > 100
+                or amount != amount.quantize(Decimal("0.01"))):
+            raise ValueError("REVIEW_QUEUE_EXPOSURE_PERCENT_INVALID")
+        return amount
+    known = pct("known_exposure_pct")
+    unknown = pct("unclassified_or_unknown_fund_pct")
+    cash = pct("cash_pct")
+    if (abs(known + unknown + cash - Decimal("100")) > Decimal("0.02")
+            or (unknown > 0) !=
+               (status == "PARTIAL_KNOWN_EXPOSURE_LOWER_BOUNDS")):
+        raise ValueError("REVIEW_QUEUE_EXPOSURE_PERCENT_OR_STATUS_MISMATCH")
+    dated = exposure.get("fund_composition_date_alignment")
+    if dated == "PRIOR_DATED_FUND_SNAPSHOTS":
+        if (not unknown or exposure.get("economic_issuer_rank_coverage_reported_complete") is not False
+                or not isinstance(exposure.get("historical_fund_scenario_private"), Mapping)
+                or not isinstance(exposure.get("historical_fund_p_ids_private"), list)
+                or not exposure["historical_fund_p_ids_private"]):
+            raise ValueError("REVIEW_QUEUE_EXPOSURE_HISTORY_INVALID")
+        return ("REFRESH_DATED_FUND_LOOKTHROUGH", "EVIDENCE_RESOLUTION",
+                "Obtain rights-permitted ETF/fund constituent evidence dated to the "
+                "observed portfolio scope; older compositions are illustrative, "
+                "not current issuer/sector exposure. Recheck source and account coverage.")
+    if dated != "NO_PRIOR_DATED_FUND_SNAPSHOTS_REPORTED" or (
+            exposure.get("historical_fund_scenario_private") is not None):
+        raise ValueError("REVIEW_QUEUE_EXPOSURE_FUND_DATE_INVALID")
+    if unknown > 0:
+        return ("RESOLVE_CURRENT_EXPOSURE_COVERAGE", "EVIDENCE_RESOLUTION",
+                "Resolve missing, partial or rights-uncertain direct/fund "
+                "classifications and fund constituents using dated permitted "
+                "sources; confirm the actual account and cash scope.")
+    return original
 
 
 def prepare_manual_review_queue(session: Mapping[str, Any]) -> dict[str, Any]:
@@ -275,8 +356,9 @@ def prepare_manual_review_queue(session: Mapping[str, Any]) -> dict[str, Any]:
                         add("RECONCILE_PORTFOLIO_SCOPE", "EVIDENCE_RESOLUTION",
                             "Resolve missing positions, cash, currencies and account scope before using portfolio weights or exposure claims.")
                     else:
-                        add("CHECK_PORTFOLIO_ORIGINAL", "HUMAN_VERIFICATION",
-                            "Check dated source image/export, holdings and account scope before trusting caller-reported portfolio weights.")
+                        code, stage, action = _portfolio_exposure_review_action(
+                            session.get("portfolio_exposures_private"), observation)
+                        add(code, stage, action)
                 funded_from_ir = (isinstance(session.get("integrated_private"), Mapping)
                                   and session["integrated_private"].get("gross_contribution_private") is not None)
                 funded_from_pi = session.get("gross_contribution_private") is not None
