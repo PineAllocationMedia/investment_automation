@@ -202,5 +202,59 @@ class ManualCLIContractTests(unittest.TestCase):
         # unknown top-level CLI key. Source content is never echoed on error.
         self.assertNotIn("UNKNOWN_OR_MISSING_SESSION_FIELD",error)
 
+
+    def test_next_handoff_selects_only_the_current_manual_transfer(self):
+        cases = (
+            ({"request": self.fx.request()}, "IR_REQUEST"),
+            ({"request": self.fx.request(portfolio_needed=True)}, "IR_REQUEST"),
+            ({"request": self.fx.request(portfolio_needed=True),
+              "ir_capsule": self.fx.ir()}, "PI_REQUEST"),
+            ({"request": self.fx.request(research_needed=False, portfolio_needed=True)},
+             "PI_REQUEST"),
+        )
+        for payload, expected_label in cases:
+            with self.subTest(expected=expected_label, research=payload["request"]["research_needed"]):
+                original = deepcopy(payload)
+                code, output, error = self.invoke(payload, output="next-handoff")
+                self.assertEqual((code, error), (0, ""))
+                selected = json.loads(output)
+                self.assertEqual(set(selected), {expected_label})
+                self.assertEqual(selected[expected_label]["packet_type"], expected_label)
+                code, all_output, error = self.invoke(payload, output="handoffs")
+                self.assertEqual((code, error), (0, ""))
+                self.assertEqual(selected[expected_label],
+                                 json.loads(all_output)[expected_label])
+                self.assertEqual(payload, original)
+        self.assertEqual(
+            json.loads(self.invoke(cases[2][0], "next-handoff")[1])["PI_REQUEST"]["FORWARD_UNCHANGED"],
+            cases[2][0]["ir_capsule"],
+        )
+
+    def test_next_handoff_never_repeats_after_terminal_report_or_direct(self):
+        completed_ir = {"request": self.fx.request(), "ir_capsule": self.fx.ir()}
+        completed_pi = {
+            "request": self.fx.request(research_needed=False, portfolio_needed=True),
+            "pi_delta": self.fx.pi(),
+        }
+        no_specialist = {"request": self.fx.request(research_needed=False)}
+        for payload in (completed_ir, completed_pi, no_specialist):
+            with self.subTest(route=payload["request"]):
+                code, text, error = self.invoke(payload, output="next-handoff")
+                self.assertEqual((code, error), (0, ""))
+                self.assertTrue(text.startswith("NEXT_HANDOFF_NOT_AVAILABLE: "))
+                self.assertNotIn("IR_REQUEST", text)
+                self.assertNotIn("PI_REQUEST", text)
+
+    def test_next_handoff_is_explicit_private_mode_not_default_status(self):
+        payload = {"request": self.fx.request(portfolio_needed=True,
+                                               account_context={"account": "PRIVATE_SALT"})}
+        code, status, error = self.invoke(payload)
+        self.assertEqual((code, error), (0, ""))
+        self.assertNotIn("PRIVATE_SALT", status)
+        code, next_packet, error = self.invoke(payload, output="next-handoff")
+        self.assertEqual((code, error), (0, ""))
+        self.assertIn("PRIVATE_SALT", next_packet)
+        self.assertEqual(set(json.loads(next_packet)), {"IR_REQUEST"})
+
 if __name__ == "__main__":
     unittest.main()
