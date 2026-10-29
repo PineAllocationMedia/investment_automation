@@ -12,6 +12,7 @@ from pathlib import Path
 from typing import Any, Mapping
 
 from .method_manifest import DOCUMENT_BLOBS, prepare_method_manifest
+from .strategy_research_brief import prepare_strategy_research_brief
 
 MAX_METHOD_BYTES = 200_000
 MAX_BUNDLE_DOCUMENT_BYTES = 600_000
@@ -43,6 +44,52 @@ def _read_pinned_document(root: Path, path: str, expected_sha: str) -> str:
         raise ValueError("METHOD_HANDOFF_METHOD_NOT_UTF8") from exc
 
 
+def _validate_strategy_method_route(
+    continuation: Mapping[str, Any], specialist: str,
+    packet: Mapping[str, Any],
+) -> dict[str, Any]:
+    """Bind real manual request, six-mode brief and approved-scope gate.
+
+    Both the JSON method handoff and copy-ready specialist text must refuse a
+    coordinated path+SHA substitution that would attach another mode's policy.
+    This checks routing consistency, NOT the actual Project method load.
+    """
+    resume = continuation.get("resume_input")
+    request = resume.get("request") if isinstance(resume, Mapping) else None
+    if not isinstance(request, Mapping):
+        raise ValueError("METHOD_HANDOFF_STRATEGY_BINDING_INVALID")
+    strategy = request.get("strategy_id", "EXPLORATORY")
+    try:
+        brief = prepare_strategy_research_brief(strategy)
+    except (TypeError, ValueError) as exc:
+        raise ValueError("METHOD_HANDOFF_STRATEGY_BINDING_INVALID") from exc
+    expected_reference = brief["design_reference_not_loaded_or_approved"]
+    expected_questions = (
+        brief["ir_research_questions"] if specialist == "IR"
+        else brief["pi_portfolio_questions"]
+    )
+    question_field = (
+        "strategy_research_questions_nonbinding" if specialist == "IR"
+        else "strategy_portfolio_questions_nonbinding"
+    )
+    if (packet.get("strategy_id") != strategy
+            or packet.get("analysis_id") != request.get("analysis_id")
+            or packet.get("as_of") != request.get("as_of")
+            or packet.get("kind") != request.get("kind")
+            or packet.get("objective") != request.get("objective")
+            or packet.get("r1_strategy_policy_authority") !=
+            brief["policy_authority"]
+            or packet.get("r1_strategy_method_load") != "NOT_VERIFIED"
+            or packet.get("strategy_design_reference_not_loaded_or_approved")
+            != expected_reference
+            or packet.get(question_field) != expected_questions):
+        raise ValueError("METHOD_HANDOFF_STRATEGY_BINDING_INVALID")
+    manifest = prepare_method_manifest(specialist, expected_reference)
+    if packet.get("pinned_method_references_not_loaded_or_approved") != manifest:
+        raise ValueError("METHOD_HANDOFF_MANIFEST_MISMATCH")
+    return manifest
+
+
 def prepare_verified_method_handoff(
     continuation: Mapping[str, Any], *, repository_root: Path | None = None,
 ) -> dict[str, Any]:
@@ -65,10 +112,7 @@ def prepare_verified_method_handoff(
     if packet.get("packet_type") != label:
         raise ValueError("METHOD_HANDOFF_CONTINUATION_INVALID")
     specialist = "IR" if label == "IR_REQUEST" else "PI"
-    design_path = packet.get("strategy_design_reference_not_loaded_or_approved")
-    manifest = prepare_method_manifest(specialist, design_path)
-    if packet.get("pinned_method_references_not_loaded_or_approved") != manifest:
-        raise ValueError("METHOD_HANDOFF_MANIFEST_MISMATCH")
+    manifest = _validate_strategy_method_route(continuation, specialist, packet)
 
     try:
         root = (Path(repository_root) if repository_root is not None
@@ -135,10 +179,8 @@ def render_manual_specialist_prompt(bundle: Mapping[str, Any]) -> str:
     if packet.get("packet_type") != label:
         raise ValueError("SPECIALIST_PROMPT_HANDOFF_INVALID")
     specialist = "IR" if label == "IR_REQUEST" else "PI"
-    design_path = packet.get("strategy_design_reference_not_loaded_or_approved")
-    manifest = prepare_method_manifest(specialist, design_path)
-    if (packet.get("pinned_method_references_not_loaded_or_approved") != manifest
-            or bundle.get("repository") != manifest["repository"]
+    manifest = _validate_strategy_method_route(continuation, specialist, packet)
+    if (bundle.get("repository") != manifest["repository"]
             or bundle.get("method_reference_commit") != manifest["reference_commit"]):
         raise ValueError("SPECIALIST_PROMPT_MANIFEST_MISMATCH")
     if specialist == "PI" and packet.get("FORWARD_UNCHANGED") is not None:
