@@ -91,6 +91,17 @@ class ExceptionalLifecycleTests(unittest.TestCase):
             with self.subTest(mutation=mutation), self.assertRaises(ValueError):
                 complete_manual_session(**args)
 
+    def test_requested_lifecycle_cannot_silently_complete_without_review(self):
+        args = self.case()
+        args.pop("lifecycle_inputs")
+        with self.assertRaisesRegex(
+            ValueError, "LIFECYCLE_REQUESTED_REVIEW_NOT_SUPPLIED"
+        ):
+            complete_manual_session(**args)
+        args.pop("pi_delta")
+        pending = complete_manual_session(**args)
+        self.assertEqual(pending["status"], "AWAITING_MANUAL_PI_DELTA")
+
     def test_volatility_alone_is_not_exceptional_sale_hypothesis(self):
         args = self.case()
         args["lifecycle_inputs"]["thesis_event"] = "VOLATILITY_ONLY"
