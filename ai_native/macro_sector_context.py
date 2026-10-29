@@ -53,8 +53,12 @@ def _ids(value: Any) -> list[str]:
 def prepare_macro_sector_context(*, analysis_id: str, analysis_as_of: str,
                                  strategy_id: str, drivers: list[Mapping[str, Any]],
                                  ir_facts: list[Mapping[str, Any]],
-                                 source_annex: Mapping[str, Any]) -> dict[str, Any]:
+                                 source_annex: Mapping[str, Any],
+                                 ir_research_as_of: str | None = None) -> dict[str, Any]:
     aid, cutoff, strategy = _id(analysis_id), _date(analysis_as_of), _text(strategy_id)
+    ir_cutoff = _date(ir_research_as_of) if ir_research_as_of is not None else None
+    if ir_cutoff is not None and ir_cutoff > cutoff:
+        raise ValueError("CONTEXT_IR_RESEARCH_AFTER_ANALYSIS")
     if (not isinstance(source_annex, Mapping)
             or source_annex.get("status") != "PRIVATE_SOURCE_ANNEX_PREPARED_NOT_CERTIFIED"
             or source_annex.get("analysis_id") != aid
@@ -111,6 +115,12 @@ def prepare_macro_sector_context(*, analysis_id: str, analysis_as_of: str,
             source = sources[sid]
             if source["fact_id"] not in refs:
                 raise ValueError("CONTEXT_SOURCE_FACT_LINK_MISMATCH")
+            if ir_cutoff is not None:
+                observed = _date(source.get("observed_at"))
+                if observed > cutoff:
+                    raise ValueError("CONTEXT_SOURCE_OBSERVED_AFTER_ANALYSIS")
+                if observed > ir_cutoff:
+                    reasons.add("CC_SOURCE_POSTDATES_ORIGINAL_IR")
             if source["claim_use_status"] != "CALLER_REPORTED_ONLY":
                 reasons.add("SOURCE_UNRESOLVED_OR_UNUSABLE")
             if source.get("rights_status") != "PERMITTED":
