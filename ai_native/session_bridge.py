@@ -78,10 +78,10 @@ def complete_manual_session(
         raise ValueError("FINANCIAL_CHECKS_REQUIRE_IR_CAPSULE")
     if source_evidence_inputs is not None and route not in {"CC_IR_CC", "CC_IR_PI_CC"}:
         raise ValueError("SOURCE_ANNEX_REQUIRES_IR_CAPSULE")
-    if valuation_inputs is not None and route not in {"CC_IR_CC", "CC_IR_PI_CC"}:
-        raise ValueError("VALUATION_REQUIRES_IR_CAPSULE")
     if probability_inputs is not None and (route not in {"CC_IR_CC", "CC_IR_PI_CC"} or valuation_inputs is None):
         raise ValueError("PROBABILITY_CASHFLOWS_REQUIRE_IR_VALUATION")
+    if valuation_inputs is not None and route not in {"CC_IR_CC", "CC_IR_PI_CC"}:
+        raise ValueError("VALUATION_REQUIRES_IR_CAPSULE")
     if candidate_comparison_inputs is not None and route not in {"CC_IR_CC", "CC_IR_PI_CC"}:
         raise ValueError("CANDIDATE_COMPARISON_REQUIRES_IR_CAPSULE")
     if fundamental_inputs is not None and route not in {"CC_IR_CC", "CC_IR_PI_CC"}:
