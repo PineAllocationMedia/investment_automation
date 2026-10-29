@@ -11,6 +11,7 @@ from __future__ import annotations
 from collections.abc import Callable, Iterator
 from pathlib import Path
 import re
+import subprocess
 import sys
 import unittest
 from typing import TextIO
@@ -49,6 +50,55 @@ def _environment(root: Path) -> str | None:
     return None
 
 
+
+def _checkout(root: Path) -> tuple[str | None, str | None]:
+    """Read-only local checkout integrity; never infer live GitHub freshness.
+
+    The operator must fetch V2 explicitly beforehand. A local tracking ref is
+    NOT a remote API verification. Print the exact HEAD so its parity can be
+    independently compared with a freshly inspected GitHub target.
+    """
+    def git(*args: str) -> tuple[int, bytes] | None:
+        try:
+            process = subprocess.run(
+                ("git", "-C", str(root), *args),
+                stdin=subprocess.DEVNULL, stdout=subprocess.PIPE,
+                stderr=subprocess.DEVNULL, check=False, timeout=10,
+            )
+        except (OSError, subprocess.TimeoutExpired):
+            return None
+        return (process.returncode, process.stdout)
+
+    top = git("rev-parse", "--show-toplevel")
+    if top is None or top[0] != 0:
+        return ("CHECKOUT_GIT_UNAVAILABLE", None)
+    try:
+        actual_root = Path(top[1].decode("utf-8").strip()).resolve()
+    except (UnicodeError, ValueError, OSError):
+        return ("CHECKOUT_ROOT_INVALID", None)
+    if actual_root != root.resolve():
+        return ("CHECKOUT_ROOT_MISMATCH", None)
+    branch = git("symbolic-ref", "--quiet", "--short", "HEAD")
+    if branch is None or branch != (0, b"model-v2/expected-return-challenger\n"):
+        return ("CHECKOUT_NOT_V2_BRANCH", None)
+    clean = git("status", "--porcelain=v1", "-z", "--untracked-files=all")
+    if clean is None or clean[0] != 0:
+        return ("CHECKOUT_STATUS_UNAVAILABLE", None)
+    if clean[1]:
+        return ("CHECKOUT_HAS_CHANGES", None)
+    current = git("rev-parse", "--verify", "HEAD^{commit}")
+    target = git("rev-parse", "--verify",
+                 "refs/remotes/origin/model-v2/expected-return-challenger^{commit}")
+    if current is None or current[0] != 0:
+        return ("CHECKOUT_HEAD_UNAVAILABLE", None)
+    if target is None or target[0] != 0:
+        return ("CHECKOUT_TRACKING_REF_UNAVAILABLE", None)
+    head = current[1].decode("ascii", errors="replace").strip()
+    if not re.fullmatch(r"[0-9a-f]{40}", head) or current[1] != target[1]:
+        return ("CHECKOUT_HEAD_DIFFERS_FROM_LOCAL_V2_TRACKING_REF", None)
+    return (None, head)
+
+
 def _discover(root: Path) -> unittest.TestSuite:
     return unittest.TestLoader().discover(
         start_dir=str(root / "tests"), pattern="test_ai_native_*.py",
@@ -67,6 +117,7 @@ def _iter_tests(suite: unittest.TestSuite) -> Iterator[unittest.TestCase]:
 def validate(
     root: Path = ROOT, *, out: TextIO | None = None,
     checker: Callable[[Path], str | None] = _environment,
+    checkout_checker: Callable[[Path], tuple[str | None, str | None]] = _checkout,
     discoverer: Callable[[Path], unittest.TestSuite] = _discover,
     required: frozenset[str] = REQUIRED,
     minimum_modules: int = 40, minimum_cases: int = 100,
@@ -91,6 +142,13 @@ def validate(
         line("R1_VALIDATION", "BLOCKED_ENVIRONMENT")
         line("R1_REASON", reason)
         return 2
+    checkout_reason, checkout_sha = checkout_checker(root)
+    if checkout_reason is not None or checkout_sha is None:
+        line("R1_VALIDATION", "BLOCKED_CHECKOUT")
+        line("R1_REASON", checkout_reason or "CHECKOUT_HEAD_UNAVAILABLE")
+        return 2
+    line("R1_TESTED_HEAD_SHA", checkout_sha)
+    line("R1_HEAD_PROVENANCE", "LOCAL_TRACKING_REF_ONLY_COMPARE_TO_LIVE_GITHUB")
     directory = root / "tests"
     actual = {p.name for p in directory.glob("test_ai_native_*.py")}
     missing = required - actual
