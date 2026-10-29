@@ -557,6 +557,90 @@ def _new_contribution_lines(packet: Mapping[str, Any], analysis_id: str,
             "allocation, issuer look-through, reserve target or trade is implied."
         )
 
+    # These are independent fixed-fee quotes, NOT net return comparisons.
+    # Keep exact sources, cash amounts and destinations in the private annex.
+    quoted_alternatives = summary.get("conditional_alternative_costs_private")
+    if quoted_alternatives is not None:
+        if (gross != "GROSS_PROJECTION_ONLY" or alternatives is None
+                or not isinstance(quoted_alternatives, Mapping)
+                or set(quoted_alternatives) != {"status", "scenarios", "authority"}
+                or quoted_alternatives["status"] !=
+                    "SEPARATELY_QUOTED_CONDITIONAL_ALTERNATIVES"
+                or quoted_alternatives["authority"] !=
+                    "CALLER_SUPPLIED_FIXED_COSTS_NOT_NET_RETURN_OR_EXECUTION"):
+            raise ValueError("CONTRIBUTION_REPORT_ALT_COST_AUTHORITY_INVALID")
+        rows = quoted_alternatives["scenarios"]
+        if not isinstance(rows, list) or len(rows) != len(alternatives["scenarios"]):
+            raise ValueError("CONTRIBUTION_REPORT_ALT_COST_COUNT_INVALID")
+        allowed_costs = {"SUPPLIED_COST_TALLY_ONLY", "INCOMPLETE_COST_INPUTS",
+                         "UNAVAILABLE_COSTS_EXCEED_CONTRIBUTION"}
+        allowed_funded = {"CONDITIONAL_SUPPLIED_COST_BUDGET_RECONCILED",
+                          "UNAVAILABLE_COST_INPUTS", "UNAVAILABLE_FUNDING_UNKNOWN",
+                          "UNAVAILABLE_COSTS_EXCEED_BUDGET",
+                          "UNAVAILABLE_REVISED_TRADE_SET",
+                          "UNAVAILABLE_REVISED_PORTFOLIO_SCOPE"}
+
+        def alt_percent(raw: Any, places: int, *, optional: bool = False) -> str | None:
+            if raw is None and optional:
+                return None
+            if not isinstance(raw, str) or len(raw) > 9:
+                raise ValueError("CONTRIBUTION_REPORT_ALT_COST_PERCENT_INVALID")
+            try:
+                value = Decimal(raw)
+            except InvalidOperation as exc:
+                raise ValueError("CONTRIBUTION_REPORT_ALT_COST_PERCENT_INVALID") from exc
+            if (not value.is_finite() or value < 0 or value > 100
+                    or value != value.quantize(Decimal(1).scaleb(-places))):
+                raise ValueError("CONTRIBUTION_REPORT_ALT_COST_PERCENT_INVALID")
+            return f"{value:.{places}f}"
+
+        shown = []
+        for i, row in enumerate(rows, start=1):
+            if (not isinstance(row, Mapping)
+                    or set(row) != {"scenario_index", "cost_status",
+                                   "funded_status", "one_time_supplied_cost_share_pct",
+                                   "conditional_funded_after_largest_non_cash_security_pct",
+                                   "conditional_funded_after_scoped_cash_pct"}
+                    or type(row["scenario_index"]) is not int
+                    or row["scenario_index"] != i
+                    or row["cost_status"] not in allowed_costs
+                    or row["funded_status"] not in allowed_funded):
+                raise ValueError("CONTRIBUTION_REPORT_ALT_COST_SCHEMA_INVALID")
+            supported = (row["funded_status"] ==
+                         "CONDITIONAL_SUPPLIED_COST_BUDGET_RECONCILED")
+            if ((supported and row["cost_status"] != "SUPPLIED_COST_TALLY_ONLY")
+                    or (not supported and any(row[k] is not None for k in (
+                        "one_time_supplied_cost_share_pct",
+                        "conditional_funded_after_largest_non_cash_security_pct",
+                        "conditional_funded_after_scoped_cash_pct")))):
+                raise ValueError("CONTRIBUTION_REPORT_ALT_COST_STATUS_MISMATCH")
+            if supported:
+                cost = alt_percent(row["one_time_supplied_cost_share_pct"], 4)
+                largest = alt_percent(row[
+                    "conditional_funded_after_largest_non_cash_security_pct"], 2,
+                    optional=True)
+                cash = alt_percent(row[
+                    "conditional_funded_after_scoped_cash_pct"], 2)
+                shown.append(
+                    f"- Alternative {i} with its OWN supplied fixed costs: "
+                    f"one-time purchase-cost share {cost}% of total NEW cash; "
+                    f"conditionally funded largest security line "
+                    f"{largest + '%' if largest is not None else 'UNAVAILABLE'}; "
+                    f"scoped cash {cash}%.")
+            else:
+                shown.append(
+                    f"- Alternative {i}: conditional after-cost funded budget "
+                    "UNAVAILABLE; separate supplied fees/funding are incomplete "
+                    "or infeasible.")
+        lines.append(
+            "Separately supplied alternative cost/funding sensitivity, "
+            "conditional only, not after-cost returns or broker certification:")
+        lines.extend(shown)
+        lines.append(
+            "Fees cannot transfer between scenarios. Changed order sizes require "
+            "new quotes; account costs, taxes, FX and executable net economics "
+            "remain unverified. No allocation recommendation is made.")
+
     burden_text = summary.get("one_time_supplied_cost_share_pct")
     if burden_text is not None:
         if (costs != "SUPPLIED_COST_TALLY_ONLY"
