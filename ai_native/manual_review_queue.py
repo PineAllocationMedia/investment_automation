@@ -73,7 +73,7 @@ def prepare_manual_review_queue(session: Mapping[str, Any]) -> dict[str, Any]:
                     or capture.get("transfer") != "MANUAL_ONLY"):
                 raise ValueError("REVIEW_QUEUE_SCREENSHOT_SOURCE_INVALID")
             add("CAPTURE_AUTHORIZED_PORTFOLIO_SCREENSHOT", "HANDOFF_REQUIRED",
-                "Work private portfolio view is unavailable. Manually capture an authorized dated private screenshot or supply a private user transcript; return a new explicit PI packet.")
+                "The private visual portfolio source was unavailable. Manually capture an authorized dated private screenshot or supply a private user transcript; return a new explicit PI packet.")
         else:
             if status == "M7A_COMPONENT_ASSEMBLED_NOT_END_TO_END_ACCEPTANCE":
                 if route not in {"CC_IR_CC", "CC_IR_PI_CC"}:
