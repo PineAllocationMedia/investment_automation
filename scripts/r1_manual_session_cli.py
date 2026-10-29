@@ -226,6 +226,43 @@ def _prepare_manual_continuation(payload: dict[str, Any],
     }
 
 
+def _redacted_status(session: dict[str, Any]) -> dict[str, Any]:
+    """Reuse the default status schema; no private fields."""
+    status = session["status"]
+    return {
+        "status": status, "route": session["route"],
+        "readiness": session["readiness"],
+        "project_invocation": session["project_invocation"],
+        "storage": session["storage"],
+        "source_authentication": session["source_authentication"],
+        "next_manual_action": NEXT_ACTIONS.get(
+            status, "Review the private packet manually."),
+    }
+
+
+def _private_operator_packet(payload: dict[str, Any],
+                             session: dict[str, Any]) -> dict[str, Any]:
+    """Explicit PRIVATE composition of the existing manual session outputs."""
+    continuation = _prepare_manual_continuation(payload, session)
+    report = session["final_report_private"]
+    if report is not None and not isinstance(report, str):
+        raise ValueError("OPERATOR_PACKET_REPORT_INVALID")
+    if continuation is not None and report is not None:
+        raise ValueError("OPERATOR_PACKET_FINAL_PENDING_CONFLICT")
+    return {
+        "status": "PRIVATE_OPERATOR_PACKET_NOT_SENT",
+        "session": _redacted_status(session),
+        "continuation_private": continuation,
+        "report_private": report,
+        "review_queue": prepare_manual_review_queue(session),
+        "readiness": "NOT_EVALUATED",
+        "source_authentication": "NOT_PERFORMED",
+        "project_invocation": "NONE",
+        "storage": "NONE",
+        "trading_authority": "NONE",
+    }
+
+
 def run(*, output: str, instream: TextIO, outstream: TextIO,
         errstream: TextIO) -> int:
     """Read one bounded JSON payload from stdin, send results to stdout only."""
@@ -260,16 +297,20 @@ def run(*, output: str, instream: TextIO, outstream: TextIO,
         outstream.write(json.dumps(draft, ensure_ascii=False, sort_keys=True,
                                    indent=2, allow_nan=False) + "\n")
     elif output == "status":
-        result_status = result["status"]
-        outstream.write(json.dumps({
-            "status": result_status,
-            "route": result["route"],
-            "readiness": result["readiness"],
-            "project_invocation": result["project_invocation"],
-            "storage": result["storage"],
-            "source_authentication": result["source_authentication"],
-            "next_manual_action": NEXT_ACTIONS.get(result_status, "Review the private packet manually."),
-        }, ensure_ascii=False, sort_keys=True) + "\n")
+        outstream.write(json.dumps(_redacted_status(result),
+                                   ensure_ascii=False, sort_keys=True) + "\n")
+    elif output == "operator-packet":
+        # PRIVATE opt-in one-run packet: never stored or used by default.
+        try:
+            packet = _private_operator_packet(payload, result)
+            encoded = json.dumps(packet, ensure_ascii=False, sort_keys=True,
+                                 indent=2, allow_nan=False)
+            if len(encoded) > MAX_INPUT_CHARACTERS:
+                raise ValueError("OPERATOR_PACKET_TOO_LARGE")
+            outstream.write(encoded + "\n")
+        except (ValueError, TypeError, KeyError, RecursionError):
+            errstream.write("R1_PROCESSING_ERROR: private operator packet unavailable.\n")
+            return 3
     elif output == "report":
         report = result["final_report_private"]
         if report is None:
@@ -358,9 +399,9 @@ def main(argv: list[str] | None = None, *, instream: TextIO | None = None,
          outstream: TextIO | None = None,
          errstream: TextIO | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--output", choices=("status", "report", "handoffs", "next-handoff", "continuation", "followup-draft", "private-case", "review-queue"),
+    parser.add_argument("--output", choices=("status", "report", "handoffs", "next-handoff", "continuation", "operator-packet", "followup-draft", "private-case", "review-queue"),
                         default="status",
-                        help="status is redacted; report, handoffs, next-handoff, continuation, followup-draft, private-case and review-queue require a private terminal")
+                        help="status is redacted; report, handoffs, next-handoff, continuation, operator-packet, followup-draft, private-case and review-queue require a private terminal")
     opts = parser.parse_args(argv)
     return run(output=opts.output, instream=instream or sys.stdin,
                outstream=outstream or sys.stdout, errstream=errstream or sys.stderr)
