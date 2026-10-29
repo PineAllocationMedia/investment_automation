@@ -45,10 +45,36 @@ class ExposureTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError,"REQUIRES_EXPLICIT"):
             self.run_exposure(classes=c)
         c["P2"]["composition_complete_reported"]=True
+        c["P2"]["as_of"]="2026-10-28"
         x=self.run_exposure(classes=c)
         self.assertEqual(x["unclassified_or_unknown_fund_pct"],"0.00")
         self.assertEqual(x["known_exposure_pct"],"90.00")
         self.assertTrue(x["economic_issuer_rank_coverage_reported_complete"])
+    def test_fully_reported_prior_fund_snapshot_is_historical_not_current(self):
+        c=self.classes()
+        c["P2"]["constituents"][1]["fund_weight_pct"]="75"
+        c["P2"]["composition_complete_reported"]=True
+        snapshot=copy.deepcopy(c)
+        out=self.run_exposure(classes=c)
+        self.assertEqual(out["status"],"CALLER_REPORTED_SCOPED_EXPOSURES")
+        self.assertEqual(out["unclassified_or_unknown_fund_pct"],"0.00")
+        self.assertFalse(out["economic_issuer_rank_coverage_reported_complete"])
+        self.assertEqual(out["fund_composition_date_alignment"],"PRIOR_DATED_FUND_SNAPSHOTS")
+        self.assertEqual(out["historical_fund_p_ids_private"],["P2"])
+        self.assertIn("P2:FUND_COMPOSITION_PREDATES_OBSERVATION",out["qualifications"])
+        self.assertEqual(c,snapshot)
+
+    def test_same_day_fund_composition_can_be_structurally_complete_not_certified(self):
+        c=self.classes()
+        c["P2"]["as_of"]="2026-10-28"
+        c["P2"]["constituents"][1]["fund_weight_pct"]="75"
+        c["P2"]["composition_complete_reported"]=True
+        result=self.run_exposure(classes=c)
+        self.assertEqual(result["fund_composition_date_alignment"],"NO_PRIOR_DATED_FUND_SNAPSHOTS_REPORTED")
+        self.assertTrue(result["economic_issuer_rank_coverage_reported_complete"])
+        self.assertEqual(result["source_authentication"],"CALLER_REPORTED_NOT_INDEPENDENTLY_VERIFIED")
+        self.assertEqual(result["trading_authority"],"NONE")
+
     def test_partial_fund_claimed_complete_rejected(self):
         c=self.classes();c["P2"]["composition_complete_reported"]=True
         with self.assertRaisesRegex(ValueError,"FALSE_FUND_COMPLETENESS"):

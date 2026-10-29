@@ -140,6 +140,32 @@ class RoomTests(unittest.TestCase):
         self.assertEqual(x["status"],"ROOM_CONDITIONAL")
         self.assertEqual(x["independent_evidence_check"],"NOT_PERFORMED")
 
+    def test_old_etf_constituents_do_not_support_current_portfolio_room(self):
+        from ai_native.reporting import render_report
+        c={"P1":dict(
+            security_id="ABC:TSX", kind="FUND", source_ref="PRIVATE_PRIOR_FUND_SOURCE",
+            rights_status="PERMITTED", as_of="2026-10-27",
+            composition_complete_reported=True,
+            constituents=[dict(economic_issuer_id="ABC",sector="TECH",
+                               region="CANADA",fund_weight_pct="100")])}
+        exp=self.exposure(classifications=c)
+        room=self.runroom(exposures=exp)
+        self.assertEqual(room["status"],"ROOM_UNAVAILABLE")
+        self.assertIsNone(room["known_candidate_issuer_exposure_pct_private"])
+        self.assertIn("HISTORICAL_FUND_COMPOSITION_NOT_CURRENT",
+                      room["missing_or_qualified"])
+        packet={"kind":"DECISION", "analysis_id":"SYN-A", "as_of":"2026-10-28",
+                "strategy":"SYN-EXPLORATORY", "method_version":"UNKNOWN_NOT_LOADED",
+                "status":"CONDITIONAL", "objective":"Synthetic",
+                "decision_line":"No trade", "summary":["SYN"], "facts":[],
+                "countercase":"Unknown", "limitations":"Not verified",
+                "next_action":"Review", "portfolio_room_review_private":room}
+        report=render_report(packet)
+        self.assertIn("Fund constituent evidence predates",report)
+        self.assertIn("Known supplied candidate-issuer exposure: UNKNOWN",report)
+        self.assertNotIn("PRIVATE_PRIOR_FUND_SOURCE",report)
+        self.assertNotIn("90.00% of the scoped portfolio",report)
+
     def test_real_portfolio_room_review_renders_only_conditional_exposure(self):
         from ai_native.reporting import render_report
         room=self.runroom()

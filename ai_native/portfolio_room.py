@@ -150,7 +150,13 @@ def prepare_portfolio_room_review(
         missing.append("P_LEDGER_INCOMPLETE")
     if exposures.get("status") not in {"CALLER_REPORTED_SCOPED_EXPOSURES", "PARTIAL_KNOWN_EXPOSURE_LOWER_BOUNDS"}:
         missing.append("EXPOSURES_UNAVAILABLE")
-    if isinstance(lower, Mapping):
+    historical_fund = exposures.get("fund_composition_date_alignment") == "PRIOR_DATED_FUND_SNAPSHOTS"
+    if historical_fund:
+        # Private annex retains historical issuer arithmetic, but a prior
+        # fund snapshot is not a CURRENT issuer exposure lower bound.
+        missing.append("HISTORICAL_FUND_COMPOSITION_NOT_CURRENT")
+        missing.append("KNOWN_ISSUER_EXPOSURE_UNAVAILABLE")
+    elif isinstance(lower, Mapping):
         known_pct = str(_pct(lower.get(issuer, "0"), "known issuer exposure"))
     else:
         missing.append("KNOWN_ISSUER_EXPOSURE_UNAVAILABLE")

@@ -77,6 +77,7 @@ def aggregate_portfolio_exposures(
     unknown = Decimal(0)
     seen = set()
     funds = []
+    historical_fund_p_ids = []
     classification_provenance = []
     qualifications = []
     values_total = cash
@@ -121,6 +122,12 @@ def aggregate_portfolio_exposures(
         if kind == "DIRECT_EQUITY":
             add_exposure(val, classification, source_ref)
         elif kind == "FUND":
+            # A dated fund holdings snapshot is not proof of today's
+            # constituents. Keep its scenario arithmetic privately, but do
+            # not let prior-dated holdings imply current Portfolio Room.
+            if dated < cutoff:
+                historical_fund_p_ids.append(pid)
+                qualifications.append(f"{pid}:FUND_COMPOSITION_PREDATES_OBSERVATION")
             completeness = classification.get("composition_complete_reported")
             if type(completeness) is not bool:
                 raise ValueError("FUND_COMPLETENESS_BOOLEAN_REQUIRED")
@@ -172,11 +179,16 @@ def aggregate_portfolio_exposures(
         "known_exposure_pct": pct(scoped_known),
         "unclassified_or_unknown_fund_pct": pct(unknown),
         "cash_pct": pct(cash), "fund_composition_private": funds,
+        "historical_fund_p_ids_private": sorted(historical_fund_p_ids),
+        "fund_composition_date_alignment": (
+            "PRIOR_DATED_FUND_SNAPSHOTS" if historical_fund_p_ids
+            else "NO_PRIOR_DATED_FUND_SNAPSHOTS_REPORTED"),
         "classification_provenance_private": classification_provenance,
         "qualifications": sorted(qualifications),
         "coverage_scope": "EXPLICIT_LEDGER_SCOPE_ONLY_NOT_HOUSEHOLD_TOTAL",
         "source_authentication": "CALLER_REPORTED_NOT_INDEPENDENTLY_VERIFIED",
-        "economic_issuer_rank_coverage_reported_complete": unknown == 0,
+        "economic_issuer_rank_coverage_reported_complete": (
+            unknown == 0 and not historical_fund_p_ids),
         "portfolio_room_status": "ROOM_UNAVAILABLE",
         "trading_authority": "NONE", "writes": "NONE",
     }

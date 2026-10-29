@@ -714,6 +714,8 @@ def _portfolio_room_lines(packet: Mapping[str, Any], analysis_id: str,
         row = checks[check]
         label = "source reference supplied" if row["source_ref"] else "source reference missing"
         lines.append(f"- Portfolio {check.replace('_', ' ').lower()}: {row['status']} ({label}).")
+    if "HISTORICAL_FUND_COMPOSITION_NOT_CURRENT" in warnings:
+        lines.append("- Fund constituent evidence predates the portfolio observation; current issuer exposure cannot be inferred from that historical fund snapshot. Obtain a dated composition and review differences.")
     if warnings:
         lines.append(f"- **{len(warnings)} unresolved/qualified condition(s)** in private Portfolio Room annex; review before considering any new capital.")
     lines.append("No target allocation, selling decision, ranking, after-cost alpha or trading permission is established; analysis remains human-reviewed.")
