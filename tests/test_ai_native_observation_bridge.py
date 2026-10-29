@@ -64,4 +64,64 @@ class ObservationBridgeTests(unittest.TestCase):
         complete_manual_session(self.req(),observation_inputs=o)
         self.assertEqual(o,before)
 
+    def ir(self):
+        return dict(analysis_id="SYN-01", research_as_of="2026-10-28",
+                    summary=["Conditional synthetic research"], facts=[],
+                    limitations="No authenticated original source",
+                    countercase="Coverage might be incomplete",
+                    decision_line="No executable conclusion",
+                    next_action="Verify observations")
+
+    def contribution(self, **patch):
+        data = dict(positions_base={"ABC:TSX": "300.00"},
+                    allocations_pct={"ABC:TSX": "100"},
+                    contribution_base="100.00", currency="CAD", as_of="2026-10-28",
+                    scope_complete=True, cash_accounted_for=True,
+                    same_currency_basis_verified=True, instrument_identity_verified=True)
+        data.update(patch)
+        return data
+
+    def test_incomplete_visible_scope_cannot_be_overridden_on_either_route(self):
+        # The former guard existed only in PI-only; IR+PI silently projected.
+        for research_needed in (False, True):
+            with self.subTest(research_needed=research_needed):
+                ir = self.ir() if research_needed else None
+                pi = self.pi(forwarded_ir=copy.deepcopy(ir)) if ir else self.pi()
+                with self.assertRaisesRegex(
+                        ValueError, "PI_CONTRIBUTION_SCOPE_CONFLICTS_WITH_OBSERVATION"):
+                    complete_manual_session(
+                        self.req(research_needed=research_needed),
+                        ir_capsule=ir, pi_delta=pi,
+                        observation_inputs=self.observation(scope_complete=False),
+                        contribution_inputs=self.contribution())
+
+    def test_mismatched_currency_cannot_be_called_verified_on_either_route(self):
+        for research_needed in (False, True):
+            with self.subTest(research_needed=research_needed):
+                ir = self.ir() if research_needed else None
+                pi = self.pi(forwarded_ir=copy.deepcopy(ir)) if ir else self.pi()
+                with self.assertRaisesRegex(
+                        ValueError, "PI_CONTRIBUTION_CURRENCY_CONFLICTS_WITH_OBSERVATION"):
+                    complete_manual_session(
+                        self.req(research_needed=research_needed),
+                        ir_capsule=ir, pi_delta=pi,
+                        observation_inputs=self.observation(cash_base="0.00"),
+                        contribution_inputs=self.contribution(currency="USD"))
+
+    def test_matching_complete_capture_can_project_on_both_routes(self):
+        for research_needed in (False, True):
+            with self.subTest(research_needed=research_needed):
+                ir = self.ir() if research_needed else None
+                pi = self.pi(forwarded_ir=copy.deepcopy(ir)) if ir else self.pi()
+                result = complete_manual_session(
+                    self.req(research_needed=research_needed),
+                    ir_capsule=ir, pi_delta=pi,
+                    observation_inputs=self.observation(cash_base="0.00"),
+                    contribution_inputs=self.contribution())
+                self.assertEqual(
+                    result["gross_contribution_private"]["status"],
+                    "GROSS_PROJECTION_ONLY")
+                self.assertEqual(result["project_invocation"], "NONE")
+                self.assertEqual(result["storage"], "NONE")
+
 if __name__ == '__main__': unittest.main()

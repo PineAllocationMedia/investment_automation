@@ -220,6 +220,21 @@ def complete_manual_session(
                 and observation["known_scope_weights_pct"] is None):
             raise ValueError("UNSUPPORTED_PORTFOLIO_ROOM_ASSERTION: incomplete observation")
 
+    # A separate contribution form must not override the visible P-ledger's
+    # scoped coverage or currency. Apply the same check to PI-only and IR+PI
+    # routes BEFORE either can calculate plausible-looking new-capital weights.
+    # This is structural parity, not independent account authentication.
+    if observation is not None and contribution_inputs is not None:
+        if not isinstance(contribution_inputs, Mapping):
+            raise ValueError("contribution_inputs: mapping required")
+        if (contribution_inputs.get("scope_complete") is True
+                and observation["known_scope_weights_pct"] is None):
+            raise ValueError("PI_CONTRIBUTION_SCOPE_CONFLICTS_WITH_OBSERVATION")
+        if (contribution_inputs.get("same_currency_basis_verified") is True
+                and (not isinstance(contribution_inputs.get("currency"), str)
+                     or contribution_inputs["currency"].strip().upper() != observation["currency"])):
+            raise ValueError("PI_CONTRIBUTION_CURRENCY_CONFLICTS_WITH_OBSERVATION")
+
     exposures = None
     if exposure_classifications is not None:
         if observation is None:
@@ -350,10 +365,6 @@ def complete_manual_session(
             "next_action": _required(pi_delta, "next_action"),
         }
         if contribution_inputs is not None:
-            if (observation is not None
-                    and observation.get("known_scope_weights_pct") is None
-                    and contribution_inputs.get("scope_complete") is True):
-                raise ValueError("PI_CONTRIBUTION_SCOPE_CONFLICTS_WITH_OBSERVATION")
             bundle = prepare_new_capital_projection(
                 analysis_id=packet["analysis_id"], analysis_as_of=cutoff,
                 portfolio_as_of=pi_observed_on,
