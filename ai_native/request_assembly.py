@@ -166,6 +166,13 @@ def prepare_manual_handoffs(
                 "method_version": _optional_text(request, "pi_method_version", "UNKNOWN_NOT_LOADED"),
                 "requested_method_references_not_proof_of_loading": list(PI_METHODS),
                 "strategy_portfolio_questions_nonbinding": list(strategy_brief["pi_portfolio_questions"]),
+                "optional_mode_portfolio_response_contract": (
+                    "PI_DELTA.MODE_PORTFOLIO_RESPONSES: "
+                    "{analysis_id,portfolio_as_of,strategy_id,answers:["
+                    "{question_index,status,p_ids}]}; "
+                    "only cite P_IDs actually in the private dated P_LEDGER; "
+                    "UNKNOWN must have no P_IDs. This is not method loading or policy authority."
+                ),
                 "strategy_design_reference_not_loaded_or_approved": strategy_brief["design_reference_not_loaded_or_approved"],
                 "research_as_of": ir_date,
                 "portfolio_context_private": portfolio,

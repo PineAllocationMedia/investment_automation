@@ -12,6 +12,7 @@ from typing import Any, Mapping
 
 from .request_assembly import prepare_manual_handoffs
 from .strategy_return_parity import check_specialist_mode_echo
+from .mode_portfolio_trace import prepare_mode_portfolio_trace
 from .integrated_flow import assemble_manual_run
 from .reporting import render_report
 from .portfolio_observation import prepare_observation_ledger
@@ -272,6 +273,7 @@ def complete_manual_session(
                "method_load_verification": "NOT_PERFORMED", "project_invocation": "NONE",
                "source_authentication": "NOT_PERFORMED", "storage": "NONE",
                "readiness": "NOT_EVALUATED",
+               "mode_portfolio_trace_private": None,
                "specialist_mode_echo": {
                    "IR": handoffs["ir_strategy_mode_echo"], "PI": pi_mode_echo,
                }}
@@ -322,6 +324,10 @@ def complete_manual_session(
         room = _required(pi_delta, "room_status")
         if room not in ROOM_STATUSES:
             raise ValueError("INVALID_ROOM_STATUS")
+        mode_portfolio_trace = prepare_mode_portfolio_trace(
+            request=request, pi_delta=pi_delta, observation=observation
+        )
+        private["mode_portfolio_trace_private"] = mode_portfolio_trace
         # No PI-only issuer facts, inherited research, optimized weights or
         # source-certified holdings can be silently created by this bridge.
         packet = {
@@ -365,6 +371,9 @@ def complete_manual_session(
                     packet[key] = request[key]
         if observation is not None:
             packet["portfolio_observation_private"] = observation
+        if mode_portfolio_trace is not None:
+            packet["mode_portfolio_trace_private"] = mode_portfolio_trace
+            packet["limitations"] += " PI mode questions are specialist-reported and not independently authenticated."
         private["final_report_private"] = render_report(packet)
         private["pi_delta_private"] = deepcopy(dict(pi_delta))
         private["status"] = "PI_ONLY_CONDITIONAL_REPORT_ASSEMBLED"
@@ -408,6 +417,7 @@ def complete_manual_session(
         exceptional_lifecycle_review_private=private["exceptional_lifecycle_review_private"],
     )
     private["integrated_private"] = integrated
+    private["mode_portfolio_trace_private"] = integrated["mode_portfolio_trace_private"]
     if public_reference is not None:
         # Public profile observation remains separate from the IR model's
         # facts/pillars and the unchanged private institutional memory proposal.
