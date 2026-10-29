@@ -23,6 +23,7 @@ from .conditional_weighted_cashflows import calculate_weighted_cashflows
 from .candidate_comparison import compare_candidates
 from .fundamental_dossier import prepare_fundamental_dossier
 from .reporting import render_report
+from .strategy_authority import assess_r1_mode
 
 ROOM_STATUSES = frozenset({"ROOM_EVIDENCE_SUPPORTED", "ROOM_CONDITIONAL", "ROOM_UNAVAILABLE"})
 
@@ -78,6 +79,7 @@ def assemble_manual_run(
     objective = _required_text(request, "objective")
     strategy = _required_text(request, "strategy_id")
     method = _required_text(request, "method_version")
+    mode_gate = assess_r1_mode(strategy)
     kind = _required_text(request, "kind")
     if kind not in {"DECISION", "FOLLOWUP"}:
         raise ValueError("kind must be DECISION or FOLLOWUP")
@@ -98,6 +100,9 @@ def assemble_manual_run(
     summary = [item.strip() for item in ir_capsule["summary"]]
     limits = [_required_text(ir_capsule, "limitations")]
     status = "EXPLORATORY"
+    limits.append(mode_gate["limitation"])
+    if mode_gate["policy_authority"] == "R1_POLICY_REQUIRES_CEO_APPROVAL":
+        status = "CONDITIONAL"
     room = "NOT_EVALUATED"
     pi_date = None
     if pi_delta is not None:
@@ -336,6 +341,7 @@ def assemble_manual_run(
         "analysis_id": run_id,
         "as_of": as_of,
         "strategy": strategy,
+        "strategy_policy_gate": mode_gate,
         "method_version": method,
         "status": status,
         "objective": objective,
@@ -432,6 +438,7 @@ def assemble_manual_run(
         "supplied_costs_private": costs,
         "funded_contribution_private": funded_contribution,
         "portfolio_room_status": room,
+        "strategy_policy_gate": mode_gate,
         "exceptional_lifecycle_review_private": exceptional_lifecycle_review_private,
         "memory_proposal_nonprivate": memory,
         "private_research_history_proposal": private_history,

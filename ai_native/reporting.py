@@ -9,6 +9,8 @@ from datetime import date
 from decimal import Decimal, InvalidOperation, ROUND_DOWN
 from typing import Any, Mapping
 
+from .strategy_authority import assess_r1_mode
+
 EVIDENCE_STATUSES = frozenset({"VERIFIED", "INDICATIVE", "CONFLICTED", "MISSING"})
 REPORT_STATUSES = frozenset({"EXPLORATORY", "CONDITIONAL", "COMPONENT_SUPPORTED"})
 
@@ -1224,6 +1226,10 @@ def render_report(packet: Mapping[str, Any]) -> str:
     analysis_id = _string(packet.get("analysis_id"), "analysis_id")
     as_of = _iso_date(packet.get("as_of"), "as_of")
     strategy = _string(packet.get("strategy"), "strategy")
+    mode_gate = assess_r1_mode(strategy)
+    if ("strategy_policy_gate" in packet
+            and packet["strategy_policy_gate"] != mode_gate):
+        raise ValueError("REPORT_R1_STRATEGY_POLICY_GATE_MISMATCH")
     method_version = _string(packet.get("method_version"), "method_version")
     status = _string(packet.get("status"), "status")
     if status not in REPORT_STATUSES:
@@ -1240,6 +1246,7 @@ def render_report(packet: Mapping[str, Any]) -> str:
     lines = [
         f"# {'User-requested reassessment' if kind == 'FOLLOWUP' else 'Investment decision research'} — {analysis_id}",
         f"**As of:** {as_of} | **Strategy:** {strategy} | **Method:** {method_version} | **Status:** {status}",
+        f"**R1 strategy policy:** {mode_gate['policy_authority']}; method load {mode_gate['method_load']}. {mode_gate['limitation']}",
         f"**Question:** {objective}",
         "", "## Decision line", decision_line, "", "## Key findings",
     ]

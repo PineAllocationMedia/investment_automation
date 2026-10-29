@@ -11,6 +11,8 @@ from datetime import date
 import json
 from typing import Any, Mapping
 
+from .strategy_authority import assess_r1_mode
+
 IR_METHODS = ("SOURCE_FUSION_R1", "VALUATION_R1", "HIGH_CAGR_METHOD_R1_IF_APPROVED")
 PI_METHODS = ("OBSERVATION_AND_ROOM_R1", "CONTRIBUTIONS_AND_COSTS_R1", "LIFECYCLE_AND_HANDOFF_R1")
 
@@ -86,12 +88,17 @@ def prepare_manual_handoffs(
     risk = request.get("risk_constraints", [])
     if not isinstance(risk, list) or any(not isinstance(x, str) or not x.strip() for x in risk):
         raise ValueError("risk_constraints: list of nonempty strings required")
+    selected_strategy = _optional_text(request, "strategy_id", "EXPLORATORY")
+    mode_gate = assess_r1_mode(selected_strategy)
     context = {
         "analysis_id": analysis_id,
         "kind": kind,
         "as_of": as_of,
         "objective": objective,
-        "strategy_id": _optional_text(request, "strategy_id", "EXPLORATORY"),
+        "strategy_id": selected_strategy,
+        "r1_strategy_policy_authority": mode_gate["policy_authority"],
+        "r1_strategy_method_load": mode_gate["method_load"],
+        "r1_strategy_policy_limitation": mode_gate["limitation"],
         "strategy_authority": "CALLER_SUPPLIED_NOT_INDEPENDENTLY_VERIFIED",
         "horizon": _optional_text(request, "horizon"),
         "benchmark": _optional_text(request, "benchmark"),
@@ -163,6 +170,7 @@ def prepare_manual_handoffs(
         "pending_manual_steps": pending,
         "project_invocation": "NONE",
         "method_load_verification": "NOT_PERFORMED",
+        "strategy_policy_gate": mode_gate,
         "storage": "NONE",
         "readiness": "NOT_EVALUATED",
     }
