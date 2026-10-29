@@ -16,6 +16,7 @@ from typing import Any, TextIO
 from ai_native.session_bridge import complete_manual_session
 from ai_native.manual_review_queue import prepare_manual_review_queue
 from ai_native.research_memory import prepare_explicit_followup_draft
+from ai_native.method_handoff_bundle import prepare_verified_method_handoff
 
 MAX_INPUT_CHARACTERS = 5_000_000
 OPTIONAL_FIELDS = frozenset({
@@ -311,6 +312,25 @@ def run(*, output: str, instream: TextIO, outstream: TextIO,
         except (ValueError, TypeError, KeyError, RecursionError):
             errstream.write("R1_PROCESSING_ERROR: private operator packet unavailable.\n")
             return 3
+    elif output == "method-handoff":
+        # Explicit PRIVATE handoff with contents checked against pinned Git
+        # blobs from this repository checkout; never a Project load assertion.
+        try:
+            continuation = _prepare_manual_continuation(payload, result)
+            if continuation is None:
+                outstream.write("METHOD_HANDOFF_NOT_AVAILABLE: " +
+                                result["status"] + "\n")
+            else:
+                bundle = prepare_verified_method_handoff(continuation)
+                encoded = json.dumps(bundle, ensure_ascii=False, sort_keys=True,
+                                     indent=2, allow_nan=False)
+                if len(encoded) > MAX_INPUT_CHARACTERS:
+                    raise ValueError("METHOD_HANDOFF_OUTPUT_TOO_LARGE")
+                outstream.write(encoded + "\n")
+        except (ValueError, TypeError, KeyError, RecursionError, OSError):
+            errstream.write("R1_PROCESSING_ERROR: private method handoff unavailable; " +
+                            "check local method files and pinned versions.\n")
+            return 3
     elif output == "report":
         report = result["final_report_private"]
         if report is None:
@@ -399,9 +419,9 @@ def main(argv: list[str] | None = None, *, instream: TextIO | None = None,
          outstream: TextIO | None = None,
          errstream: TextIO | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--output", choices=("status", "report", "handoffs", "next-handoff", "continuation", "operator-packet", "followup-draft", "private-case", "review-queue"),
+    parser.add_argument("--output", choices=("status", "report", "handoffs", "next-handoff", "continuation", "operator-packet", "method-handoff", "followup-draft", "private-case", "review-queue"),
                         default="status",
-                        help="status is redacted; report, handoffs, next-handoff, continuation, operator-packet, followup-draft, private-case and review-queue require a private terminal")
+                        help="status is redacted; report, handoffs, next-handoff, continuation, operator-packet, method-handoff, followup-draft, private-case and review-queue require a private terminal")
     opts = parser.parse_args(argv)
     return run(output=opts.output, instream=instream or sys.stdin,
                outstream=outstream or sys.stdout, errstream=errstream or sys.stderr)
