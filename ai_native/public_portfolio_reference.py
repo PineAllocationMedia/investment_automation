@@ -22,6 +22,10 @@ FIELDS = frozenset({
     "coverage", "displayed_weight_sum_pct", "unknowns",
 })
 ROW_FIELDS = frozenset({"security_id", "weight_pct", "value", "currency", "visibility"})
+TABLE_FIELDS = (FIELDS - {"positions_visible", "displayed_weight_sum_pct"}) | {"positions_table"}
+TABLE_HEADER_LEFT = frozenset({"position affichée", "position", "security", "holding"})
+TABLE_HEADER_RIGHT = frozenset({"poids affiché", "poids", "weight", "displayed weight"})
+
 TICKER = re.compile(r"[A-Za-z0-9][A-Za-z0-9.:-]{0,31}\Z")
 CASE_ID = re.compile(r"[A-Za-z0-9][A-Za-z0-9._:-]{0,89}\Z")
 
@@ -173,6 +177,77 @@ def prepare_public_portfolio_reference(
         "trading_authority": "NONE", "source_access": "CALLER_REPORTED",
         "project_invocation": "NONE", "storage": "NONE",
     }
+
+
+def prepare_public_reference_from_work_table(
+    packet: Mapping[str, Any], *, analysis_id: str, analysis_as_of: str
+) -> dict[str, Any]:
+    """Convert ONLY a two-column Work Markdown table to the existing reference.
+
+    No natural-language extraction, ownership guessing, portfolio optimization
+    or replacement of the existing strict public-reference validator.
+    """
+    if not isinstance(packet, Mapping) or set(packet) != TABLE_FIELDS:
+        raise ValueError("PUBLIC_REFERENCE_TABLE_EXACT_SCHEMA_REQUIRED")
+    raw = packet["positions_table"]
+    if not isinstance(raw, str) or len(raw) > 20000:
+        raise ValueError("PUBLIC_REFERENCE_TABLE_BOUNDED_TEXT_REQUIRED")
+    lines = [line.strip() for line in raw.splitlines() if line.strip()]
+    if not 3 <= len(lines) <= 62:
+        raise ValueError("PUBLIC_REFERENCE_TABLE_ROW_COUNT_INVALID")
+
+    def split_line(line: str) -> tuple[str, str]:
+        if not line.startswith("|") or not line.endswith("|"):
+            raise ValueError("PUBLIC_REFERENCE_TABLE_TWO_COLUMNS_REQUIRED")
+        cells = [x.strip() for x in line[1:-1].split("|")]
+        if len(cells) != 2 or not all(cells):
+            raise ValueError("PUBLIC_REFERENCE_TABLE_TWO_COLUMNS_REQUIRED")
+        return cells[0], cells[1]
+
+    left, right = split_line(lines[0])
+    if left.lower() not in TABLE_HEADER_LEFT or right.lower() not in TABLE_HEADER_RIGHT:
+        raise ValueError("PUBLIC_REFERENCE_TABLE_HEADER_UNRECOGNIZED")
+    sep_left, sep_right = split_line(lines[1])
+    if (not re.fullmatch(r":?-{3,}:?", sep_left)
+            or not re.fullmatch(r":?-{3,}:?", sep_right)):
+        raise ValueError("PUBLIC_REFERENCE_TABLE_SEPARATOR_REQUIRED")
+    positions: list[dict[str, str | None]] = []
+    weight_sum = Decimal("0")
+    complete = True
+    for index, line in enumerate(lines[2:]):
+        security, raw_weight = split_line(line)
+        # A descriptive label after the ticker is permitted but discarded.
+        # The ticker is the ONLY source identity retained downstream.
+        match = re.fullmatch(
+            r"([A-Za-z0-9][A-Za-z0-9.:-]{0,31})(?:\\s+[—–-]\\s+[^|]{1,120})?",
+            security,
+        )
+        if match is None:
+            raise ValueError("PUBLIC_REFERENCE_TABLE_SECURITY_ID_INVALID")
+        ticker = match.group(1)
+        if raw_weight in {"UNKNOWN", "NOT_VISIBLE", "—", "-"}:
+            weight = None
+            complete = False
+        else:
+            number = re.fullmatch(r"(\\d+(?:[.,]\\d{1,2})?)\\s*%", raw_weight)
+            if number is None:
+                raise ValueError("PUBLIC_REFERENCE_TABLE_WEIGHT_FORMAT_INVALID")
+            weight = number.group(1).replace(",", ".")
+            weight_sum += _decimal(
+                weight, f"work_table[{index}].weight_pct", upper=Decimal("100"))
+        positions.append({
+            "security_id": ticker, "weight_pct": weight,
+            "value": None, "currency": None, "visibility": (
+                "VISIBLE" if weight is not None else "UNCERTAIN"),
+        })
+    strict = {key: value for key, value in packet.items() if key != "positions_table"}
+    strict["positions_visible"] = positions
+    strict["displayed_weight_sum_pct"] = (
+        f"{weight_sum:.2f}" if complete else None)
+    # This existing validator enforces all remaining identity/date/coverage/
+    # ownership/public-private protections on the converted packet.
+    return prepare_public_portfolio_reference(
+        strict, analysis_id=analysis_id, analysis_as_of=analysis_as_of)
 
 
 def render_public_portfolio_reference(result: Mapping[str, Any]) -> str:
