@@ -308,6 +308,77 @@ class BlossomSessionBridgeTests(unittest.TestCase):
         self.assertEqual((code, error), (0, ""))
         self.assertIn("CAPTURE_AUTHORIZED_PORTFOLIO_SCREENSHOT", queue)
 
+
+    def test_scoped_visual_ledger_coverage_reaches_pi_only_final_report(self):
+        result = complete_manual_session(
+            self.pi_only(), pi_delta=self.fx.pi(),
+            work_blossom_inputs=self.report())
+        report = result["final_report_private"]
+        self.assertIn("Private portfolio observation — coverage and provenance", report)
+        self.assertIn("Observed as of 2026-10-28; 1 caller-reported position row(s)", report)
+        self.assertIn("CALLER_REPORTED_SCOPED_DENOMINATOR_ONLY", report)
+        self.assertIn("not independently authenticated", report.lower())
+        for private_value in ("SYNTHETIC_ACCOUNT_SECRET", "SYNTHETIC-HOLDING", "80.00",
+                              "20.00", "TOKEN_THAT_MUST_NOT_PASS"):
+            self.assertNotIn(private_value, report)
+        self.assertEqual(result["portfolio_observation_private"]["known_scope_weights_pct"]["P1"], "80.00")
+        self.assertEqual(result["readiness"], "NOT_EVALUATED")
+
+    def test_ir_pi_final_report_includes_original_private_ledger_limits(self):
+        ir = self.fx.ir()
+        result = complete_manual_session(
+            self.fx.request(portfolio_needed=True),
+            ir_capsule=ir, pi_delta=self.fx.pi(forwarded_ir=deepcopy(ir)),
+            work_blossom_inputs=self.report())
+        self.assertEqual(result["status"], "M7A_COMPONENT_ASSEMBLED_NOT_END_TO_END_ACCEPTANCE")
+        report = result["final_report_private"]
+        self.assertEqual(report.count("Private portfolio observation — coverage and provenance"), 1)
+        self.assertIn("CALLER_REPORTED_SCOPED_DENOMINATOR_ONLY", report)
+        self.assertNotIn("SYNTHETIC_ACCOUNT_SECRET", report)
+        self.assertNotIn("SYNTHETIC-HOLDING", report)
+        self.assertNotIn("80.00", report)
+        self.assertEqual(result["handoffs_private"]["pi_request_private"]["FORWARD_UNCHANGED"], ir)
+        self.assertEqual(result["project_invocation"], "NONE")
+
+    def test_incomplete_observation_is_explicit_not_reweighted(self):
+        partial = self.report()
+        partial["coverage_evidence"]["cash_checked"] = False
+        result = complete_manual_session(
+            self.pi_only(), pi_delta=self.fx.pi(), work_blossom_inputs=partial)
+        report = result["final_report_private"]
+        self.assertIn("INCOMPLETE_NO_DERIVED_WEIGHTS", report)
+        self.assertIn("unresolved qualification(s)", report)
+        self.assertNotIn("CALLER_REPORTED_SCOPED_DENOMINATOR_ONLY", report)
+        self.assertIsNone(result["portfolio_observation_private"]["known_scope_weights_pct"])
+
+    def test_no_observation_never_adds_observation_section(self):
+        result = complete_manual_session(self.pi_only(), pi_delta=self.fx.pi())
+        self.assertNotIn("Private portfolio observation", result["final_report_private"])
+
+    def test_report_rejects_tampered_private_observation_authority_or_weights(self):
+        from ai_native.reporting import render_report
+        base = complete_manual_session(
+            self.pi_only(), work_blossom_inputs=self.report())["portfolio_observation_private"]
+        packet = {
+            "kind": "DECISION", "analysis_id": "CASE-A",
+            "as_of": "2026-10-28", "strategy": "EXPLORATORY",
+            "method_version": "UNKNOWN_NOT_LOADED", "status": "CONDITIONAL",
+            "objective": "Synthetic", "decision_line": "No action",
+            "summary": ["Unverified"], "facts": [],
+            "countercase": "Incomplete", "limitations": "Unknown", "next_action": "Review",
+        }
+        for changed in (
+            {"verification": "INDEPENDENTLY_VERIFIED"},
+            {"private_scope": False},
+            {"portfolio_room_status": "ROOM_EVIDENCE_SUPPORTED"},
+            {"analysis_id": "WRONG"},
+            {"known_scope_weights_pct": {"P1": "50.00", "P-CASH": "50.00"}},
+        ):
+            with self.subTest(changed=changed), self.assertRaises(ValueError):
+                tampered = deepcopy(base)
+                tampered.update(changed)
+                render_report({**packet, "portfolio_observation_private": tampered})
+
     def test_existing_pi_path_without_visual_packet_unchanged(self):
         result=complete_manual_session(self.pi_only(),pi_delta=self.fx.pi())
         self.assertEqual(result["status"],"PI_ONLY_CONDITIONAL_REPORT_ASSEMBLED")

@@ -62,6 +62,7 @@ def assemble_manual_run(
     opportunity_triage_inputs: Mapping[str, Any] | None = None,
     macro_sector_inputs: Mapping[str, Any] | None = None,
     portfolio_room_review_private: Mapping[str, Any] | None = None,
+    portfolio_observation_private: Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Assemble a PRIVATE report without claiming live Project connectivity.
 
@@ -386,6 +387,8 @@ def assemble_manual_run(
         packet["new_contribution_summary_private"] = contribution_bundle["report_summary_private"]
     if historical_comparison is not None:
         packet["historical_research_comparison_private"] = historical_comparison
+    if portfolio_observation_private is not None:
+        packet["portfolio_observation_private"] = portfolio_observation_private
     markdown = render_report(packet)
     # Memory proposal excludes portfolio data, issuer narrative and full claims.
     memory = {

@@ -261,7 +261,8 @@ class SessionBridgeTests(unittest.TestCase):
         from unittest.mock import patch
         request = self.request(research_needed=False, portfolio_needed=True)
         with patch("ai_native.session_bridge.prepare_observation_ledger",
-                   return_value={"observed_on":"2026-10-28","known_scope_weights_pct":None}):
+                   return_value={"observed_on":"2026-10-28","known_scope_weights_pct":None,
+                                  "private_scope":True}):
             with self.assertRaisesRegex(ValueError, "PI_CONTRIBUTION_SCOPE_CONFLICTS_WITH_OBSERVATION"):
                 complete_manual_session(
                     request, pi_delta=self.pi(), observation_inputs={
