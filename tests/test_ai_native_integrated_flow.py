@@ -68,12 +68,21 @@ class ManualIntegrationTests(unittest.TestCase):
         out = assemble_manual_run(self.request(), self.ir(), calculation_requests=reqs)
         self.assertEqual(out["calculation_checks"][0]["value"], "25.00")
         self.assertEqual(out["calculation_checks"][0]["source_verification"], "NOT_PERFORMED")
+        self.assertIn("OPERATING_MARGIN: 25.00%", out["markdown"])
+        self.assertIn("original-IR point-in-time availability", out["markdown"])
+        self.assertNotIn("CF1", out["markdown"])
+        self.assertNotIn("CF2", out["markdown"])
+        self.assertNotIn("https://example.com/a", out["markdown"])
+        self.assertNotIn("25.00", str(out["memory_proposal_nonprivate"]))
 
     def test_incompatible_financial_data_becomes_conditional(self):
         reqs = [{"operation": "OPERATING_MARGIN", "left": self.check_fact(),
                  "right": self.check_fact(id="CF2", metric="REVENUE", currency="CAD")}]
         out = assemble_manual_run(self.request(), self.ir(), calculation_requests=reqs)
         self.assertEqual(out["calculation_checks"][0]["status"], "UNAVAILABLE")
+        self.assertIn("OPERATING_MARGIN: UNAVAILABLE", out["markdown"])
+        self.assertIn("CURRENCY_MISMATCH", out["markdown"])
+        self.assertNotIn("25.00%", out["markdown"])
         self.assertIn("CONDITIONAL", out["markdown"])
 
     def test_forwarded_ir_must_be_unchanged(self):
