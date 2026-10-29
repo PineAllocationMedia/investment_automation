@@ -59,7 +59,7 @@ def _visibility(raw: Any, field: str) -> str:
 def _displayed_pct(raw: Any, field: str) -> Decimal:
     """Exact UI percentage, kept separate from amount-derived portfolio weights."""
     if (not isinstance(raw, str) or not re.fullmatch(
-            r"(?:0|[1-9][0-9]{0,2})(?:\\.[0-9]{1,2})?", raw)):
+            r"(?:0|[1-9][0-9]{0,2})(?:\.[0-9]{1,2})?", raw)):
         raise ValueError(f"{field}: display percentage must be a decimal string with <=2 places")
     try:
         amount = Decimal(raw)

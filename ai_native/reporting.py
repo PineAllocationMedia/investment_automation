@@ -156,7 +156,7 @@ def _portfolio_observation_lines(packet: Mapping[str, Any], analysis_id: str,
                 or (state == "VERIFIED_VISIBLE") != (raw is not None)):
             raise ValueError("REPORT_DISPLAYED_WEIGHT_VISIBILITY_INVALID")
         if raw is not None:
-            if not isinstance(raw, str) or not re.fullmatch(r"(?:0|[1-9][0-9]{0,2})\\.[0-9]{2}", raw):
+            if not isinstance(raw, str) or not re.fullmatch(r"(?:0|[1-9][0-9]{0,2})\.[0-9]{2}", raw):
                 raise ValueError("REPORT_DISPLAYED_WEIGHT_INVALID")
             try:
                 value = Decimal(raw)
