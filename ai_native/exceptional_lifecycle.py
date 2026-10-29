@@ -59,7 +59,7 @@ def prepare_exceptional_lifecycle_review(
         raise ValueError("LIFECYCLE_EXPLICIT_IR_PI_CEO_REQUEST_REQUIRED")
     strategy = _str(request.get("strategy_id"), "strategy_id", 32)
     # Existing High-CAGR scope only; this helper cannot invent preservation rules.
-    if strategy not in {"high-cagr", "HIGH_CAGR"}:
+    if strategy not in {"high-cagr", "High-CAGR", "HIGH_CAGR"}:
         raise ValueError("LIFECYCLE_STRATEGY_POLICY_NOT_APPROVED")
     aid = _str(request.get("analysis_id"), "analysis_id", 90)
     cutoff = _date(request.get("as_of"), "as_of")
@@ -97,11 +97,11 @@ def prepare_exceptional_lifecycle_review(
     refs = inputs.get("original_ir_fact_ids")
     current = inputs.get("current_evidence_refs")
     if (not isinstance(refs, list) or not refs or len(refs) > 24
-            or len(set(refs)) != len(refs)
             or not isinstance(current, list) or len(current) > 24
-            or len(set(current)) != len(current)
             or any(not isinstance(x, str) or not x.strip() or len(x) > 90
-                   for x in refs + current)):
+                   for x in refs + current)
+            or len(set(refs)) != len(refs)
+            or len(set(current)) != len(current)):
         raise ValueError("LIFECYCLE_EVIDENCE_LINKS_INVALID")
     ir_facts = ir_capsule.get("facts")
     if not isinstance(ir_facts, list):
