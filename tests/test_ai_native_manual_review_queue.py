@@ -158,6 +158,20 @@ class ManualReviewQueueTests(unittest.TestCase):
             with self.subTest(status=status,route=route), self.assertRaises(ValueError):
                 prepare_manual_review_queue(self.shell(status,route))
 
+    def test_lifecycle_review_is_rejected_on_waiting_or_pi_only_route(self):
+        for status, route in (
+            ("AWAITING_MANUAL_PI_DELTA", "CC_IR_PI_CC"),
+            ("PI_ONLY_CONDITIONAL_REPORT_ASSEMBLED", "CC_PI_CC"),
+            ("M7A_COMPONENT_ASSEMBLED_NOT_END_TO_END_ACCEPTANCE", "CC_IR_CC"),
+        ):
+            with self.subTest(route=route, status=status):
+                packet = self.shell(
+                    status, route,
+                    exceptional_lifecycle_review_private={"PRIVATE_SECRET": "RAW_POSITION"},
+                )
+                with self.assertRaisesRegex(ValueError, "REVIEW_QUEUE_LIFECYCLE_ROUTE_INVALID"):
+                    prepare_manual_review_queue(packet)
+
     def test_session_inputs_unmodified_and_output_bounded(self):
         raw=self.shell("M7A_COMPONENT_ASSEMBLED_NOT_END_TO_END_ACCEPTANCE",
                        integrated_private=dict(
@@ -173,7 +187,7 @@ class ManualReviewQueueTests(unittest.TestCase):
         saved=deepcopy(raw)
         out=prepare_manual_review_queue(raw)
         self.assertEqual(raw,saved)
-        self.assertLessEqual(out["item_count"],12)
+        self.assertLessEqual(out["item_count"],13)
         self.assertEqual(out["item_count"],len(out["items"]))
         self.assertEqual(len(self.codes(out)),len(set(self.codes(out))))
 

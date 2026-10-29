@@ -139,6 +139,103 @@ class ExceptionalLifecycleTests(unittest.TestCase):
         self.assertIn("ORIGINAL_IR_FACTS_UNRESOLVED",
                       out["exceptional_lifecycle_review_private"]["missing_or_qualified"])
 
+    def _review_codes(self, args):
+        from ai_native.manual_review_queue import prepare_manual_review_queue
+        result = complete_manual_session(**args)
+        queue = prepare_manual_review_queue(result)
+        return result, queue, [item["code"] for item in queue["items"]]
+
+    def test_lifecycle_cost_unknown_reaches_cc_operator_queue(self):
+        args = self.case()
+        saved = deepcopy(args)
+        result, queue, codes = self._review_codes(args)
+        self.assertIn("VERIFY_LIFECYCLE_TRANSACTION_COSTS", codes)
+        self.assertEqual(codes.count("VERIFY_LIFECYCLE_TRANSACTION_COSTS"), 1)
+        self.assertEqual(queue["trading_authority"], "NONE")
+        self.assertEqual(queue["readiness"], "NOT_EVALUATED")
+        self.assertLessEqual(queue["item_count"], 13)
+        self.assertEqual(args, saved)
+        for secret in ("SYN-SCOPE", "ABC:TSX", "SYNTHETIC_PRIVATE_BASELINE",
+                       "SYNTHETIC_PRIVATE_COUNTERCASE"):
+            self.assertNotIn(secret, str(queue))
+
+    def test_lifecycle_prioritizes_disputed_original_ir_fact(self):
+        args = self.case()
+        args["ir_capsule"]["facts"][0]["status"] = "CONFLICTED"
+        args["pi_delta"]["forwarded_ir"] = deepcopy(args["ir_capsule"])
+        _, _, codes = self._review_codes(args)
+        self.assertIn("RESOLVE_LIFECYCLE_IR_FACTS", codes)
+        self.assertNotIn("VERIFY_LIFECYCLE_TRANSACTION_COSTS", codes)
+
+    def test_lifecycle_prioritizes_missing_current_evidence(self):
+        args = self.case()
+        args["lifecycle_inputs"]["current_evidence_refs"] = []
+        _, _, codes = self._review_codes(args)
+        self.assertIn("FIND_LIFECYCLE_CURRENT_EVIDENCE", codes)
+        self.assertNotIn("VERIFY_LIFECYCLE_TRANSACTION_COSTS", codes)
+
+    def test_lifecycle_scope_uncertain_routes_to_human_check(self):
+        args = self.case()
+        args["observation_inputs"]["scope_complete"] = False
+        _, _, codes = self._review_codes(args)
+        self.assertIn("RECONCILE_LIFECYCLE_HOLDINGS_SCOPE", codes)
+
+    def test_lifecycle_volatility_hold_only_requests_nonstructural_review(self):
+        args = self.case()
+        args["lifecycle_inputs"]["thesis_event"] = "VOLATILITY_ONLY"
+        args["lifecycle_inputs"]["analyst_reported_view"] = "HOLD"
+        for key in ("fees_status", "fx_status", "tax_status"):
+            args["lifecycle_inputs"][key] = "SUPPLIED_NOT_INDEPENDENTLY_CHECKED"
+        _, queue, codes = self._review_codes(args)
+        self.assertIn("REVIEW_LIFECYCLE_NONSTRUCTURAL_EVENT", codes)
+        self.assertNotIn("REVIEW_LIFECYCLE_THESIS_AND_COSTS", codes)
+        self.assertEqual(queue["trading_authority"], "NONE")
+
+    def test_lifecycle_complete_looking_case_remains_human_only(self):
+        args = self.case()
+        for key in ("fees_status", "fx_status", "tax_status"):
+            args["lifecycle_inputs"][key] = "SUPPLIED_NOT_INDEPENDENTLY_CHECKED"
+        _, queue, codes = self._review_codes(args)
+        self.assertIn("REVIEW_LIFECYCLE_THESIS_AND_COSTS", codes)
+        self.assertNotIn("VERIFY_LIFECYCLE_TRANSACTION_COSTS", codes)
+        self.assertEqual(queue["source_authentication"], "NOT_PERFORMED")
+        self.assertEqual(queue["trading_authority"], "NONE")
+
+    def test_lifecycle_review_queue_rejects_spoofed_authority_and_identity(self):
+        from ai_native.manual_review_queue import prepare_manual_review_queue
+        for key, bad in (
+            ("trade_authority", "TRADING_APPROVED"),
+            ("source_authentication", "ORIGINAL_VERIFIED"),
+            ("portfolio_observed_on", "2026-10-27"),
+            ("analysis_id", "ANOTHER_CASE"),
+            ("missing_or_qualified", ["USER_GENERATED_PRIVATE_NOTE"]),
+            ("status", "HUMAN_THESIS_AND_COST_REVIEW_ONLY"),
+        ):
+            with self.subTest(key=key):
+                result = complete_manual_session(**self.case())
+                changed = deepcopy(result["exceptional_lifecycle_review_private"])
+                changed[key] = bad
+                result["exceptional_lifecycle_review_private"] = changed
+                result["integrated_private"]["exceptional_lifecycle_review_private"] = deepcopy(changed)
+                with self.assertRaises(ValueError):
+                    prepare_manual_review_queue(result)
+
+    def test_no_lifecycle_review_no_special_operator_task(self):
+        from ai_native.manual_review_queue import prepare_manual_review_queue
+        args = self.case()
+        args["request"].pop("exceptional_lifecycle_review_requested")
+        args.pop("lifecycle_inputs")
+        completed = complete_manual_session(**args)
+        queue = prepare_manual_review_queue(completed)
+        self.assertFalse(any("LIFECYCLE" in item["code"] for item in queue["items"]))
+        pending = self.case()
+        pending.pop("pi_delta")
+        pending.pop("lifecycle_inputs")
+        waiting = complete_manual_session(**pending)
+        queue = prepare_manual_review_queue(waiting)
+        self.assertIn("TRANSFER_PI_DELTA", [item["code"] for item in queue["items"]])
+        self.assertFalse(any("LIFECYCLE" in item["code"] for item in queue["items"]))
+
     def test_report_rejects_authority_spoof(self):
         out = complete_manual_session(**self.case())
         review = out["exceptional_lifecycle_review_private"]
