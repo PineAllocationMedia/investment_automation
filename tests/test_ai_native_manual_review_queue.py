@@ -339,6 +339,96 @@ class ManualReviewQueueTests(unittest.TestCase):
                 with self.assertRaisesRegex(ValueError, "REVIEW_QUEUE_SNAPSHOT_"):
                     prepare_manual_review_queue(forged)
 
+    def test_selected_six_modes_reach_explicit_review_without_policy_upgrade(self):
+        from ai_native.strategy_authority import R1_MODES
+        from ai_native.session_bridge import complete_manual_session
+        for mode in R1_MODES:
+            with self.subTest(mode=mode):
+                request = self.fx.request(
+                    strategy_id=mode, research_needed=False, portfolio_needed=True)
+                session = complete_manual_session(request, pi_delta=self.fx.pi())
+                result = prepare_manual_review_queue(session)
+                code = ("CONFIRM_APPROVED_HIGH_CAGR_SCOPE"
+                        if mode == "high-cagr"
+                        else "RESOLVE_SELECTED_R1_MODE_POLICY")
+                self.assertIn(code, self.codes(result))
+                self.assertNotIn("RESEARCH_READY", json.dumps(result))
+                self.assertEqual(result["readiness"], "NOT_EVALUATED")
+                self.assertEqual(result["trading_authority"], "NONE")
+                self.assertLessEqual(result["item_count"], 16)
+
+    def test_ir_pi_mode_questions_drive_actual_evidence_human_step(self):
+        from ai_native.session_bridge import complete_manual_session
+        request = self.fx.request(
+            strategy_id="balanced", portfolio_needed=True)
+        ir = self.fx.ir(MODE_RESEARCH_RESPONSES={
+            "analysis_id": "CASE-A", "research_as_of": "2026-10-28",
+            "strategy_id": "balanced", "answers": [
+                {"question_index": 1, "status": "SPECIALIST_REPORTED",
+                 "ir_fact_ids": ["F1"]},
+                {"question_index": 2, "status": "UNKNOWN",
+                 "ir_fact_ids": []},
+            ]})
+        pi = self.fx.pi(
+            forwarded_ir=deepcopy(ir),
+            MODE_PORTFOLIO_RESPONSES={
+                "analysis_id": "CASE-A", "portfolio_as_of": "2026-10-28",
+                "strategy_id": "balanced", "answers": [
+                    {"question_index": 1, "status": "UNKNOWN", "p_ids": []},
+                    {"question_index": 2, "status": "UNKNOWN", "p_ids": []},
+                ],
+            })
+        session = complete_manual_session(
+            request, ir_capsule=ir, pi_delta=pi)
+        before = deepcopy(session)
+        result = prepare_manual_review_queue(session)
+        self.assertEqual(session, before)
+        self.assertIn("RESOLVE_MODE_QUESTION_EVIDENCE", self.codes(result))
+        self.assertIn("RESOLVE_SELECTED_R1_MODE_POLICY", self.codes(result))
+        self.assertEqual(self.codes(result).count("RESOLVE_MODE_QUESTION_EVIDENCE"), 1)
+        self.assertNotIn("CASE-A", json.dumps(result))
+        self.assertNotIn("F1", json.dumps(result))
+        self.assertNotIn("balanced", json.dumps(result))
+        self.assertEqual(result["project_invocation"], "NONE")
+
+    def test_forged_handoff_or_mode_trace_does_not_create_authority(self):
+        from ai_native.session_bridge import complete_manual_session
+        request = self.fx.request(
+            strategy_id="modern-adaptive-browne",
+            research_needed=False, portfolio_needed=True)
+        session = complete_manual_session(request, pi_delta=self.fx.pi())
+        for mutation in ("policy", "strategy", "method"):
+            with self.subTest(mutation=mutation):
+                forged = deepcopy(session)
+                x = forged["handoffs_private"]
+                if mutation == "policy":
+                    x["strategy_policy_gate"]["policy_authority"] = "CEO_APPROVED"
+                elif mutation == "strategy":
+                    x["pi_request_private"]["strategy_id"] = "high-cagr"
+                else:
+                    x["pi_request_private"]["r1_strategy_method_load"] = "VERIFIED"
+                with self.assertRaisesRegex(ValueError, "REVIEW_QUEUE_MODE_"):
+                    prepare_manual_review_queue(forged)
+
+    def test_actual_cli_six_mode_policy_gate_is_redacted_and_not_approved(self):
+        payload = {
+            "request": self.fx.request(
+                strategy_id="intelligent-dividend-harvester",
+                research_needed=False, portfolio_needed=True),
+            "pi_delta": self.fx.pi(),
+        }
+        original = deepcopy(payload)
+        code, output, error = self.cli(payload)
+        self.assertEqual((code, error), (0, ""))
+        queue = json.loads(output)
+        self.assertIn("RESOLVE_SELECTED_R1_MODE_POLICY", self.codes(queue))
+        self.assertNotIn("intelligent-dividend-harvester", output)
+        self.assertEqual(queue["source_authentication"], "NOT_PERFORMED")
+        self.assertEqual(payload, original)
+        code, status, error = self.cli(payload, "status")
+        self.assertEqual((code, error), (0, ""))
+        self.assertNotIn("RESOLVE_SELECTED_R1_MODE_POLICY", status)
+
     def test_no_archive_or_automatic_research_even_with_checklist(self):
         payload={"request":self.fx.request()}
         code, output, err=self.cli(payload)
