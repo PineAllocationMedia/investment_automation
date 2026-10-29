@@ -7,7 +7,8 @@ import json
 import unittest
 
 from ai_native.public_portfolio_reference import (
-    prepare_public_portfolio_reference, render_public_portfolio_reference,
+    prepare_public_portfolio_reference, prepare_public_reference_from_work_table,
+    render_public_portfolio_reference,
 )
 from ai_native.session_bridge import complete_manual_session
 from ai_native.manual_review_queue import prepare_manual_review_queue
@@ -52,6 +53,126 @@ class PublicReferenceTests(unittest.TestCase):
                              "account_filter_visible": False, "sync_date_visible": False},
                 "displayed_weight_sum_pct": "100.30",
                 "unknowns": ["SYNTHETIC_UNOBSERVED_ACCOUNT_FILTER"]}
+
+    def table(self):
+        base=self.data()
+        base.pop("positions_visible")
+        base.pop("displayed_weight_sum_pct")
+        base["positions_table"]=(
+            "| Position affichée | Poids affiché |\n"
+            "| ---------------- | ------------ |\n"
+            "| SYN-A — Synthetic A | 40,1 % |\n"
+            "| SYN-B — Synthetic B | 30,1 % |\n"
+            "| SYN-C — Synthetic C | 20,1 % |\n"
+            "| SYN-D — Synthetic D | 10,0 % |"
+        )
+        return base
+
+    def test_work_table_reuses_exact_public_reference_without_normalizing(self):
+        table=self.table()
+        original=copy.deepcopy(table)
+        data=prepare_public_reference_from_work_table(
+            table,analysis_id="SYN-REF-1",analysis_as_of="2026-10-29")
+        plain=prepare_public_portfolio_reference(self.data(),
+            analysis_id="SYN-REF-1",analysis_as_of="2026-10-29")
+        self.assertEqual(data,plain)
+        self.assertEqual(table,original)
+        self.assertEqual(data["displayed_weight_sum_pct"],"100.30")
+        self.assertEqual(data["top_five_displayed_points"],"100.30")
+        self.assertEqual(data["private_holdings_import"],"NONE")
+
+    def test_work_table_cc_direct_and_manual_ir_paths(self):
+        direct=complete_manual_session(self.req(),
+            public_reference_table_inputs=self.table())
+        self.assertEqual(direct["status"],"PUBLIC_REFERENCE_DESCRIPTIVE_REPORT_READY")
+        self.assertIn("SYN-A",direct["final_report_private"])
+        self.assertNotIn("Synthetic A",direct["final_report_private"])
+        self.assertNotIn("SYN_ACCOUNT_MUST_NOT_LEAK_IN_REPORT",
+                         direct["final_report_private"])
+        self.assertIsNone(direct["portfolio_observation_private"])
+        ir=complete_manual_session(self.req(research=True),
+            public_reference_table_inputs=self.table())
+        self.assertEqual(ir["status"],"AWAITING_MANUAL_IR_CAPSULE")
+        packet=json.loads(ir["handoffs_private"]["copy_ready_private"]["IR_REQUEST"])
+        self.assertEqual(packet["public_reference_context"]["positions_visible"][0],
+                         {"security_id":"SYN-A","displayed_weight_pct":"40.1"})
+
+    def test_work_table_cli_status_redacted_report_explicit(self):
+        payload={"request":self.req(),
+                 "public_reference_table_inputs":self.table()}
+        out,err=StringIO(),StringIO()
+        code=main(["--output","status"],instream=StringIO(json.dumps(payload)),
+                  outstream=out,errstream=err)
+        self.assertEqual(code,0)
+        self.assertEqual(err.getvalue(),"")
+        self.assertNotIn("SYN-A",out.getvalue())
+        self.assertNotIn("Synthetic A",out.getvalue())
+        self.assertEqual(json.loads(out.getvalue())["status"],
+                         "PUBLIC_REFERENCE_DESCRIPTIVE_REPORT_READY")
+        out,err=StringIO(),StringIO()
+        code=main(["--output","report"],instream=StringIO(json.dumps(payload)),
+                  outstream=out,errstream=err)
+        self.assertEqual(code,0)
+        self.assertIn("SYN-A",out.getvalue())
+        self.assertNotIn("Synthetic A",out.getvalue())
+
+    def test_work_table_both_formats_and_pi_mix_rejected(self):
+        with self.assertRaisesRegex(ValueError,"PUBLIC_REFERENCE_AMBIGUOUS_SOURCE_FORMAT"):
+            complete_manual_session(self.req(),
+                public_reference_table_inputs=self.table(),
+                public_reference_inputs=self.data())
+        with self.assertRaisesRegex(ValueError,"PUBLIC_REFERENCE_ONLY_CC_OR_IR_ROUTE"):
+            complete_manual_session(self.req(portfolio=True),
+                public_reference_table_inputs=self.table())
+
+    def test_work_table_malformed_markdown_rejected(self):
+        for table in (
+            "| SYN-A | 40,1 % |",
+            "| Position affichée | Poids affiché |\n| --- | --- |\n| SYN-A | 40,1 % |\nFOOTER",
+            "| Position affichée | Poids affiché |\n| --- | --- |\n| SYN-A | 40,1 |",
+            "| Position affichée | Poids affiché |\n| --- | --- |\n| <script> | 40,1 % |",
+            "| Position affichée | Poids affiché |\n| --- | --- |\n| SYN-A | NaN % |",
+            "| Position affichée | Poids affiché |\n| --- | --- |\n| SYN-A | 100,1 % |",
+        ):
+            with self.subTest(table=table),self.assertRaises(ValueError):
+                item=self.table()
+                item["positions_table"]=table
+                prepare_public_reference_from_work_table(
+                    item,analysis_id="SYN-REF-1",analysis_as_of="2026-10-29")
+
+    def test_work_table_duplicate_weight_and_unknown_require_consistency(self):
+        item=self.table()
+        item["positions_table"] += "\n| SYN-A — duplicate | 0,1 % |"
+        with self.assertRaisesRegex(ValueError,"PUBLIC_REFERENCE_DUPLICATE_OR_INVALID_SECURITY"):
+            prepare_public_reference_from_work_table(
+                item,analysis_id="SYN-REF-1",analysis_as_of="2026-10-29")
+        item=self.table()
+        item["positions_table"]=item["positions_table"].replace("10,0 %","UNKNOWN")
+        with self.assertRaisesRegex(ValueError,"PUBLIC_REFERENCE_WEIGHTS_MISSING_BUT_COMPARABLE"):
+            prepare_public_reference_from_work_table(
+                item,analysis_id="SYN-REF-1",analysis_as_of="2026-10-29")
+        item["coverage"]["weights_comparable"]=False
+        result=prepare_public_reference_from_work_table(
+            item,analysis_id="SYN-REF-1",analysis_as_of="2026-10-29")
+        self.assertIsNone(result["displayed_weight_sum_pct"])
+        self.assertIn("ONE_OR_MORE_WEIGHTS_NOT_VISIBLE",
+                      result["missing_or_qualified"])
+
+    def test_work_table_scope_provenance_and_cutoff_guard_retained(self):
+        for key,value in (
+            ("account_ownership","CEO_PRIVATE"),
+            ("analysis_id","OTHER"),
+            ("observation_as_of","2026-10-30"),
+        ):
+            with self.subTest(key=key), self.assertRaises(ValueError):
+                item=self.table();item[key]=value
+                prepare_public_reference_from_work_table(
+                    item,analysis_id="SYN-REF-1",analysis_as_of="2026-10-29")
+        item=self.table()
+        item["private_accounts"]=["NOT_ALLOWED"]
+        with self.assertRaisesRegex(ValueError,"PUBLIC_REFERENCE_TABLE_EXACT_SCHEMA_REQUIRED"):
+            prepare_public_reference_from_work_table(
+                item,analysis_id="SYN-REF-1",analysis_as_of="2026-10-29")
 
     def test_displayed_sum_not_renormalized_no_private_upgrade(self):
         packet=self.data()
