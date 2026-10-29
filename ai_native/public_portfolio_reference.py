@@ -23,6 +23,7 @@ FIELDS = frozenset({
 })
 ROW_FIELDS = frozenset({"security_id", "weight_pct", "value", "currency", "visibility"})
 TICKER = re.compile(r"[A-Za-z0-9][A-Za-z0-9.:-]{0,31}\Z")
+CASE_ID = re.compile(r"[A-Za-z0-9][A-Za-z0-9._:-]{0,89}\Z")
 
 
 def _text(v: Any, label: str, limit: int = 120) -> str:
@@ -66,6 +67,8 @@ def prepare_public_portfolio_reference(
     if not isinstance(packet, Mapping) or set(packet) != FIELDS:
         raise ValueError("PUBLIC_REFERENCE_EXACT_SCHEMA_REQUIRED")
     aid = _text(analysis_id, "request.analysis_id", 90)
+    if not CASE_ID.fullmatch(aid):
+        raise ValueError("PUBLIC_REFERENCE_CASE_ID_UNSAFE")
     cutoff = _date(analysis_as_of, "request.as_of")
     if (packet["status"] != "PUBLIC_REFERENCE_ONLY"
             or packet["account_ownership"] != "NOT_ASSUMED_USER"):
@@ -80,7 +83,7 @@ def prepare_public_portfolio_reference(
         stamp = _text(captured, "captured_at", 40)
         try:
             dt = datetime.fromisoformat(stamp)
-            if dt.utcoffset() is None:
+            if dt.utcoffset() is None or dt.date().isoformat() > cutoff:
                 raise ValueError
             if visible_on != "UNKNOWN" and dt.date().isoformat() != visible_on:
                 raise ValueError
