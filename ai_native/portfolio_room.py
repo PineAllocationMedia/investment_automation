@@ -152,10 +152,17 @@ def prepare_portfolio_room_review(
         missing.append("EXPOSURES_UNAVAILABLE")
     historical_fund = exposures.get("fund_composition_date_alignment") == "PRIOR_DATED_FUND_SNAPSHOTS"
     if historical_fund:
-        # Private annex retains historical issuer arithmetic, but a prior
-        # fund snapshot is not a CURRENT issuer exposure lower bound.
+        # M3 excludes the ENTIRE prior-dated fund from current issuer buckets.
+        # Retain only a separately supported current/direct positive lower
+        # bound for this issuer. No matching current row means UNKNOWN, not zero.
+        # Even with that narrow known part, Room stays unavailable while the
+        # old fund's potentially overlapping constituents remain unknown.
         missing.append("HISTORICAL_FUND_COMPOSITION_NOT_CURRENT")
-        missing.append("KNOWN_ISSUER_EXPOSURE_UNAVAILABLE")
+        if isinstance(lower, Mapping) and issuer in lower:
+            known_pct = str(_pct(lower[issuer], "known issuer exposure"))
+            missing.append("HISTORICAL_FUND_EXCLUDED_FROM_KNOWN_LOWER_BOUND")
+        else:
+            missing.append("KNOWN_ISSUER_EXPOSURE_UNAVAILABLE")
     elif isinstance(lower, Mapping):
         known_pct = str(_pct(lower.get(issuer, "0"), "known issuer exposure"))
     else:
@@ -176,6 +183,7 @@ def prepare_portfolio_room_review(
     review_status = "ROOM_CONDITIONAL" if (
         observation.get("status") == "SCOPED_WEIGHTS_DERIVED_FROM_CALLER_VISIBLE_DATA"
         and known_pct is not None and unknown_pct is not None
+        and not historical_fund
         and account_type != "UNKNOWN"
         and all(axis_data[k]["status"] == "SPECIALIST_REPORTED" and axis_data[k]["ir_fact_ids"]
                 and not any(original_facts[x].get("status") in {"MISSING", "CONFLICTED"}

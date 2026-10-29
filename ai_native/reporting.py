@@ -954,6 +954,12 @@ def _portfolio_room_lines(packet: Mapping[str, Any], analysis_id: str,
         lines.append(f"- Portfolio {check.replace('_', ' ').lower()}: {row['status']} ({label}).")
     if "HISTORICAL_FUND_COMPOSITION_NOT_CURRENT" in warnings:
         lines.append("- Fund constituent evidence predates the portfolio observation; current issuer exposure cannot be inferred from that historical fund snapshot. Obtain a dated composition and review differences.")
+        if known is not None:
+            if "HISTORICAL_FUND_EXCLUDED_FROM_KNOWN_LOWER_BOUND" not in warnings:
+                raise ValueError("ROOM_REPORT_HISTORICAL_LOWER_BOUND_UNQUALIFIED")
+            lines.append("- The displayed known issuer lower bound excludes ALL prior-dated fund constituents; only separately reported direct/current-dated exposure contributes. The old fund may overlap this issuer, so complete concentration and Portfolio Room remain UNAVAILABLE.")
+        elif "HISTORICAL_FUND_EXCLUDED_FROM_KNOWN_LOWER_BOUND" in warnings:
+            raise ValueError("ROOM_REPORT_HISTORICAL_LOWER_BOUND_UNQUALIFIED")
     if warnings:
         lines.append(f"- **{len(warnings)} unresolved/qualified condition(s)** in private Portfolio Room annex; review before considering any new capital.")
     lines.append("No target allocation, selling decision, ranking, after-cost alpha or trading permission is established; analysis remains human-reviewed.")
