@@ -45,6 +45,8 @@ def prepare_manual_review_queue(session: Mapping[str, Any]) -> dict[str, Any]:
             items.append({"code": code, "stage": stage, "human_action": instruction})
 
     if status == "CC_DIRECT_NO_SPECIALIST_REPORT_REQUIRED":
+        if route != "CC_DIRECT":
+            raise ValueError("REVIEW_QUEUE_DIRECT_ROUTE_MISMATCH")
         add("CC_DIRECT_REVIEW", "OPERATOR_REVIEW",
             "No specialist path was requested. Review whether the CEO's original mandate is fulfilled.")
     else:
@@ -124,9 +126,10 @@ def prepare_manual_review_queue(session: Mapping[str, Any]) -> dict[str, Any]:
                     else:
                         add("CHECK_PORTFOLIO_ORIGINAL", "HUMAN_VERIFICATION",
                             "Check dated source image/export, holdings and account scope before trusting caller-reported portfolio weights.")
-                if (isinstance(session.get("integrated_private"), Mapping)
-                        and session["integrated_private"].get("gross_contribution_private") is not None
-                        or session.get("gross_contribution_private") is not None):
+                funded_from_ir = (isinstance(session.get("integrated_private"), Mapping)
+                                  and session["integrated_private"].get("gross_contribution_private") is not None)
+                funded_from_pi = session.get("gross_contribution_private") is not None
+                if funded_from_ir or funded_from_pi:
                     add("RECHECK_ACCOUNT_COSTS", "HUMAN_VERIFICATION",
                         "Confirm account, commission, FX, tax and available funding before interpreting percentages of new contributions; never execute orders.")
             add("REVIEW_CONDITIONAL_REPORT", "OPERATOR_REVIEW",
