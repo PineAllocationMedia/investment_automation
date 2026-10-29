@@ -202,6 +202,32 @@ def complete_manual_session(
                 and exposures["status"] != "CALLER_REPORTED_SCOPED_EXPOSURES"):
             raise ValueError("ROOM_ASSERTION_UNSUPPORTED_BY_PARTIAL_LOOKTHROUGH")
 
+    # Carry the already-validated PRIVATE P-ledger in the existing manual PI
+    # handoff. Previously the Work adapter produced a local ledger but the
+    # copy-ready PI_REQUEST omitted it, requiring an unaudited second transcription.
+    # Never turn an observed public profile into a private account packet.
+    if observation is not None:
+        if observation.get("private_scope") is not True:
+            raise ValueError("PUBLIC_OBSERVATION_CANNOT_BECOME_PRIVATE_PI")
+        if portfolio_context is not None:
+            for context_field, observation_field in (
+                ("observed_at", "observed_on"),
+                ("account_scope", "account_scope"),
+            ):
+                stated = portfolio_context.get(context_field)
+                if stated not in (None, "UNKNOWN", observation[observation_field]):
+                    raise ValueError("PI_CONTEXT_CONFLICTS_WITH_OBSERVED_P_LEDGER")
+        pi_request = handoffs["pi_request_private"]
+        if pi_request is not None:
+            pi_request["P_LEDGER_FOR_REVIEW_PRIVATE"] = deepcopy(observation)
+            pi_request["P_LEDGER_HANDOFF_AUTHORITY"] = (
+                "CALLER_REPORTED_PRIVATE_OBSERVATION_MANUAL_REVIEW_ONLY"
+            )
+            handoffs["copy_ready_private"]["PI_REQUEST"] = json.dumps(
+                pi_request, ensure_ascii=False, sort_keys=True,
+                indent=2, allow_nan=False,
+            )
+
     private = {"status": "MANUAL_SESSION_PENDING", "route": route,
                "handoffs_private": handoffs, "final_report_private": None,
                "integrated_private": None, "pi_delta_private": None,
