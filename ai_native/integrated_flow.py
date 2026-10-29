@@ -14,6 +14,7 @@ from .research_case_comparison import compare_supplied_cases
 from .evidence_math import audit_calculation
 from .source_fusion import assemble_source_fusion
 from .fact_evidence_alignment import align_ir_facts_to_sources
+from .pillar_trace import prepare_pillar_trace
 from .opportunity_triage import prepare_opportunity_triage
 from .macro_sector_context import prepare_macro_sector_context
 from .valuation_scenarios import evaluate_valuation_scenarios
@@ -192,6 +193,14 @@ def assemble_manual_run(
                 source_annex["noncomparable_basis_groups"]):
             limits.append("Some research evidence is missing, disputed or noncomparable; see private source annex. No source was independently certified.")
             status = "CONDITIONAL"
+    # One optional four-pillar view travels inside the original unchanged IR
+    # capsule. A reported qualitative view is never an economic or source verdict.
+    pillar_trace = prepare_pillar_trace(
+        request=request, ir_capsule=ir_capsule, fact_alignment=fact_alignment)
+    if pillar_trace is not None:
+        limits.append("Four research-pillar views are caller-reported and not independently certified; Portfolio Room requires a separate PI review.")
+        status = "CONDITIONAL"
+
     opportunity_triage = None
     if opportunity_triage_inputs is not None:
         if source_annex is None:
@@ -319,6 +328,8 @@ def assemble_manual_run(
             packet["period_start"] = request.get("period_start")
             packet["period_end"] = request.get("period_end")
 
+    if pillar_trace is not None:
+        packet["pillar_trace_private"] = pillar_trace
     if fact_alignment is not None:
         # Only the private report consumer sees structural source-use warnings.
         # The original IR capsule and its reported labels remain unchanged.
@@ -373,6 +384,7 @@ def assemble_manual_run(
         "calculation_checks": checks,
         "source_evidence_annex_private": source_annex,
         "fact_source_alignment_private": fact_alignment,
+        "pillar_trace_private": pillar_trace,
         "opportunity_triage_private": opportunity_triage,
         "macro_sector_context_private": macro_sector_context,
         "valuation_scenarios_private": valuation_scenarios,

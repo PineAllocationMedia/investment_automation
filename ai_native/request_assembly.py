@@ -113,7 +113,7 @@ def prepare_manual_handoffs(
             **deepcopy(context),
             "method_version": _optional_text(request, "ir_method_version", "UNKNOWN_NOT_LOADED"),
             "requested_method_references_not_proof_of_loading": list(IR_METHODS),
-            "instruction": "Research decision-driving facts lawfully; retain S/F/K/V source, basis, dates, status, scenarios and strongest counter-thesis. Return one IR_CAPSULE with portable EVIDENCE_ANNEX. Portfolio Room awaits actual PI evidence. No investment or trade authority.",
+            "instruction": "Research decision-driving facts lawfully; retain S/F/K/V source, basis, dates, status, scenarios and strongest counter-thesis. Return one IR_CAPSULE with portable EVIDENCE_ANNEX; optionally add PILLAR_ASSESSMENTS with fact-linked Quality/Durability/Expected Return/Confidence views, explicit UNKNOWN and countercases where researched (not a score or certification). Portfolio Room awaits actual PI evidence. No investment or trade authority.",
         }
     if need_pi:
         if need_ir and ir_capsule is None:
