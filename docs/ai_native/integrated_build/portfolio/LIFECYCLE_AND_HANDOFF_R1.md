@@ -80,3 +80,36 @@ the existing research/portfolio checks. Synthetic tests authored in
 `tests.test_ai_native_exceptional_lifecycle` and
 `tests.test_ai_native_manual_review_queue`; runtime NOT_RUN in the
 GitHub-only session, not authentic R1 acceptance.
+
+## Distinct dated current-source annex for exceptional thesis evidence
+
+An optional **private** `lifecycle_current_evidence_inputs` now carries the
+already established M5 source-fusion envelope
+`{analysis_id, analysis_as_of, observations}` alongside the explicit
+`lifecycle_inputs` in the same CEO-requested IR+PI session. Each current
+source observation uses the existing S/F fields and dates, is linked by
+`observation_id` to one `current_evidence_refs` entry, and is tied by
+`fact_id` to one of the original IR thesis facts selected for the review.
+Case IDs, analysis cutoff, unique observation IDs, and exact reference
+coverage must match. The separate current annex is **not** silently added to
+or substituted for the untouched original IR `EVIDENCE_ANNEX`; a genuinely
+later current observation may be evaluated against its own analysis cutoff,
+never disguised as available at the original IR research date.
+
+Without the annex, mere strings under `current_evidence_refs` produce
+`CURRENT_EVIDENCE_NOT_STRUCTURALLY_LINKED`. Source-fusion flags for
+uncertain rights, future observations, missing values and conflicts produce
+`CURRENT_EVIDENCE_UNRESOLVED`. Either keeps the review in
+`EVIDENCE_RESOLUTION_NO_ACTION` and directs the fixed-code CC queue to
+`FIND_LIFECYCLE_CURRENT_EVIDENCE` before any claimed human-ready thesis
+assessment. A structurally consistent annex is still
+`CALLER_REPORTED_ONLY`; it does **not** certify authenticity, rights,
+source timeliness, updated thesis economics, tax costs or sell justification.
+The full evidence trace stays in `current_evidence_annex_private`; the
+CC report shows only whether a structural link was supplied, not URLs,
+identifiers or confidential details. No new data purchases, browser use,
+unattended review, model policy or transaction authority.
+
+Synthetic focused regression scenarios are authored in
+`tests.test_ai_native_exceptional_lifecycle`. Python tests and authentic
+portfolio/source acceptance remain `NOT_RUN` in connector-only development.

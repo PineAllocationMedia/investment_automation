@@ -69,6 +69,7 @@ def complete_manual_session(
     opportunity_triage_inputs: Mapping[str, Any] | None = None,
     macro_sector_inputs: Mapping[str, Any] | None = None,
     lifecycle_inputs: Mapping[str, Any] | None = None,
+    lifecycle_current_evidence_inputs: Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
     """One CEO-initiated manual session, possibly awaiting a human transfer.
 
@@ -106,6 +107,8 @@ def complete_manual_session(
 
     if lifecycle_inputs is not None and (route != "CC_IR_PI_CC" or pi_delta is None):
         raise ValueError("LIFECYCLE_REQUIRES_COMPLETED_IR_PI_ROUTE")
+    if lifecycle_current_evidence_inputs is not None and lifecycle_inputs is None:
+        raise ValueError("LIFECYCLE_CURRENT_EVIDENCE_REQUIRES_REVIEW")
     if (request.get("exceptional_lifecycle_review_requested") is True
             and pi_delta is not None and lifecycle_inputs is None):
         raise ValueError("LIFECYCLE_REQUESTED_REVIEW_NOT_SUPPLIED")
@@ -357,7 +360,8 @@ def complete_manual_session(
         if observation is None:
             raise ValueError("LIFECYCLE_REQUIRES_PRIVATE_DATED_OBSERVATION")
         private["exceptional_lifecycle_review_private"] = prepare_exceptional_lifecycle_review(
-            request, ir_capsule, pi_delta, observation, lifecycle_inputs
+            request, ir_capsule, pi_delta, observation, lifecycle_inputs,
+            current_evidence_inputs=lifecycle_current_evidence_inputs,
         )
 
     base_request = {

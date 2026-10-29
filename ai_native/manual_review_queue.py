@@ -28,7 +28,8 @@ LIFECYCLE_STATUSES = frozenset({
 })
 LIFECYCLE_LIMITS = frozenset({
     "PRIVATE_SCOPED_PORTFOLIO_INCOMPLETE", "ORIGINAL_IR_FACTS_UNRESOLVED",
-    "NO_CURRENT_EVIDENCE_REFERENCES", "FEES_STATUS_UNKNOWN",
+    "NO_CURRENT_EVIDENCE_REFERENCES", "CURRENT_EVIDENCE_NOT_STRUCTURALLY_LINKED",
+    "CURRENT_EVIDENCE_UNRESOLVED", "FEES_STATUS_UNKNOWN",
     "FX_STATUS_UNKNOWN", "TAX_STATUS_UNKNOWN",
     "NO_STRUCTURAL_SELL_THESIS_FROM_EVENT",
 })
@@ -78,12 +79,40 @@ def _lifecycle_review_action(session: Mapping[str, Any],
             and review["analyst_reported_view"] in {"REVIEW_TRIM", "REVIEW_EXIT"}):
         raise ValueError("REVIEW_QUEUE_LIFECYCLE_PRICE_ONLY_SELL_INVALID")
     missing = set(limits)
+    annex = review.get("current_evidence_annex_private")
+    if annex is None:
+        if current and "CURRENT_EVIDENCE_NOT_STRUCTURALLY_LINKED" not in missing:
+            raise ValueError("REVIEW_QUEUE_LIFECYCLE_CURRENT_EVIDENCE_UNSUPPORTED")
+    else:
+        if (not isinstance(annex, Mapping)
+                or annex.get("status") != "PRIVATE_SOURCE_ANNEX_PREPARED_NOT_CERTIFIED"
+                or annex.get("analysis_id") != review.get("analysis_id")
+                or annex.get("analysis_as_of") != review.get("analysis_as_of")
+                or annex.get("source_authentication") != "NOT_PERFORMED_BY_CODE"
+                or annex.get("source_rights_authority") != "NOT_GRANTED_BY_CODE"
+                or annex.get("trading_authority") != "NONE"
+                or not isinstance(annex.get("observations_private"), list)):
+            raise ValueError("REVIEW_QUEUE_LIFECYCLE_CURRENT_EVIDENCE_INVALID")
+        observations = annex["observations_private"]
+        if (len(observations) != len(current)
+                or any(not isinstance(item, Mapping) for item in observations)
+                or {item.get("observation_id") for item in observations} != set(current)
+                or any(item.get("fact_id") not in refs for item in observations)):
+            raise ValueError("REVIEW_QUEUE_LIFECYCLE_CURRENT_EVIDENCE_LINK_MISMATCH")
+        unresolved = any(item.get("claim_use_status") != "CALLER_REPORTED_ONLY"
+                         for item in observations)
+        if (("CURRENT_EVIDENCE_UNRESOLVED" in missing) != unresolved
+                or "CURRENT_EVIDENCE_NOT_STRUCTURALLY_LINKED" in missing
+                or "NO_CURRENT_EVIDENCE_REFERENCES" in missing):
+            raise ValueError("REVIEW_QUEUE_LIFECYCLE_CURRENT_EVIDENCE_STATUS_MISMATCH")
     if "ORIGINAL_IR_FACTS_UNRESOLVED" in missing:
         return ("RESOLVE_LIFECYCLE_IR_FACTS", "EVIDENCE_RESOLUTION",
                 "Check the original IR-linked thesis facts and contradictions before interpreting any exceptional position view.")
-    if "NO_CURRENT_EVIDENCE_REFERENCES" in missing:
+    if missing & {"NO_CURRENT_EVIDENCE_REFERENCES",
+                  "CURRENT_EVIDENCE_NOT_STRUCTURALLY_LINKED",
+                  "CURRENT_EVIDENCE_UNRESOLVED"}:
         return ("FIND_LIFECYCLE_CURRENT_EVIDENCE", "EVIDENCE_RESOLUTION",
-                "Obtain dated, rights-permitted evidence of the alleged thesis change; a narrative alone cannot justify a sale.")
+                "Link current thesis evidence to dated source observations, resolve source rights and conflicts; no portfolio trade can follow from unverified references.")
     if "PRIVATE_SCOPED_PORTFOLIO_INCOMPLETE" in missing:
         return ("RECONCILE_LIFECYCLE_HOLDINGS_SCOPE", "EVIDENCE_RESOLUTION",
                 "Recheck the dated private position, account coverage and hidden holdings before assessing concentration or lifecycle choices.")

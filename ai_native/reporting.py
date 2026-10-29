@@ -1063,6 +1063,9 @@ def _exceptional_lifecycle_lines(packet: Mapping[str, Any], analysis_id: str,
         "(not an actionable recommendation).",
         f"Observed as of {observed}; {len(refs)} original IR fact link(s), "
         f"{len(current)} current supplied evidence reference(s).",
+        "Recent-source link status: "
+        + ("NOT_SUPPLIED" if review.get("current_evidence_annex_private") is None
+           else "CALLER_REPORTED_STRUCTURAL_ONLY_NOT_CERTIFIED") + ".",
         f"Review stage: {review['status']}; {len(missing)} unresolved qualification(s) "
         "in the private annex. Original thesis, position, costs and countercase "
         "require independent human review.",
