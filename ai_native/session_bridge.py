@@ -16,6 +16,7 @@ from .mode_portfolio_trace import prepare_mode_portfolio_trace
 from .integrated_flow import assemble_manual_run
 from .reporting import render_report
 from .portfolio_observation import prepare_observation_ledger
+from .portfolio_snapshot_comparison import compare_private_portfolio_snapshots
 from .work_blossom_adapter import prepare_work_blossom_observation
 from .public_portfolio_reference import (
     prepare_public_portfolio_reference, prepare_public_reference_from_work_table,
@@ -58,6 +59,7 @@ def complete_manual_session(
     cost_inputs: Mapping[str, Any] | None = None,
     memory_inputs: Mapping[str, Any] | None = None,
     observation_inputs: Mapping[str, Any] | None = None,
+    prior_portfolio_observation_inputs: Mapping[str, Any] | None = None,
     work_blossom_inputs: Mapping[str, Any] | None = None,
     public_reference_inputs: Mapping[str, Any] | None = None,
     public_reference_table_inputs: Mapping[str, Any] | None = None,
@@ -125,6 +127,11 @@ def complete_manual_session(
         raise ValueError("LIFECYCLE_REQUESTED_REVIEW_NOT_SUPPLIED")
     if room_assessment_inputs is not None and route != "CC_IR_PI_CC":
         raise ValueError("PORTFOLIO_ROOM_REQUIRES_IR_AND_PI_ROUTE")
+    if prior_portfolio_observation_inputs is not None:
+        if route not in {"CC_PI_CC", "CC_IR_PI_CC"} or request.get("kind") != "FOLLOWUP":
+            raise ValueError("SNAPSHOT_COMPARISON_REQUIRES_EXPLICIT_PI_FOLLOWUP")
+        if not isinstance(request.get("prior_analysis_id"), str):
+            raise ValueError("SNAPSHOT_COMPARISON_PRIOR_ANALYSIS_REQUIRED")
 
     # Publicly observed profile holdings are RESEARCH REFERENCE only, not PI,
     # never M3 private P-ledger or Portfolio Room. Work output is separately
@@ -141,7 +148,8 @@ def complete_manual_session(
                 or work_blossom_inputs is not None
                 or portfolio_context is not None or contribution_inputs is not None
                 or cost_inputs is not None or exposure_classifications is not None
-                or room_assessment_inputs is not None):
+                or room_assessment_inputs is not None
+                or prior_portfolio_observation_inputs is not None):
             raise ValueError("PUBLIC_REFERENCE_CANNOT_BECOME_PRIVATE_PORTFOLIO")
         case_identity = {
             "analysis_id": _required(request, "analysis_id"),
@@ -221,6 +229,18 @@ def complete_manual_session(
                 and observation["known_scope_weights_pct"] is None):
             raise ValueError("UNSUPPORTED_PORTFOLIO_ROOM_ASSERTION: incomplete observation")
 
+    snapshot_comparison = None
+    if prior_portfolio_observation_inputs is not None:
+        if observation is None:
+            raise ValueError("SNAPSHOT_COMPARISON_REQUIRES_CURRENT_PRIVATE_OBSERVATION")
+        snapshot_comparison = compare_private_portfolio_snapshots(
+            analysis_id=_required(request, "analysis_id"),
+            analysis_as_of=_date(_required(request, "as_of"), "request.as_of"),
+            prior_analysis_id=_required(request, "prior_analysis_id"),
+            current_observation=observation,
+            prior_observation_inputs=prior_portfolio_observation_inputs,
+        )
+
     # Reuse the actual dated PRIVATE P-ledger as the complete new-capital
     # denominator when requested; reject independently retyped values that
     # disagree, including omitted visible cash. Both manual routes share it.
@@ -273,6 +293,7 @@ def complete_manual_session(
                "handoffs_private": handoffs, "final_report_private": None,
                "integrated_private": None, "pi_delta_private": None,
                "portfolio_observation_private": observation,
+               "portfolio_snapshot_comparison_private": snapshot_comparison,
                "work_blossom_capture_private": visual_capture,
                "public_reference_private": public_reference,
                "public_reference_report_private": public_reference_report,
@@ -374,6 +395,12 @@ def complete_manual_session(
             private["supplied_costs_private"] = bundle["supplied_costs_private"]
             private["funded_contribution_private"] = bundle["funded_contribution_private"]
             private["alternative_cost_details_private"] = bundle["alternative_cost_details_private"]
+        if snapshot_comparison is not None:
+            packet["portfolio_snapshot_comparison_private"] = snapshot_comparison
+            packet["limitations"] += (
+                " Prior/current portfolio snapshots are caller-reported; "
+                "weight shifts cannot establish security returns, capital "
+                "flows, transactions or household-wide exposure.")
         if packet["kind"] == "FOLLOWUP":
             packet["changes"] = []
             for key in ("prior_analysis_id", "period_start", "period_end"):
@@ -426,6 +453,7 @@ def complete_manual_session(
         macro_sector_inputs=macro_sector_inputs,
         portfolio_room_review_private=private["portfolio_room_review_private"],
         portfolio_observation_private=observation,
+        portfolio_snapshot_comparison_private=snapshot_comparison,
         portfolio_exposures_private=exposures,
         exceptional_lifecycle_review_private=private["exceptional_lifecycle_review_private"],
     )
