@@ -1023,6 +1023,55 @@ def _macro_sector_context_lines(packet: Mapping[str, Any], analysis_id: str,
                  "Private hypotheses, source locators, countercases and checks stay in the annex.")
     return lines
 
+def _exceptional_lifecycle_lines(packet: Mapping[str, Any], analysis_id: str,
+                                 as_of: str, strategy: str) -> list[str]:
+    """Compact private review stage; no original holdings or trade instructions."""
+    review = packet.get("exceptional_lifecycle_review_private")
+    if review is None:
+        return []
+    if not isinstance(review, Mapping) or (
+        review.get("analysis_id") != analysis_id
+        or review.get("analysis_as_of") != as_of
+        or review.get("strategy_id") != strategy
+        or review.get("status") not in {
+            "EVIDENCE_RESOLUTION_NO_ACTION", "HUMAN_THESIS_AND_COST_REVIEW_ONLY"}
+        or review.get("source_authentication") != "NOT_PERFORMED"
+        or review.get("account_and_cost_authentication") != "NOT_PERFORMED"
+        or review.get("portfolio_room_admission") != "NONE"
+        or review.get("allocation_or_sale_proposal") != "NONE"
+        or review.get("trade_authority") != "NONE_CEO_ONLY"
+        or review.get("public_memory_write") != "NONE"
+    ):
+        raise ValueError("LIFECYCLE_REPORT_AUTHORITY_OR_ID_MISMATCH")
+    observed = _iso_date(review.get("portfolio_observed_on"), "lifecycle.observed_on")
+    if observed > as_of:
+        raise ValueError("LIFECYCLE_REPORT_FUTURE_OBSERVATION")
+    refs = review.get("original_ir_fact_ids_private")
+    current = review.get("current_evidence_refs_private")
+    missing = review.get("missing_or_qualified")
+    if (not isinstance(refs, list) or not refs or len(refs) > 24
+            or not isinstance(current, list) or len(current) > 24
+            or not isinstance(missing, list) or len(missing) > 16):
+        raise ValueError("LIFECYCLE_REPORT_REFS_INVALID")
+    from .exceptional_lifecycle import EVENTS, VIEWS
+    event, view = review.get("thesis_event"), review.get("analyst_reported_view")
+    if event not in EVENTS or view not in VIEWS:
+        raise ValueError("LIFECYCLE_REPORT_VIEW_INVALID")
+    return [
+        "", "## Exceptional position lifecycle — High-CAGR, human review only",
+        f"Thesis event category: {event}; specialist-reported hypothesis: {view} "
+        "(not an actionable recommendation).",
+        f"Observed as of {observed}; {len(refs)} original IR fact link(s), "
+        f"{len(current)} current supplied evidence reference(s).",
+        f"Review stage: {review['status']}; {len(missing)} unresolved qualification(s) "
+        "in the private annex. Original thesis, position, costs and countercase "
+        "require independent human review.",
+        "No sell/trim trigger is inferred from price volatility, uncertainty or "
+        "a reported view. No target weight, order, verified cost, tax conclusion "
+        "or transaction authority has been established.",
+    ]
+
+
 def _five_pillar_lines(packet: Mapping[str, Any], analysis_id: str,
                        as_of: str, strategy: str) -> list[str]:
     """Join separately qualified four IR pillars with the fifth PI Room view.
@@ -1226,6 +1275,7 @@ def render_report(packet: Mapping[str, Any]) -> str:
     lines += _portfolio_observation_lines(packet, analysis_id, as_of)
     lines += _portfolio_room_lines(packet, analysis_id, as_of)
     lines += _five_pillar_lines(packet, analysis_id, as_of, strategy)
+    lines += _exceptional_lifecycle_lines(packet, analysis_id, as_of, strategy)
     if kind == "FOLLOWUP":
         previous_id = packet.get("prior_analysis_id")
         if previous_id is None:

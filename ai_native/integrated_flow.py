@@ -63,6 +63,7 @@ def assemble_manual_run(
     macro_sector_inputs: Mapping[str, Any] | None = None,
     portfolio_room_review_private: Mapping[str, Any] | None = None,
     portfolio_observation_private: Mapping[str, Any] | None = None,
+    exceptional_lifecycle_review_private: Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Assemble a PRIVATE report without claiming live Project connectivity.
 
@@ -389,6 +390,10 @@ def assemble_manual_run(
         packet["historical_research_comparison_private"] = historical_comparison
     if portfolio_observation_private is not None:
         packet["portfolio_observation_private"] = portfolio_observation_private
+    if exceptional_lifecycle_review_private is not None:
+        if pi_delta is None:
+            raise ValueError("LIFECYCLE_REPORT_REQUIRES_PI_DELTA")
+        packet["exceptional_lifecycle_review_private"] = exceptional_lifecycle_review_private
     markdown = render_report(packet)
     # Memory proposal excludes portfolio data, issuer narrative and full claims.
     memory = {
@@ -427,6 +432,7 @@ def assemble_manual_run(
         "supplied_costs_private": costs,
         "funded_contribution_private": funded_contribution,
         "portfolio_room_status": room,
+        "exceptional_lifecycle_review_private": exceptional_lifecycle_review_private,
         "memory_proposal_nonprivate": memory,
         "private_research_history_proposal": private_history,
         "historical_research_comparison_private": historical_comparison,
