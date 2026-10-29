@@ -358,6 +358,110 @@ class ManualReviewQueueTests(unittest.TestCase):
                 with self.assertRaisesRegex(ValueError, "REVIEW_QUEUE_SNAPSHOT_"):
                     prepare_manual_review_queue(forged)
 
+    def test_pending_six_mode_policy_is_visible_before_specialist_research(self):
+        from ai_native.strategy_authority import R1_MODES
+        from ai_native.session_bridge import complete_manual_session
+        for mode in R1_MODES:
+            with self.subTest(mode=mode):
+                request = self.fx.request(
+                    strategy_id=mode, portfolio_needed=True)
+                session = complete_manual_session(request)
+                self.assertEqual(session["status"], "AWAITING_MANUAL_IR_CAPSULE")
+                self.assertIsNone(session["handoffs_private"]["pi_request_private"])
+                queue = prepare_manual_review_queue(session)
+                names = self.codes(queue)
+                expected = ("CONFIRM_APPROVED_HIGH_CAGR_SCOPE"
+                            if mode == "high-cagr"
+                            else "RESOLVE_SELECTED_R1_MODE_POLICY")
+                self.assertIn(expected, names)
+                self.assertIn("TRANSFER_IR_CAPSULE", names)
+                self.assertNotIn("TRANSFER_PI_DELTA", names)
+                self.assertNotIn("RESOLVE_MODE_QUESTION_EVIDENCE", names)
+                self.assertNotIn("VERIFY_MODE_QUESTION_ORIGINALS", names)
+                self.assertEqual(queue["readiness"], "NOT_EVALUATED")
+                self.assertEqual(queue["project_invocation"], "NONE")
+                self.assertEqual(queue["trading_authority"], "NONE")
+                self.assertLessEqual(queue["item_count"], 16)
+                self.assertNotIn(mode, json.dumps(queue))
+
+    def test_pending_pi_after_ir_preserves_original_and_warns_about_unapproved_mode(self):
+        from ai_native.session_bridge import complete_manual_session
+        original = self.fx.ir()
+        request = self.fx.request(
+            strategy_id="balanced", portfolio_needed=True)
+        result = complete_manual_session(request, ir_capsule=original)
+        self.assertEqual(result["status"], "AWAITING_MANUAL_PI_DELTA")
+        self.assertEqual(
+            result["handoffs_private"]["pi_request_private"]["FORWARD_UNCHANGED"],
+            original)
+        queue = prepare_manual_review_queue(result)
+        self.assertIn("RESOLVE_SELECTED_R1_MODE_POLICY", self.codes(queue))
+        self.assertIn("TRANSFER_PI_DELTA", self.codes(queue))
+        self.assertNotIn("TRANSFER_IR_CAPSULE", self.codes(queue))
+        self.assertNotIn("RESOLVE_MODE_QUESTION_EVIDENCE", self.codes(queue))
+        self.assertNotIn("F1", json.dumps(queue))
+        self.assertNotIn("CASE-A", json.dumps(queue))
+
+    def test_pi_only_pending_mode_policy_warning_without_ir_invention(self):
+        from ai_native.session_bridge import complete_manual_session
+        request = self.fx.request(
+            strategy_id="modern-adaptive-browne",
+            research_needed=False, portfolio_needed=True)
+        pending = complete_manual_session(request)
+        self.assertEqual(pending["status"], "AWAITING_MANUAL_PI_DELTA")
+        queue = prepare_manual_review_queue(pending)
+        self.assertIn("RESOLVE_SELECTED_R1_MODE_POLICY", self.codes(queue))
+        self.assertIn("TRANSFER_PI_DELTA", self.codes(queue))
+        self.assertNotIn("TRANSFER_IR_CAPSULE", self.codes(queue))
+        self.assertNotIn("VERIFY_MODE_QUESTION_ORIGINALS", self.codes(queue))
+        self.assertEqual(queue["storage"], "NONE")
+
+    def test_pending_exploratory_never_claims_six_mode_policy(self):
+        from ai_native.session_bridge import complete_manual_session
+        pending = complete_manual_session(self.fx.request())
+        queue = prepare_manual_review_queue(pending)
+        self.assertIn("NO_APPROVED_R1_MODE_POLICY", self.codes(queue))
+        self.assertNotIn("RESOLVE_SELECTED_R1_MODE_POLICY", self.codes(queue))
+        self.assertNotIn("CONFIRM_APPROVED_HIGH_CAGR_SCOPE", self.codes(queue))
+        self.assertEqual(queue["readiness"], "NOT_EVALUATED")
+
+    def test_pending_forged_policy_and_unexpected_pi_handoff_fail_closed(self):
+        from ai_native.session_bridge import complete_manual_session
+        session = complete_manual_session(self.fx.request(
+            strategy_id="intelligent-dividend-harvester",
+            portfolio_needed=True))
+        for mutation in ("policy", "pi_sent_too_early", "strategy"):
+            with self.subTest(mutation=mutation):
+                fake = deepcopy(session)
+                if mutation == "policy":
+                    fake["handoffs_private"]["strategy_policy_gate"][
+                        "policy_authority"] = "CEO_APPROVED"
+                elif mutation == "pi_sent_too_early":
+                    fake["handoffs_private"]["pi_request_private"] = {
+                        "packet_type": "PI_REQUEST"}
+                else:
+                    fake["handoffs_private"]["ir_request_private"][
+                        "strategy_id"] = "high-cagr"
+                with self.assertRaisesRegex(ValueError, "REVIEW_QUEUE_MODE_"):
+                    prepare_manual_review_queue(fake)
+
+    def test_cli_pending_policy_review_only_when_privately_requested(self):
+        payload = {"request": self.fx.request(
+            strategy_id="family-office", portfolio_needed=True)}
+        original = deepcopy(payload)
+        code, output, error = self.cli(payload)
+        self.assertEqual((code, error), (0, ""))
+        queue = json.loads(output)
+        self.assertIn("RESOLVE_SELECTED_R1_MODE_POLICY", self.codes(queue))
+        self.assertIn("TRANSFER_IR_CAPSULE", self.codes(queue))
+        self.assertNotIn("family-office", output)
+        self.assertNotIn("CASE-A", output)
+        self.assertEqual(payload, original)
+        code, standard, error = self.cli(payload, "status")
+        self.assertEqual((code, error), (0, ""))
+        self.assertNotIn("RESOLVE_SELECTED_R1_MODE_POLICY", standard)
+        self.assertIn("AWAITING_MANUAL_IR_CAPSULE", standard)
+
     def test_selected_six_modes_reach_explicit_review_without_policy_upgrade(self):
         from ai_native.strategy_authority import R1_MODES
         from ai_native.session_bridge import complete_manual_session

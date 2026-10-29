@@ -321,7 +321,10 @@ def _strategy_review_actions(
     This is NOT approval of any policy or proof that a Project loaded it.
     Synthetic standalone queue shells may omit handoffs for legacy tests.
     """
-    if session.get("status") not in {
+    status = session.get("status")
+    if status not in {
+            "AWAITING_MANUAL_IR_CAPSULE",
+            "AWAITING_MANUAL_PI_DELTA",
             "M7A_COMPONENT_ASSEMBLED_NOT_END_TO_END_ACCEPTANCE",
             "PI_ONLY_CONDITIONAL_REPORT_ASSEMBLED"}:
         return []
@@ -339,8 +342,13 @@ def _strategy_review_actions(
     route = session.get("route")
     ir = handoffs.get("ir_request_private")
     pi = handoffs.get("pi_request_private")
+    # IR→PI requests are deliberately NOT prepared until the original IR
+    # response is received. Requiring PI here during IR_PENDING would
+    # fabricate a transfer or prevent the CEO from seeing the policy warning.
+    pi_expected = (route in {"CC_PI_CC", "CC_IR_PI_CC"}
+                   and status != "AWAITING_MANUAL_IR_CAPSULE")
     if ((route in {"CC_IR_CC", "CC_IR_PI_CC"}) != isinstance(ir, Mapping)
-            or (route in {"CC_PI_CC", "CC_IR_PI_CC"}) != isinstance(pi, Mapping)):
+            or pi_expected != isinstance(pi, Mapping)):
         raise ValueError("REVIEW_QUEUE_MODE_HANDOFF_ROUTE_INVALID")
     requests = [item for item in (ir, pi) if isinstance(item, Mapping)]
     modes = [item.get("strategy_id") for item in requests]
@@ -446,6 +454,11 @@ def _strategy_review_actions(
                 raise ValueError("REVIEW_QUEUE_MODE_QUESTION_ROW_INVALID")
             if stage in {"NOT_ASSESSED", "EVIDENCE_RESOLUTION"}:
                 unresolved = True
+    # On pending routes, the policy boundary is known but IR/PI evidence
+    # does not exist yet. Stop at that single early warning; don't invent
+    # a research/portfolio trace or a completed-review instruction.
+    if status in {"AWAITING_MANUAL_IR_CAPSULE", "AWAITING_MANUAL_PI_DELTA"}:
+        return actions
     if present:
         if unresolved:
             actions.append((
