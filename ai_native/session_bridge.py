@@ -338,6 +338,8 @@ def complete_manual_session(
             for key in ("prior_analysis_id", "period_start", "period_end"):
                 if key in request:
                     packet[key] = request[key]
+        if observation is not None:
+            packet["portfolio_observation_private"] = observation
         private["final_report_private"] = render_report(packet)
         private["pi_delta_private"] = deepcopy(dict(pi_delta))
         private["status"] = "PI_ONLY_CONDITIONAL_REPORT_ASSEMBLED"
@@ -369,6 +371,7 @@ def complete_manual_session(
         opportunity_triage_inputs=opportunity_triage_inputs,
         macro_sector_inputs=macro_sector_inputs,
         portfolio_room_review_private=private["portfolio_room_review_private"],
+        portfolio_observation_private=observation,
     )
     private["integrated_private"] = integrated
     if public_reference is not None:

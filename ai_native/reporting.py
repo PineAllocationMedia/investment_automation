@@ -97,6 +97,85 @@ def _source_review(packet: Mapping[str, Any], analysis_id: str, as_of: str,
 
 
 
+def _portfolio_observation_lines(packet: Mapping[str, Any], analysis_id: str,
+                                 as_of: str) -> list[str]:
+    """Describe supplied private P coverage without repeating holdings or cash amounts.
+
+    The original structurally prepared P ledger stays outside this summary.
+    A complete caller-reported denominator never certifies total ownership,
+    account completeness, independent evidence or Portfolio Room.
+    """
+    observation = packet.get("portfolio_observation_private")
+    if observation is None:
+        return []
+    if not isinstance(observation, Mapping) or (
+        observation.get("analysis_id") != analysis_id
+        or observation.get("analysis_as_of") != as_of
+        or observation.get("private_scope") is not True
+        or observation.get("verification") != "CALLER_ASSERTED_NOT_INDEPENDENTLY_AUTHENTICATED"
+        or observation.get("portfolio_room_status") != "ROOM_UNAVAILABLE"
+        or observation.get("source_retrieval") != "NONE"
+        or observation.get("blossom_access") != "NONE"
+        or observation.get("writes") != "NONE"
+        or observation.get("decision_authority") != "CEO_ONLY"
+    ):
+        raise ValueError("REPORT_P_LEDGER_AUTHORITY_OR_ID_MISMATCH")
+    observed = _iso_date(observation.get("observed_on"), "P.observed_on")
+    if observed > as_of:
+        raise ValueError("REPORT_P_LEDGER_AFTER_CUTOFF")
+    records = observation.get("p_ledger_private")
+    if not isinstance(records, list) or not records or len(records) > 10000:
+        raise ValueError("REPORT_P_LEDGER_ROWS_INVALID")
+    ids = []
+    for record in records:
+        if not isinstance(record, Mapping) or not isinstance(record.get("p_id"), str):
+            raise ValueError("REPORT_P_LEDGER_ROW_INVALID")
+        ids.append(record["p_id"])
+    if len(set(ids)) != len(ids) or "P-CASH" in ids:
+        raise ValueError("REPORT_P_LEDGER_DUPLICATE_ROW")
+    cash = observation.get("cash_record_private")
+    if (not isinstance(cash, Mapping) or cash.get("p_id") != "P-CASH"
+            or cash.get("visibility") not in {"VERIFIED_VISIBLE", "UNCERTAIN", "NOT_VISIBLE"}):
+        raise ValueError("REPORT_P_LEDGER_CASH_INVALID")
+    qualifiers = observation.get("missing_or_qualified")
+    if (not isinstance(qualifiers, list) or len(qualifiers) > 10000
+            or any(not isinstance(q, str) or not q for q in qualifiers)):
+        raise ValueError("REPORT_P_LEDGER_QUALIFIERS_INVALID")
+    stage = observation.get("status")
+    weights = observation.get("known_scope_weights_pct")
+    if stage == "SCOPED_WEIGHTS_DERIVED_FROM_CALLER_VISIBLE_DATA":
+        if (not isinstance(weights, Mapping)
+                or set(weights) != set(ids) | {"P-CASH"}
+                or qualifiers):
+            raise ValueError("REPORT_P_LEDGER_SCOPED_WEIGHTS_INVALID")
+        try:
+            values = [Decimal(v) for v in weights.values() if isinstance(v, str)]
+        except InvalidOperation as exc:
+            raise ValueError("REPORT_P_LEDGER_SCOPED_WEIGHTS_INVALID") from exc
+        if (len(values) != len(weights) or any(
+                not v.is_finite() or v < 0 or v > 100 or v.as_tuple().exponent < -2
+                for v in values) or sum(values) != Decimal("100.00")):
+            raise ValueError("REPORT_P_LEDGER_SCOPED_WEIGHTS_INVALID")
+        coverage = "CALLER_REPORTED_SCOPED_DENOMINATOR_ONLY"
+    elif stage == "OBSERVATION_LEDGER_ONLY":
+        if weights is not None:
+            raise ValueError("REPORT_P_LEDGER_INCOMPLETE_HAS_WEIGHTS")
+        coverage = "INCOMPLETE_NO_DERIVED_WEIGHTS"
+    else:
+        raise ValueError("REPORT_P_LEDGER_STAGE_INVALID")
+    return [
+        "", "## Private portfolio observation — coverage and provenance",
+        f"Observed as of {observed}; {len(records)} caller-reported position row(s). "
+        f"Coverage: {coverage}.",
+        f"Cash visibility: {cash['visibility']}; {len(qualifiers)} unresolved qualification(s) "
+        "remain in the original private P ledger.",
+        "The visible scope and any derived weights are NOT independently authenticated "
+        "broker holdings, complete account exposure, Portfolio Room admission, "
+        "investment guidance or trade authorization. No account IDs, holdings, "
+        "cash values or individual position weights are reproduced here.",
+    ]
+
+
 def _new_contribution_lines(packet: Mapping[str, Any], analysis_id: str,
                             as_of: str) -> list[str]:
     """Show only supplied NEW-capital percentages, never private positions.
@@ -1029,6 +1108,7 @@ def render_report(packet: Mapping[str, Any]) -> str:
     lines += _weighted_cashflow_lines(packet, analysis_id, as_of)
     lines += _candidate_comparison_lines(packet, analysis_id, as_of, strategy)
     lines += _new_contribution_lines(packet, analysis_id, as_of)
+    lines += _portfolio_observation_lines(packet, analysis_id, as_of)
     lines += _portfolio_room_lines(packet, analysis_id, as_of)
     if kind == "FOLLOWUP":
         previous_id = packet.get("prior_analysis_id")
