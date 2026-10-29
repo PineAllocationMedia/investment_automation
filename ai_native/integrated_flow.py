@@ -202,11 +202,29 @@ def assemble_manual_run(
         if source_evidence_inputs["analysis_id"] != run_id or source_evidence_inputs["analysis_as_of"] != as_of:
             raise ValueError("SOURCE_ANNEX_ANALYSIS_OR_DATE_MISMATCH")
         source_annex = assemble_source_fusion(**source_evidence_inputs)
-        if embedded_annex and any(
-            observation["observed_at"] > ir_cutoff.isoformat()
-            for observation in source_annex["observations_private"]
-        ):
+        # An embedded annex purports to belong to the original IR research.
+        # A separately submitted CC review may instead contain legitimately
+        # newer observations. Preserve those, but do not imply the earlier IR
+        # could have known them or that the original facts were authenticated.
+        post_ir_observation_ids = sorted(
+            row["observation_id"] for row in source_annex["observations_private"]
+            if row["observed_at"] > ir_cutoff.isoformat()
+        )
+        if embedded_annex and post_ir_observation_ids:
             raise ValueError("IR_SOURCE_OBSERVED_AFTER_RESEARCH_AS_OF")
+        source_annex["ir_timeline_relation"] = (
+            "POST_IR_CC_REVIEW_ONLY" if post_ir_observation_ids
+            else "NO_POST_IR_OBSERVATIONS_REPORTED"
+        )
+        source_annex["post_ir_observation_ids_private"] = post_ir_observation_ids
+        if post_ir_observation_ids:
+            limits.append(
+                "Some separately supplied CC source observations postdate "
+                "the original IR research cutoff. They may inform a current "
+                "human review but cannot retroactively substantiate what IR "
+                "knew then; obtain an explicit updated IR analysis if needed."
+            )
+            status = "CONDITIONAL"
         limits.append("Supplied source observations were structurally reviewed only; original-source authenticity and usage rights were not independently certified. See private annex.")
         ir_fact_ids = {x["id"] for x in facts if isinstance(x, Mapping) and isinstance(x.get("id"), str)}
         supported_ids = {x["fact_id"] for x in source_annex["observations_private"]}
