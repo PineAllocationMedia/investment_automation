@@ -115,6 +115,14 @@ def assemble_source_fusion(
         # different classes and must not be silently reclassified as facts.
         if classification == "SOURCE_FACT" and end > seen_date:
             reasons.append("FINANCIAL_PERIOD_END_AFTER_OBSERVATION")
+        # A completed historical SOURCE_FACT cannot have been published or
+        # originally checked before its reporting period ended, even if a
+        # later observation makes the chronology superficially plausible.
+        # Forecasts and assumptions can legitimately predate their horizon.
+        if classification == "SOURCE_FACT" and pub_date is not None and pub_date < end:
+            reasons.append("COMPLETED_FACT_PUBLISHED_BEFORE_PERIOD_END")
+        if classification == "SOURCE_FACT" and checked_date is not None and checked_date < end:
+            reasons.append("COMPLETED_FACT_CHECKED_BEFORE_PERIOD_END")
         if seen_date > cutoff:
             reasons.append("OBSERVED_AFTER_CUTOFF")
         if pub_date is not None and pub_date > cutoff:
@@ -186,7 +194,9 @@ def assemble_source_fusion(
             "OBSERVED_AFTER_CUTOFF", "PUBLISHED_AFTER_CUTOFF", "ORIGINAL_CHECK_AFTER_CUTOFF",
             "PUBLICATION_AFTER_OBSERVATION", "CHECK_AFTER_OBSERVATION",
             "ORIGINAL_CHECK_BEFORE_PUBLICATION",
-            "FINANCIAL_PERIOD_END_AFTER_OBSERVATION"))
+            "FINANCIAL_PERIOD_END_AFTER_OBSERVATION",
+            "COMPLETED_FACT_PUBLISHED_BEFORE_PERIOD_END",
+            "COMPLETED_FACT_CHECKED_BEFORE_PERIOD_END"))
             else "CONFLICTED" if "SAME_BASIS_VALUE_CONFLICT" in codes else
             "INCOMPLETE" if codes or item["reported_verification_status"] in {"MISSING", "CONFLICTED"}
             else "CALLER_REPORTED_ONLY")

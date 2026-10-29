@@ -292,6 +292,23 @@ class ManualIntegrationTests(unittest.TestCase):
                                    "known_risks":["Concentration"]}]}
         return evidence, research
 
+    def test_early_published_completed_fact_reaches_private_integrated_review(self):
+        # Date checks belong to existing source-fusion, not a second CC rule.
+        evidence, _ = self.synthetic_opportunity_inputs()
+        evidence["observations"][0]["published_at"] = "2025-10-01"
+        out = assemble_manual_run(self.request(), self.ir(research_as_of="2026-10-28"),
+                                  source_evidence_inputs=evidence)
+        item = out["source_evidence_annex_private"]["observations_private"][0]
+        self.assertIn("COMPLETED_FACT_PUBLISHED_BEFORE_PERIOD_END",
+                      item["reason_codes"])
+        self.assertEqual(item["claim_use_status"], "UNAVAILABLE")
+        aligned = out["fact_source_alignment_private"]["facts_private"][0]
+        self.assertIn("SOURCE_UNAVAILABLE", aligned["review_flags"])
+        self.assertEqual(aligned["alignment"], "REVIEW_REQUIRED")
+        self.assertEqual(out["source_verification"], "NOT_PERFORMED_BY_INTEGRATION")
+        self.assertNotIn("https://example.org/syn-source",
+                         str(out["memory_proposal_nonprivate"]))
+
     def test_m2_opportunity_triage_is_private_nonranking(self):
         evidence, research = self.synthetic_opportunity_inputs()
         out = assemble_manual_run(self.request(), self.ir(research_as_of="2026-10-28"),
