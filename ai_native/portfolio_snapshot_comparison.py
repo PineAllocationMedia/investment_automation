@@ -9,7 +9,7 @@ from __future__ import annotations
 from decimal import Decimal, ROUND_HALF_UP
 from typing import Any, Mapping
 
-from .portfolio_observation import prepare_observation_ledger
+from .portfolio_observation import prepare_observation_ledger, identity_is_placeholder
 
 HUNDRED = Decimal("100")
 PCT = Decimal("0.01")
@@ -40,6 +40,7 @@ def _caller_visible_ui_weights(ledger: Mapping[str, Any]) -> dict[str, Decimal] 
     duplicate share-class IDs, or convert a source percentage into dollars.
     """
     if (ledger.get("private_scope") is not True
+            or identity_is_placeholder(ledger.get("account_scope"))
             or ledger.get("captured_at") in {None, "UNKNOWN"}
             or ledger.get("source_type") not in {
                 "PRIVATE_SCREENSHOT_TRANSCRIPTION",
@@ -78,6 +79,8 @@ def _caller_visible_ui_weights(ledger: Mapping[str, Any]) -> dict[str, Decimal] 
         flags = row.get("field_statuses")
         raw = row.get("displayed_weight_pct_private")
         if (not isinstance(security, str) or not security or security == "P-CASH"
+                or identity_is_placeholder(security)
+                or identity_is_placeholder(row.get("account_scope"))
                 or security in values
                 or row.get("account_scope") != ledger.get("account_scope")
                 or not isinstance(flags, Mapping)

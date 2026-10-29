@@ -25,6 +25,38 @@ class ObservationTests(unittest.TestCase):
         self.assertEqual(out["scope_total_base"], "400.00")
         self.assertEqual(out["portfolio_room_status"], "ROOM_UNAVAILABLE")
 
+    def test_identity_placeholder_account_blocks_monetary_weights_even_if_visible(self):
+        for placeholder in ("UNKNOWN", "not_visible", "NOT_SUPPLIED", "N/A", "TBD"):
+            with self.subTest(placeholder=placeholder):
+                args = self.kwargs(account_scope=placeholder)
+                args["positions"][0]["account_scope"] = placeholder
+                original = copy.deepcopy(args)
+                result = prepare_observation_ledger(**args)
+                self.assertEqual(args, original)
+                self.assertEqual(result["status"], "OBSERVATION_LEDGER_ONLY")
+                self.assertIn("ACCOUNT_SCOPE_UNIDENTIFIED", result["missing_or_qualified"])
+                self.assertIsNone(result["scope_total_base"])
+                self.assertIsNone(result["known_scope_weights_pct"])
+                self.assertEqual(result["p_ledger_private"][0]["account_scope"], placeholder)
+
+    def test_identity_placeholder_security_cannot_become_verified_weight(self):
+        for placeholder in ("UNKNOWN", "NOT_VISIBLE", "NOT_SUPPLIED", "N/A", "TBD"):
+            with self.subTest(placeholder=placeholder):
+                args = self.kwargs()
+                args["positions"][0]["security_id"] = placeholder
+                result = prepare_observation_ledger(**args)
+                self.assertEqual(result["status"], "OBSERVATION_LEDGER_ONLY")
+                self.assertIn("P-1:SECURITY_ID_UNIDENTIFIED", result["missing_or_qualified"])
+                self.assertEqual(result["p_ledger_private"][0]["security_id"], placeholder)
+                self.assertIsNone(result["known_scope_weights_pct"])
+
+    def test_identity_placeholder_in_position_account_blocks_monetary_weights(self):
+        source = self.kwargs()
+        source["positions"][0]["account_scope"] = "UNKNOWN"
+        out = prepare_observation_ledger(**source)
+        self.assertIn("P-1:ACCOUNT_SCOPE_UNIDENTIFIED", out["missing_or_qualified"])
+        self.assertIsNone(out["scope_total_base"])
+
     def test_partial_scope_blocks_all_weights(self):
         out = prepare_observation_ledger(**self.kwargs(scope_complete=False))
         self.assertIsNone(out["known_scope_weights_pct"])

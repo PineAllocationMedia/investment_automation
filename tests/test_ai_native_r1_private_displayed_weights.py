@@ -90,6 +90,25 @@ class PrivateVisiblePercentageTests(unittest.TestCase):
         self.assertEqual(ledger["displayed_weight_summary_private"]["displayed_weight_sum_pct"], "79.50")
         self.assertEqual(ledger["scope_total_base"], "100.00")
 
+    def test_work_snapshot_unknown_identity_does_not_derive_portfolio_weights(self):
+        for field in ("account", "security"):
+            with self.subTest(field=field):
+                source = self.fx.report()
+                if field == "account":
+                    source["account_scope"] = "UNKNOWN"
+                    source["positions"][0]["account_scope"] = "UNKNOWN"
+                else:
+                    source["positions"][0]["security_id"] = "NOT_VISIBLE"
+                out = prepare_work_blossom_observation(source)["p_ledger_private"]
+                self.assertEqual(out["status"], "OBSERVATION_LEDGER_ONLY")
+                self.assertIsNone(out["known_scope_weights_pct"])
+                self.assertIsNone(out["scope_total_base"])
+                self.assertIn(
+                    "ACCOUNT_SCOPE_UNIDENTIFIED" if field == "account"
+                    else "P1:SECURITY_ID_UNIDENTIFIED",
+                    out["missing_or_qualified"],
+                )
+
     def test_sentinel_currency_in_work_handoff_keeps_visible_amounts_but_blocks_weights(self):
         for sentinel in ("UNK", "XXX", "XTS", "TBD"):
             with self.subTest(currency=sentinel):
