@@ -18,6 +18,7 @@ from .pillar_trace import prepare_pillar_trace
 from .opportunity_triage import prepare_opportunity_triage
 from .macro_sector_context import prepare_macro_sector_context
 from .valuation_scenarios import evaluate_valuation_scenarios
+from .valuation_quote_trace import trace_valuation_quote
 from .candidate_comparison import compare_candidates
 from .fundamental_dossier import prepare_fundamental_dossier
 from .reporting import render_report
@@ -265,12 +266,20 @@ def assemble_manual_run(
         status = "CONDITIONAL"
 
     valuation_scenarios = None
+    valuation_quote_trace = None
     if valuation_inputs is not None:
         if not isinstance(valuation_inputs, Mapping):
             raise ValueError("valuation_inputs: mapping required")
         if valuation_inputs.get("analysis_id") != run_id or valuation_inputs.get("analysis_as_of") != as_of:
             raise ValueError("VALUATION_ANALYSIS_OR_DATE_MISMATCH")
         valuation_scenarios = evaluate_valuation_scenarios(**valuation_inputs)
+        valuation_quote_trace = trace_valuation_quote(
+            valuation=valuation_scenarios, source_annex=source_annex,
+            ir_research_as_of=ir_cutoff.isoformat())
+        if valuation_quote_trace["review_stage"] == "EVIDENCE_RESOLUTION":
+            limits.append("The input quotation lacks a structurally supported, same-security/date/currency source link; resolve quote evidence before relying on scenario numbers.")
+        else:
+            limits.append("Input quotation is structurally linked to caller-reported evidence only; human source and rights review is still required.")
         limits.append("Valuation scenario arithmetic is conditional on source, security, currency and terminal assumptions; see private valuation annex. No probability-weighted Expected Return or VFV alpha certified.")
         status = "CONDITIONAL"
 
@@ -350,6 +359,8 @@ def assemble_manual_run(
         # Only private report; the institutional memory proposal remains
         # the same non-sensitive schema without issuer financial details.
         packet["fundamental_dossier_private"] = fundamental_dossier
+    if valuation_quote_trace is not None:
+        packet["valuation_quote_trace_private"] = valuation_quote_trace
     if valuation_scenarios is not None:
         # Private, arithmetic-only M2 packet: no probability model, net return,
         # source verification, Expected Return certification or VFV alpha.
@@ -388,6 +399,7 @@ def assemble_manual_run(
         "opportunity_triage_private": opportunity_triage,
         "macro_sector_context_private": macro_sector_context,
         "valuation_scenarios_private": valuation_scenarios,
+        "valuation_quote_trace_private": valuation_quote_trace,
         "candidate_comparison_private": candidate_comparison,
         "fundamental_dossier_private": fundamental_dossier,
         "gross_contribution_private": contribution,
