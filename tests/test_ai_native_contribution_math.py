@@ -31,7 +31,7 @@ class GrossContributionTests(unittest.TestCase):
         self.assertIn("CASH_UNKNOWN", result["reason_codes"])
 
     def test_unknown_or_malformed_currency_blocks_gross_projection(self):
-        for value in ("UNKNOWN", "", "N/A", "$", "US", "CAD1", "CAD/USD", None):
+        for value in ("UNKNOWN", "UNK", "XXX", "XTS", "TBD", "", "N/A", "$", "US", "CAD1", "CAD/USD", None):
             with self.subTest(currency=value):
                 result = self.sample(currency=value)
                 self.assertEqual(result["status"], "UNAVAILABLE")

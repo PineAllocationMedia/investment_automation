@@ -114,6 +114,19 @@ class GrossAlternativeContributionTests(unittest.TestCase):
         self.assertNotIn("400.00", report)
         self.assertNotIn("60% of new capital", report)
 
+    def test_actual_pi_only_manual_session_reports_unknown_currency_and_no_alternatives(self):
+        out = complete_manual_session(
+            self.fx.request(research_needed=False, portfolio_needed=True),
+            pi_delta=self.fx.pi(), contribution_inputs=self.plan(currency="UNKNOWN"))
+        self.assertEqual(out["status"], "PI_ONLY_CONDITIONAL_REPORT_ASSEMBLED")
+        self.assertEqual(out["gross_contribution_private"]["status"], "UNAVAILABLE")
+        self.assertIn("ACCOUNT_CURRENCY_UNKNOWN", out["final_report_private"])
+        self.assertIn("Identify the genuine three-letter account-base currency",
+                      out["final_report_private"])
+        self.assertNotIn("Alternative 1:", out["final_report_private"])
+        self.assertNotIn("1000.00", out["final_report_private"])
+        self.assertEqual(out["storage"], "NONE")
+
     def test_gross_missing_reasons_reject_untrusted_or_repeated_strings(self):
         from tests.test_ai_native_reporting import ReportingTests
         summary = self.project(self.plan(currency="UNKNOWN"))["report_summary_private"]

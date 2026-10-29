@@ -71,7 +71,8 @@ def project_gross_contribution(
     # syntax is checked only; this does not authenticate the actual currency.
     base_currency = currency.strip().upper() if isinstance(currency, str) else ""
     if (len(base_currency) != 3 or not base_currency.isascii()
-            or not base_currency.isalpha()):
+            or not base_currency.isalpha()
+            or base_currency in {"UNK", "XXX", "XTS", "TBD"}):
         missing.append("ACCOUNT_CURRENCY_UNKNOWN")
     if missing:
         return {"status": "UNAVAILABLE", "reason_codes": missing}
