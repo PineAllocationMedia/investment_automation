@@ -80,7 +80,7 @@ class RealManualConstructionSmoke(unittest.TestCase):
             "next_verification":"Confirm originals and account costs",
         }
         capital = {
-            "positions_base":{"ABC:TSX":"300.00","FUND:TSX":"600.00"},
+            "positions_base":{"ABC:TSX":"300.00","FUND:TSX":"600.00","P-CASH":"100.00"},
             "allocations_pct":{"ABC:TSX":"60","FUND:TSX":"40"},
             "contribution_base":"1000.00", "currency":"CAD",
             "as_of":"2026-10-28", "scope_complete":True,

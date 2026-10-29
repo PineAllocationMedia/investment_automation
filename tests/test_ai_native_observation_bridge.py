@@ -124,4 +124,70 @@ class ObservationBridgeTests(unittest.TestCase):
                 self.assertEqual(result["project_invocation"], "NONE")
                 self.assertEqual(result["storage"], "NONE")
 
+    def test_observed_positions_derived_including_cash_on_both_manual_routes(self):
+        for research_needed in (False, True):
+            with self.subTest(research_needed=research_needed):
+                ir = self.ir() if research_needed else None
+                pi = self.pi(forwarded_ir=copy.deepcopy(ir)) if ir else self.pi()
+                supplied = self.contribution()
+                supplied.pop("positions_base")
+                before = copy.deepcopy(supplied)
+                out = complete_manual_session(
+                    self.req(research_needed=research_needed),
+                    ir_capsule=ir, pi_delta=pi,
+                    observation_inputs=self.observation(),
+                    contribution_inputs=supplied)
+                gross = out["gross_contribution_private"]
+                self.assertEqual(gross["status"], "GROSS_PROJECTION_ONLY")
+                self.assertEqual(gross["current_total"], "400.00")
+                self.assertEqual(gross["projected_total"], "500.00")
+                self.assertEqual(gross["projected_positions"]["P-CASH"], "100.00")
+                self.assertEqual(supplied, before)
+                self.assertEqual(out["source_authentication"], "NOT_PERFORMED")
+                self.assertIsNone(out["funded_contribution_private"])
+
+    def test_retyped_positions_disagree_with_visible_ledger_both_routes(self):
+        for research_needed in (False, True):
+            ir = self.ir() if research_needed else None
+            pi = self.pi(forwarded_ir=copy.deepcopy(ir)) if ir else self.pi()
+            with self.subTest(research_needed=research_needed):
+                with self.assertRaisesRegex(
+                        ValueError, "PI_CONTRIBUTION_POSITIONS_CONFLICT_WITH_OBSERVATION"):
+                    complete_manual_session(
+                        self.req(research_needed=research_needed),
+                        ir_capsule=ir, pi_delta=pi,
+                        observation_inputs=self.observation(cash_base="0.00"),
+                        contribution_inputs=self.contribution(
+                            positions_base={"ABC:TSX": "301.00"}))
+
+    def test_visible_nonzero_cash_cannot_disappear_from_supplied_basis(self):
+        for research_needed in (False, True):
+            ir = self.ir() if research_needed else None
+            pi = self.pi(forwarded_ir=copy.deepcopy(ir)) if ir else self.pi()
+            with self.subTest(research_needed=research_needed):
+                with self.assertRaisesRegex(
+                        ValueError, "PI_CONTRIBUTION_CASH_MISSING_FROM_SCOPED_BASIS"):
+                    complete_manual_session(
+                        self.req(research_needed=research_needed),
+                        ir_capsule=ir, pi_delta=pi,
+                        observation_inputs=self.observation(),
+                        contribution_inputs=self.contribution())
+
+    def test_supplied_full_cash_basis_and_duplicate_security_rows(self):
+        rows = self.observation()["positions"]
+        extra = copy.deepcopy(rows[0])
+        extra["p_id"] = "P-2"
+        extra["market_value_base"] = "200.00"
+        rows.append(extra)
+        supplied = self.contribution(
+            positions_base={"ABC:TSX": "500.00", "P-CASH": "100.00"})
+        out = complete_manual_session(
+            self.req(), pi_delta=self.pi(),
+            observation_inputs=self.observation(positions=rows),
+            contribution_inputs=supplied)
+        self.assertEqual(out["gross_contribution_private"]["current_total"], "600.00")
+        self.assertEqual(out["gross_contribution_private"]["projected_total"], "700.00")
+        self.assertEqual(out["gross_contribution_private"]["current_weights_pct"]["P-CASH"],
+                         str(__import__("decimal").Decimal("100") * 100 / 600))
+
 if __name__ == '__main__': unittest.main()
