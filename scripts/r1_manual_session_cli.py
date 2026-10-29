@@ -17,6 +17,7 @@ from typing import Any, TextIO
 
 from ai_native.session_bridge import complete_manual_session
 from ai_native.manual_review_queue import prepare_manual_review_queue
+from ai_native.intake_review import prepare_intake_review
 from ai_native.research_memory import prepare_explicit_followup_draft
 from ai_native.method_handoff_bundle import (
     prepare_verified_method_handoff, render_manual_specialist_prompt,
@@ -469,7 +470,12 @@ def run(*, output: str, instream: TextIO, outstream: TextIO,
         payload = json.loads(raw, parse_constant=_no_nonfinite,
                              parse_float=_finite_json_float,
                              object_pairs_hook=_unique_pairs)
-        if output == "followup-draft":
+        if output == "intake-review":
+            # Inspect only a request draft; never run a specialist or create
+            # a session. No input values are copied to the review.
+            intake = prepare_intake_review(payload)
+            result = None
+        elif output == "followup-draft":
             # Unchanged support for unwrapped historical PRIVATE cases.
             if not isinstance(payload, dict) or set(payload) != {"prior_private_case"}:
                 raise ValueError("FOLLOWUP_PRIOR_CASE_ENVELOPE_REQUIRED")
@@ -512,7 +518,10 @@ def run(*, output: str, instream: TextIO, outstream: TextIO,
         errstream.write("R1_PROCESSING_ERROR: details suppressed; inspect locally.\n")
         return 3
 
-    if output in {"followup-draft", "sealed-followup-draft"}:
+    if output == "intake-review":
+        outstream.write(json.dumps(intake, ensure_ascii=False, sort_keys=True,
+                                   indent=2, allow_nan=False) + "\n")
+    elif output in {"followup-draft", "sealed-followup-draft"}:
         # Explicitly PRIVATE. The returned request is intentionally invalid
         # for execution until the CEO fills new details and initiates it.
         outstream.write(json.dumps(draft, ensure_ascii=False, sort_keys=True,
@@ -692,9 +701,9 @@ def main(argv: list[str] | None = None, *, instream: TextIO | None = None,
          outstream: TextIO | None = None,
          errstream: TextIO | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--output", choices=("request-template", "status", "report", "handoffs", "next-handoff", "continuation", "operator-packet", "resume-operator", "guided-operator", "method-handoff", "specialist-prompt", "followup-draft", "sealed-followup-draft", "sealed-followup-operator", "private-case", "private-case-envelope", "review-queue"),
+    parser.add_argument("--output", choices=("request-template", "intake-review", "status", "report", "handoffs", "next-handoff", "continuation", "operator-packet", "resume-operator", "guided-operator", "method-handoff", "specialist-prompt", "followup-draft", "sealed-followup-draft", "sealed-followup-operator", "private-case", "private-case-envelope", "review-queue"),
                         default="status",
-                        help="request-template is an inert blank case and reads no stdin; status is redacted; report, handoffs, next-handoff, continuation, operator-packet, resume-operator, guided-operator, method-handoff, specialist-prompt, followup-draft, sealed-followup-draft, sealed-followup-operator, private-case, private-case-envelope and review-queue require a private terminal")
+                        help="request-template is an inert blank case and reads no stdin; intake-review reads a private request-only draft and returns field names/status without values; status is redacted; report, handoffs, next-handoff, continuation, operator-packet, resume-operator, guided-operator, method-handoff, specialist-prompt, followup-draft, sealed-followup-draft, sealed-followup-operator, private-case, private-case-envelope and review-queue require a private terminal")
     opts = parser.parse_args(argv)
     return run(output=opts.output, instream=instream or sys.stdin,
                outstream=outstream or sys.stdout, errstream=errstream or sys.stderr)
