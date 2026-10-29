@@ -163,6 +163,97 @@ class RealManualConstructionSmoke(unittest.TestCase):
         self.assertEqual(out["project_invocation"],"NONE")
         self.assertEqual(out["storage"],"NONE")
 
+    def with_ir_pillars(self):
+        """Reuse the full real M1/M2/M3/M4 synthetic construction case."""
+        case = self.case()
+        ir = case["ir_capsule"]
+        ir["PILLAR_ASSESSMENTS"] = {
+            "analysis_id": "SYN-X", "research_as_of": "2026-10-27",
+            "strategy_id": "EXPLORATORY",
+            "pillars": {
+                name: {
+                    "status": "SPECIALIST_REPORTED",
+                    "ir_fact_ids": ["F-1"],
+                    "rationale_private": "SYNTHETIC_PRIVATE_PILLAR_RATIONALE",
+                    "countercase_private": "SYNTHETIC_PRIVATE_PILLAR_COUNTERCASE",
+                }
+                for name in ("QUALITY", "DURABILITY", "EXPECTED_RETURN", "CONFIDENCE")
+            },
+        }
+        case["pi_delta"]["forwarded_ir"] = deepcopy(ir)
+        return case
+
+    def test_real_integrated_five_pillars_report_without_scores_or_private_notes(self):
+        case = self.with_ir_pillars()
+        saved = deepcopy(case)
+        result = complete_manual_session(**case)
+        self.assertEqual(case, saved)
+        self.assertEqual(result["status"], "M7A_COMPONENT_ASSEMBLED_NOT_END_TO_END_ACCEPTANCE")
+        report = result["final_report_private"]
+        self.assertIn("Five-pillar integrated view", report)
+        for axis in ("Quality", "Durability", "Expected Return", "Confidence"):
+            self.assertIn("- " + axis + ": IR EVIDENCE_RESOLUTION", report)
+        self.assertIn("SAME_REPORTED_LINKS_EVIDENCE_RESOLUTION", report)
+        self.assertIn("- Portfolio Room: ROOM_CONDITIONAL (observed 2026-10-28)", report)
+        self.assertNotIn("SYNTHETIC_PRIVATE_PILLAR_RATIONALE", report)
+        self.assertNotIn("SYNTHETIC_PRIVATE_PILLAR_COUNTERCASE", report)
+        self.assertNotIn("SYN-PRIVATE-ANALYST-VIEW", report)
+        self.assertNotIn("SYN-SCOPE", report)
+        self.assertEqual(result["handoffs_private"]["pi_request_private"]["FORWARD_UNCHANGED"],
+                         saved["ir_capsule"])
+        self.assertEqual(result["readiness"], "NOT_EVALUATED")
+
+    def test_five_pillar_view_absent_without_both_original_specialist_reviews(self):
+        no_ir_trace = complete_manual_session(**self.case())
+        self.assertIn("Portfolio Room", no_ir_trace["final_report_private"])
+        self.assertNotIn("Five-pillar integrated view", no_ir_trace["final_report_private"])
+        no_room = self.with_ir_pillars()
+        no_room.pop("room_assessment_inputs")
+        result = complete_manual_session(**no_room)
+        self.assertIn("Four research pillars", result["final_report_private"])
+        self.assertNotIn("Five-pillar integrated view", result["final_report_private"])
+
+    def test_five_pillar_flags_disagreement_without_adding_scores(self):
+        case = self.with_ir_pillars()
+        case["ir_capsule"]["PILLAR_ASSESSMENTS"]["pillars"]["QUALITY"] = {
+            "status": "UNKNOWN", "ir_fact_ids": [],
+            "rationale_private": "SYNTHETIC_PRIVATE_PILLAR_RATIONALE",
+            "countercase_private": "SYNTHETIC_PRIVATE_PILLAR_COUNTERCASE",
+        }
+        case["room_assessment_inputs"]["research_axes"]["DURABILITY"]["ir_fact_ids"] = []
+        case["pi_delta"]["forwarded_ir"] = deepcopy(case["ir_capsule"])
+        result = complete_manual_session(**case)
+        report = result["final_report_private"]
+        self.assertIn("Quality: IR NOT_ASSESSED; PI SPECIALIST_REPORTED; IR_NOT_ASSESSED", report)
+        self.assertIn("Durability: IR EVIDENCE_RESOLUTION; PI SPECIALIST_REPORTED; "
+                      "FACT_LINK_DIVERGENCE_REQUIRES_REVIEW", report)
+        self.assertIn("Portfolio Room: ROOM_UNAVAILABLE", report)
+        self.assertNotIn("SYNTHETIC_PRIVATE_PILLAR_RATIONALE", report)
+
+    def test_five_pillar_rejects_cross_case_strategy_and_ledger_date_spoof(self):
+        from ai_native.reporting import render_report
+        case = self.with_ir_pillars()
+        result = complete_manual_session(**case)
+        report = {
+            "kind": "DECISION", "analysis_id": "SYN-X", "as_of": "2026-10-28",
+            "strategy": "EXPLORATORY", "method_version": "R1",
+            "status": "CONDITIONAL", "objective": "Synthetic",
+            "decision_line": "No investment", "summary": ["Synthetic"],
+            "facts": [], "countercase": "Unknown",
+            "limitations": "Unverified", "next_action": "Human review",
+            "pillar_trace_private": result["integrated_private"]["pillar_trace_private"],
+            "portfolio_room_review_private": result["portfolio_room_review_private"],
+            "portfolio_observation_private": result["portfolio_observation_private"],
+        }
+        with self.assertRaisesRegex(ValueError, "FIVE_PILLAR_AUTHORITY_OR_ID_MISMATCH"):
+            changed = deepcopy(report)
+            changed["portfolio_room_review_private"]["strategy_id"] = "OTHER"
+            render_report(changed)
+        with self.assertRaisesRegex(ValueError, "FIVE_PILLAR_ROOM_P_LEDGER_MISMATCH"):
+            changed = deepcopy(report)
+            changed["portfolio_room_review_private"]["observed_on"] = "2026-10-27"
+            render_report(changed)
+
     def test_mismatched_canonical_date_never_creates_final_report(self):
         args=self.case()
         args["pi_delta"]["portfolio_as_of"]="2026-10-29"

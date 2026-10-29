@@ -1023,6 +1023,90 @@ def _macro_sector_context_lines(packet: Mapping[str, Any], analysis_id: str,
                  "Private hypotheses, source locators, countercases and checks stay in the annex.")
     return lines
 
+def _five_pillar_lines(packet: Mapping[str, Any], analysis_id: str,
+                       as_of: str, strategy: str) -> list[str]:
+    """Join separately qualified four IR pillars with the fifth PI Room view.
+
+    This reports cross-specialist reconciliation only, not a composite score,
+    promotion of either source's status, or portfolio admission.
+    """
+    ir = packet.get("pillar_trace_private")
+    room = packet.get("portfolio_room_review_private")
+    if ir is None or room is None:
+        return []
+    if not isinstance(ir, Mapping) or not isinstance(room, Mapping) or (
+        ir.get("status") != "PRIVATE_FOUR_PILLAR_IR_TRACE_NOT_CERTIFIED"
+        or ir.get("analysis_id") != analysis_id
+        or ir.get("analysis_as_of") != as_of
+        or ir.get("strategy_id") != strategy
+        or ir.get("source_authentication") != "NOT_PERFORMED"
+        or ir.get("investment_or_trade_authority") != "NONE"
+        or room.get("analysis_id") != analysis_id
+        or room.get("as_of") != as_of
+        or room.get("strategy_id") != strategy
+        or room.get("portfolio_room_authority") != "QUALITATIVE_SPECIALIST_REPORTED_ONLY"
+        or room.get("independent_evidence_check") != "NOT_PERFORMED"
+        or room.get("trade_authority") != "NONE_CEO_ONLY"
+        or room.get("status") not in {"ROOM_CONDITIONAL", "ROOM_UNAVAILABLE"}
+    ):
+        raise ValueError("FIVE_PILLAR_AUTHORITY_OR_ID_MISMATCH")
+    research_date = _iso_date(ir.get("research_as_of"), "five_pillar.research_as_of")
+    portfolio_date = _iso_date(room.get("observed_on"), "five_pillar.observed_on")
+    if research_date > as_of or portfolio_date > as_of:
+        raise ValueError("FIVE_PILLAR_FUTURE_EVIDENCE")
+    ledger = packet.get("portfolio_observation_private")
+    if ledger is not None and (
+        not isinstance(ledger, Mapping)
+        or ledger.get("analysis_id") != analysis_id
+        or ledger.get("observed_on") != portfolio_date
+        or ledger.get("private_scope") is not True
+    ):
+        raise ValueError("FIVE_PILLAR_ROOM_P_LEDGER_MISMATCH")
+    names = ("QUALITY", "DURABILITY", "EXPECTED_RETURN", "CONFIDENCE")
+    ir_rows, pi_rows = ir.get("pillars_private"), room.get("research_axes_private")
+    if (not isinstance(ir_rows, Mapping) or set(ir_rows) != set(names)
+            or not isinstance(pi_rows, Mapping) or set(pi_rows) != set(names)):
+        raise ValueError("FIVE_PILLAR_FOUR_RESEARCH_AXES_REQUIRED")
+    lines = [
+        "", "## Five-pillar integrated view — reported, not certified",
+        "Four research dimensions from IR and the separate Portfolio Room from PI. "
+        "A matching reference is not independent evidence or an investment rating.",
+    ]
+    for name in names:
+        ir_row, pi_row = ir_rows[name], pi_rows[name]
+        if not isinstance(ir_row, Mapping) or not isinstance(pi_row, Mapping):
+            raise ValueError("FIVE_PILLAR_RESEARCH_ROW_INVALID")
+        ir_status, pi_status = ir_row.get("reported_status"), pi_row.get("status")
+        stage = ir_row.get("review_stage")
+        ir_refs, pi_refs = ir_row.get("ir_fact_ids_private"), pi_row.get("ir_fact_ids")
+        if (ir_status not in {"SPECIALIST_REPORTED", "UNKNOWN"}
+                or pi_status not in {"SPECIALIST_REPORTED", "UNKNOWN"}
+                or stage not in {"NOT_ASSESSED", "EVIDENCE_RESOLUTION", "HUMAN_RESEARCH_REVIEW_ONLY"}
+                or not isinstance(ir_refs, list) or not isinstance(pi_refs, list)
+                or any(not isinstance(ref, str) or not ref for ref in ir_refs + pi_refs)
+                or len(set(ir_refs)) != len(ir_refs)
+                or len(set(pi_refs)) != len(pi_refs)):
+            raise ValueError("FIVE_PILLAR_RESEARCH_LINK_INVALID")
+        if ir_status == "UNKNOWN":
+            comparison = "IR_NOT_ASSESSED"
+        elif pi_status == "UNKNOWN":
+            comparison = "PI_RESEARCH_UNKNOWN"
+        elif set(ir_refs) != set(pi_refs):
+            comparison = "FACT_LINK_DIVERGENCE_REQUIRES_REVIEW"
+        elif stage == "EVIDENCE_RESOLUTION":
+            comparison = "SAME_REPORTED_LINKS_EVIDENCE_RESOLUTION"
+        else:
+            comparison = "SAME_REPORTED_LINKS_HUMAN_REVIEW_ONLY"
+        lines.append(f"- {name.replace('_', ' ').title()}: "
+                     f"IR {stage}; PI {pi_status}; {comparison}.")
+    lines.append(f"- Portfolio Room: {room['status']} (observed {portfolio_date}); "
+                 "qualitative, caller-reported and never admission authority.")
+    lines.append("No composite five-pillar score, validated expected return, "
+                 "target weight, buying or selling decision, or trade authority. "
+                 "Review conflicting IR/PI links and original evidence manually.")
+    return lines
+
+
 def _pillar_trace_lines(packet: Mapping[str, Any], analysis_id: str,
                         as_of: str, strategy: str) -> list[str]:
     """Report four IR axes as research queues, never as investment scores."""
@@ -1141,6 +1225,7 @@ def render_report(packet: Mapping[str, Any]) -> str:
     lines += _new_contribution_lines(packet, analysis_id, as_of)
     lines += _portfolio_observation_lines(packet, analysis_id, as_of)
     lines += _portfolio_room_lines(packet, analysis_id, as_of)
+    lines += _five_pillar_lines(packet, analysis_id, as_of, strategy)
     if kind == "FOLLOWUP":
         previous_id = packet.get("prior_analysis_id")
         if previous_id is None:
