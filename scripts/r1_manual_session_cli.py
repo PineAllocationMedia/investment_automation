@@ -23,7 +23,7 @@ OPTIONAL_FIELDS = frozenset({
     "public_reference_table_inputs", "exposure_classifications", "room_assessment_inputs",
     "source_evidence_inputs", "valuation_inputs", "probability_inputs", "candidate_comparison_inputs",
     "fundamental_inputs", "historical_comparison_inputs", "opportunity_triage_inputs",
-    "macro_sector_inputs",
+    "macro_sector_inputs", "work_portfolio_result",
 })
 PERMITTED_FIELDS = OPTIONAL_FIELDS | {"request"}
 NEXT_ACTIONS = {
@@ -39,6 +39,7 @@ SAFE_ERROR_CODES = frozenset({
     "DUPLICATE_JSON_FIELD", "NONFINITE_JSON_NUMBER",
     "TOP_LEVEL_OBJECT_REQUIRED", "UNKNOWN_OR_MISSING_SESSION_FIELD",
     "INPUT_TOO_LARGE", "CEO_INITIATION_REQUIRED",
+    "WORK_PORTFOLIO_RESULT_INVALID", "WORK_PORTFOLIO_RESULT_AMBIGUOUS",
 })
 
 
@@ -75,9 +76,30 @@ def evaluate(payload: Any) -> dict[str, Any]:
         raise ValueError("TOP_LEVEL_OBJECT_REQUIRED")
     if "request" not in payload or set(payload) - PERMITTED_FIELDS:
         raise ValueError("UNKNOWN_OR_MISSING_SESSION_FIELD")
-    return complete_manual_session(payload["request"], **{
-        k: v for k, v in payload.items() if k != "request"
-    })
+    # PI-1 R1.4 Work returns exactly one of two JSON envelopes. Accept the
+    # already pasted JSON object without asking a person to rename the field;
+    # downstream public/private, mandate, date and provenance guards remain
+    # authoritative. No browser access, source inference or project invocation.
+    fields = {k: v for k, v in payload.items()
+              if k not in {"request", "work_portfolio_result"}}
+    if "work_portfolio_result" in payload:
+        wrapped = payload["work_portfolio_result"]
+        branches = {
+            "public_portfolio_reference": "public_reference_inputs",
+            "work_blossom_inputs": "work_blossom_inputs",
+        }
+        if not isinstance(wrapped, dict) or len(wrapped) != 1:
+            raise ValueError("WORK_PORTFOLIO_RESULT_INVALID")
+        key = next(iter(wrapped))
+        if key not in branches or not isinstance(wrapped[key], dict):
+            raise ValueError("WORK_PORTFOLIO_RESULT_INVALID")
+        if fields.keys() & {
+            "work_blossom_inputs", "public_reference_inputs",
+            "public_reference_table_inputs", "observation_inputs",
+        }:
+            raise ValueError("WORK_PORTFOLIO_RESULT_AMBIGUOUS")
+        fields[branches[key]] = wrapped[key]
+    return complete_manual_session(payload["request"], **fields)
 
 
 def run(*, output: str, instream: TextIO, outstream: TextIO,
