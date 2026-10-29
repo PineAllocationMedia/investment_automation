@@ -6,7 +6,7 @@ All input statuses are caller-provided and preserved, never upgraded.
 from __future__ import annotations
 
 from datetime import date
-from decimal import Decimal, InvalidOperation
+from decimal import Decimal, InvalidOperation, ROUND_DOWN
 from typing import Any, Mapping
 
 EVIDENCE_STATUSES = frozenset({"VERIFIED", "INDICATIVE", "CONFLICTED", "MISSING"})
@@ -155,6 +155,37 @@ def _portfolio_observation_lines(packet: Mapping[str, Any], analysis_id: str,
         if (len(values) != len(weights) or any(
                 not v.is_finite() or v < 0 or v > 100 or v.as_tuple().exponent < -2
                 for v in values) or sum(values) != Decimal("100.00")):
+            raise ValueError("REPORT_P_LEDGER_SCOPED_WEIGHTS_INVALID")
+        # Compare with the original private M3 amounts, not only a 100% sum.
+        # This duplicates the bounded largest-remainder parity check, never
+        # recalculates a new portfolio allocation or source authority.
+        amounts = {}
+        try:
+            for record in records:
+                raw = record.get("market_value_base")
+                if not isinstance(raw, str):
+                    raise ValueError("REPORT_P_LEDGER_SCOPED_WEIGHTS_INVALID")
+                amounts[record["p_id"]] = Decimal(raw)
+            cash_raw = cash.get("amount_base")
+            if not isinstance(cash_raw, str):
+                raise ValueError("REPORT_P_LEDGER_SCOPED_WEIGHTS_INVALID")
+            amounts["P-CASH"] = Decimal(cash_raw)
+            if any(not v.is_finite() or v < 0 or v.as_tuple().exponent < -2
+                   for v in amounts.values()):
+                raise ValueError("REPORT_P_LEDGER_SCOPED_WEIGHTS_INVALID")
+            total = sum(amounts.values())
+            if total <= 0:
+                raise ValueError("REPORT_P_LEDGER_SCOPED_WEIGHTS_INVALID")
+            ideals = {key: v * Decimal("10000") / total for key, v in amounts.items()}
+            units = {key: int(v.to_integral_value(rounding=ROUND_DOWN)) for key, v in ideals.items()}
+            remaining = 10000 - sum(units.values())
+            for key in sorted(units, key=lambda k: (-(ideals[k] - units[k]), k))[:remaining]:
+                units[key] += 1
+            expected = {key: f"{Decimal(units[key]) / Decimal('100'):.2f}"
+                        for key in units}
+        except (InvalidOperation, OverflowError) as exc:
+            raise ValueError("REPORT_P_LEDGER_SCOPED_WEIGHTS_INVALID") from exc
+        if dict(weights) != expected:
             raise ValueError("REPORT_P_LEDGER_SCOPED_WEIGHTS_INVALID")
         coverage = "CALLER_REPORTED_SCOPED_DENOMINATOR_ONLY"
     elif stage == "OBSERVATION_LEDGER_ONLY":
