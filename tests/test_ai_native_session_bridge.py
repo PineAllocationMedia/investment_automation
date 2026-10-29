@@ -116,6 +116,65 @@ class SessionBridgeTests(unittest.TestCase):
         self.assertEqual(out["storage"],"NONE")
         self.assertEqual(out["readiness"],"NOT_EVALUATED")
 
+    def test_ir_only_minimal_assembler_double_has_no_pi_trace(self):
+        from unittest.mock import patch
+        with patch("ai_native.session_bridge.assemble_manual_run",
+                   return_value={"markdown": "SYN MINIMAL REPORT"}):
+            out = complete_manual_session(self.request(), ir_capsule=self.ir())
+        self.assertEqual(out["status"], "M7A_COMPONENT_ASSEMBLED_NOT_END_TO_END_ACCEPTANCE")
+        self.assertIsNone(out["mode_portfolio_trace_private"])
+        self.assertEqual(out["final_report_private"], "SYN MINIMAL REPORT")
+
+    def test_combined_legacy_return_without_mode_answers_stays_compatible(self):
+        from unittest.mock import patch
+        ir = self.ir()
+        delta = self.pi(forwarded_ir=copy.deepcopy(ir))
+        with patch("ai_native.session_bridge.assemble_manual_run",
+                   return_value={"markdown": "SYN COMBINED REPORT"}):
+            out = complete_manual_session(
+                self.request(portfolio_needed=True), ir_capsule=ir, pi_delta=delta)
+        self.assertIsNone(out["mode_portfolio_trace_private"])
+        self.assertEqual(delta["forwarded_ir"], ir)
+        self.assertEqual(out["final_report_private"], "SYN COMBINED REPORT")
+
+    def test_pi_response_is_not_silently_lost_in_minimal_integration(self):
+        from unittest.mock import patch
+        ir = self.ir()
+        delta = self.pi(forwarded_ir=copy.deepcopy(ir),
+                        MODE_PORTFOLIO_RESPONSES={"synthetic": "supplied"})
+        with patch("ai_native.session_bridge.assemble_manual_run",
+                   return_value={"markdown": "SYN LOST RESULT"}):
+            with self.assertRaisesRegex(
+                    ValueError, "MODE_PI_TRACE_NOT_RETURNED_BY_INTEGRATION"):
+                complete_manual_session(
+                    self.request(portfolio_needed=True), ir_capsule=ir,
+                    pi_delta=delta)
+
+    def test_actual_ir_pi_mode_trace_survives_original_capsule(self):
+        ir = self.ir()
+        original = copy.deepcopy(ir)
+        answers = [{"question_index": k, "status": "UNKNOWN", "p_ids": []}
+                   for k in (1, 2)]
+        delta = self.pi(
+            forwarded_ir=copy.deepcopy(ir), strategy_id="balanced",
+            MODE_PORTFOLIO_RESPONSES={
+                "analysis_id": "CASE-A", "portfolio_as_of": "2026-10-28",
+                "strategy_id": "balanced", "answers": answers})
+        out = complete_manual_session(
+            self.request(portfolio_needed=True, strategy_id="balanced"),
+            ir_capsule=ir, pi_delta=delta)
+        trace = out["mode_portfolio_trace_private"]
+        self.assertEqual(trace, out["integrated_private"]["mode_portfolio_trace_private"])
+        self.assertEqual(trace["status"], "PRIVATE_MODE_PI_TRACE_NOT_AUTHENTICATED")
+        self.assertEqual(trace["observation_link_status"], "NO_P_LEDGER")
+        self.assertEqual([row["review_stage"] for row in trace["questions_private"]],
+                         ["NOT_ASSESSED", "NOT_ASSESSED"])
+        self.assertIn("Mode-specific PI research", out["final_report_private"])
+        self.assertEqual(ir, original)
+        self.assertEqual(out["project_invocation"], "NONE")
+        self.assertEqual(out["storage"], "NONE")
+
+
     def test_private_history_comparison_handoff_preserves_subject(self):
         from unittest.mock import patch
         payload = {"prior_case":None, "subject_id":"SYN-ISSUER", "fact_links":[]}

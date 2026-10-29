@@ -417,7 +417,13 @@ def complete_manual_session(
         exceptional_lifecycle_review_private=private["exceptional_lifecycle_review_private"],
     )
     private["integrated_private"] = integrated
-    private["mode_portfolio_trace_private"] = integrated["mode_portfolio_trace_private"]
+    # Legacy IR-only and existing isolated M7a seams need no PI trace.
+    # Do not hide a dropped PI answer: if a specialist supplied mode-specific
+    # portfolio responses, a complete M7a result must carry the trace.
+    if (pi_delta is not None and "MODE_PORTFOLIO_RESPONSES" in pi_delta
+            and "mode_portfolio_trace_private" not in integrated):
+        raise ValueError("MODE_PI_TRACE_NOT_RETURNED_BY_INTEGRATION")
+    private["mode_portfolio_trace_private"] = integrated.get("mode_portfolio_trace_private")
     if public_reference is not None:
         # Public profile observation remains separate from the IR model's
         # facts/pillars and the unchanged private institutional memory proposal.
