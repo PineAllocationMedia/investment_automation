@@ -23,7 +23,7 @@ class PrivateVisiblePercentageTests(unittest.TestCase):
         source["positions"][0].update({
             "market_value_base": None,
             "currency": None,
-            "displayed_weight_pct": "100.30",
+            "displayed_weight_pct": "50.05",
             "displayed_weight_visibility": "VERIFIED_VISIBLE",
             "field_statuses": {
                 "security_id": "VERIFIED_VISIBLE",
@@ -32,6 +32,11 @@ class PrivateVisiblePercentageTests(unittest.TestCase):
                 "account_scope": "VERIFIED_VISIBLE",
             },
         })
+        second = deepcopy(source["positions"][0])
+        second["p_id"] = "P2"
+        second["security_id"] = "SYNTHETIC-SECOND-HOLDING:TSX"
+        second["displayed_weight_pct"] = "50.25"
+        source["positions"].append(second)
         return source
 
     def test_percent_only_work_handoff_keeps_sum_unmodified_and_blocks_portfolio_math(self):
@@ -47,7 +52,8 @@ class PrivateVisiblePercentageTests(unittest.TestCase):
         self.assertIn("ACCOUNT_CURRENCY_UNKNOWN", ledger["missing_or_qualified"])
         self.assertIn("CASH_NOT_VISIBLE_OR_UNQUANTIFIED", ledger["missing_or_qualified"])
         self.assertEqual(ledger["displayed_weight_summary_private"]["displayed_weight_sum_pct"], "100.30")
-        self.assertEqual(ledger["p_ledger_private"][0]["displayed_weight_pct_private"], "100.30")
+        self.assertEqual(ledger["p_ledger_private"][0]["displayed_weight_pct_private"], "50.05")
+        self.assertEqual(ledger["p_ledger_private"][1]["displayed_weight_pct_private"], "50.25")
         self.assertEqual(ledger["portfolio_room_status"], "ROOM_UNAVAILABLE")
 
     def test_pi_only_cc_report_shows_only_aggregate_not_private_security_or_account(self):
@@ -66,11 +72,8 @@ class PrivateVisiblePercentageTests(unittest.TestCase):
 
     def test_incomplete_display_rows_do_not_claim_portfolio_total(self):
         source = self.percent_only()
-        second = deepcopy(source["positions"][0])
-        second["p_id"] = "P2"
-        second["displayed_weight_pct"] = None
-        second["displayed_weight_visibility"] = "NOT_VISIBLE"
-        source["positions"].append(second)
+        source["positions"][1]["displayed_weight_pct"] = None
+        source["positions"][1]["displayed_weight_visibility"] = "NOT_VISIBLE"
         capture = prepare_work_blossom_observation(source)
         summary = capture["p_ledger_private"]["displayed_weight_summary_private"]
         self.assertEqual(summary["visible_count"], 1)
