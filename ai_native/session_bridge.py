@@ -106,6 +106,9 @@ def complete_manual_session(
 
     if lifecycle_inputs is not None and (route != "CC_IR_PI_CC" or pi_delta is None):
         raise ValueError("LIFECYCLE_REQUIRES_COMPLETED_IR_PI_ROUTE")
+    if (request.get("exceptional_lifecycle_review_requested") is True
+            and pi_delta is not None and lifecycle_inputs is None):
+        raise ValueError("LIFECYCLE_REQUESTED_REVIEW_NOT_SUPPLIED")
     if room_assessment_inputs is not None and route != "CC_IR_PI_CC":
         raise ValueError("PORTFOLIO_ROOM_REQUIRES_IR_AND_PI_ROUTE")
 
