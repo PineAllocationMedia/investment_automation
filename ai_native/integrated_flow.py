@@ -223,17 +223,17 @@ def assemble_manual_run(
                 or macro_sector_inputs["analysis_as_of"] != as_of
                 or macro_sector_inputs["strategy_id"] != strategy):
             raise ValueError("MACRO_SECTOR_MANDATE_MISMATCH")
-        if any(row["observed_at"] > ir_cutoff.isoformat()
-               for row in source_annex["observations_private"]
-               if row["observation_id"] in {
-                   oid for driver in macro_sector_inputs["drivers"]
-                   if isinstance(driver, Mapping)
-                   for oid in driver.get("source_observation_ids", [])
-                   if isinstance(oid, str)
-               }):
-            raise ValueError("MACRO_SECTOR_OBSERVATION_AFTER_IR_RESEARCH_AS_OF")
         macro_sector_context = prepare_macro_sector_context(
             ir_facts=facts, source_annex=source_annex, **macro_sector_inputs)
+        # Check only already validated links, not an unvalidated caller input.
+        linked_ids = {
+            oid for driver in macro_sector_context["drivers_private_in_supplied_order"]
+            for oid in driver["source_observation_ids_private"]
+        }
+        if any(row["observed_at"] > ir_cutoff.isoformat()
+               for row in source_annex["observations_private"]
+               if row["observation_id"] in linked_ids):
+            raise ValueError("MACRO_SECTOR_OBSERVATION_AFTER_IR_RESEARCH_AS_OF")
         limits.append("Macro/sector research context is caller-reported and source-linked only; causal magnitude, returns and timing are not inferred or authenticated.")
         status = "CONDITIONAL"
 
