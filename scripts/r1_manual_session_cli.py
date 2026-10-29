@@ -20,7 +20,7 @@ OPTIONAL_FIELDS = frozenset({
     "ir_capsule", "pi_delta", "portfolio_context", "calculation_requests",
     "contribution_inputs", "cost_inputs", "memory_inputs",
     "observation_inputs", "exposure_classifications", "room_assessment_inputs",
-    "source_evidence_inputs", "valuation_inputs", "candidate_comparison_inputs",
+    "source_evidence_inputs", "valuation_inputs", "probability_inputs", "candidate_comparison_inputs",
     "fundamental_inputs", "historical_comparison_inputs", "opportunity_triage_inputs",
     "macro_sector_inputs",
 })
