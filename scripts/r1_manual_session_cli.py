@@ -15,6 +15,7 @@ from typing import Any, TextIO
 
 from ai_native.session_bridge import complete_manual_session
 from ai_native.manual_review_queue import prepare_manual_review_queue
+from ai_native.research_memory import prepare_explicit_followup_draft
 
 MAX_INPUT_CHARACTERS = 5_000_000
 OPTIONAL_FIELDS = frozenset({
@@ -45,6 +46,7 @@ SAFE_ERROR_CODES = frozenset({
     "SPECIALIST_RESULT_INVALID", "SPECIALIST_RESULT_AMBIGUOUS",
     "SPECIALIST_ORIGINAL_IR_REQUIRED", "SPECIALIST_FORWARDED_IR_MISMATCH",
     "SPECIALIST_UNEXPECTED_FORWARDED_IR",
+    "FOLLOWUP_PRIOR_CASE_ENVELOPE_REQUIRED",
 })
 
 
@@ -234,7 +236,15 @@ def run(*, output: str, instream: TextIO, outstream: TextIO,
         payload = json.loads(raw, parse_constant=_no_nonfinite,
                              parse_float=_finite_json_float,
                              object_pairs_hook=_unique_pairs)
-        result = evaluate(payload)
+        if output == "followup-draft":
+            # An explicitly requested transformation of ONE already protected,
+            # user-supplied historical research case; no request is initiated.
+            if not isinstance(payload, dict) or set(payload) != {"prior_private_case"}:
+                raise ValueError("FOLLOWUP_PRIOR_CASE_ENVELOPE_REQUIRED")
+            draft = prepare_explicit_followup_draft(payload["prior_private_case"])
+            result = None
+        else:
+            result = evaluate(payload)
     except (ValueError, TypeError, KeyError, RecursionError) as exc:
         errstream.write("R1_INPUT_REJECTED: " + _code(exc) + "\n")
         return 2
@@ -244,7 +254,12 @@ def run(*, output: str, instream: TextIO, outstream: TextIO,
         errstream.write("R1_PROCESSING_ERROR: details suppressed; inspect locally.\n")
         return 3
 
-    if output == "status":
+    if output == "followup-draft":
+        # Explicitly PRIVATE. The returned request is intentionally invalid
+        # for execution until the CEO fills new details and initiates it.
+        outstream.write(json.dumps(draft, ensure_ascii=False, sort_keys=True,
+                                   indent=2, allow_nan=False) + "\n")
+    elif output == "status":
         result_status = result["status"]
         outstream.write(json.dumps({
             "status": result_status,
@@ -343,9 +358,9 @@ def main(argv: list[str] | None = None, *, instream: TextIO | None = None,
          outstream: TextIO | None = None,
          errstream: TextIO | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--output", choices=("status", "report", "handoffs", "next-handoff", "continuation", "private-case", "review-queue"),
+    parser.add_argument("--output", choices=("status", "report", "handoffs", "next-handoff", "continuation", "followup-draft", "private-case", "review-queue"),
                         default="status",
-                        help="status is redacted; report, handoffs, next-handoff, continuation, private-case and review-queue require a private terminal")
+                        help="status is redacted; report, handoffs, next-handoff, continuation, followup-draft, private-case and review-queue require a private terminal")
     opts = parser.parse_args(argv)
     return run(output=opts.output, instream=instream or sys.stdin,
                outstream=outstream or sys.stdout, errstream=errstream or sys.stderr)
