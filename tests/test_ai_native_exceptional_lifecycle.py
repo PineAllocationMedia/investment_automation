@@ -1,10 +1,13 @@
 """Synthetic exceptional High-CAGR position lifecycle seam, no live portfolio."""
 from copy import deepcopy
+from io import StringIO
+import json
 import unittest
 
 from ai_native.exceptional_lifecycle import prepare_exceptional_lifecycle_review
 from ai_native.session_bridge import complete_manual_session
 from ai_native.reporting import render_report
+from scripts.r1_manual_session_cli import main
 from tests.test_ai_native_construction_contracts import R1ConstructionContracts
 
 
@@ -201,6 +204,30 @@ class ExceptionalLifecycleTests(unittest.TestCase):
         self.assertEqual(queue["source_authentication"], "NOT_PERFORMED")
         self.assertEqual(queue["trading_authority"], "NONE")
 
+    def test_explicit_cli_review_queue_routes_fixed_lifecycle_task_not_private_values(self):
+        args = self.case()
+        saved = deepcopy(args)
+        outputs = {}
+        for mode in ("status", "review-queue"):
+            stdout, stderr = StringIO(), StringIO()
+            code = main(["--output", mode],
+                        instream=StringIO(json.dumps(args)),
+                        outstream=stdout, errstream=stderr)
+            self.assertEqual((code, stderr.getvalue()), (0, ""))
+            outputs[mode] = stdout.getvalue()
+        status = json.loads(outputs["status"])
+        review = json.loads(outputs["review-queue"])
+        self.assertEqual(status["readiness"], "NOT_EVALUATED")
+        self.assertNotIn("items", status)
+        self.assertIn("VERIFY_LIFECYCLE_TRANSACTION_COSTS",
+                      [item["code"] for item in review["items"]])
+        self.assertEqual(review["trading_authority"], "NONE")
+        for value in ("SYN-SCOPE", "ABC:TSX", "SYNTHETIC_PRIVATE_BASELINE",
+                      "SYNTHETIC_PRIVATE_COUNTERCASE"):
+            self.assertNotIn(value, outputs["status"])
+            self.assertNotIn(value, outputs["review-queue"])
+        self.assertEqual(args, saved)
+
     def test_lifecycle_review_queue_rejects_spoofed_authority_and_identity(self):
         from ai_native.manual_review_queue import prepare_manual_review_queue
         for key, bad in (
@@ -209,6 +236,7 @@ class ExceptionalLifecycleTests(unittest.TestCase):
             ("portfolio_observed_on", "2026-10-27"),
             ("analysis_id", "ANOTHER_CASE"),
             ("missing_or_qualified", ["USER_GENERATED_PRIVATE_NOTE"]),
+            ("missing_or_qualified", [{"UNHASHABLE": "SECRET"}]),
             ("status", "HUMAN_THESIS_AND_COST_REVIEW_ONLY"),
         ):
             with self.subTest(key=key):
