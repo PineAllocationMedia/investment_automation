@@ -199,6 +199,37 @@ def _valuation_lines(packet: Mapping[str, Any], analysis_id: str,
         raise ValueError("VALUATION_REPORT_SCENARIO_SET_INVALID")
     lines = ["", "## Valuation scenarios — conditional, private",
              f"Caller-supplied {horizon}-year scenario arithmetic in {currency}; issuer value assumptions and quotation remain unverified."]
+    quote = packet.get("valuation_quote_trace_private")
+    if quote is not None:
+        if (not isinstance(quote, Mapping)
+                or quote.get("status") != "PRIVATE_QUOTE_SOURCE_TRACE_NOT_CERTIFIED"
+                or quote.get("analysis_id") != analysis_id
+                or quote.get("analysis_as_of") != as_of
+                or quote.get("source_authentication") != "NOT_PERFORMED"
+                or quote.get("original_market_price_verification") != "NOT_ESTABLISHED"
+                or quote.get("market_price_or_fx_authority") != "NONE"
+                or quote.get("writes") != "NONE"
+                or quote.get("quote_reference_private") != result.get("quote_source_ref")):
+            raise ValueError("VALUATION_QUOTE_TRACE_AUTHORITY_OR_ID_MISMATCH")
+        stage = quote.get("review_stage")
+        reasons = quote.get("reason_codes")
+        matched = quote.get("matched_observation_id_private")
+        if (stage not in {"EVIDENCE_RESOLUTION", "HUMAN_QUOTE_REVIEW_ONLY"}
+                or not isinstance(reasons, list)
+                or len(reasons) > 24
+                or any(not isinstance(code, str) or not code or len(code) > 100
+                       or any(ch not in "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_" for ch in code)
+                       for code in reasons)
+                or (stage == "HUMAN_QUOTE_REVIEW_ONLY") != (matched is not None and not reasons)
+                or (matched is not None and matched != result.get("quote_source_ref"))):
+            raise ValueError("VALUATION_QUOTE_TRACE_STAGE_INVALID")
+        lines.append(
+            "**Quotation provenance:** " +
+            ("one caller-supplied observation structurally aligned; human authentication still required."
+             if stage == "HUMAN_QUOTE_REVIEW_ONLY"
+             else "evidence resolution required; scenario arithmetic is not a checked market-price return.") +
+            " No live quote or original-source verification was performed.")
+
     for name in ("BEAR", "BASE", "BULL"):
         row = scenarios[name]
         if not isinstance(row, Mapping) or row.get("assumption_validation") != "NOT_PERFORMED":
