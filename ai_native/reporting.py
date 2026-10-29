@@ -445,6 +445,64 @@ def _new_contribution_lines(packet: Mapping[str, Any], analysis_id: str,
                 f"scenario: scoped cash {funded_cash}%; cost quotes, external "
                 "funding, accessible cash and net execution remain unverified.")
 
+    # Optional one-to-three GROSS-only alternatives from the same M3
+    # projection engine. Show only scoped percentages, never private balances,
+    # trade destinations or cost quotes. Refuse forged net/authority labels.
+    alternatives = summary.get("gross_alternatives_private")
+    if alternatives is not None:
+        if (gross != "GROSS_PROJECTION_ONLY"
+                or not isinstance(alternatives, Mapping)
+                or set(alternatives) != {"status", "scenarios", "authority"}
+                or alternatives["status"] != "GROSS_ALTERNATIVES_ONLY_NOT_NET"
+                or alternatives["authority"] !=
+                    "CALLER_SUPPLIED_HYPOTHETICAL_NOT_PORTFOLIO_POLICY"):
+            raise ValueError("CONTRIBUTION_REPORT_ALTERNATIVES_AUTHORITY_INVALID")
+        scenarios = alternatives["scenarios"]
+        if not isinstance(scenarios, list) or not 1 <= len(scenarios) <= 3:
+            raise ValueError("CONTRIBUTION_REPORT_ALTERNATIVES_COUNT_INVALID")
+        validated = []
+        for index, variant in enumerate(scenarios, start=1):
+            if (not isinstance(variant, Mapping)
+                    or set(variant) != {
+                        "scenario_index", "gross_after_largest_non_cash_security_pct",
+                        "gross_after_scoped_cash_pct"}
+                    or type(variant["scenario_index"]) is not int
+                    or variant["scenario_index"] != index):
+                raise ValueError("CONTRIBUTION_REPORT_ALTERNATIVES_SCHEMA_INVALID")
+            percents = []
+            for key in ("gross_after_largest_non_cash_security_pct",
+                        "gross_after_scoped_cash_pct"):
+                raw = variant[key]
+                if raw is None and key == "gross_after_largest_non_cash_security_pct":
+                    percents.append("UNAVAILABLE")
+                    continue
+                if not isinstance(raw, str) or len(raw) > 6:
+                    raise ValueError("CONTRIBUTION_REPORT_ALTERNATIVES_PERCENT_INVALID")
+                try:
+                    pct = Decimal(raw)
+                except InvalidOperation as exc:
+                    raise ValueError("CONTRIBUTION_REPORT_ALTERNATIVES_PERCENT_INVALID") from exc
+                if (not pct.is_finite() or pct < 0 or pct > 100
+                        or pct != pct.quantize(Decimal("0.01"))):
+                    raise ValueError("CONTRIBUTION_REPORT_ALTERNATIVES_PERCENT_INVALID")
+                percents.append(f"{pct:.2f}%")
+            validated.append((index, *percents))
+        lines.append(
+            "Other caller-supplied alternatives, GROSS only, using the same "
+            "dated scoped portfolio and contribution amount; separately "
+            "numbered in the private M3 input:"
+        )
+        for index, largest, cash in validated:
+            lines.append(
+                f"- Alternative {index}: largest non-cash security line "
+                f"{largest}; scoped cash {cash}."
+            )
+        lines.append(
+            "Do not compare these gross alternatives as net investment outcomes: "
+            "baseline cost quotes/funding do not apply to them. No preferred "
+            "allocation, issuer look-through, reserve target or trade is implied."
+        )
+
     burden_text = summary.get("one_time_supplied_cost_share_pct")
     if burden_text is not None:
         if (costs != "SUPPLIED_COST_TALLY_ONLY"

@@ -55,7 +55,19 @@ def prepare_new_capital_projection(
         raise ValueError("contribution_inputs must be a mapping")
     if contribution_inputs.get("as_of") != portfolio_as_of:
         raise ValueError("Contribution input must use exact PI portfolio observation date")
-    gross = project_gross_contribution(**contribution_inputs)
+    # One optional bounded set of alternative NEW-capital plans. All scenarios
+    # reuse the exact same confirmed portfolio basis, date, currency and budget.
+    # They never inherit baseline cost quotes or become proposed investments.
+    base_inputs = dict(contribution_inputs)
+    alternative_allocations = base_inputs.pop("alternative_allocations_pct", None)
+    if alternative_allocations is not None and (
+        not isinstance(alternative_allocations, list)
+        or not 1 <= len(alternative_allocations) <= 3
+        or any(not isinstance(item, Mapping) or not item
+               for item in alternative_allocations)
+    ):
+        raise ValueError("ALTERNATIVE_CONTRIBUTION_SCENARIOS_INVALID")
+    gross = project_gross_contribution(**base_inputs)
     notes = []
     if gross["status"] == "UNAVAILABLE":
         notes.append("Gross contribution projection unavailable: required scope flags were not established.")
@@ -77,7 +89,7 @@ def prepare_new_capital_projection(
             if costs.get("gross_allocation_funding_conflict"):
                 notes.append("Gross allocation uses the full contribution; deducting fees from that same contribution needs a revised plan.")
         funded = reconcile_funded_contribution(
-            contribution_inputs=contribution_inputs, gross_projection=gross,
+            contribution_inputs=base_inputs, gross_projection=gross,
             cost_tally=costs,
         )
         if funded["status"] == "CONDITIONAL_SUPPLIED_COST_BUDGET_RECONCILED":
@@ -114,6 +126,36 @@ def prepare_new_capital_projection(
             "authority": "DESCRIPTIVE_CALLER_SUPPLIED_NO_PORTFOLIO_POLICY_OR_EXECUTION",
         }
 
+    alternatives_private = None
+    if alternative_allocations is not None:
+        if gross["status"] != "GROSS_PROJECTION_ONLY":
+            notes.append("Alternative gross plans unavailable: the original scoped portfolio basis is incomplete.")
+        else:
+            alternatives = []
+            for i, allocation in enumerate(alternative_allocations, start=1):
+                scenario_inputs = dict(base_inputs)
+                scenario_inputs["allocations_pct"] = dict(allocation)
+                projection = project_gross_contribution(**scenario_inputs)
+                if projection["status"] != "GROSS_PROJECTION_ONLY":
+                    raise ValueError("ALTERNATIVE_CONTRIBUTION_BASIS_UNAVAILABLE")
+                alternatives.append({
+                    "scenario_index": i,
+                    "gross_after_largest_non_cash_security_pct":
+                        _largest_non_cash_security_pct(projection["projected_weights_pct"]),
+                    "gross_after_scoped_cash_pct":
+                        _scoped_cash_pct(projection["projected_weights_pct"]),
+                })
+            alternatives_private = {
+                "status": "GROSS_ALTERNATIVES_ONLY_NOT_NET",
+                "scenarios": alternatives,
+                "authority": "CALLER_SUPPLIED_HYPOTHETICAL_NOT_PORTFOLIO_POLICY",
+            }
+            notes.append(
+                "Alternative contribution destinations are separate GROSS hypotheticals "
+                "on the same scoped basis. Baseline fee quotes and conditional funding "
+                "cannot be reused; no alternative net comparison or selection is certified."
+            )
+
     # Display only NEW-capital percentages and bounded aggregate sensitivity,
     # never balances, cost quotes, or projected order amounts in the report.
     summary = {
@@ -129,6 +171,7 @@ def prepare_new_capital_projection(
             if funded is not None and funded["status"] ==
                 "CONDITIONAL_SUPPLIED_COST_BUDGET_RECONCILED" else None),
         "largest_security_line_sensitivity_private": concentration,
+        "gross_alternatives_private": alternatives_private,
         "source_authentication": "NOT_PERFORMED",
     }
     return {
