@@ -283,6 +283,10 @@ class ManualReviewQueueTests(unittest.TestCase):
         self.assertIn("VERIFY_SOURCE_DISPLAYED_HISTORY", self.codes(queue))
         self.assertNotIn("ABC:TSX", json.dumps(queue))
         forged = deepcopy(session)
+        # Independent mutated top-level value; preserve the integrated copy.
+        # A plain deepcopy(session) retains aliasing of the two references.
+        forged["portfolio_snapshot_comparison_private"] = deepcopy(
+            forged["portfolio_snapshot_comparison_private"])
         forged["portfolio_snapshot_comparison_private"]["privacy"] = "PUBLIC"
         with self.assertRaisesRegex(ValueError, "SNAPSHOT_INTEGRATED_PARITY_INVALID"):
             prepare_manual_review_queue(forged)

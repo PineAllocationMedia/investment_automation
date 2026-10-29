@@ -275,13 +275,16 @@ def _snapshot_review_action(
                 "Reconcile BOTH original dated private holdings views, scope, "
                 "security identities, visible cash, currency and source access. "
                 "Do not infer missing values or historical transactions.")
-    if (not isinstance(rows, list) or not rows
+    if (not isinstance(rows, list) or not 1 <= len(rows) <= 10000
             or type(comparison.get("matched_instrument_count")) is not int
             or comparison["matched_instrument_count"] < 0
             or type(comparison.get("newly_visible_count")) is not int
             or type(comparison.get("no_longer_visible_count")) is not int
             or comparison["newly_visible_count"] < 0
-            or comparison["no_longer_visible_count"] < 0):
+            or comparison["no_longer_visible_count"] < 0
+            or sum(comparison[k] for k in (
+                "matched_instrument_count", "newly_visible_count",
+                "no_longer_visible_count")) != len(rows)):
         raise ValueError("REVIEW_QUEUE_SNAPSHOT_COMPARISON_SCHEMA_INVALID")
     if status == "OBSERVED_UI_WEIGHT_CHANGE_ONLY_NO_MONETARY_DENOMINATOR":
         if (reasons != ["MONETARY_DENOMINATOR_NOT_VERIFIED"]
@@ -296,7 +299,8 @@ def _snapshot_review_action(
                 "raw UI percentages without normalization. Cash, money basis, "
                 "portfolio returns and transactions remain UNKNOWN.")
     if status == "DESCRIPTIVE_SCOPED_WEIGHT_CHANGE_NOT_RETURN":
-        if reasons != [] or comparison.get("cash_weight_change_pp") is None:
+        if (reasons != [] or comparison.get("cash_weight_change_pp") is None
+                or observation.get("known_scope_weights_pct") is None):
             raise ValueError("REVIEW_QUEUE_SNAPSHOT_MONETARY_AUTHORITY_INVALID")
         return ("VERIFY_MONETARY_SNAPSHOT_HISTORY", "HUMAN_VERIFICATION",
                 "Verify both original dated private holdings, same account and "
