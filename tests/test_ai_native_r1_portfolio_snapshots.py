@@ -268,6 +268,52 @@ class PrivatePortfolioSnapshotFollowupTests(unittest.TestCase):
         self.assertNotIn("scoped cash weight change", report)
         self.assertEqual(out["readiness"], "NOT_EVALUATED")
 
+    def test_raw_ui_totals_above_hundred_are_not_normalized(self):
+        old, current = self.percentage_only("50.05", "50.25")
+        for args, second_pct in ((old, "50.25"), (current, "50.05")):
+            row = deepcopy(args["positions"][0])
+            row["p_id"] = "P-2"
+            row["security_id"] = "OTHER:TSX"
+            row["displayed_weight_pct"] = second_pct
+            args["positions"].append(row)
+        out = self.compare(old=old, now=current)
+        self.assertEqual(out["status"],
+                         "OBSERVED_UI_WEIGHT_CHANGE_ONLY_NO_MONETARY_DENOMINATOR")
+        self.assertEqual(out["matched_instrument_count"], 2)
+        self.assertEqual(out["largest_absolute_security_weight_shift_pp"], "0.20")
+        self.assertEqual(
+            prepare_observation_ledger(**current)["displayed_weight_summary_private"][
+                "displayed_weight_sum_pct"], "100.30")
+        self.assertEqual(out["cash_weight_change_pp"], None)
+
+    def test_old_ui_only_current_monetary_basis_still_uses_source_ui(self):
+        old, current = self.percentage_only("80.00", "75.00")
+        # The newer statement independently supplies the actual account
+        # currency, all amounts/cash and source-visible UI percentages.
+        current["currency"] = "CAD"
+        current["cash_base"] = "100.00"
+        current["cash_visibility"] = "VERIFIED_VISIBLE"
+        current["same_currency_basis_confirmed_by_caller"] = True
+        row = current["positions"][0]
+        row["currency"] = "CAD"
+        row["market_value_base"] = "300.00"
+        row["field_statuses"]["currency"] = "VERIFIED_VISIBLE"
+        row["field_statuses"]["market_value_base"] = "VERIFIED_VISIBLE"
+        obs = prepare_observation_ledger(**current)
+        self.assertIsNotNone(obs["known_scope_weights_pct"])
+        out = self.compare(old=old, now=current)
+        self.assertEqual(out["status"],
+                         "OBSERVED_UI_WEIGHT_CHANGE_ONLY_NO_MONETARY_DENOMINATOR")
+        self.assertIsNone(out["cash_weight_change_pp"])
+        self.assertEqual(out["largest_absolute_security_weight_shift_pp"], "5.00")
+        packet = ReportingTests().packet(
+            analysis_id="CASE-A", kind="FOLLOWUP", prior_analysis_id="PRIOR-CASE",
+            changes=[], portfolio_observation_private=obs,
+            portfolio_snapshot_comparison_private=out)
+        report = render_report(packet)
+        self.assertIn("largest raw UI difference 5.00 percentage points", report)
+        self.assertNotIn("scoped cash weight change", report)
+
     def test_ir_pi_followup_preserves_ui_only_status_and_private_annex(self):
         old, current = self.percentage_only()
         ir = self.fx.ir()
@@ -306,6 +352,8 @@ class PrivatePortfolioSnapshotFollowupTests(unittest.TestCase):
             "current_weight_pct"] = "99.00"
         bad["portfolio_snapshot_comparison_private"]["rows_private"][0][
             "weight_change_pp"] = "19.00"
+        bad["portfolio_snapshot_comparison_private"][
+            "largest_absolute_security_weight_shift_pp"] = "19.00"
         with self.assertRaisesRegex(ValueError, "SNAPSHOT_REPORT_UI_VISIBLE_PARITY_INVALID"):
             render_report(bad)
 

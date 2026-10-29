@@ -203,8 +203,7 @@ def _portfolio_snapshot_comparison_lines(packet: Mapping[str, Any],
             # performance claims may be manufactured from displayed weights.
             if (x["cash_weight_change_pp"] is not None
                     or counts["NEWLY_VISIBLE"] or counts["NO_LONGER_VISIBLE"]
-                    or counts["CONTINUING"] != len(rows)
-                    or obs.get("known_scope_weights_pct") is not None):
+                    or counts["CONTINUING"] != len(rows)):
                 raise ValueError("SNAPSHOT_REPORT_UI_ONLY_BASIS_INVALID")
             by_security = {record.get("security_id"): record
                            for record in obs.get("p_ledger_private", [])
