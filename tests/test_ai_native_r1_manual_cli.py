@@ -157,6 +157,103 @@ class ManualCLIContractTests(unittest.TestCase):
         self.assertEqual((code, body), (2, ""))
         self.assertIn("SEALED_FOLLOWUP_INPUT_INVALID", err)
 
+    def test_guided_sealed_followup_directly_prepares_safe_ir_prompt(self):
+        data = self._new_sealed_followup()
+        prior = deepcopy(data)
+        code, text, err = self.invoke(data, "guided-operator")
+        self.assertEqual((code, err), (0, ""))
+        guided = json.loads(text)
+        self.assertEqual(guided["specialist_step"], "IR_REQUEST")
+        self.assertEqual(guided["copy_to_specialist"], "specialist_prompt_private")
+        self.assertIn("Recipient: Investment Research (IR)",
+                      guided["specialist_prompt_private"])
+        self.assertNotIn("PRIVATE_PRIOR_ACCOUNT_SENTINEL",
+                         guided["specialist_prompt_private"])
+        self.assertNotIn('"resume_input"', guided["specialist_prompt_private"])
+        operator = guided["operator_packet_private"]
+        self.assertEqual(operator["manual_copy_integrity"],
+                         "SHA256_MATCHED_RETAINED_COPY_ONLY")
+        self.assertEqual(operator["record_authenticity"], "NOT_ESTABLISHED")
+        self.assertEqual(operator["session"]["status"], "AWAITING_MANUAL_IR_CAPSULE")
+        self.assertEqual(set(operator["continuation_private"]["next_handoff"]),
+                         {"IR_REQUEST"})
+        self.assertNotIn("PRIVATE_PRIOR_ACCOUNT_SENTINEL", json.dumps(
+            operator["continuation_private"]["next_handoff"]))
+        # Original case is carried only by the private CC continuation.
+        self.assertIn("PRIVATE_PRIOR_ACCOUNT_SENTINEL", json.dumps(
+            operator["continuation_private"]["resume_input"]))
+        self.assertEqual(data, prior)
+        self.assertEqual(guided["storage"], "NONE")
+        self.assertEqual(guided["project_invocation"], "NONE")
+
+    def test_guided_sealed_followup_ir_and_pi_returns_preserve_original_cc_case(self):
+        data = self._new_sealed_followup(portfolio_needed=True)
+        first = json.loads(self.invoke(data, "guided-operator")[1])
+        original = self.fx.ir(
+            analysis_id="CASE-B", research_as_of="2026-10-29",
+            facts=[{"id":"F2", "status":"INDICATIVE", "claim":"New private fact"}])
+        second_input = {
+            "continuation_private": first["operator_packet_private"]["continuation_private"],
+            "specialist_result": {"IR_CAPSULE": original}}
+        code, body, err = self.invoke(second_input, "guided-operator")
+        self.assertEqual((code, err), (0, ""))
+        second = json.loads(body)
+        self.assertEqual(second["specialist_step"], "PI_REQUEST")
+        self.assertIn("Recipient: Portfolio Intelligence (PI)",
+                      second["specialist_prompt_private"])
+        self.assertNotIn("PRIVATE_PRIOR_ACCOUNT_SENTINEL",
+                         second["specialist_prompt_private"])
+        self.assertEqual(second["operator_packet_private"]["continuation_private"]
+                         ["next_handoff"]["PI_REQUEST"]["FORWARD_UNCHANGED"], original)
+        final_input = {
+            "continuation_private": second["operator_packet_private"]["continuation_private"],
+            "specialist_result": {"PI_DELTA": self.fx.pi(
+                analysis_id="CASE-B", portfolio_as_of="2026-10-29"),
+                "FORWARD_UNCHANGED": deepcopy(original)}}
+        code, body, err = self.invoke(final_input, "guided-operator")
+        self.assertEqual((code, err), (0, ""))
+        final = json.loads(body)
+        self.assertIsNone(final["specialist_step"])
+        self.assertIsNone(final["specialist_prompt_private"])
+        self.assertIsNone(final["operator_packet_private"]["continuation_private"])
+        self.assertIn("Prior/current research",
+                      final["operator_packet_private"]["report_private"])
+        self.assertNotIn("PRIVATE_PRIOR_ACCOUNT_SENTINEL",
+                         final["operator_packet_private"]["report_private"])
+        self.assertEqual(final["trading_authority"], "NONE")
+
+    def test_guided_sealed_followup_can_render_existing_ir_comparison_without_handoff(self):
+        data = self._new_sealed_followup(include_ir=True)
+        code, body, err = self.invoke(data, "guided-operator")
+        self.assertEqual((code, err), (0, ""))
+        packet = json.loads(body)
+        self.assertIsNone(packet["specialist_step"])
+        self.assertIsNone(packet["specialist_prompt_private"])
+        self.assertEqual(packet["copy_to_specialist"], "NONE")
+        self.assertIn("Prior/current research",
+                      packet["operator_packet_private"]["report_private"])
+        self.assertEqual(packet["operator_packet_private"]["record_authenticity"],
+                         "NOT_ESTABLISHED")
+        self.assertIsNone(packet["operator_packet_private"]["continuation_private"])
+
+    def test_guided_sealed_followup_rejects_tampering_and_implicit_reuse_privately(self):
+        tampered = self._new_sealed_followup()
+        tampered["private_case_envelope"]["private_case"]["original_request"][
+            "account_context"]["account"] = "SECRET_GUIDED_TAMPER_SENTINEL"
+        no_mandate = self._new_sealed_followup(ceo_initiated=False)
+        bad_scope = self._new_sealed_followup()
+        bad_scope["session"]["historical_comparison_inputs"] = {}
+        for payload, code_expected in (
+            (tampered, "PRIVATE_CASE_SHA256_MISMATCH"),
+            (no_mandate, "SEALED_FOLLOWUP_EXPLICIT_MANDATE_REQUIRED"),
+            (bad_scope, "SEALED_FOLLOWUP_INPUT_INVALID"),
+        ):
+            with self.subTest(code_expected=code_expected):
+                code, body, err = self.invoke(payload, "guided-operator")
+                self.assertEqual((code, body), (2, ""))
+                self.assertIn(code_expected, err)
+                self.assertNotIn("SECRET_GUIDED_TAMPER_SENTINEL", err)
+
     def test_single_ir_capsule_envelope_routes_to_final_private_cc_report(self):
         req = self.fx.request()
         ir = self.fx.ir()

@@ -461,6 +461,7 @@ def run(*, output: str, instream: TextIO, outstream: TextIO,
                                    sort_keys=True, indent=2, allow_nan=False) + "\n")
         return 0
     guided_resuming = False
+    guided_sealed_followup = False
     try:
         raw = instream.read(MAX_INPUT_CHARACTERS + 1)
         if len(raw) > MAX_INPUT_CHARACTERS:
@@ -487,6 +488,14 @@ def run(*, output: str, instream: TextIO, outstream: TextIO,
             resume_payload, result = _resume_manual_transfer(payload)
         elif output == "sealed-followup-operator":
             restored_payload, result = _reenter_sealed_followup(payload)
+        elif (output == "guided-operator" and isinstance(payload, dict)
+              and "private_case_envelope" in payload):
+            # Reuse the SAME strict sealed-case re-entry plus verified-method
+            # guided prompt path. The old case remains in CC-only continuation,
+            # never in the receiving specialist's next handoff or prompt.
+            guided_resuming = True
+            guided_sealed_followup = True
+            resume_payload, result = _reenter_sealed_followup(payload)
         elif (output == "guided-operator" and isinstance(payload, dict)
               and ("continuation_private" in payload
                    or ("specialist_result" in payload and "request" not in payload))):
@@ -536,6 +545,9 @@ def run(*, output: str, instream: TextIO, outstream: TextIO,
         try:
             actual_payload = resume_payload if guided_resuming else payload
             operator = _private_operator_packet(actual_payload, result)
+            if guided_sealed_followup:
+                operator["manual_copy_integrity"] = "SHA256_MATCHED_RETAINED_COPY_ONLY"
+                operator["record_authenticity"] = "NOT_ESTABLISHED"
             continuation = operator["continuation_private"]
             prompt = None
             specialist = None
