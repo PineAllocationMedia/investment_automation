@@ -1,6 +1,6 @@
 # PROMPT PI-1 — BLOSSOM PORTFOLIO (WORK + CLOUD BROWSER DEFAULT)
 
-**Version:** `PI-WORK-PORTFOLIO-R1.3` — 2026-10-29  
+**Version:** `PI-WORK-PORTFOLIO-R1.4` — 2026-10-29  
 **Status:** VERSIONED / COPY-READY / CEO-REPORTED SIGNED-IN PROFILE PORTFOLIO OBSERVATION PARTIAL  
 **Owner:** PAM Financial Systems — Portfolio Intelligence, with PM integration  
 **Trigger:** CEO/user-initiated **only**. No recurrence, polling, task installation or autonomous account access.  
@@ -25,7 +25,7 @@ SELECTED_ACCOUNT_SCOPE: OBSERVE_ACTUAL_VISIBLE_SCOPE (not assumed to belong to m
 CASE IDENTITY
 ANALYSIS_ID: [use the exact ANALYSIS_ID from the Financial Systems Command Center when supplied; otherwise assign one new unique identifier, report it and reuse it unchanged in every handoff]
 ANALYSIS_AS_OF: [use the exact YYYY-MM-DD cutoff supplied by CC; otherwise use today's actual date in the intended account timezone, and state the timezone; do not silently backdate holdings]
-OUTPUT_CONTRACT: work_blossom_inputs / PI-WORK-PORTFOLIO-R1.3
+OUTPUT_CONTRACT: work_blossom_inputs / PI-WORK-PORTFOLIO-R1.4
 
 EXECUTION
 1. Use ChatGPT Work Cloud Browser. Start at the exact user-supplied BLOSSOM_TARGET_URL, with the HTTPS hostname exactly blossomsocial.com or www.blossomsocial.com. Do not invent URLs, substitute profiles, follow off-domain redirects, bypass rights or use sign-in tokens. If a login is required for MY private view, I will complete it securely within the browser; never ask for credentials in chat.
@@ -49,16 +49,21 @@ EXECUTION
 
 REQUIRED OUTPUT — CHOOSE THE BRANCH MATCHING THE ACTUAL TARGET, NOT A GUESSED OWNER
 
-A. PUBLIC_REFERENCE — the target profile has a visible Portfolio listing treated as REFERENCE DATA, even if inspected in a signed-in session:
-Return one JSON object with top-level "public_portfolio_reference" (NOT "work_blossom_inputs"), containing:
-- status: "PUBLIC_REFERENCE_ONLY", analysis_id and analysis_as_of from the case, observation_as_of as actually shown or "UNKNOWN", captured_at as actually observed or "UNKNOWN";
-- visibility_context: "ANONYMOUS_PUBLIC_CONFIRMED" ONLY if the exact same portfolio was actually observed without signing in; otherwise "SIGNED_IN_VISIBILITY_ONLY" or "UNKNOWN". A profile "Edit profile" control does not prove anonymous public access or a portfolio/account filter;
-- visible_scope: what the URL actually shows; account_ownership: "NOT_ASSUMED_USER";
-- positions_visible: one record per displayed row with visible security name/ticker, weight_pct as the displayed decimal string or null, value/currency only if visibly supplied (else null) and visibility VISIBLE or UNCERTAIN;
-- coverage: booleans for all_rows_visible, other_group_expanded_or_absent, cash_visible, weights_comparable, account_filter_visible and sync_date_visible, false when not established;
-- displayed_weight_sum_pct: exact sum of the displayed weights if every needed weight was actually read, else null. NEVER rescale displayed percentages just to total 100%; preserve rounding discrepancy as a limitation;
-- unknowns: missing account scope, cash, denominator, currency, sync date, offscreen holdings or limits.
-After that JSON, produce a SHORT DESCRIPTIVE ANALYSIS of the portfolio visible at that URL: largest displayed positions and concentrations, supported overlap hypotheses, unresolved ETF look-through and missing source evidence. Quantify only observed/comparable rows. Do not call the reference the user's own private holdings, assert full household diversification, calculate brokerage-verified weights, issue personal allocations or trade advice. "PUBLIC_REFERENCE_ONLY" is a handling label, NOT independent proof of anonymous access. This public report is NOT accepted by the existing M3 private adapter.
+A. PUBLIC_REFERENCE — the specified profile has a visible Portfolio listing treated as REFERENCE DATA. This may be observed in a signed-in session WITHOUT proof of anonymous accessibility.
+Output a single fenced JSON object with top-level key "public_portfolio_reference". Its nested object MUST use EXACTLY these fields (no source URLs, account IDs, balances, credentials, raw browser HTML, personally private fields or extra keys):
+- status: "PUBLIC_REFERENCE_ONLY";
+- analysis_id: exact supplied/generate-once case ID;
+- analysis_as_of: canonical YYYY-MM-DD analysis cutoff;
+- observation_as_of: actual dated YYYY-MM-DD holdings observation ONLY if visible; otherwise "UNKNOWN" (browser capture time alone does not prove holdings sync);
+- captured_at: actual timezone-aware ISO 8601 browser capture timestamp (local date must match observation_as_of if it is known), or "UNKNOWN";
+- visibility_context: "ANONYMOUS_PUBLIC_CONFIRMED" only if exactly the same portfolio was inspected without authentication; otherwise "SIGNED_IN_VISIBILITY_ONLY" or "UNKNOWN". Signed-in access and an "Edit profile" control do not prove anonymous public access or holdings ownership;
+- visible_scope: concise human description of the portion observed, or "UNKNOWN". Do not use account numbers or IDs here;
+- account_ownership: always "NOT_ASSUMED_USER";
+- positions_visible: one to 60 distinct records, EXACTLY {"security_id": ticker/string using letters/digits/dot/colon/hyphen, "weight_pct": decimal string with 0–2 decimal places or null, "value": visible monetary amount as decimal string to 2 places or null, "currency": actual visible uppercase three-letter currency or null, "visibility": "VISIBLE" or "UNCERTAIN"}. Keep displayed percent units as percentage POINTS (e.g. "25.1" means 25.1%, not 0.251); no normalized weights. If only a long descriptive company name is visible, ask Work to obtain the precise ticker; do not manufacture a ticker;
+- coverage: EXACTLY six actual booleans: "all_rows_visible", "other_group_expanded_or_absent", "cash_visible", "weights_comparable", "account_filter_visible", "sync_date_visible". Unsupported scope/verification -> false. The same list of rows need not be the complete household holdings;
+- displayed_weight_sum_pct: sum of ALL listed visible percentage strings, expressed as a decimal string, only when every listed row has a visible weight; otherwise null. If this is 100.3 or 99.7, report it as displayed WITHOUT rescaling, rounding it to 100, or asserting a verified denominator;
+- unknowns: list of up to 12 short missing-fact descriptions (no private account identifiers).
+After the JSON, provide a SHORT DESCRIPTIVE ANALYSIS of the actually visible profile portfolio: largest lines, concentration of shown percentages and cautiously identified overlap hypotheses, with account-scope, sync-date, cash, currency, and incomplete ETF composition limits. Do NOT call it the CEO's private holdings, claim a source-certified universe, calculate a personalized new-capital split or trade recommendation. The resulting object can now be passed manually to R1 as top-level "public_reference_inputs" on an explicitly CEO-initiated **CC_DIRECT** or **CC_IR_CC** route; it is NEVER input to the private M3 P-ledger or a PI personal Portfolio Room route. Neither Work nor this prompt automatically invokes the local CLI, Investment Research or Command Center.
 
 B. OWN_PRIVATE_AUTHORIZED — an explicitly authorized view of MY own private account is actually established, with account-base currency, scope, observation date and at least one position:
 Return exactly one fenced JSON object with TOP-LEVEL key "work_blossom_inputs". Its nested object must match the existing M3 PRIVATE adapter fields, with exactly:
@@ -131,7 +136,10 @@ python -m scripts.r1_manual_session_cli --output review-queue < private_case.jso
 
 **October 29, 2026 (CEO report):** Work successfully displayed the **See all stocks** portfolio list on the targeted Blossom profile in a signed-in browser and reported 20 visible securities and their displayed percentage weights. The displayed weights summed to slightly above 100%; rounding is plausible, **not** a validated portfolio denominator. The result is a **usable partial visual observation**, not independently authenticated broker evidence, whole-account holdings, anonymous access, portfolio-sync date, cost/FX evidence or an imported R1 packet. The session also showed an account/profile-editing control, which does not itself prove the intended ownership or public availability of all positions. No authentic ticker, position weight, exact profile URL or private account identifier is stored in this repo.
 
-**Scope status:** Work signed-in profile navigation and visible positions are `PROJECT_REPORTED_PARTIAL`. The **public-reference-style** Work output is separate from the private M3 `work_blossom_inputs` contract. Structured ingestion of that public reference, real CC handoff, complete private source verification and comprehensive 36-decision acceptance are not implemented or not verified. No additional automatic research or follow-ups follow from this record.
+**Scope status:** Work signed-in profile navigation and visible positions are `PROJECT_REPORTED_PARTIAL`. The public-reference-style Work output remains separate from private M3 `work_blossom_inputs`. A **new local R1 structural parser and manual CC / CC→IR route** can accept a correctly formatted `public_portfolio_reference` packet as `public_reference_inputs`; the previously reported 20-line narrative/table was **not** this strict packet and was **not** automatically ingested. Real Project handoff, genuine source/rights verification, public anonymous access and comprehensive 36-decision acceptance remain unverified. No additional automatic research or follow-ups follow from this record.
+
+
+**For R1 manual entry (docs version R1.4):** Work's public JSON wrapper is `{"public_portfolio_reference": {...}}`. Manually pass its **nested object** as `{"request": {...}, "public_reference_inputs": {...}}` to `scripts.r1_manual_session_cli`. `request.ceo_initiated=true`, `portfolio_needed=false`; `research_needed=false` returns a descriptive CC report immediately, while `research_needed=true` creates an **IR_REQUEST** containing the observed security IDs and unnormalized weights, and waits for a real unchanged IR_CAPSULE. The module does NOT look up source information, know who owns the holdings, or turn them into private allocation inputs. Use a private terminal if any uncertain or sensitive data is involved.
 
 ## 4. Capability conclusion boundary
 

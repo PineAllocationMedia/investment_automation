@@ -10,6 +10,7 @@ from typing import Any, Mapping
 FINAL = frozenset({
     "M7A_COMPONENT_ASSEMBLED_NOT_END_TO_END_ACCEPTANCE",
     "PI_ONLY_CONDITIONAL_REPORT_ASSEMBLED",
+    "PUBLIC_REFERENCE_DESCRIPTIVE_REPORT_READY",
 })
 WAITING = frozenset({
     "AWAITING_MANUAL_IR_CAPSULE",
@@ -50,6 +51,13 @@ def prepare_manual_review_queue(session: Mapping[str, Any]) -> dict[str, Any]:
             raise ValueError("REVIEW_QUEUE_DIRECT_ROUTE_MISMATCH")
         add("CC_DIRECT_REVIEW", "OPERATOR_REVIEW",
             "No specialist path was requested. Review whether the CEO's original mandate is fulfilled.")
+    elif status == "PUBLIC_REFERENCE_DESCRIPTIVE_REPORT_READY":
+        if route != "CC_DIRECT":
+            raise ValueError("REVIEW_QUEUE_PUBLIC_REFERENCE_ROUTE_MISMATCH")
+        add("VERIFY_REFERENCE_SCOPE", "HUMAN_VERIFICATION",
+            "Check the original visible reference portfolio and actual account filter, publication/access rights, data date and currency before research conclusions.")
+        add("REVIEW_REFERENCE_ONLY", "OPERATOR_REVIEW",
+            "Use public portfolio rows only as a descriptive research reference; never treat them as the CEO's personal holdings, Portfolio Room or trade authority.")
     else:
         add("CONFIRM_METHOD_CONTEXT", "OPERATOR_REVIEW",
             "Confirm the relevant Project instructions, method version, mandate and strategy were actually loaded; not validated by the local runner.")
@@ -58,6 +66,9 @@ def prepare_manual_review_queue(session: Mapping[str, Any]) -> dict[str, Any]:
                 raise ValueError("REVIEW_QUEUE_IR_ROUTE_MISMATCH")
             add("TRANSFER_IR_CAPSULE", "HANDOFF_REQUIRED",
                 "Run the authorized IR request and paste the original unchanged IR_CAPSULE into the next explicit session.")
+            if session.get("public_reference_private") is not None:
+                add("VERIFY_REFERENCE_SCOPE", "HUMAN_VERIFICATION",
+                    "Check the source-profile holdings scope and synchronization date; observed lines are research reference only.")
         elif status == "AWAITING_MANUAL_PI_DELTA":
             if route not in {"CC_IR_PI_CC", "CC_PI_CC"}:
                 raise ValueError("REVIEW_QUEUE_PI_ROUTE_MISMATCH")

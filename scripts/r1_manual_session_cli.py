@@ -19,7 +19,7 @@ MAX_INPUT_CHARACTERS = 5_000_000
 OPTIONAL_FIELDS = frozenset({
     "ir_capsule", "pi_delta", "portfolio_context", "calculation_requests",
     "contribution_inputs", "cost_inputs", "memory_inputs",
-    "observation_inputs", "work_blossom_inputs", "exposure_classifications", "room_assessment_inputs",
+    "observation_inputs", "work_blossom_inputs", "public_reference_inputs", "exposure_classifications", "room_assessment_inputs",
     "source_evidence_inputs", "valuation_inputs", "probability_inputs", "candidate_comparison_inputs",
     "fundamental_inputs", "historical_comparison_inputs", "opportunity_triage_inputs",
     "macro_sector_inputs",
@@ -32,6 +32,7 @@ NEXT_ACTIONS = {
     "PI_ONLY_CONDITIONAL_REPORT_ASSEMBLED": "Review the private conditional report; no account or trade authorization.",
     "M7A_COMPONENT_ASSEMBLED_NOT_END_TO_END_ACCEPTANCE": "Review the private research report; end-to-end acceptance was NOT performed.",
     "CC_DIRECT_NO_SPECIALIST_REPORT_REQUIRED": "No specialist report requested; no automatic Project work.",
+    "PUBLIC_REFERENCE_DESCRIPTIVE_REPORT_READY": "Review the caller-reported Blossom profile reference; not the CEO's private portfolio or a certified research conclusion.",
 }
 SAFE_ERROR_CODES = frozenset({
     "DUPLICATE_JSON_FIELD", "NONFINITE_JSON_NUMBER",
