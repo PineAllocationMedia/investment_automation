@@ -140,7 +140,7 @@ class BlossomSessionBridgeTests(unittest.TestCase):
         code, text, error = self.cli(resume, "continuation")
         self.assertEqual((code, error), (0, ""))
         self.assertEqual(text,
-                         "CONTINUATION_NOT_AVAILABLE: AWAITING_MANUAL_PORTFOLIO_SCREENSHOT\\n".replace("\\n", "\n"))
+                         "CONTINUATION_NOT_AVAILABLE: AWAITING_MANUAL_PORTFOLIO_SCREENSHOT\n")
         code, status, error = self.cli(resume, "status")
         self.assertEqual((code, error), (0, ""))
         self.assertEqual(json.loads(status)["status"],
