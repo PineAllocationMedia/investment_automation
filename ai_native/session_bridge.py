@@ -379,6 +379,8 @@ def complete_manual_session(
                     packet[key] = request[key]
         if observation is not None:
             packet["portfolio_observation_private"] = observation
+        if exposures is not None:
+            packet["portfolio_exposures_private"] = exposures
         if mode_portfolio_trace is not None:
             packet["mode_portfolio_trace_private"] = mode_portfolio_trace
             packet["limitations"] += " PI mode questions are specialist-reported and not independently authenticated."
@@ -422,6 +424,7 @@ def complete_manual_session(
         macro_sector_inputs=macro_sector_inputs,
         portfolio_room_review_private=private["portfolio_room_review_private"],
         portfolio_observation_private=observation,
+        portfolio_exposures_private=exposures,
         exceptional_lifecycle_review_private=private["exceptional_lifecycle_review_private"],
     )
     private["integrated_private"] = integrated
