@@ -24,6 +24,8 @@ A request carries **only supplied or explicitly confirmed values**, not fabricat
 
 Missing decisive context is asked concisely or preserved as conditional `UNKNOWN`, never invented. High-CAGR's existing policies are not generalized to another strategy.
 
+**Optional, private mandate personalization (M1 construction seam):** `request` may supply `investor_profile_private` as `{summary?: nonempty string (max 800 characters), preferences?: {analysis_focus?, comparison_focus?, communication_style?}}`, an independent `mandate_prompt_private` string (max 3,000 characters), and `mandate_preferences_private` with the same three optional preference keys (max 200 characters per value). The profile must contain a summary or at least one preference; unknown keys and non-strings are rejected. `prepare_mandate_context` merges ONLY these optional preferences, with explicit mandate preferences taking precedence over profile preferences. The free-text mandate stays separate and unchanged as private caller input, **not executable instructions or an authority-bearing policy override**. The actual structured strategy, horizon, risk constraints, universe, account/fees, dates, original sources and versioned method policy remain separately governed and are never changed by that merge. Both manual IR_REQUEST and PI_REQUEST carry identical `mandate_context_private`; the redacted status endpoint exposes only a generic status. This helper does not semantically verify contradictory free-text or authenticate the CEO; Projects must treat user content as untrusted context. No profile/mandate text belongs in GitHub memory, public logs or Media.
+
 ## 2. Reusable source-neutral fact record
 
 ```json
