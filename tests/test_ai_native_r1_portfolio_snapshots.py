@@ -133,19 +133,20 @@ class PrivatePortfolioSnapshotFollowupTests(unittest.TestCase):
         self.assertNotIn("SCOPE-A", memory)
         self.assertNotIn("portfolio_snapshot_comparison_private", memory)
 
-    def test_missing_currency_in_prior_or_current_never_produces_dated_change(self):
-        for prior_currency, current_currency, expected in (
-            ("XXX", "CAD", "SNAPSHOT_ACCOUNT_OR_CURRENCY_BASIS_CHANGED"),
-            ("UNK", "UNK", "SNAPSHOT_ORIGINAL_CUTOFF_OR_CURRENCY_UNKNOWN"),
-            ("CAD", "XXX", "SNAPSHOT_ACCOUNT_OR_CURRENCY_BASIS_CHANGED"),
+    def test_missing_currency_in_prior_or_current_never_produces_monetary_change(self):
+        for prior_currency, current_currency in (
+            ("XXX", "CAD"), ("UNK", "UNK"), ("CAD", "XXX"),
         ):
             with self.subTest(currencies=(prior_currency, current_currency)):
                 old = self.previous(currency=prior_currency)
                 old["positions"][0]["currency"] = prior_currency
                 now = self.current(currency=current_currency)
                 now["positions"][0]["currency"] = current_currency
-                with self.assertRaisesRegex(ValueError, expected):
-                    self.compare(old=old, now=now)
+                out = self.compare(old=old, now=now)
+                self.assertEqual(out["status"], "UNAVAILABLE_INCOMPLETE_SNAPSHOT_SCOPE")
+                self.assertIsNone(out["rows_private"])
+                self.assertIsNone(out["cash_weight_change_pp"])
+                self.assertIsNone(out["largest_absolute_security_weight_shift_pp"])
 
     def test_explicit_followup_and_current_private_pi_required(self):
         requests = [
@@ -207,6 +208,53 @@ class PrivatePortfolioSnapshotFollowupTests(unittest.TestCase):
             row["field_statuses"]["market_value_base"] = "NOT_VISIBLE"
             row["field_statuses"]["currency"] = "NOT_VISIBLE"
         return prior, current
+
+    def test_unknown_currency_ui_only_comparison_is_reachable_not_monetary(self):
+        # The source transcript may have raw source weights but NO currency,
+        # cash, FX, account-base denominator or original purchase records.
+        old, current = self.percentage_only("50.05", "50.25")
+        before = deepcopy((old, current))
+        prior_p = prepare_observation_ledger(**old)
+        current_p = prepare_observation_ledger(**current)
+        self.assertEqual(prior_p["currency"], "UNKNOWN")
+        self.assertEqual(current_p["currency"], "UNKNOWN")
+        self.assertIsNone(prior_p["known_scope_weights_pct"])
+        self.assertIsNone(current_p["known_scope_weights_pct"])
+        result = self.compare(old=old, now=current)
+        self.assertEqual(result["status"],
+                         "OBSERVED_UI_WEIGHT_CHANGE_ONLY_NO_MONETARY_DENOMINATOR")
+        self.assertEqual(result["largest_absolute_security_weight_shift_pp"], "0.20")
+        self.assertEqual(result["rows_private"][0]["weight_change_pp"], "0.20")
+        self.assertIsNone(result["cash_weight_change_pp"])
+        self.assertEqual((old, current), before)
+
+    def test_different_known_account_currencies_not_ui_comparable(self):
+        old, current = self.percentage_only()
+        old["currency"] = "USD"
+        current["currency"] = "CAD"
+        # Both displayed values exist; the known-basis contradiction still
+        # blocks even the weaker, UI-only history comparison.
+        with self.assertRaisesRegex(
+                ValueError, "SNAPSHOT_ACCOUNT_OR_CURRENCY_BASIS_CHANGED"):
+            self.compare(old=old, now=current)
+
+    def test_unknown_currency_ui_view_never_bypasses_named_account_scope(self):
+        old, current = self.percentage_only()
+        current["account_scope"] = "ANOTHER-ACCOUNT"
+        with self.assertRaisesRegex(
+                ValueError, "SNAPSHOT_ACCOUNT_OR_CURRENCY_BASIS_CHANGED"):
+            self.compare(old=old, now=current)
+
+    def test_separately_supplied_unknown_currency_with_no_ui_stays_unavailable(self):
+        old, current = self.previous(currency="UNK"), self.current(currency="XXX")
+        old["positions"][0]["currency"] = "UNK"
+        current["positions"][0]["currency"] = "XXX"
+        x = self.compare(old=old, now=current)
+        self.assertEqual(x["status"], "UNAVAILABLE_INCOMPLETE_SNAPSHOT_SCOPE")
+        self.assertIsNone(x["rows_private"])
+        self.assertEqual(x["reason_codes"],
+                         ["PRIOR_SCOPE_INCOMPLETE", "CURRENT_SCOPE_INCOMPLETE"])
+        self.assertIsNone(x["cash_weight_change_pp"])
 
     def test_percentage_only_source_ui_deltas_without_cash_or_money(self):
         old, current = self.percentage_only("80.00", "75.00")

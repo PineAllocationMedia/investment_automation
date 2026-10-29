@@ -231,6 +231,25 @@ class ManualReviewQueueTests(unittest.TestCase):
         self.assertIn("TRANSFER_PI_DELTA",self.codes(data))
         self.assertNotIn("REVIEW_CONDITIONAL_REPORT",self.codes(data))
 
+    def test_unknown_currency_ui_only_is_actionable_via_real_operator_queue(self):
+        from ai_native.session_bridge import complete_manual_session
+        from tests.test_ai_native_r1_portfolio_snapshots import (
+            PrivatePortfolioSnapshotFollowupTests,
+        )
+        fx = PrivatePortfolioSnapshotFollowupTests()
+        fx.setUp()
+        old, current = fx.percentage_only("50.05", "50.25")
+        session = complete_manual_session(
+            fx.request(), pi_delta=fx.fx.pi(),
+            observation_inputs=current, prior_portfolio_observation_inputs=old)
+        result = prepare_manual_review_queue(session)
+        self.assertIn("VERIFY_SOURCE_DISPLAYED_HISTORY", self.codes(result))
+        self.assertNotIn("VERIFY_MONETARY_SNAPSHOT_HISTORY", self.codes(result))
+        self.assertNotIn("50.25", json.dumps(result))
+        self.assertNotIn("ABC:TSX", json.dumps(result))
+        self.assertEqual(result["trading_authority"], "NONE")
+        self.assertEqual(result["readiness"], "NOT_EVALUATED")
+
     def test_actual_pi_only_snapshot_queue_selects_source_specific_verification(self):
         from tests.test_ai_native_r1_portfolio_snapshots import (
             PrivatePortfolioSnapshotFollowupTests,
