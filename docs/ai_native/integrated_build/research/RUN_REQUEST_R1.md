@@ -29,4 +29,6 @@ AUTHORITY: research only; no trades, investment-policy changes, paid data, unaut
 STOP after single portable handoff; do not initiate a new discovery pilot outside this mandate.
 ```
 
+**JSON return to CC (manual):** When returning a portable, structured packet, use one JSON object `{"IR_CAPSULE": {...}}` containing the complete original IR capsule unchanged, including any `EVIDENCE_ANNEX` / `PILLAR_ASSESSMENTS` actually prepared. The local R1 CLI can accept that outer object under `specialist_result` beside the explicit original `request`; no autonomous Project-to-Project transport or method/source certification is implied. The dots are documentation placeholders, not valid JSON values. Do not add imaginary facts, source rights, financial scores or private account information.
+
 **Manual operator note:** the Project-setting docs from PR #253 are candidates until actual CEO installation is confirmed. A PR link alone does not load them, and loading only this request does not load the specialist method files. The Command Center must provide the needed method text in a compact portable form when GitHub retrieval is unavailable; otherwise mark `METHOD_NOT_LOADED` and limit research to exploratory.

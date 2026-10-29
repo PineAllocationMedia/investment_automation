@@ -7,6 +7,7 @@ The caller must provide genuine, authorized inputs and review all conclusions.
 from __future__ import annotations
 
 import argparse
+from copy import deepcopy
 import json
 import math
 import sys
@@ -23,7 +24,7 @@ OPTIONAL_FIELDS = frozenset({
     "public_reference_table_inputs", "exposure_classifications", "room_assessment_inputs",
     "source_evidence_inputs", "valuation_inputs", "probability_inputs", "candidate_comparison_inputs",
     "fundamental_inputs", "historical_comparison_inputs", "opportunity_triage_inputs",
-    "macro_sector_inputs", "work_portfolio_result",
+    "macro_sector_inputs", "work_portfolio_result", "specialist_result",
 })
 PERMITTED_FIELDS = OPTIONAL_FIELDS | {"request"}
 NEXT_ACTIONS = {
@@ -40,6 +41,9 @@ SAFE_ERROR_CODES = frozenset({
     "TOP_LEVEL_OBJECT_REQUIRED", "UNKNOWN_OR_MISSING_SESSION_FIELD",
     "INPUT_TOO_LARGE", "CEO_INITIATION_REQUIRED",
     "WORK_PORTFOLIO_RESULT_INVALID", "WORK_PORTFOLIO_RESULT_AMBIGUOUS",
+    "SPECIALIST_RESULT_INVALID", "SPECIALIST_RESULT_AMBIGUOUS",
+    "SPECIALIST_ORIGINAL_IR_REQUIRED", "SPECIALIST_FORWARDED_IR_MISMATCH",
+    "SPECIALIST_UNEXPECTED_FORWARDED_IR",
 })
 
 
@@ -81,7 +85,7 @@ def evaluate(payload: Any) -> dict[str, Any]:
     # downstream public/private, mandate, date and provenance guards remain
     # authoritative. No browser access, source inference or project invocation.
     fields = {k: v for k, v in payload.items()
-              if k not in {"request", "work_portfolio_result"}}
+              if k not in {"request", "work_portfolio_result", "specialist_result"}}
     if "work_portfolio_result" in payload:
         wrapped = payload["work_portfolio_result"]
         branches = {
@@ -99,6 +103,49 @@ def evaluate(payload: Any) -> dict[str, Any]:
         }:
             raise ValueError("WORK_PORTFOLIO_RESULT_AMBIGUOUS")
         fields[branches[key]] = wrapped[key]
+    if "specialist_result" in payload:
+        # The Projects cannot invoke each other. A person supplies exactly
+        # one original specialist-return envelope per explicit CLI call.
+        # Never infer an earlier IR capsule from PI's forwarded copy.
+        result = payload["specialist_result"]
+        if not isinstance(result, dict):
+            raise ValueError("SPECIALIST_RESULT_INVALID")
+        keys = set(result)
+        if keys == {"IR_CAPSULE"}:
+            if not isinstance(result["IR_CAPSULE"], dict):
+                raise ValueError("SPECIALIST_RESULT_INVALID")
+            if "ir_capsule" in fields:
+                raise ValueError("SPECIALIST_RESULT_AMBIGUOUS")
+            fields["ir_capsule"] = result["IR_CAPSULE"]
+        elif keys in ({"PI_DELTA"}, {"PI_DELTA", "FORWARD_UNCHANGED"}):
+            if not isinstance(result["PI_DELTA"], dict):
+                raise ValueError("SPECIALIST_RESULT_INVALID")
+            if "pi_delta" in fields:
+                raise ValueError("SPECIALIST_RESULT_AMBIGUOUS")
+            delta = deepcopy(result["PI_DELTA"])
+            if "FORWARD_UNCHANGED" in result:
+                forwarded = result["FORWARD_UNCHANGED"]
+                if not isinstance(forwarded, dict):
+                    raise ValueError("SPECIALIST_RESULT_INVALID")
+                request = payload["request"]
+                if (not isinstance(request, dict)
+                        or request.get("research_needed") is not True):
+                    raise ValueError("SPECIALIST_UNEXPECTED_FORWARDED_IR")
+                # The CEO must retain/re-supply the independently received
+                # original IR. PI's copy alone cannot establish integrity.
+                original_ir = fields.get("ir_capsule")
+                if not isinstance(original_ir, dict):
+                    raise ValueError("SPECIALIST_ORIGINAL_IR_REQUIRED")
+                if forwarded != original_ir:
+                    raise ValueError("SPECIALIST_FORWARDED_IR_MISMATCH")
+                if ("forwarded_ir" in delta
+                        and delta["forwarded_ir"] != original_ir):
+                    raise ValueError("SPECIALIST_FORWARDED_IR_MISMATCH")
+                # Reuse the already enforced canonical PI_DELTA schema.
+                delta["forwarded_ir"] = deepcopy(original_ir)
+            fields["pi_delta"] = delta
+        else:
+            raise ValueError("SPECIALIST_RESULT_INVALID")
     return complete_manual_session(payload["request"], **fields)
 
 
