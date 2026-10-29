@@ -12,7 +12,7 @@ from typing import Any, Mapping
 
 from .strategy_research_brief import prepare_strategy_research_brief
 
-SAFE_ID = re.compile(r"[A-Za-z0-9][A-Za-z0-9._:-]{0,79}\\Z")
+SAFE_ID = re.compile(r"[A-Za-z0-9][A-Za-z0-9._:-]{0,79}\Z")
 FACT_STATUSES = frozenset({"VERIFIED", "INDICATIVE", "MISSING", "CONFLICTED"})
 
 
