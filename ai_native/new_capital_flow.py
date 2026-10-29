@@ -66,6 +66,10 @@ def prepare_new_capital_projection(
                             if gross["status"] == "GROSS_PROJECTION_ONLY" else None),
         "cost_status": costs["status"] if costs is not None else "NOT_SUPPLIED",
         "funded_status": funded["status"] if funded is not None else "NOT_ASSESSED",
+        "one_time_supplied_cost_share_pct": (
+            funded["one_time_supplied_cost_share_pct"]
+            if funded is not None and funded["status"] ==
+                "CONDITIONAL_SUPPLIED_COST_BUDGET_RECONCILED" else None),
         "source_authentication": "NOT_PERFORMED",
     }
     return {

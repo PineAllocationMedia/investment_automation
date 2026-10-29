@@ -361,6 +361,8 @@ class SessionBridgeTests(unittest.TestCase):
             cost_inputs=self.new_cost_inputs(),
         )
         self.assertEqual(out["funded_contribution_private"]["conditional_purchase_budget_base"], "995.00")
+        self.assertEqual(out["funded_contribution_private"]["one_time_supplied_cost_share_pct"], "0.5000")
+        self.assertIn("0.5000% of total NEW cash", out["final_report_private"])
         self.assertIn("CONDITIONALLY RECONCILED", out["final_report_private"])
         self.assertNotIn("995.00", out["final_report_private"])
         self.assertEqual(out["funded_contribution_private"]["execution_status"],
@@ -373,7 +375,9 @@ class SessionBridgeTests(unittest.TestCase):
             cost_inputs=self.new_cost_inputs(funding="UNKNOWN"),
         )
         self.assertEqual(out["funded_contribution_private"]["status"], "UNAVAILABLE_FUNDING_UNKNOWN")
+        self.assertNotIn("one_time_supplied_cost_share_pct", out["funded_contribution_private"])
         self.assertIn("After-cost funded allocation UNAVAILABLE", out["final_report_private"])
+        self.assertNotIn("% of total NEW cash", out["final_report_private"])
 
     def test_pi_only_unavailable_scope_displays_no_allocation(self):
         out = complete_manual_session(

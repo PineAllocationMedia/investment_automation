@@ -4,7 +4,7 @@ Pure private arithmetic; no quote, tax evaluation, order sizing, execution or ad
 """
 from __future__ import annotations
 
-from decimal import Decimal, InvalidOperation
+from decimal import Decimal, InvalidOperation, ROUND_HALF_UP, localcontext
 from typing import Any, Mapping
 
 from .contribution_math import project_gross_contribution
@@ -94,9 +94,19 @@ def reconcile_funded_contribution(
         projected = rebuilt
         external_cash = f'{paid:.2f}'
 
+    # One-time share of newly committed cash, not an expected return or order.
+    total_committed = original_budget + (paid if funding == 'EXTERNAL_CASH' else Decimal('0'))
+    with localcontext() as ctx:
+        ctx.prec = 50
+        share = (Decimal('100') * paid / total_committed).quantize(
+            Decimal('0.0001'), rounding=ROUND_HALF_UP)
     return {
         'status':'CONDITIONAL_SUPPLIED_COST_BUDGET_RECONCILED',
         'funding':funding,
+        'total_cash_committed_base':f'{total_committed:.2f}',
+        'one_time_supplied_cost_share_pct':f'{share:.4f}',
+        'cost_share_basis':'SUPPLIED_PURCHASE_COSTS_DIVIDED_BY_TOTAL_NEW_CASH_COMMITTED',
+        'expected_return_or_execution_authority':'NONE',
         'original_contribution_base':f'{original_budget:.2f}',
         'supplied_purchase_costs_base':f'{paid:.2f}',
         'conditional_purchase_budget_base':f'{available:.2f}',

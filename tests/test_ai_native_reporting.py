@@ -256,6 +256,29 @@ class ReportingTests(unittest.TestCase):
         self.assertIn("Requote", output)
         self.assertNotIn("executable allocation.", output)
 
+    def test_cost_share_is_private_conditional_not_a_return(self):
+        summary = self.new_contribution(
+            cost_status="SUPPLIED_COST_TALLY_ONLY",
+            funded_status="CONDITIONAL_SUPPLIED_COST_BUDGET_RECONCILED",
+            one_time_supplied_cost_share_pct="0.4975")
+        report = render_report(self.packet(new_contribution_summary_private=summary))
+        self.assertIn("0.4975% of total NEW cash", report)
+        self.assertIn("not annualized, net Expected Return", report)
+        self.assertNotIn("1005.00", report)
+
+    def test_invalid_or_unfunded_cost_share_does_not_get_displayed(self):
+        for share in ("NaN", "100.0000", "-1.0000", "0.12345", "unknown"):
+            with self.subTest(share=share), self.assertRaisesRegex(
+                    ValueError, "CONTRIBUTION_REPORT_COST_BURDEN"):
+                render_report(self.packet(new_contribution_summary_private=
+                    self.new_contribution(
+                        cost_status="SUPPLIED_COST_TALLY_ONLY",
+                        funded_status="CONDITIONAL_SUPPLIED_COST_BUDGET_RECONCILED",
+                        one_time_supplied_cost_share_pct=share)))
+        with self.assertRaisesRegex(ValueError, "CONTRIBUTION_REPORT_COST_BURDEN"):
+            render_report(self.packet(new_contribution_summary_private=
+                self.new_contribution(one_time_supplied_cost_share_pct="0.5000")))
+
     def test_new_contribution_incomplete_scope_never_displays_percentages(self):
         output = render_report(self.packet(new_contribution_summary_private=self.new_contribution(
             gross_status="UNAVAILABLE", allocations_pct=None,
