@@ -66,6 +66,9 @@ def compare_private_portfolio_snapshots(
     if (previous["account_scope"] != current_observation.get("account_scope")
             or previous["currency"] != current_observation.get("currency")):
         raise ValueError("SNAPSHOT_ACCOUNT_OR_CURRENCY_BASIS_CHANGED")
+    if (previous["analysis_as_of"] > analysis_as_of
+            or current_observation.get("currency") in {"UNKNOWN", "UNK", "XXX", "XTS", "TBD"}):
+        raise ValueError("SNAPSHOT_ORIGINAL_CUTOFF_OR_CURRENCY_UNKNOWN")
 
     common = {
         "analysis_id": analysis_id,

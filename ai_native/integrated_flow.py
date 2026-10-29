@@ -446,7 +446,9 @@ def assemble_manual_run(
         if kind != "FOLLOWUP" or pi_delta is None or portfolio_observation_private is None:
             raise ValueError("SNAPSHOT_COMPARISON_REQUIRES_EXPLICIT_PRIVATE_PI_FOLLOWUP")
         packet["portfolio_snapshot_comparison_private"] = portfolio_snapshot_comparison_private
-        limits.append("Supplied dated portfolio weight changes are not price returns, capital flows, transactions or household-wide holdings.")
+        packet["limitations"] += (
+            " Supplied dated portfolio weight changes are not price returns, "
+            "capital flows, transactions or household-wide holdings.")
     if portfolio_exposures_private is not None:
         if pi_delta is None or portfolio_observation_private is None:
             raise ValueError("EXPOSURE_REPORT_REQUIRES_PI_OBSERVATION")
