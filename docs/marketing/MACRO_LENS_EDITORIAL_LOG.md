@@ -1,7 +1,7 @@
 # PAM | Blossom — editorial evidence & experiment log v1.1
 
 **Channel:** Blossom `@therealpam`.
-**Status:** 29 distinct accessible originals recorded through 2026-10-28: latest scan added 2 and refreshed 27 with 29 appended snapshots. All exposed permalinks inspected; historical completeness unproven and some discussion bodies PARTIAL. Earlier observations preserved. No private analytics or post-attributed follows established.
+**Status:** 29 distinct accessible originals recorded through 2026-10-29: latest scan found 0 new and refreshed all 29 with appended snapshots. All exposed permalinks inspected; historical completeness unproven and some discussion bodies PARTIAL. Earlier observations preserved. No private analytics or post-attributed follows established.
 **Instructions:** [Playbook](MACRO_LENS_PLAYBOOK.md) · [Templates](MACRO_LENS_TEMPLATES.md).
 
 This existing register now tracks all verified @therealpam original posts: Macro Lens and ordinary content alike. Do not invent approval history for past ordinary posts. Replies to others are distinct from original publications.
@@ -958,3 +958,63 @@ Top Comments inspected. Earlier bodies preserved even when not exposed again. Ex
 > The distinction matters: a better mood can support demand, but sentiment is not a receipt. The same survey found consumers planning less spending on services and durable goods.
 >
 > What would change the picture? A sustained pickup in spending intentions and actual consumer demand—not just one stronger survey.
+
+## Profile scan — 2026-10-29 (authorized signed-in Cloud Browser)
+
+**Coverage:** 29 originals discovered / 29 individually inspected / 0 new records / 29 existing records refreshed with appended observations / 0 discovered post URLs inaccessible. Each individual @therealpam authorship link checked against /users/PAM__IwHhSPDG2aOMks63. Original Posts tab only; Blooms, trades and replies to other publications excluded. Signed-in profile shows Edit profile. Dynamic feed loaded 13, then 23, then 29 posts; further bottom navigation exposed no additional post or pagination control beyond the introduction. **All exposed originals captured; HISTORICAL COMPLETENESS UNPROVEN.** No authoritative all-history total. No login restriction blocked completion; some discussion bodies remain unavailable.
+
+**Range/time:** newest Coca-Cola UI 23h, oldest introduction 22d, approximately October 7–28 publication range from rounded labels as observed October 29. Exact publication timestamps remain NA; no post-ID date inference. Counter observations 2026-10-29 09:55:07.442–09:55:46.114 EDT, America/Toronto (UTC−04:00). Discussion revisits through 09:56:01.021 EDT.
+
+**Definitions/provenance:** all PUBLIC_OBSERVED, even authenticated. Views = displayed cumulative views, uniqueness unknown. Comments = displayed total, reply-count semantics undocumented. Shares = arrow counter, not verified completed external shares. Saves = bookmark counter. Likes = numeric heart-only total; mixed emoji totals retained separately with heart breakdown NA. Missing numeric reaction counts stay NA, not zero. Profile visits/attributed follows NA. Account header 12 followers / 5 following, observed during profile inspection before permalink capture; account-level only, not attributable to a publication. No private analytics, CEO-supplied screenshots, automatic timed snapshots or unattended monitoring. No publication, reply, reaction, bookmark, trade or account alteration.
+
+**History reuse:** no new original caption or thesis discovered. Prior captions, templates, editorial rationale, source/audit/approval evidence and older discussion captures retained unchanged; missing internal history NA. This scan does not independently verify historical financial claims or participants' assertions.
+
+### Appended snapshots
+
+| Issue ID | Rounded UI age (exact NA) | Observed at — America/Toronto EDT | Provenance | Views | Likes | Comments | Shares | Saves | Total reactions | Profile visits | Attributed follows |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| BL-POST-1793197767496-cFctFOpJ | 23h | 2026-10-29T09:55:07.442-04:00 | PUBLIC_OBSERVED | 122 | 1 | 0 | 0 | 0 | 1 | NA | NA |
+| BL-POST-1793149368867-cLFb5NMa | 1d | 2026-10-29T09:55:08.453-04:00 | PUBLIC_OBSERVED | 52 | NA | 0 | 0 | 0 | NA | NA | NA |
+| BL-POST-1793107152966-YTBGWH9d | 2d | 2026-10-29T09:55:09.223-04:00 | PUBLIC_OBSERVED | 62 | NA | 0 | 0 | 0 | NA | NA | NA |
+| BL-POST-1793060142652-bt1IJKAo | 2d | 2026-10-29T09:55:10.060-04:00 | PUBLIC_OBSERVED | 118 | NA | 0 | 0 | 0 | NA | NA | NA |
+| BL-POST-1793023468268-JghTaJye | 2d | 2026-10-29T09:55:10.657-04:00 | PUBLIC_OBSERVED | 54 | NA | 0 | 0 | 0 | NA | NA | NA |
+| BL-POST-1792970189363-fIdOdvGU | 3d | 2026-10-29T09:55:11.592-04:00 | PUBLIC_OBSERVED | 142 | 2 | 1 | 0 | 0 | 2 | NA | NA |
+| BL-POST-1792935816952-RmJBGgJl | 4d | 2026-10-29T09:55:12.531-04:00 | PUBLIC_OBSERVED | 422 | 5 | 4 | 1 | 0 | 5 | NA | NA |
+| BL-POST-1792850545800-gNzqcp6X | 4d | 2026-10-29T09:55:13.438-04:00 | PUBLIC_OBSERVED | 110 | 1 | 0 | 0 | 0 | 1 | NA | NA |
+| BL-POST-1792773556527-n3zJCc9e | 5d | 2026-10-29T09:55:14.409-04:00 | PUBLIC_OBSERVED | 116 | 1 | 0 | 0 | 0 | 1 | NA | NA |
+| BL-POST-1792712380652-veFF6JIW | 6d | 2026-10-29T09:55:15.262-04:00 | PUBLIC_OBSERVED | 86 | 2 | 2 | 0 | 0 | 2 | NA | NA |
+| BL-POST-1792632635232-p3wDGaJ3 | 7d | 2026-10-29T09:55:16.101-04:00 | PUBLIC_OBSERVED | 32 | NA | 0 | 0 | 0 | NA | NA | NA |
+| BL-POST-1792618150646-9HYkfaqz | 7d | 2026-10-29T09:55:16.987-04:00 | PUBLIC_OBSERVED | 52 | NA | 0 | 0 | 0 | NA | NA | NA |
+| BL-POST-1792543338595-Ou0WyNVs | 8d | 2026-10-29T09:55:17.801-04:00 | PUBLIC_OBSERVED | 272 | NA | 0 | 1 | 0 | NA | NA | NA |
+| BL-POST-1792445839015-LojFs7Jp | 9d | 2026-10-29T09:55:18.708-04:00 | PUBLIC_OBSERVED | 276 | 4 | 2 | 0 | 0 | 4 | NA | NA |
+| BL-POST-1792413329799-4TDnXVvZ | 10d | 2026-10-29T09:55:19.602-04:00 | PUBLIC_OBSERVED | 60 | NA | 0 | 1 | 0 | NA | NA | NA |
+| BL-POST-1792285181556-dajQRiJ8 | 11d | 2026-10-29T09:55:34.711-04:00 | PUBLIC_OBSERVED | 128 | 1 | 2 | 0 | 0 | 1 | NA | NA |
+| BL-POST-1792243935166-5rY3pW0x | 12d | 2026-10-29T09:55:35.955-04:00 | PUBLIC_OBSERVED | 844 | NA | 0 | 2 | 0 | 6 | NA | NA |
+| BL-POST-1792154075898-WKgQpyWr | 13d | 2026-10-29T09:55:36.895-04:00 | PUBLIC_OBSERVED | 60 | NA | 0 | 0 | 0 | NA | NA | NA |
+| BL-POST-1792015357362-r0k28CcU | 14d | 2026-10-29T09:55:37.863-04:00 | PUBLIC_OBSERVED | 340 | NA | 0 | 0 | 0 | 7 | NA | NA |
+| BL-POST-1791924123452-n0SE9Lsf | 15d | 2026-10-29T09:55:38.865-04:00 | PUBLIC_OBSERVED | 174 | 4 | 1 | 0 | 0 | 4 | NA | NA |
+| BL-POST-1791820180736-IT7xZSEt | 16d | 2026-10-29T09:55:39.757-04:00 | PUBLIC_OBSERVED | 88 | 2 | 0 | 0 | 0 | 2 | NA | NA |
+| BL-POST-1791764804066-6p0ZcQRe | 17d | 2026-10-29T09:55:40.614-04:00 | PUBLIC_OBSERVED | 248 | NA | 0 | 0 | 0 | NA | NA | NA |
+| BL-POST-1791725403770-fzsmjWDJ | 18d | 2026-10-29T09:55:41.170-04:00 | PUBLIC_OBSERVED | 174 | 2 | 0 | 0 | 0 | 2 | NA | NA |
+| BL-POST-1791636358863-EDvN5sp6 | 19d | 2026-10-29T09:55:42.047-04:00 | PUBLIC_OBSERVED | 208 | 2 | 0 | 0 | 0 | 2 | NA | NA |
+| BL-POST-1791589339142-QZtwsSBo | 19d | 2026-10-29T09:55:42.944-04:00 | PUBLIC_OBSERVED | 390 | 3 | 3 | 0 | 0 | 3 | NA | NA |
+| BL-POST-1791501798381-vTsMLRu2 | 20d | 2026-10-29T09:55:43.757-04:00 | PUBLIC_OBSERVED | 124 | NA | 0 | 0 | 0 | 4 | NA | NA |
+| BL-POST-1791495336766-q7dQtifh | 20d | 2026-10-29T09:55:44.224-04:00 | PUBLIC_OBSERVED | 98 | NA | 0 | 0 | 0 | NA | NA | NA |
+| BL-POST-1791416148323-vptp1ie5 | 21d | 2026-10-29T09:55:45.345-04:00 | PUBLIC_OBSERVED | 76 | NA | 0 | 0 | 0 | NA | NA | NA |
+| BL-POST-1791303632255-hNbqeFsO | 22d | 2026-10-29T09:55:46.114-04:00 | PUBLIC_OBSERVED | 12 | NA | 0 | 0 | 0 | NA | NA | NA |
+
+### Discussion observations — PUBLIC_OBSERVED
+
+Top Comments inspected; no missing body inferred as absent or deleted. Previous fuller captures preserved.
+
+| Post | Observed at — EDT | Visible discussion / limits |
+|---|---|---|
+| BL-POST-1792970189363-fIdOdvGU | 2026-10-29T09:55:54.320-04:00 | 1 displayed / 1 rendered: Mike L @noviceadvisor (3d), Venezuela growth comment; 0 likes. |
+| BL-POST-1792935816952-RmJBGgJl | 2026-10-29T09:55:55.486-04:00 | 4 displayed / 2 rendered: Nate (3d) asks if AI spending pays off; Rudolf (3d) discusses ex-charge margins, depreciation and ad economics. Each 1 like. Existing PAM replies not re-exposed, retained historically. PARTIAL. |
+| BL-POST-1792712380652-veFF6JIW | 2026-10-29T09:55:56.589-04:00 | 2 displayed / 1 rendered: Shael @nickel333 (6d), rough market day; 1 like. Existing PAM reply not re-exposed. PARTIAL. |
+| BL-POST-1792445839015-LojFs7Jp | 2026-10-29T09:55:57.747-04:00 | 2 displayed / 1 rendered: Nate (8d), narrow breadth and buying/waiting question; 1 like. Existing PAM reply from earlier captures not re-exposed. PARTIAL. |
+| BL-POST-1792285181556-dajQRiJ8 | 2026-10-29T09:55:58.834-04:00 | 2 displayed / 1 rendered: solomon @ambessa (10d), workforce/skills/scale/supply-chain reshoring constraints; 1 like. Existing PAM reply not re-exposed. PARTIAL. |
+| BL-POST-1791924123452-n0SE9Lsf | 2026-10-29T09:55:59.849-04:00 | 1 displayed / 1 rendered: Nate (15d), mood versus figures and charge-off outlook; 0 likes. |
+| BL-POST-1791589339142-QZtwsSBo | 2026-10-29T09:56:01.021-04:00 | 3 displayed / 1 rendered: Phil (19d), AI-led index gains versus weaker non-AI stocks and skepticism about earnings discipline; 1 like. Existing PAM reply and Phil follow-up not re-exposed, preserved historically. PARTIAL. |
+
+All visible discussion matches previously archived substance. Participants' claims and forecasts are not independently verified findings.
