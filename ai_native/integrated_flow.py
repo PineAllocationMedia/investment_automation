@@ -67,6 +67,7 @@ def assemble_manual_run(
     macro_sector_inputs: Mapping[str, Any] | None = None,
     portfolio_room_review_private: Mapping[str, Any] | None = None,
     portfolio_observation_private: Mapping[str, Any] | None = None,
+    portfolio_snapshot_comparison_private: Mapping[str, Any] | None = None,
     portfolio_exposures_private: Mapping[str, Any] | None = None,
     exceptional_lifecycle_review_private: Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
@@ -441,6 +442,13 @@ def assemble_manual_run(
         packet["historical_research_comparison_private"] = historical_comparison
     if portfolio_observation_private is not None:
         packet["portfolio_observation_private"] = portfolio_observation_private
+    if portfolio_snapshot_comparison_private is not None:
+        if kind != "FOLLOWUP" or pi_delta is None or portfolio_observation_private is None:
+            raise ValueError("SNAPSHOT_COMPARISON_REQUIRES_EXPLICIT_PRIVATE_PI_FOLLOWUP")
+        packet["portfolio_snapshot_comparison_private"] = portfolio_snapshot_comparison_private
+        packet["limitations"] += (
+            " Supplied dated portfolio weight changes are not price returns, "
+            "capital flows, transactions or household-wide holdings.")
     if portfolio_exposures_private is not None:
         if pi_delta is None or portfolio_observation_private is None:
             raise ValueError("EXPOSURE_REPORT_REQUIRES_PI_OBSERVATION")
@@ -492,6 +500,7 @@ def assemble_manual_run(
             contribution_bundle["alternative_cost_details_private"]
             if contribution_bundle is not None else None),
         "portfolio_room_status": room,
+        "portfolio_snapshot_comparison_private": portfolio_snapshot_comparison_private,
         "strategy_policy_gate": mode_gate,
         "specialist_mode_echo": {"IR": ir_mode_echo, "PI": pi_mode_echo},
         "exceptional_lifecycle_review_private": exceptional_lifecycle_review_private,
