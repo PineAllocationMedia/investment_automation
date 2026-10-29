@@ -38,10 +38,12 @@ def _lifecycle_review_action(session: Mapping[str, Any],
                              integrated: Mapping[str, Any],
                              review: Mapping[str, Any]) -> tuple[str, str, str]:
     """At most one deterministic human task. Never surface private values."""
-    if (integrated.get("exceptional_lifecycle_review_private") != review
+    memory = integrated.get("memory_proposal_nonprivate")
+    if (not isinstance(memory, Mapping)
+            or integrated.get("exceptional_lifecycle_review_private") != review
             or review.get("status") not in LIFECYCLE_STATUSES
-            or review.get("analysis_id") != integrated.get("memory_proposal_nonprivate", {}).get("analysis_id")
-            or review.get("analysis_as_of") != integrated.get("memory_proposal_nonprivate", {}).get("as_of")
+            or review.get("analysis_id") != memory.get("analysis_id")
+            or review.get("analysis_as_of") != memory.get("as_of")
             or review.get("strategy_id") not in {"high-cagr", "High-CAGR", "HIGH_CAGR"}
             or review.get("source_authentication") != "NOT_PERFORMED"
             or review.get("account_and_cost_authentication") != "NOT_PERFORMED"
@@ -68,7 +70,8 @@ def _lifecycle_review_action(session: Mapping[str, Any],
             or any(not isinstance(x, str) or not x or len(x) > 90 for x in refs + current)
             or len(set(refs)) != len(refs) or len(set(current)) != len(current)
             or not isinstance(limits, list) or len(limits) > len(LIFECYCLE_LIMITS)
-            or len(set(limits)) != len(limits) or set(limits) - LIFECYCLE_LIMITS
+            or any(not isinstance(x, str) or x not in LIFECYCLE_LIMITS for x in limits)
+            or len(set(limits)) != len(limits)
             or (review["status"] == "HUMAN_THESIS_AND_COST_REVIEW_ONLY") != (not limits)):
         raise ValueError("REVIEW_QUEUE_LIFECYCLE_LIMITATIONS_INVALID")
     if (review["thesis_event"] in {"VOLATILITY_ONLY", "TRANSIENT_INFORMATION_UNCERTAINTY"}
