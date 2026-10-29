@@ -5,11 +5,28 @@ investment proposal, model admission, archive, schedule, or trade occurs.
 """
 from __future__ import annotations
 
+from decimal import Decimal, ROUND_HALF_UP
 from typing import Any, Mapping
 
 from .contribution_math import project_gross_contribution
 from .known_costs import tally_supplied_costs
 from .funded_costs_reconciliation import reconcile_funded_contribution
+
+
+def _largest_non_cash_security_pct(weights: Mapping[str, str] | None) -> str | None:
+    """Largest *security line*, excluding cash, in a previously checked M3 scenario.
+
+    This is not economic-issuer concentration or an investable limit. The
+    existing contribution solver provides positive, finite weight strings.
+    Cash remains in the original scoped denominator.
+    """
+    if weights is None:
+        return None
+    values = [Decimal(value) for security, value in weights.items()
+              if security != "P-CASH" and Decimal(value) > 0]
+    if not values:
+        return None
+    return f"{max(values).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP):.2f}"
 
 
 def prepare_new_capital_projection(
@@ -56,8 +73,29 @@ def prepare_new_capital_projection(
         else:
             notes.append("Funded new-capital budget unavailable; missing or incompatible cost/funding data. Gross projection remains separately labeled.")
 
-    # Display only NEW-capital percentages, never balances, cost quotes, or
-    # projected order amounts in the report or public memory.
+    # Descriptive concentration sensitivity of the already supplied hypothetical
+    # new-cash destinations. No new allocation choice, security identification,
+    # issuer look-through or brokerage quote is introduced by this calculation.
+    concentration = None
+    if gross["status"] == "GROSS_PROJECTION_ONLY":
+        funded_ok = (funded is not None and funded.get("status") ==
+                     "CONDITIONAL_SUPPLIED_COST_BUDGET_RECONCILED")
+        concentration = {
+            "status": ("GROSS_AND_CONDITIONAL_FUNDED_SCOPED_SENSITIVITY"
+                       if funded_ok else "GROSS_ONLY_SCOPED_SENSITIVITY"),
+            "before_largest_non_cash_security_pct": _largest_non_cash_security_pct(
+                gross["current_weights_pct"]),
+            "gross_after_largest_non_cash_security_pct": _largest_non_cash_security_pct(
+                gross["projected_weights_pct"]),
+            "conditional_funded_after_largest_non_cash_security_pct": (
+                _largest_non_cash_security_pct(
+                    funded["conditional_projection_private"]["projected_weights_pct"])
+                if funded_ok else None),
+            "authority": "DESCRIPTIVE_CALLER_SUPPLIED_NO_PORTFOLIO_POLICY_OR_EXECUTION",
+        }
+
+    # Display only NEW-capital percentages and bounded aggregate sensitivity,
+    # never balances, cost quotes, or projected order amounts in the report.
     summary = {
         "analysis_id": analysis_id,
         "portfolio_as_of": portfolio_as_of,
@@ -70,6 +108,7 @@ def prepare_new_capital_projection(
             funded["one_time_supplied_cost_share_pct"]
             if funded is not None and funded["status"] ==
                 "CONDITIONAL_SUPPLIED_COST_BUDGET_RECONCILED" else None),
+        "largest_security_line_sensitivity_private": concentration,
         "source_authentication": "NOT_PERFORMED",
     }
     return {
