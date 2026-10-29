@@ -64,6 +64,43 @@ class AlternativeSuppliedCostsTests(unittest.TestCase):
             "supplied_costs_private"]["total_supplied_costs_base"], "0.00")
         self.assertEqual(out["execution_status"], "UNAVAILABLE_NOT_EXECUTION_CERTIFIED")
 
+    def test_exact_baseline_relative_fee_burden_on_matched_cash_basis(self):
+        out = self.project()
+        a, b = out["report_summary_private"]["conditional_alternative_costs_private"]["scenarios"]
+        self.assertEqual(a["cost_burden_comparison_basis"],
+                         "MATCHED_FROM_CONTRIBUTION_AND_QUOTE_DATE_ONLY")
+        self.assertEqual(a["cost_burden_delta_vs_baseline_pp"], "+0.5000")
+        self.assertEqual(b["cost_burden_delta_vs_baseline_pp"], "-0.5000")
+        self.assertEqual(out["funded_contribution_private"]["one_time_supplied_cost_share_pct"],
+                         "0.5000")
+        self.assertEqual(out["execution_status"], "UNAVAILABLE_NOT_EXECUTION_CERTIFIED")
+
+    def test_fee_burden_not_compared_for_different_quote_date(self):
+        costs = self.costs()
+        costs["alternative_cost_inputs"][0]["cost_quote_as_of"] = "2026-10-27"
+        a, b = self.project(costs=costs)["report_summary_private"][
+            "conditional_alternative_costs_private"]["scenarios"]
+        self.assertEqual(a["funded_status"], "CONDITIONAL_SUPPLIED_COST_BUDGET_RECONCILED")
+        self.assertEqual(a["cost_burden_comparison_basis"], "NOT_COMPARABLE")
+        self.assertIsNone(a["cost_burden_delta_vs_baseline_pp"])
+        self.assertEqual(b["cost_burden_delta_vs_baseline_pp"], "-0.5000")
+
+    def test_fee_burden_not_compared_if_funding_basis_differs(self):
+        costs = self.costs()
+        costs["alternative_cost_inputs"][0]["funding"] = "EXTERNAL_CASH"
+        a, b = self.project(costs=costs)["report_summary_private"][
+            "conditional_alternative_costs_private"]["scenarios"]
+        self.assertEqual(a["funded_status"], "CONDITIONAL_SUPPLIED_COST_BUDGET_RECONCILED")
+        self.assertIsNone(a["cost_burden_delta_vs_baseline_pp"])
+        self.assertEqual(a["cost_burden_comparison_basis"], "NOT_COMPARABLE")
+        self.assertEqual(b["cost_burden_delta_vs_baseline_pp"], "-0.5000")
+        costs = self.costs()
+        costs["funding"] = "EXTERNAL_CASH"
+        a, b = self.project(costs=costs)["report_summary_private"][
+            "conditional_alternative_costs_private"]["scenarios"]
+        self.assertIsNone(a["cost_burden_delta_vs_baseline_pp"])
+        self.assertIsNone(b["cost_burden_delta_vs_baseline_pp"])
+
     def test_private_pi_only_cc_report_shows_bounded_percentages_not_quotes(self):
         out = complete_manual_session(
             self.fx.request(research_needed=False, portfolio_needed=True),
@@ -74,6 +111,9 @@ class AlternativeSuppliedCostsTests(unittest.TestCase):
         self.assertIn("one-time purchase-cost share 1.0000%", report)
         self.assertIn("Alternative 2 with its OWN supplied fixed costs", report)
         self.assertIn("scoped cash 50.00%", report)
+        self.assertIn("+0.5000 percentage points", report)
+        self.assertIn("-0.5000 percentage points", report)
+        self.assertIn("not a return or ranking", report)
         for secret in ("SYN-ALT-SOURCE", "10.00", "1000.00", "995.00"):
             self.assertNotIn(secret, report)
         self.assertEqual(out["storage"], "NONE")
@@ -88,6 +128,7 @@ class AlternativeSuppliedCostsTests(unittest.TestCase):
             contribution_inputs=self.plan(), cost_inputs=self.costs())
         self.assertIn("Alternative 1 with its OWN supplied fixed costs",
                       out["final_report_private"])
+        self.assertIn("+0.5000 percentage points", out["final_report_private"])
         self.assertEqual(out["integrated_private"]["alternative_cost_details_private"],
                          out["alternative_cost_details_private"])
         self.assertEqual(out["alternative_cost_details_private"][1][
@@ -105,6 +146,8 @@ class AlternativeSuppliedCostsTests(unittest.TestCase):
         self.assertEqual(a["cost_status"], "INCOMPLETE_COST_INPUTS")
         self.assertEqual(a["funded_status"], "UNAVAILABLE_COST_INPUTS")
         self.assertIsNone(a["one_time_supplied_cost_share_pct"])
+        self.assertIsNone(a["cost_burden_delta_vs_baseline_pp"])
+        self.assertEqual(a["cost_burden_comparison_basis"], "NOT_COMPARABLE")
         self.assertEqual(b["one_time_supplied_cost_share_pct"], "0.0000")
 
     def test_count_destination_and_quote_date_mismatch_fail_closed(self):
@@ -123,6 +166,19 @@ class AlternativeSuppliedCostsTests(unittest.TestCase):
         c["alternative_cost_inputs"][0]["analysis_as_of"] = "2026-10-27"
         with self.assertRaisesRegex(ValueError,"ALTERNATIVE_COST_QUOTE_SCHEMA_OR_DATE"):
             self.project(costs=c)
+
+    def test_mismatched_cost_basis_report_explains_no_relative_delta(self):
+        costs = self.costs()
+        costs["alternative_cost_inputs"][0]["funding"] = "EXTERNAL_CASH"
+        out = complete_manual_session(
+            self.fx.request(research_needed=False, portfolio_needed=True),
+            pi_delta=self.fx.pi(), contribution_inputs=self.plan(),
+            cost_inputs=costs)
+        report = out["final_report_private"]
+        self.assertIn("comparison is UNAVAILABLE", report)
+        self.assertNotIn("+0.5000 percentage points", report)
+        self.assertIn("-0.5000 percentage points", report)
+        self.assertEqual(out["storage"], "NONE")
 
     def test_gross_alternatives_without_new_quotes_keep_original_contract(self):
         c = self.fx.new_cost_inputs()
@@ -156,6 +212,27 @@ class AlternativeSuppliedCostsTests(unittest.TestCase):
                 with self.assertRaisesRegex(ValueError,"CONTRIBUTION_REPORT_ALT_COST"):
                     render_report(ReportingTests().packet(
                         analysis_id="CASE-A", new_contribution_summary_private=bad))
+
+    def test_forged_relative_cost_burden_and_status_blocked_in_report(self):
+        raw = self.project()["report_summary_private"]
+        for key, value, error in (
+            ("cost_burden_delta_vs_baseline_pp", "+2.0000", "DELTA_MISMATCH"),
+            ("cost_burden_delta_vs_baseline_pp", "NaN", "DELTA_INVALID"),
+            ("cost_burden_delta_vs_baseline_pp", "0.5000", "DELTA_INVALID"),
+            ("cost_burden_comparison_basis", "BROKER_CERTIFIED", "DELTA_BASIS_INVALID"),
+        ):
+            with self.subTest(key=key, value=value):
+                forged = deepcopy(raw)
+                forged["conditional_alternative_costs_private"]["scenarios"][0][key] = value
+                with self.assertRaisesRegex(ValueError, "CONTRIBUTION_REPORT_ALT_COST_" + error):
+                    render_report(ReportingTests().packet(
+                        analysis_id="CASE-A", new_contribution_summary_private=forged))
+        forged = deepcopy(raw)
+        forged["conditional_alternative_costs_private"]["scenarios"][0][
+            "cost_burden_comparison_basis"] = "NOT_COMPARABLE"
+        with self.assertRaisesRegex(ValueError, "DELTA_UNSUPPORTED"):
+            render_report(ReportingTests().packet(
+                analysis_id="CASE-A", new_contribution_summary_private=forged))
 
     def test_incomplete_scope_never_produces_alternative_cost_figures(self):
         out = self.project(plan={**self.plan(), "scope_complete":False})
