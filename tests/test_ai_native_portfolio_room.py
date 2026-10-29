@@ -166,6 +166,86 @@ class RoomTests(unittest.TestCase):
         self.assertNotIn("PRIVATE_PRIOR_FUND_SOURCE",report)
         self.assertNotIn("90.00% of the scoped portfolio",report)
 
+    def test_direct_issuer_lower_bound_survives_old_overlapping_fund_without_room_upgrade(self):
+        from ai_native.reporting import render_report
+        obs = prepare_observation_ledger(
+            analysis_id="SYN-A", observed_on="2026-10-28",
+            analysis_as_of="2026-10-28", captured_at="2026-10-28T10:00:00-04:00",
+            source_type="PRIVATE_USER_TABLE", private_scope=True,
+            source_access_confirmed_by_caller=True, account_scope="SYN-ACCOUNT",
+            currency="CAD", scope_complete=True, cash_base="100.00",
+            cash_visibility="VERIFIED_VISIBLE", same_currency_basis_confirmed_by_caller=True,
+            positions=[
+                dict(p_id="P1", security_id="ABC:TSX", market_value_base="300.00",
+                     account_scope="SYN-ACCOUNT", currency="CAD",
+                     field_statuses={key:"VERIFIED_VISIBLE" for key in
+                                     ("security_id","market_value_base","currency","account_scope")}),
+                dict(p_id="P2", security_id="FUND:TSX", market_value_base="600.00",
+                     account_scope="SYN-ACCOUNT", currency="CAD",
+                     field_statuses={key:"VERIFIED_VISIBLE" for key in
+                                     ("security_id","market_value_base","currency","account_scope")}),
+            ])
+        classifications = {
+            "P1":dict(security_id="ABC:TSX",kind="DIRECT_EQUITY",
+                      source_ref="SYN-DIRECT-SOURCE",rights_status="PERMITTED",
+                      as_of="2026-10-27",economic_issuer_id="ABC",
+                      sector="TECH",region="CANADA"),
+            "P2":dict(security_id="FUND:TSX",kind="FUND",
+                      source_ref="PRIVATE_PRIOR_FUND_SOURCE",rights_status="PERMITTED",
+                      as_of="2026-10-27",composition_complete_reported=True,
+                      constituents=[dict(economic_issuer_id="ABC",sector="TECH",
+                                         region="CANADA",fund_weight_pct="100")]),
+        }
+        exposure = self.exposure(obs, classifications=classifications)
+        self.assertEqual(exposure["economic_issuer_pct_private"]["ABC"], "30.00")
+        self.assertEqual(exposure["unclassified_or_unknown_fund_pct"], "60.00")
+        self.assertEqual(exposure["historical_fund_scenario_private"][
+            "economic_issuer_pct_of_current_scope_private"]["ABC"], "60.00")
+        room = self.runroom(observation=obs, exposures=exposure)
+        self.assertEqual(room["status"], "ROOM_UNAVAILABLE")
+        self.assertEqual(room["known_candidate_issuer_exposure_pct_private"], "30.00")
+        self.assertEqual(room["unclassified_lookthrough_pct_private"], "60.00")
+        self.assertIn("HISTORICAL_FUND_COMPOSITION_NOT_CURRENT",room["missing_or_qualified"])
+        self.assertIn("HISTORICAL_FUND_EXCLUDED_FROM_KNOWN_LOWER_BOUND",room["missing_or_qualified"])
+        self.assertEqual(room["contribution_or_sale_proposal"], "NONE_NOT_AUTOMATED")
+        packet={"kind":"DECISION", "analysis_id":"SYN-A", "as_of":"2026-10-28",
+                "strategy":"SYN-EXPLORATORY", "method_version":"UNKNOWN_NOT_LOADED",
+                "status":"CONDITIONAL", "objective":"Synthetic current scoped exposure",
+                "decision_line":"No trade", "summary":["SYN"], "facts":[],
+                "countercase":"Unknown", "limitations":"Not verified",
+                "next_action":"Review", "portfolio_room_review_private":room}
+        report = render_report(packet)
+        self.assertIn("Known supplied candidate-issuer exposure: 30.00%",report)
+        self.assertIn("Unclassified/unknown fund look-through: 60.00%",report)
+        self.assertIn("excludes ALL prior-dated fund constituents",report)
+        self.assertIn("Portfolio Room remain UNAVAILABLE",report)
+        for private in ("PRIVATE_PRIOR_FUND_SOURCE","SYN-DIRECT-SOURCE",
+                        "300.00","600.00"):
+            self.assertNotIn(private, report)
+
+    def test_historical_known_lower_bound_without_qualification_rejected(self):
+        from ai_native.reporting import render_report
+        obs = self.observation()
+        # Existing no-current-issuer historical case stays UNKNOWN.
+        classified = {"P1":dict(
+            security_id="ABC:TSX", kind="FUND",
+            source_ref="PRIVATE_PRIOR_FUND_SOURCE", rights_status="PERMITTED",
+            as_of="2026-10-27", composition_complete_reported=True,
+            constituents=[dict(economic_issuer_id="ABC",sector="TECH",
+                               region="CANADA",fund_weight_pct="100")])}
+        room = self.runroom(observation=obs, exposures=self.exposure(obs, classifications=classified))
+        self.assertIsNone(room["known_candidate_issuer_exposure_pct_private"])
+        forged = copy.deepcopy(room)
+        forged["known_candidate_issuer_exposure_pct_private"] = "90.00"
+        packet={"kind":"DECISION", "analysis_id":"SYN-A", "as_of":"2026-10-28",
+                "strategy":"SYN-EXPLORATORY", "method_version":"UNKNOWN_NOT_LOADED",
+                "status":"CONDITIONAL", "objective":"Synthetic",
+                "decision_line":"No trade", "summary":["SYN"], "facts":[],
+                "countercase":"Unknown", "limitations":"Not verified",
+                "next_action":"Review", "portfolio_room_review_private":forged}
+        with self.assertRaisesRegex(ValueError,"HISTORICAL_LOWER_BOUND_UNQUALIFIED"):
+            render_report(packet)
+
     def test_real_portfolio_room_review_renders_only_conditional_exposure(self):
         from ai_native.reporting import render_report
         room=self.runroom()
