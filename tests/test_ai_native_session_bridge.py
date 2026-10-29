@@ -175,6 +175,87 @@ class SessionBridgeTests(unittest.TestCase):
         self.assertEqual(out["storage"], "NONE")
 
 
+    def test_null_pi_trace_is_rejected_even_if_key_present(self):
+        from unittest.mock import patch
+        ir = self.ir()
+        pi = self.pi(
+            forwarded_ir=copy.deepcopy(ir),
+            MODE_PORTFOLIO_RESPONSES={"synthetic": "supplied"})
+        with patch("ai_native.session_bridge.assemble_manual_run",
+                   return_value={"markdown": "SYN NO TRACE",
+                                 "mode_portfolio_trace_private": None}):
+            with self.assertRaisesRegex(
+                    ValueError, "MODE_PI_TRACE_NOT_RETURNED_BY_INTEGRATION"):
+                complete_manual_session(
+                    self.request(portfolio_needed=True), ir_capsule=ir, pi_delta=pi)
+
+    def test_ir_trace_cannot_be_dropped_by_m7a_result(self):
+        from unittest.mock import patch
+        ir = self.ir(MODE_RESEARCH_RESPONSES={"synthetic": "supplied"})
+        with patch("ai_native.session_bridge.assemble_manual_run",
+                   return_value={"markdown": "SYN NO IR TRACE",
+                                 "mode_research_trace_private": None}):
+            with self.assertRaisesRegex(
+                    ValueError, "MODE_IR_TRACE_NOT_RETURNED_BY_INTEGRATION"):
+                complete_manual_session(self.request(), ir_capsule=ir)
+
+    def test_wrong_pi_trace_case_identity_rejected(self):
+        from unittest.mock import patch
+        ir = self.ir()
+        pi = self.pi(
+            forwarded_ir=copy.deepcopy(ir),
+            MODE_PORTFOLIO_RESPONSES={"synthetic": "supplied"})
+        invalid = {
+            "status": "PRIVATE_MODE_PI_TRACE_NOT_AUTHENTICATED",
+            "analysis_id": "DIFFERENT-CASE", "analysis_as_of": "2026-10-28",
+            "portfolio_as_of": "2026-10-28", "strategy_id": "EXPLORATORY",
+            "questions_private": [{"question_index": 1}],
+        }
+        with patch("ai_native.session_bridge.assemble_manual_run",
+                   return_value={"markdown": "SYN WRONG CASE",
+                                 "mode_portfolio_trace_private": invalid}):
+            with self.assertRaisesRegex(
+                    ValueError, "MODE_PI_TRACE_NOT_RETURNED_BY_INTEGRATION"):
+                complete_manual_session(
+                    self.request(portfolio_needed=True), ir_capsule=ir, pi_delta=pi)
+
+    def test_actual_ir_and_pi_answer_traces_both_survive(self):
+        ir = self.ir(
+            strategy_id="balanced",
+            MODE_RESEARCH_RESPONSES={
+                "analysis_id": "CASE-A", "research_as_of": "2026-10-28",
+                "strategy_id": "balanced",
+                "answers": [
+                    {"question_index": 1, "status": "UNKNOWN", "ir_fact_ids": []},
+                    {"question_index": 2, "status": "UNKNOWN", "ir_fact_ids": []},
+                ],
+            })
+        original = copy.deepcopy(ir)
+        pi = self.pi(
+            forwarded_ir=copy.deepcopy(ir), strategy_id="balanced",
+            MODE_PORTFOLIO_RESPONSES={
+                "analysis_id": "CASE-A", "portfolio_as_of": "2026-10-28",
+                "strategy_id": "balanced",
+                "answers": [
+                    {"question_index": 1, "status": "UNKNOWN", "p_ids": []},
+                    {"question_index": 2, "status": "UNKNOWN", "p_ids": []},
+                ],
+            })
+        session = complete_manual_session(
+            self.request(portfolio_needed=True, strategy_id="balanced"),
+            ir_capsule=ir, pi_delta=pi)
+        integrated = session["integrated_private"]
+        self.assertEqual(integrated["mode_research_trace_private"]["status"],
+                         "PRIVATE_MODE_RESEARCH_TRACE_NOT_CERTIFIED")
+        self.assertEqual(session["mode_portfolio_trace_private"]["status"],
+                         "PRIVATE_MODE_PI_TRACE_NOT_AUTHENTICATED")
+        self.assertIn("Mode-specific IR research", session["final_report_private"])
+        self.assertIn("Mode-specific PI research", session["final_report_private"])
+        self.assertEqual(ir, original)
+        self.assertEqual(pi["forwarded_ir"], original)
+        self.assertEqual(session["storage"], "NONE")
+        self.assertEqual(session["project_invocation"], "NONE")
+
     def test_private_history_comparison_handoff_preserves_subject(self):
         from unittest.mock import patch
         payload = {"prior_case":None, "subject_id":"SYN-ISSUER", "fact_links":[]}

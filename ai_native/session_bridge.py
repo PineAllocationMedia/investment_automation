@@ -417,12 +417,31 @@ def complete_manual_session(
         exceptional_lifecycle_review_private=private["exceptional_lifecycle_review_private"],
     )
     private["integrated_private"] = integrated
-    # Legacy IR-only and existing isolated M7a seams need no PI trace.
-    # Do not hide a dropped PI answer: if a specialist supplied mode-specific
-    # portfolio responses, a complete M7a result must carry the trace.
-    if (pi_delta is not None and "MODE_PORTFOLIO_RESPONSES" in pi_delta
-            and "mode_portfolio_trace_private" not in integrated):
-        raise ValueError("MODE_PI_TRACE_NOT_RETURNED_BY_INTEGRATION")
+    # Old IR-only or IR+PI returns with no optional question answers are
+    # supported. A specialist-supplied answer, however, may not vanish from
+    # M7a even if an intermediate key exists with a null or unrelated value.
+    if "MODE_RESEARCH_RESPONSES" in ir_capsule:
+        ir_trace = integrated.get("mode_research_trace_private")
+        if (not isinstance(ir_trace, Mapping)
+                or ir_trace.get("status") != "PRIVATE_MODE_RESEARCH_TRACE_NOT_CERTIFIED"
+                or ir_trace.get("analysis_id") != base_request["analysis_id"]
+                or ir_trace.get("analysis_as_of") != base_request["as_of"]
+                or ir_trace.get("research_as_of") != ir_capsule.get("research_as_of")
+                or ir_trace.get("strategy_id") != base_request["strategy_id"]
+                or not isinstance(ir_trace.get("questions_private"), list)
+                or not ir_trace["questions_private"]):
+            raise ValueError("MODE_IR_TRACE_NOT_RETURNED_BY_INTEGRATION")
+    if pi_delta is not None and "MODE_PORTFOLIO_RESPONSES" in pi_delta:
+        pi_trace = integrated.get("mode_portfolio_trace_private")
+        if (not isinstance(pi_trace, Mapping)
+                or pi_trace.get("status") != "PRIVATE_MODE_PI_TRACE_NOT_AUTHENTICATED"
+                or pi_trace.get("analysis_id") != base_request["analysis_id"]
+                or pi_trace.get("analysis_as_of") != base_request["as_of"]
+                or pi_trace.get("portfolio_as_of") != pi_delta.get("portfolio_as_of")
+                or pi_trace.get("strategy_id") != base_request["strategy_id"]
+                or not isinstance(pi_trace.get("questions_private"), list)
+                or not pi_trace["questions_private"]):
+            raise ValueError("MODE_PI_TRACE_NOT_RETURNED_BY_INTEGRATION")
     private["mode_portfolio_trace_private"] = integrated.get("mode_portfolio_trace_private")
     if public_reference is not None:
         # Public profile observation remains separate from the IR model's
