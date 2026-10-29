@@ -757,7 +757,7 @@ class ManualCLIContractTests(unittest.TestCase):
         code, output, error = self.invoke(unavailable, "method-handoff")
         self.assertEqual((code, error), (0, ""))
         self.assertEqual(output, "METHOD_HANDOFF_NOT_AVAILABLE: " +
-                         "AWAITING_MANUAL_PORTFOLIO_SCREENSHOT\\n")
+                         "AWAITING_MANUAL_PORTFOLIO_SCREENSHOT\n")
         self.assertNotIn("SECRET_CAPTURE", output)
         finished = {"request": self.fx.request(),
                     "ir_capsule": self.fx.ir()}

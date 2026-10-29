@@ -46,7 +46,7 @@ class PinnedMethodHandoffTests(unittest.TestCase):
         for path, expected in DOCUMENT_BLOBS.items():
             with self.subTest(path=path):
                 content = (ROOT / path).read_bytes()
-                header = b"blob " + str(len(content)).encode("ascii") + b"\\x00"
+                header = b"blob " + str(len(content)).encode("ascii") + b"\x00"
                 self.assertEqual(hashlib.sha1(header + content).hexdigest(), expected)
 
     def test_ir_and_pi_bundle_carry_actual_pinned_text_no_loading(self):

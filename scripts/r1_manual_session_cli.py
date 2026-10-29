@@ -319,17 +319,17 @@ def run(*, output: str, instream: TextIO, outstream: TextIO,
             continuation = _prepare_manual_continuation(payload, result)
             if continuation is None:
                 outstream.write("METHOD_HANDOFF_NOT_AVAILABLE: " +
-                                result["status"] + "\\n")
+                                result["status"] + "\n")
             else:
                 bundle = prepare_verified_method_handoff(continuation)
                 encoded = json.dumps(bundle, ensure_ascii=False, sort_keys=True,
                                      indent=2, allow_nan=False)
                 if len(encoded) > MAX_INPUT_CHARACTERS:
                     raise ValueError("METHOD_HANDOFF_OUTPUT_TOO_LARGE")
-                outstream.write(encoded + "\\n")
+                outstream.write(encoded + "\n")
         except (ValueError, TypeError, KeyError, RecursionError, OSError):
             errstream.write("R1_PROCESSING_ERROR: private method handoff unavailable; " +
-                            "check local method files and pinned versions.\\n")
+                            "check local method files and pinned versions.\n")
             return 3
     elif output == "report":
         report = result["final_report_private"]
