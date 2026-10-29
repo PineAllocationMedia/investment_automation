@@ -54,6 +54,9 @@ SAFE_ERROR_CODES = frozenset({
     "PRIVATE_CASE_ENVELOPE_REQUIRED",
     "PRIVATE_CASE_ENVELOPE_INVALID", "PRIVATE_CASE_SHA256_MISMATCH",
     "PRIVATE_CASE_RECORD_INVALID",
+    "MANUAL_RESUME_ENVELOPE_INVALID",
+    "MANUAL_RESUME_CONTINUATION_MISMATCH",
+    "MANUAL_RESUME_STAGE_MISMATCH",
 })
 
 
@@ -290,6 +293,66 @@ def _eligible_private_case(result: dict[str, Any]) -> tuple[dict[str, Any] | Non
     return record, ""
 
 
+def _resume_manual_transfer(envelope: Any) -> tuple[dict[str, Any], dict[str, Any]]:
+    """Rejoin independently supplied specialist JSON with the saved CC step.
+
+    Never trust a carried continuation as authority: deterministically replay
+    its pre-return case and require identical next handoff before proceeding.
+    Returns one next validated session, not a Project call or archive write.
+    """
+    if (not isinstance(envelope, dict)
+            or set(envelope) != {"continuation_private", "specialist_result"}):
+        raise ValueError("MANUAL_RESUME_ENVELOPE_INVALID")
+    continuation = envelope["continuation_private"]
+    returned = envelope["specialist_result"]
+    if (not isinstance(continuation, dict)
+            or set(continuation) != {
+                "status", "next_handoff", "resume_input", "replace_null_with",
+                "readiness", "storage", "project_invocation", "trading_authority",
+            }
+            or continuation.get("status") != "PRIVATE_MANUAL_CONTINUATION_NOT_SENT"
+            or continuation.get("readiness") != "NOT_EVALUATED"
+            or continuation.get("storage") != "NONE"
+            or continuation.get("project_invocation") != "NONE"
+            or continuation.get("trading_authority") != "NONE"):
+        raise ValueError("MANUAL_RESUME_ENVELOPE_INVALID")
+    resume = continuation.get("resume_input")
+    handoff = continuation.get("next_handoff")
+    if (not isinstance(resume, dict)
+            or resume.get("specialist_result", "MISSING") is not None
+            or not isinstance(handoff, dict)
+            or len(handoff) != 1
+            or not isinstance(returned, dict)):
+        raise ValueError("MANUAL_RESUME_ENVELOPE_INVALID")
+    stage = continuation.get("replace_null_with")
+    label = "IR_REQUEST" if stage == "IR_CAPSULE" else (
+        "PI_REQUEST" if stage == "PI_DELTA" else None)
+    if label is None or set(handoff) != {label}:
+        raise ValueError("MANUAL_RESUME_STAGE_MISMATCH")
+
+    # Re-evaluate the original unsatisfied step before accepting new evidence.
+    # This prevents a forged, stale or internally inconsistent handoff from
+    # being reused as a different case or a silently skipped IR/PI stage.
+    before = deepcopy(resume)
+    del before["specialist_result"]
+    replay = evaluate(before)
+    actual = _prepare_manual_continuation(before, replay)
+    if actual != continuation:
+        raise ValueError("MANUAL_RESUME_CONTINUATION_MISMATCH")
+
+    if stage == "IR_CAPSULE":
+        allowed = {"IR_CAPSULE"}
+    elif before["request"].get("research_needed") is True:
+        allowed = {"PI_DELTA", "FORWARD_UNCHANGED"}
+    else:
+        allowed = {"PI_DELTA"}
+    if set(returned) != allowed:
+        raise ValueError("MANUAL_RESUME_STAGE_MISMATCH")
+    current = deepcopy(resume)
+    current["specialist_result"] = deepcopy(returned)
+    return current, evaluate(current)
+
+
 def run(*, output: str, instream: TextIO, outstream: TextIO,
         errstream: TextIO) -> int:
     """Read one bounded JSON payload from stdin, send results to stdout only."""
@@ -315,6 +378,8 @@ def run(*, output: str, instream: TextIO, outstream: TextIO,
             draft["manual_copy_integrity"] = "SHA256_MATCHED_RETAINED_COPY_ONLY"
             draft["record_authenticity"] = "NOT_ESTABLISHED"
             result = None
+        elif output == "resume-operator":
+            resume_payload, result = _resume_manual_transfer(payload)
         else:
             result = evaluate(payload)
     except (ValueError, TypeError, KeyError, RecursionError) as exc:
@@ -334,10 +399,12 @@ def run(*, output: str, instream: TextIO, outstream: TextIO,
     elif output == "status":
         outstream.write(json.dumps(_redacted_status(result),
                                    ensure_ascii=False, sort_keys=True) + "\n")
-    elif output == "operator-packet":
-        # PRIVATE opt-in one-run packet: never stored or used by default.
+    elif output in {"operator-packet", "resume-operator"}:
+        # PRIVATE opt-in. Resume reuses exactly the original validated operator
+        # packet contract after a separate, manually received specialist result.
         try:
-            packet = _private_operator_packet(payload, result)
+            case_payload = resume_payload if output == "resume-operator" else payload
+            packet = _private_operator_packet(case_payload, result)
             encoded = json.dumps(packet, ensure_ascii=False, sort_keys=True,
                                  indent=2, allow_nan=False)
             if len(encoded) > MAX_INPUT_CHARACTERS:
@@ -456,9 +523,9 @@ def main(argv: list[str] | None = None, *, instream: TextIO | None = None,
          outstream: TextIO | None = None,
          errstream: TextIO | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--output", choices=("status", "report", "handoffs", "next-handoff", "continuation", "operator-packet", "method-handoff", "specialist-prompt", "followup-draft", "sealed-followup-draft", "private-case", "private-case-envelope", "review-queue"),
+    parser.add_argument("--output", choices=("status", "report", "handoffs", "next-handoff", "continuation", "operator-packet", "resume-operator", "method-handoff", "specialist-prompt", "followup-draft", "sealed-followup-draft", "private-case", "private-case-envelope", "review-queue"),
                         default="status",
-                        help="status is redacted; report, handoffs, next-handoff, continuation, operator-packet, method-handoff, specialist-prompt, followup-draft, sealed-followup-draft, private-case, private-case-envelope and review-queue require a private terminal")
+                        help="status is redacted; report, handoffs, next-handoff, continuation, operator-packet, resume-operator, method-handoff, specialist-prompt, followup-draft, sealed-followup-draft, private-case, private-case-envelope and review-queue require a private terminal")
     opts = parser.parse_args(argv)
     return run(output=opts.output, instream=instream or sys.stdin,
                outstream=outstream or sys.stdout, errstream=errstream or sys.stderr)

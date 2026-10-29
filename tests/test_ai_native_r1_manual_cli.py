@@ -888,5 +888,140 @@ class ManualCLIContractTests(unittest.TestCase):
                 self.assertNotIn("SECRET_BROWSER_TOKEN", out)
                 self.assertNotIn("METHOD_PATH:", out)
 
+
+    def test_resume_operator_ir_pi_round_trip_without_editing_resume_json(self):
+        initial = {"request": self.fx.request(
+            portfolio_needed=True, strategy_id="balanced",
+            account_context={"account": "PRIVATE_CC_SENTINEL"})}
+        before = deepcopy(initial)
+        first = json.loads(self.invoke(initial, "operator-packet")[1])
+        ir = self.fx.ir()
+        input_ir = {"continuation_private": first["continuation_private"],
+                    "specialist_result": {"IR_CAPSULE": deepcopy(ir)}}
+        saved = deepcopy(input_ir)
+        code, body, err = self.invoke(input_ir, "resume-operator")
+        self.assertEqual((code, err), (0, ""))
+        second = json.loads(body)
+        self.assertEqual(second["session"]["status"], "AWAITING_MANUAL_PI_DELTA")
+        self.assertEqual(set(second["continuation_private"]["next_handoff"]),
+                         {"PI_REQUEST"})
+        self.assertEqual(second["continuation_private"]["next_handoff"]
+                         ["PI_REQUEST"]["FORWARD_UNCHANGED"], ir)
+        self.assertEqual(input_ir, saved)
+        input_pi = {
+            "continuation_private": second["continuation_private"],
+            "specialist_result": {
+                "PI_DELTA": self.fx.pi(),
+                "FORWARD_UNCHANGED": deepcopy(ir),
+            },
+        }
+        code, body, err = self.invoke(input_pi, "resume-operator")
+        self.assertEqual((code, err), (0, ""))
+        final = json.loads(body)
+        self.assertIsNone(final["continuation_private"])
+        self.assertEqual(final["session"]["status"],
+                         "M7A_COMPONENT_ASSEMBLED_NOT_END_TO_END_ACCEPTANCE")
+        expected = deepcopy(second["continuation_private"]["resume_input"])
+        expected["specialist_result"] = deepcopy(input_pi["specialist_result"])
+        self.assertEqual(final["report_private"], self.invoke(expected, "report")[1])
+        self.assertNotIn("PRIVATE_CC_SENTINEL", self.invoke(initial, "status")[1])
+        self.assertEqual(initial, before)
+
+    def test_resume_operator_pi_only_never_invents_original_ir(self):
+        request = self.fx.request(research_needed=False, portfolio_needed=True)
+        first = json.loads(self.invoke({"request": request}, "operator-packet")[1])
+        code, body, err = self.invoke({
+            "continuation_private": first["continuation_private"],
+            "specialist_result": {"PI_DELTA": self.fx.pi()},
+        }, "resume-operator")
+        self.assertEqual((code, err), (0, ""))
+        result = json.loads(body)
+        self.assertIsNone(result["continuation_private"])
+        self.assertEqual(result["session"]["route"], "CC_PI_CC")
+        self.assertIn("Portfolio-only interpretation", result["report_private"])
+
+    def test_resume_operator_stale_or_tampered_continuation_fails_closed(self):
+        first = json.loads(self.invoke({"request": self.fx.request()},
+                                       "operator-packet")[1])
+        step = first["continuation_private"]
+        variants = [
+            ("next_handoff", lambda c: c["next_handoff"]["IR_REQUEST"].update(
+                analysis_id="FORGED_ID")),
+            ("resume_input", lambda c: c["resume_input"]["request"].update(
+                objective="CONFIDENTIAL_CHANGED_OBJECTIVE")),
+            ("replace_null_with", lambda c: c.update(replace_null_with="PI_DELTA")),
+        ]
+        for name, change in variants:
+            with self.subTest(which=name):
+                modified = deepcopy(step)
+                change(modified)
+                code, body, err = self.invoke({
+                    "continuation_private": modified,
+                    "specialist_result": {"IR_CAPSULE": self.fx.ir()},
+                }, "resume-operator")
+                self.assertEqual(code, 2)
+                self.assertEqual(body, "")
+                self.assertNotIn("CONFIDENTIAL_CHANGED_OBJECTIVE", err)
+                self.assertNotIn("FORGED_ID", err)
+
+    def test_resume_operator_requires_correct_specialist_and_original_ir(self):
+        first = json.loads(self.invoke({
+            "request": self.fx.request(portfolio_needed=True)},
+            "operator-packet")[1])
+        code, body, err = self.invoke({
+            "continuation_private": first["continuation_private"],
+            "specialist_result": {"PI_DELTA": self.fx.pi()},
+        }, "resume-operator")
+        self.assertEqual(code, 2)
+        self.assertEqual(body, "")
+        self.assertIn("MANUAL_RESUME_STAGE_MISMATCH", err)
+
+        ir = self.fx.ir()
+        second = json.loads(self.invoke({
+            "request": self.fx.request(portfolio_needed=True),
+            "ir_capsule": ir,
+        }, "operator-packet")[1])
+        cont = second["continuation_private"]
+        code, body, err = self.invoke({
+            "continuation_private": cont,
+            "specialist_result": {"PI_DELTA": self.fx.pi()},
+        }, "resume-operator")
+        self.assertEqual(code, 2)
+        self.assertIn("MANUAL_RESUME_STAGE_MISMATCH", err)
+        bad = {"PI_DELTA": self.fx.pi(),
+               "FORWARD_UNCHANGED": {"analysis_id": ir["analysis_id"],
+                                     "PRIVATE_SECRET": "BAD_COPY"}}
+        code, body, err = self.invoke({
+            "continuation_private": cont, "specialist_result": bad,
+        }, "resume-operator")
+        self.assertEqual(code, 2)
+        self.assertEqual(body, "")
+        self.assertIn("SPECIALIST_FORWARDED_IR_MISMATCH", err)
+        self.assertNotIn("PRIVATE_SECRET", err)
+
+    def test_resume_operator_refuses_completed_direct_and_screenshot_fallback(self):
+        inputs = (
+            {"request": self.fx.request(research_needed=False)},
+            {"request": self.fx.request(), "ir_capsule": self.fx.ir()},
+            {"request": self.fx.request(research_needed=False,
+                                        portfolio_needed=True),
+             "work_portfolio_result": {"work_blossom_inputs": {
+                 "capture_mode": "WORK_BROWSER", "view_status": "UNAVAILABLE",
+                 "analysis_id": "CASE-A", "analysis_as_of": "2026-10-28",
+                 "raw_html": "PRIVATE_BLOSSOM_TOKEN"}}},
+        )
+        for initial in inputs:
+            with self.subTest(route=initial["request"]):
+                first = json.loads(self.invoke(initial, "operator-packet")[1])
+                self.assertIsNone(first["continuation_private"])
+                code, body, err = self.invoke({
+                    "continuation_private": first["continuation_private"],
+                    "specialist_result": {"IR_CAPSULE": self.fx.ir()},
+                }, "resume-operator")
+                self.assertEqual(code, 2)
+                self.assertEqual(body, "")
+                self.assertIn("MANUAL_RESUME_ENVELOPE_INVALID", err)
+                self.assertNotIn("PRIVATE_BLOSSOM_TOKEN", err)
+
 if __name__ == "__main__":
     unittest.main()
