@@ -8,6 +8,7 @@ from __future__ import annotations
 
 from datetime import date, datetime
 from decimal import Decimal, InvalidOperation, ROUND_DOWN
+import re
 from typing import Any, Mapping
 
 VISIBILITY = frozenset({"VERIFIED_VISIBLE", "UNCERTAIN", "NOT_VISIBLE"})
@@ -55,6 +56,20 @@ def _visibility(raw: Any, field: str) -> str:
     return value
 
 
+def _displayed_pct(raw: Any, field: str) -> Decimal:
+    """Exact UI percentage, kept separate from amount-derived portfolio weights."""
+    if (not isinstance(raw, str) or not re.fullmatch(
+            r"(?:0|[1-9][0-9]{0,2})(?:\\.[0-9]{1,2})?", raw)):
+        raise ValueError(f"{field}: display percentage must be a decimal string with <=2 places")
+    try:
+        amount = Decimal(raw)
+    except InvalidOperation as exc:
+        raise ValueError(f"{field}: invalid display percentage") from exc
+    if not amount.is_finite() or not 0 <= amount <= 100:
+        raise ValueError(f"{field}: percentage outside 0..100")
+    return amount
+
+
 def prepare_observation_ledger(
     *,
     analysis_id: str,
@@ -97,9 +112,11 @@ def prepare_observation_ledger(
         raise ValueError("BLOSSOM_ACCESS_NOT_CONFIRMED")
     account = _text(account_scope, "account_scope")
     curr = _text(currency, "currency").upper()
-    if len(curr) != 3 or not curr.isalpha():
-        raise ValueError("currency: three-letter ISO currency required")
+    if curr != "UNKNOWN" and (len(curr) != 3 or not curr.isalpha()):
+        raise ValueError("currency: three-letter ISO currency or UNKNOWN required")
     reasons: list[str] = []
+    if curr == "UNKNOWN":
+        reasons.append("ACCOUNT_CURRENCY_UNKNOWN")
     if captured_at == "UNKNOWN":
         reasons.append("CAPTURE_TIME_UNKNOWN")
     else:
@@ -125,6 +142,7 @@ def prepare_observation_ledger(
         raise ValueError("positions: nonempty list of supplied P records required")
 
     p_records = []
+    display_values: list[Decimal] = []
     seen: set[str] = set()
     values: dict[str, Decimal] = {}
     for idx, raw in enumerate(positions):
@@ -150,6 +168,15 @@ def prepare_observation_ledger(
             row_account = _text(row_account, f"{p_id}.account_scope")
         val_raw = raw.get("market_value_base")
         val = _money(val_raw, f"{p_id}.market_value_base") if val_raw is not None else None
+        display_status = _visibility(raw.get("displayed_weight_visibility", "NOT_VISIBLE"),
+                                     f"{p_id}.displayed_weight_visibility")
+        raw_display = raw.get("displayed_weight_pct")
+        if (display_status == "VERIFIED_VISIBLE") != (raw_display is not None):
+            raise ValueError("DISPLAYED_WEIGHT_VISIBILITY_VALUE_MISMATCH")
+        displayed = (_displayed_pct(raw_display, f"{p_id}.displayed_weight_pct")
+                     if raw_display is not None else None)
+        if displayed is not None:
+            display_values.append(displayed)
         if (val is None or security is None or row_currency != curr or row_account != account
                 or any(v != "VERIFIED_VISIBLE" for v in statuses.values())):
             reasons.append(f"{p_id}:FIELD_NOT_COMPARABLE_OR_NOT_VISIBLE")
@@ -158,6 +185,9 @@ def prepare_observation_ledger(
         p_records.append({"p_id": p_id, "security_id": security,
                           "account_scope": row_account, "currency": row_currency,
                           "market_value_base": f"{val:.2f}" if val is not None else None,
+                          "displayed_weight_pct_private": (
+                              f"{displayed:.2f}" if displayed is not None else None),
+                          "displayed_weight_visibility": display_status,
                           "field_statuses": statuses,
                           "provenance": "CALLER_REPORTED_VISIBILITY_NOT_BROKER_VERIFIED"})
     response: dict[str, Any] = {
@@ -170,6 +200,15 @@ def prepare_observation_ledger(
                                 "visibility": cash_status},
         "known_scope_weights_pct": None,
         "scope_total_base": None,
+        "displayed_weight_summary_private": (
+            {"visible_count": len(display_values),
+             "position_row_count": len(positions),
+             "displayed_weight_sum_pct": (
+                 f"{sum(display_values, Decimal('0')):.2f}"
+                 if len(display_values) == len(positions) else None),
+             "normalization": "NONE_DISPLAYED_VALUES_UNCHANGED",
+             "denominator_verification": "NOT_PERFORMED"}
+            if display_values else None),
         "portfolio_room_status": "ROOM_UNAVAILABLE",
         "verification": "CALLER_ASSERTED_NOT_INDEPENDENTLY_AUTHENTICATED",
         "missing_or_qualified": sorted(set(reasons)),

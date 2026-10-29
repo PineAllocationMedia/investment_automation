@@ -145,6 +145,46 @@ def _portfolio_observation_lines(packet: Mapping[str, Any], analysis_id: str,
     if (not isinstance(qualifiers, list) or len(qualifiers) > 10000
             or any(not isinstance(q, str) or not q for q in qualifiers)):
         raise ValueError("REPORT_P_LEDGER_QUALIFIERS_INVALID")
+    # Raw UI percentages are observational, NOT M3 amount-derived weights.
+    # Reconcile each displayed figure before showing even a bounded aggregate.
+    display = observation.get("displayed_weight_summary_private")
+    displayed: list[Decimal] = []
+    for rec in records:
+        state = rec.get("displayed_weight_visibility", "NOT_VISIBLE")
+        raw = rec.get("displayed_weight_pct_private")
+        if (state not in {"VERIFIED_VISIBLE", "UNCERTAIN", "NOT_VISIBLE"}
+                or (state == "VERIFIED_VISIBLE") != (raw is not None)):
+            raise ValueError("REPORT_DISPLAYED_WEIGHT_VISIBILITY_INVALID")
+        if raw is not None:
+            if not isinstance(raw, str) or not re.fullmatch(r"(?:0|[1-9][0-9]{0,2})\\.[0-9]{2}", raw):
+                raise ValueError("REPORT_DISPLAYED_WEIGHT_INVALID")
+            try:
+                value = Decimal(raw)
+            except InvalidOperation as exc:
+                raise ValueError("REPORT_DISPLAYED_WEIGHT_INVALID") from exc
+            if not value.is_finite() or not 0 <= value <= 100:
+                raise ValueError("REPORT_DISPLAYED_WEIGHT_INVALID")
+            displayed.append(value)
+    if display is None:
+        if displayed:
+            raise ValueError("REPORT_DISPLAYED_WEIGHT_SUMMARY_MISSING")
+    elif (not isinstance(display, Mapping)
+          or set(display) != {"visible_count", "position_row_count",
+                              "displayed_weight_sum_pct", "normalization",
+                              "denominator_verification"}
+          or display["normalization"] != "NONE_DISPLAYED_VALUES_UNCHANGED"
+          or display["denominator_verification"] != "NOT_PERFORMED"
+          or type(display["visible_count"]) is not int
+          or display["visible_count"] != len(displayed)
+          or type(display["position_row_count"]) is not int
+          or display["position_row_count"] != len(records)
+          or not displayed):
+        raise ValueError("REPORT_DISPLAYED_WEIGHT_SUMMARY_INVALID")
+    if display is not None:
+        expected = (f"{sum(displayed, Decimal('0')):.2f}"
+                    if len(displayed) == len(records) else None)
+        if display["displayed_weight_sum_pct"] != expected:
+            raise ValueError("REPORT_DISPLAYED_WEIGHT_SUM_INVALID")
     stage = observation.get("status")
     weights = observation.get("known_scope_weights_pct")
     if stage == "SCOPED_WEIGHTS_DERIVED_FROM_CALLER_VISIBLE_DATA":
@@ -198,17 +238,31 @@ def _portfolio_observation_lines(packet: Mapping[str, Any], analysis_id: str,
         coverage = "INCOMPLETE_NO_DERIVED_WEIGHTS"
     else:
         raise ValueError("REPORT_P_LEDGER_STAGE_INVALID")
-    return [
+    lines = [
         "", "## Private portfolio observation — coverage and provenance",
         f"Observed as of {observed}; {len(records)} caller-reported position row(s). "
         f"Coverage: {coverage}.",
         f"Cash visibility: {cash['visibility']}; {len(qualifiers)} unresolved qualification(s) "
         "remain in the original private P ledger.",
+    ]
+    if display is not None:
+        summed = display["displayed_weight_sum_pct"]
+        lines.append(
+            f"Work/screenshot-displayed allocations transcribed for "
+            f"{display['visible_count']}/{len(records)} position rows; "
+            + (f"raw displayed total {summed}%" if summed is not None
+               else "complete displayed total UNKNOWN")
+            + ". No rounding reconciliation or normalization was performed; "
+              "displayed weights cannot establish a monetary/account denominator "
+              "or otherwise authorize portfolio calculations."
+        )
+    lines.append(
         "The visible scope and any derived weights are NOT independently authenticated "
         "broker holdings, complete account exposure, Portfolio Room admission, "
         "investment guidance or trade authorization. No account IDs, holdings, "
-        "cash values or individual position weights are reproduced here.",
-    ]
+        "cash values or individual position weights are reproduced here."
+    )
+    return lines
 
 
 def _portfolio_exposure_lines(packet: Mapping[str, Any], analysis_id: str,

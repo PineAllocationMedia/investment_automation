@@ -82,7 +82,8 @@ def prepare_work_blossom_observation(packet: Mapping[str, Any]) -> dict[str, Any
             raise ValueError(f"positions[{index}]: mapping required")
         positions.append({key: deepcopy(raw.get(key)) for key in
                           ("p_id", "security_id", "market_value_base", "currency",
-                           "account_scope", "field_statuses")})
+                           "account_scope", "field_statuses", "displayed_weight_pct",
+                           "displayed_weight_visibility")})
     kwargs = {
         "analysis_id": _text(packet.get("analysis_id"), "analysis_id"),
         "observed_on": _text(packet.get("observed_on"), "observed_on"),
