@@ -672,7 +672,7 @@ class ManualCLIContractTests(unittest.TestCase):
         item = json.loads(output)
         self.assertIsNone(item["continuation_private"])
         self.assertEqual(item["report_private"],
-                         self.invoke(last, "report")[1].rstrip("\n"))
+                         self.invoke(last, "report")[1])
         self.assertEqual(item["review_queue"],
                          json.loads(self.invoke(last, "review-queue")[1]))
         self.assertEqual(item["readiness"], "NOT_EVALUATED")
