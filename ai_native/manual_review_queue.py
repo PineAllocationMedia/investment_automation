@@ -5,6 +5,7 @@ storage or Project invocation. Codes/actions deliberately exclude private values
 """
 from __future__ import annotations
 
+from datetime import date
 from decimal import Decimal, InvalidOperation
 from typing import Any, Mapping
 
@@ -21,7 +22,7 @@ WAITING = frozenset({
     "AWAITING_MANUAL_PORTFOLIO_SCREENSHOT",
 })
 ROUTES = frozenset({"CC_DIRECT", "CC_IR_CC", "CC_PI_CC", "CC_IR_PI_CC"})
-MAX_ITEMS = 13  # One bounded, qualified lifecycle review step beyond the prior queue.
+MAX_ITEMS = 14  # At most one additional dated-snapshot human review step.
 
 
 LIFECYCLE_STATUSES = frozenset({
@@ -207,6 +208,103 @@ def _portfolio_exposure_review_action(
     return original
 
 
+def _snapshot_review_action(
+    session: Mapping[str, Any], comparison: Mapping[str, Any],
+) -> tuple[str, str, str]:
+    """One source-aware human task from existing PRIVATE dated snapshot results.
+
+    Never transfer accounts, security IDs, position amounts, raw UI weights,
+    dates, source refs or user-controlled text into the operator review queue.
+    """
+    if not isinstance(comparison, Mapping):
+        raise ValueError("REVIEW_QUEUE_SNAPSHOT_PACKET_INVALID")
+    if (session.get("route") not in {"CC_PI_CC", "CC_IR_PI_CC"}
+            or session.get("status") not in FINAL):
+        raise ValueError("REVIEW_QUEUE_SNAPSHOT_ROUTE_INVALID")
+    observation = session.get("portfolio_observation_private")
+    if (not isinstance(observation, Mapping)
+            or observation.get("private_scope") is not True
+            or comparison.get("analysis_id") != observation.get("analysis_id")
+            or comparison.get("analysis_as_of") != observation.get("analysis_as_of")
+            or comparison.get("current_observed_on") != observation.get("observed_on")
+            or comparison.get("privacy") != "PRIVATE_ONLY"
+            or comparison.get("source_authentication") != "NOT_PERFORMED"
+            or comparison.get("performance_or_transaction_inference") != "NONE"
+            or comparison.get("storage") != "NONE"
+            or comparison.get("trading_authority") != "NONE"):
+        raise ValueError("REVIEW_QUEUE_SNAPSHOT_AUTHORITY_OR_OBSERVATION_MISMATCH")
+    integrated = session.get("integrated_private")
+    if session.get("route") == "CC_IR_PI_CC":
+        if (not isinstance(integrated, Mapping)
+                or integrated.get("portfolio_snapshot_comparison_private") != comparison):
+            raise ValueError("REVIEW_QUEUE_SNAPSHOT_INTEGRATED_PARITY_INVALID")
+    elif integrated is not None:
+        raise ValueError("REVIEW_QUEUE_SNAPSHOT_PI_ONLY_INTEGRATED_INVALID")
+    prior_id = comparison.get("prior_analysis_id")
+    if (not isinstance(prior_id, str) or not prior_id.strip()
+            or prior_id == comparison.get("analysis_id")):
+        raise ValueError("REVIEW_QUEUE_SNAPSHOT_PRIOR_ID_INVALID")
+    try:
+        before = date.fromisoformat(comparison["prior_observed_on"])
+        after = date.fromisoformat(comparison["current_observed_on"])
+        cutoff = date.fromisoformat(comparison["analysis_as_of"])
+        if (before.isoformat() != comparison["prior_observed_on"]
+                or after.isoformat() != comparison["current_observed_on"]
+                or cutoff.isoformat() != comparison["analysis_as_of"]
+                or not before < after <= cutoff):
+            raise ValueError
+    except (TypeError, KeyError, ValueError) as exc:
+        raise ValueError("REVIEW_QUEUE_SNAPSHOT_DATES_INVALID") from exc
+
+    status = comparison.get("status")
+    reasons = comparison.get("reason_codes")
+    rows = comparison.get("rows_private")
+    if status == "UNAVAILABLE_INCOMPLETE_SNAPSHOT_SCOPE":
+        if (not isinstance(reasons, list) or not reasons
+                or len(reasons) != len(set(reasons))
+                or any(code not in {"PRIOR_SCOPE_INCOMPLETE", "CURRENT_SCOPE_INCOMPLETE"}
+                       for code in reasons)
+                or rows is not None
+                or any(comparison.get(field) is not None for field in (
+                    "matched_instrument_count", "newly_visible_count",
+                    "no_longer_visible_count",
+                    "largest_absolute_security_weight_shift_pp",
+                    "cash_weight_change_pp"))):
+            raise ValueError("REVIEW_QUEUE_SNAPSHOT_UNAVAILABLE_SCHEMA_INVALID")
+        return ("RECONCILE_DATED_SNAPSHOT_INPUTS", "EVIDENCE_RESOLUTION",
+                "Reconcile BOTH original dated private holdings views, scope, "
+                "security identities, visible cash, currency and source access. "
+                "Do not infer missing values or historical transactions.")
+    if (not isinstance(rows, list) or not rows
+            or type(comparison.get("matched_instrument_count")) is not int
+            or comparison["matched_instrument_count"] < 0
+            or type(comparison.get("newly_visible_count")) is not int
+            or type(comparison.get("no_longer_visible_count")) is not int
+            or comparison["newly_visible_count"] < 0
+            or comparison["no_longer_visible_count"] < 0):
+        raise ValueError("REVIEW_QUEUE_SNAPSHOT_COMPARISON_SCHEMA_INVALID")
+    if status == "OBSERVED_UI_WEIGHT_CHANGE_ONLY_NO_MONETARY_DENOMINATOR":
+        if (reasons != ["MONETARY_DENOMINATOR_NOT_VERIFIED"]
+                or comparison.get("cash_weight_change_pp") is not None
+                or comparison["newly_visible_count"] != 0
+                or comparison["no_longer_visible_count"] != 0
+                or comparison["matched_instrument_count"] != len(rows)):
+            raise ValueError("REVIEW_QUEUE_SNAPSHOT_UI_ONLY_AUTHORITY_INVALID")
+        return ("VERIFY_SOURCE_DISPLAYED_HISTORY", "HUMAN_VERIFICATION",
+                "Inspect both dated original private Blossom/screenshots: "
+                "same account filter and visibly identical securities; check "
+                "raw UI percentages without normalization. Cash, money basis, "
+                "portfolio returns and transactions remain UNKNOWN.")
+    if status == "DESCRIPTIVE_SCOPED_WEIGHT_CHANGE_NOT_RETURN":
+        if reasons != [] or comparison.get("cash_weight_change_pp") is None:
+            raise ValueError("REVIEW_QUEUE_SNAPSHOT_MONETARY_AUTHORITY_INVALID")
+        return ("VERIFY_MONETARY_SNAPSHOT_HISTORY", "HUMAN_VERIFICATION",
+                "Verify both original dated private holdings, same account and "
+                "currency basis, cash and corporate actions. Scoped weight "
+                "differences are not returns, capital flows, purchases or sales.")
+    raise ValueError("REVIEW_QUEUE_SNAPSHOT_STATUS_INVALID")
+
+
 def prepare_manual_review_queue(session: Mapping[str, Any]) -> dict[str, Any]:
     """Private human next-action queue; one code per distinct issue.
 
@@ -226,6 +324,12 @@ def prepare_manual_review_queue(session: Mapping[str, Any]) -> dict[str, Any]:
             or session.get("storage") != "NONE"
             or session.get("readiness") != "NOT_EVALUATED"):
         raise ValueError("REVIEW_QUEUE_AUTHORITY_MISMATCH")
+    snapshot = session.get("portfolio_snapshot_comparison_private")
+    if snapshot is not None and (
+            status not in {"M7A_COMPONENT_ASSEMBLED_NOT_END_TO_END_ACCEPTANCE",
+                           "PI_ONLY_CONDITIONAL_REPORT_ASSEMBLED"}
+            or route not in {"CC_IR_PI_CC", "CC_PI_CC"}):
+        raise ValueError("REVIEW_QUEUE_SNAPSHOT_ROUTE_INVALID")
     lifecycle = session.get("exceptional_lifecycle_review_private")
     if lifecycle is not None and (
             status != "M7A_COMPONENT_ASSEMBLED_NOT_END_TO_END_ACCEPTANCE"
@@ -359,6 +463,9 @@ def prepare_manual_review_queue(session: Mapping[str, Any]) -> dict[str, Any]:
                         code, stage, action = _portfolio_exposure_review_action(
                             session.get("portfolio_exposures_private"), observation)
                         add(code, stage, action)
+                if snapshot is not None:
+                    code, stage, action = _snapshot_review_action(session, snapshot)
+                    add(code, stage, action)
                 funded_from_ir = (isinstance(session.get("integrated_private"), Mapping)
                                   and session["integrated_private"].get("gross_contribution_private") is not None)
                 funded_from_pi = session.get("gross_contribution_private") is not None

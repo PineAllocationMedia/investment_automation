@@ -231,6 +231,110 @@ class ManualReviewQueueTests(unittest.TestCase):
         self.assertIn("TRANSFER_PI_DELTA",self.codes(data))
         self.assertNotIn("REVIEW_CONDITIONAL_REPORT",self.codes(data))
 
+    def test_actual_pi_only_snapshot_queue_selects_source_specific_verification(self):
+        from tests.test_ai_native_r1_portfolio_snapshots import (
+            PrivatePortfolioSnapshotFollowupTests,
+        )
+        from ai_native.session_bridge import complete_manual_session
+        fx = PrivatePortfolioSnapshotFollowupTests()
+        fx.setUp()
+        for case, expected in (
+            ("monetary", "VERIFY_MONETARY_SNAPSHOT_HISTORY"),
+            ("ui", "VERIFY_SOURCE_DISPLAYED_HISTORY"),
+            ("incomplete", "RECONCILE_DATED_SNAPSHOT_INPUTS"),
+        ):
+            with self.subTest(case=case):
+                if case == "ui":
+                    old, now = fx.percentage_only("50.05", "50.25")
+                else:
+                    old, now = fx.previous(), fx.current()
+                    if case == "incomplete":
+                        old["scope_complete"] = False
+                result = complete_manual_session(
+                    fx.request(), pi_delta=fx.fx.pi(),
+                    observation_inputs=now,
+                    prior_portfolio_observation_inputs=old)
+                original = deepcopy(result)
+                queue = prepare_manual_review_queue(result)
+                self.assertEqual(result, original)
+                self.assertIn(expected, self.codes(queue))
+                self.assertEqual(queue["item_count"], len(queue["items"]))
+                self.assertLessEqual(queue["item_count"], 14)
+                self.assertNotIn("ABC:TSX", json.dumps(queue))
+                self.assertNotIn("SCOPE-A", json.dumps(queue))
+                self.assertNotIn("50.25", json.dumps(queue))
+                self.assertEqual(queue["readiness"], "NOT_EVALUATED")
+                self.assertEqual(queue["project_invocation"], "NONE")
+
+    def test_actual_ir_pi_snapshot_queue_preserves_integrated_parity(self):
+        from tests.test_ai_native_r1_portfolio_snapshots import (
+            PrivatePortfolioSnapshotFollowupTests,
+        )
+        from ai_native.session_bridge import complete_manual_session
+        fx = PrivatePortfolioSnapshotFollowupTests()
+        fx.setUp()
+        ir = fx.fx.ir()
+        old, now = fx.percentage_only()
+        session = complete_manual_session(
+            fx.request(research_needed=True), ir_capsule=ir,
+            pi_delta=fx.fx.pi(forwarded_ir=deepcopy(ir)),
+            observation_inputs=now, prior_portfolio_observation_inputs=old)
+        queue = prepare_manual_review_queue(session)
+        self.assertIn("VERIFY_SOURCE_DISPLAYED_HISTORY", self.codes(queue))
+        self.assertNotIn("ABC:TSX", json.dumps(queue))
+        forged = deepcopy(session)
+        forged["portfolio_snapshot_comparison_private"]["privacy"] = "PUBLIC"
+        with self.assertRaisesRegex(ValueError, "SNAPSHOT_INTEGRATED_PARITY_INVALID"):
+            prepare_manual_review_queue(forged)
+
+    def test_actual_cli_snapshot_review_queue_redacts_details(self):
+        from tests.test_ai_native_r1_portfolio_snapshots import (
+            PrivatePortfolioSnapshotFollowupTests,
+        )
+        fx = PrivatePortfolioSnapshotFollowupTests()
+        fx.setUp()
+        old, now = fx.percentage_only()
+        source = {
+            "request": fx.request(), "pi_delta": fx.fx.pi(),
+            "observation_inputs": now,
+            "prior_portfolio_observation_inputs": old,
+        }
+        original = deepcopy(source)
+        status, output, error = self.cli(source)
+        self.assertEqual((status,error), (0,""))
+        self.assertIn("VERIFY_SOURCE_DISPLAYED_HISTORY", self.codes(json.loads(output)))
+        self.assertNotIn("ABC:TSX", output)
+        self.assertNotIn("SCOPE-A", output)
+        self.assertNotIn("PRIOR-CASE", output)
+        self.assertEqual(source, original)
+        status, standard, error = self.cli(source, "status")
+        self.assertEqual((status,error), (0,""))
+        self.assertNotIn("VERIFY_SOURCE_DISPLAYED_HISTORY", standard)
+
+    def test_forged_snapshot_state_never_becomes_trusted_review(self):
+        from tests.test_ai_native_r1_portfolio_snapshots import (
+            PrivatePortfolioSnapshotFollowupTests,
+        )
+        from ai_native.session_bridge import complete_manual_session
+        fx = PrivatePortfolioSnapshotFollowupTests()
+        fx.setUp()
+        old, now = fx.percentage_only()
+        session = complete_manual_session(
+            fx.request(), pi_delta=fx.fx.pi(), observation_inputs=now,
+            prior_portfolio_observation_inputs=old)
+        for field, value, reason in (
+            ("privacy", "PUBLIC", "AUTHORITY_OR_OBSERVATION"),
+            ("status", "BROKER_VERIFIED", "STATUS_INVALID"),
+            ("cash_weight_change_pp", "25.00", "UI_ONLY_AUTHORITY"),
+            ("reason_codes", [], "UI_ONLY_AUTHORITY"),
+            ("analysis_id", "MISMATCH", "AUTHORITY_OR_OBSERVATION"),
+        ):
+            with self.subTest(field=field):
+                forged = deepcopy(session)
+                forged["portfolio_snapshot_comparison_private"][field] = value
+                with self.assertRaisesRegex(ValueError, "REVIEW_QUEUE_SNAPSHOT_"):
+                    prepare_manual_review_queue(forged)
+
     def test_no_archive_or_automatic_research_even_with_checklist(self):
         payload={"request":self.fx.request()}
         code, output, err=self.cli(payload)
