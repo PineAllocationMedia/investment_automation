@@ -87,8 +87,56 @@ python -B -m scripts.r1_manual_session_cli --output review-queue < private_case.
 
 For `CC_IR_CC`, `--output handoffs` gives an explicit copyable `IR_REQUEST` with its public-reference context, requiring user transfer. The reference is NOT a replacement for an original research source. Never place a real profile snapshot, account information, target URL or the private JSON in GitHub. R1's default status/review queue stays source-name/amount-free.
 
+## New bounded Work Markdown-table intake — no JSON regeneration required
+
+The CEO's first Work result already contained a **two-column Markdown table** headed `Position affichée | Poids affiché`. The local R1 runner can now accept that *actual table as text* directly, without requesting a second Work run to rewrite all 20 rows into a verbose JSON list. This is a conversion of caller-reported observation only, **not** a verified live Work-to-Project connection.
+
+Use the same top-level `request`, but pass exactly one of:
+- `public_reference_inputs`: the original R1.4 structured public-reference object;
+- `public_reference_table_inputs`: a compact table envelope using **the same reference fields except** replace `positions_visible` and `displayed_weight_sum_pct` with one `positions_table` Markdown string.
+
+The `positions_table` value must contain **only** the two-column table, including the heading and Markdown separator, followed by 1–60 actual display rows. Permitted headings: `Position affichée | Poids affiché`, `Position | Poids`, `Security | Weight`, or `Holding | Displayed weight`. Each row begins with the visibly reported ticker/identifier, optionally followed by a description after a spaced dash; the identifier is the ONLY label retained. Each second cell must be a percentage such as `25,1 %` or `25.1 %`, or `UNKNOWN` / `NOT_VISIBLE`. Non-tickers, extra columns, invalid amounts, repeated tickers and prose outside the table are rejected. This is **not** arbitrary parsing of an AI narrative. Work-reported company descriptions are discarded; no security master is inferred.
+
+**Synthetic one-time input shape** (replace the table with an authorized observation in a trusted private session only):
+
+```json
+{
+  "request": {
+    "ceo_initiated": true,
+    "research_needed": false,
+    "portfolio_needed": false,
+    "analysis_id": "SYN-TABLE-CASE",
+    "as_of": "2026-10-29",
+    "objective": "One descriptive Blossom reference",
+    "kind": "DECISION"
+  },
+  "public_reference_table_inputs": {
+    "status": "PUBLIC_REFERENCE_ONLY",
+    "analysis_id": "SYN-TABLE-CASE",
+    "analysis_as_of": "2026-10-29",
+    "observation_as_of": "UNKNOWN",
+    "captured_at": "UNKNOWN",
+    "visibility_context": "SIGNED_IN_VISIBILITY_ONLY",
+    "visible_scope": "SELECTED_PROFILE_ACCOUNT_FILTER_UNKNOWN",
+    "account_ownership": "NOT_ASSUMED_USER",
+    "positions_table": "| Position affichée | Poids affiché |\n| --- | --- |\n| SYN-A — Synthetic A | 40,1 % |\n| SYN-B — Synthetic B | 30,1 % |\n| SYN-C — Synthetic C | 20,1 % |\n| SYN-D — Synthetic D | 10,0 % |",
+    "coverage": {
+      "all_rows_visible": true,
+      "other_group_expanded_or_absent": true,
+      "cash_visible": false,
+      "weights_comparable": true,
+      "account_filter_visible": false,
+      "sync_date_visible": false
+    },
+    "unknowns": ["SOURCE_HOLDINGS_SYNC_DATE_NOT_VISIBLE"]
+  }
+}
+```
+
+The parser converts only the observed ticker and displayed percentage into the **same previously validated** reference format; `displayed_weight_sum_pct` is derived exactly, without forcing 100%. All other date, source, account-scope, value/rights, public/private separation and manual CC/IR guards are inherited without bypass. The Markdown description, source URL, broker account identifier, raw narrative, cash balance and unseen positions never enter the resulting report. Use `--output status` to see only fixed status; `--output report` or `--output handoffs` is an explicit private-terminal action. **Work tables are not fetched or retained by R1.**
+
 ## First observed capability versus implementation
 
 The CEO provided Work's **2026-10-29 signed-in profile Portfolio** narrative: 20 lines were visible after **See all stocks**, with one-decimal displayed percentages summing to 100.3%, visible cash/account filters and actual sync date **not established**. This is human-supplied evidence of Work-reported view/transcription, *not* a strict packet matching the schema above, and has **not** been ingested or replayed against code. It is not an anonymous availability check or a broker statement.
 
-**Synthetic tests authored (NOT_RUN in GitHub-only construction):** `python -B -m unittest -v tests.test_ai_native_public_portfolio_reference tests.test_ai_native_session_bridge tests.test_ai_native_r1_manual_cli tests.test_ai_native_manual_review_queue`. Authenticated end-to-end execution, original-source verification, site rights, actual source date, model acceptance, deployment/trades and any public-to-private transfer remain unavailable. Decisions #16–18, #29 and #35 remain **PARTIAL**.
+**Synthetic tests authored (runtime not established for this extension):** `python -B -m unittest -v tests.test_ai_native_public_portfolio_reference tests.test_ai_native_session_bridge tests.test_ai_native_r1_manual_cli tests.test_ai_native_manual_review_queue`. Authenticated end-to-end execution, original-source verification, site rights, actual source date, model acceptance, deployment/trades and any public-to-private transfer remain unavailable. Decisions #16–18, #29 and #35 remain **PARTIAL**.
