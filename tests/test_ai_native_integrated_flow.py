@@ -436,6 +436,50 @@ class ManualIntegrationTests(unittest.TestCase):
                          "NO_POST_IR_OBSERVATIONS_REPORTED")
         self.assertNotIn("cannot retroactively substantiate", out["markdown"])
 
+
+    def test_newer_separate_cc_evidence_flags_fact_alignment_not_just_report(self):
+        out = assemble_manual_run(
+            self.request(), self.ir(),
+            source_evidence_inputs=self.embedded_source_inputs())
+        audit = out["fact_source_alignment_private"]
+        flags = audit["facts_private"][0]["review_flags"]
+        self.assertIn("CC_SOURCE_POSTDATES_ORIGINAL_IR", flags)
+        self.assertEqual(audit["facts_needing_review"], 1)
+        self.assertIn("CC_SOURCE_POSTDATES_ORIGINAL_IR", out["markdown"])
+        self.assertEqual(out["source_evidence_annex_private"]["ir_timeline_relation"],
+                         "POST_IR_CC_REVIEW_ONLY")
+
+    def test_same_date_separate_cc_evidence_keeps_clean_alignment(self):
+        out = assemble_manual_run(
+            self.request(), self.ir(research_as_of="2026-10-28"),
+            source_evidence_inputs=self.embedded_source_inputs())
+        self.assertEqual(out["fact_source_alignment_private"]["facts_needing_review"], 0)
+        self.assertNotIn("CC_SOURCE_POSTDATES_ORIGINAL_IR", out["markdown"])
+
+    def test_late_cc_sources_cannot_corroborate_reported_verified_ir(self):
+        import copy
+        fact = {"id": "SYN-F1", "claim": "Synthetic private fact",
+                "status": "VERIFIED", "source_url": "https://example.org/synthetic",
+                "period": "FY2025", "checked_by": "Synthetic analyst",
+                "checked_at": "2026-10-27"}
+        capsule = self.ir(facts=[fact])
+        saved = copy.deepcopy(capsule)
+        out = assemble_manual_run(self.request(), capsule,
+                                  source_evidence_inputs=self.embedded_source_inputs())
+        flags = out["fact_source_alignment_private"]["facts_private"][0]["review_flags"]
+        self.assertIn("CC_SOURCE_POSTDATES_ORIGINAL_IR", flags)
+        self.assertIn("IR_VERIFIED_LABEL_NOT_SUPPORTED_BY_SUPPLIED_ANNEX", flags)
+        self.assertEqual(capsule, saved)
+        self.assertIn("[SYN-F1 / VERIFIED]", out["markdown"])
+        self.assertIn("Source review required:", out["markdown"])
+        self.assertEqual(out["source_verification"], "NOT_PERFORMED_BY_INTEGRATION")
+
+    def test_embedded_later_ir_observation_remains_hard_error_after_fact_guard(self):
+        with self.assertRaisesRegex(ValueError, "IR_SOURCE_OBSERVED_AFTER_RESEARCH_AS_OF"):
+            assemble_manual_run(
+                self.request(),
+                self.ir(EVIDENCE_ANNEX=self.embedded_source_inputs()))
+
     def test_embedded_source_cannot_reference_unknown_ir_fact(self):
         evidence = self.embedded_source_inputs(fact_id="NOT_AN_IR_FACT")
         with self.assertRaisesRegex(ValueError, "SOURCE_ANNEX_UNKNOWN_IR_FACT_ID"):
