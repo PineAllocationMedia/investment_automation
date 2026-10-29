@@ -340,6 +340,116 @@ class ManualCLIContractTests(unittest.TestCase):
         self.assertNotIn("UNKNOWN_OR_MISSING_SESSION_FIELD",error)
 
 
+
+    def test_private_continuation_round_trip_ir_then_pi_without_retyping(self):
+        req = self.fx.request(portfolio_needed=True, account_context={"account": "PRIVATE_ACCOUNT_TOKEN"})
+        original = {"request": req}
+        snapshot = deepcopy(original)
+        code, output, err = self.invoke(original, "continuation")
+        self.assertEqual((code, err), (0, ""))
+        first = json.loads(output)
+        self.assertEqual(first["status"], "PRIVATE_MANUAL_CONTINUATION_NOT_SENT")
+        self.assertEqual(first["replace_null_with"], "IR_CAPSULE")
+        self.assertEqual(set(first["next_handoff"]), {"IR_REQUEST"})
+        self.assertEqual(first["next_handoff"]["IR_REQUEST"]["packet_type"], "IR_REQUEST")
+        self.assertEqual(first["resume_input"]["specialist_result"], None)
+        self.assertEqual(first["resume_input"]["request"], req)
+        self.assertEqual(original, snapshot)
+        self.assertEqual(first["readiness"], "NOT_EVALUATED")
+        self.assertEqual(first["storage"], "NONE")
+
+        code, bad, err = self.invoke(first["resume_input"], "status")
+        self.assertEqual(code, 2)
+        self.assertEqual(bad, "")
+        ir = self.fx.ir()
+        second_input = first["resume_input"]
+        second_input["specialist_result"] = {"IR_CAPSULE": deepcopy(ir)}
+        code, output, err = self.invoke(second_input, "continuation")
+        self.assertEqual((code, err), (0, ""))
+        second = json.loads(output)
+        self.assertEqual(second["replace_null_with"], "PI_DELTA")
+        self.assertEqual(set(second["next_handoff"]), {"PI_REQUEST"})
+        self.assertEqual(second["next_handoff"]["PI_REQUEST"]["FORWARD_UNCHANGED"], ir)
+        self.assertEqual(second["resume_input"]["ir_capsule"], ir)
+        self.assertIsNone(second["resume_input"]["specialist_result"])
+        self.assertNotIn("pi_delta", second["resume_input"])
+        self.assertEqual(second_input["specialist_result"], {"IR_CAPSULE": ir})
+
+        final = second["resume_input"]
+        final["specialist_result"] = {
+            "PI_DELTA": self.fx.pi(),
+            "FORWARD_UNCHANGED": deepcopy(ir),
+        }
+        code, report, err = self.invoke(final, "report")
+        self.assertEqual((code, err), (0, ""))
+        code, expected, err = self.invoke(
+            {"request": req, "ir_capsule": ir,
+             "pi_delta": self.fx.pi(forwarded_ir=deepcopy(ir))}, "report")
+        self.assertEqual((code, err), (0, ""))
+        self.assertEqual(report, expected)
+        code, final_state, err = self.invoke(final, "continuation")
+        self.assertEqual((code, err), (0, ""))
+        self.assertIn("CONTINUATION_NOT_AVAILABLE", final_state)
+
+    def test_private_pi_only_continuation_does_not_invent_ir(self):
+        req = self.fx.request(research_needed=False, portfolio_needed=True)
+        initial = {"request": req}
+        code, output, err = self.invoke(initial, "continuation")
+        self.assertEqual((code, err), (0, ""))
+        step = json.loads(output)
+        self.assertEqual(step["replace_null_with"], "PI_DELTA")
+        self.assertEqual(set(step["next_handoff"]), {"PI_REQUEST"})
+        self.assertNotIn("ir_capsule", step["resume_input"])
+        final = step["resume_input"]
+        final["specialist_result"] = {"PI_DELTA": self.fx.pi()}
+        code, report, err = self.invoke(final, "report")
+        self.assertEqual((code, err), (0, ""))
+        self.assertIn("Portfolio-only interpretation", report)
+
+    def test_private_continuation_is_not_created_for_finished_or_direct(self):
+        for payload in (
+            {"request": self.fx.request(research_needed=False)},
+            {"request": self.fx.request(), "ir_capsule": self.fx.ir()},
+            {"request": self.fx.request(research_needed=False, portfolio_needed=True),
+             "pi_delta": self.fx.pi()},
+        ):
+            with self.subTest(route=payload["request"]):
+                code, output, err = self.invoke(payload, "continuation")
+                self.assertEqual((code, err), (0, ""))
+                self.assertTrue(output.startswith("CONTINUATION_NOT_AVAILABLE: "))
+                self.assertNotIn("resume_input", output)
+
+    def test_default_status_never_prints_private_continuation(self):
+        req = self.fx.request(portfolio_needed=True,
+                              account_context={"account": "PRIVATE_ACCOUNT_TOKEN"})
+        payload = {"request": req}
+        code, out, err = self.invoke(payload)
+        self.assertEqual((code, err), (0, ""))
+        self.assertNotIn("PRIVATE_ACCOUNT_TOKEN", out)
+        self.assertNotIn("resume_input", out)
+        code, out, err = self.invoke(payload, "continuation")
+        self.assertEqual((code, err), (0, ""))
+        self.assertIn("PRIVATE_ACCOUNT_TOKEN", out)
+        self.assertEqual(json.loads(out)["project_invocation"], "NONE")
+
+    def test_private_continuation_preserves_ir_original_in_resumed_pi_comparison(self):
+        request = self.fx.request(portfolio_needed=True)
+        ir = self.fx.ir()
+        code, text, error = self.invoke(
+            {"request": request, "specialist_result": {"IR_CAPSULE": ir}},
+            "continuation",
+        )
+        self.assertEqual((code, error), (0, ""))
+        resume = json.loads(text)["resume_input"]
+        resume["specialist_result"] = {
+            "PI_DELTA": self.fx.pi(),
+            "FORWARD_UNCHANGED": {"analysis_id": ir["analysis_id"], "fake": True},
+        }
+        code, report, error = self.invoke(resume, "report")
+        self.assertEqual(code, 2)
+        self.assertEqual(report, "")
+        self.assertIn("SPECIALIST_FORWARDED_IR_MISMATCH", error)
+
     def test_next_handoff_selects_only_the_current_manual_transfer(self):
         cases = (
             ({"request": self.fx.request()}, "IR_REQUEST"),
