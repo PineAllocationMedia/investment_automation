@@ -210,6 +210,18 @@ class PublicReferenceTests(unittest.TestCase):
         self.assertIn("SYN-A",stdout.getvalue())
         self.assertNotIn("SYN_ACCOUNT_MUST_NOT_LEAK_IN_REPORT",stdout.getvalue())
 
+    def test_future_browser_capture_and_unsafe_case_identity_fail(self):
+        v=self.data()
+        v["captured_at"]="2026-10-30T00:21:00-04:00"
+        with self.assertRaisesRegex(ValueError,"PUBLIC_REFERENCE_CAPTURE_TIME_INCONSISTENT"):
+            prepare_public_portfolio_reference(v,analysis_id="SYN-REF-1",
+                                               analysis_as_of="2026-10-29")
+        v=self.data()
+        v["analysis_id"]="SYN-MARKDOWN<script>"
+        with self.assertRaisesRegex(ValueError,"PUBLIC_REFERENCE_CASE_ID_UNSAFE"):
+            prepare_public_portfolio_reference(v,analysis_id="SYN-MARKDOWN<script>",
+                                               analysis_as_of="2026-10-29")
+
     def test_cli_rejects_untrusted_schema_without_echo(self):
         payload={"request":self.req(),"public_reference_inputs":self.data()}
         payload["public_reference_inputs"]["positions_visible"][0]["security_id"]="SYN|SECRET"
