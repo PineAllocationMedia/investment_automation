@@ -631,5 +631,89 @@ class ManualCLIContractTests(unittest.TestCase):
         self.assertIn("PRIVATE_SALT", next_packet)
         self.assertEqual(set(json.loads(next_packet)), {"IR_REQUEST"})
 
+
+    def test_operator_packet_pending_matches_status_review_and_continuation(self):
+        payload = {"request": self.fx.request(
+            portfolio_needed=True, account_context={"account": "PRIVATE_ACCOUNT"})}
+        before = deepcopy(payload)
+        code, output, err = self.invoke(payload, "operator-packet")
+        self.assertEqual((code, err), (0, ""))
+        item = json.loads(output)
+        self.assertEqual(item["status"], "PRIVATE_OPERATOR_PACKET_NOT_SENT")
+        self.assertIsNone(item["report_private"])
+        self.assertEqual(item["session"], json.loads(self.invoke(payload, "status")[1]))
+        self.assertEqual(item["review_queue"],
+                         json.loads(self.invoke(payload, "review-queue")[1]))
+        self.assertEqual(item["continuation_private"],
+                         json.loads(self.invoke(payload, "continuation")[1]))
+        self.assertEqual(set(item["continuation_private"]["next_handoff"]),
+                         {"IR_REQUEST"})
+        self.assertNotIn("PRIVATE_ACCOUNT", self.invoke(payload, "status")[1])
+        self.assertIn("PRIVATE_ACCOUNT", output)
+        self.assertEqual(payload, before)
+
+    def test_operator_packet_round_trip_ir_pi_to_final_conditional_report(self):
+        request = self.fx.request(portfolio_needed=True)
+        first = json.loads(self.invoke({"request": request}, "operator-packet")[1])
+        ir = self.fx.ir()
+        second_input = first["continuation_private"]["resume_input"]
+        second_input["specialist_result"] = {"IR_CAPSULE": deepcopy(ir)}
+        second = json.loads(self.invoke(second_input, "operator-packet")[1])
+        self.assertEqual(set(second["continuation_private"]["next_handoff"]),
+                         {"PI_REQUEST"})
+        self.assertEqual(second["continuation_private"]["next_handoff"]
+                         ["PI_REQUEST"]["FORWARD_UNCHANGED"], ir)
+        last = second["continuation_private"]["resume_input"]
+        last["specialist_result"] = {
+            "PI_DELTA": self.fx.pi(), "FORWARD_UNCHANGED": deepcopy(ir)}
+        before = deepcopy(last)
+        code, output, err = self.invoke(last, "operator-packet")
+        self.assertEqual((code, err), (0, ""))
+        item = json.loads(output)
+        self.assertIsNone(item["continuation_private"])
+        self.assertEqual(item["report_private"],
+                         self.invoke(last, "report")[1])
+        self.assertEqual(item["review_queue"],
+                         json.loads(self.invoke(last, "review-queue")[1]))
+        self.assertEqual(item["readiness"], "NOT_EVALUATED")
+        self.assertEqual(item["project_invocation"], "NONE")
+        self.assertEqual(last, before)
+
+    def test_operator_packet_pi_only_and_direct_do_not_invent_issuer_research(self):
+        payload = {"request": self.fx.request(
+            research_needed=False, portfolio_needed=True), "pi_delta": self.fx.pi()}
+        code, output, err = self.invoke(payload, "operator-packet")
+        self.assertEqual((code, err), (0, ""))
+        item = json.loads(output)
+        self.assertIsNone(item["continuation_private"])
+        self.assertIn("Portfolio-only interpretation", item["report_private"])
+        payload = {"request": self.fx.request(research_needed=False)}
+        code, output, err = self.invoke(payload, "operator-packet")
+        self.assertEqual((code, err), (0, ""))
+        item = json.loads(output)
+        self.assertIsNone(item["report_private"])
+        self.assertIsNone(item["continuation_private"])
+        self.assertEqual(item["review_queue"]["items"][0]["code"],
+                         "CC_DIRECT_REVIEW")
+
+    def test_operator_packet_unavailable_work_never_emits_pi_or_raw_html(self):
+        payload = {"request": self.fx.request(
+            research_needed=False, portfolio_needed=True),
+            "work_portfolio_result": {"work_blossom_inputs": {
+                "capture_mode": "WORK_BROWSER", "view_status": "UNAVAILABLE",
+                "analysis_id": "CASE-A", "analysis_as_of": "2026-10-28",
+                "raw_html": "PRIVATE_WORK_TOKEN"}}}
+        code, output, err = self.invoke(payload, "operator-packet")
+        self.assertEqual((code, err), (0, ""))
+        item = json.loads(output)
+        self.assertEqual(item["session"]["status"],
+                         "AWAITING_MANUAL_PORTFOLIO_SCREENSHOT")
+        self.assertIsNone(item["continuation_private"])
+        self.assertIsNone(item["report_private"])
+        self.assertIn("CAPTURE_AUTHORIZED_PORTFOLIO_SCREENSHOT",
+                      [v["code"] for v in item["review_queue"]["items"]])
+        self.assertNotIn("PRIVATE_WORK_TOKEN", output)
+        self.assertNotIn("PI_REQUEST", output)
+
 if __name__ == "__main__":
     unittest.main()
