@@ -18,3 +18,39 @@ Wrap the exact incoming IR_CAPSULE and decisive EVIDENCE_ANNEX in a **single FOR
 
 ## Memory / privacy / authority
 The public institutional record may contain only de-identified methodology lessons and permitted source pointers, after appropriate review. Holdings, amounts, screenshots, accounts, tax lots, contribution decisions and private Broker/Blossom history stay in private storage. Never send them to Media. This module permits no broker transactions, rebalancing automation, merge, production or gate promotion.
+
+## CEO-initiated private R1 qualitative lifecycle seam (M3 → M4)
+
+For an **explicit High-CAGR exceptional review only**, the CEO request must include
+`research_needed=true`, `portfolio_needed=true`, `ceo_initiated=true`,
+`exceptional_lifecycle_review_requested=true`, plus a valid original `ir_capsule`,
+dated private `observation_inputs` (or authorized Work `work_blossom_inputs`),
+and completed `pi_delta` with its unchanged original IR. A completed PI return **without** the separately requested lifecycle review fails closed rather than quietly omitting the CEO's mandate; pending PI still remains pending.
+Pass `lifecycle_inputs` as a **separate private analyst-supplied mapping**:
+`analysis_id`, `review_as_of`, `strategy_id`, `account_scope`,
+`position_p_id`, `security_id`, `thesis_event`, `analyst_reported_view`,
+`original_ir_fact_ids`, `current_evidence_refs`, `fees_status`,
+`fx_status`, `tax_status`, `original_thesis_private`,
+`strongest_countercase_private`, `next_human_check_private`.
+The exact schema is enforced in `ai_native/exceptional_lifecycle.py`; this is
+not a new strategy policy. The strategy must be `high-cagr`, `High-CAGR` or `HIGH_CAGR`
+matching the explicit mandate. The position must exist in the dated, private,
+matching-account M3 ledger; referenced IR fact IDs must occur in the original IR.
+Current evidence references, thesis, countercase and verified transaction costs
+remain human responsibilities. Missing inputs remain qualified; source rights,
+PIT, account/cost/tax verification and any share-class or lot details are NOT
+certified. Volatility or transient uncertainty alone may never yield a
+`REVIEW_TRIM` or `REVIEW_EXIT` hypothesis.
+
+The final **private CC** report displays only the high-level thesis-event
+category, *analyst-reported* hypothesis, original-IR/current-evidence link
+counts, observed date, and unresolved-qualification count. It never copies
+the position ID, account, security, weights, values, original thesis or
+private countercase into the concise section or non-private GitHub-memory
+proposal. The complete private review remains under
+`exceptional_lifecycle_review_private`; `trade_authority=NONE_CEO_ONLY`
+and `allocation_or_sale_proposal=NONE` even when all fields are supplied.
+No routine selling, price-only signal, automation, Project invocation or
+portfolio decision is created. The helper is **construction only**; synthetic
+tests authored `tests.test_ai_native_exceptional_lifecycle`, runtime NOT_RUN
+in connector-only environment, no real holdings/thesis acceptance.

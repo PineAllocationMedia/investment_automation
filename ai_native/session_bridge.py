@@ -22,6 +22,7 @@ from .public_portfolio_reference import (
 from .portfolio_exposure import aggregate_portfolio_exposures
 from .portfolio_room import prepare_portfolio_room_review
 from .new_capital_flow import prepare_new_capital_projection
+from .exceptional_lifecycle import prepare_exceptional_lifecycle_review
 
 ROOM_STATUSES = frozenset({"ROOM_EVIDENCE_SUPPORTED", "ROOM_CONDITIONAL", "ROOM_UNAVAILABLE"})
 
@@ -67,6 +68,7 @@ def complete_manual_session(
     historical_comparison_inputs: Mapping[str, Any] | None = None,
     opportunity_triage_inputs: Mapping[str, Any] | None = None,
     macro_sector_inputs: Mapping[str, Any] | None = None,
+    lifecycle_inputs: Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
     """One CEO-initiated manual session, possibly awaiting a human transfer.
 
@@ -102,6 +104,11 @@ def complete_manual_session(
     if macro_sector_inputs is not None and route not in {"CC_IR_CC", "CC_IR_PI_CC"}:
         raise ValueError("MACRO_SECTOR_REQUIRES_IR_ROUTE")
 
+    if lifecycle_inputs is not None and (route != "CC_IR_PI_CC" or pi_delta is None):
+        raise ValueError("LIFECYCLE_REQUIRES_COMPLETED_IR_PI_ROUTE")
+    if (request.get("exceptional_lifecycle_review_requested") is True
+            and pi_delta is not None and lifecycle_inputs is None):
+        raise ValueError("LIFECYCLE_REQUESTED_REVIEW_NOT_SUPPLIED")
     if room_assessment_inputs is not None and route != "CC_IR_PI_CC":
         raise ValueError("PORTFOLIO_ROOM_REQUIRES_IR_AND_PI_ROUTE")
 
@@ -246,6 +253,7 @@ def complete_manual_session(
                "public_reference_report_private": public_reference_report,
                "portfolio_exposures_private": exposures,
                "portfolio_room_review_private": None,
+               "exceptional_lifecycle_review_private": None,
                "gross_contribution_private": None,
                "supplied_costs_private": None,
                "funded_contribution_private": None,
@@ -345,6 +353,13 @@ def complete_manual_session(
         private["status"] = "PI_ONLY_CONDITIONAL_REPORT_ASSEMBLED"
         return private
 
+    if lifecycle_inputs is not None:
+        if observation is None:
+            raise ValueError("LIFECYCLE_REQUIRES_PRIVATE_DATED_OBSERVATION")
+        private["exceptional_lifecycle_review_private"] = prepare_exceptional_lifecycle_review(
+            request, ir_capsule, pi_delta, observation, lifecycle_inputs
+        )
+
     base_request = {
         "analysis_id": _required(request, "analysis_id"),
         "as_of": _date(_required(request, "as_of"), "request.as_of"),
@@ -372,6 +387,7 @@ def complete_manual_session(
         macro_sector_inputs=macro_sector_inputs,
         portfolio_room_review_private=private["portfolio_room_review_private"],
         portfolio_observation_private=observation,
+        exceptional_lifecycle_review_private=private["exceptional_lifecycle_review_private"],
     )
     private["integrated_private"] = integrated
     if public_reference is not None:
