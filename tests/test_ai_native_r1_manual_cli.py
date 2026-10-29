@@ -270,6 +270,134 @@ class ManualCLIContractTests(unittest.TestCase):
         self.assertNotIn("CONFIDENTIAL_ACCOUNT_123",error)
 
 
+
+    def test_private_followup_draft_consumes_saved_case_not_active_request(self):
+        prior_payload = {
+            "request": self.fx.request(subject_id="SYN-ISSUER"),
+            "ir_capsule": self.fx.ir(),
+            "memory_inputs": {
+                "report_id": "REPORT-A", "instruction_version": "R1-SYN",
+                "recorded_at": "2026-10-28",
+            },
+        }
+        code, private_json, error = self.invoke(prior_payload, "private-case")
+        self.assertEqual((code, error), (0, ""))
+        prior = json.loads(private_json)
+        original = deepcopy(prior)
+        code, output, error = self.invoke(
+            {"prior_private_case": prior}, "followup-draft")
+        self.assertEqual((code, error), (0, ""))
+        self.assertEqual(prior, original)
+        draft = json.loads(output)
+        self.assertEqual(draft["status"],
+                         "PRIVATE_FOLLOWUP_DRAFT_REQUIRES_CEO_INITIATION")
+        self.assertEqual(draft["storage"], "NONE")
+        self.assertEqual(draft["readiness"], "NOT_EVALUATED")
+        self.assertEqual(draft["project_invocation"], "NONE")
+        request = draft["input_template"]["request"]
+        self.assertIs(request["ceo_initiated"], False)
+        self.assertIsNone(request["analysis_id"])
+        self.assertIsNone(request["as_of"])
+        self.assertIsNone(request["objective"])
+        self.assertEqual(request["kind"], "FOLLOWUP")
+        self.assertEqual(request["prior_analysis_id"], "CASE-A")
+        self.assertEqual(request["subject_id"], "SYN-ISSUER")
+        self.assertFalse(request["portfolio_needed"])
+        self.assertEqual(request["risk_constraints"], [])
+        comparison = draft["input_template"]["historical_comparison_inputs"]
+        self.assertEqual(comparison["prior_case"], prior)
+        self.assertEqual(comparison["subject_id"], "SYN-ISSUER")
+        self.assertEqual(comparison["fact_links"], [])
+        self.assertNotIn("account_context", request)
+        self.assertNotIn("PRIVATE_ACCOUNT_TOKEN", request)
+
+        # An inert draft must fail before any Project handoff.
+        code, no_transfer, error = self.invoke(draft["input_template"],
+                                                "next-handoff")
+        self.assertEqual(code, 2)
+        self.assertEqual(no_transfer, "")
+        self.assertIn("R1_INPUT_REJECTED", error)
+
+        # The CEO may explicitly create a distinct request, no automatic job.
+        request.update(ceo_initiated=True, analysis_id="CASE-B",
+                       as_of="2026-10-29", objective="On-demand updated research")
+        code, next_transfer, error = self.invoke(
+            draft["input_template"], "next-handoff")
+        self.assertEqual((code, error), (0, ""))
+        self.assertEqual(set(json.loads(next_transfer)), {"IR_REQUEST"})
+        self.assertNotIn("PRIVATE_ACCOUNT_TOKEN", next_transfer)
+
+    def test_followup_draft_private_case_scope_and_no_default_leaks(self):
+        prior_payload = {
+            "request": self.fx.request(subject_id="SYN-ISSUER",
+                                       account_context={"token": "PRIVATE_ACCOUNT_TOKEN"}),
+            "ir_capsule": self.fx.ir(),
+            "memory_inputs": {
+                "report_id": "REPORT-A", "instruction_version": "R1-SYN",
+                "recorded_at": "2026-10-28",
+            },
+        }
+        code, private_json, error = self.invoke(prior_payload, "private-case")
+        self.assertEqual((code, error), (0, ""))
+        saved = json.loads(private_json)
+        code, safe_status, error = self.invoke(prior_payload, "status")
+        self.assertEqual((code, error), (0, ""))
+        self.assertNotIn("PRIVATE_ACCOUNT_TOKEN", safe_status)
+        self.assertNotIn("prior_private_case", safe_status)
+        code, output, error = self.invoke(
+            {"prior_private_case": saved}, "followup-draft")
+        self.assertEqual((code, error), (0, ""))
+        self.assertIn("PRIVATE_ACCOUNT_TOKEN", output)
+        self.assertNotIn("PRIVATE_ACCOUNT_TOKEN",
+                         json.dumps(json.loads(output)["input_template"]["request"]))
+        self.assertEqual(json.loads(output)["trading_authority"], "NONE")
+        code, invalid_output, error = self.invoke(
+            {"prior_private_case": saved}, "status")
+        self.assertEqual(code, 2)
+        self.assertEqual(invalid_output, "")
+        self.assertNotIn("PRIVATE_ACCOUNT_TOKEN", error)
+
+    def test_followup_draft_rejects_tampered_private_history_and_ambiguous_inputs(self):
+        prior_payload = {
+            "request": self.fx.request(subject_id="SYN-ISSUER"),
+            "ir_capsule": self.fx.ir(),
+            "memory_inputs": {
+                "report_id": "REPORT-A", "instruction_version": "R1-SYN",
+                "recorded_at": "2026-10-28",
+            },
+        }
+        code, private_json, error = self.invoke(prior_payload, "private-case")
+        self.assertEqual((code, error), (0, ""))
+        original = json.loads(private_json)
+        for field, bad in (
+            ("privacy_tier", "PUBLIC"),
+            ("archive_status", "COMMITTED"),
+            ("source_authentication", "VERIFIED"),
+            ("recorded_at", "2026-10-27"),
+            ("analysis_id", "OTHER"),
+            ("fact_ids", ["FORGED-FACT"]),
+        ):
+            with self.subTest(field=field):
+                changed = deepcopy(original)
+                changed[field] = bad
+                code, out, error = self.invoke(
+                    {"prior_private_case": changed}, "followup-draft")
+                self.assertEqual(code, 2)
+                self.assertEqual(out, "")
+                self.assertNotIn("SYN-ISSUER", error)
+        changed = deepcopy(original)
+        changed["original_request"].pop("subject_id")
+        code, out, error = self.invoke(
+            {"prior_private_case": changed}, "followup-draft")
+        self.assertEqual(code, 2)
+        self.assertEqual(out, "")
+        code, out, error = self.invoke(
+            {"prior_private_case": original, "request": original["original_request"]},
+            "followup-draft")
+        self.assertEqual(code, 2)
+        self.assertEqual(out, "")
+        self.assertIn("FOLLOWUP_PRIOR_CASE_ENVELOPE_REQUIRED", error)
+
     def test_private_case_export_is_user_requested_and_followup_compatible(self):
         from ai_native.research_case_comparison import compare_supplied_cases
         prior_request=self.fx.request(subject_id="SYN-ISSUER")

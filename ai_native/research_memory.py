@@ -138,3 +138,104 @@ def prepare_research_history(
     }
     return {"private_research_history_proposal": private_record,
             "github_review_gate": github_review_gate}
+
+
+def prepare_explicit_followup_draft(prior_case: Mapping[str, Any]) -> dict[str, Any]:
+    """Prepare a PRIVATE inert follow-up envelope from a supplied case proposal.
+
+    This is not research, an archival read, a new CEO instruction, a calendar
+    reminder, source authentication or a request to a ChatGPT Project. The CEO
+    must explicitly set the next mandate, date and analysis ID and review the
+    inherited strategy/method before an ordinary manual session can begin.
+    """
+    if not isinstance(prior_case, Mapping):
+        raise ValueError("FOLLOWUP_PRIVATE_CASE_REQUIRED")
+    if (prior_case.get("schema_version") != "RESEARCH_HISTORY_R1"
+            or prior_case.get("record_type") != "PRIVATE_RESEARCH_CASE_PROPOSAL"
+            or prior_case.get("privacy_tier") != "PRIVATE_PENDING_REVIEW"
+            or prior_case.get("archive_status") != "PROPOSED_NOT_COMMITTED"
+            or prior_case.get("source_authentication") != "NOT_PERFORMED_BY_MEMORY_HELPER"
+            or prior_case.get("cross_record_uniqueness") != "NOT_CHECKED_NO_ARCHIVE_READ"):
+        raise ValueError("FOLLOWUP_PRIOR_CASE_AUTHORITY_INVALID")
+    prior_id = _id(prior_case.get("analysis_id"), "prior.analysis_id")
+    _id(prior_case.get("report_id"), "prior.report_id")
+    prior_as_of = _date(prior_case.get("as_of"), "prior.as_of")
+    recorded = _date(prior_case.get("recorded_at"), "prior.recorded_at")
+    ir_as_of = _date(prior_case.get("research_as_of"), "prior.research_as_of")
+    if not (ir_as_of <= prior_as_of <= recorded):
+        raise ValueError("FOLLOWUP_PRIOR_DATES_INCONSISTENT")
+    req, ir = prior_case.get("original_request"), prior_case.get("original_ir_capsule")
+    if not isinstance(req, Mapping) or not isinstance(ir, Mapping):
+        raise ValueError("FOLLOWUP_PRIOR_ORIGINAL_PACKETS_REQUIRED")
+    subject = _id(req.get("subject_id"), "prior.subject_id")
+    strategy = _text(prior_case.get("strategy_id"), "prior.strategy_id")
+    method = _text(prior_case.get("method_version"), "prior.method_version")
+    if (req.get("ceo_initiated") is not True
+            or req.get("research_needed") is not True
+            or req.get("analysis_id") != prior_id
+            or ir.get("analysis_id") != prior_id
+            or req.get("as_of") != prior_as_of
+            or ir.get("research_as_of") != ir_as_of
+            or req.get("strategy_id") != strategy
+            or req.get("method_version") != method
+            or req.get("kind") != prior_case.get("kind")
+            or req.get("kind") not in {"DECISION", "FOLLOWUP"}):
+        raise ValueError("FOLLOWUP_PRIOR_PACKETS_INCONSISTENT")
+    facts = ir.get("facts")
+    if not isinstance(facts, list):
+        raise ValueError("FOLLOWUP_PRIOR_FACTS_REQUIRED")
+    ids: list[str] = []
+    counts = {status: 0 for status in sorted(EVIDENCE_STATUSES)}
+    for i, raw in enumerate(facts):
+        if not isinstance(raw, Mapping):
+            raise ValueError("FOLLOWUP_PRIOR_FACT_INVALID")
+        fid = _id(raw.get("id"), f"prior.facts[{i}].id")
+        reported = raw.get("status")
+        if fid in ids or reported not in EVIDENCE_STATUSES:
+            raise ValueError("FOLLOWUP_PRIOR_FACT_INVALID")
+        ids.append(fid)
+        counts[reported] += 1
+    if (prior_case.get("fact_ids") != ids
+            or prior_case.get("evidence_status_counts") != counts):
+        raise ValueError("FOLLOWUP_PRIOR_FACT_SUMMARY_MISMATCH")
+
+    # This is intentionally NOT executable until the CEO explicitly fills and
+    # approves the new request. No stale portfolio, account/fees, evidence
+    # rights, risk constraints or current assertions are inherited.
+    draft_request = {
+        "ceo_initiated": False,
+        "analysis_id": None,
+        "as_of": None,
+        "kind": "FOLLOWUP",
+        "objective": None,
+        "research_needed": True,
+        "portfolio_needed": False,
+        "subject_id": subject,
+        "prior_analysis_id": prior_id,
+        "period_start": prior_as_of,
+        "strategy_id": strategy,
+        "method_version": method,
+        "risk_constraints": [],
+    }
+    return {
+        "status": "PRIVATE_FOLLOWUP_DRAFT_REQUIRES_CEO_INITIATION",
+        "input_template": {
+            "request": draft_request,
+            "historical_comparison_inputs": {
+                "prior_case": deepcopy(dict(prior_case)),
+                "subject_id": subject,
+                "fact_links": [],
+            },
+        },
+        "human_checks": [
+            "Explicitly authorize a NEW CEO-initiated request; enter its distinct analysis ID, current cutoff date and objective.",
+            "Confirm subject/economic identity, strategy, current method version, risk constraints and original evidence/rights before research.",
+            "Select any fresh portfolio analysis explicitly; do not reuse prior account balances, holdings, costs or position weights.",
+            "After NEW IR evidence arrives, link old/current fact IDs manually; no factual, source, methodology or economic change is certified.",
+        ],
+        "readiness": "NOT_EVALUATED",
+        "source_authentication": "NOT_PERFORMED",
+        "project_invocation": "NONE",
+        "storage": "NONE",
+        "trading_authority": "NONE",
+    }
