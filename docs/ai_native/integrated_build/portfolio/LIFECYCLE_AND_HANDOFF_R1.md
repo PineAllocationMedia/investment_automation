@@ -25,7 +25,7 @@ For an **explicit High-CAGR exceptional review only**, the CEO request must incl
 `research_needed=true`, `portfolio_needed=true`, `ceo_initiated=true`,
 `exceptional_lifecycle_review_requested=true`, plus a valid original `ir_capsule`,
 dated private `observation_inputs` (or authorized Work `work_blossom_inputs`),
-and completed `pi_delta` with its unchanged original IR.
+and completed `pi_delta` with its unchanged original IR. A completed PI return **without** the separately requested lifecycle review fails closed rather than quietly omitting the CEO's mandate; pending PI still remains pending.
 Pass `lifecycle_inputs` as a **separate private analyst-supplied mapping**:
 `analysis_id`, `review_as_of`, `strategy_id`, `account_scope`,
 `position_p_id`, `security_id`, `thesis_event`, `analyst_reported_view`,
@@ -33,7 +33,7 @@ Pass `lifecycle_inputs` as a **separate private analyst-supplied mapping**:
 `fx_status`, `tax_status`, `original_thesis_private`,
 `strongest_countercase_private`, `next_human_check_private`.
 The exact schema is enforced in `ai_native/exceptional_lifecycle.py`; this is
-not a new strategy policy. The strategy must be `high-cagr` or `HIGH_CAGR`
+not a new strategy policy. The strategy must be `high-cagr`, `High-CAGR` or `HIGH_CAGR`
 matching the explicit mandate. The position must exist in the dated, private,
 matching-account M3 ledger; referenced IR fact IDs must occur in the original IR.
 Current evidence references, thesis, countercase and verified transaction costs
