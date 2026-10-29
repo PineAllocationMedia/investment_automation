@@ -150,6 +150,80 @@ def evaluate(payload: Any) -> dict[str, Any]:
     return complete_manual_session(payload["request"], **fields)
 
 
+def _prepare_manual_continuation(payload: dict[str, Any],
+                                 result: dict[str, Any]) -> dict[str, Any] | None:
+    """Private, one-step manual continuation; no disk state or Project calls.
+
+    Prepare an input envelope the operator can explicitly use again. IR must
+    remain the *independently received* original, never reconstructed from PI.
+    """
+    required = {
+        "AWAITING_MANUAL_IR_CAPSULE": ("IR_REQUEST", "IR_CAPSULE"),
+        "AWAITING_MANUAL_PI_DELTA": ("PI_REQUEST", "PI_DELTA"),
+    }.get(result["status"])
+    if required is None:
+        return None
+    label, expected = required
+    packet = result["handoffs_private"]["copy_ready_private"].get(label)
+    if not isinstance(packet, str):
+        raise ValueError("CONTINUATION_HANDOFF_MISSING")
+    handoff = json.loads(packet, parse_constant=_no_nonfinite,
+                         parse_float=_finite_json_float,
+                         object_pairs_hook=_unique_pairs)
+    resume = deepcopy(payload)
+    if "specialist_result" in resume:
+        prior = resume.pop("specialist_result")
+        if (label != "PI_REQUEST" or not isinstance(prior, dict)
+                or set(prior) != {"IR_CAPSULE"}
+                or not isinstance(prior["IR_CAPSULE"], dict)
+                or "ir_capsule" in resume):
+            raise ValueError("CONTINUATION_PRIOR_SPECIALIST_INVALID")
+        resume["ir_capsule"] = deepcopy(prior["IR_CAPSULE"])
+
+    # A validated Work capture has a canonical PRIVATE observation mapping.
+    # Carry that consumed mapping, NOT the original raw HTML/browser token or
+    # other unconsumed Work metadata, into the next explicit user input.
+    capture = result.get("work_blossom_capture_private")
+    if capture is not None:
+        if "work_blossom_inputs" in resume:
+            raw_work = resume.pop("work_blossom_inputs")
+        else:
+            wrapped = resume.pop("work_portfolio_result", None)
+            raw_work = wrapped.get("work_blossom_inputs") if isinstance(wrapped, dict) else None
+        if not isinstance(raw_work, dict):
+            raise ValueError("CONTINUATION_WORK_CAPTURE_INVALID")
+        if capture.get("status") == "PRIVATE_OBSERVATION_PACKET_PREPARED_NOT_SENT":
+            observation = capture.get("observation_inputs_private")
+            if not isinstance(observation, dict) or "observation_inputs" in resume:
+                raise ValueError("CONTINUATION_WORK_CAPTURE_INVALID")
+            resume["observation_inputs"] = deepcopy(observation)
+        elif capture.get("status") == "VISUAL_SOURCE_UNAVAILABLE_USE_SCREENSHOT_FALLBACK":
+            # IR can still be requested before the screenshot; keep only
+            # the minimal unavailable-state marker, never the inaccessible view.
+            resume["work_blossom_inputs"] = {
+                "capture_mode": raw_work.get("capture_mode"),
+                "view_status": "UNAVAILABLE",
+                "analysis_id": payload["request"]["analysis_id"],
+                "analysis_as_of": payload["request"]["as_of"],
+            }
+        else:
+            raise ValueError("CONTINUATION_WORK_CAPTURE_INVALID")
+
+    # JSON null is deliberately not a valid specialist return. The user must
+    # replace it with the original full IR_CAPSULE / PI_DELTA JSON envelope.
+    resume["specialist_result"] = None
+    return {
+        "status": "PRIVATE_MANUAL_CONTINUATION_NOT_SENT",
+        "next_handoff": {label: handoff},
+        "resume_input": resume,
+        "replace_null_with": expected,
+        "readiness": "NOT_EVALUATED",
+        "storage": "NONE",
+        "project_invocation": "NONE",
+        "trading_authority": "NONE",
+    }
+
+
 def run(*, output: str, instream: TextIO, outstream: TextIO,
         errstream: TextIO) -> int:
     """Read one bounded JSON payload from stdin, send results to stdout only."""
@@ -214,6 +288,23 @@ def run(*, output: str, instream: TextIO, outstream: TextIO,
                 outstream.write(json.dumps(record, ensure_ascii=False,
                                            sort_keys=True, indent=2, allow_nan=False) + "\n")
 
+    elif output == "continuation":
+        # Explicitly PRIVATE: a single portable next handoff together with
+        # re-entry context. No automatic memory, persistent state or call.
+        try:
+            bundle = _prepare_manual_continuation(payload, result)
+            if bundle is None:
+                outstream.write("CONTINUATION_NOT_AVAILABLE: " + result["status"] + "\n")
+            else:
+                encoded_resume = json.dumps(bundle["resume_input"], ensure_ascii=False,
+                                            sort_keys=True, allow_nan=False)
+                if len(encoded_resume) > MAX_INPUT_CHARACTERS:
+                    raise ValueError("CONTINUATION_INPUT_TOO_LARGE")
+                outstream.write(json.dumps(bundle, ensure_ascii=False, sort_keys=True,
+                                           indent=2, allow_nan=False) + "\n")
+        except (ValueError, TypeError, KeyError, RecursionError):
+            errstream.write("R1_PROCESSING_ERROR: private continuation unavailable.\n")
+            return 3
     elif output == "next-handoff":
         # Only the actionable next transfer. In particular, never offer PI
         # before IR, or when an unavailable visual source requires a screenshot.
@@ -252,9 +343,9 @@ def main(argv: list[str] | None = None, *, instream: TextIO | None = None,
          outstream: TextIO | None = None,
          errstream: TextIO | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--output", choices=("status", "report", "handoffs", "next-handoff", "private-case", "review-queue"),
+    parser.add_argument("--output", choices=("status", "report", "handoffs", "next-handoff", "continuation", "private-case", "review-queue"),
                         default="status",
-                        help="status is redacted; report, handoffs, next-handoff, private-case and review-queue require a private terminal")
+                        help="status is redacted; report, handoffs, next-handoff, continuation, private-case and review-queue require a private terminal")
     opts = parser.parse_args(argv)
     return run(output=opts.output, instream=instream or sys.stdin,
                outstream=outstream or sys.stdout, errstream=errstream or sys.stderr)

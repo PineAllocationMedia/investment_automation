@@ -70,6 +70,82 @@ class BlossomSessionBridgeTests(unittest.TestCase):
         return code,stdout.getvalue(),stderr.getvalue()
 
 
+
+    def test_private_work_continuation_uses_only_validated_m3_observation(self):
+        source = self.report()
+        request = self.fx.request(portfolio_needed=True)
+        initial = {
+            "request": request,
+            "work_portfolio_result": {"work_blossom_inputs": source},
+        }
+        snapshot = deepcopy(initial)
+        code, output, error = self.cli(initial, "continuation")
+        self.assertEqual((code, error), (0, ""))
+        first = json.loads(output)
+        resume = first["resume_input"]
+        self.assertEqual(initial, snapshot)
+        self.assertNotIn("work_portfolio_result", resume)
+        self.assertNotIn("work_blossom_inputs", resume)
+        self.assertIn("observation_inputs", resume)
+        self.assertNotIn("raw_html", output)
+        self.assertNotIn("TOKEN_THAT_MUST_NOT_PASS", output)
+        self.assertEqual(resume["observation_inputs"]["positions"][0]["p_id"], "P1")
+        ir = self.fx.ir()
+        resume["specialist_result"] = {"IR_CAPSULE": deepcopy(ir)}
+        code, output, error = self.cli(resume, "continuation")
+        self.assertEqual((code, error), (0, ""))
+        second = json.loads(output)
+        self.assertEqual(set(second["next_handoff"]), {"PI_REQUEST"})
+        self.assertEqual(
+            second["next_handoff"]["PI_REQUEST"]["P_LEDGER_FOR_REVIEW_PRIVATE"],
+            complete_manual_session(request, work_blossom_inputs=source,
+                                    ir_capsule=ir)["portfolio_observation_private"],
+        )
+        self.assertEqual(second["resume_input"]["ir_capsule"], ir)
+        final = second["resume_input"]
+        final["specialist_result"] = {
+            "PI_DELTA": self.fx.pi(), "FORWARD_UNCHANGED": deepcopy(ir),
+        }
+        code, report, error = self.cli(final, "report")
+        self.assertEqual((code, error), (0, ""))
+        comparison = complete_manual_session(
+            request, ir_capsule=ir,
+            pi_delta=self.fx.pi(forwarded_ir=deepcopy(ir)),
+            work_blossom_inputs=source)
+        self.assertEqual(report.strip(), comparison["final_report_private"].strip())
+        self.assertNotIn("TOKEN_THAT_MUST_NOT_PASS", report)
+        self.assertNotIn("SYNTHETIC_ACCOUNT_SECRET", report)
+
+    def test_private_work_unavailable_stays_screenshot_fallback_after_ir(self):
+        source = {
+            "capture_mode": "WORK_BROWSER",
+            "view_status": "UNAVAILABLE",
+            "analysis_id": "CASE-A",
+            "analysis_as_of": "2026-10-28",
+            "raw_html": "TOKEN_THAT_MUST_NOT_PASS",
+        }
+        request = self.fx.request(portfolio_needed=True)
+        payload = {"request": request,
+                   "work_portfolio_result": {"work_blossom_inputs": source}}
+        code, output, error = self.cli(payload, "continuation")
+        self.assertEqual((code, error), (0, ""))
+        result = json.loads(output)
+        self.assertNotIn("raw_html", output)
+        self.assertEqual(result["replace_null_with"], "IR_CAPSULE")
+        resume = result["resume_input"]
+        self.assertEqual(set(resume["work_blossom_inputs"]),
+                         {"capture_mode", "view_status", "analysis_id", "analysis_as_of"})
+        ir = self.fx.ir()
+        resume["specialist_result"] = {"IR_CAPSULE": ir}
+        code, text, error = self.cli(resume, "continuation")
+        self.assertEqual((code, error), (0, ""))
+        self.assertEqual(text,
+                         "CONTINUATION_NOT_AVAILABLE: AWAITING_MANUAL_PORTFOLIO_SCREENSHOT\n")
+        code, status, error = self.cli(resume, "status")
+        self.assertEqual((code, error), (0, ""))
+        self.assertEqual(json.loads(status)["status"],
+                         "AWAITING_MANUAL_PORTFOLIO_SCREENSHOT")
+
     def test_pi1_wrapped_private_work_packet_reaches_original_pi_ledger(self):
         source = self.report()
         payload = {"request": self.pi_only(),
