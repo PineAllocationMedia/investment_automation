@@ -52,6 +52,7 @@ def complete_manual_session(
     room_assessment_inputs: Mapping[str, Any] | None = None,
     source_evidence_inputs: Mapping[str, Any] | None = None,
     valuation_inputs: Mapping[str, Any] | None = None,
+    probability_inputs: Mapping[str, Any] | None = None,
     candidate_comparison_inputs: Mapping[str, Any] | None = None,
     fundamental_inputs: Mapping[str, Any] | None = None,
     historical_comparison_inputs: Mapping[str, Any] | None = None,
@@ -79,6 +80,8 @@ def complete_manual_session(
         raise ValueError("SOURCE_ANNEX_REQUIRES_IR_CAPSULE")
     if valuation_inputs is not None and route not in {"CC_IR_CC", "CC_IR_PI_CC"}:
         raise ValueError("VALUATION_REQUIRES_IR_CAPSULE")
+    if probability_inputs is not None and (route not in {"CC_IR_CC", "CC_IR_PI_CC"} or valuation_inputs is None):
+        raise ValueError("PROBABILITY_CASHFLOWS_REQUIRE_IR_VALUATION")
     if candidate_comparison_inputs is not None and route not in {"CC_IR_CC", "CC_IR_PI_CC"}:
         raise ValueError("CANDIDATE_COMPARISON_REQUIRES_IR_CAPSULE")
     if fundamental_inputs is not None and route not in {"CC_IR_CC", "CC_IR_PI_CC"}:
@@ -231,6 +234,7 @@ def complete_manual_session(
         memory_inputs=memory_inputs,
         source_evidence_inputs=source_evidence_inputs,
         valuation_inputs=valuation_inputs,
+        probability_inputs=probability_inputs,
         candidate_comparison_inputs=candidate_comparison_inputs,
         fundamental_inputs=fundamental_inputs,
         historical_comparison_inputs=historical_comparison_inputs,
