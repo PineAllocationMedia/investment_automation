@@ -191,6 +191,124 @@ class PrivatePortfolioSnapshotFollowupTests(unittest.TestCase):
         self.assertNotIn("ABC:TSX", output.getvalue())
         self.assertEqual(status["readiness"], "NOT_EVALUATED")
 
+    def percentage_only(self, old_value="80.00", new_value="75.00"):
+        """Both screenshots have the same visible title, but no cash or amounts."""
+        prior, current = self.previous(), self.current()
+        for args, pct in ((prior, old_value), (current, new_value)):
+            args["currency"] = "UNKNOWN"
+            args["cash_base"] = None
+            args["cash_visibility"] = "NOT_VISIBLE"
+            args["same_currency_basis_confirmed_by_caller"] = False
+            row = args["positions"][0]
+            row["currency"] = None
+            row["market_value_base"] = None
+            row["displayed_weight_pct"] = pct
+            row["displayed_weight_visibility"] = "VERIFIED_VISIBLE"
+            row["field_statuses"]["market_value_base"] = "NOT_VISIBLE"
+            row["field_statuses"]["currency"] = "NOT_VISIBLE"
+        return prior, current
+
+    def test_percentage_only_source_ui_deltas_without_cash_or_money(self):
+        old, current = self.percentage_only("80.00", "75.00")
+        original = deepcopy((old, current))
+        result = self.compare(old=old, now=current)
+        self.assertEqual((old, current), original)
+        self.assertEqual(result["status"],
+                         "OBSERVED_UI_WEIGHT_CHANGE_ONLY_NO_MONETARY_DENOMINATOR")
+        self.assertEqual(result["matched_instrument_count"], 1)
+        self.assertEqual(result["largest_absolute_security_weight_shift_pp"], "5.00")
+        self.assertEqual(result["rows_private"][0]["weight_change_pp"], "-5.00")
+        self.assertEqual(result["reason_codes"], ["MONETARY_DENOMINATOR_NOT_VERIFIED"])
+        self.assertIsNone(result["cash_weight_change_pp"])
+        self.assertEqual(result["performance_or_transaction_inference"], "NONE")
+
+    def test_percent_only_unmatched_securities_do_not_get_inferred_zero_weights(self):
+        old, current = self.percentage_only()
+        current["positions"][0]["security_id"] = "DIFFERENT:TSX"
+        out = self.compare(old=old, now=current)
+        self.assertEqual(out["status"], "UNAVAILABLE_INCOMPLETE_SNAPSHOT_SCOPE")
+        self.assertIsNone(out["rows_private"])
+        self.assertIsNone(out["largest_absolute_security_weight_shift_pp"])
+
+    def test_percent_only_missing_identity_visibility_or_unconfirmed_scope_blocks(self):
+        for change in ("hidden_title", "hidden_scope", "incomplete_scope",
+                       "unconfirmed_access", "missing_display", "unknown_capture"):
+            with self.subTest(change=change):
+                old, current = self.percentage_only()
+                row = current["positions"][0]
+                if change == "hidden_title":
+                    row["field_statuses"]["security_id"] = "UNCERTAIN"
+                elif change == "hidden_scope":
+                    row["field_statuses"]["account_scope"] = "NOT_VISIBLE"
+                elif change == "incomplete_scope":
+                    current["scope_complete"] = False
+                elif change == "unconfirmed_access":
+                    current["source_access_confirmed_by_caller"] = False
+                elif change == "missing_display":
+                    row["displayed_weight_pct"] = None
+                    row["displayed_weight_visibility"] = "NOT_VISIBLE"
+                else:
+                    current["captured_at"] = "UNKNOWN"
+                out = self.compare(old=old, now=current)
+                self.assertEqual(out["status"], "UNAVAILABLE_INCOMPLETE_SNAPSHOT_SCOPE")
+                self.assertIsNone(out["rows_private"])
+
+    def test_pi_only_private_report_shows_ui_change_without_monetary_claims(self):
+        old, current = self.percentage_only("50.05", "50.25")
+        out = complete_manual_session(
+            self.request(), pi_delta=self.fx.pi(),
+            observation_inputs=current, prior_portfolio_observation_inputs=old)
+        self.assertEqual(out["portfolio_snapshot_comparison_private"]["status"],
+                         "OBSERVED_UI_WEIGHT_CHANGE_ONLY_NO_MONETARY_DENOMINATOR")
+        report = out["final_report_private"]
+        self.assertIn("largest raw UI difference 0.20 percentage points", report)
+        self.assertIn("Monetary account denominator and cash weight are UNKNOWN", report)
+        self.assertNotIn("ABC:TSX", report)
+        self.assertNotIn("SCOPE-A", report)
+        self.assertNotIn("scoped cash weight change", report)
+        self.assertEqual(out["readiness"], "NOT_EVALUATED")
+
+    def test_ir_pi_followup_preserves_ui_only_status_and_private_annex(self):
+        old, current = self.percentage_only()
+        ir = self.fx.ir()
+        out = complete_manual_session(
+            self.request(research_needed=True), ir_capsule=ir,
+            pi_delta=self.fx.pi(forwarded_ir=deepcopy(ir)),
+            observation_inputs=current, prior_portfolio_observation_inputs=old)
+        self.assertEqual(out["integrated_private"]["portfolio_snapshot_comparison_private"],
+                         out["portfolio_snapshot_comparison_private"])
+        self.assertIn("largest raw UI difference", out["final_report_private"])
+        self.assertNotIn("ABC:TSX", out["final_report_private"])
+        self.assertNotIn("portfolio_snapshot_comparison_private",
+                         str(out["integrated_private"]["memory_proposal_nonprivate"]))
+
+    def test_report_cannot_upgrade_ui_only_to_cash_return_or_forged_current_pct(self):
+        old, current = self.percentage_only()
+        obs = prepare_observation_ledger(**current)
+        snap = self.compare(old=old, now=current)
+        packet = ReportingTests().packet(
+            analysis_id="CASE-A", kind="FOLLOWUP", prior_analysis_id="PRIOR-CASE",
+            changes=[], portfolio_observation_private=obs,
+            portfolio_snapshot_comparison_private=snap)
+        self.assertIn("largest raw UI difference", render_report(packet))
+        for field, value in (
+            ("cash_weight_change_pp", "-5.00"),
+            ("status", "DESCRIPTIVE_SCOPED_WEIGHT_CHANGE_NOT_RETURN"),
+            ("matched_instrument_count", 3),
+        ):
+            with self.subTest(field=field):
+                bad = deepcopy(packet)
+                bad["portfolio_snapshot_comparison_private"][field] = value
+                with self.assertRaisesRegex(ValueError, "SNAPSHOT_REPORT_"):
+                    render_report(bad)
+        bad = deepcopy(packet)
+        bad["portfolio_snapshot_comparison_private"]["rows_private"][0][
+            "current_weight_pct"] = "99.00"
+        bad["portfolio_snapshot_comparison_private"]["rows_private"][0][
+            "weight_change_pp"] = "19.00"
+        with self.assertRaisesRegex(ValueError, "SNAPSHOT_REPORT_UI_VISIBLE_PARITY_INVALID"):
+            render_report(bad)
+
     def test_report_refuses_forged_confidentiality_status_and_percentages(self):
         current = prepare_observation_ledger(**self.current())
         packet = ReportingTests().packet(

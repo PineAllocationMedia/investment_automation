@@ -133,7 +133,8 @@ def _portfolio_snapshot_comparison_lines(packet: Mapping[str, Any],
         raise ValueError("SNAPSHOT_REPORT_OBSERVATION_BASIS_MISMATCH")
     reasons = x["reason_codes"]
     if (not isinstance(reasons, list)
-            or any(code not in ("PRIOR_SCOPE_INCOMPLETE", "CURRENT_SCOPE_INCOMPLETE")
+            or any(code not in ("PRIOR_SCOPE_INCOMPLETE", "CURRENT_SCOPE_INCOMPLETE",
+                                "MONETARY_DENOMINATOR_NOT_VERIFIED")
                    for code in reasons)
             or len(reasons) != len(set(reasons))):
         raise ValueError("SNAPSHOT_REPORT_REASON_CODES_INVALID")
@@ -148,9 +149,15 @@ def _portfolio_snapshot_comparison_lines(packet: Mapping[str, Any],
             raise ValueError("SNAPSHOT_REPORT_UNAVAILABLE_NUMBERS_INVALID")
         lines.append("Weight change UNAVAILABLE: " + ", ".join(reasons)
                      + ". Confirm complete dated cash and holdings on both observations.")
-    elif x["status"] == "DESCRIPTIVE_SCOPED_WEIGHT_CHANGE_NOT_RETURN":
+    elif x["status"] in {
+            "DESCRIPTIVE_SCOPED_WEIGHT_CHANGE_NOT_RETURN",
+            "OBSERVED_UI_WEIGHT_CHANGE_ONLY_NO_MONETARY_DENOMINATOR",
+    }:
+        ui_only = (x["status"] ==
+                   "OBSERVED_UI_WEIGHT_CHANGE_ONLY_NO_MONETARY_DENOMINATOR")
         rows = x["rows_private"]
-        if reasons or not isinstance(rows, list) or not 1 <= len(rows) <= 10000:
+        if ((reasons != ["MONETARY_DENOMINATOR_NOT_VERIFIED"] if ui_only else bool(reasons))
+                or not isinstance(rows, list) or not 1 <= len(rows) <= 10000):
             raise ValueError("SNAPSHOT_REPORT_ROWS_INVALID")
         def pct(v: Any, *, signed: bool = False) -> Decimal:
             if not isinstance(v, str) or len(v) > 8:
@@ -190,19 +197,44 @@ def _portfolio_snapshot_comparison_lines(packet: Mapping[str, Any],
             raise ValueError("SNAPSHOT_REPORT_COUNT_INVALID")
         if pct(x["largest_absolute_security_weight_shift_pp"]) != largest:
             raise ValueError("SNAPSHOT_REPORT_MAX_SHIFT_INVALID")
-        cash = pct(x["cash_weight_change_pp"], signed=True)
-        lines.append(
-            f"Security identities: {counts['CONTINUING']} observed on both dates; "
-            f"{counts['NEWLY_VISIBLE']} newly visible; "
-            f"{counts['NO_LONGER_VISIBLE']} no longer visible.")
-        lines.append(
-            f"Largest absolute security-line weight shift: {largest:.2f} percentage "
-            f"points; scoped cash weight change: {cash:+.2f} percentage points. "
-            "Private positions and amounts stay in the separate annex.")
+        if ui_only:
+            # Report *only* raw UI differences for exactly matched identities.
+            # No cash, absent-name arithmetic, full account denominator or
+            # performance claims may be manufactured from displayed weights.
+            if (x["cash_weight_change_pp"] is not None
+                    or counts["NEWLY_VISIBLE"] or counts["NO_LONGER_VISIBLE"]
+                    or counts["CONTINUING"] != len(rows)
+                    or obs.get("known_scope_weights_pct") is not None):
+                raise ValueError("SNAPSHOT_REPORT_UI_ONLY_BASIS_INVALID")
+            by_security = {record.get("security_id"): record
+                           for record in obs.get("p_ledger_private", [])
+                           if isinstance(record, Mapping)}
+            if len(by_security) != len(rows) or any(
+                by_security.get(row["security_id_private"], {}).get(
+                    "displayed_weight_pct_private") != row["current_weight_pct"]
+                for row in rows
+            ):
+                raise ValueError("SNAPSHOT_REPORT_UI_VISIBLE_PARITY_INVALID")
+            lines.append(
+                f"Source-displayed weights for {len(rows)} matched visible "
+                f"security IDs: largest raw UI difference {largest:.2f} "
+                "percentage points. Monetary account denominator and cash "
+                "weight are UNKNOWN; original UI totals are not normalized. "
+                "No position entry/exit or portfolio drift is asserted.")
+        else:
+            cash = pct(x["cash_weight_change_pp"], signed=True)
+            lines.append(
+                f"Security identities: {counts['CONTINUING']} observed on both dates; "
+                f"{counts['NEWLY_VISIBLE']} newly visible; "
+                f"{counts['NO_LONGER_VISIBLE']} no longer visible.")
+            lines.append(
+                f"Largest absolute security-line weight shift: {largest:.2f} percentage "
+                f"points; scoped cash weight change: {cash:+.2f} percentage points. "
+                "Private positions and amounts stay in the separate annex.")
     else:
         raise ValueError("SNAPSHOT_REPORT_STATUS_INVALID")
     lines.append(
-        "Reported weight changes are NOT price returns, capital contributions, "
+        "Reported weight changes are NOT price returns, capital contributions, 
         "purchases/sales, a portfolio policy choice, verified source data or "
         "whole-household exposure. Human history and source review required.")
     return lines
