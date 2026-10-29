@@ -21,6 +21,7 @@ OPTIONAL_FIELDS = frozenset({
     "observation_inputs", "exposure_classifications", "room_assessment_inputs",
     "source_evidence_inputs", "valuation_inputs", "candidate_comparison_inputs",
     "fundamental_inputs", "historical_comparison_inputs", "opportunity_triage_inputs",
+    "macro_sector_inputs",
 })
 PERMITTED_FIELDS = OPTIONAL_FIELDS | {"request"}
 NEXT_ACTIONS = {
