@@ -426,6 +426,25 @@ class SessionBridgeTests(unittest.TestCase):
         self.assertEqual(out["project_invocation"], "NONE")
 
 
+    def test_historical_fund_snapshot_cannot_validate_supported_room_claim(self):
+        from unittest.mock import patch
+        with patch("ai_native.session_bridge.prepare_observation_ledger",
+                   return_value={"observed_on":"2026-10-28",
+                                 "known_scope_weights_pct":{"P1":"100.00"},
+                                 "private_scope":True}), \
+             patch("ai_native.session_bridge.aggregate_portfolio_exposures",
+                   return_value={
+                       "status":"CALLER_REPORTED_SCOPED_EXPOSURES",
+                       "fund_composition_date_alignment":"PRIOR_DATED_FUND_SNAPSHOTS"}):
+            with self.assertRaisesRegex(
+                    ValueError, "ROOM_ASSERTION_UNSUPPORTED_BY_PARTIAL_LOOKTHROUGH"):
+                complete_manual_session(
+                    self.request(research_needed=False,portfolio_needed=True),
+                    pi_delta=self.pi(room_status="ROOM_EVIDENCE_SUPPORTED"),
+                    observation_inputs={
+                        "analysis_id":"CASE-A", "analysis_as_of":"2026-10-28"},
+                    exposure_classifications={})
+
     def test_portfolio_room_review_reaches_final_report_on_ir_pi_route(self):
         from unittest.mock import patch
         req = self.request(portfolio_needed=True)

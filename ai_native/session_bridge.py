@@ -238,7 +238,9 @@ def complete_manual_session(
             observation, classifications_by_p_id=exposure_classifications
         )
         if (pi_delta is not None and pi_delta.get("room_status") == "ROOM_EVIDENCE_SUPPORTED"
-                and exposures["status"] != "CALLER_REPORTED_SCOPED_EXPOSURES"):
+                and (exposures["status"] != "CALLER_REPORTED_SCOPED_EXPOSURES"
+                     or exposures.get("fund_composition_date_alignment") ==
+                        "PRIOR_DATED_FUND_SNAPSHOTS")):
             raise ValueError("ROOM_ASSERTION_UNSUPPORTED_BY_PARTIAL_LOOKTHROUGH")
 
     # Carry the already-validated PRIVATE P-ledger in the existing manual PI
