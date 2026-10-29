@@ -54,3 +54,29 @@ No routine selling, price-only signal, automation, Project invocation or
 portfolio decision is created. The helper is **construction only**; synthetic
 tests authored `tests.test_ai_native_exceptional_lifecycle`, runtime NOT_RUN
 in connector-only environment, no real holdings/thesis acceptance.
+
+## Conditional lifecycle → Command Center manual review queue
+
+On a **completed, explicitly CEO-requested** High-CAGR IR→PI→CC session,
+`python -m scripts.r1_manual_session_cli --output review-queue` now
+emits **at most one lifecycle-specific, fixed-code human next action**
+from the already prepared private `exceptional_lifecycle_review_private`.
+The queue prioritizes unresolved original IR facts, missing dated current
+evidence, incomplete scope, unknown fee/FX/tax effects, or a price-only/
+transient uncertainty event; an otherwise complete-looking caller-reported
+record still requires independent thesis and cost review. The queue
+checks case/date/account alignment, original private ledger, unchanged
+component record and non-escalated source/trading authority.
+The default `--output status` remains redacted; the queue never copies
+identifiers, account/sale amounts, the original thesis, countercase,
+private locators or analyst narrative.
+
+No lifecycle-specific task is offered before the requested PI result or
+without a lifecycle review. A task is an operator instruction only:
+`readiness=NOT_EVALUATED`, `trading_authority=NONE`, zero storage,
+zero Project invocation, no sales signal. The finite queue cap is now
+13 rather than 12 to allow one exceptional task without replacing
+the existing research/portfolio checks. Synthetic tests authored in
+`tests.test_ai_native_exceptional_lifecycle` and
+`tests.test_ai_native_manual_review_queue`; runtime NOT_RUN in the
+GitHub-only session, not authentic R1 acceptance.

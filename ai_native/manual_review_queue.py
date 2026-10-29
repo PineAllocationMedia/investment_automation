@@ -7,6 +7,8 @@ from __future__ import annotations
 
 from typing import Any, Mapping
 
+from .exceptional_lifecycle import EVENTS, VIEWS
+
 FINAL = frozenset({
     "M7A_COMPONENT_ASSEMBLED_NOT_END_TO_END_ACCEPTANCE",
     "PI_ONLY_CONDITIONAL_REPORT_ASSEMBLED",
@@ -18,7 +20,81 @@ WAITING = frozenset({
     "AWAITING_MANUAL_PORTFOLIO_SCREENSHOT",
 })
 ROUTES = frozenset({"CC_DIRECT", "CC_IR_CC", "CC_PI_CC", "CC_IR_PI_CC"})
-MAX_ITEMS = 12
+MAX_ITEMS = 13  # One bounded, qualified lifecycle review step beyond the prior queue.
+
+
+LIFECYCLE_STATUSES = frozenset({
+    "EVIDENCE_RESOLUTION_NO_ACTION", "HUMAN_THESIS_AND_COST_REVIEW_ONLY",
+})
+LIFECYCLE_LIMITS = frozenset({
+    "PRIVATE_SCOPED_PORTFOLIO_INCOMPLETE", "ORIGINAL_IR_FACTS_UNRESOLVED",
+    "NO_CURRENT_EVIDENCE_REFERENCES", "FEES_STATUS_UNKNOWN",
+    "FX_STATUS_UNKNOWN", "TAX_STATUS_UNKNOWN",
+    "NO_STRUCTURAL_SELL_THESIS_FROM_EVENT",
+})
+
+
+def _lifecycle_review_action(session: Mapping[str, Any],
+                             integrated: Mapping[str, Any],
+                             review: Mapping[str, Any]) -> tuple[str, str, str]:
+    """At most one deterministic human task. Never surface private values."""
+    memory = integrated.get("memory_proposal_nonprivate")
+    if (not isinstance(memory, Mapping)
+            or integrated.get("exceptional_lifecycle_review_private") != review
+            or review.get("status") not in LIFECYCLE_STATUSES
+            or review.get("analysis_id") != memory.get("analysis_id")
+            or review.get("analysis_as_of") != memory.get("as_of")
+            or review.get("strategy_id") not in {"high-cagr", "High-CAGR", "HIGH_CAGR"}
+            or review.get("source_authentication") != "NOT_PERFORMED"
+            or review.get("account_and_cost_authentication") != "NOT_PERFORMED"
+            or review.get("portfolio_room_admission") != "NONE"
+            or review.get("allocation_or_sale_proposal") != "NONE"
+            or review.get("trade_authority") != "NONE_CEO_ONLY"
+            or review.get("public_memory_write") != "NONE"
+            or review.get("thesis_event") not in EVENTS
+            or review.get("analyst_reported_view") not in VIEWS):
+        raise ValueError("REVIEW_QUEUE_LIFECYCLE_AUTHORITY_INVALID")
+    obs = session.get("portfolio_observation_private")
+    if (not isinstance(obs, Mapping)
+            or obs.get("analysis_id") != review["analysis_id"]
+            or obs.get("analysis_as_of") != review["analysis_as_of"]
+            or obs.get("observed_on") != review.get("portfolio_observed_on")
+            or obs.get("account_scope") != review.get("account_scope_private")
+            or obs.get("private_scope") is not True):
+        raise ValueError("REVIEW_QUEUE_LIFECYCLE_OBSERVATION_MISMATCH")
+    refs = review.get("original_ir_fact_ids_private")
+    current = review.get("current_evidence_refs_private")
+    limits = review.get("missing_or_qualified")
+    if (not isinstance(refs, list) or not refs or len(refs) > 24
+            or not isinstance(current, list) or len(current) > 24
+            or any(not isinstance(x, str) or not x or len(x) > 90 for x in refs + current)
+            or len(set(refs)) != len(refs) or len(set(current)) != len(current)
+            or not isinstance(limits, list) or len(limits) > len(LIFECYCLE_LIMITS)
+            or any(not isinstance(x, str) or x not in LIFECYCLE_LIMITS for x in limits)
+            or len(set(limits)) != len(limits)
+            or (review["status"] == "HUMAN_THESIS_AND_COST_REVIEW_ONLY") != (not limits)):
+        raise ValueError("REVIEW_QUEUE_LIFECYCLE_LIMITATIONS_INVALID")
+    if (review["thesis_event"] in {"VOLATILITY_ONLY", "TRANSIENT_INFORMATION_UNCERTAINTY"}
+            and review["analyst_reported_view"] in {"REVIEW_TRIM", "REVIEW_EXIT"}):
+        raise ValueError("REVIEW_QUEUE_LIFECYCLE_PRICE_ONLY_SELL_INVALID")
+    missing = set(limits)
+    if "ORIGINAL_IR_FACTS_UNRESOLVED" in missing:
+        return ("RESOLVE_LIFECYCLE_IR_FACTS", "EVIDENCE_RESOLUTION",
+                "Check the original IR-linked thesis facts and contradictions before interpreting any exceptional position view.")
+    if "NO_CURRENT_EVIDENCE_REFERENCES" in missing:
+        return ("FIND_LIFECYCLE_CURRENT_EVIDENCE", "EVIDENCE_RESOLUTION",
+                "Obtain dated, rights-permitted evidence of the alleged thesis change; a narrative alone cannot justify a sale.")
+    if "PRIVATE_SCOPED_PORTFOLIO_INCOMPLETE" in missing:
+        return ("RECONCILE_LIFECYCLE_HOLDINGS_SCOPE", "EVIDENCE_RESOLUTION",
+                "Recheck the dated private position, account coverage and hidden holdings before assessing concentration or lifecycle choices.")
+    if missing & {"FEES_STATUS_UNKNOWN", "FX_STATUS_UNKNOWN", "TAX_STATUS_UNKNOWN"}:
+        return ("VERIFY_LIFECYCLE_TRANSACTION_COSTS", "EVIDENCE_RESOLUTION",
+                "Verify relevant account fees, FX and tax-lot effects before discussing any exceptional trim or exit; do not trade.")
+    if "NO_STRUCTURAL_SELL_THESIS_FROM_EVENT" in missing:
+        return ("REVIEW_LIFECYCLE_NONSTRUCTURAL_EVENT", "HUMAN_VERIFICATION",
+                "Volatility or temporary uncertainty alone does not establish a High-CAGR sell trigger; check the original thesis without recommending a sale.")
+    return ("REVIEW_LIFECYCLE_THESIS_AND_COSTS", "HUMAN_VERIFICATION",
+            "Independently review original and current thesis evidence, portfolio identity and account costs; specialist view is not trading approval.")
 
 
 def prepare_manual_review_queue(session: Mapping[str, Any]) -> dict[str, Any]:
@@ -40,6 +116,11 @@ def prepare_manual_review_queue(session: Mapping[str, Any]) -> dict[str, Any]:
             or session.get("storage") != "NONE"
             or session.get("readiness") != "NOT_EVALUATED"):
         raise ValueError("REVIEW_QUEUE_AUTHORITY_MISMATCH")
+    lifecycle = session.get("exceptional_lifecycle_review_private")
+    if lifecycle is not None and (
+            status != "M7A_COMPONENT_ASSEMBLED_NOT_END_TO_END_ACCEPTANCE"
+            or route != "CC_IR_PI_CC" or not isinstance(lifecycle, Mapping)):
+        raise ValueError("REVIEW_QUEUE_LIFECYCLE_ROUTE_INVALID")
     items: list[dict[str, str]] = []
 
     def add(code: str, stage: str, instruction: str) -> None:
@@ -147,6 +228,9 @@ def prepare_manual_review_queue(session: Mapping[str, Any]) -> dict[str, Any]:
                 if integrated.get("historical_research_comparison_private") is not None:
                     add("CHECK_RESEARCH_CHANGES", "HUMAN_VERIFICATION",
                         "Verify linked past/current evidence and distinguish genuine thesis change from changed methods or sources.")
+                if lifecycle is not None:
+                    code, stage, action = _lifecycle_review_action(session, integrated, lifecycle)
+                    add(code, stage, action)
             elif status == "PI_ONLY_CONDITIONAL_REPORT_ASSEMBLED":
                 if route != "CC_PI_CC":
                     raise ValueError("REVIEW_QUEUE_PI_COMPLETE_ROUTE_MISMATCH")
