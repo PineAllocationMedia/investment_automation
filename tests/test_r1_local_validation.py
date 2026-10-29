@@ -4,8 +4,9 @@ from io import StringIO
 from pathlib import Path
 from tempfile import TemporaryDirectory
 import unittest
+import subprocess
 
-from scripts.r1_local_validation import validate
+from scripts.r1_local_validation import validate, _checkout
 
 
 class HarnessTests(unittest.TestCase):
@@ -18,6 +19,7 @@ class HarnessTests(unittest.TestCase):
             out = StringIO()
             result = validate(
                 root, out=out, checker=lambda _: checked,
+                checkout_checker=lambda _: (None, "a" * 40),
                 discoverer=lambda _: suite or unittest.TestSuite(),
                 required=required, minimum_modules=1, minimum_cases=1)
             return result, out.getvalue()
@@ -73,3 +75,47 @@ class HarnessTests(unittest.TestCase):
         self.assertEqual(code, 0)
         self.assertIn("R1_TEST_CASES_DISCOVERED=2", result)
         self.assertIn("R1_TEST_CASES_UNIQUE=1", result)
+
+
+class CheckoutIntegrityTests(unittest.TestCase):
+    @staticmethod
+    def git(root, *args):
+        subprocess.run(("git", "-C", str(root), *args), check=True,
+                       stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
+    def repository(self, root):
+        self.git(root, "init", "-q", "-b", "model-v2/expected-return-challenger")
+        (root / "contract.txt").write_text("initial", encoding="utf-8")
+        self.git(root, "add", "contract.txt")
+        self.git(root, "-c", "user.name=PAM Test", "-c", "user.email=pam-test@example.invalid",
+                 "-c", "commit.gpgsign=false", "commit", "-q", "-m", "initial")
+        self.git(root, "update-ref", "refs/remotes/origin/model-v2/expected-return-challenger", "HEAD")
+
+    def test_checkout_requires_git(self):
+        with TemporaryDirectory() as td:
+            self.assertEqual(_checkout(Path(td))[0], "CHECKOUT_GIT_UNAVAILABLE")
+
+    def test_checkout_accepts_clean_v2_local_head_only(self):
+        with TemporaryDirectory() as td:
+            root = Path(td)
+            self.repository(root)
+            reason, sha = _checkout(root)
+            self.assertIsNone(reason)
+            self.assertEqual(len(sha), 40)
+
+    def test_dirty_checkout_refused(self):
+        with TemporaryDirectory() as td:
+            root = Path(td)
+            self.repository(root)
+            (root / "contract.txt").write_text("altered", encoding="utf-8")
+            self.assertEqual(_checkout(root)[0], "CHECKOUT_HAS_CHANGES")
+
+    def test_stale_local_tracking_ref_refused(self):
+        with TemporaryDirectory() as td:
+            root = Path(td)
+            self.repository(root)
+            (root / "contract.txt").write_text("second commit", encoding="utf-8")
+            self.git(root, "add", "contract.txt")
+            self.git(root, "-c", "user.name=PAM Test", "-c", "user.email=pam-test@example.invalid",
+                     "-c", "commit.gpgsign=false", "commit", "-q", "-m", "second")
+            self.assertEqual(_checkout(root)[0], "CHECKOUT_HEAD_DIFFERS_FROM_LOCAL_V2_TRACKING_REF")
