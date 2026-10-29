@@ -371,6 +371,71 @@ class ManualIntegrationTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "IR_SOURCE_OBSERVED_AFTER_RESEARCH_AS_OF"):
             assemble_manual_run(self.request(), self.ir(EVIDENCE_ANNEX=self.embedded_source_inputs()))
 
+
+    def test_separate_cc_later_source_is_retained_but_not_retroactive_ir(self):
+        evidence = self.embedded_source_inputs()
+        # Original IR stopped on Oct 27; CC acquired the synthetic observation
+        # on Oct 28. This is valid CURRENT CC review, not earlier IR knowledge.
+        capsule = self.ir()
+        import copy
+        saved = copy.deepcopy(capsule)
+        out = assemble_manual_run(self.request(), capsule,
+                                  source_evidence_inputs=evidence)
+        annex = out["source_evidence_annex_private"]
+        self.assertEqual(annex["ir_timeline_relation"],
+                         "POST_IR_CC_REVIEW_ONLY")
+        self.assertEqual(annex["post_ir_observation_ids_private"], ["SYN-O1"])
+        self.assertEqual(annex["observation_count"], 1)
+        self.assertEqual(capsule, saved)
+        self.assertIn("CONDITIONAL", out["markdown"])
+        self.assertIn("cannot retroactively substantiate", out["markdown"])
+        self.assertEqual(out["source_verification"],
+                         "NOT_PERFORMED_BY_INTEGRATION")
+
+    def test_separate_cc_later_source_with_pi_keeps_original_ir_unchanged(self):
+        import copy
+        capsule = self.ir()
+        pi = self.pi(forwarded_ir=copy.deepcopy(capsule))
+        saved = copy.deepcopy(capsule)
+        out = assemble_manual_run(
+            self.request(), capsule, pi_delta=pi,
+            source_evidence_inputs=self.embedded_source_inputs())
+        self.assertEqual(out["source_evidence_annex_private"][
+            "ir_timeline_relation"], "POST_IR_CC_REVIEW_ONLY")
+        self.assertEqual(capsule, saved)
+        self.assertEqual(pi["forwarded_ir"], saved)
+        self.assertEqual(out["portfolio_room_status"], "ROOM_CONDITIONAL")
+        self.assertIn("cannot retroactively substantiate", out["markdown"])
+
+    def test_same_day_separate_cc_source_is_not_flagged_as_post_ir(self):
+        out = assemble_manual_run(
+            self.request(), self.ir(research_as_of="2026-10-28"),
+            source_evidence_inputs=self.embedded_source_inputs())
+        annex = out["source_evidence_annex_private"]
+        self.assertEqual(annex["ir_timeline_relation"],
+                         "NO_POST_IR_OBSERVATIONS_REPORTED")
+        self.assertEqual(annex["post_ir_observation_ids_private"], [])
+        self.assertNotIn("cannot retroactively substantiate", out["markdown"])
+        self.assertEqual(out["source_verification"], "NOT_PERFORMED_BY_INTEGRATION")
+
+    def test_embedded_ir_later_source_is_still_rejected(self):
+        evidence = self.embedded_source_inputs()
+        with self.assertRaisesRegex(
+                ValueError, "IR_SOURCE_OBSERVED_AFTER_RESEARCH_AS_OF"):
+            assemble_manual_run(self.request(), self.ir(EVIDENCE_ANNEX=evidence))
+
+    def test_empty_separate_cc_annex_has_no_post_ir_research_claim(self):
+        out = assemble_manual_run(
+            self.request(), self.ir(),
+            source_evidence_inputs={
+                "analysis_id": "SYN-001",
+                "analysis_as_of": "2026-10-28", "observations": []})
+        annex = out["source_evidence_annex_private"]
+        self.assertEqual(annex["post_ir_observation_ids_private"], [])
+        self.assertEqual(annex["ir_timeline_relation"],
+                         "NO_POST_IR_OBSERVATIONS_REPORTED")
+        self.assertNotIn("cannot retroactively substantiate", out["markdown"])
+
     def test_embedded_source_cannot_reference_unknown_ir_fact(self):
         evidence = self.embedded_source_inputs(fact_id="NOT_AN_IR_FACT")
         with self.assertRaisesRegex(ValueError, "SOURCE_ANNEX_UNKNOWN_IR_FACT_ID"):
