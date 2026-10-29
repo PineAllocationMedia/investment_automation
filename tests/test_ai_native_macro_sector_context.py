@@ -134,6 +134,15 @@ class MacroSectorContextTests(unittest.TestCase):
                                     source_evidence_inputs=source,
                                     macro_sector_inputs=self.input(strategy_id="OTHER"))
 
+    def test_source_observed_after_ir_capsule_as_of_is_not_backdated(self):
+        source={"analysis_id":"SYN-X","analysis_as_of":"2026-10-28",
+                "observations":[self.observation(observed_at="2026-10-28")]}
+        with self.assertRaisesRegex(
+            ValueError,"MACRO_SECTOR_OBSERVATION_AFTER_IR_RESEARCH_AS_OF"):
+            complete_manual_session(self.fx.request(),ir_capsule=self.fx.capsule(),
+                                    source_evidence_inputs=source,
+                                    macro_sector_inputs=self.input())
+
     def test_no_ir_route_or_missing_ir_handoff_cannot_claim_finished_report(self):
         with self.assertRaisesRegex(ValueError,"MACRO_SECTOR_REQUIRES_IR_ROUTE"):
             complete_manual_session(self.fx.request(False,True),
