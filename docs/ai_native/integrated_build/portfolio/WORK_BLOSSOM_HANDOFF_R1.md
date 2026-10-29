@@ -1,6 +1,8 @@
 # M3 — ChatGPT Work / Blossom private visual observation handoff R1
 
-**Scope:** Construction-time handoff between an explicitly authorized Work browser observation and the existing M3 P-ledger. **Status:** `WORK_ADAPTER_BUILT / LIVE_BLOSSOM_COMPATIBILITY_NOT_TESTED / NOT_PORTFOLIO_READY`. Neither a browser integration nor a broker connection has been installed.
+**Scope:** Construction-time handoff between an explicitly authorized Work browser observation and the existing M3 P-ledger. **Status:** `WORK_ADAPTER_AND_MANUAL_R1_BRIDGE_BUILT / LIVE_PRIVATE_PORTFOLIO_NOT_TESTED / NOT_PORTFOLIO_READY`. Neither a browser integration nor a broker connection has been installed.
+
+**Default copy-ready one-off Work prompt:** [PROMPT PI-1 — BLOSSOM PORTFOLIO (WORK + CLOUD BROWSER DEFAULT)](PROMPT_PI_1_BLOSSOM_PORTFOLIO_WORK_R1.md), version `PI-WORK-PORTFOLIO-R1.3`. This supersedes only the shorter *example task wording* below for actual Work operations; the adapter/ledger schema and all privacy safeguards remain unchanged. The CEO must run it explicitly in Work; GitHub cannot invoke a signed-in browser. The task requires the CEO's exact `BLOSSOM_TARGET_URL` only; **Work must classify the Portfolio actually shown** as `PUBLIC_REFERENCE`, `OWN_PRIVATE_AUTHORIZED`, or `INACCESSIBLE_OR_AMBIGUOUS`. No mandatory CEO-owned/private-vs-public preselection. A visible public reference receives a separate **descriptive Work portfolio analysis**, never the private M3 holdings adapter. Only a genuinely authorized owner-private view yields `work_blossom_inputs` for the private R1 session. **CEO-reported 2026-10-29 observation:** signed-in profile navigation and the See all stocks list were visible with 20 holdings and displayed percentages. This is Work-reported partial visibility, not proof of anonymous access, the account denominator or source-authenticated brokerage holdings. Keep the reference report separate from the private M3 adapter, without renormalizing rounded display weights.
 
 ## Preferred authorized acquisition: Work mode
 
@@ -61,18 +63,21 @@ For a screenshot fallback use `capture_mode=USER_SCREENSHOT`, not a false Work l
 ## Runnable handoff to existing M3/M1→M7a code
 
 ```python
-from ai_native.work_blossom_adapter import prepare_work_blossom_observation
 from ai_native.session_bridge import complete_manual_session
 
-prepared = prepare_work_blossom_observation(private_packet_from_authorized_work)
-if prepared["observation_inputs_private"] is not None:
-    result = complete_manual_session(
-        ceo_initiated_request,
-        observation_inputs=prepared["observation_inputs_private"],
-        # pi_delta only when separately actually supplied by PI
-    )
-    # Keep result and prepared entirely in authorized private context.
+# Work's PI-1 output contains {"work_blossom_inputs": <private observation>}.
+# Do not pass the outer wrapper as the nested object.
+result = complete_manual_session(
+    ceo_initiated_request,  # must request PI, with matching analysis_id / as_of
+    work_blossom_inputs=work_result["work_blossom_inputs"],
+    # pi_delta=the actual manually received PI_DELTA, only if supplied
+    # ir_capsule=the unchanged original IR package, only if IR was requested
+)
+# Keep the full result inside the authorized private environment.
+# No auto Project transfer or source authentication has occurred.
 ```
+
+For the unchanged local JSON-over-stdin CLI, use the same `work_blossom_inputs` key beside the `request` key, and include `pi_delta` only when separately obtained. A view reported `UNAVAILABLE` has no usable holdings and leads to `AWAITING_MANUAL_PORTFOLIO_SCREENSHOT` (after any required IR handoff); an observed view without PI_DELTA remains `AWAITING_MANUAL_PI_DELTA`. Do not claim Work accessed the holdings until the explicit real browser task returns evidence.
 
 `prepare_work_blossom_observation` is a **pure adapter**. It is NOT capable of opening Work, inspecting Blossom, confirming the signed-in browser or sending to PI. `source_access_reported=true` is an **external report**, not an authenticated source assertion. It passes only strictly selected structured values to `prepare_observation_ledger`; the original P-ledger guards govern dates, field statuses, cash, currency and scoped-weight calculation. Missing “Other” rows, cash, scope or currency basis prevent fully supported weights. **Portfolio Room remains UNAVAILABLE without independent strategy and issuer research.**
 
