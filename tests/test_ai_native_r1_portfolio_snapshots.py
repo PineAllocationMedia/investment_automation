@@ -133,6 +133,20 @@ class PrivatePortfolioSnapshotFollowupTests(unittest.TestCase):
         self.assertNotIn("SCOPE-A", memory)
         self.assertNotIn("portfolio_snapshot_comparison_private", memory)
 
+    def test_missing_currency_in_prior_or_current_never_produces_dated_change(self):
+        for prior_currency, current_currency, expected in (
+            ("XXX", "CAD", "SNAPSHOT_ACCOUNT_OR_CURRENCY_BASIS_CHANGED"),
+            ("UNK", "UNK", "SNAPSHOT_ORIGINAL_CUTOFF_OR_CURRENCY_UNKNOWN"),
+            ("CAD", "XXX", "SNAPSHOT_ACCOUNT_OR_CURRENCY_BASIS_CHANGED"),
+        ):
+            with self.subTest(currencies=(prior_currency, current_currency)):
+                old = self.previous(currency=prior_currency)
+                old["positions"][0]["currency"] = prior_currency
+                now = self.current(currency=current_currency)
+                now["positions"][0]["currency"] = current_currency
+                with self.assertRaisesRegex(ValueError, expected):
+                    self.compare(old=old, now=now)
+
     def test_explicit_followup_and_current_private_pi_required(self):
         requests = [
             self.fx.request(research_needed=False,portfolio_needed=True),
