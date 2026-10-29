@@ -112,8 +112,15 @@ def prepare_observation_ledger(
         raise ValueError("BLOSSOM_ACCESS_NOT_CONFIRMED")
     account = _text(account_scope, "account_scope")
     curr = _text(currency, "currency").upper()
-    if curr != "UNKNOWN" and (len(curr) != 3 or not curr.isalpha()):
-        raise ValueError("currency: three-letter ISO currency or UNKNOWN required")
+    # User-provided missing-value tokens must NEVER become cash-denominated
+    # portfolio weights just because they happen to be three ASCII letters.
+    # Preserve the observational record but canonicalize these sentinels to
+    # UNKNOWN; same-currency caller assertions cannot override this boundary.
+    if curr in {"UNK", "XXX", "XTS", "TBD"}:
+        curr = "UNKNOWN"
+    if curr != "UNKNOWN" and (
+            len(curr) != 3 or not curr.isascii() or not curr.isalpha()):
+        raise ValueError("currency: three-letter account currency or UNKNOWN required")
     reasons: list[str] = []
     if curr == "UNKNOWN":
         reasons.append("ACCOUNT_CURRENCY_UNKNOWN")

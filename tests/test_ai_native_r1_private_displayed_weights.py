@@ -90,6 +90,21 @@ class PrivateVisiblePercentageTests(unittest.TestCase):
         self.assertEqual(ledger["displayed_weight_summary_private"]["displayed_weight_sum_pct"], "79.50")
         self.assertEqual(ledger["scope_total_base"], "100.00")
 
+    def test_sentinel_currency_in_work_handoff_keeps_visible_amounts_but_blocks_weights(self):
+        for sentinel in ("UNK", "XXX", "XTS", "TBD"):
+            with self.subTest(currency=sentinel):
+                source = self.fx.report(currency=sentinel)
+                source["positions"][0]["currency"] = sentinel
+                capture = prepare_work_blossom_observation(source)
+                ledger = capture["p_ledger_private"]
+                self.assertEqual(ledger["currency"], "UNKNOWN")
+                self.assertEqual(ledger["status"], "OBSERVATION_LEDGER_ONLY")
+                self.assertIsNone(ledger["scope_total_base"])
+                self.assertIsNone(ledger["known_scope_weights_pct"])
+                self.assertIn("ACCOUNT_CURRENCY_UNKNOWN", ledger["missing_or_qualified"])
+                self.assertEqual(capture["transfer"], "MANUAL_ONLY")
+                self.assertEqual(capture["project_invocation"], "NONE")
+
     def test_invalid_display_values_and_visibility_rejected(self):
         for bad in ("NaN", "-1", "101", "100.001", "1e2", "3.141", "1,5", 30, ""):
             with self.subTest(value=bad):

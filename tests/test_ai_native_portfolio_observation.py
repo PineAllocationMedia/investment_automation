@@ -63,6 +63,31 @@ class ObservationTests(unittest.TestCase):
         self.assertIsNone(out["known_scope_weights_pct"])
         self.assertEqual(out["p_ledger_private"][0]["field_statuses"]["security_id"], "UNCERTAIN")
 
+    def test_unavailable_currency_sentinels_never_derive_monetary_weights(self):
+        for sentinel in ("UNK", "XXX", "XTS", "TBD", "UNKNOWN"):
+            with self.subTest(currency=sentinel):
+                source = self.kwargs(currency=sentinel)
+                source["positions"][0]["currency"] = sentinel
+                ledger = prepare_observation_ledger(**source)
+                self.assertEqual(ledger["status"], "OBSERVATION_LEDGER_ONLY")
+                self.assertEqual(ledger["currency"], "UNKNOWN")
+                self.assertIsNone(ledger["known_scope_weights_pct"])
+                self.assertIsNone(ledger["scope_total_base"])
+                self.assertIn("ACCOUNT_CURRENCY_UNKNOWN", ledger["missing_or_qualified"])
+                self.assertEqual(ledger["portfolio_room_status"], "ROOM_UNAVAILABLE")
+                self.assertEqual(ledger["p_ledger_private"][0]["market_value_base"], "300.00")
+
+    def test_invalid_nonascii_currency_never_acts_as_iso_token(self):
+        for raw in ("ÇAD", "円円円", "US1"):
+            with self.subTest(raw=raw), self.assertRaisesRegex(ValueError, "currency:"):
+                prepare_observation_ledger(**self.kwargs(currency=raw))
+
+    def test_verified_cad_stays_eligible_but_not_broker_authenticated(self):
+        out = prepare_observation_ledger(**self.kwargs(currency="cad"))
+        self.assertEqual(out["status"], "SCOPED_WEIGHTS_DERIVED_FROM_CALLER_VISIBLE_DATA")
+        self.assertEqual(out["currency"], "CAD")
+        self.assertEqual(out["verification"], "CALLER_ASSERTED_NOT_INDEPENDENTLY_AUTHENTICATED")
+
     def test_mixed_currency_is_not_normalized(self):
         row = copy.deepcopy(self.kwargs()["positions"][0]); row["currency"] = "USD"
         out = prepare_observation_ledger(**self.kwargs(positions=[row]))
