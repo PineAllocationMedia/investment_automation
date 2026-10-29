@@ -228,6 +228,8 @@ def prepare_new_capital_projection(
         "analysis_id": analysis_id,
         "portfolio_as_of": portfolio_as_of,
         "gross_status": gross["status"],
+        "gross_unavailable_reason_codes": (
+            list(gross["reason_codes"]) if gross["status"] == "UNAVAILABLE" else None),
         "allocations_pct": (dict(contribution_inputs["allocations_pct"])
                             if gross["status"] == "GROSS_PROJECTION_ONLY" else None),
         "cost_status": costs["status"] if costs is not None else "NOT_SUPPLIED",
