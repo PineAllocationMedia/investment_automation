@@ -9,6 +9,8 @@ from __future__ import annotations
 from datetime import date
 from typing import Any, Mapping
 
+from .source_fusion import assemble_source_fusion
+
 EVENTS = frozenset({
     "VOLATILITY_ONLY", "TRANSIENT_INFORMATION_UNCERTAINTY",
     "FUNDAMENTAL_DETERIORATION", "STRUCTURAL_THESIS_BREAK",
@@ -44,7 +46,8 @@ def _date(raw: Any, field: str) -> str:
 def prepare_exceptional_lifecycle_review(
     request: Mapping[str, Any], ir_capsule: Mapping[str, Any],
     pi_delta: Mapping[str, Any], observation: Mapping[str, Any],
-    inputs: Mapping[str, Any],
+    inputs: Mapping[str, Any], *,
+    current_evidence_inputs: Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
     """A private human-review record, not a sell, trim or allocation proposal."""
     if not all(isinstance(v, Mapping) for v in
@@ -110,6 +113,28 @@ def prepare_exceptional_lifecycle_review(
                    if isinstance(f, Mapping) and isinstance(f.get("id"), str)}
     if set(refs) - set(fact_status):
         raise ValueError("LIFECYCLE_UNKNOWN_ORIGINAL_IR_FACT")
+    # New/current evidence is a separate, dated private source annex: it is
+    # never inferred from PI's prose or conflated with the unchanged IR annex.
+    # Its observations are explicitly linked to the original IR thesis fact IDs.
+    current_trace = None
+    if current_evidence_inputs is not None:
+        if (not isinstance(current_evidence_inputs, Mapping)
+                or set(current_evidence_inputs) != {
+                    "analysis_id", "analysis_as_of", "observations"}
+                or current_evidence_inputs["analysis_id"] != aid
+                or current_evidence_inputs["analysis_as_of"] != cutoff):
+            raise ValueError("LIFECYCLE_CURRENT_ANNEX_CASE_OR_SCHEMA_MISMATCH")
+        if not current:
+            raise ValueError("LIFECYCLE_CURRENT_ANNEX_WITHOUT_REFERENCES")
+        rows = current_evidence_inputs["observations"]
+        if not isinstance(rows, list) or not 1 <= len(rows) <= 24:
+            raise ValueError("LIFECYCLE_CURRENT_ANNEX_BOUNDED_ROWS_REQUIRED")
+        current_trace = assemble_source_fusion(**current_evidence_inputs)
+        rows = current_trace["observations_private"]
+        linked_ids = {item["observation_id"] for item in rows}
+        if (linked_ids != set(current) or
+                any(item["fact_id"] not in refs for item in rows)):
+            raise ValueError("LIFECYCLE_CURRENT_EVIDENCE_LINK_MISMATCH")
     for name in ("original_thesis_private", "strongest_countercase_private",
                  "next_human_check_private"):
         _str(inputs.get(name), name)
@@ -123,6 +148,10 @@ def prepare_exceptional_lifecycle_review(
         limitations.append("ORIGINAL_IR_FACTS_UNRESOLVED")
     if not current:
         limitations.append("NO_CURRENT_EVIDENCE_REFERENCES")
+    elif current_trace is None:
+        limitations.append("CURRENT_EVIDENCE_NOT_STRUCTURALLY_LINKED")
+    elif current_trace["unresolved_count"]:
+        limitations.append("CURRENT_EVIDENCE_UNRESOLVED")
     for name in ("fees_status", "fx_status", "tax_status"):
         if inputs[name] == "UNKNOWN":
             limitations.append(name.upper() + "_UNKNOWN")
@@ -139,6 +168,7 @@ def prepare_exceptional_lifecycle_review(
         "thesis_event": event, "analyst_reported_view": view,
         "original_ir_fact_ids_private": list(refs),
         "current_evidence_refs_private": list(current),
+        "current_evidence_annex_private": current_trace,
         "original_thesis_private": inputs["original_thesis_private"],
         "strongest_countercase_private": inputs["strongest_countercase_private"],
         "next_human_check_private": inputs["next_human_check_private"],

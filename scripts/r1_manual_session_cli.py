@@ -25,7 +25,7 @@ OPTIONAL_FIELDS = frozenset({
     "source_evidence_inputs", "valuation_inputs", "probability_inputs", "candidate_comparison_inputs",
     "fundamental_inputs", "historical_comparison_inputs", "opportunity_triage_inputs",
     "macro_sector_inputs", "work_portfolio_result", "specialist_result",
-    "lifecycle_inputs",
+    "lifecycle_inputs", "lifecycle_current_evidence_inputs",
 })
 PERMITTED_FIELDS = OPTIONAL_FIELDS | {"request"}
 NEXT_ACTIONS = {
