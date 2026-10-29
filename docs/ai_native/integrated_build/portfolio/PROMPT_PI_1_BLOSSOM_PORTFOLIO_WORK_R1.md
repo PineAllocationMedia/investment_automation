@@ -1,6 +1,6 @@
 # PROMPT PI-1 — BLOSSOM PORTFOLIO (WORK + CLOUD BROWSER DEFAULT)
 
-**Version:** `PI-WORK-PORTFOLIO-R1.0` — 2026-10-29  
+**Version:** `PI-WORK-PORTFOLIO-R1.1` — 2026-10-29  
 **Status:** VERSIONED / COPY-READY / REAL PRIVATE BLOSSOM VIEW **NOT YET TESTED**  
 **Owner:** PAM Financial Systems — Portfolio Intelligence, with PM integration  
 **Trigger:** CEO/user-initiated **only**. No recurrence, polling, task installation or autonomous account access.  
@@ -11,20 +11,28 @@ This is a **practical Work task**, analogous in interaction style to PAM Media's
 ## 1. Copy this entire prompt into a new user-initiated ChatGPT Work task
 
 ```text
-PROMPT PI-1 — BLOSSOM PRIVATE PORTFOLIO OBSERVATION
+PROMPT PI-1 — BLOSSOM TARGET PORTFOLIO OBSERVATION
 WORK + CLOUD BROWSER DEFAULT / READ-ONLY / ONE SESSION / PRIVATE FINANCIAL DATA
 
 OBJECTIVE
-Observe my own explicitly authorized private Portfolio view on Blossom and return ONE exact, portable private JSON observation for PAM Financial Systems R1. This is a visual transcription task, NOT financial advice, a trade, a brokerage audit or portfolio synchronization.
+Start from the exact Blossom profile URL I supply below. If the target is my own authorized PRIVATE Portfolio view, return ONE exact, portable private JSON observation for PAM Financial Systems R1. If the target is a PUBLIC_REFERENCE profile, keep that material separate: do not present it as my holdings or feed it into the private M3 portfolio ledger. This is a visual transcription task, NOT financial advice, a trade, a brokerage audit or portfolio synchronization.
+
+TARGET ACCOUNT — FILL IN BEFORE RUNNING
+BLOSSOM_TARGET_URL: [PASTE_THE_EXACT_HTTPS_BLOSSOM_PROFILE_URL_HERE]
+TARGET_ACCESS_SCOPE: [MY_PRIVATE_PORTFOLIO | PUBLIC_REFERENCE]
+SELECTED_ACCOUNT_SCOPE: [the account(s) I explicitly authorize, or UNKNOWN if not yet observable]
 
 CASE IDENTITY
 ANALYSIS_ID: [use the exact ANALYSIS_ID from the Financial Systems Command Center when supplied; otherwise assign one new unique identifier, report it and reuse it unchanged in every handoff]
 ANALYSIS_AS_OF: [use the exact YYYY-MM-DD cutoff supplied by CC; otherwise use today's actual date in the intended account timezone, and state the timezone; do not silently backdate holdings]
-OUTPUT_CONTRACT: work_blossom_inputs / PI-WORK-PORTFOLIO-R1.0
+OUTPUT_CONTRACT: work_blossom_inputs / PI-WORK-PORTFOLIO-R1.1
 
 EXECUTION
-1. Use ChatGPT Work with Cloud Browser and my authorized signed-in Blossom session at https://www.blossomsocial.com. I will complete sign-in if prompted by the secure browser. Do NOT request credentials, MFA codes, tokens, cookies or bank credentials in chat. Do not bypass access controls or paywalls.
-2. Navigate ONLY to the private Portfolio view for the account(s) I explicitly authorize for this request. A public profile, the @therealpam Posts feed, a featured public investor's portfolio and a generic chart are NOT proof of my private account holdings. If the view is public, not accessible, or its private identity cannot be established, report UNAVAILABLE as specified below. Do not guess from public holdings.
+1. Use ChatGPT Work with Cloud Browser, starting at the **exact** BLOSSOM_TARGET_URL supplied above. Require an HTTPS URL whose hostname is exactly blossomsocial.com or www.blossomsocial.com. If missing, off-domain, unexpectedly redirected outside Blossom, or carrying credential/session tokens, STOP and request a safe user-supplied profile URL; never guess a profile identifier, generate a portfolio URL, or follow an unrelated website. The placeholder is NOT a real URL. If authorized sign-in is needed to inspect **my own** portfolio, I will complete it inside the secure browser. Do NOT request credentials, MFA codes, tokens, cookies or bank credentials in chat. Do not bypass access controls or paywalls.
+2. Locate the Portfolio tab/section, **if available on that exact target account**, by ordinary read-only navigation. Check TARGET_ACCESS_SCOPE against what the browser actually shows:
+   - MY_PRIVATE_PORTFOLIO: require a real, authorized, signed-in private holdings view matching my selected account scope. A public profile, @therealpam Posts feed, generic chart or another investor's public holdings are NOT evidence of my private holdings. If private ownership cannot be established, return UNAVAILABLE in the private M3 contract.
+   - PUBLIC_REFERENCE: inspect only genuinely public information allowed by the website; this is NOT my private holdings. Return PUBLIC_REFERENCE_ONLY outside the private ledger, never VISIBLE/private_portfolio_view=true and never a PI allocation or Portfolio Room inference. This private R1 adapter does not currently ingest other users' public portfolios; a separate public-reference analysis path would be needed.
+   - If the requested Portfolio section does not exist on the web page, or access/rights prevent inspection, return UNAVAILABLE. Never silently substitute the Posts feed, an unrelated profile or a different investor.
 3. Within the allowed read-only view, record the selected account filter and actual observed scope. Only click, scroll, expand "Other" or change display filters when they merely change what is viewed, not account state. Examine all position rows, pagination/scroll and cash if accessible. Never link or reconnect a brokerage, edit settings, change preferences, export private archives, post, follow, like, place an order, or access unrelated accounts.
 4. For every observed row record a unique P_ID, the exact visible listed security identity (ticker + venue/class only if shown), account scope, account-base currency and market value only if truly visible and on the SAME confirmed currency basis. If only an allocation percentage is visible, do NOT convert it into a dollar value. Unknown, cropped, grouped, stale or ambiguous fields remain null/NOT_VISIBLE/UNCERTAIN. NEVER invent account currency, cash=0, hidden positions, foreign-exchange rates, value conversions, account totals or unsupported weights.
 5. Use the actual observation date YYYY-MM-DD and a truthful timezone-aware ISO 8601 captured_at timestamp with UTC offset, matching observed_on; use "UNKNOWN" for captured_at if this cannot be established. Clearly distinguish the observed holdings date from the analysis cutoff and time the browser was opened.
@@ -67,14 +75,16 @@ WHEN PRIVATE VIEW IS ACCESSIBLE AND THE ACCOUNT'S 3-LETTER BASE CURRENCY, ACTUAL
   field_statuses (exactly "security_id", "market_value_base", "currency", "account_scope", each "VERIFIED_VISIBLE", "UNCERTAIN" or "NOT_VISIBLE").
 Never copy these instructions as literal portfolio values. A "VERIFIED_VISIBLE" field is directly visible in the allowed source, NOT independently validated by a broker.
 
-IF PRIVATE PORTFOLIO VIEW IS UNAVAILABLE, PUBLIC-ONLY, NOT AUTHORIZED, OR ESSENTIAL CASE/SCOPE/CURRENCY/DATE FIELDS CANNOT BE FAITHFULLY TRANSCRIBED:
+IF THE REQUESTED VIEW IS PUBLIC_REFERENCE, PRIVATE PORTFOLIO VIEW IS UNAVAILABLE/PUBLIC-ONLY/NOT AUTHORIZED, OR ESSENTIAL CASE/SCOPE/CURRENCY/DATE FIELDS CANNOT BE FAITHFULLY TRANSCRIBED:
 Output ONLY:
 {"work_blossom_inputs":{"capture_mode":"WORK_BROWSER","view_status":"UNAVAILABLE","analysis_id":"<actual case ID>","analysis_as_of":"<actual YYYY-MM-DD cutoff>"}}
-Replace bracketed placeholders with the real case fields. Do not include hidden/partial positions, account labels, source URLs or speculative values. State the single blocker separately in one short sentence and suggest one dated, private user-supplied screenshot/transcription as the fallback, without claiming it was already obtained.
+Replace bracketed placeholders with the real case fields. Do not include hidden/partial positions, account labels, source URLs or speculative values. State the single blocker separately in one short sentence. When the private view is merely unavailable, suggest one dated, private user-supplied screenshot/transcription as fallback; for PUBLIC_REFERENCE, explicitly mark PUBLIC_REFERENCE_ONLY and explain that a separate public-analysis path is required instead of a private screenshot. Never claim a public profile is a private holding.
 
 AFTER THE JSON
-Give only a two-sentence private summary: whether the private view was ACTUALLY accessible and whether the scoped position/cash/currency coverage is complete. Mark WORK_COMPATIBILITY as OBSERVED_VISIBLE, PARTIAL, or UNAVAILABLE as applicable, explicitly NOT broker authentication. Do not compute allocations, advise trades, publish, create an archive or claim cross-Project transfer. STOP.
+Give only a two-sentence private summary: whether the **specified target account's Portfolio** was actually accessible in the appropriate authorized scope and whether the scoped position/cash/currency coverage is complete. Mark WORK_COMPATIBILITY as OBSERVED_VISIBLE, PARTIAL, or UNAVAILABLE as applicable, explicitly NOT broker authentication. For PUBLIC_REFERENCE state PUBLIC_REFERENCE_ONLY, without upgrading the private ledger. Do not compute allocations, advise trades, publish, create an archive or claim cross-Project transfer. STOP.
 ```
+
+**Target URL and scope:** The CEO fills `BLOSSOM_TARGET_URL` with an actual Blossom account/profile link and selects `MY_PRIVATE_PORTFOLIO` or `PUBLIC_REFERENCE` before running Work. This URL is a navigation input **only** and must not be reproduced in the `work_blossom_inputs` JSON or added to the repository. Public references may inform a separately authorized research task but cannot become personal holdings via this private ledger.
 
 **Screenshot fallback (CEO-provided image):** In a new, explicitly requested Work/PI task with the authorized dated screenshot, use the same observational rules and case identity, but `capture_mode=USER_SCREENSHOT`. Never claim Work login, browser hostname or live Blossom access based on the screenshot. This is a new human-supplied input, not an automated background retry. The adapter ignores the hostname/sign-in fields in screenshot mode; prefer omitting them.
 
