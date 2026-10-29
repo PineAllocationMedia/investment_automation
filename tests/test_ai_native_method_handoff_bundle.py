@@ -229,5 +229,92 @@ class PinnedMethodHandoffTests(unittest.TestCase):
         self.assertEqual(__import__("json").loads(output.getvalue())[
             "project_method_load_verification"], "NOT_PERFORMED")
 
+
+    def test_six_modes_use_only_their_own_method_documents_in_ir_and_pi(self):
+        cases = (
+            ("high-cagr", "HIGH_CAGR_METHOD_R1.md",
+             "EXISTING_HIGH_CAGR_V2_SCOPE_REFERENCE"),
+            ("balanced", "POLICY_PROPOSAL_BALANCED_R1.md",
+             "UNAPPROVED_R1_STRATEGY_POLICY_PROPOSAL"),
+            ("family-office", "POLICY_PROPOSAL_FAMILY_OFFICE_R1.md",
+             "UNAPPROVED_R1_STRATEGY_POLICY_PROPOSAL"),
+            ("rational-aggressive", "POLICY_PROPOSAL_RATIONAL_AGGRESSIVE_R1.md",
+             "UNAPPROVED_R1_STRATEGY_POLICY_PROPOSAL"),
+            ("intelligent-dividend-harvester",
+             "POLICY_PROPOSAL_INTELLIGENT_DIVIDEND_HARVESTER_R1.md",
+             "UNAPPROVED_R1_STRATEGY_POLICY_PROPOSAL"),
+            ("modern-adaptive-browne", "POLICY_PROPOSAL_MODERN_ADAPTIVE_BROWNE_R1.md",
+             "UNAPPROVED_R1_STRATEGY_POLICY_PROPOSAL"),
+        )
+        for strategy, name, expected_role in cases:
+            for specialist in ("IR", "PI"):
+                with self.subTest(strategy=strategy, specialist=specialist):
+                    out = prepare_verified_method_handoff(
+                        _next(strategy, specialist=specialist))
+                    design = [x for x in out["document_contents_private"]
+                              if x["reference_role"] != "COMMON_CANDIDATE_METHOD"]
+                    self.assertEqual(len(design), 1)
+                    self.assertEqual(design[0]["path"].split("/")[-1], name)
+                    self.assertEqual(design[0]["reference_role"], expected_role)
+                    self.assertEqual(out["project_method_load_verification"],
+                                     "NOT_PERFORMED")
+
+    def test_coordinated_mode_and_valid_sha_substitution_is_rejected(self):
+        # A plain SHA check would accept this, since both real method files
+        # exist and the forged manifest is internally self-consistent.
+        for specialist in ("IR", "PI"):
+            with self.subTest(specialist=specialist):
+                original = _next("balanced", specialist=specialist)
+                label = specialist + "_REQUEST"
+                packet = original["next_handoff"][label]
+                fake_design = (
+                    "docs/ai_native/integrated_build/research/HIGH_CAGR_METHOD_R1.md")
+                packet["strategy_design_reference_not_loaded_or_approved"] = fake_design
+                packet["pinned_method_references_not_loaded_or_approved"] = (
+                    prepare_method_manifest(specialist, fake_design))
+                with self.assertRaisesRegex(
+                        ValueError, "METHOD_HANDOFF_STRATEGY_BINDING_INVALID"):
+                    prepare_verified_method_handoff(original)
+
+    def test_different_ceo_mandate_and_specialist_strategy_are_rejected(self):
+        original = _next("balanced")
+        original["resume_input"]["request"]["strategy_id"] = "high-cagr"
+        with self.assertRaisesRegex(ValueError,
+                                    "METHOD_HANDOFF_STRATEGY_BINDING_INVALID"):
+            prepare_verified_method_handoff(original)
+
+    def test_forged_approved_policy_and_questions_are_rejected(self):
+        for changed in (
+            {"r1_strategy_policy_authority": "CEO_APPROVED_BALANCED"},
+            {"r1_strategy_method_load": "VERIFIED_LOADED"},
+            {"strategy_research_questions_nonbinding": [
+                "Apply High-CAGR return hurdle to Balanced holdings"]},
+        ):
+            with self.subTest(changed=changed):
+                original = _next("balanced")
+                original["next_handoff"]["IR_REQUEST"].update(changed)
+                with self.assertRaisesRegex(
+                        ValueError, "METHOD_HANDOFF_STRATEGY_BINDING_INVALID"):
+                    prepare_verified_method_handoff(original)
+
+    def test_manual_specialist_text_rechecks_mode_and_original_mandate(self):
+        from ai_native.method_handoff_bundle import render_manual_specialist_prompt
+        bundle = prepare_verified_method_handoff(_next("balanced"))
+        changed = deepcopy(bundle)
+        changed["continuation_private"]["resume_input"]["request"]["strategy_id"] = (
+            "high-cagr")
+        with self.assertRaisesRegex(
+                ValueError, "METHOD_HANDOFF_STRATEGY_BINDING_INVALID"):
+            render_manual_specialist_prompt(changed)
+
+    def test_legacy_exploratory_without_explicit_strategy_remains_supported(self):
+        previous = _next("EXPLORATORY")
+        previous["resume_input"]["request"].pop("strategy_id")
+        previous["next_handoff"]["IR_REQUEST"]["strategy_id"] = "EXPLORATORY"
+        result = prepare_verified_method_handoff(previous)
+        self.assertEqual(len(result["document_contents_private"]), 2)
+        self.assertEqual(result["strategy_policy_approval"],
+                         "NOT_GRANTED_BY_ASSEMBLER")
+
 if __name__ == "__main__":
     unittest.main()
