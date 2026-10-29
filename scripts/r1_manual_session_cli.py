@@ -356,6 +356,7 @@ def _resume_manual_transfer(envelope: Any) -> tuple[dict[str, Any], dict[str, An
 def run(*, output: str, instream: TextIO, outstream: TextIO,
         errstream: TextIO) -> int:
     """Read one bounded JSON payload from stdin, send results to stdout only."""
+    guided_resuming = False
     try:
         raw = instream.read(MAX_INPUT_CHARACTERS + 1)
         if len(raw) > MAX_INPUT_CHARACTERS:
@@ -379,6 +380,11 @@ def run(*, output: str, instream: TextIO, outstream: TextIO,
             draft["record_authenticity"] = "NOT_ESTABLISHED"
             result = None
         elif output == "resume-operator":
+            resume_payload, result = _resume_manual_transfer(payload)
+        elif (output == "guided-operator" and isinstance(payload, dict)
+              and ("continuation_private" in payload
+                   or ("specialist_result" in payload and "request" not in payload))):
+            guided_resuming = True
             resume_payload, result = _resume_manual_transfer(payload)
         else:
             result = evaluate(payload)
@@ -412,6 +418,46 @@ def run(*, output: str, instream: TextIO, outstream: TextIO,
             outstream.write(encoded + "\n")
         except (ValueError, TypeError, KeyError, RecursionError):
             errstream.write("R1_PROCESSING_ERROR: private operator packet unavailable.\n")
+            return 3
+    elif output == "guided-operator":
+        # One explicitly PRIVATE packet from the existing operator and method
+        # components. Assemble fully before emitting any sensitive output.
+        try:
+            actual_payload = resume_payload if guided_resuming else payload
+            operator = _private_operator_packet(actual_payload, result)
+            continuation = operator["continuation_private"]
+            prompt = None
+            specialist = None
+            if continuation is not None:
+                bundle = prepare_verified_method_handoff(continuation)
+                prompt = render_manual_specialist_prompt(bundle)
+                specialist = next(iter(continuation["next_handoff"]))
+            guided = {
+                "status": "PRIVATE_GUIDED_OPERATOR_PACKET_NOT_SENT",
+                "operator_packet_private": operator,
+                "specialist_prompt_private": prompt,
+                "specialist_step": specialist,
+                "copy_to_specialist": (
+                    "specialist_prompt_private" if prompt is not None else "NONE"
+                ),
+                "cc_continuation_must_remain_private": True,
+                "project_invocation": "NONE",
+                "storage": "NONE",
+                "readiness": "NOT_EVALUATED",
+                "trading_authority": "NONE",
+                "method_load_verification": "NOT_PERFORMED",
+                "source_authentication": "NOT_PERFORMED",
+            }
+            encoded = json.dumps(guided, ensure_ascii=False, sort_keys=True,
+                                 indent=2, allow_nan=False)
+            if len(encoded) > MAX_INPUT_CHARACTERS:
+                raise ValueError("GUIDED_OPERATOR_OUTPUT_TOO_LARGE")
+            outstream.write(encoded + "\n")
+        except (ValueError, TypeError, KeyError, RecursionError, OSError):
+            errstream.write(
+                "R1_PROCESSING_ERROR: private guided operator packet unavailable; "
+                "check input and pinned local methods.\n"
+            )
             return 3
     elif output in {"method-handoff", "specialist-prompt"}:
         # Both modes validate exactly the same real next handoff and locally
@@ -523,9 +569,9 @@ def main(argv: list[str] | None = None, *, instream: TextIO | None = None,
          outstream: TextIO | None = None,
          errstream: TextIO | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--output", choices=("status", "report", "handoffs", "next-handoff", "continuation", "operator-packet", "resume-operator", "method-handoff", "specialist-prompt", "followup-draft", "sealed-followup-draft", "private-case", "private-case-envelope", "review-queue"),
+    parser.add_argument("--output", choices=("status", "report", "handoffs", "next-handoff", "continuation", "operator-packet", "resume-operator", "guided-operator", "method-handoff", "specialist-prompt", "followup-draft", "sealed-followup-draft", "private-case", "private-case-envelope", "review-queue"),
                         default="status",
-                        help="status is redacted; report, handoffs, next-handoff, continuation, operator-packet, resume-operator, method-handoff, specialist-prompt, followup-draft, sealed-followup-draft, private-case, private-case-envelope and review-queue require a private terminal")
+                        help="status is redacted; report, handoffs, next-handoff, continuation, operator-packet, resume-operator, guided-operator, method-handoff, specialist-prompt, followup-draft, sealed-followup-draft, private-case, private-case-envelope and review-queue require a private terminal")
     opts = parser.parse_args(argv)
     return run(output=opts.output, instream=instream or sys.stdin,
                outstream=outstream or sys.stdout, errstream=errstream or sys.stderr)

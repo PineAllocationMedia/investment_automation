@@ -1023,5 +1023,125 @@ class ManualCLIContractTests(unittest.TestCase):
                 self.assertIn("MANUAL_RESUME_ENVELOPE_INVALID", err)
                 self.assertNotIn("PRIVATE_BLOSSOM_TOKEN", err)
 
+
+    def test_guided_initial_and_return_roundtrip_to_final_cc(self):
+        initial = {"request": self.fx.request(
+            portfolio_needed=True, strategy_id="balanced",
+            account_context={"account": "PRIVATE_GUIDED_SENTINEL"})}
+        snap = deepcopy(initial)
+        code, text, err = self.invoke(initial, "guided-operator")
+        self.assertEqual((code, err), (0, ""))
+        first = json.loads(text)
+        self.assertEqual(first["specialist_step"], "IR_REQUEST")
+        self.assertEqual(first["specialist_prompt_private"],
+                         self.invoke(initial, "specialist-prompt")[1])
+        self.assertEqual(first["operator_packet_private"],
+                         json.loads(self.invoke(initial, "operator-packet")[1]))
+        self.assertNotIn('"resume_input"', first["specialist_prompt_private"])
+        self.assertEqual(initial, snap)
+        ir = self.fx.ir()
+        ir_reply = {"continuation_private": first["operator_packet_private"][
+            "continuation_private"], "specialist_result": {"IR_CAPSULE": deepcopy(ir)}}
+        code, text, err = self.invoke(ir_reply, "guided-operator")
+        self.assertEqual((code, err), (0, ""))
+        second = json.loads(text)
+        self.assertEqual(second["specialist_step"], "PI_REQUEST")
+        self.assertIn("Recipient: Portfolio Intelligence (PI)",
+                      second["specialist_prompt_private"])
+        self.assertEqual(second["operator_packet_private"]["continuation_private"]
+                         ["next_handoff"]["PI_REQUEST"]["FORWARD_UNCHANGED"], ir)
+        pi_reply = {"continuation_private": second["operator_packet_private"][
+            "continuation_private"],
+            "specialist_result": {"PI_DELTA": self.fx.pi(),
+                                  "FORWARD_UNCHANGED": deepcopy(ir)}}
+        code, text, err = self.invoke(pi_reply, "guided-operator")
+        self.assertEqual((code, err), (0, ""))
+        final = json.loads(text)
+        self.assertIsNone(final["specialist_prompt_private"])
+        self.assertIsNone(final["specialist_step"])
+        self.assertEqual(final["copy_to_specialist"], "NONE")
+        self.assertIsNone(final["operator_packet_private"]["continuation_private"])
+        self.assertEqual(final["operator_packet_private"],
+                         json.loads(self.invoke(pi_reply, "resume-operator")[1]))
+        self.assertEqual(final["project_invocation"], "NONE")
+        self.assertEqual(final["storage"], "NONE")
+        self.assertEqual(final["method_load_verification"], "NOT_PERFORMED")
+        self.assertNotIn("PRIVATE_GUIDED_SENTINEL", self.invoke(initial, "status")[1])
+
+    def test_guided_pi_only_and_direct_require_no_invented_ir(self):
+        pi_only = {"request": self.fx.request(
+            research_needed=False, portfolio_needed=True)}
+        code, text, err = self.invoke(pi_only, "guided-operator")
+        self.assertEqual((code, err), (0, ""))
+        first = json.loads(text)
+        self.assertEqual(first["specialist_step"], "PI_REQUEST")
+        self.assertIn("Do not invent a prior IR_CAPSULE",
+                      first["specialist_prompt_private"])
+        inp = {"continuation_private": first["operator_packet_private"][
+            "continuation_private"], "specialist_result": {"PI_DELTA": self.fx.pi()}}
+        code, text, err = self.invoke(inp, "guided-operator")
+        self.assertEqual((code, err), (0, ""))
+        second = json.loads(text)
+        self.assertIsNone(second["specialist_prompt_private"])
+        self.assertIn("Portfolio-only interpretation",
+                      second["operator_packet_private"]["report_private"])
+        direct = {"request": self.fx.request(research_needed=False)}
+        code, text, err = self.invoke(direct, "guided-operator")
+        self.assertEqual((code, err), (0, ""))
+        self.assertIsNone(json.loads(text)["specialist_prompt_private"])
+
+    def test_guided_unavailable_browser_has_no_pi_or_raw_capture(self):
+        payload = {"request": self.fx.request(
+            research_needed=False, portfolio_needed=True),
+            "work_portfolio_result": {"work_blossom_inputs": {
+                "capture_mode": "WORK_BROWSER", "view_status": "UNAVAILABLE",
+                "analysis_id": "CASE-A", "analysis_as_of": "2026-10-28",
+                "raw_html": "PRIVATE_RAW_CAPTURE_SENTINEL"}}}
+        code, text, err = self.invoke(payload, "guided-operator")
+        self.assertEqual((code, err), (0, ""))
+        item = json.loads(text)
+        self.assertIsNone(item["specialist_prompt_private"])
+        self.assertIsNone(item["operator_packet_private"]["continuation_private"])
+        self.assertEqual(item["operator_packet_private"]["session"]["status"],
+                         "AWAITING_MANUAL_PORTFOLIO_SCREENSHOT")
+        self.assertNotIn("PRIVATE_RAW_CAPTURE_SENTINEL", text)
+        self.assertNotIn("PI_REQUEST", text)
+
+    def test_guided_rejects_changed_or_wrong_specialist_step_without_leak(self):
+        first = json.loads(self.invoke({"request": self.fx.request()},
+                                       "guided-operator")[1])
+        continuation = first["operator_packet_private"]["continuation_private"]
+        fake = deepcopy(continuation)
+        fake["next_handoff"]["IR_REQUEST"]["strategy_id"] = "high-cagr"
+        for bad in (
+            {"continuation_private": fake,
+             "specialist_result": {"IR_CAPSULE": self.fx.ir()}},
+            {"continuation_private": continuation,
+             "specialist_result": {"PI_DELTA": self.fx.pi()}},
+            {"continuation_private": continuation,
+             "specialist_result": {"IR_CAPSULE": self.fx.ir()},
+             "private_extra": "SECRET_NO_PRINT"},
+        ):
+            with self.subTest(bad=tuple(bad)):
+                code, out, err = self.invoke(bad, "guided-operator")
+                self.assertEqual(code, 2)
+                self.assertEqual(out, "")
+                self.assertNotIn("SECRET_NO_PRINT", err)
+
+    def test_guided_six_strategy_modes_preserve_single_existing_prompt(self):
+        for strategy in (
+            "high-cagr", "balanced", "family-office",
+            "rational-aggressive", "intelligent-dividend-harvester",
+            "modern-adaptive-browne",
+        ):
+            with self.subTest(strategy=strategy):
+                initial = {"request": self.fx.request(strategy_id=strategy)}
+                code, out, err = self.invoke(initial, "guided-operator")
+                self.assertEqual((code, err), (0, ""))
+                item = json.loads(out)
+                self.assertEqual(item["specialist_step"], "IR_REQUEST")
+                self.assertEqual(item["specialist_prompt_private"],
+                                 self.invoke(initial, "specialist-prompt")[1])
+                self.assertIn("PINNED_METHOD_TEXTS", item["specialist_prompt_private"])
 if __name__ == "__main__":
     unittest.main()
