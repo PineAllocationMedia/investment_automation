@@ -28,7 +28,7 @@ PERMITTED_FIELDS = OPTIONAL_FIELDS | {"request"}
 NEXT_ACTIONS = {
     "AWAITING_MANUAL_IR_CAPSULE": "Transfer the IR_REQUEST yourself; supply the original IR capsule in the next explicit run.",
     "AWAITING_MANUAL_PI_DELTA": "Transfer the PI_REQUEST yourself; supply the PI delta in the next explicit run.",
-    "AWAITING_MANUAL_PORTFOLIO_SCREENSHOT": "Work private portfolio view was reported unavailable. Use an authorized screenshot transcript in a new explicit session; no holdings are inferred.",
+    "AWAITING_MANUAL_PORTFOLIO_SCREENSHOT": "Private visual portfolio source was reported unavailable. Use an authorized dated screenshot transcript in a new explicit session; no holdings are inferred.",
     "PI_ONLY_CONDITIONAL_REPORT_ASSEMBLED": "Review the private conditional report; no account or trade authorization.",
     "M7A_COMPONENT_ASSEMBLED_NOT_END_TO_END_ACCEPTANCE": "Review the private research report; end-to-end acceptance was NOT performed.",
     "CC_DIRECT_NO_SPECIALIST_REPORT_REQUIRED": "No specialist report requested; no automatic Project work.",
