@@ -16,7 +16,9 @@ from typing import Any, TextIO
 from ai_native.session_bridge import complete_manual_session
 from ai_native.manual_review_queue import prepare_manual_review_queue
 from ai_native.research_memory import prepare_explicit_followup_draft
-from ai_native.method_handoff_bundle import prepare_verified_method_handoff
+from ai_native.method_handoff_bundle import (
+    prepare_verified_method_handoff, render_manual_specialist_prompt,
+)
 from ai_native.private_case_integrity import seal_private_case, verify_private_case_envelope
 
 MAX_INPUT_CHARACTERS = 5_000_000
@@ -344,21 +346,26 @@ def run(*, output: str, instream: TextIO, outstream: TextIO,
         except (ValueError, TypeError, KeyError, RecursionError):
             errstream.write("R1_PROCESSING_ERROR: private operator packet unavailable.\n")
             return 3
-    elif output == "method-handoff":
-        # Explicit PRIVATE handoff with contents checked against pinned Git
-        # blobs from this repository checkout; never a Project load assertion.
+    elif output in {"method-handoff", "specialist-prompt"}:
+        # Both modes validate exactly the same real next handoff and locally
+        # pinned method texts; specialist-prompt omits CC-only resume context.
         try:
             continuation = _prepare_manual_continuation(payload, result)
             if continuation is None:
-                outstream.write("METHOD_HANDOFF_NOT_AVAILABLE: " +
-                                result["status"] + "\n")
+                label = ("SPECIALIST_PROMPT_NOT_AVAILABLE" if
+                         output == "specialist-prompt" else
+                         "METHOD_HANDOFF_NOT_AVAILABLE")
+                outstream.write(label + ": " + result["status"] + "\n")
             else:
                 bundle = prepare_verified_method_handoff(continuation)
-                encoded = json.dumps(bundle, ensure_ascii=False, sort_keys=True,
-                                     indent=2, allow_nan=False)
+                if output == "specialist-prompt":
+                    encoded = render_manual_specialist_prompt(bundle)
+                else:
+                    encoded = json.dumps(bundle, ensure_ascii=False, sort_keys=True,
+                                         indent=2, allow_nan=False) + "\n"
                 if len(encoded) > MAX_INPUT_CHARACTERS:
                     raise ValueError("METHOD_HANDOFF_OUTPUT_TOO_LARGE")
-                outstream.write(encoded + "\n")
+                outstream.write(encoded)
         except (ValueError, TypeError, KeyError, RecursionError, OSError):
             errstream.write("R1_PROCESSING_ERROR: private method handoff unavailable; " +
                             "check local method files and pinned versions.\n")
@@ -449,9 +456,9 @@ def main(argv: list[str] | None = None, *, instream: TextIO | None = None,
          outstream: TextIO | None = None,
          errstream: TextIO | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--output", choices=("status", "report", "handoffs", "next-handoff", "continuation", "operator-packet", "method-handoff", "followup-draft", "sealed-followup-draft", "private-case", "private-case-envelope", "review-queue"),
+    parser.add_argument("--output", choices=("status", "report", "handoffs", "next-handoff", "continuation", "operator-packet", "method-handoff", "specialist-prompt", "followup-draft", "sealed-followup-draft", "private-case", "private-case-envelope", "review-queue"),
                         default="status",
-                        help="status is redacted; report, handoffs, next-handoff, continuation, operator-packet, method-handoff, followup-draft, sealed-followup-draft, private-case, private-case-envelope and review-queue require a private terminal")
+                        help="status is redacted; report, handoffs, next-handoff, continuation, operator-packet, method-handoff, specialist-prompt, followup-draft, sealed-followup-draft, private-case, private-case-envelope and review-queue require a private terminal")
     opts = parser.parse_args(argv)
     return run(output=opts.output, instream=instream or sys.stdin,
                outstream=outstream or sys.stdout, errstream=errstream or sys.stderr)
