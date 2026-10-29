@@ -67,6 +67,20 @@ def prepare_new_capital_projection(
                for item in alternative_allocations)
     ):
         raise ValueError("ALTERNATIVE_CONTRIBUTION_SCENARIOS_INVALID")
+    # Optional quotes must match the alternative scenario count and are
+    # never substituted for the baseline's separately supplied cost schedule.
+    if cost_inputs is not None and not isinstance(cost_inputs, Mapping):
+        raise ValueError("cost_inputs must be a mapping")
+    baseline_cost_inputs = dict(cost_inputs) if cost_inputs is not None else None
+    alternative_cost_inputs = (baseline_cost_inputs.pop("alternative_cost_inputs", None)
+                               if baseline_cost_inputs is not None else None)
+    if alternative_cost_inputs is not None and (
+        alternative_allocations is None
+        or not isinstance(alternative_cost_inputs, list)
+        or len(alternative_cost_inputs) != len(alternative_allocations)
+        or any(not isinstance(q, Mapping) or not q for q in alternative_cost_inputs)
+    ):
+        raise ValueError("ALTERNATIVE_COST_QUOTES_MUST_MATCH_SCENARIOS")
     gross = project_gross_contribution(**base_inputs)
     notes = []
     if gross["status"] == "UNAVAILABLE":
@@ -77,11 +91,9 @@ def prepare_new_capital_projection(
     costs = None
     funded = None
     if cost_inputs is not None:
-        if not isinstance(cost_inputs, Mapping):
-            raise ValueError("cost_inputs must be a mapping")
-        if cost_inputs.get("analysis_as_of") != analysis_as_of:
+        if baseline_cost_inputs.get("analysis_as_of") != analysis_as_of:
             raise ValueError("cost_inputs analysis cutoff must match request as_of")
-        costs = tally_supplied_costs(gross_projection=gross, **cost_inputs)
+        costs = tally_supplied_costs(gross_projection=gross, **baseline_cost_inputs)
         if costs["status"] != "SUPPLIED_COST_TALLY_ONLY":
             notes.append("After-cost analysis unavailable: incomplete or infeasible supplied purchase costs.")
         else:
@@ -127,11 +139,15 @@ def prepare_new_capital_projection(
         }
 
     alternatives_private = None
+    alternative_cost_summary = None
+    alternative_cost_details = None
     if alternative_allocations is not None:
         if gross["status"] != "GROSS_PROJECTION_ONLY":
             notes.append("Alternative gross plans unavailable: the original scoped portfolio basis is incomplete.")
         else:
             alternatives = []
+            cost_views = []
+            alternative_cost_details = [] if alternative_cost_inputs is not None else None
             for i, allocation in enumerate(alternative_allocations, start=1):
                 scenario_inputs = dict(base_inputs)
                 scenario_inputs["allocations_pct"] = dict(allocation)
@@ -145,6 +161,49 @@ def prepare_new_capital_projection(
                     "gross_after_scoped_cash_pct":
                         _scoped_cash_pct(projection["projected_weights_pct"]),
                 })
+                if alternative_cost_inputs is not None:
+                    # Exact, independent, destination-specific cost sources.
+                    # Never carry the baseline quote to another gross scenario.
+                    quote = alternative_cost_inputs[i - 1]
+                    if (set(quote) != {
+                            "charges_by_destination", "cost_currency",
+                            "cost_quote_as_of", "analysis_as_of", "funding"}
+                            or quote["analysis_as_of"] != analysis_as_of):
+                        raise ValueError("ALTERNATIVE_COST_QUOTE_SCHEMA_OR_DATE")
+                    alt_tally = tally_supplied_costs(
+                        gross_projection=projection, **dict(quote))
+                    alt_funded = reconcile_funded_contribution(
+                        contribution_inputs=scenario_inputs,
+                        gross_projection=projection, cost_tally=alt_tally)
+                    funded_ok = (alt_funded["status"] ==
+                                 "CONDITIONAL_SUPPLIED_COST_BUDGET_RECONCILED")
+                    cost_views.append({
+                        "scenario_index": i,
+                        "cost_status": alt_tally["status"],
+                        "funded_status": alt_funded["status"],
+                        "one_time_supplied_cost_share_pct": (
+                            alt_funded["one_time_supplied_cost_share_pct"] if funded_ok else None),
+                        "conditional_funded_after_largest_non_cash_security_pct": (
+                            _largest_non_cash_security_pct(
+                                alt_funded["conditional_projection_private"]["projected_weights_pct"])
+                            if funded_ok else None),
+                        "conditional_funded_after_scoped_cash_pct": (
+                            _scoped_cash_pct(
+                                alt_funded["conditional_projection_private"]["projected_weights_pct"])
+                            if funded_ok else None),
+                    })
+                    alternative_cost_details.append({
+                        "scenario_index": i,
+                        "gross_projection_private": projection,
+                        "supplied_costs_private": alt_tally,
+                        "funded_contribution_private": alt_funded,
+                    })
+            if alternative_cost_inputs is not None:
+                alternative_cost_summary = {
+                    "status": "SEPARATELY_QUOTED_CONDITIONAL_ALTERNATIVES",
+                    "scenarios": cost_views,
+                    "authority": "CALLER_SUPPLIED_FIXED_COSTS_NOT_NET_RETURN_OR_EXECUTION",
+                }
             alternatives_private = {
                 "status": "GROSS_ALTERNATIVES_ONLY_NOT_NET",
                 "scenarios": alternatives,
@@ -155,6 +214,13 @@ def prepare_new_capital_projection(
                 "on the same scoped basis. Baseline fee quotes and conditional funding "
                 "cannot be reused; no alternative net comparison or selection is certified."
             )
+            if alternative_cost_summary is not None:
+                notes.append(
+                    "Alternative fees are separately caller-supplied, each with its "
+                    "own fixed-cost funding check; incomplete quote components remain "
+                    "unavailable. Net returns, optimal allocation, brokerage requotes "
+                    "and execution are NOT established."
+                )
 
     # Display only NEW-capital percentages and bounded aggregate sensitivity,
     # never balances, cost quotes, or projected order amounts in the report.
@@ -172,12 +238,14 @@ def prepare_new_capital_projection(
                 "CONDITIONAL_SUPPLIED_COST_BUDGET_RECONCILED" else None),
         "largest_security_line_sensitivity_private": concentration,
         "gross_alternatives_private": alternatives_private,
+        "conditional_alternative_costs_private": alternative_cost_summary,
         "source_authentication": "NOT_PERFORMED",
     }
     return {
         "gross_contribution_private": gross,
         "supplied_costs_private": costs,
         "funded_contribution_private": funded,
+        "alternative_cost_details_private": alternative_cost_details,
         "report_summary_private": summary,
         "limitations": notes,
         "execution_status": "UNAVAILABLE_NOT_EXECUTION_CERTIFIED",
