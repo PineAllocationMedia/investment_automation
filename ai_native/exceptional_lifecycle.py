@@ -126,6 +126,9 @@ def prepare_exceptional_lifecycle_review(
             raise ValueError("LIFECYCLE_CURRENT_ANNEX_CASE_OR_SCHEMA_MISMATCH")
         if not current:
             raise ValueError("LIFECYCLE_CURRENT_ANNEX_WITHOUT_REFERENCES")
+        rows = current_evidence_inputs["observations"]
+        if not isinstance(rows, list) or not 1 <= len(rows) <= 24:
+            raise ValueError("LIFECYCLE_CURRENT_ANNEX_BOUNDED_ROWS_REQUIRED")
         current_trace = assemble_source_fusion(**current_evidence_inputs)
         rows = current_trace["observations_private"]
         linked_ids = {item["observation_id"] for item in rows}
