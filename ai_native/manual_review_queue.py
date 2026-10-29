@@ -103,6 +103,21 @@ def prepare_manual_review_queue(session: Mapping[str, Any]) -> dict[str, Any]:
                 if integrated.get("valuation_scenarios_private") is not None:
                     add("VALIDATE_VALUATION_ASSUMPTIONS", "HUMAN_VERIFICATION",
                         "Review BEAR/BASE/BULL terminal inputs, horizon, distributions and method assumptions; these are not probability-weighted Expected Return.")
+                weighted = integrated.get("weighted_cashflow_model_private")
+                if weighted is not None:
+                    if (not isinstance(weighted, Mapping)
+                            or weighted.get("status") not in {
+                                "CONDITIONAL_CASHFLOW_MODEL_NOT_CERTIFIED",
+                                "UNAVAILABLE_NEEDS_EVIDENCE_OR_COMPATIBLE_ASSUMPTIONS"}
+                            or weighted.get("model_expected_return_authority") != "NOT_CERTIFIED"
+                            or weighted.get("probability_calibration") != "NOT_PERFORMED"
+                            or weighted.get("trading_authority") != "NONE"):
+                        raise ValueError("REVIEW_QUEUE_WEIGHTED_MODEL_AUTHORITY_INVALID")
+                    add("CHECK_SCENARIO_PROBABILITIES", "HUMAN_VERIFICATION",
+                        "Review rationale, calibration and stress sensitivity of supplied BEAR/BASE/BULL probabilities; the modeled weighted result is not a certified Expected Return.")
+                    if weighted.get("measure") == "UNAVAILABLE":
+                        add("RESOLVE_WEIGHTED_CASHFLOW_INPUTS", "EVIDENCE_RESOLUTION",
+                            "Resolve quote evidence, security/currency basis or mixed distribution knowledge before relying on weighted cash-flow arithmetic.")
                 if integrated.get("candidate_comparison_private") is not None:
                     add("CHECK_COMPARISON_BASES", "HUMAN_VERIFICATION",
                         "Confirm security, FX, cost, period and measure comparability before interpreting arithmetic spreads; no investability ranking.")
