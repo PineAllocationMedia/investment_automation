@@ -133,11 +133,18 @@ def compare_private_portfolio_snapshots(
     new_date = current_observation["observed_on"]
     if not old_date < new_date <= analysis_as_of:
         raise ValueError("SNAPSHOT_DATES_NOT_STRICTLY_ORDERED")
-    if (previous["account_scope"] != current_observation.get("account_scope")
-            or previous["currency"] != current_observation.get("currency")):
+    # A named account mismatch always blocks both comparison modes. Two
+    # *different known* currencies are also incomparable. A supplied known
+    # current currency versus an UNKNOWN previous currency is allowable ONLY
+    # in the later descriptive UI branch, never the monetary branch.
+    if previous["account_scope"] != current_observation.get("account_scope"):
         raise ValueError("SNAPSHOT_ACCOUNT_OR_CURRENCY_BASIS_CHANGED")
-    if (previous["analysis_as_of"] > analysis_as_of
-            or current_observation.get("currency") in {"UNKNOWN", "UNK", "XXX", "XTS", "TBD"}):
+    prior_currency = previous["currency"]
+    current_currency = current_observation.get("currency")
+    if (prior_currency != current_currency
+            and prior_currency != "UNKNOWN" and current_currency != "UNKNOWN"):
+        raise ValueError("SNAPSHOT_ACCOUNT_OR_CURRENCY_BASIS_CHANGED")
+    if previous["analysis_as_of"] > analysis_as_of:
         raise ValueError("SNAPSHOT_ORIGINAL_CUTOFF_OR_CURRENCY_UNKNOWN")
 
     common = {
@@ -200,6 +207,12 @@ def compare_private_portfolio_snapshots(
             "cash_weight_change_pp": None,
         }
 
+    # Keep the original exact known-monetary-currency rule. UNKNOWN (or a
+    # mixed known/unknown pair) is never admitted to cash-denominated changes
+    # even if a direct caller tampers with an M3 status field.
+    if (prior_currency == "UNKNOWN" or current_currency == "UNKNOWN"
+            or prior_currency != current_currency):
+        raise ValueError("SNAPSHOT_ACCOUNT_OR_CURRENCY_BASIS_CHANGED")
     old_total = Decimal(previous["scope_total_base"])
     new_total = Decimal(current_observation["scope_total_base"])
     if old_total <= 0 or new_total <= 0:
