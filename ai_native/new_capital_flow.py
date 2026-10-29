@@ -29,6 +29,18 @@ def _largest_non_cash_security_pct(weights: Mapping[str, str] | None) -> str | N
     return f"{max(values).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP):.2f}"
 
 
+def _scoped_cash_pct(weights: Mapping[str, str] | None) -> str | None:
+    """Percent of the P-CASH line within the complete caller-supplied scope.
+
+    Missing P-CASH means zero only after M3's complete and cash-accounted gross
+    projection; incomplete source data never enter this calculation.
+    """
+    if weights is None:
+        return None
+    value = Decimal(weights.get("P-CASH", "0"))
+    return f"{value.quantize(Decimal('0.01'), rounding=ROUND_HALF_UP):.2f}"
+
+
 def prepare_new_capital_projection(
     *, analysis_id: str, analysis_as_of: str, portfolio_as_of: str,
     contribution_inputs: Mapping[str, Any],
@@ -89,6 +101,14 @@ def prepare_new_capital_projection(
                 gross["projected_weights_pct"]),
             "conditional_funded_after_largest_non_cash_security_pct": (
                 _largest_non_cash_security_pct(
+                    funded["conditional_projection_private"]["projected_weights_pct"])
+                if funded_ok else None),
+            "before_scoped_cash_pct": _scoped_cash_pct(
+                gross["current_weights_pct"]),
+            "gross_after_scoped_cash_pct": _scoped_cash_pct(
+                gross["projected_weights_pct"]),
+            "conditional_funded_after_scoped_cash_pct": (
+                _scoped_cash_pct(
                     funded["conditional_projection_private"]["projected_weights_pct"])
                 if funded_ok else None),
             "authority": "DESCRIPTIVE_CALLER_SUPPLIED_NO_PORTFOLIO_POLICY_OR_EXECUTION",
