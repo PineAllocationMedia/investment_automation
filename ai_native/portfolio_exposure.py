@@ -74,6 +74,11 @@ def aggregate_portfolio_exposures(
         raise ValueError("CASH_NOT_VISIBLY_ACCOUNTED")
     cash = _decimal(cash_row.get("amount_base"), "cash.amount_base")
     sums: dict[str, dict[str, Decimal]] = {g: defaultdict(Decimal) for g in ("issuer", "sector", "region")}
+    # Scenario-only attribution for prior fund snapshots. Never mix it with
+    # today's known exposure lower bounds or today's unknown exposure.
+    historical_sums: dict[str, dict[str, Decimal]] = {
+        g: defaultdict(Decimal) for g in ("issuer", "sector", "region")
+    }
     unknown = Decimal(0)
     seen = set()
     funds = []
@@ -82,10 +87,11 @@ def aggregate_portfolio_exposures(
     qualifications = []
     values_total = cash
 
-    def add_exposure(amount: Decimal, row: Mapping[str, Any], source: str) -> None:
+    def add_exposure(amount: Decimal, row: Mapping[str, Any], source: str, *,
+                     destination: Mapping[str, dict[str, Decimal]] = sums) -> None:
         for group, col in (("issuer", "economic_issuer_id"), ("sector", "sector"), ("region", "region")):
             key = _text(row.get(col), f"{source}.{col}")
-            sums[group][key] += amount
+            destination[group][key] += amount
 
     for i, record in enumerate(records):
         if not isinstance(record, Mapping):
@@ -125,7 +131,8 @@ def aggregate_portfolio_exposures(
             # A dated fund holdings snapshot is not proof of today's
             # constituents. Keep its scenario arithmetic privately, but do
             # not let prior-dated holdings imply current Portfolio Room.
-            if dated < cutoff:
+            is_historical = dated < cutoff
+            if is_historical:
                 historical_fund_p_ids.append(pid)
                 qualifications.append(f"{pid}:FUND_COMPOSITION_PREDATES_OBSERVATION")
             completeness = classification.get("composition_complete_reported")
@@ -140,19 +147,29 @@ def aggregate_portfolio_exposures(
                     raise ValueError("INVALID_FUND_CONSTITUENT")
                 fraction = _decimal(holding.get("fund_weight_pct"), f"{pid}.constituent[{j}].fund_weight_pct")
                 summed_fraction += fraction
-                add_exposure(val * fraction / HUNDRED, holding, source_ref)
+                add_exposure(
+                    val * fraction / HUNDRED, holding, source_ref,
+                    destination=historical_sums if is_historical else sums,
+                )
             if summed_fraction > HUNDRED:
                 raise ValueError("FUND_COMPOSITION_OVER_100_PERCENT")
             if completeness and summed_fraction != HUNDRED:
                 raise ValueError("FALSE_FUND_COMPLETENESS_ASSERTION")
             if not completeness and summed_fraction == HUNDRED:
                 raise ValueError("FUND_TOTAL_100_REQUIRES_EXPLICIT_COVERAGE_CONFIRMATION")
-            unknown += val * (HUNDRED - summed_fraction) / HUNDRED
+            # Old holdings lists cannot certify any fraction of the present
+            # fund position. Count the ENTIRE fund as unknown today even when
+            # its prior snapshot happened to sum to 100%.
+            unknown += (val if is_historical
+                        else val * (HUNDRED - summed_fraction) / HUNDRED)
             if summed_fraction != HUNDRED:
                 qualifications.append(f"{pid}:FUND_COMPOSITION_PARTIAL")
             funds.append({"p_id": pid, "source_ref_private": source_ref,
                           "reported_composition_coverage_pct": str(summed_fraction),
-                          "complete_reported_not_authenticated": completeness})
+                          "complete_reported_not_authenticated": completeness,
+                          "current_exposure_treatment": (
+                              "HISTORICAL_ILLUSTRATIVE_ONLY" if is_historical
+                              else "CURRENT_DATED_CALLER_REPORT_ONLY")})
         else:
             raise ValueError("UNSUPPORTED_INSTRUMENT_KIND")
     if set(classifications_by_p_id) - seen:
@@ -166,8 +183,8 @@ def aggregate_portfolio_exposures(
     def pct(amount: Decimal) -> str:
         return str((amount / total * HUNDRED).quantize(CENT, rounding=ROUND_HALF_UP))
 
-    def group_pct(group: str) -> dict[str, str]:
-        return {k: pct(v) for k, v in sorted(sums[group].items())}
+    def group_pct(group: str, bucket: Mapping[str, dict[str, Decimal]] = sums) -> dict[str, str]:
+        return {k: pct(v) for k, v in sorted(bucket[group].items())}
 
     return {
         "status": "CALLER_REPORTED_SCOPED_EXPOSURES" if unknown == 0 else "PARTIAL_KNOWN_EXPOSURE_LOWER_BOUNDS",
@@ -179,6 +196,13 @@ def aggregate_portfolio_exposures(
         "known_exposure_pct": pct(scoped_known),
         "unclassified_or_unknown_fund_pct": pct(unknown),
         "cash_pct": pct(cash), "fund_composition_private": funds,
+        "historical_fund_scenario_private": (
+            {"basis": "OLD_CONSTITUENTS_APPLIED_TO_CURRENT_REPORTED_FUND_VALUES_NOT_PIT",
+             "economic_issuer_pct_of_current_scope_private": group_pct("issuer", historical_sums),
+             "sector_pct_of_current_scope_private": group_pct("sector", historical_sums),
+             "region_pct_of_current_scope_private": group_pct("region", historical_sums),
+             "current_or_historical_actual_holdings": "NOT_ESTABLISHED"}
+            if historical_fund_p_ids else None),
         "historical_fund_p_ids_private": sorted(historical_fund_p_ids),
         "fund_composition_date_alignment": (
             "PRIOR_DATED_FUND_SNAPSHOTS" if historical_fund_p_ids

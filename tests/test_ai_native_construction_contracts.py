@@ -52,7 +52,7 @@ class R1ConstructionContracts(unittest.TestCase):
                       as_of="2026-10-27",rights_status="PERMITTED",
                       economic_issuer_id="ABC",sector="TECH",region="CANADA"),
             "P2":dict(kind="FUND",security_id="FUND:TSX",source_ref="S2",
-                      as_of="2026-10-27",rights_status=fund_rights,
+                      as_of="2026-10-28",rights_status=fund_rights,
                       composition_complete_reported=False,constituents=[
                           dict(economic_issuer_id="ABC",sector="TECH",region="CANADA",
                                fund_weight_pct="25")])}

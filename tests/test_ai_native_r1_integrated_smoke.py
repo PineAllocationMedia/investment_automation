@@ -153,6 +153,37 @@ class RealManualConstructionSmoke(unittest.TestCase):
         self.assertNotIn("SYN-PRIVATE-ANALYST-VIEW",public)
         self.assertNotIn("1000.00",public)
 
+    def test_historical_fund_lookthrough_stays_out_of_current_cc_room(self):
+        # The entire real M3-to-M4 route must not keep old ETF constituents
+        # in its current known issuer/sector percentages.
+        case = self.case()
+        case["exposure_classifications"]["P2"]["as_of"] = "2026-10-27"
+        before = deepcopy(case)
+        result = complete_manual_session(**case)
+        self.assertEqual(case, before)
+        exposures = result["portfolio_exposures_private"]
+        self.assertEqual(exposures["known_exposure_pct"], "30.00")
+        self.assertEqual(exposures["unclassified_or_unknown_fund_pct"], "60.00")
+        self.assertEqual(exposures["cash_pct"], "10.00")
+        self.assertEqual(exposures["economic_issuer_pct_private"], {"ABC": "30.00"})
+        self.assertEqual(
+            exposures["historical_fund_scenario_private"][
+                "economic_issuer_pct_of_current_scope_private"],
+            {"ABC": "15.00"})
+        self.assertEqual(result["portfolio_room_review_private"]["status"],
+                         "ROOM_UNAVAILABLE")
+        report = result["final_report_private"]
+        self.assertIn("Fund constituent evidence predates", report)
+        self.assertIn("Known supplied candidate-issuer exposure: UNKNOWN", report)
+        self.assertNotIn("S2", report)
+        self.assertNotIn("600.00", report)
+        self.assertNotIn("historical_fund_scenario_private", report)
+        self.assertNotIn(
+            "historical_fund_scenario_private",
+            str(result["integrated_private"]["memory_proposal_nonprivate"]))
+        self.assertEqual(result["storage"], "NONE")
+        self.assertEqual(result["project_invocation"], "NONE")
+
     def test_pi_missing_stays_pending_after_real_observation_and_research(self):
         args=self.case()
         args.pop("pi_delta")
