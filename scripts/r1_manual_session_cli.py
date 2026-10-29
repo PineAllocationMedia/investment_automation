@@ -17,6 +17,7 @@ from ai_native.session_bridge import complete_manual_session
 from ai_native.manual_review_queue import prepare_manual_review_queue
 from ai_native.research_memory import prepare_explicit_followup_draft
 from ai_native.method_handoff_bundle import prepare_verified_method_handoff
+from ai_native.private_case_integrity import seal_private_case, verify_private_case_envelope
 
 MAX_INPUT_CHARACTERS = 5_000_000
 OPTIONAL_FIELDS = frozenset({
@@ -48,6 +49,9 @@ SAFE_ERROR_CODES = frozenset({
     "SPECIALIST_ORIGINAL_IR_REQUIRED", "SPECIALIST_FORWARDED_IR_MISMATCH",
     "SPECIALIST_UNEXPECTED_FORWARDED_IR",
     "FOLLOWUP_PRIOR_CASE_ENVELOPE_REQUIRED",
+    "PRIVATE_CASE_ENVELOPE_REQUIRED",
+    "PRIVATE_CASE_ENVELOPE_INVALID", "PRIVATE_CASE_SHA256_MISMATCH",
+    "PRIVATE_CASE_RECORD_INVALID",
 })
 
 
@@ -264,6 +268,26 @@ def _private_operator_packet(payload: dict[str, Any],
     }
 
 
+def _eligible_private_case(result: dict[str, Any]) -> tuple[dict[str, Any] | None, str]:
+    """Existing private-case export gate reused by both explicit outputs."""
+    integrated = result.get("integrated_private")
+    if not isinstance(integrated, dict):
+        return None, "PRIVATE_CASE_NOT_AVAILABLE: " + result["status"]
+    record = integrated.get("private_research_history_proposal")
+    gate = integrated.get("github_memory_review_gate")
+    if record is None:
+        return None, "PRIVATE_CASE_NOT_PREPARED: explicit memory_inputs required."
+    if (not isinstance(record, dict) or not isinstance(gate, dict)
+            or record.get("schema_version") != "RESEARCH_HISTORY_R1"
+            or record.get("privacy_tier") != "PRIVATE_PENDING_REVIEW"
+            or record.get("archive_status") != "PROPOSED_NOT_COMMITTED"
+            or gate.get("approved_for_publication") is not False
+            or gate.get("status") !=
+            "WITHHELD_PENDING_HUMAN_PRIVACY_AND_RIGHTS_REVIEW"):
+        return None, "PRIVATE_CASE_NOT_AVAILABLE: review gate or private status invalid."
+    return record, ""
+
+
 def run(*, output: str, instream: TextIO, outstream: TextIO,
         errstream: TextIO) -> int:
     """Read one bounded JSON payload from stdin, send results to stdout only."""
@@ -275,11 +299,19 @@ def run(*, output: str, instream: TextIO, outstream: TextIO,
                              parse_float=_finite_json_float,
                              object_pairs_hook=_unique_pairs)
         if output == "followup-draft":
-            # An explicitly requested transformation of ONE already protected,
-            # user-supplied historical research case; no request is initiated.
+            # Unchanged support for unwrapped historical PRIVATE cases.
             if not isinstance(payload, dict) or set(payload) != {"prior_private_case"}:
                 raise ValueError("FOLLOWUP_PRIOR_CASE_ENVELOPE_REQUIRED")
             draft = prepare_explicit_followup_draft(payload["prior_private_case"])
+            result = None
+        elif output == "sealed-followup-draft":
+            if not isinstance(payload, dict) or set(payload) != {"private_case_envelope"}:
+                raise ValueError("PRIVATE_CASE_ENVELOPE_REQUIRED")
+            recovered = verify_private_case_envelope(payload["private_case_envelope"])
+            draft = prepare_explicit_followup_draft(recovered)
+            # Checksum is accidental-change detection, not authenticated history.
+            draft["manual_copy_integrity"] = "SHA256_MATCHED_RETAINED_COPY_ONLY"
+            draft["record_authenticity"] = "NOT_ESTABLISHED"
             result = None
         else:
             result = evaluate(payload)
@@ -292,7 +324,7 @@ def run(*, output: str, instream: TextIO, outstream: TextIO,
         errstream.write("R1_PROCESSING_ERROR: details suppressed; inspect locally.\n")
         return 3
 
-    if output == "followup-draft":
+    if output in {"followup-draft", "sealed-followup-draft"}:
         # Explicitly PRIVATE. The returned request is intentionally invalid
         # for execution until the CEO fills new details and initiates it.
         outstream.write(json.dumps(draft, ensure_ascii=False, sort_keys=True,
@@ -342,27 +374,25 @@ def run(*, output: str, instream: TextIO, outstream: TextIO,
         outstream.write(json.dumps(prepare_manual_review_queue(result),
                                    ensure_ascii=False, sort_keys=True,
                                    indent=2, allow_nan=False) + "\n")
-    elif output == "private-case":
-        # Explicit output is a private PROPOSAL, not a committed archive.
-        # Caller decides how to protect it outside GitHub.
-        integrated = result.get("integrated_private")
-        if not isinstance(integrated, dict):
-            outstream.write("PRIVATE_CASE_NOT_AVAILABLE: " + result["status"] + "\n")
+    elif output in {"private-case", "private-case-envelope"}:
+        # User-selected PRIVATE copy only, never a write to disk or GitHub.
+        record, error = _eligible_private_case(result)
+        if record is None:
+            outstream.write(error + "\n")
+        elif output == "private-case":
+            outstream.write(json.dumps(record, ensure_ascii=False,
+                                       sort_keys=True, indent=2, allow_nan=False) + "\n")
         else:
-            record = integrated.get("private_research_history_proposal")
-            gate = integrated.get("github_memory_review_gate")
-            if record is None:
-                outstream.write("PRIVATE_CASE_NOT_PREPARED: explicit memory_inputs required.\n")
-            elif (not isinstance(record, dict) or not isinstance(gate, dict)
-                  or record.get("schema_version") != "RESEARCH_HISTORY_R1"
-                  or record.get("privacy_tier") != "PRIVATE_PENDING_REVIEW"
-                  or record.get("archive_status") != "PROPOSED_NOT_COMMITTED"
-                  or gate.get("approved_for_publication") is not False
-                  or gate.get("status") != "WITHHELD_PENDING_HUMAN_PRIVACY_AND_RIGHTS_REVIEW"):
-                outstream.write("PRIVATE_CASE_NOT_AVAILABLE: review gate or private status invalid.\n")
-            else:
-                outstream.write(json.dumps(record, ensure_ascii=False,
-                                           sort_keys=True, indent=2, allow_nan=False) + "\n")
+            try:
+                envelope = seal_private_case(record)
+                encoded = json.dumps(envelope, ensure_ascii=False, sort_keys=True,
+                                     indent=2, allow_nan=False)
+                if len(encoded) > MAX_INPUT_CHARACTERS:
+                    raise ValueError("PRIVATE_CASE_ENVELOPE_TOO_LARGE")
+                outstream.write(encoded + "\n")
+            except (ValueError, TypeError, KeyError, RecursionError):
+                errstream.write("R1_PROCESSING_ERROR: private case integrity package unavailable.\n")
+                return 3
 
     elif output == "continuation":
         # Explicitly PRIVATE: a single portable next handoff together with
@@ -419,9 +449,9 @@ def main(argv: list[str] | None = None, *, instream: TextIO | None = None,
          outstream: TextIO | None = None,
          errstream: TextIO | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--output", choices=("status", "report", "handoffs", "next-handoff", "continuation", "operator-packet", "method-handoff", "followup-draft", "private-case", "review-queue"),
+    parser.add_argument("--output", choices=("status", "report", "handoffs", "next-handoff", "continuation", "operator-packet", "method-handoff", "followup-draft", "sealed-followup-draft", "private-case", "private-case-envelope", "review-queue"),
                         default="status",
-                        help="status is redacted; report, handoffs, next-handoff, continuation, operator-packet, method-handoff, followup-draft, private-case and review-queue require a private terminal")
+                        help="status is redacted; report, handoffs, next-handoff, continuation, operator-packet, method-handoff, followup-draft, sealed-followup-draft, private-case, private-case-envelope and review-queue require a private terminal")
     opts = parser.parse_args(argv)
     return run(output=opts.output, instream=instream or sys.stdin,
                outstream=outstream or sys.stdout, errstream=errstream or sys.stderr)

@@ -767,5 +767,83 @@ class ManualCLIContractTests(unittest.TestCase):
         self.assertNotIn("document_contents_private", output)
         self.assertEqual(self.invoke(finished, "status")[0], 0)
 
+
+    def test_private_case_envelope_round_trip_to_inert_followup(self):
+        payload = {
+            "request": self.fx.request(subject_id="SYN-ISSUER",
+                                       account_context={"token": "PRIVATE_ACCOUNT_TOKEN"}),
+            "ir_capsule": self.fx.ir(),
+            "memory_inputs": {"report_id": "REPORT-A",
+                              "instruction_version": "R1-SYN",
+                              "recorded_at": "2026-10-28"},
+        }
+        before = deepcopy(payload)
+        code, out, err = self.invoke(payload, "private-case-envelope")
+        self.assertEqual((code, err), (0, ""))
+        envelope = json.loads(out)
+        prior = json.loads(self.invoke(payload, "private-case")[1])
+        self.assertEqual(envelope["private_case"], prior)
+        self.assertEqual(envelope["confidentiality"], "NOT_PROVIDED_BY_CHECKSUM")
+        self.assertEqual(envelope["authenticity"],
+                         "NOT_ESTABLISHED_UNKEYED_CHECKSUM")
+        self.assertEqual(envelope["storage"], "NONE")
+        self.assertIn("PRIVATE_ACCOUNT_TOKEN", out)
+        self.assertNotIn("PRIVATE_ACCOUNT_TOKEN", self.invoke(payload, "status")[1])
+        code, restored, err = self.invoke(
+            {"private_case_envelope": envelope}, "sealed-followup-draft")
+        self.assertEqual((code, err), (0, ""))
+        followup = json.loads(restored)
+        regular = json.loads(self.invoke(
+            {"prior_private_case": prior}, "followup-draft")[1])
+        self.assertEqual(followup["input_template"], regular["input_template"])
+        self.assertEqual(followup["status"],
+                         "PRIVATE_FOLLOWUP_DRAFT_REQUIRES_CEO_INITIATION")
+        self.assertEqual(followup["record_authenticity"], "NOT_ESTABLISHED")
+        self.assertIs(followup["input_template"]["request"]["ceo_initiated"], False)
+        self.assertEqual(payload, before)
+
+    def test_modified_sealed_record_rejected_without_private_value_disclosure(self):
+        payload = {
+            "request": self.fx.request(subject_id="SYN-ISSUER"),
+            "ir_capsule": self.fx.ir(),
+            "memory_inputs": {"report_id": "REPORT-A",
+                              "instruction_version": "R1-SYN",
+                              "recorded_at": "2026-10-28"},
+        }
+        envelope = json.loads(self.invoke(payload, "private-case-envelope")[1])
+        original = deepcopy(envelope)
+        envelope["private_case"]["original_ir_capsule"]["facts"][0]["claim"] = (
+            "VERY_SECRET_NEW_CLAIM")
+        code, out, err = self.invoke(
+            {"private_case_envelope": envelope}, "sealed-followup-draft")
+        self.assertEqual(code, 2)
+        self.assertEqual(out, "")
+        self.assertIn("PRIVATE_CASE_SHA256_MISMATCH", err)
+        self.assertNotIn("VERY_SECRET_NEW_CLAIM", err)
+        self.assertNotIn("VERY_SECRET_NEW_CLAIM", out)
+        self.assertNotIn("PRIVATE_ACCOUNT", err)
+        self.assertNotIn("VERY_SECRET_NEW_CLAIM", str(original))
+
+    def test_sealed_followup_requires_only_one_expected_private_envelope(self):
+        payload = {
+            "request": self.fx.request(subject_id="SYN-ISSUER"),
+            "ir_capsule": self.fx.ir(),
+            "memory_inputs": {"report_id": "REPORT-A",
+                              "instruction_version": "R1-SYN",
+                              "recorded_at": "2026-10-28"},
+        }
+        envelope = json.loads(self.invoke(payload, "private-case-envelope")[1])
+        for invalid in ({}, {"private_case_envelope": envelope,
+                              "request": payload["request"]}):
+            with self.subTest(fields=list(invalid)):
+                code, out, err = self.invoke(invalid, "sealed-followup-draft")
+                self.assertEqual(code, 2)
+                self.assertEqual(out, "")
+                self.assertIn("PRIVATE_CASE_ENVELOPE_REQUIRED", err)
+        code, out, err = self.invoke({"private_case_envelope": envelope}, "status")
+        self.assertEqual(code, 2)
+        self.assertEqual(out, "")
+        self.assertNotIn("original_ir_capsule", err)
+
 if __name__ == "__main__":
     unittest.main()
