@@ -91,7 +91,9 @@ source observation uses the existing S/F fields and dates, is linked by
 `observation_id` to one `current_evidence_refs` entry, and is tied by
 `fact_id` to one of the original IR thesis facts selected for the review.
 Case IDs, analysis cutoff, unique observation IDs, and exact reference
-coverage must match. The separate current annex is **not** silently added to
+coverage must match. The current annex contains at most **24** dated
+observations, one for each explicitly referenced ID; unmatched, duplicate
+or unrequested observations are rejected. The separate current annex is **not** silently added to
 or substituted for the untouched original IR `EVIDENCE_ANNEX`; a genuinely
 later current observation may be evaluated against its own analysis cutoff,
 never disguised as available at the original IR research date.
