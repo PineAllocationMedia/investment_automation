@@ -793,6 +793,55 @@ def _macro_sector_context_lines(packet: Mapping[str, Any], analysis_id: str,
                  "Private hypotheses, source locators, countercases and checks stay in the annex.")
     return lines
 
+def _pillar_trace_lines(packet: Mapping[str, Any], analysis_id: str,
+                        as_of: str, strategy: str) -> list[str]:
+    """Report four IR axes as research queues, never as investment scores."""
+    trace = packet.get("pillar_trace_private")
+    if trace is None:
+        return []
+    if not isinstance(trace, Mapping) or (
+        trace.get("status") != "PRIVATE_FOUR_PILLAR_IR_TRACE_NOT_CERTIFIED"
+        or trace.get("analysis_id") != analysis_id
+        or trace.get("analysis_as_of") != as_of
+        or trace.get("strategy_id") != strategy
+        or trace.get("source_authentication") != "NOT_PERFORMED"
+        or trace.get("expected_return_certification") != "NOT_ESTABLISHED"
+        or trace.get("portfolio_room") != "SEPARATE_PI_EVIDENCE_REQUIRED"
+        or trace.get("investment_or_trade_authority") != "NONE"
+        or trace.get("storage") != "NONE"
+    ):
+        raise ValueError("PILLAR_REPORT_AUTHORITY_MISMATCH")
+    researched = _iso_date(trace.get("research_as_of"), "pillar.research_as_of")
+    if researched > as_of:
+        raise ValueError("PILLAR_REPORT_FUTURE_RESEARCH")
+    rows = trace.get("pillars_private")
+    names = ("QUALITY", "DURABILITY", "EXPECTED_RETURN", "CONFIDENCE")
+    if not isinstance(rows, Mapping) or set(rows) != set(names):
+        raise ValueError("PILLAR_REPORT_FOUR_AXES_REQUIRED")
+    lines = ["", "## Four research pillars — specialist-reported, not certified"]
+    for name in names:
+        row = rows[name]
+        if not isinstance(row, Mapping):
+            raise ValueError("PILLAR_REPORT_AXIS_INVALID")
+        reported = row.get("reported_status")
+        stage = row.get("review_stage")
+        refs = row.get("ir_fact_ids_private")
+        if (reported not in {"SPECIALIST_REPORTED", "UNKNOWN"}
+                or stage not in {"NOT_ASSESSED", "EVIDENCE_RESOLUTION", "HUMAN_RESEARCH_REVIEW_ONLY"}
+                or (reported == "UNKNOWN") != (stage == "NOT_ASSESSED")
+                or not isinstance(refs, list) or len(refs) > 24
+                or any(not isinstance(ref, str) or not ref or len(ref) > 80 for ref in refs)
+                or len(set(refs)) != len(refs)
+                or (reported == "SPECIALIST_REPORTED" and not refs)):
+            raise ValueError("PILLAR_REPORT_AXIS_STATUS_INVALID")
+        lines.append(
+            f"- **{name.replace('_', ' ').title()}** — {stage.replace('_', ' ').lower()}; "
+            f"{len(refs)} referenced IR fact(s); no source or economic certification.")
+    lines.append("Portfolio Room is a separate, dated PI assessment; "
+                 "no overall five-pillar score, normalized Expected Return, VFV alpha, admission or trade authority.")
+    return lines
+
+
 def render_report(packet: Mapping[str, Any]) -> str:
     """Render a concise markdown research report or user-requested follow-up.
 
@@ -839,6 +888,7 @@ def render_report(packet: Mapping[str, Any]) -> str:
             f"**Source reconciliation:** {flagged_count}/{len(facts)} facts require "
             "human source-use review based on supplied observations; no status was upgraded."
         )
+    lines += _pillar_trace_lines(packet, analysis_id, as_of, strategy)
     lines += ["", "## Supporting observations"]
     if facts:
         for item in facts:
