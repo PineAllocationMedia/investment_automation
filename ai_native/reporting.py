@@ -370,6 +370,8 @@ def _new_contribution_lines(packet: Mapping[str, Any], analysis_id: str,
                     "status", "before_largest_non_cash_security_pct",
                     "gross_after_largest_non_cash_security_pct",
                     "conditional_funded_after_largest_non_cash_security_pct",
+                    "before_scoped_cash_pct", "gross_after_scoped_cash_pct",
+                    "conditional_funded_after_scoped_cash_pct",
                     "authority"}
                 or sensitivity.get("authority") !=
                     "DESCRIPTIVE_CALLER_SUPPLIED_NO_PORTFOLIO_POLICY_OR_EXECUTION"):
@@ -398,6 +400,13 @@ def _new_contribution_lines(packet: Mapping[str, Any], analysis_id: str,
         before = concentration_pct("before_largest_non_cash_security_pct")
         gross_after = concentration_pct("gross_after_largest_non_cash_security_pct")
         funded_after = concentration_pct("conditional_funded_after_largest_non_cash_security_pct")
+        before_cash = concentration_pct("before_scoped_cash_pct")
+        gross_cash = concentration_pct("gross_after_scoped_cash_pct")
+        funded_cash = concentration_pct("conditional_funded_after_scoped_cash_pct")
+        if before_cash is None or gross_cash is None:
+            raise ValueError("CONTRIBUTION_REPORT_CONCENTRATION_CASH_REQUIRED")
+        if not is_funded and funded_cash is not None:
+            raise ValueError("CONTRIBUTION_REPORT_CONCENTRATION_FUNDED_UNAUTHORIZED")
         if not is_funded and funded_after is not None:
             raise ValueError("CONTRIBUTION_REPORT_CONCENTRATION_FUNDED_UNAUTHORIZED")
         if before is not None or gross_after is not None:
@@ -422,6 +431,19 @@ def _new_contribution_lines(packet: Mapping[str, Any], analysis_id: str,
             lines.append(
                 "Single-security concentration UNAVAILABLE: no positive non-cash "
                 "security line in the supplied scoped scenario.")
+        lines.append(
+            "Cash within the SAME caller-confirmed portfolio scope: before "
+            f"{before_cash}% and after the GROSS hypothetical contribution "
+            f"{gross_cash}% (P-CASH, not a strategy reserve target). "
+            "These are descriptive scoped percentages, not externally "
+            "available emergency funds or authorization to rebalance.")
+        if is_funded:
+            if funded_cash is None:
+                raise ValueError("CONTRIBUTION_REPORT_CONCENTRATION_CASH_REQUIRED")
+            lines.append(
+                "Under the separate conditional fixed-supplied-cost funded "
+                f"scenario: scoped cash {funded_cash}%; cost quotes, external "
+                "funding, accessible cash and net execution remain unverified.")
 
     burden_text = summary.get("one_time_supplied_cost_share_pct")
     if burden_text is not None:
