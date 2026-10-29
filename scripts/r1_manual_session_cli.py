@@ -67,6 +67,38 @@ SAFE_ERROR_CODES = frozenset({
 })
 
 
+def _inert_new_case_template() -> dict[str, Any]:
+    """One private, intentionally non-executable CC intake skeleton.
+
+    Never infer a date, strategy, fees, user initiation or specialist route.
+    The existing R1 request validator remains the only admission path once
+    the human fills this draft and explicitly starts a new session.
+    """
+    return {
+        "request": {
+            "ceo_initiated": False,
+            "analysis_id": "",
+            "as_of": "",
+            "kind": "",
+            "objective": "",
+            "strategy_id": "",
+            "horizon": "UNKNOWN",
+            "risk_constraints": [],
+            "candidate_universe": "UNKNOWN",
+            "research_needed": None,
+            "portfolio_needed": None,
+            "account_context": {
+                "type": "UNKNOWN",
+                "broker": "UNKNOWN",
+                "tax": "UNKNOWN",
+                "commission": "UNKNOWN",
+                "fx_cost": "UNKNOWN",
+            },
+            "method_version": "UNKNOWN_NOT_LOADED",
+        }
+    }
+
+
 def _unique_pairs(pairs: list[tuple[str, Any]]) -> dict[str, Any]:
     result: dict[str, Any] = {}
     for key, value in pairs:
@@ -423,6 +455,11 @@ def _reenter_sealed_followup(envelope: Any) -> tuple[dict[str, Any], dict[str, A
 def run(*, output: str, instream: TextIO, outstream: TextIO,
         errstream: TextIO) -> int:
     """Read one bounded JSON payload from stdin, send results to stdout only."""
+    if output == "request-template":
+        # No stdin is read: this is an inert, non-secret starting point.
+        outstream.write(json.dumps(_inert_new_case_template(), ensure_ascii=False,
+                                   sort_keys=True, indent=2, allow_nan=False) + "\n")
+        return 0
     guided_resuming = False
     try:
         raw = instream.read(MAX_INPUT_CHARACTERS + 1)
@@ -643,9 +680,9 @@ def main(argv: list[str] | None = None, *, instream: TextIO | None = None,
          outstream: TextIO | None = None,
          errstream: TextIO | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--output", choices=("status", "report", "handoffs", "next-handoff", "continuation", "operator-packet", "resume-operator", "guided-operator", "method-handoff", "specialist-prompt", "followup-draft", "sealed-followup-draft", "sealed-followup-operator", "private-case", "private-case-envelope", "review-queue"),
+    parser.add_argument("--output", choices=("request-template", "status", "report", "handoffs", "next-handoff", "continuation", "operator-packet", "resume-operator", "guided-operator", "method-handoff", "specialist-prompt", "followup-draft", "sealed-followup-draft", "sealed-followup-operator", "private-case", "private-case-envelope", "review-queue"),
                         default="status",
-                        help="status is redacted; report, handoffs, next-handoff, continuation, operator-packet, resume-operator, guided-operator, method-handoff, specialist-prompt, followup-draft, sealed-followup-draft, sealed-followup-operator, private-case, private-case-envelope and review-queue require a private terminal")
+                        help="request-template is an inert blank case and reads no stdin; status is redacted; report, handoffs, next-handoff, continuation, operator-packet, resume-operator, guided-operator, method-handoff, specialist-prompt, followup-draft, sealed-followup-draft, sealed-followup-operator, private-case, private-case-envelope and review-queue require a private terminal")
     opts = parser.parse_args(argv)
     return run(output=opts.output, instream=instream or sys.stdin,
                outstream=outstream or sys.stdout, errstream=errstream or sys.stderr)
