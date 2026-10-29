@@ -143,6 +143,26 @@ def run(*, output: str, instream: TextIO, outstream: TextIO,
             else:
                 outstream.write(json.dumps(record, ensure_ascii=False,
                                            sort_keys=True, indent=2, allow_nan=False) + "\n")
+
+    elif output == "next-handoff":
+        # Only the actionable next transfer. In particular, never offer PI
+        # before IR, or when an unavailable visual source requires a screenshot.
+        label = {
+            "AWAITING_MANUAL_IR_CAPSULE": "IR_REQUEST",
+            "AWAITING_MANUAL_PI_DELTA": "PI_REQUEST",
+        }.get(result["status"])
+        if label is None:
+            outstream.write("NEXT_HANDOFF_NOT_AVAILABLE: " + result["status"] + "\n")
+        else:
+            raw_packet = result["handoffs_private"]["copy_ready_private"].get(label)
+            if not isinstance(raw_packet, str):
+                errstream.write("R1_PROCESSING_ERROR: next handoff packet unavailable.\n")
+                return 3
+            outstream.write(json.dumps({
+                label: json.loads(raw_packet, parse_constant=_no_nonfinite,
+                                  parse_float=_finite_json_float,
+                                  object_pairs_hook=_unique_pairs)
+            }, ensure_ascii=False, sort_keys=True, indent=2, allow_nan=False) + "\n")
     elif output == "handoffs":
         handoffs = result["handoffs_private"]["copy_ready_private"]
         # These packets may include private research/account context and are
@@ -162,9 +182,9 @@ def main(argv: list[str] | None = None, *, instream: TextIO | None = None,
          outstream: TextIO | None = None,
          errstream: TextIO | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--output", choices=("status", "report", "handoffs", "private-case", "review-queue"),
+    parser.add_argument("--output", choices=("status", "report", "handoffs", "next-handoff", "private-case", "review-queue"),
                         default="status",
-                        help="status is redacted; report, handoffs, private-case and review-queue require a private terminal")
+                        help="status is redacted; report, handoffs, next-handoff, private-case and review-queue require a private terminal")
     opts = parser.parse_args(argv)
     return run(output=opts.output, instream=instream or sys.stdin,
                outstream=outstream or sys.stdout, errstream=errstream or sys.stderr)

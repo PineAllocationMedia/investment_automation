@@ -269,6 +269,45 @@ class BlossomSessionBridgeTests(unittest.TestCase):
         self.assertNotIn("P_LEDGER_FOR_REVIEW_PRIVATE", pi_request)
         self.assertNotIn("P_LEDGER_HANDOFF_AUTHORITY", pi_request)
 
+
+    def test_next_handoff_private_ledger_selects_only_pi_not_raw_work_data(self):
+        ir = self.fx.ir()
+        original_work = self.report()
+        data = {"request": self.fx.request(portfolio_needed=True),
+                "ir_capsule": ir, "work_blossom_inputs": original_work}
+        before = deepcopy(data)
+        code, output, error = self.cli(data, output="next-handoff")
+        self.assertEqual((code, error), (0, ""))
+        packet = json.loads(output)
+        self.assertEqual(set(packet), {"PI_REQUEST"})
+        self.assertEqual(packet["PI_REQUEST"]["FORWARD_UNCHANGED"], ir)
+        ledger = packet["PI_REQUEST"]["P_LEDGER_FOR_REVIEW_PRIVATE"]
+        self.assertEqual(ledger["known_scope_weights_pct"]["P1"], "80.00")
+        self.assertNotIn("TOKEN_THAT_MUST_NOT_PASS", output)
+        self.assertEqual(data, before)
+
+    def test_next_handoff_ir_first_keeps_private_work_ledger_out_of_ir(self):
+        payload = {"request": self.fx.request(portfolio_needed=True),
+                   "work_blossom_inputs": self.report()}
+        code, output, error = self.cli(payload, output="next-handoff")
+        self.assertEqual((code, error), (0, ""))
+        self.assertEqual(set(json.loads(output)), {"IR_REQUEST"})
+        self.assertNotIn("P_LEDGER_FOR_REVIEW_PRIVATE", output)
+        self.assertNotIn("SYNTHETIC_ACCOUNT_SECRET", output)
+
+    def test_next_handoff_requires_screenshot_before_pi_transfer(self):
+        payload = {"request": self.pi_only(),
+                   "work_blossom_inputs": self.report(view_status="UNAVAILABLE")}
+        code, output, error = self.cli(payload, output="next-handoff")
+        self.assertEqual((code, error), (0, ""))
+        self.assertEqual(
+            output, "NEXT_HANDOFF_NOT_AVAILABLE: AWAITING_MANUAL_PORTFOLIO_SCREENSHOT\n"
+        )
+        self.assertNotIn("PI_REQUEST", output)
+        code, queue, error = self.cli(payload, output="review-queue")
+        self.assertEqual((code, error), (0, ""))
+        self.assertIn("CAPTURE_AUTHORIZED_PORTFOLIO_SCREENSHOT", queue)
+
     def test_existing_pi_path_without_visual_packet_unchanged(self):
         result=complete_manual_session(self.pi_only(),pi_delta=self.fx.pi())
         self.assertEqual(result["status"],"PI_ONLY_CONDITIONAL_REPORT_ASSEMBLED")
