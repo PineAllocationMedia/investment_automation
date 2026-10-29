@@ -101,6 +101,113 @@ def _source_review(packet: Mapping[str, Any], analysis_id: str, as_of: str,
 
 
 
+def _portfolio_snapshot_comparison_lines(packet: Mapping[str, Any],
+                                         analysis_id: str, as_of: str,
+                                         kind: str) -> list[str]:
+    """On-demand private descriptive deltas; no security IDs or amounts printed."""
+    x = packet.get("portfolio_snapshot_comparison_private")
+    if x is None:
+        return []
+    schema = {
+        "analysis_id", "analysis_as_of", "prior_analysis_id",
+        "prior_observed_on", "current_observed_on", "status", "reason_codes",
+        "rows_private", "matched_instrument_count", "newly_visible_count",
+        "no_longer_visible_count", "largest_absolute_security_weight_shift_pp",
+        "cash_weight_change_pp", "privacy", "source_authentication",
+        "performance_or_transaction_inference", "storage", "trading_authority",
+    }
+    if (kind != "FOLLOWUP" or not isinstance(x, Mapping) or set(x) != schema
+            or x["analysis_id"] != analysis_id or x["analysis_as_of"] != as_of
+            or x["prior_analysis_id"] != packet.get("prior_analysis_id")
+            or x["privacy"] != "PRIVATE_ONLY"
+            or x["source_authentication"] != "NOT_PERFORMED"
+            or x["performance_or_transaction_inference"] != "NONE"
+            or x["storage"] != "NONE" or x["trading_authority"] != "NONE"):
+        raise ValueError("SNAPSHOT_REPORT_ID_OR_AUTHORITY_INVALID")
+    previous = _iso_date(x["prior_observed_on"], "snapshot.prior_observed_on")
+    latest = _iso_date(x["current_observed_on"], "snapshot.current_observed_on")
+    obs = packet.get("portfolio_observation_private")
+    if (not previous < latest <= as_of or not isinstance(obs, Mapping)
+            or obs.get("observed_on") != latest or obs.get("analysis_id") != analysis_id
+            or obs.get("private_scope") is not True):
+        raise ValueError("SNAPSHOT_REPORT_OBSERVATION_BASIS_MISMATCH")
+    reasons = x["reason_codes"]
+    if (not isinstance(reasons, list)
+            or any(code not in ("PRIOR_SCOPE_INCOMPLETE", "CURRENT_SCOPE_INCOMPLETE")
+                   for code in reasons)
+            or len(reasons) != len(set(reasons))):
+        raise ValueError("SNAPSHOT_REPORT_REASON_CODES_INVALID")
+    lines = ["", "## On-demand private portfolio snapshot comparison",
+             f"Observed {previous} vs {latest} in the same caller-described account scope."]
+    if x["status"] == "UNAVAILABLE_INCOMPLETE_SNAPSHOT_SCOPE":
+        if (not reasons or x["rows_private"] is not None
+                or any(x[k] is not None for k in (
+                    "matched_instrument_count", "newly_visible_count",
+                    "no_longer_visible_count", "largest_absolute_security_weight_shift_pp",
+                    "cash_weight_change_pp"))):
+            raise ValueError("SNAPSHOT_REPORT_UNAVAILABLE_NUMBERS_INVALID")
+        lines.append("Weight change UNAVAILABLE: " + ", ".join(reasons)
+                     + ". Confirm complete dated cash and holdings on both observations.")
+    elif x["status"] == "DESCRIPTIVE_SCOPED_WEIGHT_CHANGE_NOT_RETURN":
+        rows = x["rows_private"]
+        if reasons or not isinstance(rows, list) or not 1 <= len(rows) <= 10000:
+            raise ValueError("SNAPSHOT_REPORT_ROWS_INVALID")
+        def pct(v: Any, *, signed: bool = False) -> Decimal:
+            if not isinstance(v, str) or len(v) > 8:
+                raise ValueError("SNAPSHOT_REPORT_PERCENT_INVALID")
+            try:
+                d = Decimal(v)
+            except InvalidOperation as exc:
+                raise ValueError("SNAPSHOT_REPORT_PERCENT_INVALID") from exc
+            if (not d.is_finite() or d < (-100 if signed else 0) or d > 100
+                    or d != d.quantize(Decimal("0.01"))):
+                raise ValueError("SNAPSHOT_REPORT_PERCENT_INVALID")
+            return d
+        names = {"CONTINUING":"matched_instrument_count",
+                 "NEWLY_VISIBLE":"newly_visible_count",
+                 "NO_LONGER_VISIBLE":"no_longer_visible_count"}
+        counts = {k:0 for k in names}
+        seen = set()
+        largest = Decimal("0")
+        for row in rows:
+            if (not isinstance(row, Mapping)
+                    or set(row) != {"security_id_private", "prior_weight_pct",
+                                   "current_weight_pct", "weight_change_pp", "presence"}
+                    or row["presence"] not in names):
+                raise ValueError("SNAPSHOT_REPORT_ROW_SCHEMA_INVALID")
+            sec = row["security_id_private"]
+            if (not isinstance(sec, str) or not sec.strip() or sec == "P-CASH"
+                    or len(sec) > 256 or sec in seen):
+                raise ValueError("SNAPSHOT_REPORT_ROW_SECURITY_INVALID")
+            seen.add(sec)
+            prior, current = pct(row["prior_weight_pct"]), pct(row["current_weight_pct"])
+            delta = pct(row["weight_change_pp"], signed=True)
+            if delta != current - prior:
+                raise ValueError("SNAPSHOT_REPORT_ROW_DELTA_INVALID")
+            largest = max(largest, abs(delta))
+            counts[row["presence"]] += 1
+        if any(type(x[v]) is not int or x[v] != counts[k] for k,v in names.items()):
+            raise ValueError("SNAPSHOT_REPORT_COUNT_INVALID")
+        if pct(x["largest_absolute_security_weight_shift_pp"]) != largest:
+            raise ValueError("SNAPSHOT_REPORT_MAX_SHIFT_INVALID")
+        cash = pct(x["cash_weight_change_pp"], signed=True)
+        lines.append(
+            f"Security identities: {counts['CONTINUING']} observed on both dates; "
+            f"{counts['NEWLY_VISIBLE']} newly visible; "
+            f"{counts['NO_LONGER_VISIBLE']} no longer visible.")
+        lines.append(
+            f"Largest absolute security-line weight shift: {largest:.2f} percentage "
+            f"points; scoped cash weight change: {cash:+.2f} percentage points. "
+            "Private positions and amounts stay in the separate annex.")
+    else:
+        raise ValueError("SNAPSHOT_REPORT_STATUS_INVALID")
+    lines.append(
+        "Reported weight changes are NOT price returns, capital contributions, "
+        "purchases/sales, a portfolio policy choice, verified source data or "
+        "whole-household exposure. Human history and source review required.")
+    return lines
+
+
 def _portfolio_observation_lines(packet: Mapping[str, Any], analysis_id: str,
                                  as_of: str) -> list[str]:
     """Describe supplied private P coverage without repeating holdings or cash amounts.
@@ -1915,6 +2022,7 @@ def render_report(packet: Mapping[str, Any]) -> str:
     lines += _candidate_comparison_lines(packet, analysis_id, as_of, strategy)
     lines += _new_contribution_lines(packet, analysis_id, as_of)
     lines += _portfolio_observation_lines(packet, analysis_id, as_of)
+    lines += _portfolio_snapshot_comparison_lines(packet, analysis_id, as_of, kind)
     lines += _portfolio_exposure_lines(packet, analysis_id, as_of)
     lines += _portfolio_room_lines(packet, analysis_id, as_of)
     lines += _five_pillar_lines(packet, analysis_id, as_of, strategy)
