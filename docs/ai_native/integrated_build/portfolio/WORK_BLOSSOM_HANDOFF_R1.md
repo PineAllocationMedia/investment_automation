@@ -2,7 +2,7 @@
 
 **Scope:** Construction-time handoff between an explicitly authorized Work browser observation and the existing M3 P-ledger. **Status:** `WORK_ADAPTER_AND_MANUAL_R1_BRIDGE_BUILT / LIVE_PRIVATE_PORTFOLIO_NOT_TESTED / NOT_PORTFOLIO_READY`. Neither a browser integration nor a broker connection has been installed.
 
-**Default copy-ready one-off Work prompt:** [PROMPT PI-1 — BLOSSOM PORTFOLIO (WORK + CLOUD BROWSER DEFAULT)](PROMPT_PI_1_BLOSSOM_PORTFOLIO_WORK_R1.md), version `PI-WORK-PORTFOLIO-R1.0`. This supersedes only the shorter *example task wording* below for actual Work operations; the adapter/ledger schema and all privacy safeguards remain unchanged. The CEO must run it explicitly in Work; GitHub cannot invoke a signed-in browser.
+**Default copy-ready one-off Work prompt:** [PROMPT PI-1 — BLOSSOM PORTFOLIO (WORK + CLOUD BROWSER DEFAULT)](PROMPT_PI_1_BLOSSOM_PORTFOLIO_WORK_R1.md), version `PI-WORK-PORTFOLIO-R1.1`. This supersedes only the shorter *example task wording* below for actual Work operations; the adapter/ledger schema and all privacy safeguards remain unchanged. The CEO must run it explicitly in Work; GitHub cannot invoke a signed-in browser. The task contains an explicit `BLOSSOM_TARGET_URL` placeholder and `TARGET_ACCESS_SCOPE` selection (`MY_PRIVATE_PORTFOLIO` versus `PUBLIC_REFERENCE`): navigate only to the user-supplied exact Blossom account URL; a public portfolio reference must never enter the private M3 holdings adapter.
 
 ## Preferred authorized acquisition: Work mode
 
