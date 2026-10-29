@@ -66,7 +66,12 @@ def project_gross_contribution(
                 missing.append("OBSERVATION_DATE_INVALID")
         except ValueError:
             missing.append("OBSERVATION_DATE_INVALID")
-    if not isinstance(currency, str) or not currency.strip():
+    # A checked common-currency flag cannot turn UNKNOWN, a bare symbol, or
+    # malformed text into an account-base monetary denomination. ISO-like
+    # syntax is checked only; this does not authenticate the actual currency.
+    base_currency = currency.strip().upper() if isinstance(currency, str) else ""
+    if (len(base_currency) != 3 or not base_currency.isascii()
+            or not base_currency.isalpha()):
         missing.append("ACCOUNT_CURRENCY_UNKNOWN")
     if missing:
         return {"status": "UNAVAILABLE", "reason_codes": missing}
@@ -105,7 +110,7 @@ def project_gross_contribution(
     return {
         "status": "GROSS_PROJECTION_ONLY",
         "as_of": as_of,
-        "currency": currency.strip().upper(),
+        "currency": base_currency,
         "current_total": f"{current_total:.2f}",
         "contribution": f"{contribution:.2f}",
         "projected_total": f"{projected_total:.2f}",

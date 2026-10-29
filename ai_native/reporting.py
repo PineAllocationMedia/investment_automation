@@ -387,11 +387,35 @@ def _new_contribution_lines(packet: Mapping[str, Any], analysis_id: str,
     if gross not in {"GROSS_PROJECTION_ONLY", "UNAVAILABLE"} or not isinstance(costs, str) or not isinstance(funded, str):
         raise ValueError("CONTRIBUTION_REPORT_INVALID_STATUS")
     lines = ["", "## New contributions — private, caller-supplied plan"]
+    reasons = summary.get("gross_unavailable_reason_codes")
     if gross != "GROSS_PROJECTION_ONLY":
         if summary.get("allocations_pct") is not None:
             raise ValueError("CONTRIBUTION_REPORT_UNSUPPORTED_PERCENTAGES")
+        # Only finite, fixed codes from the existing source-neutral M3 solver
+        # can reach CC. Never reuse arbitrary source/portfolio input strings.
+        safe_resolution = {
+            "SCOPE_INCOMPLETE": "Confirm the complete selected account scope, including hidden positions.",
+            "CASH_UNKNOWN": "Recheck cash without assuming a zero balance.",
+            "CURRENCY_BASIS_UNVERIFIED": "Confirm the common account-base currency basis without assumed FX.",
+            "INSTRUMENT_IDENTITY_UNVERIFIED": "Resolve observed instrument identities and share classes.",
+            "OBSERVATION_DATE_UNKNOWN": "Supply the actual date of the portfolio observation.",
+            "OBSERVATION_DATE_INVALID": "Correct the invalid observation date.",
+            "ACCOUNT_CURRENCY_UNKNOWN": "Identify the genuine three-letter account-base currency; it cannot be inferred.",
+        }
+        if reasons is not None and (
+                not isinstance(reasons, list) or not reasons
+                or len(reasons) > len(safe_resolution)
+                or any(not isinstance(code, str) or code not in safe_resolution for code in reasons)
+                or len(set(reasons)) != len(reasons)):
+            raise ValueError("CONTRIBUTION_REPORT_UNAVAILABLE_REASONS_INVALID")
         lines.append("Gross contribution projection UNAVAILABLE: portfolio scope, cash, currency or identity inputs are not established.")
+        if reasons:
+            lines.append("Resolve these source-reported input gaps before recalculating new capital:")
+            for code in reasons:
+                lines.append(f"- {safe_resolution[code]} ({code})")
     else:
+        if reasons is not None:
+            raise ValueError("CONTRIBUTION_REPORT_GROSS_REASONS_CONFLICT")
         allocations = summary.get("allocations_pct")
         if not isinstance(allocations, Mapping) or not allocations:
             raise ValueError("CONTRIBUTION_REPORT_ALLOCATIONS_REQUIRED")

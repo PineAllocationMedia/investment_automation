@@ -94,6 +94,49 @@ class GrossAlternativeContributionTests(unittest.TestCase):
                 with self.assertRaises(ValueError):
                     self.project(self.plan(alternative_allocations_pct=value))
 
+    def test_unknown_account_currency_blocks_gross_alternatives_and_reports_safe_gaps(self):
+        from tests.test_ai_native_reporting import ReportingTests
+        plan = self.plan(currency="UNKNOWN")
+        bundle = self.project(plan)
+        gross = bundle["gross_contribution_private"]
+        summary = bundle["report_summary_private"]
+        self.assertEqual(gross["status"], "UNAVAILABLE")
+        self.assertEqual(gross["reason_codes"], ["ACCOUNT_CURRENCY_UNKNOWN"])
+        self.assertIsNone(summary["allocations_pct"])
+        self.assertIsNone(summary["gross_alternatives_private"])
+        self.assertEqual(summary["gross_unavailable_reason_codes"],
+                         ["ACCOUNT_CURRENCY_UNKNOWN"])
+        report = render_report(ReportingTests().packet(
+            analysis_id="CASE-A", new_contribution_summary_private=summary))
+        self.assertIn("Identify the genuine three-letter account-base currency", report)
+        self.assertIn("ACCOUNT_CURRENCY_UNKNOWN", report)
+        self.assertNotIn("1000.00", report)
+        self.assertNotIn("400.00", report)
+        self.assertNotIn("60% of new capital", report)
+
+    def test_gross_missing_reasons_reject_untrusted_or_repeated_strings(self):
+        from tests.test_ai_native_reporting import ReportingTests
+        summary = self.project(self.plan(currency="UNKNOWN"))["report_summary_private"]
+        for invalid in (["BUY_ABC_NOW"], ["ACCOUNT_CURRENCY_UNKNOWN",
+                                         "ACCOUNT_CURRENCY_UNKNOWN"],
+                        [], ["ACCOUNT_CURRENCY_UNKNOWN", 17]):
+            with self.subTest(invalid=invalid):
+                changed = deepcopy(summary)
+                changed["gross_unavailable_reason_codes"] = invalid
+                with self.assertRaisesRegex(ValueError,
+                                            "CONTRIBUTION_REPORT_UNAVAILABLE_REASONS_INVALID"):
+                    render_report(ReportingTests().packet(
+                        analysis_id="CASE-A",
+                        new_contribution_summary_private=changed))
+
+    def test_gross_projection_refuses_forged_missing_reason_codes(self):
+        from tests.test_ai_native_reporting import ReportingTests
+        summary = self.project()["report_summary_private"]
+        summary["gross_unavailable_reason_codes"] = ["ACCOUNT_CURRENCY_UNKNOWN"]
+        with self.assertRaisesRegex(ValueError, "CONTRIBUTION_REPORT_GROSS_REASONS_CONFLICT"):
+            render_report(ReportingTests().packet(
+                analysis_id="CASE-A", new_contribution_summary_private=summary))
+
     def test_missing_scope_never_reports_alternative_numbers(self):
         summary = self.project(self.plan(scope_complete=False))["report_summary_private"]
         self.assertEqual(summary["gross_status"], "UNAVAILABLE")

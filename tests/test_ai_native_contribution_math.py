@@ -30,6 +30,29 @@ class GrossContributionTests(unittest.TestCase):
         self.assertIn("SCOPE_INCOMPLETE", result["reason_codes"])
         self.assertIn("CASH_UNKNOWN", result["reason_codes"])
 
+    def test_unknown_or_malformed_currency_blocks_gross_projection(self):
+        for value in ("UNKNOWN", "", "N/A", "$", "US", "CAD1", "CAD/USD", None):
+            with self.subTest(currency=value):
+                result = self.sample(currency=value)
+                self.assertEqual(result["status"], "UNAVAILABLE")
+                self.assertEqual(result["reason_codes"], ["ACCOUNT_CURRENCY_UNKNOWN"])
+                self.assertNotIn("projected_positions", result)
+
+    def test_lowercase_currency_normalized_without_broker_certification(self):
+        result = self.sample(currency=" cad ")
+        self.assertEqual(result["status"], "GROSS_PROJECTION_ONLY")
+        self.assertEqual(result["currency"], "CAD")
+        self.assertEqual(result["net_execution_status"], "UNAVAILABLE_COSTS_NOT_ASSESSED")
+
+    def test_multiple_gaps_remain_separate_without_any_projection(self):
+        result = self.sample(currency="UNKNOWN", scope_complete=False,
+                             same_currency_basis_verified=False)
+        self.assertEqual(result["status"], "UNAVAILABLE")
+        self.assertEqual(result["reason_codes"], [
+            "SCOPE_INCOMPLETE", "CURRENCY_BASIS_UNVERIFIED",
+            "ACCOUNT_CURRENCY_UNKNOWN"])
+        self.assertNotIn("allocations", result)
+
     def test_unverified_cross_currency_blocks(self):
         result = self.sample(same_currency_basis_verified=False)
         self.assertEqual(result["reason_codes"], ["CURRENCY_BASIS_UNVERIFIED"])
