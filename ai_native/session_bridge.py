@@ -24,6 +24,7 @@ from .public_portfolio_reference import (
 from .portfolio_exposure import aggregate_portfolio_exposures
 from .portfolio_room import prepare_portfolio_room_review
 from .new_capital_flow import prepare_new_capital_projection
+from .contribution_observation import reconcile_observed_contribution_basis
 from .exceptional_lifecycle import prepare_exceptional_lifecycle_review
 
 ROOM_STATUSES = frozenset({"ROOM_EVIDENCE_SUPPORTED", "ROOM_CONDITIONAL", "ROOM_UNAVAILABLE"})
@@ -220,20 +221,14 @@ def complete_manual_session(
                 and observation["known_scope_weights_pct"] is None):
             raise ValueError("UNSUPPORTED_PORTFOLIO_ROOM_ASSERTION: incomplete observation")
 
-    # A separate contribution form must not override the visible P-ledger's
-    # scoped coverage or currency. Apply the same check to PI-only and IR+PI
-    # routes BEFORE either can calculate plausible-looking new-capital weights.
-    # This is structural parity, not independent account authentication.
+    # Reuse the actual dated PRIVATE P-ledger as the complete new-capital
+    # denominator when requested; reject independently retyped values that
+    # disagree, including omitted visible cash. Both manual routes share it.
+    # The ledger remains caller-reported, never account/source authenticated.
     if observation is not None and contribution_inputs is not None:
-        if not isinstance(contribution_inputs, Mapping):
-            raise ValueError("contribution_inputs: mapping required")
-        if (contribution_inputs.get("scope_complete") is True
-                and observation["known_scope_weights_pct"] is None):
-            raise ValueError("PI_CONTRIBUTION_SCOPE_CONFLICTS_WITH_OBSERVATION")
-        if (contribution_inputs.get("same_currency_basis_verified") is True
-                and (not isinstance(contribution_inputs.get("currency"), str)
-                     or contribution_inputs["currency"].strip().upper() != observation["currency"])):
-            raise ValueError("PI_CONTRIBUTION_CURRENCY_CONFLICTS_WITH_OBSERVATION")
+        contribution_inputs = reconcile_observed_contribution_basis(
+            observation, contribution_inputs
+        )
 
     exposures = None
     if exposure_classifications is not None:
@@ -428,6 +423,11 @@ def complete_manual_session(
         exceptional_lifecycle_review_private=private["exceptional_lifecycle_review_private"],
     )
     private["integrated_private"] = integrated
+    # PI-only and IR+PI expose the same strictly private deterministic M3
+    # outputs; the short CC report still omits actual balances and costs.
+    private["gross_contribution_private"] = integrated.get("gross_contribution_private")
+    private["supplied_costs_private"] = integrated.get("supplied_costs_private")
+    private["funded_contribution_private"] = integrated.get("funded_contribution_private")
     # Old IR-only or IR+PI returns with no optional question answers are
     # supported. A specialist-supplied answer, however, may not vanish from
     # M7a even if an intermediate key exists with a null or unrelated value.
