@@ -165,5 +165,69 @@ class PinnedMethodHandoffTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "SPECIALIST_PROMPT_BUNDLE_INVALID"):
             render_manual_specialist_prompt(forged)
 
+
+    def test_operator_preflight_all_pins_match_real_current_checkout(self):
+        from ai_native.method_handoff_bundle import inspect_local_method_pins
+        result = inspect_local_method_pins()
+        self.assertEqual(result["status"], "LOCAL_PINNED_METHOD_FILES_MATCH")
+        self.assertEqual(result["documents_matched"], len(DOCUMENT_BLOBS))
+        self.assertEqual(result["documents_blocked"], 0)
+        self.assertEqual(result["project_method_load_verification"], "NOT_PERFORMED")
+        self.assertEqual(result["strategy_policy_approval"], "NOT_GRANTED_BY_PREFLIGHT")
+        self.assertEqual(result["project_invocation"], "NONE")
+        self.assertEqual(result["storage"], "NONE")
+        self.assertTrue(all(row["reason_code"] is None for row in result["documents"]))
+
+    def test_operator_preflight_reports_missing_files_without_source_contents(self):
+        from ai_native.method_handoff_bundle import inspect_local_method_pins
+        with tempfile.TemporaryDirectory() as temp:
+            report = inspect_local_method_pins(repository_root=Path(temp))
+            self.assertEqual(report["status"], "LOCAL_PINNED_METHOD_FILES_BLOCKED")
+            self.assertEqual(report["documents_matched"], 0)
+            self.assertEqual(report["documents_blocked"], len(DOCUMENT_BLOBS))
+            self.assertTrue(all(
+                item["reason_code"] == "METHOD_HANDOFF_LOCAL_METHOD_UNAVAILABLE"
+                for item in report["documents"]))
+            self.assertNotIn(str(temp), str(report))
+
+    def test_operator_preflight_reports_stale_source_doc_without_private_text(self):
+        from ai_native.method_handoff_bundle import inspect_local_method_pins
+        path = "docs/ai_native/integrated_build/research/SOURCE_FUSION_R1.md"
+        with tempfile.TemporaryDirectory() as temp:
+            file = Path(temp) / path
+            file.parent.mkdir(parents=True, exist_ok=True)
+            file.write_text("SYNTHETIC_PRIVATE_METHOD_TAMPER", encoding="utf-8")
+            report = inspect_local_method_pins(repository_root=Path(temp))
+            row = next(x for x in report["documents"] if x["path"] == path)
+            self.assertEqual(row["check"], "BLOCKED")
+            self.assertEqual(row["reason_code"], "METHOD_HANDOFF_LOCAL_BLOB_MISMATCH")
+            self.assertNotIn("SYNTHETIC_PRIVATE_METHOD_TAMPER", str(report))
+            self.assertEqual(report["source_authentication"], "NOT_PERFORMED")
+
+    def test_preflight_script_does_not_require_private_ceo_input(self):
+        import io
+        from scripts.r1_method_preflight import main
+        output = io.StringIO()
+        self.assertEqual(main(outstream=output), 0)
+        data = __import__("json").loads(output.getvalue())
+        self.assertEqual(data["documents_checked"], len(DOCUMENT_BLOBS))
+        self.assertEqual(data["documents_blocked"], 0)
+        self.assertNotIn("PRIVATE_METHOD_CONTENT", output.getvalue())
+
+    def test_preflight_script_blocked_status_is_nonzero_and_not_a_project_check(self):
+        import io
+        from unittest.mock import patch
+        from scripts.r1_method_preflight import main
+        output = io.StringIO()
+        with patch("scripts.r1_method_preflight.inspect_local_method_pins",
+                   return_value={
+                       "status": "LOCAL_PINNED_METHOD_FILES_BLOCKED",
+                       "documents_blocked": 1, "project_method_load_verification":
+                       "NOT_PERFORMED",
+                   }):
+            self.assertEqual(main(outstream=output), 3)
+        self.assertEqual(__import__("json").loads(output.getvalue())[
+            "project_method_load_verification"], "NOT_PERFORMED")
+
 if __name__ == "__main__":
     unittest.main()

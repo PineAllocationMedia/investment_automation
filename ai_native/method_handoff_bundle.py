@@ -225,3 +225,72 @@ def render_manual_specialist_prompt(bundle: Mapping[str, Any]) -> str:
         "or investment authorization.",
     ]
     return "\n".join(sections) + "\n"
+
+
+def inspect_local_method_pins(
+    *, repository_root: Path | None = None,
+) -> dict[str, Any]:
+    """Read all fixed method files for byte parity; return metadata only.
+
+    This is an offline operator preflight, NOT a live ChatGPT Project check or
+    a financial/source compliance certification. It never prints method text.
+    """
+    try:
+        root = (Path(repository_root) if repository_root is not None
+                else Path(__file__).resolve().parents[1]).resolve(strict=True)
+        if not root.is_dir():
+            root = None
+    except (OSError, RuntimeError, TypeError):
+        root = None
+
+    entries = []
+    matches = 0
+    allowed_codes = {
+        "METHOD_HANDOFF_LOCAL_METHOD_UNAVAILABLE",
+        "METHOD_HANDOFF_LOCAL_BLOB_MISMATCH",
+        "METHOD_HANDOFF_METHOD_NOT_UTF8",
+        "METHOD_HANDOFF_REFERENCE_NOT_PINNED",
+    }
+    for path, expected_sha in DOCUMENT_BLOBS.items():
+        try:
+            if root is None:
+                raise ValueError("METHOD_HANDOFF_LOCAL_METHOD_UNAVAILABLE")
+            _read_pinned_document(root, path, expected_sha)
+        except ValueError as exc:
+            code = str(exc)
+            if code not in allowed_codes:
+                code = "METHOD_HANDOFF_LOCAL_METHOD_UNAVAILABLE"
+            entries.append({
+                "path": path,
+                "expected_git_blob_sha": expected_sha,
+                "check": "BLOCKED",
+                "reason_code": code,
+            })
+        else:
+            matches += 1
+            entries.append({
+                "path": path,
+                "expected_git_blob_sha": expected_sha,
+                "check": "MATCHED_EXPECTED_GIT_BLOB",
+                "reason_code": None,
+            })
+    return {
+        "status": (
+            "LOCAL_PINNED_METHOD_FILES_MATCH"
+            if matches == len(DOCUMENT_BLOBS)
+            else "LOCAL_PINNED_METHOD_FILES_BLOCKED"
+        ),
+        "repository_reference_commit": prepare_method_manifest(
+            "IR", None)["reference_commit"],
+        "documents_checked": len(entries),
+        "documents_matched": matches,
+        "documents_blocked": len(entries) - matches,
+        "documents": entries,
+        "check_scope": "LOCAL_REPOSITORY_METHOD_BYTES_ONLY",
+        "project_method_load_verification": "NOT_PERFORMED",
+        "source_authentication": "NOT_PERFORMED",
+        "strategy_policy_approval": "NOT_GRANTED_BY_PREFLIGHT",
+        "trading_authority": "NONE",
+        "storage": "NONE",
+        "project_invocation": "NONE",
+    }

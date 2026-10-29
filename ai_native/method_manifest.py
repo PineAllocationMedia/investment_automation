@@ -10,10 +10,10 @@ from __future__ import annotations
 from typing import Any
 
 REPOSITORY = "PineAllocationMedia/investment_automation"
-REFERENCE_COMMIT = "690f2f1bc82ef2e2958b202da0e9e359c7440d0d"
+REFERENCE_COMMIT = "2fc6084c7193bcae9d04f9bb40941a2424c02e78"
 ROOT = "docs/ai_native/integrated_build/"
 DOCUMENT_BLOBS = {
-    "docs/ai_native/integrated_build/research/SOURCE_FUSION_R1.md": "12143e14b655051e82787bc5e44dfef21ef3f5c7",
+    "docs/ai_native/integrated_build/research/SOURCE_FUSION_R1.md": "c1d1400015c29cc9426e34e9a6edf7e79354f9e1",
     "docs/ai_native/integrated_build/research/VALUATION_R1.md": "be82ed5bdc6ca506ebd8f70e3eaa88410a755abc",
     "docs/ai_native/integrated_build/portfolio/OBSERVATION_AND_ROOM_R1.md": "a7d0815dd6f64576077d5e6d2ffe6d93093d3dce",
     "docs/ai_native/integrated_build/portfolio/CONTRIBUTIONS_AND_COSTS_R1.md": "ba38423eb4b91e817c1b1632f5cc73f690fee182",
