@@ -1,6 +1,7 @@
 """Read-only, on-demand R1 regression runner for an authorized PAM checkout.
 
 Usage: python -B -m scripts.r1_local_validation
+       python -B -m scripts.r1_local_validation --candidate-head <PR_SHA> --base-sha <V2_SHA>
 
 This is *focused synthetic regression*, NOT live-source authentication,
 three-Project acceptance, policy approval, readiness, deployment or trading.
@@ -8,6 +9,7 @@ No network requests, package installation, GitHub writes or scheduling.
 """
 from __future__ import annotations
 
+import argparse
 from collections.abc import Callable, Iterator
 from pathlib import Path
 import re
@@ -51,7 +53,8 @@ def _environment(root: Path) -> str | None:
 
 
 
-def _checkout(root: Path) -> tuple[str | None, str | None]:
+def _checkout(root: Path, *, candidate_head: str | None = None,
+              base_sha: str | None = None) -> tuple[str | None, str | None]:
     """Read-only local checkout integrity; never infer live GitHub freshness.
 
     The operator must fetch V2 explicitly beforehand. A local tracking ref is
@@ -78,8 +81,19 @@ def _checkout(root: Path) -> tuple[str | None, str | None]:
         return ("CHECKOUT_ROOT_INVALID", None)
     if actual_root != root.resolve():
         return ("CHECKOUT_ROOT_MISMATCH", None)
+    candidate = candidate_head is not None or base_sha is not None
+    if candidate and (not isinstance(candidate_head, str)
+                      or not re.fullmatch(r"[0-9a-f]{40}", candidate_head)
+                      or not isinstance(base_sha, str)
+                      or not re.fullmatch(r"[0-9a-f]{40}", base_sha)):
+        return ("CHECKOUT_CANDIDATE_SHAS_REQUIRED", None)
     branch = git("symbolic-ref", "--quiet", "--short", "HEAD")
-    if branch is None or branch != (0, b"model-v2/expected-return-challenger\n"):
+    if branch is None or branch[0] != 0:
+        return ("CHECKOUT_BRANCH_UNAVAILABLE", None)
+    if candidate:
+        if not branch[1].startswith((b"pm/", b"codex/")):
+            return ("CHECKOUT_NOT_PR_CANDIDATE_BRANCH", None)
+    elif branch[1] != b"model-v2/expected-return-challenger\n":
         return ("CHECKOUT_NOT_V2_BRANCH", None)
     clean = git("status", "--porcelain=v1", "-z", "--untracked-files=all")
     if clean is None or clean[0] != 0:
@@ -94,7 +108,18 @@ def _checkout(root: Path) -> tuple[str | None, str | None]:
     if target is None or target[0] != 0:
         return ("CHECKOUT_TRACKING_REF_UNAVAILABLE", None)
     head = current[1].decode("ascii", errors="replace").strip()
-    if not re.fullmatch(r"[0-9a-f]{40}", head) or current[1] != target[1]:
+    tracking = target[1].decode("ascii", errors="replace").strip()
+    if not re.fullmatch(r"[0-9a-f]{40}", head) or not re.fullmatch(r"[0-9a-f]{40}", tracking):
+        return ("CHECKOUT_INVALID_SHA", None)
+    if candidate:
+        if head != candidate_head:
+            return ("CHECKOUT_CANDIDATE_HEAD_MISMATCH", None)
+        if tracking != base_sha:
+            return ("CHECKOUT_CANDIDATE_BASE_MISMATCH", None)
+        ancestry = git("merge-base", "--is-ancestor", base_sha, head)
+        if ancestry != (0, b""):
+            return ("CHECKOUT_CANDIDATE_NOT_BASE_DESCENDANT", None)
+    elif head != tracking:
         return ("CHECKOUT_HEAD_DIFFERS_FROM_LOCAL_V2_TRACKING_REF", None)
     return (None, head)
 
@@ -117,7 +142,8 @@ def _iter_tests(suite: unittest.TestSuite) -> Iterator[unittest.TestCase]:
 def validate(
     root: Path = ROOT, *, out: TextIO | None = None,
     checker: Callable[[Path], str | None] = _environment,
-    checkout_checker: Callable[[Path], tuple[str | None, str | None]] = _checkout,
+    checkout_checker: Callable[..., tuple[str | None, str | None]] = _checkout,
+    candidate_head: str | None = None, base_sha: str | None = None,
     discoverer: Callable[[Path], unittest.TestSuite] = _discover,
     required: frozenset[str] = REQUIRED,
     minimum_modules: int = 40, minimum_cases: int = 100,
@@ -142,12 +168,20 @@ def validate(
         line("R1_VALIDATION", "BLOCKED_ENVIRONMENT")
         line("R1_REASON", reason)
         return 2
-    checkout_reason, checkout_sha = checkout_checker(root)
+    candidate = candidate_head is not None or base_sha is not None
+    if candidate:
+        checkout_reason, checkout_sha = checkout_checker(
+            root, candidate_head=candidate_head, base_sha=base_sha)
+    else:
+        checkout_reason, checkout_sha = checkout_checker(root)
     if checkout_reason is not None or checkout_sha is None:
         line("R1_VALIDATION", "BLOCKED_CHECKOUT")
         line("R1_REASON", checkout_reason or "CHECKOUT_HEAD_UNAVAILABLE")
         return 2
     line("R1_TESTED_HEAD_SHA", checkout_sha)
+    line("R1_CHECKOUT_MODE", "PR_CANDIDATE" if candidate else "V2_INTEGRATION_BRANCH")
+    if candidate:
+        line("R1_CANDIDATE_BASE_SHA", base_sha)
     line("R1_HEAD_PROVENANCE", "LOCAL_TRACKING_REF_ONLY_COMPARE_TO_LIVE_GITHUB")
     directory = root / "tests"
     actual = {p.name for p in directory.glob("test_ai_native_*.py")}
@@ -192,7 +226,13 @@ def validate(
 
 
 def main() -> int:
-    return validate()
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--candidate-head", metavar="FULL_PR_SHA")
+    parser.add_argument("--base-sha", metavar="FULL_V2_BASE_SHA")
+    args = parser.parse_args()
+    if (args.candidate_head is None) != (args.base_sha is None):
+        parser.error("--candidate-head and --base-sha must be supplied together")
+    return validate(candidate_head=args.candidate_head, base_sha=args.base_sha)
 
 
 if __name__ == "__main__":

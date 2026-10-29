@@ -119,3 +119,107 @@ class CheckoutIntegrityTests(unittest.TestCase):
             self.git(root, "-c", "user.name=PAM Test", "-c", "user.email=pam-test@example.invalid",
                      "-c", "commit.gpgsign=false", "commit", "-q", "-m", "second")
             self.assertEqual(_checkout(root)[0], "CHECKOUT_HEAD_DIFFERS_FROM_LOCAL_V2_TRACKING_REF")
+
+
+class CandidateCheckoutTests(CheckoutIntegrityTests):
+    """Candidate-mode Git evidence is local only; PR identity is human-checked."""
+
+    def candidate(self, root):
+        self.repository(root)
+        base = subprocess.check_output(
+            ("git", "-C", str(root), "rev-parse", "HEAD"), text=True).strip()
+        self.git(root, "checkout", "-q", "-b", "pm/r1-candidate-check")
+        (root / "contract.txt").write_text("candidate", encoding="utf-8")
+        self.git(root, "add", "contract.txt")
+        self.git(root, "-c", "user.name=PAM Test",
+                 "-c", "user.email=pam-test@example.invalid",
+                 "-c", "commit.gpgsign=false", "commit", "-q", "-m", "candidate")
+        head = subprocess.check_output(
+            ("git", "-C", str(root), "rev-parse", "HEAD"), text=True).strip()
+        return base, head
+
+    def test_clean_candidate_with_explicit_sha_and_trusted_base(self):
+        with TemporaryDirectory() as td:
+            root = Path(td)
+            base, head = self.candidate(root)
+            self.assertEqual(_checkout(root, candidate_head=head, base_sha=base),
+                             (None, head))
+            self.assertEqual(_checkout(root)[0], "CHECKOUT_NOT_V2_BRANCH")
+
+    def test_wrong_candidate_sha_rejected(self):
+        with TemporaryDirectory() as td:
+            root = Path(td)
+            base, head = self.candidate(root)
+            self.assertEqual(_checkout(root, candidate_head=base, base_sha=base)[0],
+                             "CHECKOUT_CANDIDATE_HEAD_MISMATCH")
+
+    def test_wrong_base_ref_rejected(self):
+        with TemporaryDirectory() as td:
+            root = Path(td)
+            base, head = self.candidate(root)
+            self.assertEqual(_checkout(root, candidate_head=head, base_sha=head)[0],
+                             "CHECKOUT_CANDIDATE_BASE_MISMATCH")
+
+    def test_candidate_arguments_need_exact_pair(self):
+        with TemporaryDirectory() as td:
+            root = Path(td)
+            base, head = self.candidate(root)
+            self.assertEqual(_checkout(root, candidate_head=head)[0],
+                             "CHECKOUT_CANDIDATE_SHAS_REQUIRED")
+            self.assertEqual(_checkout(root, candidate_head="FAKE", base_sha=base)[0],
+                             "CHECKOUT_CANDIDATE_SHAS_REQUIRED")
+
+    def test_unrelated_branch_name_rejected_even_with_commit(self):
+        with TemporaryDirectory() as td:
+            root = Path(td)
+            base, head = self.candidate(root)
+            self.git(root, "branch", "-m", "feature/untrusted")
+            self.assertEqual(_checkout(root, candidate_head=head, base_sha=base)[0],
+                             "CHECKOUT_NOT_PR_CANDIDATE_BRANCH")
+
+    def test_candidate_not_descending_from_v2_base_rejected(self):
+        with TemporaryDirectory() as td:
+            root = Path(td)
+            base, _ = self.candidate(root)
+            self.git(root, "checkout", "-q", "--orphan", "pm/unrelated")
+            self.git(root, "rm", "-q", "-rf", "--", ".")
+            (root / "contract.txt").write_text("independent", encoding="utf-8")
+            self.git(root, "add", "contract.txt")
+            self.git(root, "-c", "user.name=PAM Test",
+                     "-c", "user.email=pam-test@example.invalid",
+                     "-c", "commit.gpgsign=false", "commit", "-q", "-m", "independent")
+            independent = subprocess.check_output(
+                ("git", "-C", str(root), "rev-parse", "HEAD"), text=True).strip()
+            self.assertEqual(
+                _checkout(root, candidate_head=independent, base_sha=base)[0],
+                "CHECKOUT_CANDIDATE_NOT_BASE_DESCENDANT")
+
+    def test_validate_marks_candidate_and_reports_base_without_acceptance(self):
+        with TemporaryDirectory() as td:
+            root = Path(td)
+            self.candidate(root)
+            (root / "tests").mkdir()
+            (root / "tests" / "test_ai_native_synthetic.py").write_text(
+                "# fixture", encoding="utf-8")
+            class Passing(unittest.TestCase):
+                def test_ok(self):
+                    self.assertTrue(True)
+            out = StringIO()
+            observed = {}
+            def candidate_check(path, **kwargs):
+                observed.update(kwargs)
+                return (None, kwargs["candidate_head"])
+            candidate = "a" * 40
+            base = "b" * 40
+            code = validate(
+                root, out=out, checker=lambda _: None,
+                checkout_checker=candidate_check, candidate_head=candidate,
+                base_sha=base,
+                discoverer=lambda _: unittest.defaultTestLoader.loadTestsFromTestCase(Passing),
+                required=frozenset(), minimum_modules=1, minimum_cases=1)
+            self.assertEqual(code, 0)
+            self.assertEqual(observed, {"candidate_head": candidate, "base_sha": base})
+            self.assertIn("R1_CHECKOUT_MODE=PR_CANDIDATE", out.getvalue())
+            self.assertIn("R1_CANDIDATE_BASE_SHA=" + base, out.getvalue())
+            self.assertIn("R1_SCOPE=SYNTHETIC_REGRESSION_ONLY_NOT_ACCEPTANCE",
+                          out.getvalue())
