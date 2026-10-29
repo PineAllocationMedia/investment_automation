@@ -19,6 +19,7 @@ from .opportunity_triage import prepare_opportunity_triage
 from .macro_sector_context import prepare_macro_sector_context
 from .valuation_scenarios import evaluate_valuation_scenarios
 from .valuation_quote_trace import trace_valuation_quote
+from .conditional_weighted_cashflows import calculate_weighted_cashflows
 from .candidate_comparison import compare_candidates
 from .fundamental_dossier import prepare_fundamental_dossier
 from .reporting import render_report
@@ -54,6 +55,7 @@ def assemble_manual_run(
     memory_inputs: Mapping[str, Any] | None = None,
     source_evidence_inputs: Mapping[str, Any] | None = None,
     valuation_inputs: Mapping[str, Any] | None = None,
+    probability_inputs: Mapping[str, Any] | None = None,
     candidate_comparison_inputs: Mapping[str, Any] | None = None,
     fundamental_inputs: Mapping[str, Any] | None = None,
     historical_comparison_inputs: Mapping[str, Any] | None = None,
@@ -267,6 +269,9 @@ def assemble_manual_run(
 
     valuation_scenarios = None
     valuation_quote_trace = None
+    weighted_cashflows = None
+    if probability_inputs is not None and valuation_inputs is None:
+        raise ValueError("WEIGHTED_CASHFLOWS_REQUIRE_VALUATION_INPUTS")
     if valuation_inputs is not None:
         if not isinstance(valuation_inputs, Mapping):
             raise ValueError("valuation_inputs: mapping required")
@@ -281,6 +286,16 @@ def assemble_manual_run(
         else:
             limits.append("Input quotation is structurally linked to caller-reported evidence only; human source and rights review is still required.")
         limits.append("Valuation scenario arithmetic is conditional on source, security, currency and terminal assumptions; see private valuation annex. No probability-weighted Expected Return or VFV alpha certified.")
+        if probability_inputs is not None:
+            weighted_cashflows = calculate_weighted_cashflows(
+                valuation_inputs=valuation_inputs,
+                valuation_scenarios=valuation_scenarios,
+                quote_trace=valuation_quote_trace,
+                probability_inputs=probability_inputs)
+            if weighted_cashflows["measure"] == "UNAVAILABLE":
+                limits.append("Probability-weighted cash-flow arithmetic is unavailable until quotation evidence, basis and distribution assumptions are compatible.")
+            else:
+                limits.append("Weighted scenario cash flows are caller-assumed arithmetic, not calibrated or certified Expected Return; original price, probabilities and forward assumptions still need human review.")
         status = "CONDITIONAL"
 
 
@@ -359,6 +374,8 @@ def assemble_manual_run(
         # Only private report; the institutional memory proposal remains
         # the same non-sensitive schema without issuer financial details.
         packet["fundamental_dossier_private"] = fundamental_dossier
+    if weighted_cashflows is not None:
+        packet["weighted_cashflow_model_private"] = weighted_cashflows
     if valuation_quote_trace is not None:
         packet["valuation_quote_trace_private"] = valuation_quote_trace
     if valuation_scenarios is not None:
@@ -400,6 +417,7 @@ def assemble_manual_run(
         "macro_sector_context_private": macro_sector_context,
         "valuation_scenarios_private": valuation_scenarios,
         "valuation_quote_trace_private": valuation_quote_trace,
+        "weighted_cashflow_model_private": weighted_cashflows,
         "candidate_comparison_private": candidate_comparison,
         "fundamental_dossier_private": fundamental_dossier,
         "gross_contribution_private": contribution,

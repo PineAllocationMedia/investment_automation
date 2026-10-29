@@ -284,6 +284,95 @@ def _valuation_lines(packet: Mapping[str, Any], analysis_id: str,
     return lines
 
 
+
+def _weighted_cashflow_lines(packet: Mapping[str, Any], analysis_id: str,
+                             as_of: str) -> list[str]:
+    """Expose bounded analyst probability sensitivity, never an ER verdict."""
+    result = packet.get("weighted_cashflow_model_private")
+    if result is None:
+        return []
+    valuation = packet.get("valuation_scenarios_private")
+    quote = packet.get("valuation_quote_trace_private")
+    if not isinstance(result, Mapping) or not isinstance(valuation, Mapping) or not isinstance(quote, Mapping):
+        raise ValueError("WEIGHTED_CASHFLOW_REPORT_DEPENDENCIES_REQUIRED")
+    if (result.get("status") not in {
+                "CONDITIONAL_CASHFLOW_MODEL_NOT_CERTIFIED",
+                "UNAVAILABLE_NEEDS_EVIDENCE_OR_COMPATIBLE_ASSUMPTIONS"}
+            or result.get("analysis_id") != analysis_id
+            or result.get("analysis_as_of") != as_of
+            or result.get("security_id_private") != valuation.get("security_id")
+            or result.get("currency") != valuation.get("currency")
+            or result.get("horizon_years") != valuation.get("horizon_years")
+            or result.get("probability_calibration") != "NOT_PERFORMED"
+            or result.get("price_authentication") != "NOT_PERFORMED"
+            or result.get("model_expected_return_authority") != "NOT_CERTIFIED"
+            or result.get("vfv_alpha") != "NOT_ESTABLISHED"
+            or result.get("account_costs_fx_tax") != "NOT_EVALUATED"
+            or result.get("trading_authority") != "NONE"
+            or result.get("storage") != "NONE"
+            or result.get("probability_basis") not in {"PAM_ASSUMPTION", "THIRD_PARTY_ESTIMATE"}):
+        raise ValueError("WEIGHTED_CASHFLOW_REPORT_AUTHORITY_OR_ID_MISMATCH")
+    _string(result.get("probability_rationale_ref_private"), "probability_rationale_ref_private")
+    raw = result.get("probabilities_pct_private")
+    if not isinstance(raw, Mapping) or set(raw) != {"BEAR", "BASE", "BULL"}:
+        raise ValueError("WEIGHTED_CASHFLOW_REPORT_WEIGHTS_INVALID")
+    weights = []
+    for name in ("BEAR", "BASE", "BULL"):
+        val = raw[name]
+        if not isinstance(val, str) or len(val) > 32:
+            raise ValueError("WEIGHTED_CASHFLOW_REPORT_WEIGHTS_INVALID")
+        try:
+            weight = Decimal(val)
+        except InvalidOperation as exc:
+            raise ValueError("WEIGHTED_CASHFLOW_REPORT_WEIGHTS_INVALID") from exc
+        if not weight.is_finite() or weight < 0 or weight > 100:
+            raise ValueError("WEIGHTED_CASHFLOW_REPORT_WEIGHTS_INVALID")
+        weights.append(weight)
+    if sum(weights) != 100:
+        raise ValueError("WEIGHTED_CASHFLOW_REPORT_WEIGHTS_INVALID")
+    measure, number = result.get("measure"), result.get("conditional_annualized_pct")
+    reasons = result.get("reason_codes")
+    if (not isinstance(reasons, list) or len(reasons) > 12 or
+            any(not isinstance(x, str) or not x or len(x) > 100 or
+                any(ch not in "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_" for ch in x) for x in reasons)):
+        raise ValueError("WEIGHTED_CASHFLOW_REPORT_REASON_CODES_INVALID")
+    options = {"WEIGHTED_TERMINAL_PRICE_ONLY_CAGR_DISTRIBUTIONS_UNKNOWN",
+               "IRR_ON_WEIGHTED_YEAR_END_CASHFLOWS_NOT_MEAN_IRR"}
+    if measure == "UNAVAILABLE":
+        if (result["status"] != "UNAVAILABLE_NEEDS_EVIDENCE_OR_COMPATIBLE_ASSUMPTIONS"
+                or number is not None or not reasons):
+            raise ValueError("WEIGHTED_CASHFLOW_REPORT_UNAVAILABLE_INCONSISTENT")
+        line = "**Conditional weighted cash-flow sensitivity: UNAVAILABLE** — source/basis or distribution assumptions need review."
+    elif measure in options:
+        if (result["status"] != "CONDITIONAL_CASHFLOW_MODEL_NOT_CERTIFIED"
+                or reasons or quote.get("review_stage") != "HUMAN_QUOTE_REVIEW_ONLY"
+                or valuation.get("status") != "CONDITIONAL_SCENARIO_ARITHMETIC_ONLY"
+                or not isinstance(number, str) or len(number) > 40):
+            raise ValueError("WEIGHTED_CASHFLOW_REPORT_AVAILABLE_INCONSISTENT")
+        try:
+            annual = Decimal(number)
+        except InvalidOperation as exc:
+            raise ValueError("WEIGHTED_CASHFLOW_REPORT_RETURN_INVALID") from exc
+        if not annual.is_finite() or annual < -100 or annual > Decimal("1000000000"):
+            raise ValueError("WEIGHTED_CASHFLOW_REPORT_RETURN_INVALID")
+        label = ("price-only annualized weighted terminal outcome; distributions UNKNOWN"
+                 if measure == "WEIGHTED_TERMINAL_PRICE_ONLY_CAGR_DISTRIBUTIONS_UNKNOWN"
+                 else "IRR of weighted year-end cash flows; not the mean of scenario IRRs")
+        line = f"**Conditional weighted cash-flow sensitivity: {format(annual, 'f')}% annualized** — {label}."
+    else:
+        raise ValueError("WEIGHTED_CASHFLOW_REPORT_MEASURE_INVALID")
+    weighting = ", ".join(
+        f"{name} {format(weight, 'f')}%"
+        for name, weight in zip(("BEAR", "BASE", "BULL"), weights)
+    )
+    return [
+        "", "### Analyst-supplied probability sensitivity — NOT certified Expected Return",
+        f"Assumed weights: {weighting}; basis: {result['probability_basis']} (not independently calibrated).",
+        line,
+        "Scenario probabilities, terminal assumptions, prices and cash-flow timings require human source and method review. No expected alpha, benchmark forecast, FX/fees/tax-adjusted account return, capital-allocation ranking or trade authorization."
+    ]
+
+
 def _fundamental_lines(packet: Mapping[str, Any], analysis_id: str,
                        as_of: str) -> list[str]:
     """Display M2 descriptive issuer economics, not verified Quality or ER."""
@@ -937,6 +1026,7 @@ def render_report(packet: Mapping[str, Any]) -> str:
     lines += _macro_sector_context_lines(packet, analysis_id, as_of, strategy)
     lines += _fundamental_lines(packet, analysis_id, as_of)
     lines += _valuation_lines(packet, analysis_id, as_of)
+    lines += _weighted_cashflow_lines(packet, analysis_id, as_of)
     lines += _candidate_comparison_lines(packet, analysis_id, as_of, strategy)
     lines += _new_contribution_lines(packet, analysis_id, as_of)
     lines += _portfolio_room_lines(packet, analysis_id, as_of)
