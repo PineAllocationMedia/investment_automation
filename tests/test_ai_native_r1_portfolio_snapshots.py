@@ -2,6 +2,8 @@
 from __future__ import annotations
 
 from copy import deepcopy
+from io import StringIO
+import json
 import unittest
 
 from ai_native.portfolio_observation import prepare_observation_ledger
@@ -146,6 +148,34 @@ class PrivatePortfolioSnapshotFollowupTests(unittest.TestCase):
             complete_manual_session(
                 self.request(), pi_delta=self.fx.pi(),
                 prior_portfolio_observation_inputs=self.previous())
+
+    def test_private_cli_report_and_redacted_status_remain_user_initiated(self):
+        from scripts.r1_manual_session_cli import main
+        payload = {
+            "request": self.request(),
+            "pi_delta": self.fx.pi(),
+            "observation_inputs": self.current(),
+            "prior_portfolio_observation_inputs": self.previous(),
+        }
+        original = deepcopy(payload)
+        output, error = StringIO(), StringIO()
+        code = main(["--output", "report"], instream=StringIO(json.dumps(payload)),
+                    outstream=output, errstream=error)
+        self.assertEqual((code, error.getvalue()), (0, ""))
+        self.assertIn("Largest absolute security-line weight shift: 25.00",
+                      output.getvalue())
+        self.assertNotIn("ABC:TSX", output.getvalue())
+        self.assertNotIn("SCOPE-A", output.getvalue())
+        self.assertEqual(payload, original)
+        output, error = StringIO(), StringIO()
+        code = main(["--output", "status"], instream=StringIO(json.dumps(payload)),
+                    outstream=output, errstream=error)
+        self.assertEqual((code, error.getvalue()), (0, ""))
+        status = json.loads(output.getvalue())
+        self.assertEqual(status["status"], "PI_ONLY_CONDITIONAL_REPORT_ASSEMBLED")
+        self.assertNotIn("portfolio_snapshot_comparison_private", output.getvalue())
+        self.assertNotIn("ABC:TSX", output.getvalue())
+        self.assertEqual(status["readiness"], "NOT_EVALUATED")
 
     def test_report_refuses_forged_confidentiality_status_and_percentages(self):
         current = prepare_observation_ledger(**self.current())
