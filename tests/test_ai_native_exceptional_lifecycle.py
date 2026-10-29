@@ -348,6 +348,28 @@ class ExceptionalLifecycleTests(unittest.TestCase):
                 with self.assertRaises(ValueError):
                     complete_manual_session(**args)
 
+    def test_current_annex_requires_bounded_original_lifecycle_review(self):
+        args = self.case()
+        args.pop("lifecycle_inputs")
+        with self.assertRaisesRegex(
+            ValueError, "LIFECYCLE_CURRENT_EVIDENCE_REQUIRES_REVIEW"
+        ):
+            complete_manual_session(**args)
+        args = self.case()
+        args["lifecycle_current_evidence_inputs"]["observations"] = (
+            args["lifecycle_current_evidence_inputs"]["observations"] * 25
+        )
+        with self.assertRaisesRegex(
+            ValueError, "LIFECYCLE_CURRENT_ANNEX_BOUNDED_ROWS_REQUIRED"
+        ):
+            complete_manual_session(**args)
+        args = self.case()
+        args["lifecycle_inputs"]["current_evidence_refs"] = []
+        with self.assertRaisesRegex(
+            ValueError, "LIFECYCLE_CURRENT_ANNEX_WITHOUT_REFERENCES"
+        ):
+            complete_manual_session(**args)
+
     def test_lifecycle_review_queue_rejects_forged_current_source_trace(self):
         from ai_native.manual_review_queue import prepare_manual_review_queue
         for field, bad in (
