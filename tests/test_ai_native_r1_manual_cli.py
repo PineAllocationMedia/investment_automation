@@ -715,5 +715,57 @@ class ManualCLIContractTests(unittest.TestCase):
         self.assertNotIn("PRIVATE_WORK_TOKEN", output)
         self.assertNotIn("PI_REQUEST", output)
 
+
+    def test_method_handoff_ir_then_pi_reuses_current_real_manual_transfer(self):
+        req = self.fx.request(portfolio_needed=True, strategy_id="balanced")
+        initial = {"request": req}
+        snapshot = deepcopy(initial)
+        code, output, error = self.invoke(initial, "method-handoff")
+        self.assertEqual((code, error), (0, ""))
+        first = json.loads(output)
+        self.assertEqual(first["status"], "PRIVATE_METHOD_HANDOFF_PREPARED_NOT_SENT")
+        self.assertEqual(first["local_content_integrity"],
+                         "GIT_BLOBS_MATCH_PINNED_REFERENCE")
+        self.assertEqual(first["project_method_load_verification"], "NOT_PERFORMED")
+        self.assertEqual(len(first["document_contents_private"]), 3)
+        self.assertTrue(all(item["content"] for item in
+                            first["document_contents_private"]))
+        self.assertEqual(first["continuation_private"],
+                         json.loads(self.invoke(initial, "continuation")[1]))
+        self.assertEqual(initial, snapshot)
+
+        ir = self.fx.ir()
+        second_input = first["continuation_private"]["resume_input"]
+        second_input["specialist_result"] = {"IR_CAPSULE": deepcopy(ir)}
+        code, output, error = self.invoke(second_input, "method-handoff")
+        self.assertEqual((code, error), (0, ""))
+        second = json.loads(output)
+        self.assertEqual(len(second["document_contents_private"]), 4)
+        self.assertEqual(
+            second["continuation_private"]["next_handoff"]["PI_REQUEST"]
+            ["FORWARD_UNCHANGED"], ir)
+        self.assertEqual(second["project_invocation"], "NONE")
+        self.assertEqual(second["trading_authority"], "NONE")
+
+    def test_method_handoff_unavailable_work_or_finished_never_loads_files(self):
+        unavailable = {"request": self.fx.request(
+            research_needed=False, portfolio_needed=True),
+            "work_portfolio_result": {"work_blossom_inputs": {
+                "capture_mode": "WORK_BROWSER", "view_status": "UNAVAILABLE",
+                "analysis_id": "CASE-A", "analysis_as_of": "2026-10-28",
+                "raw_html": "SECRET_CAPTURE"}}}
+        code, output, error = self.invoke(unavailable, "method-handoff")
+        self.assertEqual((code, error), (0, ""))
+        self.assertEqual(output, "METHOD_HANDOFF_NOT_AVAILABLE: " +
+                         "AWAITING_MANUAL_PORTFOLIO_SCREENSHOT\\n")
+        self.assertNotIn("SECRET_CAPTURE", output)
+        finished = {"request": self.fx.request(),
+                    "ir_capsule": self.fx.ir()}
+        code, output, error = self.invoke(finished, "method-handoff")
+        self.assertEqual((code, error), (0, ""))
+        self.assertIn("METHOD_HANDOFF_NOT_AVAILABLE", output)
+        self.assertNotIn("document_contents_private", output)
+        self.assertEqual(self.invoke(finished, "status")[0], 0)
+
 if __name__ == "__main__":
     unittest.main()
