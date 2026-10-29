@@ -102,4 +102,19 @@ class FundedContributionTests(unittest.TestCase):
         self.assertEqual(x,prior)
         self.assertNotIn('400.00',str({'status':'NO_PRIVATE_GITHUB_WRITE'}))
 
+    def test_one_time_cost_burden_is_funding_sensitive_not_expected_return(self):
+        included = reconcile_funded_contribution(**self.bundle())
+        external = reconcile_funded_contribution(**self.bundle(funding='EXTERNAL_CASH'))
+        self.assertEqual(included['one_time_supplied_cost_share_pct'], '0.5000')
+        self.assertEqual(included['total_cash_committed_base'], '1000.00')
+        self.assertEqual(external['one_time_supplied_cost_share_pct'], '0.4975')
+        self.assertEqual(external['total_cash_committed_base'], '1005.00')
+        self.assertEqual(included['expected_return_or_execution_authority'], 'NONE')
+
+    def test_zero_cost_or_unknown_funding_never_invents_a_nonzero_cost_share(self):
+        zero = reconcile_funded_contribution(**self.bundle(total='0.00'))
+        self.assertEqual(zero['one_time_supplied_cost_share_pct'], '0.0000')
+        unknown = reconcile_funded_contribution(**self.bundle(funding='UNKNOWN'))
+        self.assertNotIn('one_time_supplied_cost_share_pct', unknown)
+
 if __name__=='__main__':unittest.main()

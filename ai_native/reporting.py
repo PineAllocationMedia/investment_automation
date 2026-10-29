@@ -265,12 +265,34 @@ def _new_contribution_lines(packet: Mapping[str, Any], analysis_id: str,
             lines.append(f"- `{safe}`: {format(exact[instrument], 'g')}% of new capital")
         if len(ordered) > 8:
             lines.append(f"- {len(ordered) - 8} other destinations in private M3 annex.")
+    burden_text = summary.get("one_time_supplied_cost_share_pct")
+    if burden_text is not None:
+        if (costs != "SUPPLIED_COST_TALLY_ONLY"
+                or funded != "CONDITIONAL_SUPPLIED_COST_BUDGET_RECONCILED"
+                or gross != "GROSS_PROJECTION_ONLY"
+                or not isinstance(burden_text, str)):
+            raise ValueError("CONTRIBUTION_REPORT_COST_BURDEN_INCONSISTENT")
+        try:
+            burden = Decimal(burden_text)
+        except InvalidOperation as exc:
+            raise ValueError("CONTRIBUTION_REPORT_COST_BURDEN_INVALID") from exc
+        if (not burden.is_finite() or not 0 <= burden < 100
+                or burden != burden.quantize(Decimal("0.0001"))
+                or len(burden_text) > 10):
+            raise ValueError("CONTRIBUTION_REPORT_COST_BURDEN_INVALID")
     if costs == "NOT_SUPPLIED" and funded == "NOT_ASSESSED":
         lines.append("Costs/funding NOT ASSESSED: gross plan only; no executable allocation.")
     elif (costs == "SUPPLIED_COST_TALLY_ONLY"
           and funded == "CONDITIONAL_SUPPLIED_COST_BUDGET_RECONCILED"
           and gross == "GROSS_PROJECTION_ONLY"):
         lines.append("Cost-funded budget CONDITIONALLY RECONCILED using caller-supplied fixed fees; percentages are unchanged, but net amounts and funding differ. Requote size-dependent costs and verify account taxes/FX before any decision.")
+        if burden_text is not None:
+            lines.append(
+                f"Supplied one-time purchase costs: {burden:.4f}% of total NEW cash "
+                "committed (including separately funded fees where applicable). "
+                "Descriptive only: not annualized, net Expected Return, a broker "
+                "quote or trading authorization."
+            )
     elif (costs in {"NOT_SUPPLIED", "INCOMPLETE_COST_INPUTS", "UNAVAILABLE_GROSS_PROJECTION",
                      "UNAVAILABLE_COSTS_EXCEED_CONTRIBUTION", "SUPPLIED_COST_TALLY_ONLY"}
           and (funded == "NOT_ASSESSED" or funded.startswith("UNAVAILABLE_"))):
