@@ -21,7 +21,7 @@ class ExposureTests(unittest.TestCase):
     def classes(self):
         return {"P1":dict(kind="DIRECT_EQUITY",security_id="ABC:TSX",source_ref="S-CLASS",rights_status="PERMITTED",as_of="2026-10-27",
                            economic_issuer_id="ABC",sector="TECH",region="CANADA"),
-                "P2":dict(kind="FUND",security_id="ETF:TSX",source_ref="S-FUND",rights_status="PERMITTED",as_of="2026-10-27",
+                "P2":dict(kind="FUND",security_id="ETF:TSX",source_ref="S-FUND",rights_status="PERMITTED",as_of="2026-10-28",
                            composition_complete_reported=False,constituents=[
                                dict(economic_issuer_id="ABC",sector="TECH",region="CANADA",fund_weight_pct="25"),
                                dict(economic_issuer_id="XYZ",sector="INDUSTRIAL",region="US",fund_weight_pct="50")])}
@@ -54,15 +54,47 @@ class ExposureTests(unittest.TestCase):
         c=self.classes()
         c["P2"]["constituents"][1]["fund_weight_pct"]="75"
         c["P2"]["composition_complete_reported"]=True
+        c["P2"]["as_of"]="2026-10-27"
         snapshot=copy.deepcopy(c)
         out=self.run_exposure(classes=c)
-        self.assertEqual(out["status"],"CALLER_REPORTED_SCOPED_EXPOSURES")
-        self.assertEqual(out["unclassified_or_unknown_fund_pct"],"0.00")
+        self.assertEqual(out["status"],"PARTIAL_KNOWN_EXPOSURE_LOWER_BOUNDS")
+        self.assertEqual(out["economic_issuer_pct_private"],{"ABC":"30.00"})
+        self.assertEqual(out["known_exposure_pct"],"30.00")
+        self.assertEqual(out["unclassified_or_unknown_fund_pct"],"60.00")
+        self.assertEqual(out["historical_fund_scenario_private"]["economic_issuer_pct_of_current_scope_private"],
+                         {"ABC":"15.00","XYZ":"45.00"})
         self.assertFalse(out["economic_issuer_rank_coverage_reported_complete"])
         self.assertEqual(out["fund_composition_date_alignment"],"PRIOR_DATED_FUND_SNAPSHOTS")
         self.assertEqual(out["historical_fund_p_ids_private"],["P2"])
         self.assertIn("P2:FUND_COMPOSITION_PREDATES_OBSERVATION",out["qualifications"])
         self.assertEqual(c,snapshot)
+
+    def test_partially_reported_older_fund_is_entirely_unknown_today(self):
+        c=self.classes()
+        c["P2"]["as_of"]="2026-10-27"
+        result=self.run_exposure(classes=c)
+        self.assertEqual(result["economic_issuer_pct_private"],{"ABC":"30.00"})
+        self.assertEqual(result["sector_pct_private"],{"TECH":"30.00"})
+        self.assertEqual(result["known_exposure_pct"],"30.00")
+        self.assertEqual(result["unclassified_or_unknown_fund_pct"],"60.00")
+        self.assertEqual(result["cash_pct"],"10.00")
+        self.assertEqual(result["historical_fund_scenario_private"][
+                         "economic_issuer_pct_of_current_scope_private"],
+                         {"ABC":"15.00","XYZ":"30.00"})
+        self.assertIn("P2:FUND_COMPOSITION_PREDATES_OBSERVATION",
+                      result["qualifications"])
+        self.assertEqual(result["trading_authority"],"NONE")
+
+    def test_same_day_source_keeps_current_known_plus_unknown_conservation(self):
+        result=self.run_exposure()
+        self.assertIsNone(result["historical_fund_scenario_private"])
+        self.assertEqual(result["known_exposure_pct"],"75.00")
+        self.assertEqual(result["unclassified_or_unknown_fund_pct"],"15.00")
+        self.assertEqual(result["cash_pct"],"10.00")
+        self.assertEqual(result["economic_issuer_pct_private"],
+                         {"ABC":"45.00","XYZ":"30.00"})
+        self.assertEqual(result["source_authentication"],
+                         "CALLER_REPORTED_NOT_INDEPENDENTLY_VERIFIED")
 
     def test_same_day_fund_composition_can_be_structurally_complete_not_certified(self):
         c=self.classes()
