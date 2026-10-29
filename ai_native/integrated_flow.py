@@ -233,7 +233,8 @@ def assemble_manual_run(
         source_annex["uncovered_ir_fact_ids"] = sorted(ir_fact_ids - supported_ids)
         fact_alignment = align_ir_facts_to_sources(
             analysis_id=run_id, analysis_as_of=as_of,
-            ir_facts=facts, source_annex=source_annex)
+            ir_facts=facts, source_annex=source_annex,
+            ir_research_as_of=ir_cutoff.isoformat())
         if fact_alignment["facts_needing_review"]:
             limits.append("Some IR fact evidence labels do not structurally align with supplied source observations; see private review flags. No evidence was upgraded or authenticated.")
             status = "CONDITIONAL"

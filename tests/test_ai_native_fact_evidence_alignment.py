@@ -108,5 +108,52 @@ class AlignmentTests(unittest.TestCase):
         self.assertNotIn("https://",str(out))
 
 
+
+    def test_later_cc_only_cannot_support_original_verified_ir_fact(self):
+        case = self.data()
+        case["source_annex"]["observations_private"][0]["observed_at"] = "2026-10-28"
+        out = align_ir_facts_to_sources(**case, ir_research_as_of="2026-10-27")
+        flags = out["facts_private"][0]["review_flags"]
+        self.assertIn("CC_SOURCE_POSTDATES_ORIGINAL_IR", flags)
+        self.assertIn("IR_VERIFIED_LABEL_NOT_SUPPORTED_BY_SUPPLIED_ANNEX", flags)
+        self.assertEqual(out["facts_needing_review"], 1)
+        self.assertEqual(out["source_authentication"], "NOT_PERFORMED")
+
+    def test_same_day_observation_is_not_marked_after_ir(self):
+        case = self.data()
+        case["source_annex"]["observations_private"][0]["observed_at"] = "2026-10-27"
+        out = align_ir_facts_to_sources(**case, ir_research_as_of="2026-10-27")
+        self.assertEqual(out["facts_needing_review"], 0)
+        self.assertEqual(out["facts_private"][0]["review_flags"], [])
+        self.assertEqual(out["decision_grade_status"], "NOT_ESTABLISHED")
+
+    def test_mixed_early_and_later_cc_sources_still_require_review(self):
+        case = self.data()
+        original = case["source_annex"]["observations_private"][0]
+        original["observed_at"] = "2026-10-27"
+        later = dict(original, observation_id="O2", observed_at="2026-10-28")
+        case["source_annex"]["observations_private"].append(later)
+        from copy import deepcopy
+        before = deepcopy(case)
+        out = align_ir_facts_to_sources(**case, ir_research_as_of="2026-10-27")
+        flags = out["facts_private"][0]["review_flags"]
+        self.assertIn("CC_SOURCE_POSTDATES_ORIGINAL_IR", flags)
+        self.assertNotIn("IR_VERIFIED_LABEL_NOT_SUPPORTED_BY_SUPPLIED_ANNEX", flags)
+        self.assertEqual(out["facts_needing_review"], 1)
+        self.assertEqual(case, before)
+
+    def test_missing_date_with_ir_cutoff_rejected_not_guessed(self):
+        case = self.data()
+        with self.assertRaisesRegex(ValueError, "SOURCE_OBSERVATION_DATE_INVALID"):
+            align_ir_facts_to_sources(**case, ir_research_as_of="2026-10-27")
+
+    def test_invalid_or_future_ir_cutoff_rejected(self):
+        case = self.data()
+        case["source_annex"]["observations_private"][0]["observed_at"] = "2026-10-28"
+        for cutoff in ("2026-11-01", "2026-1-1", "BAD"):
+            with self.subTest(cutoff=cutoff):
+                with self.assertRaisesRegex(ValueError, "IR_RESEARCH_CUTOFF_INVALID"):
+                    align_ir_facts_to_sources(**case, ir_research_as_of=cutoff)
+
 if __name__ == "__main__":
     unittest.main()
