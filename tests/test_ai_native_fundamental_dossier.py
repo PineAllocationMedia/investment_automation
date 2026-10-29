@@ -132,4 +132,45 @@ class FundamentalDossierTests(unittest.TestCase):
         self.assertIn("NOT ESTABLISHED", report)
         self.assertNotIn("normalized owner earnings: established", report)
 
+
+    def test_post_ir_cc_metric_suppresses_retroactive_descriptive_arithmetic(self):
+        data = self.inputs()
+        for row in data["source_annex"]["observations_private"]:
+            row["observed_at"] = "2026-10-27"
+        data["source_annex"]["observations_private"][1]["observed_at"] = "2026-10-28"
+        data["ir_research_as_of"] = "2026-10-27"
+        before = copy.deepcopy(data)
+        out = prepare_fundamental_dossier(**data)
+        pair = out["metric_pairs_private"]["REVENUE"]
+        self.assertEqual(pair["status"], "UNAVAILABLE")
+        self.assertIn("SOURCE_OBSERVED_AFTER_ORIGINAL_IR", pair["reason_codes"])
+        self.assertNotIn("reported_revenue_change_pct", out["descriptive_metrics_private"])
+        self.assertNotIn("reported_operating_margin_pct", out["descriptive_metrics_private"])
+        self.assertEqual(out["descriptive_metrics_private"]["diluted_share_count_change_pct"], "10.00")
+        self.assertEqual(data, before)
+
+    def test_same_day_original_ir_source_keeps_descriptive_arithmetic_only(self):
+        data = self.inputs()
+        for row in data["source_annex"]["observations_private"]:
+            row["observed_at"] = "2026-10-27"
+        out = prepare_fundamental_dossier(**dict(data, ir_research_as_of="2026-10-27"))
+        self.assertEqual(out["descriptive_metrics_private"]["reported_revenue_change_pct"], "20.00")
+        self.assertEqual(out["expected_return_or_trade"], "NOT_ESTABLISHED")
+
+    def test_invalid_or_future_ir_cutoff_refused(self):
+        for cutoff in ("2026-10-29", "2026-1-1", "BAD"):
+            with self.subTest(cutoff=cutoff), self.assertRaisesRegex(
+                ValueError, "FUNDAMENTAL_IR_CUTOFF_INVALID"):
+                prepare_fundamental_dossier(**dict(self.inputs(), ir_research_as_of=cutoff))
+
+    def test_missing_or_after_analysis_observation_refused_for_pair(self):
+        for observed in (None, "2026-10-29"):
+            data = self.inputs()
+            for row in data["source_annex"]["observations_private"]:
+                row["observed_at"] = "2026-10-27"
+            data["source_annex"]["observations_private"][0]["observed_at"] = observed
+            with self.subTest(observed=observed), self.assertRaisesRegex(
+                ValueError, "FUNDAMENTAL_SOURCE_OBSERVATION_DATE_INVALID"):
+                prepare_fundamental_dossier(**dict(data, ir_research_as_of="2026-10-27"))
+
 if __name__ == '__main__': unittest.main()

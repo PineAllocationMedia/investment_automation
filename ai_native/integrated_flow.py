@@ -270,7 +270,8 @@ def assemble_manual_run(
                 or opportunity_triage_inputs["strategy_id"] != strategy):
             raise ValueError("OPPORTUNITY_TRIAGE_MANDATE_MISMATCH")
         opportunity_triage = prepare_opportunity_triage(
-            ir_facts=facts, source_annex=source_annex, **opportunity_triage_inputs
+            ir_facts=facts, source_annex=source_annex,
+            ir_research_as_of=ir_cutoff.isoformat(), **opportunity_triage_inputs
         )
         limits.append("Research candidates were organized into private analyst follow-up queues only; no global screening, source certification, ranking or investability conclusion.")
         status = "CONDITIONAL"
@@ -314,7 +315,8 @@ def assemble_manual_run(
                   if isinstance(x, Mapping) and isinstance(x.get("id"), str)]
         fundamental_dossier = prepare_fundamental_dossier(
             analysis_id=run_id, analysis_as_of=as_of, source_annex=source_annex,
-            original_ir_fact_ids=ir_ids, **fundamental_inputs)
+            original_ir_fact_ids=ir_ids,
+            ir_research_as_of=ir_cutoff.isoformat(), **fundamental_inputs)
         limits.append("Fundamental metrics use caller-reported original-source observations only: organic growth, normalized owner cash, moat durability, Expected Return and source authenticity remain unverified. See private dossier.")
         status = "CONDITIONAL"
 
