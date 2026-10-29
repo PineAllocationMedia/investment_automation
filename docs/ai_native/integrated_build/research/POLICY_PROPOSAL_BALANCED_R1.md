@@ -14,6 +14,12 @@
 
 **Not established:** that the new R1 **Balanced** is the identical legal/financial policy as V2 `balanced`; that it automatically authorizes strategic bonds, cash, rebalancing bands or preset stock/bond weights; that any proposed new Balanced rule replaces V2's existing hierarchy. A standalone R1 policy must be reconciled and CEO-approved. Keep V2 runtime unchanged.
 
+## CEO-confirmed R1 design orientation (2026-10-29; not approved financial policy)
+
+The CEO chose **regular growth with good resilience even when it costs potential return**, a **multi-asset** analytical universe (equities, bonds, gold and other evidenced assets), **reduction of concentration as the first priority**, and **new contributions first** with human rebalancing proposals only for material justified drift. These qualitative directions narrow earlier proposal choices: no default 60/40, bond duration, fixed gold sleeve, asset weights or loss thresholds were selected. The R1 policy should retain the **V2 balanced** philosophical baseline without modifying the old V2 code, ranking or authority.
+
+The CEO also confirmed: (A) R1 contracts versioned separately from V2; (A) standing structural cash proposed **only** in Modern Adaptive Browne, not Balanced; (B) approved **risk/allocation bands** plus explained mandate adaptation. Operational liquidity for funding/withdrawals is separate from an investment cash sleeve. No new Balanced reserve-last exception or routine sale is approved. Select instruments, benchmark, permitted concentration/risk bands, drift definition and rebalancing costs through an explicit later policy decision. See [six-mode framework](SIX_MODE_POLICY_FRAMEWORK_R1.md).
+
 ## Intended role — proposal, not operational instruction
 
 Balanced R1 could aim for **long-term growth with diversification and resilience**, rather than High-CAGR's aggressive compound-growth orientation or pure capital preservation. The five analytical pillars retain their factual definitions; decision emphasis and portfolio capacity would use the *approved* Balanced mandate.
