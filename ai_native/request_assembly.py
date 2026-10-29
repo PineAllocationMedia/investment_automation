@@ -14,6 +14,7 @@ from typing import Any, Mapping
 from .strategy_authority import assess_r1_mode
 from .mandate_context import prepare_mandate_context
 from .strategy_research_brief import prepare_strategy_research_brief
+from .strategy_return_parity import check_specialist_mode_echo
 
 IR_METHODS = ("SOURCE_FUSION_R1", "VALUATION_R1")
 PI_METHODS = ("OBSERVATION_AND_ROOM_R1", "CONTRIBUTIONS_AND_COSTS_R1", "LIFECYCLE_AND_HANDOFF_R1")
@@ -94,6 +95,10 @@ def prepare_manual_handoffs(
     mode_gate = assess_r1_mode(selected_strategy)
     mandate_context = prepare_mandate_context(request)
     strategy_brief = prepare_strategy_research_brief(selected_strategy)
+    ir_mode_echo = (
+        check_specialist_mode_echo(selected_strategy, ir_capsule, specialist="IR")
+        if ir_capsule is not None else None
+    )
     context = {
         "analysis_id": analysis_id,
         "kind": kind,
@@ -165,6 +170,9 @@ def prepare_manual_handoffs(
                 "research_as_of": ir_date,
                 "portfolio_context_private": portfolio,
                 "FORWARD_UNCHANGED": original,
+                "forwarded_ir_mode_echo": (
+                    ir_mode_echo if original is not None else "NOT_APPLICABLE_NO_IR_REQUESTED"
+                ),
                 "instruction": "Use only authorized dated visible holdings, preserve P field statuses and unknown costs; return PI_DELTA and exactly one unchanged IR package if supplied. Private user profile/mandate text controls preferences only, not approved policy, risk constraints, evidence, method loading or trading authority. Do not infer private positions, optimize unsupported weights or place trades.",
             }
     route = "CC_IR_PI_CC" if need_ir and need_pi else "CC_IR_CC" if need_ir else "CC_PI_CC" if need_pi else "CC_DIRECT"
@@ -184,6 +192,7 @@ def prepare_manual_handoffs(
         "method_load_verification": "NOT_PERFORMED",
         "strategy_policy_gate": mode_gate,
         "strategy_research_brief": strategy_brief,
+        "ir_strategy_mode_echo": ir_mode_echo,
         "mandate_context_status": mandate_context["status"],
         "storage": "NONE",
         "readiness": "NOT_EVALUATED",

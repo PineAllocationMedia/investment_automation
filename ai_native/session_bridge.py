@@ -11,6 +11,7 @@ import json
 from typing import Any, Mapping
 
 from .request_assembly import prepare_manual_handoffs
+from .strategy_return_parity import check_specialist_mode_echo
 from .integrated_flow import assemble_manual_run
 from .reporting import render_report
 from .portfolio_observation import prepare_observation_ledger
@@ -80,6 +81,14 @@ def complete_manual_session(
     route = handoffs["route"]
     if pi_delta is not None and not request["portfolio_needed"]:
         raise ValueError("PI_DELTA_UNREQUESTED")
+    pi_mode_echo = None
+    if pi_delta is not None:
+        strategy_id = (
+            handoffs["ir_request_private"]["strategy_id"]
+            if handoffs["ir_request_private"] is not None
+            else handoffs["pi_request_private"]["strategy_id"]
+        )
+        pi_mode_echo = check_specialist_mode_echo(strategy_id, pi_delta, specialist="PI")
     if (contribution_inputs is not None or cost_inputs is not None) and route not in {"CC_PI_CC", "CC_IR_PI_CC"}:
         raise ValueError("PORTFOLIO_ARITHMETIC_REQUIRES_PI_ROUTE")
     if cost_inputs is not None and contribution_inputs is None:
@@ -262,7 +271,10 @@ def complete_manual_session(
                "funded_contribution_private": None,
                "method_load_verification": "NOT_PERFORMED", "project_invocation": "NONE",
                "source_authentication": "NOT_PERFORMED", "storage": "NONE",
-               "readiness": "NOT_EVALUATED"}
+               "readiness": "NOT_EVALUATED",
+               "specialist_mode_echo": {
+                   "IR": handoffs["ir_strategy_mode_echo"], "PI": pi_mode_echo,
+               }}
 
     if route == "CC_DIRECT":
         if public_reference is not None:
@@ -326,7 +338,9 @@ def complete_manual_session(
             "countercase": "Invisible accounts, cash, currency or stale holdings may change this conclusion.",
             "limitations": ("PI-reported Portfolio Room: " + room + "; portfolio observed as of " + pi_observed_on +
                             ". Source and account coverage NOT authenticated by this assembler. " +
-                            _required(pi_delta, "limitations")),
+                            _required(pi_delta, "limitations") +
+                            " PI mode echo: " + pi_mode_echo +
+                            "; no independent specialist authentication."),
             "next_action": _required(pi_delta, "next_action"),
         }
         if contribution_inputs is not None:

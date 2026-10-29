@@ -24,6 +24,7 @@ from .candidate_comparison import compare_candidates
 from .fundamental_dossier import prepare_fundamental_dossier
 from .reporting import render_report
 from .strategy_authority import assess_r1_mode
+from .strategy_return_parity import check_specialist_mode_echo
 
 ROOM_STATUSES = frozenset({"ROOM_EVIDENCE_SUPPORTED", "ROOM_CONDITIONAL", "ROOM_UNAVAILABLE"})
 
@@ -83,6 +84,7 @@ def assemble_manual_run(
     kind = _required_text(request, "kind")
     if kind not in {"DECISION", "FOLLOWUP"}:
         raise ValueError("kind must be DECISION or FOLLOWUP")
+    ir_mode_echo = check_specialist_mode_echo(strategy, ir_capsule, specialist="IR")
     if _required_text(ir_capsule, "analysis_id") != run_id:
         raise ValueError("IR analysis_id mismatch")
     ir_cutoff = _date(_required_text(ir_capsule, "research_as_of"), "research_as_of")
@@ -101,13 +103,18 @@ def assemble_manual_run(
     limits = [_required_text(ir_capsule, "limitations")]
     status = "EXPLORATORY"
     limits.append(mode_gate["limitation"])
+    limits.append("IR mode echo: " + ir_mode_echo + "; no independent specialist authentication.")
+    if ir_mode_echo == "NOT_ECHOED_MODE_NOT_VERIFIED":
+        status = "CONDITIONAL"
     if mode_gate["policy_authority"] == "R1_POLICY_REQUIRES_CEO_APPROVAL":
         status = "CONDITIONAL"
     room = "NOT_EVALUATED"
     pi_date = None
+    pi_mode_echo = None
     if pi_delta is not None:
         if not isinstance(pi_delta, Mapping):
             raise ValueError("pi_delta must be a mapping")
+        pi_mode_echo = check_specialist_mode_echo(strategy, pi_delta, specialist="PI")
         if _required_text(pi_delta, "analysis_id") != run_id:
             raise ValueError("PI analysis_id mismatch")
         if pi_delta.get("forwarded_ir") != ir_capsule:
@@ -120,6 +127,9 @@ def assemble_manual_run(
             raise ValueError("invalid Portfolio Room status")
         summary.append("Portfolio: " + _required_text(pi_delta, "summary"))
         limits.append(_required_text(pi_delta, "limitations"))
+        limits.append("PI mode echo: " + pi_mode_echo + "; no independent specialist authentication.")
+        if pi_mode_echo == "NOT_ECHOED_MODE_NOT_VERIFIED":
+            status = "CONDITIONAL"
         if room != "ROOM_EVIDENCE_SUPPORTED":
             status = "CONDITIONAL"
     if method == "UNKNOWN_NOT_LOADED":
@@ -439,6 +449,7 @@ def assemble_manual_run(
         "funded_contribution_private": funded_contribution,
         "portfolio_room_status": room,
         "strategy_policy_gate": mode_gate,
+        "specialist_mode_echo": {"IR": ir_mode_echo, "PI": pi_mode_echo},
         "exceptional_lifecycle_review_private": exceptional_lifecycle_review_private,
         "memory_proposal_nonprivate": memory,
         "private_research_history_proposal": private_history,
