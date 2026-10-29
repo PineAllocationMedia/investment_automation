@@ -134,14 +134,26 @@ class MacroSectorContextTests(unittest.TestCase):
                                     source_evidence_inputs=source,
                                     macro_sector_inputs=self.input(strategy_id="OTHER"))
 
-    def test_source_observed_after_ir_capsule_as_of_is_not_backdated(self):
+    def test_later_cc_macro_source_remains_private_conditional_not_backdated(self):
         source={"analysis_id":"SYN-X","analysis_as_of":"2026-10-28",
-                "observations":[self.observation(observed_at="2026-10-28")]}
-        with self.assertRaisesRegex(
-            ValueError,"MACRO_SECTOR_OBSERVATION_AFTER_IR_RESEARCH_AS_OF"):
-            complete_manual_session(self.fx.request(),ir_capsule=self.fx.capsule(),
+                "observations":[self.observation(observed_at="2026-10-28",
+                    source_kind="ISSUER_OR_REGULATOR",
+                    rights_status="PERMITTED", original_checked_at="2026-10-28")]}
+        ir=self.fx.capsule()
+        original=copy.deepcopy((source,ir))
+        out=complete_manual_session(self.fx.request(),ir_capsule=ir,
                                     source_evidence_inputs=source,
                                     macro_sector_inputs=self.input())
+        private=out["integrated_private"]["macro_sector_context_private"]
+        row=private["drivers_private_in_supplied_order"][0]
+        self.assertEqual(row["research_work_stage"],"EVIDENCE_RESOLUTION")
+        self.assertIn("CC_SOURCE_POSTDATES_ORIGINAL_IR",row["review_reasons"])
+        self.assertEqual(private["stage_counts"]["HUMAN_CAUSAL_REVIEW"],0)
+        self.assertIn("EVIDENCE_RESOLUTION",out["final_report_private"])
+        self.assertIn("original IR research",out["final_report_private"])
+        self.assertNotIn("CONFIDENTIAL_HYPOTHESIS",out["final_report_private"])
+        self.assertNotIn("CONFIDENTIAL_HYPOTHESIS",str(out["integrated_private"]["memory_proposal_nonprivate"]))
+        self.assertEqual((source,ir),original)
 
     def test_no_ir_route_or_missing_ir_handoff_cannot_claim_finished_report(self):
         with self.assertRaisesRegex(ValueError,"MACRO_SECTOR_REQUIRES_IR_ROUTE"):
@@ -170,6 +182,57 @@ class MacroSectorContextTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError,"CONTEXT_REPORT_COUNT_MISMATCH"):
             render_report(packet(macro_sector_context_private=clone))
 
+
+
+    def test_original_ir_cutoff_postdates_same_primary_source(self):
+        source=self.source(source_kind="ISSUER_OR_REGULATOR",rights_status="PERMITTED",
+                           observed_at="2026-10-28",original_checked_at="2026-10-28")
+        out=prepare_macro_sector_context(**dict(self.args(source=source),
+                                                 ir_research_as_of="2026-10-27"))
+        row=out["drivers_private_in_supplied_order"][0]
+        self.assertEqual(row["research_work_stage"],"EVIDENCE_RESOLUTION")
+        self.assertEqual(row["review_reasons"],["CC_SOURCE_POSTDATES_ORIGINAL_IR"])
+        self.assertEqual(out["causal_inference"],"ANALYST_HYPOTHESIS_NOT_CERTIFIED")
+
+    def test_equal_day_primary_source_eligible_for_human_review_only(self):
+        source=self.source(source_kind="ISSUER_OR_REGULATOR",rights_status="PERMITTED",
+                           observed_at="2026-10-27",original_checked_at="2026-10-27")
+        out=prepare_macro_sector_context(**dict(self.args(source=source),
+                                                 ir_research_as_of="2026-10-27"))
+        self.assertEqual(out["stage_counts"]["HUMAN_CAUSAL_REVIEW"],1)
+        self.assertEqual(out["market_timing_or_price_prediction"],"NONE")
+
+    def test_mixed_old_and_late_sources_require_review(self):
+        original=self.observation(source_kind="ISSUER_OR_REGULATOR",
+                                  rights_status="PERMITTED",
+                                  observed_at="2026-10-27",
+                                  original_checked_at="2026-10-27")
+        later=dict(original,observation_id="OBS2",source_id="SRC2",
+                   observed_at="2026-10-28",original_checked_at="2026-10-28")
+        source=assemble_source_fusion(
+            analysis_id="SYN-X",analysis_as_of="2026-10-28",
+            observations=[original,later])
+        out=prepare_macro_sector_context(**dict(
+            self.args(source=source,
+                      drivers=[self.driver(source_observation_ids=["OBS1","OBS2"])]),
+            ir_research_as_of="2026-10-27"))
+        row=out["drivers_private_in_supplied_order"][0]
+        self.assertIn("CC_SOURCE_POSTDATES_ORIGINAL_IR",row["review_reasons"])
+        self.assertEqual(out["stage_counts"]["EVIDENCE_RESOLUTION"],1)
+
+    def test_ir_cutoff_bad_or_after_analysis_fails_closed(self):
+        for value in ("INVALID", "2026-10-29", "2026-1-1"):
+            with self.subTest(value=value), self.assertRaises(ValueError):
+                prepare_macro_sector_context(**dict(self.args(),ir_research_as_of=value))
+
+    def test_later_source_embedded_in_original_ir_capsule_remains_hard_refusal(self):
+        capsule=self.fx.capsule()
+        capsule["EVIDENCE_ANNEX"]={
+            "analysis_id":"SYN-X","analysis_as_of":"2026-10-28",
+            "observations":[self.observation(observed_at="2026-10-28")]}
+        with self.assertRaisesRegex(ValueError,"IR_SOURCE_OBSERVED_AFTER_RESEARCH_AS_OF"):
+            complete_manual_session(self.fx.request(),ir_capsule=capsule,
+                                    macro_sector_inputs=self.input())
 
 if __name__ == "__main__":
     unittest.main()
