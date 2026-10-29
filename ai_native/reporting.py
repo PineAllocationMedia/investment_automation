@@ -762,7 +762,9 @@ def _new_contribution_lines(packet: Mapping[str, Any], analysis_id: str,
                     or set(row) != {"scenario_index", "cost_status",
                                    "funded_status", "one_time_supplied_cost_share_pct",
                                    "conditional_funded_after_largest_non_cash_security_pct",
-                                   "conditional_funded_after_scoped_cash_pct"}
+                                   "conditional_funded_after_scoped_cash_pct",
+                                   "cost_burden_delta_vs_baseline_pp",
+                                   "cost_burden_comparison_basis"}
                     or type(row["scenario_index"]) is not int
                     or row["scenario_index"] != i
                     or row["cost_status"] not in allowed_costs
@@ -776,6 +778,40 @@ def _new_contribution_lines(packet: Mapping[str, Any], analysis_id: str,
                         "conditional_funded_after_largest_non_cash_security_pct",
                         "conditional_funded_after_scoped_cash_pct")))):
                 raise ValueError("CONTRIBUTION_REPORT_ALT_COST_STATUS_MISMATCH")
+            basis = row["cost_burden_comparison_basis"]
+            difference = row["cost_burden_delta_vs_baseline_pp"]
+            if basis not in {
+                    "MATCHED_FROM_CONTRIBUTION_AND_QUOTE_DATE_ONLY",
+                    "NOT_COMPARABLE"}:
+                raise ValueError("CONTRIBUTION_REPORT_ALT_COST_DELTA_BASIS_INVALID")
+            if basis == "NOT_COMPARABLE":
+                if difference is not None:
+                    raise ValueError("CONTRIBUTION_REPORT_ALT_COST_DELTA_UNSUPPORTED")
+                delta_text = ""
+            else:
+                base_share = summary.get("one_time_supplied_cost_share_pct")
+                if (not supported or costs != "SUPPLIED_COST_TALLY_ONLY"
+                        or funded != "CONDITIONAL_SUPPLIED_COST_BUDGET_RECONCILED"
+                        or not isinstance(base_share, str)
+                        or not isinstance(difference, str) or len(difference) > 9):
+                    raise ValueError("CONTRIBUTION_REPORT_ALT_COST_DELTA_UNSUPPORTED")
+                baseline = alt_percent(base_share, 4)
+                try:
+                    delta = Decimal(difference)
+                except InvalidOperation as exc:
+                    raise ValueError("CONTRIBUTION_REPORT_ALT_COST_DELTA_INVALID") from exc
+                if (not delta.is_finite() or not -100 <= delta <= 100
+                        or delta != delta.quantize(Decimal("0.0001"))
+                        or difference != f"{delta:+.4f}"):
+                    raise ValueError("CONTRIBUTION_REPORT_ALT_COST_DELTA_INVALID")
+                alt_share = alt_percent(row["one_time_supplied_cost_share_pct"], 4)
+                if delta != Decimal(alt_share) - Decimal(baseline):
+                    raise ValueError("CONTRIBUTION_REPORT_ALT_COST_DELTA_MISMATCH")
+                delta_text = (
+                    f" matched-date fixed-cost burden vs baseline "
+                    f"{difference} percentage points, same FROM_CONTRIBUTION "
+                    "cash basis (not a return or ranking);"
+                )
             if supported:
                 cost = alt_percent(row["one_time_supplied_cost_share_pct"], 4)
                 largest = alt_percent(row[
@@ -785,7 +821,8 @@ def _new_contribution_lines(packet: Mapping[str, Any], analysis_id: str,
                     "conditional_funded_after_scoped_cash_pct"], 2)
                 shown.append(
                     f"- Alternative {i} with its OWN supplied fixed costs: "
-                    f"one-time purchase-cost share {cost}% of total NEW cash; "
+                    f"one-time purchase-cost share {cost}% of total NEW cash;"
+                    f"{delta_text} "
                     f"conditionally funded largest security line "
                     f"{largest + '%' if largest is not None else 'UNAVAILABLE'}; "
                     f"scoped cash {cash}%.")
@@ -798,6 +835,11 @@ def _new_contribution_lines(packet: Mapping[str, Any], analysis_id: str,
             "Separately supplied alternative cost/funding sensitivity, "
             "conditional only, not after-cost returns or broker certification:")
         lines.extend(shown)
+        lines.append(
+            "A baseline-relative fee burden is shown only for complete, "
+            "same-date, same-currency, FROM_CONTRIBUTION fixed-cost quotes; "
+            "otherwise the comparison is UNAVAILABLE, even when a scenario's "
+            "individual conditional burden is supplied.")
         lines.append(
             "Fees cannot transfer between scenarios. Changed order sizes require "
             "new quotes; account costs, taxes, FX and executable net economics "

@@ -177,8 +177,31 @@ def prepare_new_capital_projection(
                         gross_projection=projection, cost_tally=alt_tally)
                     funded_ok = (alt_funded["status"] ==
                                  "CONDITIONAL_SUPPLIED_COST_BUDGET_RECONCILED")
+                    # Compare burden ONLY for complete independently quoted
+                    # fixed fees on the identical funding/date/currency basis.
+                    # FROM_CONTRIBUTION preserves the same total NEW cash
+                    # denominator; external cash does not, so do not compare.
+                    comparable = (
+                        funded_ok and funded is not None
+                        and funded.get("status") ==
+                            "CONDITIONAL_SUPPLIED_COST_BUDGET_RECONCILED"
+                        and funded.get("funding") == "FROM_CONTRIBUTION"
+                        and alt_funded.get("funding") == "FROM_CONTRIBUTION"
+                        and costs is not None
+                        and costs.get("cost_quote_as_of") ==
+                            alt_tally.get("cost_quote_as_of")
+                        and costs.get("currency") == alt_tally.get("currency")
+                    )
+                    burden_delta = (
+                        f"{Decimal(alt_funded['one_time_supplied_cost_share_pct']) - Decimal(funded['one_time_supplied_cost_share_pct']):+.4f}"
+                        if comparable else None
+                    )
                     cost_views.append({
                         "scenario_index": i,
+                        "cost_burden_delta_vs_baseline_pp": burden_delta,
+                        "cost_burden_comparison_basis": (
+                            "MATCHED_FROM_CONTRIBUTION_AND_QUOTE_DATE_ONLY"
+                            if comparable else "NOT_COMPARABLE"), 
                         "cost_status": alt_tally["status"],
                         "funded_status": alt_funded["status"],
                         "one_time_supplied_cost_share_pct": (
