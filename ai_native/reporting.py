@@ -363,6 +363,66 @@ def _new_contribution_lines(packet: Mapping[str, Any], analysis_id: str,
             lines.append(f"- `{safe}`: {format(exact[instrument], 'g')}% of new capital")
         if len(ordered) > 8:
             lines.append(f"- {len(ordered) - 8} other destinations in private M3 annex.")
+    sensitivity = summary.get("largest_security_line_sensitivity_private")
+    if sensitivity is not None:
+        if (gross != "GROSS_PROJECTION_ONLY" or not isinstance(sensitivity, Mapping)
+                or set(sensitivity) != {
+                    "status", "before_largest_non_cash_security_pct",
+                    "gross_after_largest_non_cash_security_pct",
+                    "conditional_funded_after_largest_non_cash_security_pct",
+                    "authority"}
+                or sensitivity.get("authority") !=
+                    "DESCRIPTIVE_CALLER_SUPPLIED_NO_PORTFOLIO_POLICY_OR_EXECUTION"):
+            raise ValueError("CONTRIBUTION_REPORT_CONCENTRATION_AUTHORITY_INVALID")
+        is_funded = funded == "CONDITIONAL_SUPPLIED_COST_BUDGET_RECONCILED"
+        if sensitivity["status"] != (
+                "GROSS_AND_CONDITIONAL_FUNDED_SCOPED_SENSITIVITY"
+                if is_funded else "GROSS_ONLY_SCOPED_SENSITIVITY"):
+            raise ValueError("CONTRIBUTION_REPORT_CONCENTRATION_STATUS_MISMATCH")
+
+        def concentration_pct(key: str) -> str | None:
+            raw = sensitivity[key]
+            if raw is None:
+                return None
+            if not isinstance(raw, str) or len(raw) > 6:
+                raise ValueError("CONTRIBUTION_REPORT_CONCENTRATION_PERCENT_INVALID")
+            try:
+                amount = Decimal(raw)
+            except InvalidOperation as exc:
+                raise ValueError("CONTRIBUTION_REPORT_CONCENTRATION_PERCENT_INVALID") from exc
+            if (not amount.is_finite() or amount < 0 or amount > 100
+                    or amount != amount.quantize(Decimal("0.01"))):
+                raise ValueError("CONTRIBUTION_REPORT_CONCENTRATION_PERCENT_INVALID")
+            return f"{amount:.2f}"
+
+        before = concentration_pct("before_largest_non_cash_security_pct")
+        gross_after = concentration_pct("gross_after_largest_non_cash_security_pct")
+        funded_after = concentration_pct("conditional_funded_after_largest_non_cash_security_pct")
+        if not is_funded and funded_after is not None:
+            raise ValueError("CONTRIBUTION_REPORT_CONCENTRATION_FUNDED_UNAUTHORIZED")
+        if before is not None or gross_after is not None:
+            lines.append(
+                "Largest single non-cash security line, percent of the SAME scoped "
+                "portfolio including cash: before "
+                f"{before + '%' if before is not None else 'UNAVAILABLE'}; "
+                "after the caller-supplied GROSS new-capital scenario "
+                f"{gross_after + '%' if gross_after is not None else 'UNAVAILABLE'}. "
+                "These maxima may refer to different securities; not economic-issuer "
+                "look-through, a concentration limit, a recommendation or executed holdings."
+            )
+            if is_funded:
+                lines.append(
+                    "Under the separately conditional fixed-supplied-cost funded "
+                    "scenario: largest non-cash security line "
+                    f"{funded_after + '%' if funded_after is not None else 'UNAVAILABLE'}. "
+                    "Fixed fees require a real broker requote; no net investment "
+                    "outcome or trade is certified."
+                )
+        else:
+            lines.append(
+                "Single-security concentration UNAVAILABLE: no positive non-cash "
+                "security line in the supplied scoped scenario.")
+
     burden_text = summary.get("one_time_supplied_cost_share_pct")
     if burden_text is not None:
         if (costs != "SUPPLIED_COST_TALLY_ONLY"
