@@ -209,6 +209,27 @@ class PrivatePortfolioSnapshotFollowupTests(unittest.TestCase):
             row["field_statuses"]["currency"] = "NOT_VISIBLE"
         return prior, current
 
+    def test_ui_only_unknown_named_account_is_not_a_comparable_account(self):
+        old, current = self.percentage_only()
+        for source in (old, current):
+            source["account_scope"] = "UNKNOWN"
+            source["positions"][0]["account_scope"] = "UNKNOWN"
+        out = self.compare(old=old, now=current)
+        self.assertEqual(out["status"], "UNAVAILABLE_INCOMPLETE_SNAPSHOT_SCOPE")
+        self.assertIsNone(out["rows_private"])
+        self.assertIsNone(out["largest_absolute_security_weight_shift_pp"])
+        self.assertIsNone(out["cash_weight_change_pp"])
+
+    def test_ui_only_placeholder_security_does_not_become_same_title(self):
+        for placeholder in ("UNKNOWN", "NOT_VISIBLE", "TBD"):
+            with self.subTest(placeholder=placeholder):
+                old, current = self.percentage_only()
+                for source in (old, current):
+                    source["positions"][0]["security_id"] = placeholder
+                out = self.compare(old=old, now=current)
+                self.assertEqual(out["status"], "UNAVAILABLE_INCOMPLETE_SNAPSHOT_SCOPE")
+                self.assertIsNone(out["rows_private"])
+
     def test_unknown_currency_ui_only_comparison_is_reachable_not_monetary(self):
         # The source transcript may have raw source weights but NO currency,
         # cash, FX, account-base denominator or original purchase records.

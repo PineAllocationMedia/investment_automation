@@ -18,6 +18,15 @@ SOURCES = frozenset({"PRIVATE_SCREENSHOT_TRANSCRIPTION", "PRIVATE_EXPORT_TRANSCR
 REQUIRED_FIELD_STATUSES = ("security_id", "market_value_base", "currency", "account_scope")
 CENTS = Decimal("0.01")
 HUNDRED = Decimal("100")
+# These literal source placeholders do not name a real account or security,
+# even when a caller reports their field status as VERIFIED_VISIBLE.
+IDENTITY_PLACEHOLDERS = frozenset({
+    "UNKNOWN", "NOT_VISIBLE", "NOT_SUPPLIED", "N/A", "TBD", "UNCERTAIN",
+})
+
+
+def identity_is_placeholder(value: Any) -> bool:
+    return isinstance(value, str) and value.strip().upper() in IDENTITY_PLACEHOLDERS
 
 
 def _text(value: Any, field: str) -> str:
@@ -122,6 +131,8 @@ def prepare_observation_ledger(
             len(curr) != 3 or not curr.isascii() or not curr.isalpha()):
         raise ValueError("currency: three-letter account currency or UNKNOWN required")
     reasons: list[str] = []
+    if private_scope and identity_is_placeholder(account):
+        reasons.append("ACCOUNT_SCOPE_UNIDENTIFIED")
     if curr == "UNKNOWN":
         reasons.append("ACCOUNT_CURRENCY_UNKNOWN")
     if captured_at == "UNKNOWN":
@@ -167,12 +178,16 @@ def prepare_observation_ledger(
         security = raw.get("security_id")
         if security is not None:
             security = _text(security, f"{p_id}.security_id")
+        if identity_is_placeholder(security):
+            reasons.append(f"{p_id}:SECURITY_ID_UNIDENTIFIED")
         row_currency = raw.get("currency")
         if row_currency is not None:
             row_currency = _text(row_currency, f"{p_id}.currency").upper()
         row_account = raw.get("account_scope")
         if row_account is not None:
             row_account = _text(row_account, f"{p_id}.account_scope")
+        if identity_is_placeholder(row_account):
+            reasons.append(f"{p_id}:ACCOUNT_SCOPE_UNIDENTIFIED")
         val_raw = raw.get("market_value_base")
         val = _money(val_raw, f"{p_id}.market_value_base") if val_raw is not None else None
         display_status = _visibility(raw.get("displayed_weight_visibility", "NOT_VISIBLE"),
@@ -184,7 +199,10 @@ def prepare_observation_ledger(
                      if raw_display is not None else None)
         if displayed is not None:
             display_values.append(displayed)
-        if (val is None or security is None or row_currency != curr or row_account != account
+        if (val is None or security is None or identity_is_placeholder(security)
+                or identity_is_placeholder(row_account)
+                or (private_scope and identity_is_placeholder(account))
+                or row_currency != curr or row_account != account
                 or any(v != "VERIFIED_VISIBLE" for v in statuses.values())):
             reasons.append(f"{p_id}:FIELD_NOT_COMPARABLE_OR_NOT_VISIBLE")
         else:
