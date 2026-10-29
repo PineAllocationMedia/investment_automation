@@ -113,6 +113,9 @@ class RoomTests(unittest.TestCase):
         self.assertEqual(room["status"], "ROOM_UNAVAILABLE")
         forged = copy.deepcopy(room)
         forged["status"] = "ROOM_CONDITIONAL"
+        # Force a bogus non-null known issuer bound to reach the distinct
+        # historical-fund anti-promotion guard in the report renderer.
+        forged["known_candidate_issuer_exposure_pct_private"] = "0.00"
         packet={"kind":"DECISION", "analysis_id":"SYN-A", "as_of":"2026-10-28",
                 "strategy":"SYN-EXPLORATORY", "method_version":"UNKNOWN_NOT_LOADED",
                 "status":"CONDITIONAL", "objective":"Synthetic",
