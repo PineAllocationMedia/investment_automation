@@ -80,9 +80,15 @@ def prepare_work_blossom_observation(packet: Mapping[str, Any]) -> dict[str, Any
     for index, raw in enumerate(rows):
         if not isinstance(raw, Mapping):
             raise ValueError(f"positions[{index}]: mapping required")
-        positions.append({key: deepcopy(raw.get(key)) for key in
-                          ("p_id", "security_id", "market_value_base", "currency",
-                           "account_scope", "field_statuses")})
+        row = {key: deepcopy(raw.get(key)) for key in
+               ("p_id", "security_id", "market_value_base", "currency",
+                "account_scope", "field_statuses")}
+        # Optional percent fields MUST stay absent in existing R1.4 packets:
+        # an injected null visibility enum would invalidate every old Work row.
+        for optional in ("displayed_weight_pct", "displayed_weight_visibility"):
+            if optional in raw:
+                row[optional] = deepcopy(raw[optional])
+        positions.append(row)
     kwargs = {
         "analysis_id": _text(packet.get("analysis_id"), "analysis_id"),
         "observed_on": _text(packet.get("observed_on"), "observed_on"),

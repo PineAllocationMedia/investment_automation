@@ -1,6 +1,6 @@
 # PROMPT PI-1 — BLOSSOM PORTFOLIO (WORK + CLOUD BROWSER DEFAULT)
 
-**Version:** `PI-WORK-PORTFOLIO-R1.4` — 2026-10-29  
+**Version:** `PI-WORK-PORTFOLIO-R1.5` — 2026-10-29 (private percent-only observations added; real adoption unverified)  
 **Status:** VERSIONED / COPY-READY / CEO-REPORTED SIGNED-IN PROFILE PORTFOLIO OBSERVATION PARTIAL  
 **Owner:** PAM Financial Systems — Portfolio Intelligence, with PM integration  
 **Trigger:** CEO/user-initiated **only**. No recurrence, polling, task installation or autonomous account access.  
@@ -25,7 +25,7 @@ SELECTED_ACCOUNT_SCOPE: OBSERVE_ACTUAL_VISIBLE_SCOPE (not assumed to belong to m
 CASE IDENTITY
 ANALYSIS_ID: [use the exact ANALYSIS_ID from the Financial Systems Command Center when supplied; otherwise assign one new unique identifier, report it and reuse it unchanged in every handoff]
 ANALYSIS_AS_OF: [use the exact YYYY-MM-DD cutoff supplied by CC; otherwise use today's actual date in the intended account timezone, and state the timezone; do not silently backdate holdings]
-OUTPUT_CONTRACT: work_blossom_inputs / PI-WORK-PORTFOLIO-R1.4
+OUTPUT_CONTRACT: work_blossom_inputs / PI-WORK-PORTFOLIO-R1.5
 
 EXECUTION
 1. Use ChatGPT Work Cloud Browser. Start at the exact user-supplied BLOSSOM_TARGET_URL, with the HTTPS hostname exactly blossomsocial.com or www.blossomsocial.com. Do not invent URLs, substitute profiles, follow off-domain redirects, bypass rights or use sign-in tokens. If a login is required for MY private view, I will complete it securely within the browser; never ask for credentials in chat.
@@ -65,7 +65,7 @@ Output a single fenced JSON object with top-level key "public_portfolio_referenc
 - unknowns: list of up to 12 short missing-fact descriptions (no private account identifiers).
 After the JSON, provide a SHORT DESCRIPTIVE ANALYSIS of the actually visible profile portfolio: largest lines, concentration of shown percentages and cautiously identified overlap hypotheses, with account-scope, sync-date, cash, currency, and incomplete ETF composition limits. Do NOT call it the CEO's private holdings, claim a source-certified universe, calculate a personalized new-capital split or trade recommendation. The resulting object can now be passed manually to R1 as top-level "public_reference_inputs" on an explicitly CEO-initiated **CC_DIRECT** or **CC_IR_CC** route; it is NEVER input to the private M3 P-ledger or a PI personal Portfolio Room route. Neither Work nor this prompt automatically invokes the local CLI, Investment Research or Command Center.
 
-B. OWN_PRIVATE_AUTHORIZED — an explicitly authorized view of MY own private account is actually established, with account-base currency, scope, observation date and at least one position:
+B. OWN_PRIVATE_AUTHORIZED — an explicitly authorized view of MY own private account is actually established, with visible selected scope, observation date and at least one position. Unknown monetary basis permits descriptive percentage observation only, NOT portfolio arithmetic:
 Return exactly one fenced JSON object with TOP-LEVEL key "work_blossom_inputs". Its nested object must match the existing M3 PRIVATE adapter fields, with exactly:
 - capture_mode: "WORK_BROWSER";
 - view_status: "VISIBLE";
@@ -78,11 +78,11 @@ Return exactly one fenced JSON object with TOP-LEVEL key "work_blossom_inputs". 
 - observed_on: actual ISO YYYY-MM-DD dated view, never after cutoff;
 - captured_at: truthful timezone-aware ISO datetime or "UNKNOWN";
 - account_scope: exact visible selected scope;
-- currency: genuinely observed account-base 3-letter currency;
+- currency: genuinely observed account-base 3-letter currency, or explicit "UNKNOWN" when only display percentages are visible; never invent monetary denomination;
 - coverage_evidence: account_filter_visible, all_rows_visible, other_group_expanded_or_absent, cash_checked, same_currency_basis_visible (all five actual booleans);
 - cash_base: exact observed account-base decimal string or null;
 - cash_visibility: VERIFIED_VISIBLE / UNCERTAIN / NOT_VISIBLE;
-- positions: nonempty list of p_id, security_id, market_value_base, currency, account_scope and field_statuses for security_id/market_value_base/currency/account_scope, each VERIFIED_VISIBLE / UNCERTAIN / NOT_VISIBLE. Null unknown fields rather than inferring zero.
+- positions: nonempty list of p_id, security_id, market_value_base, currency, account_scope and field_statuses for security_id/market_value_base/currency/account_scope, each VERIFIED_VISIBLE / UNCERTAIN / NOT_VISIBLE. Each row MAY additionally carry displayed_weight_pct (exact observed 0–100 percentage as a decimal string with up to two places, or null) plus displayed_weight_visibility (VERIFIED_VISIBLE for truly visible numeric weight, otherwise UNCERTAIN/NOT_VISIBLE and null). Do not normalize the displayed sum (including totals slightly above 100), fabricate market values, assume cash, infer a denominator or use displayed percentages for portfolio arithmetic. Null unknown fields rather than inferring zero.
 VERIFIED_VISIBLE is a visual transcription, NOT independent brokerage verification. Never copy the target URL, login details, screenshots, raw HTML or private query tokens into the JSON. Incomplete scope must remain uncertain, not certified.
 
 C. INACCESSIBLE_OR_AMBIGUOUS — no actual displayed Portfolio or unconfirmed authorized/private case:
