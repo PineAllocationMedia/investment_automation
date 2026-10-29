@@ -142,6 +142,50 @@ class SourceFusionTests(unittest.TestCase):
         self.assertEqual(out["observations_private"][1]["claim_use_status"],
                          "CALLER_REPORTED_ONLY")
 
+    def test_completed_fact_published_before_period_end_is_unavailable(self):
+        # A superficially clean FY actual still cannot have been published
+        # in October while its reporting period finishes in December.
+        result = self.run_fusion([self.sample(
+            published_at="2025-10-01", observed_at="2026-10-28",
+            original_checked_at="2026-10-28")])
+        item = result["observations_private"][0]
+        self.assertIn("COMPLETED_FACT_PUBLISHED_BEFORE_PERIOD_END",
+                      item["reason_codes"])
+        self.assertEqual(item["claim_use_status"], "UNAVAILABLE")
+        self.assertEqual(result["unresolved_count"], 1)
+        self.assertEqual(result["pit_authority"], "NOT_ESTABLISHED_BY_DATES_ALONE")
+
+    def test_completed_fact_checked_before_period_end_without_publication(self):
+        # Unknown publication does not excuse an impossible check date.
+        item = self.run_fusion([self.sample(
+            published_at=None, original_checked_at="2025-11-30")])[
+                "observations_private"][0]
+        self.assertIn("COMPLETED_FACT_CHECKED_BEFORE_PERIOD_END",
+                      item["reason_codes"])
+        self.assertEqual(item["claim_use_status"], "UNAVAILABLE")
+
+    def test_early_estimate_remains_research_only_not_historical_fact(self):
+        item = self.run_fusion([self.sample(
+            classification="THIRD_PARTY_ESTIMATE", source_kind="SECONDARY",
+            verification_status="INDICATIVE", original_checked_at=None,
+            published_at="2025-10-01")])["observations_private"][0]
+        self.assertNotIn("COMPLETED_FACT_PUBLISHED_BEFORE_PERIOD_END",
+                         item["reason_codes"])
+        self.assertNotIn("COMPLETED_FACT_CHECKED_BEFORE_PERIOD_END",
+                         item["reason_codes"])
+        self.assertEqual(item["claim_use_status"], "CALLER_REPORTED_ONLY")
+        self.assertEqual(item["independent_source_authentication"], "NOT_PERFORMED")
+
+    def test_early_publication_isolated_from_independent_valid_observation(self):
+        bad = self.sample(published_at="2025-10-01")
+        good = self.sample(observation_id="O2", source_id="S2")
+        result = self.run_fusion([bad, good])
+        self.assertEqual(result["conflict_observation_id_groups"], [])
+        self.assertEqual([item["claim_use_status"] for item in
+                          result["observations_private"]],
+                         ["UNAVAILABLE", "CALLER_REPORTED_ONLY"])
+        self.assertEqual(result["unresolved_count"], 1)
+
     def test_observation_on_period_end_not_rejected_by_new_guard(self):
         row=self.sample(
             observed_at="2025-12-31", published_at="2025-12-31",
@@ -150,6 +194,10 @@ class SourceFusionTests(unittest.TestCase):
         self.assertNotIn("FINANCIAL_PERIOD_END_AFTER_OBSERVATION",
                          item["reason_codes"])
         self.assertNotIn("ORIGINAL_CHECK_BEFORE_PUBLICATION",
+                         item["reason_codes"])
+        self.assertNotIn("COMPLETED_FACT_PUBLISHED_BEFORE_PERIOD_END",
+                         item["reason_codes"])
+        self.assertNotIn("COMPLETED_FACT_CHECKED_BEFORE_PERIOD_END",
                          item["reason_codes"])
         self.assertEqual(item["claim_use_status"], "CALLER_REPORTED_ONLY")
 
