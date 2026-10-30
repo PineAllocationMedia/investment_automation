@@ -10,13 +10,13 @@ from __future__ import annotations
 from typing import Any
 
 REPOSITORY = "PineAllocationMedia/investment_automation"
-REFERENCE_COMMIT = "2fc6084c7193bcae9d04f9bb40941a2424c02e78"
+REFERENCE_COMMIT = "b814f2c7ff04c24e447407658a8c845bd914178c"
 ROOT = "docs/ai_native/integrated_build/"
 DOCUMENT_BLOBS = {
     "docs/ai_native/integrated_build/research/SOURCE_FUSION_R1.md": "c1d1400015c29cc9426e34e9a6edf7e79354f9e1",
     "docs/ai_native/integrated_build/research/VALUATION_R1.md": "be82ed5bdc6ca506ebd8f70e3eaa88410a755abc",
-    "docs/ai_native/integrated_build/portfolio/OBSERVATION_AND_ROOM_R1.md": "a7d0815dd6f64576077d5e6d2ffe6d93093d3dce",
-    "docs/ai_native/integrated_build/portfolio/CONTRIBUTIONS_AND_COSTS_R1.md": "ba38423eb4b91e817c1b1632f5cc73f690fee182",
+    "docs/ai_native/integrated_build/portfolio/OBSERVATION_AND_ROOM_R1.md": "613e5b111790057d8c2c92ed967e97e6467c33a7",
+    "docs/ai_native/integrated_build/portfolio/CONTRIBUTIONS_AND_COSTS_R1.md": "3276c77a5a5856fda4f4ca3a95abc2932a72ac13",
     "docs/ai_native/integrated_build/portfolio/LIFECYCLE_AND_HANDOFF_R1.md": "232a3d8b8cda8739e398ecc3310e8925bde73bd0",
     "docs/ai_native/integrated_build/research/HIGH_CAGR_METHOD_R1.md": "79de2e5d9f60f96a633a7755fe8c3d84adbdada2",
     "docs/ai_native/integrated_build/research/POLICY_PROPOSAL_BALANCED_R1.md": "27674108ba6cda47059af1fcc4a535c9bf782d3b",

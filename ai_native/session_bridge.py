@@ -41,6 +41,9 @@ from .research_admission_evidence_map import (
 from .scenario_session_integration import (
     prepare_scoped_scenario_review, render_scoped_scenario_lines,
 )
+from .method_return_receipt import (
+    evaluate_returned_method_text, render_returned_method_receipt,
+)
 
 ROOM_STATUSES = frozenset({"ROOM_EVIDENCE_SUPPORTED", "ROOM_CONDITIONAL", "ROOM_UNAVAILABLE"})
 
@@ -73,6 +76,7 @@ def complete_manual_session(
     cost_inputs: Mapping[str, Any] | None = None,
     scenario_weight_inputs: Mapping[str, Any] | None = None,
     memory_inputs: Mapping[str, Any] | None = None,
+    method_return_receipts: Mapping[str, Any] | None = None,
     observation_inputs: Mapping[str, Any] | None = None,
     prior_portfolio_observation_inputs: Mapping[str, Any] | None = None,
     work_blossom_inputs: Mapping[str, Any] | None = None,
@@ -101,6 +105,16 @@ def complete_manual_session(
     route = handoffs["route"]
     if pi_delta is not None and not request["portfolio_needed"]:
         raise ValueError("PI_DELTA_UNREQUESTED")
+    if method_return_receipts is not None:
+        if (not isinstance(method_return_receipts, Mapping)
+                or not method_return_receipts
+                or set(method_return_receipts) - {"IR", "PI"}):
+            raise ValueError("METHOD_RECEIPTS_ROLES_INVALID")
+        if (("IR" in method_return_receipts
+             and (route not in {"CC_IR_CC", "CC_IR_PI_CC"} or ir_capsule is None))
+                or ("PI" in method_return_receipts
+                    and (route not in {"CC_PI_CC", "CC_IR_PI_CC"} or pi_delta is None))):
+            raise ValueError("METHOD_RECEIPT_REQUIRES_ACTUAL_SPECIALIST_PACKET")
     pi_mode_echo = None
     if pi_delta is not None:
         strategy_id = (
@@ -419,6 +433,22 @@ def complete_manual_session(
         private["status"] = "AWAITING_MANUAL_PI_DELTA"
         return private
 
+    # F4 checks the returned method TEXT, not merely a specialist SHA claim.
+    # No raw method bytes are included in output, memory, or reports.
+    method_review = None
+    method_report = None
+    if method_return_receipts is not None:
+        method_review = {
+            role: evaluate_returned_method_text(
+                request=request, specialist=role, receipt=receipt)
+            for role, receipt in method_return_receipts.items()
+        }
+        private["method_return_receipts_private"] = method_review
+        method_report = "\n\n".join(
+            render_returned_method_receipt(method_review[role])
+            for role in ("IR", "PI") if role in method_review
+        )
+
     # Test #3 F1: visible company research alone cannot justify skipping VFV.
     # Report all three original High-CAGR branches without promoting evidence
     # or choosing an investment. All other mode reports stay unchanged.
@@ -497,6 +527,8 @@ def complete_manual_session(
             packet["mode_portfolio_trace_private"] = mode_portfolio_trace
             packet["limitations"] += " PI mode questions are specialist-reported and not independently authenticated."
         private["final_report_private"] = render_report(packet)
+        if method_report is not None:
+            private["final_report_private"] += "\n\n" + method_report
         if capital_path is not None:
             private["final_report_private"] += "\n\n" + render_high_cagr_destination_review(capital_path)
         if scenario_review is not None:
@@ -586,6 +618,10 @@ def complete_manual_session(
                 or not pi_trace["questions_private"]):
             raise ValueError("MODE_PI_TRACE_NOT_RETURNED_BY_INTEGRATION")
     private["mode_portfolio_trace_private"] = integrated.get("mode_portfolio_trace_private")
+    if method_report is not None:
+        integrated["method_return_receipts_private"] = method_review
+        integrated["markdown"] += "\n\n" + method_report
+        integrated["executive_markdown"] += "\n\n" + method_report
     # Third CEO test F3: read the ALREADY assembled source, economics,
     # valuation, mode and PI stages. Never promote research to admission.
     admission_review = prepare_research_admission_evidence_map(
