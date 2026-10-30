@@ -427,6 +427,12 @@ def complete_manual_session(
         )
 
     base_request = {
+        # Preserve the two previously validated CEO/IR route attestations in
+        # the compact private research-history proposal. Without these, the
+        # later on-demand follow-up validator rejects this same exported case.
+        # Do NOT carry prior private account/holdings/fees into history.
+        "ceo_initiated": True,
+        "research_needed": True,
         "analysis_id": _required(request, "analysis_id"),
         "as_of": _date(_required(request, "as_of"), "request.as_of"),
         "objective": _required(request, "objective"),
