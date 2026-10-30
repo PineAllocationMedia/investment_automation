@@ -37,7 +37,7 @@ EXECUTION
 
 3. Within the allowed read-only view, record the selected account filter and actual observed scope. Only click, scroll, expand "Other" or change display filters when they merely change what is viewed, not account state. Examine all position rows, pagination/scroll and cash if accessible. Never link or reconnect a brokerage, edit settings, change preferences, export private archives, post, follow, like, place an order, or access unrelated accounts.
 4. For every observed row record a unique P_ID, the exact visible listed security identity (ticker + venue/class only if shown), account scope, account-base currency and market value only if truly visible and on the SAME confirmed currency basis. If only an allocation percentage is visible, do NOT convert it into a dollar value. Unknown, cropped, grouped, stale or ambiguous fields remain null/NOT_VISIBLE/UNCERTAIN. NEVER invent account currency, cash=0, hidden positions, foreign-exchange rates, value conversions, account totals or unsupported weights.
-5. Use the actual observation date YYYY-MM-DD and a truthful timezone-aware ISO 8601 captured_at timestamp with UTC offset, matching observed_on; use "UNKNOWN" for captured_at if this cannot be established. Clearly distinguish the observed holdings date from the analysis cutoff and time the browser was opened.
+5. Use the effective observed holdings date (YYYY-MM-DD) and the truthful actual capture timestamp (offset-aware ISO 8601). They MAY differ: a recent screenshot may show older synchronized positions. A capture must never be dated before the displayed observation or after the analysis cutoff. If no effective sync/observation date is visible, public-reference observation_as_of is "UNKNOWN"; never infer it from the capture time. Use "UNKNOWN" for captured_at if actual capture time is unavailable. Clearly distinguish the observed holdings date from the analysis cutoff and time the browser was opened.
 6. Five coverage_evidence booleans MUST be actual observations, not defaults:
    - account_filter_visible: the selected scope/account filter is visibly identifiable;
    - all_rows_visible: every row in this specific selected scope was inspected, including pagination;
@@ -55,7 +55,7 @@ Output a single fenced JSON object with top-level key "public_portfolio_referenc
 - analysis_id: exact supplied/generate-once case ID;
 - analysis_as_of: canonical YYYY-MM-DD analysis cutoff;
 - observation_as_of: actual dated YYYY-MM-DD holdings observation ONLY if visible; otherwise "UNKNOWN" (browser capture time alone does not prove holdings sync);
-- captured_at: actual timezone-aware ISO 8601 browser capture timestamp (local date must match observation_as_of if it is known), or "UNKNOWN";
+- captured_at: truthful timezone-aware ISO 8601 browser capture timestamp (may be later than observation_as_of when a prior-dated snapshot is displayed; never later than analysis cutoff), or "UNKNOWN";
 - visibility_context: "ANONYMOUS_PUBLIC_CONFIRMED" only if exactly the same portfolio was inspected without authentication; otherwise "SIGNED_IN_VISIBILITY_ONLY" or "UNKNOWN". Signed-in access and an "Edit profile" control do not prove anonymous public access or holdings ownership;
 - visible_scope: concise human description of the portion observed, or "UNKNOWN". Do not use account numbers or IDs here;
 - account_ownership: always "NOT_ASSUMED_USER";

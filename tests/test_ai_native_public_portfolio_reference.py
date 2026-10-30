@@ -222,6 +222,76 @@ class PublicReferenceTests(unittest.TestCase):
         self.assertIn("ONE_OR_MORE_WEIGHTS_NOT_VISIBLE",
                       result["missing_or_qualified"])
 
+    def test_later_public_capture_keeps_older_observation_and_no_private_authority(self):
+        packet = self.data()
+        packet["observation_as_of"] = "2026-10-27"
+        packet["captured_at"] = "2026-10-29T11:00:00-04:00"
+        before = copy.deepcopy(packet)
+        direct = prepare_public_portfolio_reference(
+            packet, analysis_id="SYN-REF-1", analysis_as_of="2026-10-29")
+        self.assertEqual(packet, before)
+        self.assertEqual(direct["observation_as_of"], "2026-10-27")
+        self.assertEqual(direct["captured_at"], packet["captured_at"])
+        self.assertEqual(direct["private_holdings_import"], "NONE")
+        self.assertEqual(direct["portfolio_room_status"],
+                         "NOT_APPLICABLE_PUBLIC_REFERENCE")
+        text = render_public_portfolio_reference(direct)
+        self.assertIn("Capture recorded on 2026-10-29", text)
+        self.assertIn("effective displayed holdings date 2026-10-27", text)
+        self.assertIn("2 calendar day(s) after the underlying observation", text)
+        self.assertIn("not evidence of the CEO's private holdings", text)
+        output = complete_manual_session(
+            self.req(), public_reference_inputs=packet)
+        self.assertIn("Capture recorded on 2026-10-29",
+                      output["final_report_private"])
+        self.assertIsNone(output["portfolio_observation_private"])
+        self.assertIsNone(output["gross_contribution_private"])
+
+    def test_later_capture_through_work_table_keeps_same_source_date(self):
+        packet = self.table()
+        packet["observation_as_of"] = "2026-10-27"
+        packet["captured_at"] = "2026-10-29T11:00:00-04:00"
+        direct = prepare_public_reference_from_work_table(
+            packet, analysis_id="SYN-REF-1", analysis_as_of="2026-10-29")
+        self.assertEqual(direct["observation_as_of"], "2026-10-27")
+        self.assertIn("Capture recorded on 2026-10-29",
+                      render_public_portfolio_reference(direct))
+        self.assertEqual(direct["allocation_authority"], "NONE")
+
+    def test_public_capture_temporal_boundaries_and_missing_sync(self):
+        for stamp in ("2026-10-26T11:00:00-04:00",
+                      "2026-10-30T11:00:00-04:00",
+                      "2026-10-29T11:00:00"):
+            with self.subTest(stamp=stamp), self.assertRaisesRegex(
+                    ValueError, "PUBLIC_REFERENCE_CAPTURE_TIME_INCONSISTENT"):
+                packet = self.data()
+                packet["observation_as_of"] = "2026-10-27"
+                packet["captured_at"] = stamp
+                prepare_public_portfolio_reference(
+                    packet, analysis_id="SYN-REF-1", analysis_as_of="2026-10-29")
+        packet = self.data()
+        packet["observation_as_of"] = "UNKNOWN"
+        packet["captured_at"] = "2026-10-29T11:00:00-04:00"
+        out = prepare_public_portfolio_reference(
+            packet, analysis_id="SYN-REF-1", analysis_as_of="2026-10-29")
+        readable = render_public_portfolio_reference(out)
+        self.assertIn("capture time does NOT establish a holdings sync date",
+                      readable)
+        self.assertEqual(out["portfolio_room_status"],
+                         "NOT_APPLICABLE_PUBLIC_REFERENCE")
+
+    def test_forged_capture_date_in_result_fails_report_closed(self):
+        packet = self.data()
+        packet["observation_as_of"] = "2026-10-27"
+        packet["captured_at"] = "2026-10-29T11:00:00-04:00"
+        result = prepare_public_portfolio_reference(
+            packet, analysis_id="SYN-REF-1", analysis_as_of="2026-10-29")
+        corrupted = copy.deepcopy(result)
+        corrupted["captured_at"] = "2026-10-26T11:00:00-04:00"
+        with self.assertRaisesRegex(ValueError,
+                                    "PUBLIC_REFERENCE_CAPTURE_TIME_INCONSISTENT"):
+            render_public_portfolio_reference(corrupted)
+
     def test_work_table_scope_provenance_and_cutoff_guard_retained(self):
         for key,value in (
             ("account_ownership","CEO_PRIVATE"),
