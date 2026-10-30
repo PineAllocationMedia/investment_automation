@@ -18,9 +18,9 @@ import unittest
 from ai_native.session_bridge import complete_manual_session
 from ai_native.known_costs import tally_supplied_costs
 from scripts.pamalised_private_file_export import export_private_pdf
-from tests.test_ai_native_session_bridge import SessionBridgeTests
-from tests.test_ai_native_public_portfolio_reference import PublicReferenceTests
-from tests.test_ai_native_known_costs import CostTallyTests
+from tests import test_ai_native_session_bridge as _bridge_fixtures
+from tests import test_ai_native_public_portfolio_reference as _public_fixtures
+from tests import test_ai_native_known_costs as _cost_fixtures
 
 _HAS_PDF = (importlib.util.find_spec("reportlab") is not None
             and importlib.util.find_spec("pypdf") is not None)
@@ -30,7 +30,7 @@ class R1IntegratedPreflight(unittest.TestCase):
     """Check cross-component behavior; never infer authentic readiness."""
 
     def setUp(self):
-        self.fx = SessionBridgeTests()
+        self.fx = _bridge_fixtures.SessionBridgeTests()
 
     def _case(self, *, high_cagr=False):
         req = self.fx.request(
@@ -145,7 +145,7 @@ class R1IntegratedPreflight(unittest.TestCase):
                 self.assertFalse(path.exists())
 
     def test_public_blossom_profile_cannot_provide_private_room(self):
-        fx = PublicReferenceTests()
+        fx = _public_fixtures.PublicReferenceTests()
         public = fx.data()
         request = fx.req()
         before = deepcopy(public)
@@ -163,10 +163,10 @@ class R1IntegratedPreflight(unittest.TestCase):
         with self.assertRaisesRegex(ValueError,
                                     "PUBLIC_REFERENCE_CANNOT_BECOME_PRIVATE_PORTFOLIO"):
             complete_manual_session(request, public_reference_inputs=public,
-                                    pi_delta=self.fx.pi())
+                                    observation_inputs={})
 
     def test_unsourced_zero_cost_stays_unknown_not_free(self):
-        fx = CostTallyTests()
+        fx = _cost_fixtures.CostTallyTests()
         args = fx.args()
         args["charges_by_destination"]["VFV:TSX"]["purchase_tax"]["source_ref"] = "UNKNOWN"
         actual = tally_supplied_costs(**args)
