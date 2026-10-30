@@ -19,6 +19,7 @@ from reportlab.lib.styles import ParagraphStyle
 from reportlab.platypus import (SimpleDocTemplate, Paragraph, Table, TableStyle,
                                 Spacer, PageBreak, HRFlowable)
 from reportlab.lib.utils import ImageReader
+from reportlab.graphics.shapes import Drawing, Rect, String
 
 DARK = "#0B2E24"
 GREEN = "#123F30"
@@ -84,6 +85,7 @@ def _view(model: Mapping[str, Any], executive: str, detail: str,
     )
     contribution = model.get("new_contribution_summary_private")
     allocation_text = None
+    allocation_numbers = None
     if isinstance(contribution, Mapping):
         pct = contribution.get("allocations_pct")
         if (contribution.get("analysis_id") == req.get("analysis_id")
@@ -99,10 +101,75 @@ def _view(model: Mapping[str, Any], executive: str, detail: str,
                     and all(n.is_finite() and Decimal("0") <= n <= Decimal("100")
                             for n in numbers.values())
                     and sum(numbers.values(), Decimal("0")) == Decimal("100")):
+                allocation_numbers = numbers
                 allocation_text = " · ".join(
                     _safe(k, limit=80) + " : " + format(n, ".1f") + " %"
                     for k, n in numbers.items()
                 ) + " (projection arithmétique, non recommandation)"
+
+    # Presentation suggestions come from CC's human-readable interpretation,
+    # not an AI call inside this deterministic PDF renderer. They cannot inject
+    # arbitrary numeric data, graph geometry, sources or financial conclusions.
+    presentation = model.get("presentation_inputs")
+    opening = None
+    visual_plan = []
+    known_facts = {
+        x.get("id"): x for x in facts
+        if isinstance(x.get("id"), str) and x.get("id")
+    }
+    if presentation is not None:
+        if not isinstance(presentation, Mapping) or (
+            set(presentation) - {"analysis_id", "as_of",
+                                 "opening_paragraph", "visuals", "support_refs"}
+        ):
+            raise ValueError("PAMALISED_PRESENTATION_SCHEMA_INVALID")
+        if (presentation.get("analysis_id") != req.get("analysis_id")
+                or presentation.get("as_of") != req.get("as_of")):
+            raise ValueError("PAMALISED_PRESENTATION_IDENTITY_MISMATCH")
+        opening = presentation.get("opening_paragraph")
+        if (not isinstance(opening, str) or not 55 <= len(opening.strip()) <= 750
+                or any(c in opening for c in ("\\x00", "\\x1b"))):
+            raise ValueError("PAMALISED_OPENING_PARAGRAPH_INVALID")
+        refs = presentation.get("support_refs", [])
+        if (not isinstance(refs, list) or len(refs) > 12
+                or not all(isinstance(fid, str) and fid in known_facts
+                           for fid in refs)):
+            raise ValueError("PAMALISED_OPENING_SUPPORT_REFS_INVALID")
+        visual_plan = presentation.get("visuals", [])
+        if not isinstance(visual_plan, list) or len(visual_plan) > 4:
+            raise ValueError("PAMALISED_VISUAL_PLAN_INVALID")
+        for idea in visual_plan:
+            if (not isinstance(idea, Mapping)
+                    or set(idea) != {"kind", "title", "fact_ids"}
+                    or idea["kind"] not in {"evidence_flow", "contribution_bars"}
+                    or not isinstance(idea["title"], str)
+                    or not 5 <= len(idea["title"].strip()) <= 100
+                    or not isinstance(idea["fact_ids"], list)):
+                raise ValueError("PAMALISED_VISUAL_SPEC_INVALID")
+            ids = idea["fact_ids"]
+            if (idea["kind"] == "evidence_flow"
+                    and (not 1 <= len(ids) <= 3
+                         or not all(isinstance(fid, str) and fid in known_facts
+                                    for fid in ids))):
+                raise ValueError("PAMALISED_EVIDENCE_FLOW_INVALID")
+            if idea["kind"] == "contribution_bars" and ids:
+                raise ValueError("PAMALISED_BAR_SOURCE_INVALID")
+
+    # The pre-section paragraph is composed by CC and is explicitly editorial.
+    # If CC has not provided one, use only known mandate fields, not a claim
+    # that an AI produced unavailable narrative or that inputs are verified.
+    if opening is None:
+        objective_text = req.get("objective")
+        if isinstance(objective_text, str) and objective_text.strip():
+            opening = ("Cette analyse examine " + objective_text.strip() +
+                       ". Elle met en relation les conclusions disponibles et "
+                       "les contraintes du mandat; les preuves, hypothèses et "
+                       "limites figurent dans les sections suivantes.")
+        else:
+            opening = ("Ce rapport réunit les informations effectivement "
+                       "disponibles pour éclairer la décision. Les conclusions "
+                       "restent conditionnelles aux preuves et contraintes "
+                       "présentées dans le dossier.")
 
     # Lato matches the CEO's prototype. No font is fetched or bundled:
     # use an installed local Lato, otherwise an explicit Helvetica fallback.
@@ -252,18 +319,12 @@ def _view(model: Mapping[str, Any], executive: str, detail: str,
           "qui pourraient modifier la conclusion.", small),
         Spacer(1, 14),
     ])
-    story.append(tiles([
-        ("ANALYSE AU", date), ("STRATÉGIE", mode), ("HORIZON", horizon),
-        ("DONNÉES", "IR / PI rapportées, non certifiées" if ir or pi
-         else "NON ÉVALUÉES"),
-    ]))
-    story.append(Spacer(1, 13))
-    story.append(box(
-        "<b>MANDAT</b> " + objective + "<br/><br/><b>TRAÇABILITÉ</b> "
-        "Analysis_ID " + analysis + " · Méthode " +
-        _safe(req.get("ir_method_version"), "UNKNOWN_NOT_LOADED") +
-        " · Décideur CEO / investisseur.", CREAM, small,
-    ))
+    # CEO directive: replace rigid metadata tiles before section 01 with one
+    # short analyst-written contextual passage. Keep IDs in section 06/annex.
+    story.append(raw("NOTE D’OUVERTURE · LECTURE DU MANDAT", mini))
+    story.append(Spacer(1, 5))
+    story.append(P(opening, normal))
+    story.append(Spacer(1, 15))
     label("01 | L’essentiel en 60 secondes")
     story.append(box(
         '<font color="#FFFFFF"><b>CONCLUSION PRINCIPALE</b><br/><br/>' +
@@ -337,6 +398,42 @@ def _view(model: Mapping[str, Any], executive: str, detail: str,
             [fact.get("id", "ND"), fact.get("claim", "ND"),
              fact.get("period", "ND")] for fact in facts[:4]
         ])
+        # Optional AI-selected evidence diagram: facts and statuses come
+        # strictly from the retained IR capsule, never from proposed captions.
+        for idea in visual_plan:
+            if idea["kind"] != "evidence_flow":
+                continue
+            label(idea["title"])
+            entries = [known_facts[fid] for fid in idea["fact_ids"]]
+            cells, sizes = [], []
+            width = (WIDTH - 16 * (len(entries) - 1)) / len(entries)
+            for j, fact in enumerate(entries):
+                if j:
+                    cells.append(raw("→", headline))
+                    sizes.append(16)
+                cell = Table([[
+                    P(str(fact.get("id")), mini)],
+                    [P(str(fact.get("claim", "NON DISPONIBLE")), small)],
+                    [P(str(fact.get("status", "NOT_VERIFIED")), tiny)]
+                ], colWidths=[width])
+                cell.setStyle(TableStyle([
+                    ("BACKGROUND", (0, 0), (-1, -1), pale),
+                    ("LEFTPADDING", (0, 0), (-1, -1), 8),
+                    ("RIGHTPADDING", (0, 0), (-1, -1), 8),
+                    ("TOPPADDING", (0, 0), (-1, -1), 7),
+                    ("BOTTOMPADDING", (0, 0), (-1, -1), 7),
+                ]))
+                cells.append(cell)
+                sizes.append(width)
+            diagram = Table([cells], colWidths=sizes)
+            diagram.setStyle(TableStyle([
+                ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+                ("LEFTPADDING", (0, 0), (-1, -1), 0),
+                ("RIGHTPADDING", (0, 0), (-1, -1), 0),
+            ]))
+            story.append(diagram)
+            story.append(P("Schéma de lecture des sources IR rapportées, "
+                           "sans causalité certifiée.", tiny))
         story.append(Spacer(1, 12))
         story.append(box(
             "<b>POURQUOI PAS SIMPLEMENT LA RÉFÉRENCE ?</b><br/><br/>"
@@ -361,6 +458,32 @@ def _view(model: Mapping[str, Any], executive: str, detail: str,
             ("APRÈS", allocation_text or "ND - simulation non établie"),
         ]))
         story.append(Spacer(1, 13))
+
+        # Optional evidence-grounded infographic from the existing validated
+        # M3 GROSS_PROJECTION_ONLY percentages. A public Blossom view cannot
+        # authorize personal weights, and no pie chart uses an unknown total.
+        if allocation_numbers is not None:
+            for idea in visual_plan:
+                if idea["kind"] != "contribution_bars":
+                    continue
+                label(idea["title"])
+                height = 26 * len(allocation_numbers) + 26
+                plot = Drawing(WIDTH, height)
+                for i, (key, value) in enumerate(allocation_numbers.items()):
+                    y = height - 24 - i * 26
+                    plot.add(String(0, y, str(key)[:20], fontSize=8,
+                                    fillColor=colors.HexColor(DARK)))
+                    plot.add(Rect(150, y - 3, 260, 10, fillColor=pale,
+                                  strokeColor=None))
+                    plot.add(Rect(150, y - 3, 260 * float(value) / 100, 10,
+                                  fillColor=dark, strokeColor=None))
+                    plot.add(String(418, y, format(value, ".1f") + " %",
+                                    fontSize=8, fillColor=dark))
+                story.append(plot)
+                story.append(P(
+                    "Projection arithmétique de nouvelles contributions "
+                    "(M3); ni composition privée observée ni ordre d’achat.", tiny))
+                story.append(Spacer(1, 12))
         label("Expositions et concentrations")
         table(["DIMENSION", "OBSERVÉ", "SIMULÉ", "LECTURE"], [
             ["PORTFOLIO ROOM", room, "ND", "Données PI rapportées"],
@@ -446,6 +569,13 @@ def _view(model: Mapping[str, Any], executive: str, detail: str,
     heading("06", "Suivi, performance et traçabilité",
             "Conserver les hypothèses historiques "
             "et rendre la conclusion reproductible.")
+    label("Mandat et traçabilité")
+    table(["ANALYSE", "DATE / MODE", "HORIZON / MÉTHODE"], [[
+        analysis, date + " · " + mode,
+        horizon + " · " + _safe(req.get("ir_method_version"),
+                               "UNKNOWN_NOT_LOADED")
+    ]])
+    story.append(Spacer(1, 8))
     label("Depuis le dernier rapport")
     for key, text in [
         ("CHOIX / ALLOCATION", "BASELINE_NOT_AVAILABLE / non comparable"),
@@ -532,7 +662,8 @@ def render_reference_style_pdf(*, executive_report: str, detailed_report: str,
                                ir_capsule: Mapping[str, Any] | None = None,
                                pi_delta: Mapping[str, Any] | None = None,
                                logo: bytes | None = None,
-                               new_contribution_summary_private: Mapping[str, Any] | None = None) -> bytes:
+                               new_contribution_summary_private: Mapping[str, Any] | None = None,
+                               presentation_inputs: Mapping[str, Any] | None = None) -> bytes:
     """Layout only, never evidence admission; validate before calling."""
     if not isinstance(executive_report, str) or not isinstance(detailed_report, str):
         raise ValueError("PAMALISE_PAIR_REQUIRED")
@@ -544,5 +675,6 @@ def render_reference_style_pdf(*, executive_report: str, detailed_report: str,
         raise ValueError("PAMALISE_INPUT_TOO_LARGE")
     return _view(dict(request=request, ir_capsule=ir_capsule or {},
                       pi_delta=pi_delta or {},
-                      new_contribution_summary_private=new_contribution_summary_private),
+                      new_contribution_summary_private=new_contribution_summary_private,
+                      presentation_inputs=presentation_inputs),
                  executive_report, detailed_report, logo)
