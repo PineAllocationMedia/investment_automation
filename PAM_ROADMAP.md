@@ -7,6 +7,26 @@
 >
 > Exact remote state must always be verified before implementation.
 
+### R1 Financial Systems — quatrième essai après intégration des constats du troisième (directive CEO, 2026-10-30)
+
+**Séquence immédiate approuvée par le CEO :** achever et intégrer les améliorations et clarifications des **cinq constats F1–F5** du [troisième essai](docs/ai_native/integrated_build/integration/THIRD_CHATGPT_TRACE_DECISION_GAP_R1_20261030.md); vérifier leur préparation dans le parcours commun; **puis** le CEO conduira **un quatrième essai réel**, sur proposition du PM dès que le travail est prêt. Il s'agit d'un **essai opérationnel intermédiaire ciblé**, et **non** de l'évaluation complète unique des 36 décisions R1 prévue **après assemblage**, ni d'un retour au développement par petits pilotes.
+
+**État constaté :** PR [#412](https://github.com/PineAllocationMedia/investment_automation/pull/412) F1, [#413](https://github.com/PineAllocationMedia/investment_automation/pull/413) F2 et [#414](https://github.com/PineAllocationMedia/investment_automation/pull/414) F3 **fusionnées comme composants**; ni fonctionnement réel ni acceptation authentique prouvés. Des CI récentes ont échoué avec journaux inaccessibles : ne pas qualifier ces tests de PASS. F4 et F5 restent des exigences d'intégration et de vérification.
+
+| Point à préparer avant l'essai #4 | Critère observable / limites |
+|---|---|
+| **F1 — destination High-CAGR** | CC examine dans l'ordre entreprise qualifiée → **VFV repli normal** → réserve temporaire exceptionnelle; établit les preuves, coûts, disponibilité, ER/Room ou leurs inconnues propres. Pas d'allocation automatique ou de réserve artificielle. |
+| **F2 — provenance PI/Blossom** | Une acquisition demandée par le CEO dans **PI Project avec Work/Cloud Browser**, ou capture datée de repli; aucune navigation propre à CC. Distinguer source visible, périmètre attesté, compte réellement vérifié; poids conditionnels seulement sur dénominateur établi, sans inventer cash ni valeur totale. |
+| **F3 — recherche vs investissement** | Discovery → deep research → économie/financement propres à l'émetteur → ER comparable ou UNAVAILABLE → contrat financier autorisé → instrument accessible, coûts, PI Room. Recherche et scenarios ne confèrent aucune admission. |
+| **F4 — méthodes et versions réellement chargées** | Rendre vérifiable dans chaque Project CC/IR/PI **le contenu lu, version et identité/hash lorsque accessible**, plutôt que considérer un lien GitHub ou une déclaration comme preuve. Si accès indisponible, déclarer NOT_LOADED/UNVERIFIED et utiliser un transfert manuel autorisé. Aucun appel automatique de Project ni changement de Project Settings présumé. |
+| **F5 — décision/rapport et effort** | Un rapport CC décisionnel, cinq piliers, branches complètes, annexes et incertitudes; **une action humaine à la fois**, transfert IR inchangé. Export lisible si capacité vérifiée; mesurer les handoffs, temps humain et lecture ≤10 minutes lors de l'essai, sans prétendre l'objectif atteint à l'avance. |
+
+**Go/no-go PM pour proposer le quatrième essai :** (1) F1–F5 sont **connectés au même flux CC/PI/IR** avec fallback manuel si les capacités réelles manquent; (2) les contrôles essentiels de date, source, transferts, sécurité et vie privée **sont réellement exécutés**, ou les blocages explicites sont signalés au CEO sans faux PASS; (3) les instructions et méthodes actives sont vérifiées ou leur récupération constitue une vérification **explicite de l'essai**; (4) un prompt CEO utilisable, le trajet exact et une grille de verdict **PASS_SCOPED / PARTIAL / BLOCKED** sont prêts. Le PM **annonce alors l'état de préparation et invite le CEO à lancer le quatrième essai**; aucun essai autonome, récurrent ou simulé comme réel.
+
+**Après l'essai #4 :** distinguer observations authentiques, limites de plateforme, paramètres financiers encore non approuvés et défauts du logiciel; corriger proportionnellement puis poursuivre la **première version intégrée des 36 décisions**. Le test #4 **ne remplace pas** l'acceptation globale unique après assemblage. Aucune nouvelle politique de mode, aucun achat, déploiement, dépense externe, publication privée, modification V1 ou autorisation de merge n'est créée.
+
+---
+
 ### R1 Financial Systems — CEO universal CC intake is the product development compass (2026-10-30)
 
 The CEO-selected [universal analysis-start template `CC-START-R1-v1.0`](docs/ai_native/integrated_build/operations/UNIVERSAL_CC_ANALYSIS_START_R1.md) is the **standard user-facing entrypoint for full Financial Systems research requests and future CEO-initiated R1 tests**. Features must serve the journey from its six natural-language sections to a coherent decision-first report, instead of developing isolated technical/prompt capabilities without proving usability. The template guides **UX priority and functional verification**; it does **not** override Constitution, approved strategy policies, source rights, readiness gates or the 36 CEO choices. Treat a merged instruction file as a candidate until actually used in CC/IR/PI/Work.
