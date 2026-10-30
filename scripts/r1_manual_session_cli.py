@@ -1500,6 +1500,8 @@ def run(*, output: str, instream: TextIO, outstream: TextIO,
                         new_contribution_summary_private=(
                             result.get("new_contribution_summary_private")),
                         presentation_inputs=payload.get("presentation_inputs"),
+                        high_cagr_destination_review_private=(
+                            result.get("high_cagr_destination_review_private")),
                     )
                     sink = getattr(outstream, "buffer", None)
                     if sink is None:

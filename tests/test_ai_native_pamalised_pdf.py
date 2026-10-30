@@ -313,6 +313,82 @@ class PamalisedPdfTests(unittest.TestCase):
         self.assertNotIn("Répartition des nouveaux apports selon le modèle", extracted_bad)
         self.assertNotIn("65.0 %", extracted_bad)
 
+    def test_high_cagr_final_diagnostic_is_visible_on_pdf_first_page(self):
+        from pypdf import PdfReader
+        request = self.fixtures.request(
+            strategy_id="high-cagr", portfolio_needed=True)
+        ir = self.fixtures.ir()
+        ir["decision_line"] = "SYNTHETIC_IR_OPINION_NOT_FINAL"
+        pi = self.fixtures.pi(
+            room_status="ROOM_EVIDENCE_SUPPORTED",
+            forwarded_ir=deepcopy(ir))
+        payload = {"request": request, "ir_capsule": ir, "pi_delta": pi}
+        original = deepcopy(payload)
+        session = complete_manual_session(**payload)
+        self.assertEqual(session["high_cagr_destination_review_private"][
+            "decision_stage"], "EVIDENCE_GAP_NOT_AN_ALLOCATION_DECISION")
+        code, pdf, err = self._cli(payload)
+        self.assertEqual((code, err), (0, ""))
+        pages = PdfReader(BytesIO(pdf)).pages
+        first = pages[0].extract_text()
+        full = "\n".join(page.extract_text() for page in pages)
+        self.assertIn("EVIDENCE_GAP", first)
+        self.assertIn("DEUX VÉRIFICATIONS INDÉPENDANTES", first)
+        self.assertIn("Room personnel non authentifié", first)
+        self.assertIn("rendement total prospectif", first)
+        self.assertIn("Trois destinations examinées", full)
+        self.assertIn("SYNTHETIC_IR_OPINION_NOT_FINAL", full)
+        self.assertIn("ARCHIVE_NOT_SAVED", full)
+        self.assertNotIn("SYNTHETIC_IR_OPINION_NOT_FINAL", first)
+        self.assertEqual(payload, original)
+
+    def test_direct_pdf_rejects_forged_high_cagr_decision_and_scope(self):
+        request = self.fixtures.request(
+            strategy_id="high-cagr", portfolio_needed=True)
+        ir = self.fixtures.ir()
+        pi = self.fixtures.pi(forwarded_ir=deepcopy(ir))
+        complete = complete_manual_session(
+            request, ir_capsule=ir, pi_delta=pi)
+        args = {
+            "executive_report": complete["executive_report_private"],
+            "detailed_report": complete["final_report_private"],
+            "analysis_id": request["analysis_id"],
+            "as_of": request["as_of"],
+            "strategy": request["strategy_id"],
+            "report_status": "EXPLORATORY",
+            "request": request, "ir_capsule": ir, "pi_delta": pi,
+        }
+        genuine = complete["high_cagr_destination_review_private"]
+        fake = deepcopy(genuine)
+        fake["decision_stage"] = "SUPPORTED_ACTION"
+        with self.assertRaisesRegex(
+                ValueError, "PAMALISED_HIGH_CAGR_REVIEW_PARITY_MISMATCH"):
+            render_pamalised_pdf(
+                **args, high_cagr_destination_review_private=fake)
+        fake = deepcopy(genuine)
+        fake["independent_dependencies"]["economic"] = "CERTIFIED"
+        with self.assertRaisesRegex(
+                ValueError, "PAMALISED_HIGH_CAGR_REVIEW_PARITY_MISMATCH"):
+            render_pamalised_pdf(
+                **args, high_cagr_destination_review_private=fake)
+        with self.assertRaisesRegex(
+                ValueError, "PAMALISED_HIGH_CAGR_REVIEW_SCOPE_INVALID"):
+            render_pamalised_pdf(
+                **{**args, "request": None},
+                high_cagr_destination_review_private=genuine)
+
+    def test_non_high_cagr_pdf_retains_existing_report_policy(self):
+        from pypdf import PdfReader
+        request = self.fixtures.request(portfolio_needed=True)
+        ir = self.fixtures.ir()
+        pi = self.fixtures.pi(forwarded_ir=deepcopy(ir))
+        code, pdf, err = self._cli(
+            {"request": request, "ir_capsule": ir, "pi_delta": pi})
+        self.assertEqual((code, err), (0, ""))
+        first = PdfReader(BytesIO(pdf)).pages[0].extract_text()
+        self.assertNotIn("Trois destinations examinées", first)
+        self.assertNotIn("DEUX VÉRIFICATIONS INDÉPENDANTES", first)
+
     def test_presentation_rejects_wrong_case_and_unrecognized_fact_link(self):
         request = self.fixtures.request()
         ir = self.fixtures.ir()

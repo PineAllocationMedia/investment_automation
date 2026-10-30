@@ -20,7 +20,8 @@ def render_pamalised_pdf(*, executive_report: str, detailed_report: str,
                          ir_capsule: Mapping[str, Any] | None = None,
                          pi_delta: Mapping[str, Any] | None = None,
                          new_contribution_summary_private: Mapping[str, Any] | None = None,
-                         presentation_inputs: Mapping[str, Any] | None = None) -> bytes:
+                         presentation_inputs: Mapping[str, Any] | None = None,
+                         high_cagr_destination_review_private: Mapping[str, Any] | None = None) -> bytes:
     """Return a visually PAMalised document as PDF bytes, never save it.
 
     The original HTML source-pair validator is still authoritative. Optional
@@ -56,6 +57,18 @@ def render_pamalised_pdf(*, executive_report: str, detailed_report: str,
                 raise ValueError("PAMALISED_PDF_" + role + "_INVALID")
             if packet.get("analysis_id") not in (None, analysis_id):
                 raise ValueError("PAMALISED_PDF_" + role + "_IDENTITY_MISMATCH")
+    if high_cagr_destination_review_private is not None:
+        if request is None or pi_delta is None or strategy != "high-cagr":
+            raise ValueError("PAMALISED_HIGH_CAGR_REVIEW_SCOPE_INVALID")
+        # Recompute using the existing policy-preserving High-CAGR trace:
+        # accepting a caller-supplied review flag would let a forged PDF hide
+        # independent Expected Return and private Room evidence gaps.
+        from .high_cagr_destination_path import prepare_high_cagr_destination_review
+        expected = prepare_high_cagr_destination_review(
+            request=request, ir_capsule=ir_capsule, pi_delta=pi_delta,
+        )
+        if high_cagr_destination_review_private != expected:
+            raise ValueError("PAMALISED_HIGH_CAGR_REVIEW_PARITY_MISMATCH")
     try:
         from .pamalised_visual import render_reference_style_pdf
     except ImportError as exc:
@@ -68,6 +81,7 @@ def render_pamalised_pdf(*, executive_report: str, detailed_report: str,
         ir_capsule=ir_capsule, pi_delta=pi_delta, logo=logo,
         new_contribution_summary_private=new_contribution_summary_private,
         presentation_inputs=presentation_inputs,
+        high_cagr_destination_review_private=high_cagr_destination_review_private,
     )
     if not pdf.startswith(b"%PDF-"):
         raise ValueError("PAMALISED_PDF_OUTPUT_INVALID")
