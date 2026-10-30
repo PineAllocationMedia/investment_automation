@@ -120,7 +120,8 @@ class QuickUnpinnedSmokeTests(unittest.TestCase):
         code, out, called = self.run_quick()
         self.assertEqual(code, 2)
         self.assertIn("REQUIRED_R1_TESTS_MISSING", out)
-        self.assertFalse(called)
+        # The original SHA/clean-checkout gate runs before file inventory.
+        self.assertEqual(len(called), 1)
 
     def test_quick_cannot_skip_checkout_integrity(self):
         # Provide enough fake source test files, but no valid checkout.
