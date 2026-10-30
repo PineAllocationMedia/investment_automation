@@ -142,6 +142,8 @@ def _view(model: Mapping[str, Any], executive: str, detail: str,
                           leading=10, spaceAfter=3)
     big = ParagraphStyle("big", parent=normal, fontName=bold_font,
                          fontSize=23, leading=28, spaceAfter=10)
+    cover = ParagraphStyle("cover", parent=normal, fontName=bold_font,
+                           fontSize=29, leading=34, spaceAfter=10)
     headline = ParagraphStyle(
         "head", parent=normal, fontName=bold_font, fontSize=14,
         leading=17, spaceBefore=12, spaceAfter=8,
@@ -245,7 +247,7 @@ def _view(model: Mapping[str, Any], executive: str, detail: str,
     # 01: Actual decision and mandate, never an inferred allocation.
     story.extend([
         raw("RAPPORT PAMALISÉ / ANALYSE DU MANDAT", mini),
-        Spacer(1, 8), P("Rapport d’analyse de portefeuille", big),
+        Spacer(1, 8), raw("Rapport d’analyse<br/>de portefeuille", cover),
         P("Comprendre la décision, les mécanismes de risque et les éléments "
           "qui pourraient modifier la conclusion.", small),
         Spacer(1, 14),
@@ -294,10 +296,36 @@ def _view(model: Mapping[str, Any], executive: str, detail: str,
         label("Thèses et observations effectivement reçues")
         if summary:
             for i, part in enumerate(summary[:4]):
-                story.append(box(
-                    '<font color="#123F30"><b>%02d / OBSERVATION IR</b></font>'
-                    "<br/><br/>%s" % (i + 1, _safe(part)), GREY, normal, 13,
-                ))
+                number = Table([[raw("%02d" % (i + 1), whitebig)]],
+                               colWidths=[53], rowHeights=[73])
+                number.setStyle(TableStyle([
+                    ("BACKGROUND", (0, 0), (-1, -1), dark),
+                    ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+                    ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+                ]))
+                statement = Table([[
+                    raw('<b>OBSERVATION IR · THÈSE À QUALIFIER</b><br/><br/>' +
+                        _safe(part), normal)
+                ]], colWidths=[WIDTH - 53])
+                statement.setStyle(TableStyle([
+                    ("BACKGROUND", (0, 0), (-1, -1),
+                     colors.HexColor(GREY)),
+                    ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+                    ("LEFTPADDING", (0, 0), (-1, -1), 14),
+                    ("RIGHTPADDING", (0, 0), (-1, -1), 12),
+                    ("TOPPADDING", (0, 0), (-1, -1), 13),
+                    ("BOTTOMPADDING", (0, 0), (-1, -1), 13),
+                ]))
+                card = Table([[number, statement]],
+                             colWidths=[53, WIDTH - 53])
+                card.setStyle(TableStyle([
+                    ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+                    ("LEFTPADDING", (0, 0), (-1, -1), 0),
+                    ("RIGHTPADDING", (0, 0), (-1, -1), 0),
+                    ("TOPPADDING", (0, 0), (-1, -1), 0),
+                    ("BOTTOMPADDING", (0, 0), (-1, -1), 0),
+                ]))
+                story.append(card)
                 story.append(Spacer(1, 9))
         else:
             story.append(box(
