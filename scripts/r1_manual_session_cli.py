@@ -395,6 +395,55 @@ def _private_research_closeout(payload: dict[str, Any],
     }
 
 
+def _sealed_current_private_portfolio(payload: dict[str, Any],
+                                      session: dict[str, Any]) -> dict[str, Any]:
+    """Export only the current, checked M3 observation from a completed PI path.
+
+    Strictly reuse the original Work sanitation, M3 validation and SHA-256
+    export; never include a browser token or authenticate a private source.
+    """
+    if (session.get("status") not in {
+            "PI_ONLY_CONDITIONAL_REPORT_ASSEMBLED",
+            "M7A_COMPONENT_ASSEMBLED_NOT_END_TO_END_ACCEPTANCE"}
+            or not isinstance(session.get("pi_delta_private"), dict)):
+        raise ValueError("PRIVATE_PORTFOLIO_SNAPSHOT_INVALID")
+    original = payload.get("observation_inputs")
+    capture = session.get("work_blossom_capture_private")
+    if capture is not None:
+        if (original is not None or capture.get("status") !=
+                "PRIVATE_OBSERVATION_PACKET_PREPARED_NOT_SENT"):
+            raise ValueError("PRIVATE_PORTFOLIO_SNAPSHOT_INVALID")
+        original = capture.get("observation_inputs_private")
+    if (not isinstance(original, dict)
+            or prepare_observation_ledger(**original) !=
+                session.get("portfolio_observation_private")):
+        raise ValueError("PRIVATE_PORTFOLIO_SNAPSHOT_INVALID")
+    return seal_private_portfolio_snapshot(original)
+
+
+def _private_integrated_closeout(payload: dict[str, Any],
+                                 session: dict[str, Any]) -> dict[str, Any]:
+    """One deliberately opted-in private CC/IR/PI closing packet.
+
+    The existing research and portfolio copies remain independent, portable,
+    and unencrypted. Never create a PI research case or invent portfolio data.
+    """
+    research = _private_research_closeout(payload, session)
+    portfolio = _sealed_current_private_portfolio(payload, session)
+    original_research = research["private_case_envelope"]["private_case"]
+    original_portfolio = portfolio["private_snapshot"]
+    if (original_research.get("analysis_id") != original_portfolio.get("analysis_id")
+            or original_research.get("as_of") != original_portfolio.get("analysis_as_of")):
+        raise ValueError("PRIVATE_INTEGRATED_CLOSEOUT_CASE_MISMATCH")
+    return {
+        **research,
+        "status": "PRIVATE_INTEGRATED_CLOSEOUT_COPY_NOT_STORED",
+        "private_portfolio_snapshot_envelope": portfolio,
+        "archive_scope": "COMPACT_RESEARCH_CASE_AND_ORIGINAL_M3_OBSERVATION_ONLY",
+        "portfolio_source_authentication": "NOT_PERFORMED",
+    }
+
+
 def _resume_manual_transfer(envelope: Any) -> tuple[dict[str, Any], dict[str, Any]]:
     """Rejoin independently supplied specialist JSON with the saved CC step.
 
@@ -554,7 +603,8 @@ def run(*, output: str, instream: TextIO, outstream: TextIO,
             result = None
         elif output == "resume-operator":
             resume_payload, result = _resume_manual_transfer(payload)
-        elif (output == "private-closeout" and isinstance(payload, dict)
+        elif (output in {"private-closeout", "private-integrated-closeout"}
+              and isinstance(payload, dict)
               and "continuation_private" in payload):
             # The same independently checked PI/IR resume path; never use
             # PI's forwarded copy as a substitute for original IR.
@@ -597,26 +647,9 @@ def run(*, output: str, instream: TextIO, outstream: TextIO,
         outstream.write(json.dumps(_redacted_status(result),
                                    ensure_ascii=False, sort_keys=True) + "\n")
     elif output == "private-portfolio-snapshot":
-        # Complete PI-only or IR+PI source. Work results are sanitized by the
-        # existing adapter before copying; never retain raw browser metadata.
+        # PRIVATE: existing M3 copy contract, now shared with full closeout.
         try:
-            if (result.get("status") not in {
-                    "PI_ONLY_CONDITIONAL_REPORT_ASSEMBLED",
-                    "M7A_COMPONENT_ASSEMBLED_NOT_END_TO_END_ACCEPTANCE"}
-                    or not isinstance(result.get("pi_delta_private"), dict)):
-                raise ValueError("PRIVATE_PORTFOLIO_SNAPSHOT_INVALID")
-            original = payload.get("observation_inputs")
-            capture = result.get("work_blossom_capture_private")
-            if capture is not None:
-                if (original is not None or capture.get("status") !=
-                        "PRIVATE_OBSERVATION_PACKET_PREPARED_NOT_SENT"):
-                    raise ValueError("PRIVATE_PORTFOLIO_SNAPSHOT_INVALID")
-                original = capture.get("observation_inputs_private")
-            if (not isinstance(original, dict)
-                    or prepare_observation_ledger(**original) !=
-                        result.get("portfolio_observation_private")):
-                raise ValueError("PRIVATE_PORTFOLIO_SNAPSHOT_INVALID")
-            envelope = seal_private_portfolio_snapshot(original)
+            envelope = _sealed_current_private_portfolio(payload, result)
             encoded = json.dumps(envelope, ensure_ascii=False, sort_keys=True,
                                  indent=2, allow_nan=False)
             if len(encoded) > MAX_INPUT_CHARACTERS:
@@ -626,22 +659,29 @@ def run(*, output: str, instream: TextIO, outstream: TextIO,
             errstream.write("R1_PROCESSING_ERROR: private portfolio snapshot unavailable; "
                             "complete current PI and original private observation required.\n")
             return 3
-    elif output == "private-closeout":
-        # PRIVATE, opt-in and final-only. A research record is withheld until
-        # the CEO supplies explicit memory metadata and IR actually returns.
-        # The bundle is NOT saved, encrypted, authenticated or published.
+    elif output in {"private-closeout", "private-integrated-closeout"}:
+        # The new combined mode MUST be expressly selected; the old research
+        # closeout never silently adds holdings. Both have no storage.
         try:
             closeout_payload = (resume_payload if
                                 "continuation_private" in payload else payload)
-            closeout = _private_research_closeout(closeout_payload, result)
+            closeout = (_private_integrated_closeout(closeout_payload, result)
+                        if output == "private-integrated-closeout" else
+                        _private_research_closeout(closeout_payload, result))
             encoded = json.dumps(closeout, ensure_ascii=False, sort_keys=True,
                                  indent=2, allow_nan=False)
             if len(encoded) > MAX_INPUT_CHARACTERS:
                 raise ValueError("PRIVATE_CLOSEOUT_OUTPUT_TOO_LARGE")
             outstream.write(encoded + "\n")
         except (ValueError, TypeError, KeyError, RecursionError):
-            errstream.write("R1_PROCESSING_ERROR: private research closeout unavailable; "
-                            "complete original IR and explicit memory_inputs required.\n")
+            if output == "private-closeout":
+                # Backward-compatible privacy-safe error for existing clients.
+                errstream.write("R1_PROCESSING_ERROR: private research closeout unavailable; "
+                                "complete original IR and explicit memory_inputs required.\n")
+            else:
+                errstream.write("R1_PROCESSING_ERROR: private integrated closeout unavailable; "
+                                "complete IR, dated PI observation and explicit "
+                                "memory_inputs required.\n")
             return 3
     elif output in {"operator-packet", "resume-operator", "sealed-followup-operator"}:
         # PRIVATE opt-in. Resume reuses exactly the original validated operator
@@ -815,9 +855,9 @@ def main(argv: list[str] | None = None, *, instream: TextIO | None = None,
          outstream: TextIO | None = None,
          errstream: TextIO | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--output", choices=("request-template", "intake-review", "status", "report", "handoffs", "next-handoff", "continuation", "operator-packet", "resume-operator", "guided-operator", "method-handoff", "specialist-prompt", "followup-draft", "sealed-followup-draft", "sealed-followup-operator", "private-case", "private-case-envelope", "private-closeout", "private-portfolio-snapshot", "review-queue"),
+    parser.add_argument("--output", choices=("request-template", "intake-review", "status", "report", "handoffs", "next-handoff", "continuation", "operator-packet", "resume-operator", "guided-operator", "method-handoff", "specialist-prompt", "followup-draft", "sealed-followup-draft", "sealed-followup-operator", "private-case", "private-case-envelope", "private-closeout", "private-integrated-closeout", "private-portfolio-snapshot", "review-queue"),
                         default="status",
-                        help="request-template is an inert blank case and reads no stdin; intake-review reads a private request-only draft and returns field names/status without values; status is redacted; report, handoffs, next-handoff, continuation, operator-packet, resume-operator, guided-operator, method-handoff, specialist-prompt, followup-draft, sealed-followup-draft, sealed-followup-operator, private-case, private-case-envelope, private-closeout, private-portfolio-snapshot and review-queue require a private terminal")
+                        help="request-template is an inert blank case and reads no stdin; intake-review reads a private request-only draft and returns field names/status without values; status is redacted; report, handoffs, next-handoff, continuation, operator-packet, resume-operator, guided-operator, method-handoff, specialist-prompt, followup-draft, sealed-followup-draft, sealed-followup-operator, private-case, private-case-envelope, private-closeout, private-integrated-closeout, private-portfolio-snapshot and review-queue require a private terminal")
     opts = parser.parse_args(argv)
     return run(output=opts.output, instream=instream or sys.stdin,
                outstream=outstream or sys.stdout, errstream=errstream or sys.stderr)
