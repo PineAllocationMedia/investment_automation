@@ -7,6 +7,16 @@
 >
 > Exact remote state must always be verified before implementation.
 
+### R1 Financial Systems — feuille de route immédiate et préparation du cinquième essai (directive CEO du 2026-10-30)
+
+**Nouvelle séquence dominante :** après le quatrième essai réel et les PR [#419](https://github.com/PineAllocationMedia/investment_automation/pull/419) / [#420](https://github.com/PineAllocationMedia/investment_automation/pull/420) **fusionnées**, développer **(P1) vrai rapport PAMalisé accessible dans CC → (P2) comparaison économique/décision High-CAGR/VFV → (P3) portefeuille PI/Room/coûts selon preuves → (P4) intégration et contrôles ciblés**. L'actuelle sortie locale HTML imprimable n'est ni un PDF effectivement produit, ni une utilisation réelle par CC. L'absence de Portfolio Room et l'absence d'Expected Return comparable sont **deux blocages indépendants**. Aucune allocation ne doit être inventée pour les contourner.
+
+**Déclenchement du cinquième essai :** **NO-GO** jusqu'à vérification de **G1–G6** dans la [feuille de route détaillée et ses critères mesurables](docs/ai_native/integrated_build/integration/SHORT_TERM_ROADMAP_TEST5_R1_20261030.md) : vrai livrable PAMalisé rendu/ouvert, logique économique utile sur cas avec/sans preuve, distinction PI public/privé et coûts, transferts/méthodes vérifiés ou repli honnête, tests ciblés réellement exécutés (sans obligation de minutes GitHub Actions épuisées), puis **autorisation ponctuelle CEO**. Le PM propose alors `TEST5_READY_TO_PROPOSE` avec les preuves; il ne déclenche pas l'essai de lui-même.
+
+Ce chantier reste une **étape de l'unique construction intégrée R1 des 36 choix**. Le cinquième essai serait un test opérationnel intermédiaire; **l'évaluation complète des 36 décisions/six modes demeure après assemblage**. Ne pas changer V1/main, les politiques non approuvées, les droits, la confidentialité, le coût externe de données financières (0 $) ni l'interdiction de transactions et de recherches récurrentes. Les sections historiques ci-dessous documentent les priorités antérieures; elles ne prévalent pas sur cette directive récente.
+
+---
+
 ### R1 Financial Systems — quatrième essai après intégration des constats du troisième (directive CEO, 2026-10-30)
 
 **Séquence immédiate approuvée par le CEO :** achever et intégrer les améliorations et clarifications des **cinq constats F1–F5** du [troisième essai](docs/ai_native/integrated_build/integration/THIRD_CHATGPT_TRACE_DECISION_GAP_R1_20261030.md); vérifier leur préparation dans le parcours commun; **puis** le CEO conduira **un quatrième essai réel**, sur proposition du PM dès que le travail est prêt. Il s'agit d'un **essai opérationnel intermédiaire ciblé**, et **non** de l'évaluation complète unique des 36 décisions R1 prévue **après assemblage**, ni d'un retour au développement par petits pilotes.
