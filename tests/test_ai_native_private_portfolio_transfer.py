@@ -145,7 +145,7 @@ class PrivatePortfolioTransferTests(unittest.TestCase):
         self.assertEqual((code, err), (0, ""))
         operator = json.loads(body)
         self.assertIsNone(operator["continuation_private"])
-        self.assertIn("largest absolute security-line weight shift",
+        self.assertIn("Largest absolute security-line weight shift",
                       operator["report_private"])
         self.assertEqual(operator["session"]["route"], "CC_IR_PI_CC")
         self.assertEqual(operator["storage"], "NONE")
