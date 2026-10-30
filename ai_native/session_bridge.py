@@ -44,6 +44,10 @@ from .scenario_session_integration import (
 from .method_return_receipt import (
     evaluate_returned_method_text, render_returned_method_receipt,
 )
+from .ceo_f5_experience import (
+    prepare_human_effort_summary, render_human_effort_line,
+    finalize_decision_first_executive,
+)
 
 ROOM_STATUSES = frozenset({"ROOM_EVIDENCE_SUPPORTED", "ROOM_CONDITIONAL", "ROOM_UNAVAILABLE"})
 
@@ -77,6 +81,7 @@ def complete_manual_session(
     scenario_weight_inputs: Mapping[str, Any] | None = None,
     memory_inputs: Mapping[str, Any] | None = None,
     method_return_receipts: Mapping[str, Any] | None = None,
+    human_effort_inputs: Mapping[str, Any] | None = None,
     observation_inputs: Mapping[str, Any] | None = None,
     prior_portfolio_observation_inputs: Mapping[str, Any] | None = None,
     work_blossom_inputs: Mapping[str, Any] | None = None,
@@ -105,6 +110,11 @@ def complete_manual_session(
     route = handoffs["route"]
     if pi_delta is not None and not request["portfolio_needed"]:
         raise ValueError("PI_DELTA_UNREQUESTED")
+    if human_effort_inputs is not None and (
+            route not in {"CC_IR_CC", "CC_IR_PI_CC", "CC_PI_CC"}
+            or (route in {"CC_IR_CC", "CC_IR_PI_CC"} and ir_capsule is None)
+            or (route in {"CC_PI_CC", "CC_IR_PI_CC"} and pi_delta is None)):
+        raise ValueError("F5_EFFORT_REQUIRES_COMPLETED_SPECIALIST_ROUTE")
     if method_return_receipts is not None:
         if (not isinstance(method_return_receipts, Mapping)
                 or not method_return_receipts
@@ -449,6 +459,14 @@ def complete_manual_session(
             for role in ("IR", "PI") if role in method_review
         )
 
+    # F5 — actual work is reported by the CEO or stays NOT_MEASURED.
+    # Neither route, elapsed time, method content nor report length supplies
+    # a proxy for human work. No private actions or notes are echoed.
+    human_effort = prepare_human_effort_summary(
+        request=request, effort_inputs=human_effort_inputs)
+    private["human_effort_summary_private"] = human_effort
+    effort_line = render_human_effort_line(human_effort)
+
     # Test #3 F1: visible company research alone cannot justify skipping VFV.
     # Report all three original High-CAGR branches without promoting evidence
     # or choosing an investment. All other mode reports stay unchanged.
@@ -533,9 +551,19 @@ def complete_manual_session(
             private["final_report_private"] += "\n\n" + render_high_cagr_destination_review(capital_path)
         if scenario_review is not None:
             private["final_report_private"] += "\n\n" + render_scoped_scenario_lines(scenario_review)
-        private["executive_report_private"] = render_executive_report(
-            packet, detailed_report=private["final_report_private"],
+        original_detail_pi = private["final_report_private"]
+        original_executive_pi = render_executive_report(
+            packet, detailed_report=original_detail_pi,
             portfolio_room_status=room)
+        private["final_report_private"] += "\n\n## F5 — Mesure du parcours humain\n" + effort_line
+        private["executive_report_private"] = finalize_decision_first_executive(
+            original_executive=original_executive_pi,
+            original_detail=original_detail_pi,
+            complete_detail=private["final_report_private"],
+            high_cagr_review=capital_path is not None,
+            admission_review=False, public_view_review=False,
+            method_receipt_review=method_review is not None,
+            human_effort_summary=human_effort)
         private["pi_delta_private"] = deepcopy(dict(pi_delta))
         private["status"] = "PI_ONLY_CONDITIONAL_REPORT_ASSEMBLED"
         return private
@@ -586,6 +614,10 @@ def complete_manual_session(
         exceptional_lifecycle_review_private=private["exceptional_lifecycle_review_private"],
     )
     private["integrated_private"] = integrated
+    # Keep the actual validated M7a executive/detail pair. Rebuild the
+    # first-read view only after all F1/F2/F3/F4/F5 annexes are attached.
+    executive_original = integrated["executive_markdown"]
+    detail_original = integrated["markdown"]
     # PI-only and IR+PI expose the same strictly private deterministic M3
     # outputs; the short CC report still omits actual balances and costs.
     private["gross_contribution_private"] = integrated.get("gross_contribution_private")
@@ -621,7 +653,6 @@ def complete_manual_session(
     if method_report is not None:
         integrated["method_return_receipts_private"] = method_review
         integrated["markdown"] += "\n\n" + method_report
-        integrated["executive_markdown"] += "\n\n" + method_report
     # Third CEO test F3: read the ALREADY assembled source, economics,
     # valuation, mode and PI stages. Never promote research to admission.
     admission_review = prepare_research_admission_evidence_map(
@@ -630,7 +661,6 @@ def complete_manual_session(
     private["research_admission_evidence_map_private"] = admission_review
     integrated["research_admission_evidence_map_private"] = admission_review
     integrated["markdown"] += "\n\n" + admission_lines
-    integrated["executive_markdown"] += "\n\n" + admission_lines
     if public_reference is not None:
         # Public profile observation remains separate from the IR model's
         # facts/pillars and the unchanged private institutional memory proposal.
@@ -641,14 +671,22 @@ def complete_manual_session(
         capital_lines = render_high_cagr_destination_review(capital_path)
         integrated["high_cagr_destination_review_private"] = capital_path
         integrated["markdown"] += "\n\n" + capital_lines
-        integrated["executive_markdown"] += "\n\n" + capital_lines
     if scenario_review is not None:
         scenario_lines = render_scoped_scenario_lines(scenario_review)
         integrated["scenario_weight_sensitivity_private"] = scenario_review
         integrated["markdown"] += "\n\n" + scenario_lines
-        # Append once after the original executive+annex rendering. This
-        # keeps the original investment summary and its validity intact.
-        integrated["executive_markdown"] += "\n\n" + scenario_lines
+    integrated["human_effort_summary_private"] = human_effort
+    integrated["markdown"] += "\n\n## F5 — Mesure du parcours humain\n" + effort_line
+    integrated["executive_markdown"] = finalize_decision_first_executive(
+        original_executive=executive_original,
+        original_detail=detail_original,
+        complete_detail=integrated["markdown"],
+        high_cagr_review=capital_path is not None,
+        admission_review=admission_review is not None,
+        public_view_review=public_scope_review is not None,
+        method_receipt_review=method_review is not None,
+        human_effort_summary=human_effort,
+    )
     private["final_report_private"] = integrated["markdown"]
     private["executive_report_private"] = integrated["executive_markdown"]
     private["pi_delta_private"] = deepcopy(dict(pi_delta)) if pi_delta is not None else None
