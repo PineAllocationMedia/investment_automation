@@ -105,6 +105,38 @@ class PrivatePortfolioTransferTests(unittest.TestCase):
         self.assertNotIn("SCOPE-A", body)
         self.assertNotIn("prior_private_portfolio_envelope", body)
 
+    def test_pending_pi_manual_continuation_recovers_prior_copy_only_in_cc(self):
+        envelope = self.seal_old()
+        current = self.current_packet()
+        returned_pi = current.pop("pi_delta")
+        current["prior_private_portfolio_envelope"] = envelope
+        before = deepcopy(current)
+        code, body, err = self.cli(current, "operator-packet")
+        self.assertEqual((code, err), (0, ""))
+        packet = json.loads(body)
+        self.assertEqual(packet["session"]["status"], "AWAITING_MANUAL_PI_DELTA")
+        continuation = packet["continuation_private"]
+        self.assertEqual(set(continuation["next_handoff"]), {"PI_REQUEST"})
+        # Historical private P inputs stay in the CC-owned continuation, not
+        # the receiving PI request or the private short report.
+        self.assertNotIn("prior_private_portfolio_envelope",
+                         json.dumps(continuation["next_handoff"]))
+        self.assertIn("prior_private_portfolio_envelope",
+                      continuation["resume_input"])
+        self.assertEqual(current, before)
+        code, body, err = self.cli({
+            "continuation_private": continuation,
+            "specialist_result": {"PI_DELTA": returned_pi},
+        }, "resume-operator")
+        self.assertEqual((code, err), (0, ""))
+        complete = json.loads(body)
+        self.assertEqual(complete["session"]["status"],
+                         "PI_ONLY_CONDITIONAL_REPORT_ASSEMBLED")
+        self.assertIsNone(complete["continuation_private"])
+        self.assertIn("Largest absolute security-line weight shift: 25.00",
+                      complete["report_private"])
+        self.assertEqual(complete["storage"], "NONE")
+
     def test_ir_pi_manual_route_preserves_original_ir_and_private_snapshot(self):
         prior = self.seal_old(research=True)
         current = self.current_packet(research=True)
