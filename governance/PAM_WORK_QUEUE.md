@@ -8,6 +8,9 @@
 
 ## ACTIVE
 
+- **R1 Financial Systems — parcours PAMalisé et cinquième essai (CEO 2026-10-30, `WO-FS-R1-POST-TEST4-TO-TEST5`, PM owner; ACTIVE):** exécuter P1→P4 et contrôler G1–G6 selon la [feuille de route intégrée](../docs/ai_native/integrated_build/integration/SHORT_TERM_ROADMAP_TEST5_R1_20261030.md). Priorité produit et décision (rapport réel depuis CC, comparaison économique, PI/Room/coûts, raccordement). Test #5 `NOT_READY / CEO_NOT_YET_TRIGGERED`; PR #419/#420 fusionnées mais export PDF CC, décision économique et acceptation sont non vérifiés. Aucun pilote récurrent, changement de politique, données privées en GitHub, frais de données, transaction ni élargissement d'autorité. Avancer par PR fonctionnelle contrôlée; CEO approuve toute fusion et l'essai ponctuel.
+
+
 - Limited monthly blocker-signal watch (`ENABLED`, CEO-reported external ChatGPT task).
   - Name: `PAM — Signaux de déblocage`; successfully created/enabled according to
     the CEO-authorized Work Order. This sync records that fact; it does not create,
