@@ -107,6 +107,17 @@ class ScenarioSessionIntegrationTests(unittest.TestCase):
             with self.subTest(variant=variant), self.assertRaises(ValueError):
                 complete_manual_session(**p)
 
+    def test_malformed_scenario_fields_fail_with_value_errors(self):
+        for variant in ("nonstring_mode", "nonstring_weight"):
+            payload = self.case()
+            if variant == "nonstring_mode":
+                payload["scenario_weight_inputs"]["strategy_id"] = None
+            else:
+                payload["scenario_weight_inputs"]["positions"][0]["weight_pct"] = 100
+            with self.subTest(variant=variant), self.assertRaisesRegex(
+                    ValueError, "SCENARIO_REVIEW_"):
+                complete_manual_session(**payload)
+
     def test_100_point_2_is_unavailable_in_actual_report(self):
         payload = self.case(weight="100.00")
         payload["observation_inputs"]["positions"][0]["displayed_weight_pct"] = "100.00"

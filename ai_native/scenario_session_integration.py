@@ -30,9 +30,12 @@ def prepare_scoped_scenario_review(
             or observation.get("verification") !=
                 "CALLER_ASSERTED_NOT_INDEPENDENTLY_AUTHENTICATED"):
         raise ValueError("SCENARIO_REVIEW_OBSERVATION_AUTHORITY_INVALID")
+    mode_input = scenario_weight_inputs["strategy_id"]
+    if not isinstance(mode_input, str) or not mode_input.strip():
+        raise ValueError("SCENARIO_REVIEW_STRATEGY_ID_INVALID")
     if (scenario_weight_inputs["analysis_id"] != request.get("analysis_id")
             or scenario_weight_inputs["analysis_as_of"] != request.get("as_of")
-            or scenario_weight_inputs["strategy_id"].strip().lower()
+            or mode_input.strip().lower()
                 != str(request.get("strategy_id", "")).strip().lower()
             or observation.get("analysis_id") != request.get("analysis_id")
             or observation.get("analysis_as_of") != request.get("as_of")
@@ -61,6 +64,8 @@ def prepare_scoped_scenario_review(
         # The downstream calculator strictly validates finite strings, scale
         # and duplication; this parity check also forbids retyped proportions.
         try:
+            if not isinstance(row.get("weight_pct"), str):
+                raise ValueError("SCENARIO_REVIEW_DISPLAYED_WEIGHT_INVALID")
             if Decimal(row["weight_pct"]) != Decimal(by_id[row["p_id"]]):
                 raise ValueError("SCENARIO_REVIEW_DISPLAYED_WEIGHT_MISMATCH")
         except (ArithmeticError, TypeError) as exc:
