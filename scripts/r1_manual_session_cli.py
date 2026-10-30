@@ -664,6 +664,7 @@ def run(*, output: str, instream: TextIO, outstream: TextIO,
         return 0
     guided_resuming = False
     guided_sealed_followup = False
+    guided_integrated_followup = False
     try:
         raw = instream.read(MAX_INPUT_CHARACTERS + 1)
         if len(raw) > MAX_INPUT_CHARACTERS:
@@ -709,6 +710,17 @@ def run(*, output: str, instream: TextIO, outstream: TextIO,
             resume_payload, result = _resume_manual_transfer(payload)
         elif output == "sealed-followup-operator":
             restored_payload, result = _reenter_sealed_followup(payload)
+        elif (output == "guided-operator" and isinstance(payload, dict)
+              and "prior_integrated_closeout" in payload):
+            # Start a NEW CEO-initiated IR+PI follow-up directly from the
+            # opt-in historical two-envelope re-entry. The existing guided
+            # operator then checks the real next IR/PI method content before
+            # rendering the one copy-ready specialist prompt. Prior holdings
+            # and original research remain in CC-only resume_input, not prompt.
+            guided_resuming = True
+            guided_sealed_followup = True
+            guided_integrated_followup = True
+            resume_payload, result = _integrated_followup_operator(payload)
         elif (output == "guided-operator" and isinstance(payload, dict)
               and "private_case_envelope" in payload):
             # Reuse the SAME strict sealed-case re-entry plus verified-method
@@ -809,7 +821,11 @@ def run(*, output: str, instream: TextIO, outstream: TextIO,
             actual_payload = resume_payload if guided_resuming else payload
             operator = _private_operator_packet(actual_payload, result)
             if guided_sealed_followup:
-                operator["manual_copy_integrity"] = "SHA256_MATCHED_RETAINED_COPY_ONLY"
+                operator["manual_copy_integrity"] = (
+                    "TWO_UNKEYED_SHA256_COPIES_MATCHED_RETAINED_ONLY"
+                    if guided_integrated_followup else
+                    "SHA256_MATCHED_RETAINED_COPY_ONLY"
+                )
                 operator["record_authenticity"] = "NOT_ESTABLISHED"
             continuation = operator["continuation_private"]
             prompt = None

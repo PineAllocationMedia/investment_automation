@@ -236,5 +236,132 @@ class IntegratedHistoricalRoundTripTests(unittest.TestCase):
                 self.assertIn(error, err)
 
 
+    def test_one_guided_mode_reuses_original_integrated_followup_and_pinned_prompts(self):
+        """One entered request, two explicitly pasted specialist prompts, then report."""
+        old = self.old()
+        session = self.current()
+        original_session = deepcopy(session)
+        wrapper = {
+            "prior_integrated_closeout": old,
+            "session": session,
+            "fact_links": [{"prior_fact_id": "F1", "current_fact_id": "F2"}],
+        }
+        rc, body, err = self.cli(wrapper, "guided-operator")
+        self.assertEqual((rc, err), (0, ""))
+        first = json.loads(body)
+        self.assertEqual(first["specialist_step"], "IR_REQUEST")
+        self.assertEqual(first["copy_to_specialist"], "specialist_prompt_private")
+        self.assertIn("Recipient: Investment Research (IR)",
+                      first["specialist_prompt_private"])
+        self.assertIn("METHOD_PATH:", first["specialist_prompt_private"])
+        self.assertIn("CONTENT_BEGIN", first["specialist_prompt_private"])
+        self.assertNotIn("OLD_RESEARCH_NOT_FOR_NEW_SPECIALIST",
+                         first["specialist_prompt_private"])
+        self.assertNotIn("SCOPE-A", first["specialist_prompt_private"])
+        self.assertNotIn('"resume_input"', first["specialist_prompt_private"])
+        operator = first["operator_packet_private"]
+        self.assertEqual(
+            operator["manual_copy_integrity"],
+            "TWO_UNKEYED_SHA256_COPIES_MATCHED_RETAINED_ONLY")
+        self.assertEqual(operator["record_authenticity"], "NOT_ESTABLISHED")
+        self.assertIn("prior_private_portfolio_envelope",
+                      operator["continuation_private"]["resume_input"])
+        self.assertNotIn("prior_private_portfolio_envelope",
+                         json.dumps(operator["continuation_private"]["next_handoff"]))
+        self.assertEqual(session, original_session)
+
+        fresh_ir = self.fx.ir(
+            analysis_id="CASE-B", research_as_of="2026-10-29",
+            facts=[{"id":"F2", "status":"INDICATIVE",
+                    "claim":"New synthetic observation"}])
+        second = {
+            "continuation_private": operator["continuation_private"],
+            "specialist_result": {"IR_CAPSULE": fresh_ir},
+        }
+        rc, body, err = self.cli(second, "guided-operator")
+        self.assertEqual((rc, err), (0, ""))
+        pi = json.loads(body)
+        self.assertEqual(pi["specialist_step"], "PI_REQUEST")
+        self.assertIn("Recipient: Portfolio Intelligence (PI)",
+                      pi["specialist_prompt_private"])
+        self.assertIn("METHOD_PATH:", pi["specialist_prompt_private"])
+        self.assertNotIn("OLD_RESEARCH_NOT_FOR_NEW_SPECIALIST",
+                         pi["specialist_prompt_private"])
+        self.assertEqual(
+            pi["operator_packet_private"]["continuation_private"][
+                "next_handoff"]["PI_REQUEST"]["FORWARD_UNCHANGED"],
+            fresh_ir)
+
+        returned = {
+            "continuation_private":
+                pi["operator_packet_private"]["continuation_private"],
+            "specialist_result": {
+                "PI_DELTA": self.fx.pi(
+                    analysis_id="CASE-B", portfolio_as_of="2026-10-29"),
+                "FORWARD_UNCHANGED": deepcopy(fresh_ir),
+            },
+        }
+        rc, body, err = self.cli(returned, "guided-operator")
+        self.assertEqual((rc, err), (0, ""))
+        complete = json.loads(body)
+        self.assertIsNone(complete["specialist_step"])
+        self.assertIsNone(complete["specialist_prompt_private"])
+        self.assertEqual(complete["copy_to_specialist"], "NONE")
+        self.assertIsNone(
+            complete["operator_packet_private"]["continuation_private"])
+        report = complete["operator_packet_private"]["report_private"]
+        self.assertIn("Prior/current research", report)
+        self.assertIn("On-demand private portfolio snapshot comparison", report)
+        self.assertNotIn("OLD_RESEARCH_NOT_FOR_NEW_SPECIALIST", report)
+        self.assertNotIn("SCOPE-A", report)
+        self.assertEqual(complete["trading_authority"], "NONE")
+        self.assertEqual(complete["project_invocation"], "NONE")
+        self.assertEqual(complete["method_load_verification"], "NOT_PERFORMED")
+
+    def test_guided_integrated_followup_rejects_tamper_and_implicit_ceo(self):
+        old = self.old()
+        session = self.current()
+        modified = deepcopy(old)
+        modified["private_case_envelope"]["private_case"][
+            "original_ir_capsule"]["facts"][0]["claim"] = "SYNTHETIC_PRIVATE_TAMPER"
+        bad = {
+            "prior_integrated_closeout": modified, "session": session,
+            "fact_links": [],
+        }
+        rc, out, err = self.cli(bad, "guided-operator")
+        self.assertEqual((rc, out), (2, ""))
+        self.assertIn("PRIVATE_CASE_SHA256_MISMATCH", err)
+        self.assertNotIn("SYNTHETIC_PRIVATE_TAMPER", err)
+        no_ceo = {
+            "prior_integrated_closeout": old,
+            "session": {**session, "request": {
+                **session["request"], "ceo_initiated": False}},
+            "fact_links": [],
+        }
+        rc, out, err = self.cli(no_ceo, "guided-operator")
+        self.assertEqual((rc, out), (2, ""))
+        self.assertIn("SEALED_FOLLOWUP_EXPLICIT_MANDATE_REQUIRED", err)
+
+    def test_guided_integrated_followup_can_change_mode_without_policy_approval(self):
+        old = self.old()
+        session = self.current()
+        session["request"]["strategy_id"] = "balanced"
+        payload = {
+            "prior_integrated_closeout": old,
+            "session": session,
+            "fact_links": [],
+        }
+        rc, body, err = self.cli(payload, "guided-operator")
+        self.assertEqual((rc, err), (0, ""))
+        first = json.loads(body)
+        prompt = first["specialist_prompt_private"]
+        self.assertIn("Recipient: Investment Research (IR)", prompt)
+        self.assertIn("POLICY_PROPOSAL_BALANCED_R1.md", prompt)
+        self.assertIn("not Project-loading proof", prompt)
+        self.assertIn("other five R1 mode designs remain unapproved", prompt)
+        self.assertEqual(first["trading_authority"], "NONE")
+        self.assertEqual(first["method_load_verification"], "NOT_PERFORMED")
+
+
 if __name__ == "__main__":
     unittest.main()
