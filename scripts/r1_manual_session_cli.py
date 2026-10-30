@@ -17,6 +17,7 @@ from typing import Any, TextIO
 
 from ai_native.session_bridge import complete_manual_session
 from ai_native.pamalised_report import render_pamalised_html
+from ai_native.pamalised_pdf import render_pamalised_pdf
 from ai_native.manual_review_queue import prepare_manual_review_queue
 from ai_native.intake_review import prepare_intake_review
 from ai_native.opportunity_triage import prepare_selected_candidate_draft
@@ -45,7 +46,7 @@ OPTIONAL_FIELDS = frozenset({
     "fundamental_inputs", "historical_comparison_inputs", "opportunity_triage_inputs",
     "macro_sector_inputs", "work_portfolio_result", "specialist_result",
     "lifecycle_inputs", "lifecycle_current_evidence_inputs",
-    "prior_private_portfolio_envelope",
+    "prior_private_portfolio_envelope", "presentation_inputs",
 })
 PERMITTED_FIELDS = OPTIONAL_FIELDS | {"request"}
 NEXT_ACTIONS = {
@@ -106,6 +107,7 @@ SAFE_ERROR_CODES = frozenset({
     "CANDIDATE_DRAFT_INPUT_INVALID",
     "CANDIDATE_DRAFT_TRIAGE_UNAVAILABLE",
     "CANDIDATE_DRAFT_CANDIDATE_NOT_FOUND",
+    "PAMALISED_PRESENTATION_PDF_ONLY",
 })
 
 
@@ -180,7 +182,7 @@ def evaluate(payload: Any) -> dict[str, Any]:
     # authoritative. No browser access, source inference or project invocation.
     fields = {k: v for k, v in payload.items()
               if k not in {"request", "work_portfolio_result", "specialist_result",
-                           "prior_private_portfolio_envelope"}}
+                           "prior_private_portfolio_envelope", "presentation_inputs"}}
     if "prior_private_portfolio_envelope" in payload:
         request = payload.get("request")
         if (not isinstance(request, dict)
@@ -1089,6 +1091,9 @@ def run(*, output: str, instream: TextIO, outstream: TextIO,
         payload = json.loads(raw, parse_constant=_no_nonfinite,
                              parse_float=_finite_json_float,
                              object_pairs_hook=_unique_pairs)
+        if (isinstance(payload, dict) and "presentation_inputs" in payload
+                and output != "pamalised-pdf"):
+            raise ValueError("PAMALISED_PRESENTATION_PDF_ONLY")
         if output == "guided-private-closeout":
             # The only new UX selector is a strict, private, no-action
             # dispatch to the THREE unchanged existing closeout engines.
@@ -1452,13 +1457,13 @@ def run(*, output: str, instream: TextIO, outstream: TextIO,
             errstream.write("R1_PROCESSING_ERROR: private method handoff unavailable; " +
                             "check local method files and pinned versions.\n")
             return 3
-    elif output in {"report", "executive-report", "pamalised-html"}:
+    elif output in {"report", "executive-report", "pamalised-html", "pamalised-pdf"}:
         report = (result["executive_report_private"]
-                  if output in {"executive-report", "pamalised-html"}
+                  if output in {"executive-report", "pamalised-html", "pamalised-pdf"}
                   else result["final_report_private"])
         if report is None:
             outstream.write("REPORT_NOT_AVAILABLE: " + result["status"] + "\n")
-        elif output == "pamalised-html":
+        elif output in {"pamalised-html", "pamalised-pdf"}:
             # PRIVATE and in-memory only. The original validated executive/detail
             # pair is mandatory; no filesystem write, external asset or PDF claim.
             try:
@@ -1476,8 +1481,29 @@ def run(*, output: str, instream: TextIO, outstream: TextIO,
                     strategy=request["strategy_id"],
                     report_status=match.group(1),
                 )
-                outstream.write(body)
-            except (ValueError, TypeError, KeyError, RecursionError):
+                if output == "pamalised-html":
+                    outstream.write(body)
+                else:
+                    pdf = render_pamalised_pdf(
+                        executive_report=report,
+                        detailed_report=result["final_report_private"],
+                        analysis_id=request["analysis_id"],
+                        as_of=request["as_of"],
+                        strategy=request["strategy_id"],
+                        report_status=match.group(1),
+                        request=request,
+                        ir_capsule=payload.get("ir_capsule"),
+                        pi_delta=payload.get("pi_delta"),
+                        new_contribution_summary_private=(
+                            result.get("integrated_private", {}) or {}
+                        ).get("new_contribution_summary_private"),
+                        presentation_inputs=payload.get("presentation_inputs"),
+                    )
+                    sink = getattr(outstream, "buffer", None)
+                    if sink is None:
+                        raise ValueError("PAMALISED_BINARY_STDOUT_REQUIRED")
+                    sink.write(pdf)
+            except (ValueError, TypeError, KeyError, RecursionError, RuntimeError):
                 errstream.write(
                     "R1_PROCESSING_ERROR: private PAMalised report unavailable.\n")
                 return 3
@@ -1563,9 +1589,9 @@ def main(argv: list[str] | None = None, *, instream: TextIO | None = None,
          outstream: TextIO | None = None,
          errstream: TextIO | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--output", choices=("request-template", "intake-review", "status", "report", "executive-report", "pamalised-html", "handoffs", "next-handoff", "continuation", "operator-packet", "resume-operator", "guided-operator", "guided-integrated-closeout", "guided-research-closeout", "guided-portfolio-closeout", "guided-private-closeout", "candidate-deep-dive-draft", "method-handoff", "specialist-prompt", "followup-draft", "sealed-followup-draft", "sealed-followup-operator", "integrated-followup-draft", "portfolio-followup-draft", "integrated-followup-operator", "private-case", "private-case-envelope", "private-closeout", "private-integrated-closeout", "private-portfolio-snapshot", "review-queue"),
+    parser.add_argument("--output", choices=("request-template", "intake-review", "status", "report", "executive-report", "pamalised-html", "pamalised-pdf", "handoffs", "next-handoff", "continuation", "operator-packet", "resume-operator", "guided-operator", "guided-integrated-closeout", "guided-research-closeout", "guided-portfolio-closeout", "guided-private-closeout", "candidate-deep-dive-draft", "method-handoff", "specialist-prompt", "followup-draft", "sealed-followup-draft", "sealed-followup-operator", "integrated-followup-draft", "portfolio-followup-draft", "integrated-followup-operator", "private-case", "private-case-envelope", "private-closeout", "private-integrated-closeout", "private-portfolio-snapshot", "review-queue"),
                         default="status",
-                        help="request-template is an inert blank case and reads no stdin; intake-review reads a private request-only draft and returns field names/status without values; status is redacted; report, executive-report, pamalised-html, handoffs, next-handoff, continuation, operator-packet, resume-operator, guided-operator, guided-integrated-closeout, guided-research-closeout, guided-portfolio-closeout, guided-private-closeout, candidate-deep-dive-draft, method-handoff, specialist-prompt, followup-draft, sealed-followup-draft, sealed-followup-operator, integrated-followup-draft, portfolio-followup-draft, integrated-followup-operator, private-case, private-case-envelope, private-closeout, private-integrated-closeout, private-portfolio-snapshot and review-queue require a private terminal")
+                        help="request-template is an inert blank case and reads no stdin; intake-review reads a private request-only draft and returns field names/status without values; status is redacted; report, executive-report, pamalised-html, pamalised-pdf (binary stdout), handoffs, next-handoff, continuation, operator-packet, resume-operator, guided-operator, guided-integrated-closeout, guided-research-closeout, guided-portfolio-closeout, guided-private-closeout, candidate-deep-dive-draft, method-handoff, specialist-prompt, followup-draft, sealed-followup-draft, sealed-followup-operator, integrated-followup-draft, portfolio-followup-draft, integrated-followup-operator, private-case, private-case-envelope, private-closeout, private-integrated-closeout, private-portfolio-snapshot and review-queue require a private terminal")
     opts = parser.parse_args(argv)
     return run(output=opts.output, instream=instream or sys.stdin,
                outstream=outstream or sys.stdout, errstream=errstream or sys.stderr)
