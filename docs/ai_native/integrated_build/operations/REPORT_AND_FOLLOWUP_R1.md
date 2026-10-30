@@ -47,6 +47,12 @@ Le moteur déjà fusionné `pamalised-pdf` renvoie les octets binaires du rappor
 
 **Limite G1 :** une création locale `PDF_CREATED_LOCALLY_NOT_DELIVERED_TO_CC_WORK` **n'est pas** une pièce jointe ChatGPT, ne démontre pas que Command Center ou Work a accès à Python, ne prouve pas les paramètres Project R1.3, ni la conformité visuelle finale à partir de données réelles. Le fichier est remis au CEO **seulement après un attachement et une réouverture réellement vérifiés dans une session autorisée**. Si Work ne peut pas exécuter cet outil, déclarer `CAPABILITY_BLOCKED`, proposer un seul repli existant vérifié et ne pas présumer de l'autonomie entre Projects. Tests synthétiques dédiés, sans accès réseau ni transaction.
 
+## P4 — prévalidation intégrée ciblée (post PR #427)
+
+Le test de régression `tests/test_ai_native_r1_integrated_preflight.py` couvre **dans un seul dossier synthétique** les transitions manuelles CC → IR → PI → CC, la conservation `FORWARD_UNCHANGED`, les contraintes PDF PAMalisé avec présentation narrative et schéma fondé sur un F_ID, l'ouverture et la lecture du PDF produit localement, le refus d'un transfert IR corrompu ou incomplet, la séparation public Blossom/Room privé, le refus de frais non sourcés et l'indépendance ER/Room High-CAGR. Les écritures PDF éventuelles se limitent au répertoire temporaire de test, sont autorisées explicitement et ne concernent aucune donnée financière réelle.
+
+**Commande opérateur dans un checkout authentique** (et non demandée au CEO) : `python -m unittest -v tests.test_ai_native_r1_integrated_preflight` avec les dépendances PDF optionnelles disponibles. Un skip faute de ReportLab/pypdf est **BLOCKED** pour G1/G5, jamais PASS. Consigner Python, commit SHA, dépendances, résultats, fichier PDF ouvert, éventuels échecs et environnement; le test ne prouve ni la connexion Work, ni l'installation des instructions CC R1.3, ni l'authenticité des avoirs/émetteurs, ni l'acceptation du cinquième essai. Un essai Work autorisé et la livraison PDF réelle restent nécessaires pour G1/G4; tous G1–G6 doivent être documentés avant `TEST5_READY_TO_PROPOSE`.
+
 ## Decision report — conclusions first, evidence after
 Use [Operating Contract](../OPERATING_CONTRACT.md) and the actual, accessible R1 handoffs. Target at most ten minutes of reading where possible, without making report length an artificial minimum.
 
