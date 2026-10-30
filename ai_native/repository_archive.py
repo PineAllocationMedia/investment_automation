@@ -8,7 +8,7 @@ from datetime import date
 import re
 from typing import Any, Mapping
 
-ID = re.compile(r"R1-[A-Z0-9]{12,24}\\Z")
+ID = re.compile(r"R1-[A-Z0-9]{12,24}\Z")
 KINDS = frozenset({"ISSUER", "FUND", "STRATEGY", "PORTFOLIO",
                    "MULTIPORTFOLIO", "FOLLOWUP"})
 MODES = frozenset({"high-cagr", "balanced", "family-office",
@@ -33,7 +33,8 @@ def prepare_archive_locator(proposal: Mapping[str, Any]) -> dict[str, Any]:
     if parent is not None and _opaque(parent) == ident:
         raise ValueError("ARCHIVE_SELF_PARENT_INVALID")
     kind, strategy = proposal["case_kind"], proposal["strategy_id"]
-    if kind not in KINDS or strategy not in MODES:
+    if (not isinstance(kind, str) or not isinstance(strategy, str)
+            or kind not in KINDS or strategy not in MODES):
         raise ValueError("ARCHIVE_SCOPE_INVALID")
     as_of = proposal["as_of"]
     if not isinstance(as_of, str):
