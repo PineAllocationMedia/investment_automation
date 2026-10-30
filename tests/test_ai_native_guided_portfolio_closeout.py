@@ -13,7 +13,9 @@ import unittest
 from ai_native.portfolio_snapshot_transfer import (
     seal_private_portfolio_snapshot, verify_private_portfolio_snapshot,
 )
-from scripts.r1_manual_session_cli import main
+from scripts.r1_manual_session_cli import (
+    main, evaluate, _check_guided_current_m3_observation,
+)
 from tests.test_ai_native_portfolio_observation import ObservationTests
 from tests.test_ai_native_session_bridge import SessionBridgeTests
 from tests.test_ai_native_work_blossom_session_bridge import BlossomSessionBridgeTests
@@ -40,6 +42,30 @@ class GuidedPortfolioCloseoutTests(unittest.TestCase):
             "observation_inputs": self.obs.kwargs(
                 analysis_id="CASE-A", analysis_as_of="2026-10-28"),
         }
+
+    def test_shared_m3_preflight_uses_the_original_request_for_both_routes(self):
+        """PR388 regression: request binding used to be missing (NameError).
+
+        Confirm original M3 admission in PI-only and IR+PI pending routes,
+        before receiving any synthetic specialist result. Source/acceptance
+        remain independently unverified.
+        """
+        pi_only = self.case()
+        combined = deepcopy(pi_only)
+        combined["request"]["research_needed"] = True
+        for original in (pi_only, combined):
+            with self.subTest(research=original["request"]["research_needed"]):
+                checked_session = evaluate(original)
+                _check_guided_current_m3_observation(
+                    original, checked_session)
+                bad_request = deepcopy(original)
+                bad_request["request"]["analysis_id"] = "OTHER-CASE"
+                with self.assertRaisesRegex(
+                    ValueError,
+                    "GUIDED_PRIVATE_CLOSEOUT_CURRENT_OBSERVATION_REQUIRED",
+                ):
+                    _check_guided_current_m3_observation(
+                        bad_request, checked_session)
 
     def test_pi_only_complete_manual_handoff_to_single_private_snapshot(self):
         initial = self.case()
