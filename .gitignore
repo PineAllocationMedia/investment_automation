@@ -43,3 +43,12 @@ data/run_log_history.csv
 data/source_health_history.csv
 data/ticker_memory.csv
 data/proxy_calibration_sync_log.json
+
+# Prevent accidental local staging of unencrypted R1 archive material
+.archive_staging/
+archives/r1/.staging/
+archives/r1/protected/*.json
+archives/r1/protected/*.md
+archives/r1/protected/*.txt
+archives/r1/protected/*.key
+archives/r1/protected/*.pem

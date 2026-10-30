@@ -5,7 +5,7 @@
 ## Three memory tiers
 - **Tier I — GitHub governed method/policy memory:** CEO-approved instructions, prompt/method versions, decisions, schema and selected de-identified lessons only. Protected changes and merges retain explicit CEO authority. `DECISIONS.md` remains the **only** Decision Registry.
 - **Tier II — research record and evidence references:** dated significant analyses, eligible source locators, evidence/assumption IDs, versioned conclusions and subsequent qualified outcomes, only where source rights/privacy allow. A source locator or checksum is not immutable original evidence unless the source actually remains recoverable.
-- **Tier III — protected private financial records:** user account snapshots, Blossom/screenshots, holdings, amount/weights, broker and transaction details, tax lots, credentials and sensitive archives. Never embed these in public GitHub, issues, PR bodies, logs or Media work. Separate storage access and retention require authorization.
+- **Tier III — protected private financial records:** sensitive holdings, account, tax, Blossom/screenshots, multiportfolio and third-party data. The CEO selected the existing private PAM repo as R1 destination, but plaintext remains forbidden; only independently verified externally authenticated ciphertext may eventually be committed, with keys/plaintext outside GitHub and consent/access/rights/backup/restore checked. Folder layout is not permission control.
 
 ## Research-history proposal (append-only semantics)
 A draft `RESEARCH_HISTORY_PROPOSAL` contains:
@@ -47,3 +47,7 @@ The result is split deliberately:
 No Tier-II archive, secure private storage mechanism, rights-based persistence, permissioned retrieval, cross-session replay or approved Tier-I GitHub write is implemented yet. An authorized human must choose a private storage provider, validate rights/privacy, inspect the proposed record and separately approve any real write or retention policy. A named historical baseline is never considered accessible simply because its ID appears in a request.
 
 **Component checks:** 16 synthetic tests cover identity/date/parent/status integrity, copy isolation and absence of private material from the content-free GitHub review gate. These do **not** prove a real private storage integration or the system-wide readiness gates.
+
+## CEO 2026-10-30 single-repository archive update
+
+See [the governed manual archive contract](GITHUB_SINGLE_REPO_ARCHIVE_R1.md). Non-sensitive research requires individually reviewed, rights-cleared and de-identified summary plus CEO-reviewed PR/merge. Existing `private_case_envelope` and M3 portfolio snapshot JSON are **plaintext**, and SHA-256 does not protect confidentiality. Sensitive GitHub writes remain BLOCKED pending independent authenticated encryption, external key custody, rights/consent and human-controlled restoration checks and a separate CEO release. A GitHub link/path never proves an agent actually recovered a prior case.

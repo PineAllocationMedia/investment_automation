@@ -239,8 +239,21 @@ explicitly recorded user effort; human transfer is the fallback until tested.
 
 Financial research controls continue to require traceable source facts,
 explicit assumptions, risk-proportionate independent checks and versioned
-methods. Significant research records belong in tiered memory; secret or
-private portfolio data require separately protected storage and permissions.
+methods. Significant research records belong in tiered memory. Per CEO decision
+2026-10-30, the **existing private PAM GitHub repository** is the one R1 archive
+location across generic issuer, investor, account and multiportfolio cases.
+Only case-specific human privacy-/rights-/consent-reviewed research may enter
+GitHub in cleartext. Sensitive case content is permitted ONLY as independently
+verified authenticated ciphertext, with encryption keys/plaintext outside ALL
+GitHub surfaces, including branch history, PRs, issues, Actions and logs.
+GitHub reader access is repository-wide: directory names do NOT restrict access.
+Use opaque nonidentifying filenames and minimal metadata. Before any private
+upload, independently check encryption tool, key custody, rights, collaborator
+and app access, retention, backup and human-controlled restore. Existing M4
+unencrypted private JSON/SHA-256 exports are not encrypted archives. Until a
+separate security/CEO release, confidential uploads are **BLOCKED**. No source
+rights exception, automatic archive/agent invocation, spending, trading,
+production or canonical merge authority follows.
 No automatic rule improvement, data authority or research-output promotion.
 
 `RESEARCH-READY`, `PORTFOLIO-READY` and `ROUTINE-READY` are
