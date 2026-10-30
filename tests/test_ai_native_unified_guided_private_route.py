@@ -117,7 +117,7 @@ class UnifiedGuidedPrivateRouteTests(unittest.TestCase):
         self.assertEqual(first["guided_operator_private"]["specialist_step"],
                          "IR_REQUEST")
         self.assertIsNone(first["private_integrated_closeout"])
-        self.assertNotIn("P_LEDGER_FOR_REVIEW_PRIVATE",
+        self.assertNotIn("private_portfolio_snapshot_envelope",
                          first["guided_operator_private"]["specialist_prompt_private"])
         after_ir = self.same_as_specific(
             self.resume(first, {"IR_CAPSULE": original_ir}),
