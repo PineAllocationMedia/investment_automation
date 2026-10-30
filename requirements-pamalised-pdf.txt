@@ -1,0 +1,3 @@
+# Optional, explicitly selected local PDF output only; no financial-data API.
+# BSD-licensed ReportLab open-source toolkit (not ReportLab PLUS).
+reportlab==4.4.9
