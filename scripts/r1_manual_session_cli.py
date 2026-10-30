@@ -334,6 +334,41 @@ def _eligible_private_case(result: dict[str, Any]) -> tuple[dict[str, Any] | Non
     return record, ""
 
 
+def _private_research_closeout(payload: dict[str, Any],
+                               session: dict[str, Any]) -> dict[str, Any]:
+    """Opt-in final CC report + independently reusable PRIVATE case copy.
+
+    No disk/archive write. Reuse the same checked report, review queue and
+    existing case-sealing contracts; never invent PI-only research memory.
+    """
+    if session.get("status") != "M7A_COMPONENT_ASSEMBLED_NOT_END_TO_END_ACCEPTANCE":
+        raise ValueError("PRIVATE_CLOSEOUT_FINAL_RESEARCH_REQUIRED")
+    if not isinstance(payload.get("memory_inputs"), dict):
+        raise ValueError("PRIVATE_CLOSEOUT_MEMORY_INPUTS_REQUIRED")
+    record, error = _eligible_private_case(session)
+    if record is None:
+        raise ValueError("PRIVATE_CLOSEOUT_CASE_UNAVAILABLE")
+    operator = _private_operator_packet(payload, session)
+    if (operator["continuation_private"] is not None
+            or not isinstance(operator["report_private"], str)
+            or not operator["report_private"].strip()):
+        raise ValueError("PRIVATE_CLOSEOUT_REPORT_UNAVAILABLE")
+    return {
+        "status": "PRIVATE_RESEARCH_CLOSEOUT_COPY_NOT_STORED",
+        "operator_packet_private": operator,
+        "private_case_envelope": seal_private_case(record),
+        "next_manual_step": "HUMAN_REVIEW_THEN_SAVE_ONLY_IN_APPROVED_PRIVATE_ARCHIVE",
+        "archive_integrity": "UNKEYED_SHA256_COPY_CHECK_ONLY_NOT_AUTHENTICITY",
+        "archive_protection": "NOT_ESTABLISHED",
+        "method_load_verification": "NOT_PERFORMED",
+        "source_authentication": "NOT_PERFORMED",
+        "project_invocation": "NONE",
+        "storage": "NONE",
+        "readiness": "NOT_EVALUATED",
+        "trading_authority": "NONE",
+    }
+
+
 def _resume_manual_transfer(envelope: Any) -> tuple[dict[str, Any], dict[str, Any]]:
     """Rejoin independently supplied specialist JSON with the saved CC step.
 
@@ -493,6 +528,11 @@ def run(*, output: str, instream: TextIO, outstream: TextIO,
             result = None
         elif output == "resume-operator":
             resume_payload, result = _resume_manual_transfer(payload)
+        elif (output == "private-closeout" and isinstance(payload, dict)
+              and "continuation_private" in payload):
+            # The same independently checked PI/IR resume path; never use
+            # PI's forwarded copy as a substitute for original IR.
+            resume_payload, result = _resume_manual_transfer(payload)
         elif output == "sealed-followup-operator":
             restored_payload, result = _reenter_sealed_followup(payload)
         elif (output == "guided-operator" and isinstance(payload, dict)
@@ -530,6 +570,23 @@ def run(*, output: str, instream: TextIO, outstream: TextIO,
     elif output == "status":
         outstream.write(json.dumps(_redacted_status(result),
                                    ensure_ascii=False, sort_keys=True) + "\n")
+    elif output == "private-closeout":
+        # PRIVATE, opt-in and final-only. A research record is withheld until
+        # the CEO supplies explicit memory metadata and IR actually returns.
+        # The bundle is NOT saved, encrypted, authenticated or published.
+        try:
+            closeout_payload = (resume_payload if
+                                "continuation_private" in payload else payload)
+            closeout = _private_research_closeout(closeout_payload, result)
+            encoded = json.dumps(closeout, ensure_ascii=False, sort_keys=True,
+                                 indent=2, allow_nan=False)
+            if len(encoded) > MAX_INPUT_CHARACTERS:
+                raise ValueError("PRIVATE_CLOSEOUT_OUTPUT_TOO_LARGE")
+            outstream.write(encoded + "\n")
+        except (ValueError, TypeError, KeyError, RecursionError):
+            errstream.write("R1_PROCESSING_ERROR: private research closeout unavailable; "
+                            "complete original IR and explicit memory_inputs required.\n")
+            return 3
     elif output in {"operator-packet", "resume-operator", "sealed-followup-operator"}:
         # PRIVATE opt-in. Resume reuses exactly the original validated operator
         # packet contract after a separate, manually received specialist result.
@@ -702,9 +759,9 @@ def main(argv: list[str] | None = None, *, instream: TextIO | None = None,
          outstream: TextIO | None = None,
          errstream: TextIO | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--output", choices=("request-template", "intake-review", "status", "report", "handoffs", "next-handoff", "continuation", "operator-packet", "resume-operator", "guided-operator", "method-handoff", "specialist-prompt", "followup-draft", "sealed-followup-draft", "sealed-followup-operator", "private-case", "private-case-envelope", "review-queue"),
+    parser.add_argument("--output", choices=("request-template", "intake-review", "status", "report", "handoffs", "next-handoff", "continuation", "operator-packet", "resume-operator", "guided-operator", "method-handoff", "specialist-prompt", "followup-draft", "sealed-followup-draft", "sealed-followup-operator", "private-case", "private-case-envelope", "private-closeout", "review-queue"),
                         default="status",
-                        help="request-template is an inert blank case and reads no stdin; intake-review reads a private request-only draft and returns field names/status without values; status is redacted; report, handoffs, next-handoff, continuation, operator-packet, resume-operator, guided-operator, method-handoff, specialist-prompt, followup-draft, sealed-followup-draft, sealed-followup-operator, private-case, private-case-envelope and review-queue require a private terminal")
+                        help="request-template is an inert blank case and reads no stdin; intake-review reads a private request-only draft and returns field names/status without values; status is redacted; report, handoffs, next-handoff, continuation, operator-packet, resume-operator, guided-operator, method-handoff, specialist-prompt, followup-draft, sealed-followup-draft, sealed-followup-operator, private-case, private-case-envelope, private-closeout and review-queue require a private terminal")
     opts = parser.parse_args(argv)
     return run(output=opts.output, instream=instream or sys.stdin,
                outstream=outstream or sys.stdout, errstream=errstream or sys.stderr)

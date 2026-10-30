@@ -10,6 +10,7 @@ import json
 import unittest
 
 from scripts.r1_manual_session_cli import main
+from ai_native.private_case_integrity import verify_private_case_envelope
 from tests.test_ai_native_session_bridge import SessionBridgeTests
 
 
@@ -25,6 +26,115 @@ class ManualCLIContractTests(unittest.TestCase):
         return code, stdout.getvalue(), stderr.getvalue()
 
 
+
+    def test_private_closeout_integrates_report_review_and_manual_archive_copy(self):
+        payload = {
+            "request": self.fx.request(
+                subject_id="SYN-ISSUER",
+                account_context={"token": "PRIVATE_CLOSEOUT_SENTINEL"}),
+            "ir_capsule": self.fx.ir(),
+            "memory_inputs": {"report_id": "R-SYN-CLOSEOUT",
+                              "instruction_version": "R1-SYN",
+                              "recorded_at": "2026-10-28"},
+        }
+        payload["ir_capsule"]["facts"][0]["claim"] = "PRIVATE_CLOSEOUT_SENTINEL"
+        original = deepcopy(payload)
+        code, body, err = self.invoke(payload, "private-closeout")
+        self.assertEqual((code, err), (0, ""))
+        packet = json.loads(body)
+        self.assertEqual(packet["status"], "PRIVATE_RESEARCH_CLOSEOUT_COPY_NOT_STORED")
+        self.assertEqual(packet["operator_packet_private"]["session"]["status"],
+                         "M7A_COMPONENT_ASSEMBLED_NOT_END_TO_END_ACCEPTANCE")
+        self.assertIsNone(packet["operator_packet_private"]["continuation_private"])
+        self.assertEqual(packet["operator_packet_private"]["report_private"].rstrip("\n"),
+                         self.invoke(payload, "report")[1].rstrip("\n"))
+        self.assertEqual(packet["private_case_envelope"],
+                         json.loads(self.invoke(payload, "private-case-envelope")[1]))
+        recovered = verify_private_case_envelope(packet["private_case_envelope"])
+        self.assertEqual(recovered["original_request"]["analysis_id"], "CASE-A")
+        self.assertEqual(recovered["original_request"]["subject_id"], "SYN-ISSUER")
+        # The existing M7a memory contract intentionally saves its compact
+        # research request, not unneeded account metadata from the CC mandate.
+        self.assertNotIn("account_context", recovered["original_request"])
+        self.assertEqual(recovered["original_ir_capsule"], payload["ir_capsule"])
+        self.assertIn("PRIVATE_CLOSEOUT_SENTINEL", body)  # Explicit PRIVATE output only
+        self.assertNotIn("PRIVATE_CLOSEOUT_SENTINEL", self.invoke(payload, "status")[1])
+        self.assertNotIn("PRIVATE_CLOSEOUT_SENTINEL",
+                         json.dumps(packet["operator_packet_private"]["review_queue"]))
+        self.assertEqual(packet["storage"], "NONE")
+        self.assertEqual(packet["archive_protection"], "NOT_ESTABLISHED")
+        self.assertEqual(packet["trading_authority"], "NONE")
+        self.assertEqual(payload, original)
+
+    def test_private_closeout_after_real_ir_pi_manual_resume_keeps_original_ir(self):
+        first_payload = {
+            "request": self.fx.request(portfolio_needed=True,
+                                       subject_id="SYN-ISSUER"),
+            "memory_inputs": {"report_id": "SYN-R1-REPORT",
+                              "instruction_version": "R1-SYN",
+                              "recorded_at": "2026-10-28"},
+        }
+        one = self.invoke(first_payload, "operator-packet")
+        self.assertEqual((one[0], one[2]), (0, ""))
+        original_ir = self.fx.ir()
+        second_input = {
+            "continuation_private": json.loads(one[1])["continuation_private"],
+            "specialist_result": {"IR_CAPSULE": original_ir},
+        }
+        two = self.invoke(second_input, "resume-operator")
+        self.assertEqual((two[0], two[2]), (0, ""))
+        self.assertEqual(json.loads(two[1])["session"]["status"],
+                         "AWAITING_MANUAL_PI_DELTA")
+        final_input = {
+            "continuation_private": json.loads(two[1])["continuation_private"],
+            "specialist_result": {
+                "PI_DELTA": self.fx.pi(),
+                "FORWARD_UNCHANGED": deepcopy(original_ir),
+            },
+        }
+        old = deepcopy(final_input)
+        code, body, err = self.invoke(final_input, "private-closeout")
+        self.assertEqual((code, err), (0, ""))
+        packet = json.loads(body)
+        self.assertIsNone(packet["operator_packet_private"]["continuation_private"])
+        self.assertIn("Investment decision research",
+                      packet["operator_packet_private"]["report_private"])
+        recovered = verify_private_case_envelope(packet["private_case_envelope"])
+        self.assertEqual(recovered["original_ir_capsule"], original_ir)
+        self.assertEqual(recovered["original_request"]["subject_id"], "SYN-ISSUER")
+        self.assertEqual(recovered["original_request"]["analysis_id"], "CASE-A")
+        self.assertEqual(packet["archive_integrity"],
+                         "UNKEYED_SHA256_COPY_CHECK_ONLY_NOT_AUTHENTICITY")
+        self.assertEqual(packet["project_invocation"], "NONE")
+        self.assertEqual(final_input, old)
+
+        bad = deepcopy(final_input)
+        bad["specialist_result"]["FORWARD_UNCHANGED"]["facts"][0]["claim"] = "SECRET_TAMPER"
+        code, body, err = self.invoke(bad, "private-closeout")
+        self.assertEqual((code, body), (2, ""))
+        self.assertIn("SPECIALIST_FORWARDED_IR_MISMATCH", err)
+        self.assertNotIn("SECRET_TAMPER", err)
+
+    def test_private_closeout_refuses_missing_memory_pending_or_pi_only(self):
+        final_without_memory = {"request": self.fx.request(),
+                                "ir_capsule": self.fx.ir()}
+        pending = {"request": self.fx.request(),
+                   "memory_inputs": {"report_id": "SYN-1",
+                                     "instruction_version": "R1",
+                                     "recorded_at": "2026-10-28"}}
+        pi_only = {"request": self.fx.request(research_needed=False,
+                                              portfolio_needed=True),
+                   "pi_delta": self.fx.pi(),
+                   "memory_inputs": {"report_id": "SYN-1",
+                                     "instruction_version": "R1",
+                                     "recorded_at": "2026-10-28"}}
+        for packet in (final_without_memory, pending, pi_only):
+            with self.subTest(keys=list(packet)):
+                code, body, err = self.invoke(packet, "private-closeout")
+                self.assertEqual((code, body), (3, ""))
+                self.assertIn("private research closeout unavailable", err)
+                self.assertNotIn("SYN-1", err)
+        self.assertEqual(self.invoke(final_without_memory, "report")[0], 0)
 
     def _sealed_prior_for_followup(self):
         # Old private account scope must never be inferred in a new mandate.
