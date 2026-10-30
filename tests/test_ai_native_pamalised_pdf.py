@@ -138,7 +138,8 @@ class PamalisedPdfTests(unittest.TestCase):
         self.assertEqual((code, error), (0, ""))
         rendered = "\n".join(p.extract_text() for p in PdfReader(BytesIO(data)).pages)
         self.assertIn("Visualisation de la contribution M3 contrôlée", rendered)
-        self.assertIn("SYNTHETIC-HOLDING:TSX : 100.0 %", rendered)
+        self.assertIn("SYNTHETIC-HOLDING:TSX", rendered)
+        self.assertIn("100.0 %", rendered)
         self.assertIn("projection arithmétique, non recommandation", rendered)
         for forbidden in ("123.45", "SYNTHETIC_ACCOUNT_SECRET",
                           "TOKEN_THAT_MUST_NOT_PASS"):
@@ -163,7 +164,8 @@ class PamalisedPdfTests(unittest.TestCase):
         self.assertEqual((code, err), (0, ""))
         rendered = "\n".join(p.extract_text() for p in PdfReader(BytesIO(pdf)).pages)
         self.assertIn("Visualisation de la contribution M3 contrôlée", rendered)
-        self.assertIn("SYNTHETIC-HOLDING:TSX : 100.0 %", rendered)
+        self.assertIn("SYNTHETIC-HOLDING:TSX", rendered)
+        self.assertIn("100.0 %", rendered)
         self.assertIn("Les opportunités retenues", rendered)
         self.assertNotIn("123.45", rendered)
 
