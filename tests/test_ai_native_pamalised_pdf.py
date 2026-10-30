@@ -488,11 +488,18 @@ class PamalisedPdfTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             render_pamalised_pdf(
                 **args, candidate_comparison_private=fabricated)
+        changed_detail = args["detailed_report"].replace(
+            "## Cross-candidate scenario arithmetic — private, not ranked",
+            "## Cross-candidate scenario arithmetic — REMOVED")
+        self.assertNotEqual(changed_detail, args["detailed_report"])
+        changed_executive = args["executive_report"].replace(
+            args["detailed_report"], changed_detail)
+        self.assertNotEqual(changed_executive, args["executive_report"])
         with self.assertRaisesRegex(
                 ValueError, "PAMALISED_CANDIDATE_SOURCE_DETAIL_PARITY_INVALID"):
             render_pamalised_pdf(
-                **{**args, "detailed_report": (
-                    "SYNTHETIC_MISSING_CANDIDATE_DETAIL")},
+                **{**args, "executive_report": changed_executive,
+                   "detailed_report": changed_detail},
                 candidate_comparison_private=actual)
 
     def test_presentation_rejects_wrong_case_and_unrecognized_fact_link(self):
