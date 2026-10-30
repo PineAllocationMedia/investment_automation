@@ -674,9 +674,14 @@ def run(*, output: str, instream: TextIO, outstream: TextIO,
                 raise ValueError("PRIVATE_CLOSEOUT_OUTPUT_TOO_LARGE")
             outstream.write(encoded + "\n")
         except (ValueError, TypeError, KeyError, RecursionError):
-            errstream.write("R1_PROCESSING_ERROR: private closeout unavailable; "
-                            "complete research, dated PI observation and "
-                            "explicit memory_inputs are required as applicable.\n")
+            if output == "private-closeout":
+                # Backward-compatible privacy-safe error for existing clients.
+                errstream.write("R1_PROCESSING_ERROR: private research closeout unavailable; "
+                                "complete original IR and explicit memory_inputs required.\n")
+            else:
+                errstream.write("R1_PROCESSING_ERROR: private integrated closeout unavailable; "
+                                "complete IR, dated PI observation and explicit "
+                                "memory_inputs required.\n")
             return 3
     elif output in {"operator-packet", "resume-operator", "sealed-followup-operator"}:
         # PRIVATE opt-in. Resume reuses exactly the original validated operator
