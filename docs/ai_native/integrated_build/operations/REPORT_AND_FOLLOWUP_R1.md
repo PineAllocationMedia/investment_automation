@@ -2,6 +2,13 @@
 **Owner:** Financial Systems Command Center; Product & UX review pending.  
 **Status:** `CANDIDATE_TEMPLATE / USER_INITIATED_ONLY`. No report or analysis is generated automatically.
 
+## Nouveau contrat de sortie : PAMalisé, directive CEO du 2026-10-30
+
+La [norme de rapport final PAMalisé](PAMALISED_REPORT_MASTER_R1.md) devient le **produit de sortie cible** des analyses financières complètes. Elle précise les six sections adaptatives, l'apparence dérivée du prototype PDF CEO et les critères vérifiables d'export. La **longueur du rapport entier n'est pas fixe**; seul le premier niveau de lecture conserve l'objectif indicatif <=10 minutes. Les pages internes « Bibliothèque de modules visuels » et « Règles de production » ne sont pas ajoutées au livrable investisseur. Ce contrat plus récent **supersède la préférence de présentation chat-native** du paragraphe historique R1.1 ci-dessous pour les futurs rapports; les règles financières, les droits et les preuves du M4 sont inchangés.
+
+La nouvelle candidate [CC R1.2 PAMalisé](../project_settings/CC_R1_PAMALISED_REPORT_FIRST_20261030.txt) transporte cette sortie attendue. **Ni le PDF prototype, ni une instruction GitHub fusionnée ne créent un PDF ni ne prouvent l'installation réelle des paramètres CC.** Sur une session dont l'export est indisponible, fournir un rapport autonome prêt à exporter et déclarer `REPORT_EXPORT_NOT_VERIFIED`. Après approbation CEO de la PR et adoption manuelle des instructions, vérifier un vrai rapport rendu et ses preuves, plutôt que de réexécuter une campagne complète de pilotes.
+
+
 ## Decision report — conclusions first, evidence after
 Use [Operating Contract](../OPERATING_CONTRACT.md) and the actual, accessible R1 handoffs. Target at most ten minutes of reading where possible, without making report length an artificial minimum.
 
