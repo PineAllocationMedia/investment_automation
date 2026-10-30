@@ -6,7 +6,6 @@ The unchanged detailed report remains available below the executive view.
 """
 from __future__ import annotations
 
-import re
 from typing import Any, Mapping
 
 _ROOM = frozenset({"NOT_EVALUATED", "ROOM_UNAVAILABLE", "ROOM_CONDITIONAL",
@@ -51,6 +50,11 @@ def render_executive_report(
     if not isinstance(summary, list) or not 1 <= len(summary) <= 6:
         raise ValueError("EXECUTIVE_REPORT_SUMMARY_INVALID")
     observations = [_line(item, "FINDING") for item in summary[:3]]
+    has_research_facts = bool(packet.get("facts"))
+    quality = ("IR : appréciation rapportée, à confronter aux sources originales"
+               if has_research_facts else "NON ÉVALUÉ — aucun fait IR transmis")
+    durability = ("IR : thèse et contre-thèse rapportées, non certifiées"
+                  if has_research_facts else "NON ÉVALUÉ — aucun fait IR transmis")
 
     room = {
         "NOT_EVALUATED": "NON ÉVALUÉ — aucune analyse PI dans ce dossier",
@@ -86,8 +90,8 @@ def render_executive_report(
         "## Les cinq piliers — limites de conclusion",
         "| Pilier | Ce qui est réellement établi ici |",
         "|---|---|",
-        "| QUALITY | Interprétation IR/PI rapportée, à examiner dans les preuves originales |",
-        "| DURABILITY | Thèse et risques rapportés, non certifiés par le formateur |",
+        f"| QUALITY | {quality} |",
+        f"| DURABILITY | {durability} |",
         "| EXPECTED RETURN | Rendement total normalisé et supériorité au benchmark NON CERTIFIÉS |",
         "| CONFIDENCE | Dépend des preuves vérifiées et des hypothèses; pas de note inventée |",
         f"| PORTFOLIO ROOM | {room} |",

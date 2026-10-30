@@ -47,7 +47,7 @@ class ExecutiveReportTests(unittest.TestCase):
     def test_ir_only_has_no_portfolio_room_claim(self):
         session = complete_manual_session(self.fx.request(), ir_capsule=self.fx.ir())
         self.assertIn("NON ÉVALUÉ", session["executive_report_private"])
-        self.assertIn("Aucun", session["executive_report_private"].replace("aucun", "Aucun"))
+        self.assertIn("ARCHIVE_NOT_SAVED", session["executive_report_private"])
         self.assertEqual(session["integrated_private"]["markdown"],
                          session["final_report_private"])
 
@@ -56,6 +56,7 @@ class ExecutiveReportTests(unittest.TestCase):
         session = complete_manual_session(request, pi_delta=self.fx.pi())
         self.assertIn("INDISPONIBLE", session["executive_report_private"])
         self.assertIn("Portfolio-only interpretation", session["executive_report_private"])
+        self.assertIn("NON ÉVALUÉ — aucun fait IR", session["executive_report_private"])
         code, body, err = self.cli({"request": request, "pi_delta": self.fx.pi()})
         self.assertEqual((code, err), (0, ""))
         self.assertIn(session["final_report_private"].rstrip("\n"), body)
