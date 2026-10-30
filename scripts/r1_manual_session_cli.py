@@ -27,6 +27,7 @@ from ai_native.portfolio_snapshot_transfer import (
     seal_private_portfolio_snapshot, verify_private_portfolio_snapshot,
 )
 from ai_native.portfolio_observation import prepare_observation_ledger
+from ai_native.work_blossom_adapter import prepare_work_blossom_observation
 
 MAX_INPUT_CHARACTERS = 5_000_000
 OPTIONAL_FIELDS = frozenset({
@@ -86,6 +87,10 @@ SAFE_ERROR_CODES = frozenset({
     "GUIDED_PRIVATE_CLOSEOUT_MEMORY_REQUIRED",
     "GUIDED_PRIVATE_CLOSEOUT_MEMORY_METADATA_INVALID",
     "GUIDED_PRIVATE_CLOSEOUT_CURRENT_OBSERVATION_REQUIRED",
+    "SCREENSHOT_REENTRY_INPUT_INVALID",
+    "SCREENSHOT_REENTRY_NOT_PENDING",
+    "SCREENSHOT_REENTRY_SOURCE_INVALID",
+    "SCREENSHOT_REENTRY_CASE_MISMATCH",
 })
 
 
@@ -602,6 +607,102 @@ def _preflight_guided_private_closeout(
         raise ValueError("GUIDED_PRIVATE_CLOSEOUT_CURRENT_OBSERVATION_REQUIRED") from exc
 
 
+def _screenshot_retry_template(
+    payload: dict[str, Any], session: dict[str, Any],
+) -> dict[str, Any] | None:
+    """Provide the exact private retry context after Work is unavailable.
+
+    The retry is inert until the CEO supplies a NEW dated screenshot source.
+    No unavailable browser fields other than the four checked routing markers
+    are copied. This is CC-only state, never an IR/PI transfer.
+    """
+    if session.get("status") != "AWAITING_MANUAL_PORTFOLIO_SCREENSHOT":
+        return None
+    prior = payload.get("work_blossom_inputs")
+    if prior is None:
+        wrapper = payload.get("work_portfolio_result")
+        prior = (wrapper.get("work_blossom_inputs")
+                 if isinstance(wrapper, dict) else None)
+    request = payload.get("request")
+    if (not isinstance(prior, dict)
+            or not isinstance(request, dict)
+            or prior.get("capture_mode") != "WORK_BROWSER"
+            or prior.get("view_status") != "UNAVAILABLE"
+            or prior.get("analysis_id") != request.get("analysis_id")
+            or prior.get("analysis_as_of") != request.get("as_of")):
+        raise ValueError("SCREENSHOT_REENTRY_INPUT_INVALID")
+    pending = deepcopy(payload)
+    pending.pop("work_portfolio_result", None)
+    pending.pop("work_blossom_inputs", None)
+    pending["work_blossom_inputs"] = {
+        key: prior[key] for key in (
+            "capture_mode", "view_status", "analysis_id", "analysis_as_of")
+    }
+    if evaluate(pending)["status"] != session["status"]:
+        raise ValueError("SCREENSHOT_REENTRY_NOT_PENDING")
+    return {"pending_session": pending, "screenshot_work_inputs": None}
+
+
+def _reenter_manual_screenshot(
+    envelope: Any,
+) -> tuple[dict[str, Any], dict[str, Any]]:
+    """Resume a previously stalled CC PI session with a NEW manual screenshot.
+
+    Require the exact sanitized unavailable-Work marker from a prior local
+    continuation, and replay it before replacing it. A new screenshot is
+    caller-supplied and never a claim of signed-in Work/browser access.
+    No original IR, previous holdings, financial policy or CEO authorization
+    is overwritten by the replacement.
+    """
+    if (not isinstance(envelope, dict)
+            or set(envelope) != {"pending_session", "screenshot_work_inputs"}
+            or not isinstance(envelope["pending_session"], dict)
+            or not isinstance(envelope["screenshot_work_inputs"], dict)):
+        raise ValueError("SCREENSHOT_REENTRY_INPUT_INVALID")
+    pending = deepcopy(envelope["pending_session"])
+    source = pending.get("work_blossom_inputs")
+    request = pending.get("request")
+    if (not isinstance(source, dict)
+            or not isinstance(request, dict)
+            or set(source) != {
+                "capture_mode", "view_status", "analysis_id", "analysis_as_of"
+            }
+            or source["capture_mode"] != "WORK_BROWSER"
+            or source["view_status"] != "UNAVAILABLE"
+            or source["analysis_id"] != request.get("analysis_id")
+            or source["analysis_as_of"] != request.get("as_of")
+            or "work_portfolio_result" in pending
+            or "observation_inputs" in pending):
+        raise ValueError("SCREENSHOT_REENTRY_INPUT_INVALID")
+    # Only a previously checked, actually stalled PI path is eligible. IR
+    # must have returned independently on the research+portfolio route.
+    before = evaluate(pending)
+    if before["status"] != "AWAITING_MANUAL_PORTFOLIO_SCREENSHOT":
+        raise ValueError("SCREENSHOT_REENTRY_NOT_PENDING")
+    screenshot = envelope["screenshot_work_inputs"]
+    if (screenshot.get("capture_mode") != "USER_SCREENSHOT"
+            or screenshot.get("view_status") != "VISIBLE"
+            or "raw_html" in screenshot
+            or "browser_hostname" in screenshot
+            or "work_reported_signed_in" in screenshot):
+        raise ValueError("SCREENSHOT_REENTRY_SOURCE_INVALID")
+    if (screenshot.get("analysis_id") != request["analysis_id"]
+            or screenshot.get("analysis_as_of") != request["as_of"]):
+        raise ValueError("SCREENSHOT_REENTRY_CASE_MISMATCH")
+    captured = prepare_work_blossom_observation(screenshot)
+    if captured.get("status") != "PRIVATE_OBSERVATION_PACKET_PREPARED_NOT_SENT":
+        raise ValueError("SCREENSHOT_REENTRY_SOURCE_INVALID")
+    # Never carry screenshot pixels, browser tokens, URLs or the unavailable
+    # Work marker into the new PI request, resume input or private report.
+    del pending["work_blossom_inputs"]
+    pending["observation_inputs"] = deepcopy(
+        captured["observation_inputs_private"])
+    after = evaluate(pending)
+    if after["status"] != "AWAITING_MANUAL_PI_DELTA":
+        raise ValueError("SCREENSHOT_REENTRY_NOT_PENDING")
+    return pending, after
+
+
 def _resume_manual_transfer(envelope: Any) -> tuple[dict[str, Any], dict[str, Any]]:
     """Rejoin independently supplied specialist JSON with the saved CC step.
 
@@ -779,6 +880,13 @@ def run(*, output: str, instream: TextIO, outstream: TextIO,
         elif output == "sealed-followup-operator":
             restored_payload, result = _reenter_sealed_followup(payload)
         elif (output in {"guided-operator", "guided-integrated-closeout"} and isinstance(payload, dict)
+              and "pending_session" in payload):
+            # One explicit human-entered visual fallback. The validated
+            # source is an already transcribed dated screenshot, not a
+            # reopened Work browser or an inferred account state.
+            guided_resuming = True
+            resume_payload, result = _reenter_manual_screenshot(payload)
+        elif (output in {"guided-operator", "guided-integrated-closeout"} and isinstance(payload, dict)
               and "prior_integrated_closeout" in payload):
             # Start a NEW CEO-initiated IR+PI follow-up directly from the
             # opt-in historical two-envelope re-entry. The existing guided
@@ -907,8 +1015,10 @@ def run(*, output: str, instream: TextIO, outstream: TextIO,
                 bundle = prepare_verified_method_handoff(continuation)
                 prompt = render_manual_specialist_prompt(bundle)
                 specialist = next(iter(continuation["next_handoff"]))
+            screenshot_retry = _screenshot_retry_template(actual_payload, result)
             guided = {
                 "status": "PRIVATE_GUIDED_OPERATOR_PACKET_NOT_SENT",
+                "screenshot_reentry_input_private": screenshot_retry,
                 "operator_packet_private": operator,
                 "specialist_prompt_private": prompt,
                 "specialist_step": specialist,
