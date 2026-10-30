@@ -23,6 +23,10 @@ from ai_native.method_handoff_bundle import (
     prepare_verified_method_handoff, render_manual_specialist_prompt,
 )
 from ai_native.private_case_integrity import seal_private_case, verify_private_case_envelope
+from ai_native.portfolio_snapshot_transfer import (
+    seal_private_portfolio_snapshot, verify_private_portfolio_snapshot,
+)
+from ai_native.portfolio_observation import prepare_observation_ledger
 
 MAX_INPUT_CHARACTERS = 5_000_000
 OPTIONAL_FIELDS = frozenset({
@@ -35,6 +39,7 @@ OPTIONAL_FIELDS = frozenset({
     "fundamental_inputs", "historical_comparison_inputs", "opportunity_triage_inputs",
     "macro_sector_inputs", "work_portfolio_result", "specialist_result",
     "lifecycle_inputs", "lifecycle_current_evidence_inputs",
+    "prior_private_portfolio_envelope",
 })
 PERMITTED_FIELDS = OPTIONAL_FIELDS | {"request"}
 NEXT_ACTIONS = {
@@ -66,6 +71,12 @@ SAFE_ERROR_CODES = frozenset({
     "SEALED_FOLLOWUP_PRIOR_ID_OR_SUBJECT_MISMATCH",
     "SEALED_FOLLOWUP_DATE_INVALID",
     "SEALED_FOLLOWUP_FACT_LINKS_INVALID",
+    "PRIVATE_PORTFOLIO_ENVELOPE_INVALID",
+    "PRIVATE_PORTFOLIO_SHA256_MISMATCH",
+    "PRIVATE_PORTFOLIO_SNAPSHOT_INVALID",
+    "PRIVATE_PORTFOLIO_FOLLOWUP_REQUIRED",
+    "PRIVATE_PORTFOLIO_BASELINE_ID_MISMATCH",
+    "PRIVATE_PORTFOLIO_SOURCE_AMBIGUOUS",
 })
 
 
@@ -139,7 +150,22 @@ def evaluate(payload: Any) -> dict[str, Any]:
     # downstream public/private, mandate, date and provenance guards remain
     # authoritative. No browser access, source inference or project invocation.
     fields = {k: v for k, v in payload.items()
-              if k not in {"request", "work_portfolio_result", "specialist_result"}}
+              if k not in {"request", "work_portfolio_result", "specialist_result",
+                           "prior_private_portfolio_envelope"}}
+    if "prior_private_portfolio_envelope" in payload:
+        request = payload.get("request")
+        if (not isinstance(request, dict)
+                or request.get("ceo_initiated") is not True
+                or request.get("kind") != "FOLLOWUP"
+                or request.get("portfolio_needed") is not True):
+            raise ValueError("PRIVATE_PORTFOLIO_FOLLOWUP_REQUIRED")
+        if "prior_portfolio_observation_inputs" in fields:
+            raise ValueError("PRIVATE_PORTFOLIO_SOURCE_AMBIGUOUS")
+        prior = verify_private_portfolio_snapshot(
+            payload["prior_private_portfolio_envelope"])
+        if prior["analysis_id"] != request.get("prior_analysis_id"):
+            raise ValueError("PRIVATE_PORTFOLIO_BASELINE_ID_MISMATCH")
+        fields["prior_portfolio_observation_inputs"] = prior
     if "work_portfolio_result" in payload:
         wrapped = payload["work_portfolio_result"]
         branches = {
@@ -570,6 +596,36 @@ def run(*, output: str, instream: TextIO, outstream: TextIO,
     elif output == "status":
         outstream.write(json.dumps(_redacted_status(result),
                                    ensure_ascii=False, sort_keys=True) + "\n")
+    elif output == "private-portfolio-snapshot":
+        # Complete PI-only or IR+PI source. Work results are sanitized by the
+        # existing adapter before copying; never retain raw browser metadata.
+        try:
+            if (result.get("status") not in {
+                    "PI_ONLY_CONDITIONAL_REPORT_ASSEMBLED",
+                    "M7A_COMPONENT_ASSEMBLED_NOT_END_TO_END_ACCEPTANCE"}
+                    or not isinstance(result.get("pi_delta_private"), dict)):
+                raise ValueError("PRIVATE_PORTFOLIO_SNAPSHOT_INVALID")
+            original = payload.get("observation_inputs")
+            capture = result.get("work_blossom_capture_private")
+            if capture is not None:
+                if (original is not None or capture.get("status") !=
+                        "PRIVATE_OBSERVATION_PACKET_PREPARED_NOT_SENT"):
+                    raise ValueError("PRIVATE_PORTFOLIO_SNAPSHOT_INVALID")
+                original = capture.get("observation_inputs_private")
+            if (not isinstance(original, dict)
+                    or prepare_observation_ledger(**original) !=
+                        result.get("portfolio_observation_private")):
+                raise ValueError("PRIVATE_PORTFOLIO_SNAPSHOT_INVALID")
+            envelope = seal_private_portfolio_snapshot(original)
+            encoded = json.dumps(envelope, ensure_ascii=False, sort_keys=True,
+                                 indent=2, allow_nan=False)
+            if len(encoded) > MAX_INPUT_CHARACTERS:
+                raise ValueError("PRIVATE_PORTFOLIO_OUTPUT_TOO_LARGE")
+            outstream.write(encoded + "\n")
+        except (ValueError, TypeError, KeyError, RecursionError):
+            errstream.write("R1_PROCESSING_ERROR: private portfolio snapshot unavailable; "
+                            "complete current PI and original private observation required.\n")
+            return 3
     elif output == "private-closeout":
         # PRIVATE, opt-in and final-only. A research record is withheld until
         # the CEO supplies explicit memory metadata and IR actually returns.
@@ -759,9 +815,9 @@ def main(argv: list[str] | None = None, *, instream: TextIO | None = None,
          outstream: TextIO | None = None,
          errstream: TextIO | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--output", choices=("request-template", "intake-review", "status", "report", "handoffs", "next-handoff", "continuation", "operator-packet", "resume-operator", "guided-operator", "method-handoff", "specialist-prompt", "followup-draft", "sealed-followup-draft", "sealed-followup-operator", "private-case", "private-case-envelope", "private-closeout", "review-queue"),
+    parser.add_argument("--output", choices=("request-template", "intake-review", "status", "report", "handoffs", "next-handoff", "continuation", "operator-packet", "resume-operator", "guided-operator", "method-handoff", "specialist-prompt", "followup-draft", "sealed-followup-draft", "sealed-followup-operator", "private-case", "private-case-envelope", "private-closeout", "private-portfolio-snapshot", "review-queue"),
                         default="status",
-                        help="request-template is an inert blank case and reads no stdin; intake-review reads a private request-only draft and returns field names/status without values; status is redacted; report, handoffs, next-handoff, continuation, operator-packet, resume-operator, guided-operator, method-handoff, specialist-prompt, followup-draft, sealed-followup-draft, sealed-followup-operator, private-case, private-case-envelope, private-closeout and review-queue require a private terminal")
+                        help="request-template is an inert blank case and reads no stdin; intake-review reads a private request-only draft and returns field names/status without values; status is redacted; report, handoffs, next-handoff, continuation, operator-packet, resume-operator, guided-operator, method-handoff, specialist-prompt, followup-draft, sealed-followup-draft, sealed-followup-operator, private-case, private-case-envelope, private-closeout, private-portfolio-snapshot and review-queue require a private terminal")
     opts = parser.parse_args(argv)
     return run(output=opts.output, instream=instream or sys.stdin,
                outstream=outstream or sys.stdout, errstream=errstream or sys.stderr)
