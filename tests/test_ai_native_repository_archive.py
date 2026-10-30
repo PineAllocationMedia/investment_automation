@@ -81,6 +81,10 @@ class RepositoryArchiveTests(unittest.TestCase):
                 manifest, report, retrieved_path="../outside", retrieved_blob_sha=blob)
         with self.assertRaisesRegex(ValueError, "AUTHORITY_INVALID"):
             verify_retrieved_research_report(
+                {**manifest, "record_class": ["SYNTHETIC_EXAMPLE"]},
+                report, retrieved_path=manifest["report_path"], retrieved_blob_sha=blob)
+        with self.assertRaisesRegex(ValueError, "AUTHORITY_INVALID"):
+            verify_retrieved_research_report(
                 {**manifest, "review_claim": "HUMAN_REVIEW_REPORTED_NOT_VERIFIED"},
                 report, retrieved_path=manifest["report_path"], retrieved_blob_sha=blob)
 
