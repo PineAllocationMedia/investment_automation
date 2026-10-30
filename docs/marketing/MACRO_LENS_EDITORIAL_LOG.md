@@ -1,7 +1,7 @@
 # PAM | Blossom — editorial evidence & experiment log v1.1
 
 **Channel:** Blossom `@therealpam`.
-**Status:** 29 distinct accessible originals recorded through 2026-10-29: latest scan found 0 new and refreshed all 29 with appended snapshots. All exposed permalinks inspected; historical completeness unproven and some discussion bodies PARTIAL. Earlier observations preserved. No private analytics or post-attributed follows established.
+**Status:** 31 distinct accessible originals recorded through 2026-10-30: latest scan found 2 new and refreshed 29 with appended snapshots. All exposed permalinks inspected; historical completeness unproven and some discussion bodies PARTIAL. Earlier observations preserved. No private analytics or post-attributed follows established.
 **Instructions:** [Playbook](MACRO_LENS_PLAYBOOK.md) · [Templates](MACRO_LENS_TEMPLATES.md).
 
 This existing register now tracks all verified @therealpam original posts: Macro Lens and ordinary content alike. Do not invent approval history for past ordinary posts. Replies to others are distinct from original publications.
@@ -1018,3 +1018,98 @@ Top Comments inspected; no missing body inferred as absent or deleted. Previous 
 | BL-POST-1791589339142-QZtwsSBo | 2026-10-29T09:56:01.021-04:00 | 3 displayed / 1 rendered: Phil (19d), AI-led index gains versus weaker non-AI stocks and skepticism about earnings discipline; 1 like. Existing PAM reply and Phil follow-up not re-exposed, preserved historically. PARTIAL. |
 
 All visible discussion matches previously archived substance. Participants' claims and forecasts are not independently verified findings.
+
+## Profile scan — 2026-10-30 (authorized signed-in Cloud Browser)
+
+**Coverage:** 31 originals discovered / 31 individually inspected / 2 new records / 29 existing records refreshed / 0 discovered post URLs inaccessible. Every individual post's @therealpam authorship link matched /users/PAM__IwHhSPDG2aOMks63. Original Posts tab only; Blooms, trades and replies to others excluded. Dynamic loading exposed 10, then 23, then 31 originals. Further bottom navigation at 31 exposed no additional publication or pagination control after the introduction. **All exposed originals inspected; HISTORICAL COMPLETENESS UNPROVEN.** No authoritative historical total. Signed-in Edit profile and Comment controls were available; no login restriction blocked the scan. Some discussion bodies remain PARTIAL.
+
+**Range/time:** newest ExxonMobil UI age 2m, oldest introduction 24d; approximate accessible publication range October 6–30, 2026 based only on rounded labels. Exact publication timestamps NA; post IDs were not used to infer dates. Earlier scans' different rounded age/date approximations remain preserved. Counters observed 2026-10-30 15:56:46.847–15:57:18.313 EDT, America/Toronto (UTC−04:00); discussion revisits 15:57:24.770–15:57:30.720 EDT. Exact per-publication timestamps below.
+
+**Definitions/provenance:** all PUBLIC_OBSERVED, including signed-in counters. Views = displayed cumulative views; unique-person meaning unknown. Comments = displayed total; reply-count semantics undocumented. Shares = displayed arrow counter, not proof of completed external sharing. Saves = bookmark counter. Likes = numeric heart-only count; mixed emoji totals recorded separately, heart breakdown NA. Missing numeric reactions are NA, never inferred zero. Profile visits and post-attributed follows NA. No private PLATFORM_VERIFIED analytics or CEO_SUPPLIED measurements. Account header at 2026-10-30T15:57:45.597-04:00: 12 followers / 5 following, account-level only, with no publication attribution.
+
+**History reuse:** previous snapshots, recorded thesis, captions, templates, editorial rationale, source/audit/approval evidence and discussion captures preserved. The two new public captions and descriptive theses are recorded below; unavailable original internal preparation history stays NA. This observation task does not fact-check financial claims or adopt participants' forecasts. No automatic 24h/72h/7d snapshots, monitoring, publication, reply, reaction, bookmark, trade or account change.
+
+### New records — existing register continuation
+
+| Issue ID | Class/status | Published thesis | Internal evidence | Stable permalink |
+|---|---|---|---|---|
+| BL-POST-1793390076288-WMzkTcpH | Company commentary / PUBLISHED | ExxonMobil Energy Products earnings narrowly exceeded Upstream; distinguish product margins and operations from upstream price/entitlement effects, then watch margin durability | Image-bearing observed. Original internal thesis, preparation rationale, exact template/version, asset/hash, source register, audit and CEO approval references NA. Descriptive thesis derived from public caption only. | https://www.blossomsocial.com/posts/Untitled-Post__POST-1793390076288-WMzkTcpH_IwHhSPDG2aOMks63 |
+| BL-POST-1793282726045-9oXVa71E | Macro commentary / PUBLISHED | Nominal consumer spending growth differs from real demand; watch whether real spending improves without prices doing most of the work | Image-bearing observed. Original internal thesis, preparation rationale, exact template/version, asset/hash, source register, audit and CEO approval references NA. Descriptive thesis derived from public caption only. | https://www.blossomsocial.com/posts/US-Consumer-Spending-Rises-05percent-in-September__POST-1793282726045-9oXVa71E_IwHhSPDG2aOMks63 |
+
+### Appended snapshots
+
+| Issue ID | Rounded UI age (exact NA) | Observed at — America/Toronto EDT | Provenance | Views | Likes | Comments | Shares | Saves | Total reactions | Profile visits | Attributed follows |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| BL-POST-1793390076288-WMzkTcpH | 2m | 2026-10-30T15:56:46.847-04:00 | PUBLIC_OBSERVED | 0 | NA | 0 | 0 | 0 | NA | NA | NA |
+| BL-POST-1793282726045-9oXVa71E | 1d | 2026-10-30T15:56:47.682-04:00 | PUBLIC_OBSERVED | 28 | 1 | 0 | 0 | 0 | 1 | NA | NA |
+| BL-POST-1793197767496-cFctFOpJ | 2d | 2026-10-30T15:56:48.566-04:00 | PUBLIC_OBSERVED | 128 | 1 | 0 | 0 | 0 | 1 | NA | NA |
+| BL-POST-1793149368867-cLFb5NMa | 2d | 2026-10-30T15:56:49.334-04:00 | PUBLIC_OBSERVED | 52 | NA | 0 | 0 | 0 | NA | NA | NA |
+| BL-POST-1793107152966-YTBGWH9d | 3d | 2026-10-30T15:56:50.197-04:00 | PUBLIC_OBSERVED | 64 | NA | 0 | 0 | 0 | NA | NA | NA |
+| BL-POST-1793060142652-bt1IJKAo | 3d | 2026-10-30T15:56:50.975-04:00 | PUBLIC_OBSERVED | 126 | NA | 0 | 0 | 0 | NA | NA | NA |
+| BL-POST-1793023468268-JghTaJye | 4d | 2026-10-30T15:56:51.719-04:00 | PUBLIC_OBSERVED | 56 | NA | 0 | 0 | 0 | NA | NA | NA |
+| BL-POST-1792970189363-fIdOdvGU | 4d | 2026-10-30T15:56:52.489-04:00 | PUBLIC_OBSERVED | 142 | 2 | 1 | 0 | 0 | 2 | NA | NA |
+| BL-POST-1792935816952-RmJBGgJl | 5d | 2026-10-30T15:56:53.268-04:00 | PUBLIC_OBSERVED | 424 | 5 | 4 | 1 | 0 | 5 | NA | NA |
+| BL-POST-1792850545800-gNzqcp6X | 6d | 2026-10-30T15:56:54.143-04:00 | PUBLIC_OBSERVED | 110 | 1 | 0 | 0 | 0 | 1 | NA | NA |
+| BL-POST-1792773556527-n3zJCc9e | 7d | 2026-10-30T15:56:54.967-04:00 | PUBLIC_OBSERVED | 116 | 1 | 0 | 0 | 0 | 1 | NA | NA |
+| BL-POST-1792712380652-veFF6JIW | 7d | 2026-10-30T15:56:55.756-04:00 | PUBLIC_OBSERVED | 86 | 2 | 2 | 0 | 0 | 2 | NA | NA |
+| BL-POST-1792632635232-p3wDGaJ3 | 8d | 2026-10-30T15:56:57.038-04:00 | PUBLIC_OBSERVED | 32 | NA | 0 | 0 | 0 | NA | NA | NA |
+| BL-POST-1792618150646-9HYkfaqz | 8d | 2026-10-30T15:56:57.775-04:00 | PUBLIC_OBSERVED | 52 | NA | 0 | 0 | 0 | NA | NA | NA |
+| BL-POST-1792543338595-Ou0WyNVs | 9d | 2026-10-30T15:56:58.600-04:00 | PUBLIC_OBSERVED | 272 | NA | 0 | 1 | 0 | NA | NA | NA |
+| BL-POST-1792445839015-LojFs7Jp | 10d | 2026-10-30T15:56:59.404-04:00 | PUBLIC_OBSERVED | 276 | 4 | 2 | 0 | 0 | 4 | NA | NA |
+| BL-POST-1792413329799-4TDnXVvZ | 11d | 2026-10-30T15:57:07.098-04:00 | PUBLIC_OBSERVED | 60 | NA | 0 | 1 | 0 | NA | NA | NA |
+| BL-POST-1792285181556-dajQRiJ8 | 12d | 2026-10-30T15:57:08.049-04:00 | PUBLIC_OBSERVED | 128 | 1 | 2 | 0 | 0 | 1 | NA | NA |
+| BL-POST-1792243935166-5rY3pW0x | 13d | 2026-10-30T15:57:08.664-04:00 | PUBLIC_OBSERVED | 844 | NA | 0 | 2 | 0 | 6 | NA | NA |
+| BL-POST-1792154075898-WKgQpyWr | 14d | 2026-10-30T15:57:09.515-04:00 | PUBLIC_OBSERVED | 60 | NA | 0 | 0 | 0 | NA | NA | NA |
+| BL-POST-1792015357362-r0k28CcU | 15d | 2026-10-30T15:57:10.350-04:00 | PUBLIC_OBSERVED | 340 | NA | 0 | 0 | 0 | 7 | NA | NA |
+| BL-POST-1791924123452-n0SE9Lsf | 16d | 2026-10-30T15:57:11.296-04:00 | PUBLIC_OBSERVED | 174 | 4 | 1 | 0 | 0 | 4 | NA | NA |
+| BL-POST-1791820180736-IT7xZSEt | 18d | 2026-10-30T15:57:12.083-04:00 | PUBLIC_OBSERVED | 88 | 2 | 0 | 0 | 0 | 2 | NA | NA |
+| BL-POST-1791764804066-6p0ZcQRe | 18d | 2026-10-30T15:57:12.931-04:00 | PUBLIC_OBSERVED | 248 | NA | 0 | 0 | 0 | NA | NA | NA |
+| BL-POST-1791725403770-fzsmjWDJ | 19d | 2026-10-30T15:57:13.668-04:00 | PUBLIC_OBSERVED | 174 | 2 | 0 | 0 | 0 | 2 | NA | NA |
+| BL-POST-1791636358863-EDvN5sp6 | 20d | 2026-10-30T15:57:14.376-04:00 | PUBLIC_OBSERVED | 208 | 2 | 0 | 0 | 0 | 2 | NA | NA |
+| BL-POST-1791589339142-QZtwsSBo | 20d | 2026-10-30T15:57:15.140-04:00 | PUBLIC_OBSERVED | 390 | 3 | 3 | 0 | 0 | 3 | NA | NA |
+| BL-POST-1791501798381-vTsMLRu2 | 21d | 2026-10-30T15:57:15.932-04:00 | PUBLIC_OBSERVED | 124 | NA | 0 | 0 | 0 | 4 | NA | NA |
+| BL-POST-1791495336766-q7dQtifh | 21d | 2026-10-30T15:57:16.677-04:00 | PUBLIC_OBSERVED | 98 | NA | 0 | 0 | 0 | NA | NA | NA |
+| BL-POST-1791416148323-vptp1ie5 | 22d | 2026-10-30T15:57:17.489-04:00 | PUBLIC_OBSERVED | 76 | NA | 0 | 0 | 0 | NA | NA | NA |
+| BL-POST-1791303632255-hNbqeFsO | 24d | 2026-10-30T15:57:18.313-04:00 | PUBLIC_OBSERVED | 12 | NA | 0 | 0 | 0 | NA | NA | NA |
+
+Mixed reactions: BL-POST-1792243935166-5rY3pW0x and BL-POST-1792015357362-r0k28CcU show heart + rocket; BL-POST-1791501798381-vTsMLRu2 shows heart + anxious-face. Their totals are not heart-only counts.
+
+### Discussion observations — PUBLIC_OBSERVED
+
+Top Comments inspected. Existing replies and Liked labels were observed, not created or changed. A body not rendered again is not assumed deleted or absent; earlier fuller captures remain intact. Participant assertions are not independently verified.
+
+| Post | Observed at — America/Toronto EDT | Visible discussion / limits |
+|---|---|---|
+| BL-POST-1792970189363-fIdOdvGU | 2026-10-30T15:57:24.770-04:00 | 1 displayed / 1 rendered: Mike L @noviceadvisor (4d), Venezuela growth comment; 0 likes. |
+| BL-POST-1792935816952-RmJBGgJl | 2026-10-30T15:57:25.471-04:00 | 4 displayed / 4 rendered: Nate @hoodnate (4d) asks whether AI spending pays off, 1 like/Liked; existing PAM reply (4d, 1 like) distinguishes effective AI ads from attractive returns on $135–145B capex, watching free cash flow/margins. Rudolf @rudolfdeleeuw (5d, 1 like/Liked) discusses adjusted margins, depreciation and ad economics; existing PAM reply (4d, 1 like) watches incremental FCF/ROIC and delayed depreciation, noting a strong ad business can still overpay for infrastructure. Substance matches prior archive. |
+| BL-POST-1792712380652-veFF6JIW | 2026-10-30T15:57:26.611-04:00 | 2 displayed / 1 rendered: Shael @nickel333 (7d), rough market day; 1 like. Prior PAM reply not re-exposed; PARTIAL. |
+| BL-POST-1792445839015-LojFs7Jp | 2026-10-30T15:57:27.181-04:00 | 2 displayed / 2 rendered: Nate @hoodnate (10d), narrow breadth/buying-or-waiting question, 1 like/Liked; existing PAM reply (9d, 0 likes) balances selective buying/waiting, intact fundamentals, caution without automatic bearishness, asks about opportunities outside big tech. Matches earlier exact archive. |
+| BL-POST-1792285181556-dajQRiJ8 | 2026-10-30T15:57:28.421-04:00 | 2 displayed / 1 rendered: solomon @ambessa (12d), skills/manpower/scale/supply-chain constraints to reshoring, 1 like. Existing PAM reply not re-exposed; PARTIAL. |
+| BL-POST-1791924123452-n0SE9Lsf | 2026-10-30T15:57:29.506-04:00 | 1 displayed / 1 rendered: Nate @hoodnate (16d), mood versus numbers and charge-off question, 0 likes. |
+| BL-POST-1791589339142-QZtwsSBo | 2026-10-30T15:57:30.720-04:00 | 3 displayed / 1 rendered: Phil @diversifiedfill (20d), AI-led index strength versus non-AI weakness and earnings skepticism, 1 like. Prior PAM reply and Phil follow-up not re-exposed; PARTIAL. |
+
+### Exact new public captions
+
+#### BL-POST-1793390076288-WMzkTcpH
+
+> The interesting number in ExxonMobil's earnings wasn't an oil price. It was $81 million.
+>
+> In Q3, Exxon's Energy Products business earned $7.169B under U.S. GAAP, just ahead of the $7.088B earned by Upstream (oil and gas production). A quarter earlier, those figures were $5.465B and $7.927B, respectively.
+>
+> Why the reversal? Exxon points to stronger product margins and refinery operations on one side, and lower upstream prices and a Guyana entitlement effect on the other.
+>
+> Energy Products is broader than refining—it also includes logistics, trading and marketing. And one quarter is no new normal.
+>
+> The next question: do fuel margins stay strong as disrupted capacity returns?
+
+#### BL-POST-1793282726045-9oXVa71E
+
+> Americans spent 0.5% more in September. They barely bought more.
+>
+> New BEA figures show U.S. consumer spending rose 0.5% month over month in current dollars, but increased by less than 0.1% after adjusting for inflation. The PCE price index rose 0.5% over the same month.
+>
+> A bigger receipt is not the same thing as a fuller shopping cart.
+>
+> One soft month doesn't erase a strong quarter: Q3 real GDP grew at a 3.4% annualized rate. But the distinction matters when assessing the durability of consumer demand, especially with inflation still elevated.
+>
+> The next test is whether real spending picks up without prices doing most of the lifting. That's a much better question than whether consumers spent more dollars.
