@@ -15,6 +15,7 @@ from .strategy_return_parity import check_specialist_mode_echo
 from .mode_portfolio_trace import prepare_mode_portfolio_trace
 from .integrated_flow import assemble_manual_run
 from .reporting import render_report
+from .executive_report import render_executive_report
 from .portfolio_observation import prepare_observation_ledger
 from .portfolio_snapshot_comparison import compare_private_portfolio_snapshots
 from .work_blossom_adapter import prepare_work_blossom_observation
@@ -325,6 +326,7 @@ def complete_manual_session(
 
     private = {"status": "MANUAL_SESSION_PENDING", "route": route,
                "handoffs_private": handoffs, "final_report_private": None,
+               "executive_report_private": None,
                "integrated_private": None, "pi_delta_private": None,
                "portfolio_observation_private": observation,
                "portfolio_snapshot_comparison_private": snapshot_comparison,
@@ -448,6 +450,9 @@ def complete_manual_session(
             packet["mode_portfolio_trace_private"] = mode_portfolio_trace
             packet["limitations"] += " PI mode questions are specialist-reported and not independently authenticated."
         private["final_report_private"] = render_report(packet)
+        private["executive_report_private"] = render_executive_report(
+            packet, detailed_report=private["final_report_private"],
+            portfolio_room_status=room)
         private["pi_delta_private"] = deepcopy(dict(pi_delta))
         private["status"] = "PI_ONLY_CONDITIONAL_REPORT_ASSEMBLED"
         return private
@@ -537,6 +542,7 @@ def complete_manual_session(
         integrated["public_reference_report_private"] = public_reference_report
         integrated["markdown"] += "\n\n" + public_reference_report
     private["final_report_private"] = integrated["markdown"]
+    private["executive_report_private"] = integrated["executive_markdown"]
     private["pi_delta_private"] = deepcopy(dict(pi_delta)) if pi_delta is not None else None
     private["status"] = "M7A_COMPONENT_ASSEMBLED_NOT_END_TO_END_ACCEPTANCE"
     return private

@@ -1448,8 +1448,9 @@ def run(*, output: str, instream: TextIO, outstream: TextIO,
             errstream.write("R1_PROCESSING_ERROR: private method handoff unavailable; " +
                             "check local method files and pinned versions.\n")
             return 3
-    elif output == "report":
-        report = result["final_report_private"]
+    elif output in {"report", "executive-report"}:
+        report = (result["executive_report_private"] if output == "executive-report"
+                  else result["final_report_private"])
         if report is None:
             outstream.write("REPORT_NOT_AVAILABLE: " + result["status"] + "\n")
         else:
@@ -1534,9 +1535,9 @@ def main(argv: list[str] | None = None, *, instream: TextIO | None = None,
          outstream: TextIO | None = None,
          errstream: TextIO | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--output", choices=("request-template", "intake-review", "status", "report", "handoffs", "next-handoff", "continuation", "operator-packet", "resume-operator", "guided-operator", "guided-integrated-closeout", "guided-research-closeout", "guided-portfolio-closeout", "guided-private-closeout", "candidate-deep-dive-draft", "method-handoff", "specialist-prompt", "followup-draft", "sealed-followup-draft", "sealed-followup-operator", "integrated-followup-draft", "portfolio-followup-draft", "integrated-followup-operator", "private-case", "private-case-envelope", "private-closeout", "private-integrated-closeout", "private-portfolio-snapshot", "review-queue"),
+    parser.add_argument("--output", choices=("request-template", "intake-review", "status", "report", "executive-report", "handoffs", "next-handoff", "continuation", "operator-packet", "resume-operator", "guided-operator", "guided-integrated-closeout", "guided-research-closeout", "guided-portfolio-closeout", "guided-private-closeout", "candidate-deep-dive-draft", "method-handoff", "specialist-prompt", "followup-draft", "sealed-followup-draft", "sealed-followup-operator", "integrated-followup-draft", "portfolio-followup-draft", "integrated-followup-operator", "private-case", "private-case-envelope", "private-closeout", "private-integrated-closeout", "private-portfolio-snapshot", "review-queue"),
                         default="status",
-                        help="request-template is an inert blank case and reads no stdin; intake-review reads a private request-only draft and returns field names/status without values; status is redacted; report, handoffs, next-handoff, continuation, operator-packet, resume-operator, guided-operator, guided-integrated-closeout, guided-research-closeout, guided-portfolio-closeout, guided-private-closeout, candidate-deep-dive-draft, method-handoff, specialist-prompt, followup-draft, sealed-followup-draft, sealed-followup-operator, integrated-followup-draft, portfolio-followup-draft, integrated-followup-operator, private-case, private-case-envelope, private-closeout, private-integrated-closeout, private-portfolio-snapshot and review-queue require a private terminal")
+                        help="request-template is an inert blank case and reads no stdin; intake-review reads a private request-only draft and returns field names/status without values; status is redacted; report, executive-report, handoffs, next-handoff, continuation, operator-packet, resume-operator, guided-operator, guided-integrated-closeout, guided-research-closeout, guided-portfolio-closeout, guided-private-closeout, candidate-deep-dive-draft, method-handoff, specialist-prompt, followup-draft, sealed-followup-draft, sealed-followup-operator, integrated-followup-draft, portfolio-followup-draft, integrated-followup-operator, private-case, private-case-envelope, private-closeout, private-integrated-closeout, private-portfolio-snapshot and review-queue require a private terminal")
     opts = parser.parse_args(argv)
     return run(output=opts.output, instream=instream or sys.stdin,
                outstream=outstream or sys.stdout, errstream=errstream or sys.stderr)

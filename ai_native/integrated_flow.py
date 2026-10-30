@@ -25,6 +25,7 @@ from .conditional_weighted_cashflows import calculate_weighted_cashflows
 from .candidate_comparison import compare_candidates
 from .fundamental_dossier import prepare_fundamental_dossier
 from .reporting import render_report
+from .executive_report import render_executive_report
 from .strategy_authority import assess_r1_mode
 from .strategy_return_parity import check_specialist_mode_echo
 
@@ -458,6 +459,8 @@ def assemble_manual_run(
             raise ValueError("LIFECYCLE_REPORT_REQUIRES_PI_DELTA")
         packet["exceptional_lifecycle_review_private"] = exceptional_lifecycle_review_private
     markdown = render_report(packet)
+    executive_markdown = render_executive_report(
+        packet, detailed_report=markdown, portfolio_room_status=room)
     # Memory proposal excludes portfolio data, issuer narrative and full claims.
     memory = {
         "analysis_id": run_id,
@@ -480,6 +483,7 @@ def assemble_manual_run(
     return {
         "status": "ASSEMBLED_COMPONENT_ONLY_NOT_END_TO_END_ACCEPTANCE",
         "markdown": markdown,
+        "executive_markdown": executive_markdown,
         "calculation_checks": checks,
         "source_evidence_annex_private": source_annex,
         "fact_source_alignment_private": fact_alignment,
