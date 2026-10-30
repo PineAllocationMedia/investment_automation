@@ -58,9 +58,6 @@ class GuidedPortfolioCloseoutTests(unittest.TestCase):
         self.assertIn("METHOD_PATH:", guided["specialist_prompt_private"])
         self.assertNotIn('"resume_input"', guided["specialist_prompt_private"])
         self.assertEqual(guided["copy_to_specialist"], "specialist_prompt_private")
-        self.assertNotIn("SYNTHETIC_PRIVATE",
-                         guided["specialist_prompt_private"].split("METHOD_PATH:")[0]
-                         if False else "{}")  # no unsupported privacy assertion
         self.assertEqual(initial, original)
 
         returned = {
