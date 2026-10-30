@@ -54,6 +54,34 @@ The optional `--quick-stdlib-smoke` local validation subset now includes the exi
 
 **CI constraint as of merged PR #381:** GitHub Actions `Baseline V1 CI` for PRs #379–381 reported **FAILURE**, but the `test` jobs each contained **zero recorded steps** (GitHub Actions run jobs API) and finished in a few seconds; detailed job logs were unavailable. It is therefore **unverified** whether Python test code ran at all, and impossible to diagnose the root cause from these records. Avoid changing the frozen V1 CI/pinned dependencies without an authorized, evidence-based investigation. Local on-demand R1 synthetic regressions are not comprehensive or authentic acceptance.
 
+## Manual Work-unavailable → screenshot → PI recovery (no browser access)
+
+If a CEO-requested CC→IR→PI→CC or PI-only private session starts with a Work/Blossom `view_status=UNAVAILABLE`, the existing route deliberately stops at `AWAITING_MANUAL_PORTFOLIO_SCREENSHOT` after any required, independently returned IR capsule. It does **not** invent holdings, authenticate Blossom or send a prompt to PI. The guided operator now supports an **explicit manual re-entry** after the CEO provides a *new*, dated screenshot transcription. First keep the CC-only sanitized `continuation_private.resume_input` from the earlier pending IR step, and substitute the real `{"IR_CAPSULE": ...}` for its `specialist_result=null`; this is the same payload validated to reach the screenshot-stalled status. For PI-only requests, the pending CC request with the four-field sanitized unavailable Work marker is sufficient. The strict screenshot re-entry input for `--output guided-operator` is:
+
+```json
+{
+  "pending_session": {
+    "request": {"...": "original unchanged CEO request"},
+    "work_blossom_inputs": {
+      "capture_mode": "WORK_BROWSER",
+      "view_status": "UNAVAILABLE",
+      "analysis_id": "original analysis ID",
+      "analysis_as_of": "original YYYY-MM-DD"
+    },
+    "specialist_result": {"IR_CAPSULE": {"...": "the original IR response if research was requested"}}
+  },
+  "screenshot_work_inputs": {
+    "capture_mode": "USER_SCREENSHOT",
+    "view_status": "VISIBLE",
+    "...": "authorized dated private screenshot transcription following the existing Work adapter contract"
+  }
+}
+```
+
+The `pending_session` is the *complete* original private session with the already checked unavailable marker, not an instruction to reconstruct missing request fields from memory. The screenshot packet must include explicit read-only authorization, private view, reported access and coverage flags, account/currency/cash, original visible positions, matching analysis ID/cutoff and a dated captured timestamp; `raw_html`, `browser_hostname` and `work_reported_signed_in` are not accepted in this user-screenshot path. Re-entry **replays the original case first** and only succeeds if it is genuinely stalled awaiting a screenshot. It then uses the existing `prepare_work_blossom_observation` + M3 ledger checks and substitutes only the sanitized `observation_inputs`. The original IR and all CC-only prior research remain unchanged; the existing method-pinned guided operator returns the next **PI_REQUEST** prompt plus private replay context. Following the genuine PI response, use `--output guided-operator` with `{continuation_private, specialist_result}` as before. For an explicitly archive-ready mandate with its original `memory_inputs`, `--output guided-integrated-closeout` on the screenshot re-entry and PI return reuses the same final private two-envelope export; it never creates an archive prematurely. No files are written or Projects invoked.
+
+This recovery is **not automatic screenshot reading or new browsing permission**, and its output retains sensitive private information; never send the entire CC continuation to IR/PI, GitHub, Media or public chats. The authorized screenshot transcription remains caller-reported, not broker- or source-authenticated. The prior unavailable browser state is not reused as evidence, and a screenshot with mismatched case identity, missing data or a claimed browser session is rejected without an actionable PI prompt. In a trusted clean checkout, `python3 -B -m unittest -v tests.test_ai_native_screenshot_reentry` is a synthetic contract check; it does not establish authentic Project/Blossom acceptance.
+
 ## What is actually connected
 `assemble_manual_run(request, ir_capsule, pi_delta=None, calculation_requests=None, contribution_inputs=None)` is a pure function in `ai_native/integrated_flow.py`.
 - **M2** IR supplies original research conclusions, observed fact records, countercase, limitations and evidence statuses; this function does not generate or verify them.
