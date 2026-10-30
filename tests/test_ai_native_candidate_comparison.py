@@ -107,7 +107,7 @@ class CandidateComparisonTests(unittest.TestCase):
         text = render_report(packet)
         self.assertIn("Sensibilite du rendement total conditionnel", text)
         self.assertIn("IRR conditionnel des flux totaux", text)
-        self.assertIn("NOT calibre", text)
+        self.assertIn("NON calibr", text)
         self.assertIn("not ranked", text)
 
     def test_missing_or_unusable_weighted_evidence_stays_not_comparable(self):
@@ -137,6 +137,39 @@ class CandidateComparisonTests(unittest.TestCase):
                 self.assertEqual(pair["status"], "NOT_COMPARABLE")
                 self.assertIsNone(pair["first_minus_second_pp"])
                 self.assertTrue(pair["reason_codes"])
+
+    def test_integrated_route_reports_quote_evidence_gap_without_source(self):
+        from ai_native.integrated_flow import assemble_manual_run
+        data, _source = self.weighted_case()
+        request = {
+            "analysis_id": "SYN-C", "as_of": "2026-10-28",
+            "objective": "Synthetic economic comparison",
+            "strategy_id": "EXPLORATORY", "kind": "DECISION",
+            "method_version": "SYN-IR",
+        }
+        ir = {
+            "analysis_id": "SYN-C", "research_as_of": "2026-10-28",
+            "summary": ["Conditional probabilities and cashflow premises."],
+            "facts": [{"id": "SYN-F", "status": "INDICATIVE",
+                       "claim": "Synthetic data, no original quote verified."}],
+            "limitations": "Source annex for both quotes absent.",
+            "countercase": "Missing original quote evidence.",
+            "decision_line": "No company preference established.",
+            "next_action": "Obtain original date/currency quote sources.",
+        }
+        out = assemble_manual_run(
+            request, ir, candidate_comparison_inputs=data,
+        )
+        result = out["candidate_comparison_private"]
+        pair = result["pairwise_weighted_cashflow_private"][0]
+        self.assertEqual(pair["status"], "NOT_COMPARABLE")
+        self.assertIsNone(pair["first_minus_second_pp"])
+        self.assertIn("WEIGHTED_CASHFLOW_EVIDENCE_UNAVAILABLE",
+                      pair["reason_codes"])
+        self.assertIn("Sensibilite du rendement total conditionnel",
+                      out["markdown"])
+        self.assertIn("NOT_COMPARABLE", out["markdown"])
+        self.assertNotIn("SYN-CALIBRATION-UNVERIFIED", out["markdown"])
 
     def test_report_rejects_invented_conditional_alpha(self):
         from ai_native.reporting import render_report
