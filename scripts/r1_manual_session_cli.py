@@ -1494,9 +1494,11 @@ def run(*, output: str, instream: TextIO, outstream: TextIO,
                         request=request,
                         ir_capsule=payload.get("ir_capsule"),
                         pi_delta=payload.get("pi_delta"),
+                        # The SAME M3 summary is now retained by session_bridge
+                        # for PI-only and IR+PI. Never accept a separate
+                        # caller-authored PDF percentage or recompute weights.
                         new_contribution_summary_private=(
-                            result.get("integrated_private", {}) or {}
-                        ).get("new_contribution_summary_private"),
+                            result.get("new_contribution_summary_private")),
                         presentation_inputs=payload.get("presentation_inputs"),
                     )
                     sink = getattr(outstream, "buffer", None)

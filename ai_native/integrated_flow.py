@@ -502,6 +502,11 @@ def assemble_manual_run(
         "candidate_comparison_private": candidate_comparison,
         "fundamental_dossier_private": fundamental_dossier,
         "gross_contribution_private": contribution,
+        # Only an actually calculated M3 summary is handed to the PAMalised
+        # PDF. This is NOT a new suggested allocation or certified holding.
+        "new_contribution_summary_private": (
+            contribution_bundle["report_summary_private"]
+            if contribution_bundle is not None else None),
         "supplied_costs_private": costs,
         "funded_contribution_private": funded_contribution,
         "alternative_cost_details_private": (

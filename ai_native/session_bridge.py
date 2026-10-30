@@ -397,6 +397,7 @@ def complete_manual_session(
                "portfolio_room_review_private": None,
                "exceptional_lifecycle_review_private": None,
                "gross_contribution_private": None,
+               "new_contribution_summary_private": None,
                "supplied_costs_private": None,
                "funded_contribution_private": None,
                "alternative_cost_details_private": None,
@@ -521,6 +522,8 @@ def complete_manual_session(
                 contribution_inputs=contribution_inputs, cost_inputs=cost_inputs,
             )
             packet["new_contribution_summary_private"] = bundle["report_summary_private"]
+            private["new_contribution_summary_private"] = deepcopy(
+                bundle["report_summary_private"])
             packet["limitations"] += " " + " ".join(bundle["limitations"])
             private["gross_contribution_private"] = bundle["gross_contribution_private"]
             private["supplied_costs_private"] = bundle["supplied_costs_private"]
@@ -621,6 +624,8 @@ def complete_manual_session(
     # PI-only and IR+PI expose the same strictly private deterministic M3
     # outputs; the short CC report still omits actual balances and costs.
     private["gross_contribution_private"] = integrated.get("gross_contribution_private")
+    private["new_contribution_summary_private"] = deepcopy(
+        integrated.get("new_contribution_summary_private"))
     private["supplied_costs_private"] = integrated.get("supplied_costs_private")
     private["funded_contribution_private"] = integrated.get("funded_contribution_private")
     private["alternative_cost_details_private"] = integrated.get("alternative_cost_details_private")
