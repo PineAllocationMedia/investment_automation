@@ -128,7 +128,7 @@ def _view(model: Mapping[str, Any], executive: str, detail: str,
             raise ValueError("PAMALISED_PRESENTATION_IDENTITY_MISMATCH")
         opening = presentation.get("opening_paragraph")
         if (not isinstance(opening, str) or not 55 <= len(opening.strip()) <= 750
-                or any(c in opening for c in ("\\x00", "\\x1b"))):
+                or any(ord(c) < 32 for c in opening)):
             raise ValueError("PAMALISED_OPENING_PARAGRAPH_INVALID")
         refs = presentation.get("support_refs", [])
         if (not isinstance(refs, list) or len(refs) > 12
@@ -413,7 +413,7 @@ def _view(model: Mapping[str, Any], executive: str, detail: str,
                     sizes.append(16)
                 cell = Table([[
                     P(str(fact.get("id")), mini)],
-                    [P(str(fact.get("claim", "NON DISPONIBLE")), small)],
+                    [P(_safe(str(fact.get("claim", "NON DISPONIBLE")), limit=180), small)],
                     [P(str(fact.get("status", "NOT_VERIFIED")), tiny)]
                 ], colWidths=[width])
                 cell.setStyle(TableStyle([
@@ -576,6 +576,9 @@ def _view(model: Mapping[str, Any], executive: str, detail: str,
                                "UNKNOWN_NOT_LOADED")
     ]])
     story.append(Spacer(1, 8))
+    if isinstance(presentation, Mapping) and presentation.get("support_refs"):
+        story.append(P("Références de la note CC : " +
+                       ", ".join(presentation["support_refs"]), tiny))
     label("Depuis le dernier rapport")
     for key, text in [
         ("CHOIX / ALLOCATION", "BASELINE_NOT_AVAILABLE / non comparable"),
