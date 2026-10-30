@@ -52,6 +52,62 @@ class PamalisedPdfTests(unittest.TestCase):
         self.assertIn("EXPECTED RETURN", content)
         self.assertEqual((request, ir, pi), before)
 
+    def test_reference_six_sections_match_actual_ir_pi_payload(self):
+        from pypdf import PdfReader
+        request = self.fixtures.request(portfolio_needed=True)
+        request["objective"] = "REAL_INPUT_SYNTHETIC_SENTINEL"
+        ir = self.fixtures.ir()
+        ir["countercase"] = "COUNTERCASE_SYNTHETIC_SENTINEL"
+        ir["summary"] = ["THESIS_SYNTHETIC_SENTINEL"]
+        pi = self.fixtures.pi(forwarded_ir=deepcopy(ir))
+        code, data, err = self._cli({"request": request, "ir_capsule": ir,
+                                     "pi_delta": pi})
+        self.assertEqual((code, err), (0, ""))
+        pages = PdfReader(BytesIO(data)).pages
+        text = "\n".join(page.extract_text() for page in pages)
+        # Six relevant investor-facing sections plus the original evidence annex.
+        for section in ("L’essentiel en 60 secondes", "Les opportunités retenues",
+                        "Ce que cela change dans le portefeuille",
+                        "Risques et points de bascule", "Durabilité et radar",
+                        "Suivi, performance et traçabilité"):
+            self.assertIn(section, text)
+        for marker in ("REAL_INPUT_SYNTHETIC_SENTINEL",
+                       "THESIS_SYNTHETIC_SENTINEL",
+                       "COUNTERCASE_SYNTHETIC_SENTINEL"):
+            self.assertIn(marker, text)
+        self.assertNotIn("GABARIT MAÎTRE / VERSION VISUELLE", text)
+        self.assertNotIn("BIBLIOTHÈQUE DE MODULES VISUELS", text)
+        self.assertNotIn("RÈGLES DE PRODUCTION DES VISUELS", text)
+        self.assertIn("ND - dénominateur non confirmé", text)
+        self.assertIn("ARCHIVE_NOT_SAVED", text)
+
+    def test_pi_only_omits_issuer_sections_without_data(self):
+        from pypdf import PdfReader
+        request = self.fixtures.request(research_needed=False,
+                                         portfolio_needed=True)
+        code, data, err = self._cli({"request": request,
+                                     "pi_delta": self.fixtures.pi()})
+        self.assertEqual((code, err), (0, ""))
+        text = "\n".join(page.extract_text() for page in PdfReader(BytesIO(data)).pages)
+        self.assertIn("Ce que cela change dans le portefeuille", text)
+        self.assertNotIn("Les opportunités retenues", text)
+        self.assertNotIn("Durabilité et radar des marchés", text)
+        self.assertIn("NON ÉTABLIE", text)
+
+    def test_identity_disagreement_fails_closed(self):
+        detail = "# Private detail\nOriginal fact\n"
+        intro = ("# PAM R1 — Synthèse décisionnelle\n"
+                 "## La conclusion\nNo supported allocation.\n\n"
+                 "## Dossier détaillé et traçabilité (annexe)\n"
+                 "Original retained\n\n")
+        with self.assertRaisesRegex(ValueError, "PAMALISED_PDF_REQUEST_IDENTITY_MISMATCH"):
+            render_pamalised_pdf(
+                executive_report=intro + detail, detailed_report=detail,
+                analysis_id="EXPECTED", as_of="2026-10-30",
+                strategy="high-cagr", report_status="EXPLORATORY",
+                request={"analysis_id": "WRONG", "as_of": "2026-10-30",
+                         "strategy_id": "high-cagr"})
+
     def test_pending_does_not_fabricate_file(self):
         code, body, err = self._cli({"request": self.fixtures.request(portfolio_needed=True)})
         self.assertEqual((code, err), (0, ""))
