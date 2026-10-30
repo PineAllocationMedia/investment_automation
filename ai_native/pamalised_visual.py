@@ -9,7 +9,7 @@ from __future__ import annotations
 
 from html import escape, unescape
 from io import BytesIO
-from math import isfinite
+from decimal import Decimal, InvalidOperation
 from typing import Mapping, Any
 
 from reportlab.lib import colors
@@ -89,14 +89,19 @@ def _view(model: Mapping[str, Any], executive: str, detail: str,
                 and contribution.get("gross_status") == "GROSS_PROJECTION_ONLY"
                 and isinstance(pct, Mapping) and 1 <= len(pct) <= 12
                 and all(isinstance(k, str) and 0 < len(k) <= 80
-                        and type(v) in (int, float) and isfinite(v)
-                        and 0 <= v <= 100 for k, v in pct.items())
-                and abs(sum(pct.values()) - 100.0) < 0.0001):
-            allocation_text = " · ".join(
-                _safe(k, limit=80) + " : " + format(v, ".1f") + " %"
-                for k, v in pct.items()
-            ) + " (projection arithmétique, non recommandation)"
-
+                        and isinstance(v, str) for k, v in pct.items())):
+            try:
+                numbers = {k: Decimal(v) for k, v in pct.items()}
+            except InvalidOperation:
+                numbers = {}
+            if (len(numbers) == len(pct)
+                    and all(n.is_finite() and Decimal("0") <= n <= Decimal("100")
+                            for n in numbers.values())
+                    and sum(numbers.values(), Decimal("0")) == Decimal("100")):
+                allocation_text = " · ".join(
+                    _safe(k, limit=80) + " : " + format(n, ".1f") + " %"
+                    for k, n in numbers.items()
+                ) + " (projection arithmétique, non recommandation)"
 
     buffer = BytesIO()
     doc = SimpleDocTemplate(
