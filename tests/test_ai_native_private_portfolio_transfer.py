@@ -15,7 +15,6 @@ from ai_native.portfolio_snapshot_transfer import (
 from scripts.r1_manual_session_cli import main
 from tests.test_ai_native_session_bridge import SessionBridgeTests
 from tests.test_ai_native_portfolio_observation import ObservationTests
-from tests.test_ai_native_work_blossom_session_bridge import BlossomSessionBridgeTests
 
 
 class PrivatePortfolioTransferTests(unittest.TestCase):
@@ -121,6 +120,7 @@ class PrivatePortfolioTransferTests(unittest.TestCase):
         self.assertEqual(operator["project_invocation"], "NONE")
 
     def test_work_copy_contains_only_sanitized_m3_observation_not_browser_extras(self):
+        from tests.test_ai_native_work_blossom_session_bridge import BlossomSessionBridgeTests
         work = BlossomSessionBridgeTests().report()
         packet = {
             "request": self.fx.request(
@@ -183,7 +183,7 @@ class PrivatePortfolioTransferTests(unittest.TestCase):
         packet["prior_private_portfolio_envelope"] = old
         code, report, err = self.cli(packet, "report")
         self.assertEqual((code, err), (0, ""))
-        self.assertIn("incomplete", report.lower())
+        self.assertIn("Weight change UNAVAILABLE", report)
         self.assertNotIn("Largest absolute security-line weight shift: 25.00", report)
         self.assertNotIn("scoped cash weight change: -25.00", report)
 
