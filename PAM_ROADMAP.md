@@ -7,6 +7,12 @@
 >
 > Exact remote state must always be verified before implementation.
 
+### R1 Financial Systems — CEO universal CC intake is the product development compass (2026-10-30)
+
+The CEO-selected [universal analysis-start template `CC-START-R1-v1.0`](docs/ai_native/integrated_build/operations/UNIVERSAL_CC_ANALYSIS_START_R1.md) is the **standard user-facing entrypoint for full Financial Systems research requests and future CEO-initiated R1 tests**. Features must serve the journey from its six natural-language sections to a coherent decision-first report, instead of developing isolated technical/prompt capabilities without proving usability. The template guides **UX priority and functional verification**; it does **not** override Constitution, approved strategy policies, source rights, readiness gates or the 36 CEO choices. Treat a merged instruction file as a candidate until actually used in CC/IR/PI/Work.
+
+**Priority gap from the second real CEO trace:** CC returned **two simultaneous IR/PI prompts** and attempted Blossom in its **own** browser (reported navigation/McAfee block). The target interaction is **one CEO action at a time**, with **PI-owned, CEO-started Work/Cloud Browser** as the first source-acquisition action when Blossom matters, not CC Web browsing. Next: PI acquisition → CC → IR → CC → PI final (original IR unchanged) → CC one report, omitting roles not needed. If Work is inaccessible, use a dated screenshot and keep missing exposures `UNAVAILABLE`; IR can still provide defensible partial research. Plan preparation may occur concurrently **internally** but does not mean sending two handoffs at once. Full acceptance, actual Work access and live Project Settings remain unverified. See [the R1 delivery/UX predicates](docs/ai_native/integrated_build/DELIVERY_PLAN.md) and [second trace, de-identified](docs/ai_native/integrated_build/integration/SECOND_CHATGPT_TRACE_SINGLE_ACTION_PI_WORK_R1.md).
+
 ### AI-native Financial Systems — CEO build-first decision (2026-10-28)
 
 The CEO approves a new AI-native development sequence, **activated after the

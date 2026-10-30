@@ -1,6 +1,6 @@
 # Gabarit universel de démarrage CC — PAM Financial Systems R1
 
-**Version:** `CC-START-R1-v1.0` (2026-10-30). **Statut:** `CEO_DESIGNATED_STANDARD_TEST_ENTRYPOINT / GitHub PR CANDIDATE / CHATGPT_SETTINGS_UNCHANGED / AUTHENTIC_ACCEPTANCE_NOT_RUN`. **Primary owner:** Program Manager / Product & UX integration. **Work Order:** `WO-FS-R1-UNIVERSAL-CC-ANALYSIS-START-PROMPT`.
+**Version affichée du gabarit CEO:** `CC-START-R1-v1.0`; **révision datée dans GitHub:** 2026-10-30, après la première fusion #397. **Statut:** `CEO_SELECTED_REFERENCE / WORKFLOW_RECONCILIATION_PR_ONLY / CHATGPT_SETTINGS_UNCHANGED / AUTHENTIC_ACCEPTANCE_NOT_RUN`. **Primary owner:** Program Manager / Product & UX integration. **Work Order:** `WO-FS-R1-UNIVERSAL-CC-ANALYSIS-START-PROMPT`.
 
 ## Objet et périmètre
 
@@ -32,7 +32,7 @@ Remplis les champs entre crochets. Écris « inconnu » ou « sans objet » lors
 
 - **Mode choisi :** [High-CAGR / Balanced / Family-Office / Rational-Aggressive / Intelligent Dividend Harvester / Modern Adaptive Browne / à clarifier]
 - **Horizon d'investissement :** [ ]
-- **Risques et pertes permanentes que je veux limiter :** [ ]
+- **Risques, pertes permanentes que je veux limiter, tolérances à la volatilité que je souhaite spécifier:** [ ]
 
 Si les règles propres à mon mode ne sont pas approuvées pour R1, signale-le et conserve une analyse exploratoire; ne crée aucune nouvelle politique.
 
@@ -51,7 +51,7 @@ Si les règles propres à mon mode ne sont pas approuvées pour R1, signale-le e
 
 ## 6. CONTEXTE SUPPLÉMENTAIRE
 
-- **Utilisation des rapports d’analyses passés et des rapports de capture du portefeuille Blossom rattachés à l’URL antérieurs fourni si disponible afin d’améliorer la qualité et la personnalisation de l’analyse effectuée:** [oui ou non ]
+- **Utilisation des rapports d’analyses passés et des rapports de capture du portefeuille Blossom rattachés à l’URL antérieurs fourni (si disponible) afin d’améliorer la qualité et la personnalisation de l’analyse effectuée:** [oui ou non ]
 - **Autorisation de sauvegarder le rapport d’analyse, la capture des données compte rattaché à l’URL fourni ou du portefeuille démontré dans les captures d’écran lors de cette analyse, la capture des données financières actuelles du marchés et tout autre information utile à sauvegarder à des fins d’audit et d’analyse futur du modèle et de son fonctionnement à des fins d’amélioration :** [oui ou non ]
 - **Autres critères, questions et préférences :** [ ]
 - **Type de demande :** [analyse normale / test fonctionnel R1]
@@ -87,6 +87,14 @@ Le CEO a retenu la version `CC-START-R1-v1.0` révisée dans la conversation du 
 **Le « oui » à la sauvegarde n'est pas une permission générale de déposer les pièces dans GitHub ni une preuve de stockage réalisé.** Il ne remplace pas la sélection et la validation préalables d'un emplacement privé approuvé par le CEO, des permissions, de la confidentialité, des droits de source, de la conservation et de la restauration. Tant que cette destination manque, CC peut préparer une proposition ou un paquet à sauvegarder par un humain dans un contexte privé, et doit indiquer `ARCHIVE_NOT_SAVED`. Aucun stockage silencieux ou automatique. Les rapports antérieurs sont réutilisés seulement s'ils sont **réellement accessibles**, avec identité et horodatage compatibles; aucun suivi récurrent n'est instauré.
 
 **Gabarit non personnalisé :** les trois champs de la section 4 sont vides dans la version choisie par le CEO. Aucun compte, courtier, restriction ou préférence de placement n'est présumé par ce modèle; les informations propres à chaque demande restent privées et ne sont pas archivées dans GitHub.
+
+## Point de référence UX pour le développement R1 (CEO test #2)
+
+**Le formulaire est le produit d'entrée, non une démonstration de fonctionnement.** Pour chaque demande, le scénario visible doit rester une **action CEO à la fois**. Lorsqu'un portefeuille Blossom est matériel et que la consultation autorisée est proposée, la première action est le **PI-1 dans une session ChatGPT Work/Cloud Browser déclenchée par le CEO**, de préférence dans le Project PI si Work y est réellement disponible; le Project CC **ne doit pas** ouvrir Blossom dans son navigateur Web et aucune erreur de son navigateur ne prouve un échec du navigateur Work PI. L'ordre de l'interface est **CC → PI acquisition Work (ou capture datée) → CC → IR → CC → PI synthèse avec IR original inchangé → CC rapport**, en omettant les étapes sans valeur ajoutée. Les besoins IR peuvent être préparés en interne « en parallèle », **pas remis au CEO comme deux prompts à traiter simultanément**. Si PI ne peut capturer, ne pas inventer les positions; CC peut poursuivre IR avec PORTFOLIO_ROOM UNAVAILABLE et revenir à PI sur une demande de source ultérieure.
+
+Le CEO a confirmé les instructions CC/PI du PR #396 installées; **les versions de paramètres plus récentes proposées pour ce flux séquentiel ne sont PAS installées par GitHub**. Le gabarit affiché garde littéralement `CC-START-R1-v1.0` conformément au texte choisi par le CEO; la présente petite révision après fusion est identifiée **par date et Git SHA**, et doit être distinguée de la version déjà fusionnée #397 lors des comparaisons. Une prochaine évolution de méthode/UX plus large devra recevoir une nouvelle version explicite.
+
+**Développement gouverné par ce gabarit :** les demandes et tests utilisent les six champs du modèle comme contexte utilisateur normal; rien ne doit requérir JSON/CLI. Critères de contrôle : destination Work réelle, un seul prochain transfert, PI consulté si nécessaire, statut de source/identité, aucune déduction publique→privée, IR original préservé, rapport intégré et effort CEO mesuré. Seul un test en Projects/Work peut satisfaire les critères, pas un changement GitHub. Voir [le plan de livraison](../DELIVERY_PLAN.md) et [le scénario de deuxième essai](../integration/SECOND_CHATGPT_TRACE_SINGLE_ACTION_PI_WORK_R1.md).
 
 ## Versions et apprentissage à partir des essais
 
