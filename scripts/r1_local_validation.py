@@ -2,6 +2,11 @@
 
 Usage: python -B -m scripts.r1_local_validation
        python -B -m scripts.r1_local_validation --candidate-head <PR_SHA> --base-sha <V2_SHA>
+       python -B -m scripts.r1_local_validation --quick-stdlib-smoke
+
+The optional QUICK mode uses Python >=3.11, NO pip and a critical subset of
+real R1 synthetic tests in the same clean, SHA-checked authorized checkout.
+It is UNPINNED and NOT equivalent to the full pinned regression or acceptance.
 
 This is *focused synthetic regression*, NOT live-source authentication,
 three-Project acceptance, policy approval, readiness, deployment or trading.
@@ -20,6 +25,21 @@ from typing import TextIO
 
 
 ROOT = Path(__file__).resolve().parents[1]
+# An explicit subset of existing real R1 contracts, not a replacement suite.
+# No optional package setup, browser, network, financial data or CI rerun.
+QUICK_MODULES = (
+    "tests.test_ai_native_r1_integrated_smoke",
+    "tests.test_ai_native_r1_manual_cli",
+    "tests.test_ai_native_session_bridge",
+    "tests.test_ai_native_strategy_authority",
+    "tests.test_ai_native_manual_review_queue",
+    "tests.test_ai_native_portfolio_observation",
+    "tests.test_ai_native_r1_portfolio_snapshots",
+    "tests.test_ai_native_r1_private_displayed_weights",
+    "tests.test_ai_native_r1_alternative_supplied_costs",
+    "tests.test_ai_native_reporting",
+)
+
 REQUIRED = frozenset({
     "test_ai_native_r1_integrated_smoke.py",
     "test_ai_native_r1_manual_cli.py",
@@ -131,6 +151,15 @@ def _discover(root: Path) -> unittest.TestSuite:
     )
 
 
+def _discover_quick(root: Path) -> unittest.TestSuite:
+    """Load exact source-backed contract modules, never skip import failures.
+
+    Executed from an authenticated local checkout; TEST MODULE IMPORT ERRORS
+    become failures in unittest rather than looking like a passing empty suite.
+    """
+    return unittest.TestLoader().loadTestsFromNames(QUICK_MODULES)
+
+
 def _iter_tests(suite: unittest.TestSuite) -> Iterator[unittest.TestCase]:
     for item in suite:
         if isinstance(item, unittest.TestSuite):
@@ -147,6 +176,7 @@ def validate(
     discoverer: Callable[[Path], unittest.TestSuite] = _discover,
     required: frozenset[str] = REQUIRED,
     minimum_modules: int = 40, minimum_cases: int = 100,
+    quick: bool = False,
 ) -> int:
     """Fail closed on prerequisites, zero tests, import errors and failed tests.
 
@@ -159,11 +189,19 @@ def validate(
     def line(k: str, v: object) -> None:
         stream.write(f"{k}={v}\n")
 
-    line("R1_SCOPE", "SYNTHETIC_REGRESSION_ONLY_NOT_ACCEPTANCE")
+    line("R1_SCOPE", ("UNPINNED_STDLIB_SYNTHETIC_SMOKE_NOT_ACCEPTANCE"
+                       if quick else "SYNTHETIC_REGRESSION_ONLY_NOT_ACCEPTANCE"))
     line("R1_AUTHENTIC_SOURCES", "NOT_CHECKED")
     line("R1_PROJECTS", "NOT_INVOKED")
     line("R1_READINESS", "NOT_EVALUATED")
-    reason = checker(root)
+    line("R1_PYTHON_PIN_VERIFIED", "NO_QUICK_MODE" if quick else "CHECKED_BY_ENVIRONMENT_GATE")
+    line("R1_DEPENDENCY_LOCK_VERIFIED", "NO_QUICK_MODE" if quick else "CHECKED_BY_ENVIRONMENT_GATE")
+    # A fast local signal is useful when GitHub CI never gets a runner or a
+    # device lacks the pinned Python/dependencies. Unpinned PASS != full PASS.
+    reason = ("QUICK_REQUIRES_PYTHON_3_11_OR_NEWER"
+              if quick and sys.version_info < (3, 11) else None)
+    if not quick:
+        reason = checker(root)
     if reason is not None:
         line("R1_VALIDATION", "BLOCKED_ENVIRONMENT")
         line("R1_REASON", reason)
@@ -185,14 +223,17 @@ def validate(
     line("R1_HEAD_PROVENANCE", "LOCAL_TRACKING_REF_ONLY_COMPARE_TO_LIVE_GITHUB")
     directory = root / "tests"
     actual = {p.name for p in directory.glob("test_ai_native_*.py")}
-    missing = required - actual
+    inventory = (frozenset(name.rsplit(".", 1)[-1] + ".py"
+                           for name in QUICK_MODULES) if quick else required)
+    missing = inventory - actual
     if missing or len(actual) < minimum_modules:
         line("R1_VALIDATION", "BLOCKED_TEST_INVENTORY")
         line("R1_REASON", "REQUIRED_R1_TESTS_MISSING" if missing else "R1_TEST_INVENTORY_TOO_SMALL")
         line("R1_MISSING_MODULES", ",".join(sorted(missing)))
         return 2
     try:
-        suite = discoverer(root)
+        suite = (_discover_quick(root) if quick and discoverer is _discover
+                 else discoverer(root))
         all_tests = list(_iter_tests(suite))
     except (ImportError, OSError, ValueError, TypeError) as exc:
         line("R1_VALIDATION", "BLOCKED_DISCOVERY")
@@ -206,6 +247,9 @@ def validate(
             tests.append(test)
             seen.add(name)
     line("R1_TEST_MODULE_FILES", len(actual))
+    if quick:
+        line("R1_QUICK_SELECTED_MODULES", len(QUICK_MODULES))
+        line("R1_QUICK_PINNED_REGRESSION_STATUS", "NOT_RUN")
     line("R1_TEST_CASES_DISCOVERED", len(all_tests))
     line("R1_TEST_CASES_UNIQUE", len(tests))
     if len(tests) < minimum_cases:
@@ -220,8 +264,11 @@ def validate(
     line("R1_TEST_FAILURES", len(result.failures))
     line("R1_TEST_SKIPPED", len(result.skipped))
     successful = result.wasSuccessful() and result.testsRun > len(result.skipped)
-    line("R1_VALIDATION", "PASS_FOCUSED_TESTS_ONLY" if successful
-         else "FAIL_FOCUSED_TESTS")
+    line("R1_VALIDATION", (
+        ("PASS_UNPINNED_SYNTHETIC_SMOKE_ONLY" if successful
+         else "FAIL_UNPINNED_SYNTHETIC_SMOKE") if quick
+        else ("PASS_FOCUSED_TESTS_ONLY" if successful
+              else "FAIL_FOCUSED_TESTS")))
     return 0 if successful else 1
 
 
@@ -229,10 +276,14 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--candidate-head", metavar="FULL_PR_SHA")
     parser.add_argument("--base-sha", metavar="FULL_V2_BASE_SHA")
+    parser.add_argument("--quick-stdlib-smoke", action="store_true",
+                        help="run fixed critical R1 synthetic subset with Python "
+                             ">=3.11, no dependency installation; UNPINNED, not acceptance")
     args = parser.parse_args()
     if (args.candidate_head is None) != (args.base_sha is None):
         parser.error("--candidate-head and --base-sha must be supplied together")
-    return validate(candidate_head=args.candidate_head, base_sha=args.base_sha)
+    return validate(candidate_head=args.candidate_head, base_sha=args.base_sha,
+                    quick=args.quick_stdlib_smoke)
 
 
 if __name__ == "__main__":

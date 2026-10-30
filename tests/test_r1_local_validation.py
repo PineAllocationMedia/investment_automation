@@ -6,7 +6,7 @@ from tempfile import TemporaryDirectory
 import unittest
 import subprocess
 
-from scripts.r1_local_validation import validate, _checkout
+from scripts.r1_local_validation import validate, _checkout, QUICK_MODULES
 
 
 class HarnessTests(unittest.TestCase):
@@ -75,6 +75,112 @@ class HarnessTests(unittest.TestCase):
         self.assertEqual(code, 0)
         self.assertIn("R1_TEST_CASES_DISCOVERED=2", result)
         self.assertIn("R1_TEST_CASES_UNIQUE=1", result)
+
+
+class QuickUnpinnedSmokeTests(unittest.TestCase):
+    """No actual pinned R1 suite is executed by these harness-only tests."""
+
+    @staticmethod
+    def _one(test_case):
+        return unittest.defaultTestLoader.loadTestsFromTestCase(test_case)
+
+    def run_quick(self, test_case=None, *, checkout_error=None,
+                  filename="test_ai_native_r1_integrated_smoke.py"):
+        with TemporaryDirectory() as td:
+            root = Path(td)
+            (root / "tests").mkdir()
+            (root / "tests" / filename).write_text("# synthetic", encoding="utf-8")
+            class Pass(unittest.TestCase):
+                def test_positive(self):
+                    self.assertTrue(True)
+            out = StringIO()
+            used = []
+            def checkout(path):
+                used.append(str(path))
+                return ((checkout_error, None) if checkout_error
+                        else (None, "a" * 40))
+            code = validate(
+                root, out=out, quick=True,
+                # Must NEVER check the pinned lock in explicitly unpinned mode.
+                checker=lambda _: (_ for _ in ()).throw(
+                    AssertionError("QUICK_MUST_NOT_USE_DEPENDENCY_CHECKER")),
+                checkout_checker=checkout,
+                discoverer=lambda _: self._one(test_case or Pass),
+                minimum_cases=1, minimum_modules=1)
+            return code, out.getvalue(), used
+
+    def test_quick_explicit_subset_covers_recent_portfolio_and_policy_seams(self):
+        self.assertEqual(len(QUICK_MODULES), len(set(QUICK_MODULES)))
+        for suffix in ("manual_review_queue", "r1_portfolio_snapshots",
+                       "r1_private_displayed_weights", "strategy_authority",
+                       "r1_integrated_smoke", "r1_alternative_supplied_costs"):
+            self.assertIn("tests.test_ai_native_" + suffix, QUICK_MODULES)
+
+    def test_quick_does_not_skip_source_backed_test_inventory(self):
+        code, out, called = self.run_quick()
+        self.assertEqual(code, 2)
+        self.assertIn("REQUIRED_R1_TESTS_MISSING", out)
+        # The original SHA/clean-checkout gate runs before file inventory.
+        self.assertEqual(len(called), 1)
+
+    def test_quick_cannot_skip_checkout_integrity(self):
+        # Provide enough fake source test files, but no valid checkout.
+        with TemporaryDirectory() as td:
+            root = Path(td)
+            (root / "tests").mkdir()
+            for module in QUICK_MODULES:
+                (root / "tests" / (module.rsplit(".", 1)[-1] + ".py")).write_text(
+                    "# synthetic-only inventory fixture", encoding="utf-8")
+            out = StringIO()
+            code = validate(
+                root, out=out, quick=True,
+                checkout_checker=lambda _: ("CHECKOUT_HAS_CHANGES", None),
+                minimum_modules=1, minimum_cases=1)
+            self.assertEqual(code, 2)
+            self.assertIn("R1_VALIDATION=BLOCKED_CHECKOUT", out.getvalue())
+            self.assertIn("R1_REASON=CHECKOUT_HAS_CHANGES", out.getvalue())
+
+    def test_quick_success_is_explicitly_unpinned_not_accepted(self):
+        class Pass(unittest.TestCase):
+            def test_true(self):
+                self.assertTrue(True)
+        with TemporaryDirectory() as td:
+            root = Path(td)
+            (root / "tests").mkdir()
+            for module in QUICK_MODULES:
+                (root / "tests" / (module.rsplit(".", 1)[-1] + ".py")).write_text(
+                    "# synthetic fixture", encoding="utf-8")
+            out = StringIO()
+            code = validate(root, out=out, quick=True,
+                checker=lambda _: "PYTHON_VERSION_DRIFT",
+                checkout_checker=lambda _: (None, "a" * 40),
+                discoverer=lambda _: self._one(Pass),
+                minimum_modules=1, minimum_cases=1)
+            self.assertEqual(code, 0)
+            self.assertIn("PASS_UNPINNED_SYNTHETIC_SMOKE_ONLY", out.getvalue())
+            self.assertIn("R1_QUICK_PINNED_REGRESSION_STATUS=NOT_RUN", out.getvalue())
+            self.assertIn("R1_PYTHON_PIN_VERIFIED=NO_QUICK_MODE", out.getvalue())
+            self.assertIn("R1_READINESS=NOT_EVALUATED", out.getvalue())
+            self.assertNotIn("PASS_FOCUSED_TESTS_ONLY", out.getvalue())
+
+    def test_quick_failed_test_never_claims_pass(self):
+        class Fail(unittest.TestCase):
+            def test_false(self):
+                self.assertEqual(1, 2)
+        with TemporaryDirectory() as td:
+            root = Path(td)
+            (root / "tests").mkdir()
+            for module in QUICK_MODULES:
+                (root / "tests" / (module.rsplit(".", 1)[-1] + ".py")).write_text(
+                    "# synthetic fixture", encoding="utf-8")
+            out = StringIO()
+            code = validate(root, out=out, quick=True,
+                checkout_checker=lambda _: (None, "a" * 40),
+                discoverer=lambda _: self._one(Fail),
+                minimum_modules=1, minimum_cases=1)
+            self.assertEqual(code, 1)
+            self.assertIn("FAIL_UNPINNED_SYNTHETIC_SMOKE", out.getvalue())
+            self.assertIn("R1_TEST_FAILURES=1", out.getvalue())
 
 
 class CheckoutIntegrityTests(unittest.TestCase):
