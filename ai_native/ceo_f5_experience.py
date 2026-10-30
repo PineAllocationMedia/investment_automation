@@ -149,7 +149,7 @@ def finalize_decision_first_executive(
     annex_intro = original_executive[marker_start:orig_detail_pos]
     signals = ["## Points décisifs pour le CEO — contrôles intégrés"]
     if high_cagr_review:
-        signals.append("- **F1 :** entreprise → VFV → réserve examinés; destination financière non certifiée par ce contrôle.")
+        signals.append("- **F1 :** entreprise → VFV → réserve examinés; rendement total attendu entreprise/VFV non comparable et Room personnel non authentifié : deux blocages indépendants. Une capture ne suffit pas pour résoudre l’ER; aucune allocation certifiée.")
     if public_view_review:
         signals.append("- **F2 :** poids de vue conditionnels; aucun compte privé authentifié.")
     if admission_review:

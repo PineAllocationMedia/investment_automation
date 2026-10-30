@@ -60,6 +60,26 @@ def prepare_high_cagr_destination_review(
         "RESEARCH_PRESENT_ADMISSION_UNVERIFIED" if ir_capsule is not None
         else "RESEARCH_NOT_PROVIDED"
     )
+    # Fourth CEO test: company/VFV total-ER comparability and private Room
+    # are independent. Neither the mere IR presence nor reported PI coverage
+    # certifies a forward return, cost basis, account or allocation.
+    economic_dependency = (
+        "ISSUER_AND_VFV_COMPARABLE_TOTAL_ER_NOT_ESTABLISHED"
+        if ir_capsule is not None
+        else "ORIGINAL_IR_AND_VFV_COMPARABLE_TOTAL_ER_NOT_SUPPLIED"
+    )
+    room_dependency = {
+        "ROOM_EVIDENCE_SUPPORTED":
+            "REPORTED_ROOM_REQUIRES_PRIVATE_ACCOUNT_AUTHENTICATION",
+        "ROOM_CONDITIONAL":
+            "CONDITIONAL_ROOM_REQUIRES_PRIVATE_ACCOUNT_VALIDATION",
+        "ROOM_UNAVAILABLE": "PRIVATE_ACCOUNT_ROOM_NOT_AVAILABLE",
+    }[room]
+    economic_action = (
+        "ESTABLISH_ISSUER_AND_VFV_COMPARABLE_TOTAL_ER_WITH_PRIMARY_EVIDENCE"
+        if ir_capsule is not None
+        else "OBTAIN_ISSUER_LEVEL_IR_AND_COMPARABLE_VFV_RETURN_EVIDENCE"
+    )
     return {
         "status": "COMPLETE_BRANCH_COVERAGE_WITHOUT_FINANCIAL_ADMISSION",
         "analysis_id": analysis_id, "analysis_as_of": cutoff.isoformat(),
@@ -78,15 +98,57 @@ def prepare_high_cagr_destination_review(
         "expected_return_or_alpha": "NOT_ESTABLISHED_BY_ASSEMBLER",
         "benchmark_instrument_access": "NOT_VERIFIED",
         "after_cost_economics": "NOT_CERTIFIED",
+        "decision_stage": "EVIDENCE_GAP_NOT_AN_ALLOCATION_DECISION",
+        "independent_dependencies": {
+            "economic": economic_dependency,
+            "personal_room": room_dependency,
+            "vfv_account_costs_tax": "UNVERIFIED",
+        },
+        "primary_next_action": economic_action,
+        "secondary_next_action":
+            "VERIFY_VFV_ACCOUNT_ACCESS_COSTS_FX_TAX_AND_DATED_PORTFOLIO_ROOM",
         "allocation_percentage": None,
         "trade_authority": "NONE",
-        "review_next": "CHECK_VFV_ACCOUNT_ACCESS_SOURCE_PRICE_COSTS_AND_PORTFOLIO_ROOM",
+        "review_next": economic_action,
         "storage": "NONE",
     }
 
 
 def render_high_cagr_destination_review(review: Mapping[str, Any]) -> str:
     """Fixed, privacy-neutral decision trace; never echo source or holding IDs."""
+    if not isinstance(review, Mapping):
+        raise ValueError("CAPITAL_PATH_RENDER_AUTHORITY_INVALID")
+    research_present = (
+        review.get("company_branch") == "RESEARCH_PRESENT_ADMISSION_UNVERIFIED"
+    )
+    econ = (
+        "ISSUER_AND_VFV_COMPARABLE_TOTAL_ER_NOT_ESTABLISHED"
+        if research_present else
+        "ORIGINAL_IR_AND_VFV_COMPARABLE_TOTAL_ER_NOT_SUPPLIED"
+    )
+    room = review.get("pi_room_reported")
+    room_dependency = {
+        "ROOM_EVIDENCE_SUPPORTED":
+            "REPORTED_ROOM_REQUIRES_PRIVATE_ACCOUNT_AUTHENTICATION",
+        "ROOM_CONDITIONAL":
+            "CONDITIONAL_ROOM_REQUIRES_PRIVATE_ACCOUNT_VALIDATION",
+        "ROOM_UNAVAILABLE": "PRIVATE_ACCOUNT_ROOM_NOT_AVAILABLE",
+    }.get(room)
+    economic_action = (
+        "ESTABLISH_ISSUER_AND_VFV_COMPARABLE_TOTAL_ER_WITH_PRIMARY_EVIDENCE"
+        if research_present else
+        "OBTAIN_ISSUER_LEVEL_IR_AND_COMPARABLE_VFV_RETURN_EVIDENCE"
+    )
+    if (review.get("decision_stage") != "EVIDENCE_GAP_NOT_AN_ALLOCATION_DECISION"
+            or review.get("independent_dependencies") != {
+                "economic": econ, "personal_room": room_dependency,
+                "vfv_account_costs_tax": "UNVERIFIED"
+            }
+            or review.get("primary_next_action") != economic_action
+            or review.get("review_next") != economic_action
+            or review.get("secondary_next_action") !=
+                "VERIFY_VFV_ACCOUNT_ACCESS_COSTS_FX_TAX_AND_DATED_PORTFOLIO_ROOM"):
+        raise ValueError("CAPITAL_PATH_RENDER_AUTHORITY_INVALID")
     if (not isinstance(review, Mapping)
             or review.get("status") != "COMPLETE_BRANCH_COVERAGE_WITHOUT_FINANCIAL_ADMISSION"
             or review.get("strategy_id") != "high-cagr"
@@ -110,6 +172,13 @@ def render_high_cagr_destination_review(review: Mapping[str, Any]) -> str:
     first = ("IR fourni; aucune admission d'entreprise certifiee par cet assembleur."
              if review["company_branch"] == "RESEARCH_PRESENT_ADMISSION_UNVERIFIED"
              else "Recherche IR originale non fournie; aucune admission etablie.")
+    room_label = (
+        "Room PI rapporte; compte original non authentifie."
+        if review["pi_room_reported"] == "ROOM_EVIDENCE_SUPPORTED" else
+        "Room conditionnel; pieces privees a confirmer."
+        if review["pi_room_reported"] == "ROOM_CONDITIONAL" else
+        "Room personnel non etabli."
+    )
     room = ("PI a signale un perimetre conditionnel, non authentifie."
             if review["pi_room_reported"] == "ROOM_CONDITIONAL"
             else "PI ne permet pas de conclure au Portfolio Room prive."
@@ -131,7 +200,18 @@ def render_high_cagr_destination_review(review: Mapping[str, Any]) -> str:
         "**Conclusion :** destination et pourcentages des nouvelles contributions "
         "NON ETABLIS dans cet assemblage. Ne pas omettre l'examen de VFV; "
         "ne pas inventer rendement espere, encaisse ou achat.",
-        "**Prochaine verification precise :** confirmer l'accessibilite de VFV "
-        "et ses frais et contraintes de compte, puis les donnees de Portfolio "
-        "Room avant toute proposition conditionnelle a valider humainement.",
+        "**Deux blocages independants :** (A) rendement total attendu "
+        "entreprise/VFV non compare sur une base economique coherente; "
+        "un CAGR de prix ou un scenario non pondere ne constitue pas un ER net. "
+        "(B) " + room_label + " Une capture de portefeuille ne peut PAS "
+        "reparer l'ER manquant.",
+        "**Decision :** EVIDENCE_GAP : la prudence sur une allocation ne "
+        "conclut pas que les entreprises sont de mauvaise qualite.",
+        "**Prochaine action prioritaire :** rechercher et verifier par "
+        "instrument une comparaison entreprise/VFV du rendement total "
+        "prospectif, des hypothese, horizon, devise, distributions et "
+        "sources; signaler ER_UNAVAILABLE si impossible sans conjecture.",
+        "**Verification parallele et distincte :** compte et eligibilite "
+        "VFV, frais/FX/fiscalite et Room prive date. La reserve reste "
+        "exceptionnelle, aucun achat n'est autorise.",
     ])

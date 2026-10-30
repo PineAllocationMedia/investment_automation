@@ -48,6 +48,57 @@ class HighCagrDecisionPathTests(unittest.TestCase):
         self.assertNotIn("VFV_NORMAL_BENCHMARK_FALLBACK",
                          str(out["integrated_private"]["memory_proposal_nonprivate"]))
 
+    def test_fourth_trial_independent_er_and_room_dependencies(self):
+        for status in ("ROOM_UNAVAILABLE", "ROOM_CONDITIONAL", "ROOM_EVIDENCE_SUPPORTED"):
+            with self.subTest(status=status):
+                output = complete_manual_session(**self.case(room=status))
+                trace = output["high_cagr_destination_review_private"]
+                self.assertEqual(
+                    trace["independent_dependencies"]["economic"],
+                    "ISSUER_AND_VFV_COMPARABLE_TOTAL_ER_NOT_ESTABLISHED")
+                self.assertEqual(
+                    trace["primary_next_action"],
+                    "ESTABLISH_ISSUER_AND_VFV_COMPARABLE_TOTAL_ER_WITH_PRIMARY_EVIDENCE")
+                self.assertEqual(trace["review_next"], trace["primary_next_action"])
+                self.assertEqual(trace["decision_stage"],
+                                 "EVIDENCE_GAP_NOT_AN_ALLOCATION_DECISION")
+                self.assertIsNone(trace["allocation_percentage"])
+                self.assertIn("Deux blocages independants",
+                              output["final_report_private"])
+                self.assertIn("PAS reparer l'ER manquant",
+                              output["final_report_private"])
+                self.assertIn("EVIDENCE_GAP", output["final_report_private"])
+                self.assertNotIn("100 % VFV", output["final_report_private"])
+
+    def test_pi_only_prioritizes_research_not_a_portfolio_screenshot(self):
+        result = complete_manual_session(**self.case(research=False))
+        trace = result["high_cagr_destination_review_private"]
+        self.assertEqual(trace["independent_dependencies"]["economic"],
+                         "ORIGINAL_IR_AND_VFV_COMPARABLE_TOTAL_ER_NOT_SUPPLIED")
+        self.assertEqual(trace["primary_next_action"],
+                         "OBTAIN_ISSUER_LEVEL_IR_AND_COMPARABLE_VFV_RETURN_EVIDENCE")
+        self.assertIn("Deux blocages independants",
+                      result["executive_report_private"])
+
+    def test_fake_resolution_of_er_or_room_is_rejected(self):
+        case = self.case()
+        original = prepare_high_cagr_destination_review(
+            request=case["request"], ir_capsule=case["ir_capsule"],
+            pi_delta=case["pi_delta"])
+        for key, fake in (
+            ("decision_stage", "SUPPORTED_ACTION"),
+            ("review_next", "BUY_VFV"),
+            ("independent_dependencies", {
+                "economic": "VERIFIED",
+                "personal_room": "CERTIFIED",
+                "vfv_account_costs_tax": "VERIFIED"}),
+        ):
+            forged = deepcopy(original)
+            forged[key] = fake
+            with self.subTest(key=key), self.assertRaisesRegex(
+                    ValueError, "RENDER_AUTHORITY_INVALID"):
+                render_high_cagr_destination_review(forged)
+
     def test_pi_only_route_does_not_claim_issuer_qualification(self):
         out = complete_manual_session(**self.case(research=False, room="ROOM_CONDITIONAL"))
         self.assertEqual(out["status"], "PI_ONLY_CONDITIONAL_REPORT_ASSEMBLED")
