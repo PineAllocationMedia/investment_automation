@@ -1037,7 +1037,7 @@ def _selected_guided_private_route(payload: Any) -> str:
     """
     if not isinstance(payload, dict):
         raise ValueError("GUIDED_PRIVATE_ROUTE_REQUEST_INVALID")
-    sources: list[dict[str, Any]] = []
+    sources: list[Any] = []
     if "request" in payload:
         sources.append(payload["request"])
     if "session" in payload:
