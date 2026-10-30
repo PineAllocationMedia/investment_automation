@@ -77,7 +77,7 @@ class NewCapitalPIHandoffTests(unittest.TestCase):
         self.assertNotIn("123.45", json.dumps(preview))
         self.assertNotIn("positions_base", preview)
         self.assertIn("P_LEDGER_FOR_REVIEW_PRIVATE", pi)
-        self.assertNotIn("FORWARD_UNCHANGED", pi)
+        self.assertIsNone(pi["FORWARD_UNCHANGED"])
 
         rc, raw, err = self.cli(first)
         self.assertEqual((rc, err), (0, ""))
