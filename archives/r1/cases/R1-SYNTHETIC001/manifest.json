@@ -1,0 +1,12 @@
+{
+  "schema_version": "RESEARCH_ARCHIVE_MANIFEST_R1",
+  "archive_id": "R1-SYNTHETIC001",
+  "case_kind": "ISSUER",
+  "as_of": "2026-10-30",
+  "strategy_id": "EXPLORATORY",
+  "report_path": "archives/r1/research/R1-SYNTHETIC001/report.md",
+  "report_git_blob_sha": "020921d09a779f35caeab25ca7843be26169cce9",
+  "record_class": "SYNTHETIC_EXAMPLE",
+  "source_authentication": "NOT_CERTIFIED_BY_ARCHIVE",
+  "review_claim": "SYNTHETIC_NOT_REVIEWED"
+}
