@@ -1,6 +1,7 @@
 import copy
 import unittest
 from ai_native.candidate_comparison import compare_candidates
+from ai_native.source_fusion import assemble_source_fusion
 
 
 class CandidateComparisonTests(unittest.TestCase):
@@ -25,6 +26,184 @@ class CandidateComparisonTests(unittest.TestCase):
     def run_comparison(self, **patch):
         d=self.data();d.update(patch)
         return compare_candidates(**d)
+
+    def weighted_case(self, *, missing_probability=False, unknown_dividend=False,
+                      unlinked_quote=False):
+        """Synthetic IR candidates with two distinct quote-linked price traces.
+
+        Even matched quotes are caller-reported, not independent authentication.
+        """
+        d = self.data()
+        observations = []
+        for item in d["candidates"]:
+            val = item["valuation_inputs"]
+            sec = val["security_id"]
+            ref = "SYN-QOBS-" + item["candidate_id"]
+            val["quote_source_ref"] = ref
+            for row in val["scenarios"].values():
+                row["annual_distributions_per_share"] = (
+                    None if unknown_dividend
+                    else [{"amount_per_share": "0", "source_ref": "SYN-ZERO-CASH"}] * 2
+                )
+            item["probability_inputs"] = {
+                "analysis_id": "SYN-C", "analysis_as_of": "2026-10-28",
+                "security_id": sec, "probability_basis": "PAM_ASSUMPTION",
+                "probability_rationale_ref": "SYN-CALIBRATION-UNVERIFIED",
+                "probabilities_pct": {"BEAR": "25", "BASE": "50", "BULL": "25"},
+            }
+            if not unlinked_quote:
+                observations.append({
+                    "observation_id": ref, "fact_id": "SYN-F-" + item["candidate_id"],
+                    "source_id": "SYN-S-" + item["candidate_id"],
+                    "economic_issuer": item["candidate_id"],
+                    "instrument": sec, "metric": "MARKET_PRICE_PER_SHARE",
+                    "period_start": "2026-10-27", "period_end": "2026-10-27",
+                    "currency": val["currency"], "unit": "PER_SHARE",
+                    "definition_basis": "EXCHANGE_LAST_REPORTED",
+                    "consolidation": "SECURITY_CLASS", "value": "100",
+                    "observed_at": "2026-10-28", "published_at": "2026-10-27",
+                    "original_checked_at": "2026-10-28",
+                    "source_kind": "SECONDARY", "classification": "SOURCE_FACT",
+                    "source_locator": "https://example.org/synthetic-source",
+                    "rights_status": "PERMITTED",
+                    "verification_status": "INDICATIVE",
+                })
+        if missing_probability:
+            del d["candidates"][1]["probability_inputs"]
+        source = (assemble_source_fusion(
+            analysis_id="SYN-C", analysis_as_of="2026-10-28",
+            observations=observations) if observations else None)
+        return d, source
+
+    def test_weighted_cashflow_total_irr_spread_is_conditional_and_pre_cost(self):
+        d, source = self.weighted_case()
+        before = copy.deepcopy(d)
+        result = compare_candidates(
+            **d, source_annex=source, ir_research_as_of="2026-10-28")
+        self.assertEqual(d, before)
+        pair = result["pairwise_weighted_cashflow_private"][0]
+        self.assertEqual(pair["status"], "CONDITIONAL_TOTAL_CASHFLOW_IRR_SPREAD_ONLY")
+        self.assertEqual(pair["reason_codes"], [])
+        self.assertEqual(pair["cost_fx_tax"], "NOT_EVALUATED")
+        self.assertIsNotNone(pair["first_minus_second_pp"])
+        self.assertEqual(result["probability_weighted_expected_return"], "NOT_ESTABLISHED")
+        self.assertEqual(result["benchmark_expected_return"], "NOT_ESTABLISHED")
+        self.assertEqual(result["forward_alpha_or_superiority"], "NOT_ESTABLISHED")
+        self.assertEqual(result["recommendation_or_ranking"], "NOT_AUTHORIZED")
+        # Lack of authenticated private account Room is a separate decision
+        # dependency, not a blocker to comparison of economic *assumptions*.
+        self.assertEqual(result["portfolio_allocation"], "NOT_CALCULATED")
+        self.assertEqual(result["trading_authority"], "NONE_CEO_ONLY")
+        from ai_native.reporting import render_report
+        packet = dict(kind="DECISION", analysis_id="SYN-C", as_of="2026-10-28",
+                      strategy="EXPLORATORY", method_version="SYNTHETIC",
+                      status="CONDITIONAL", objective="Sourced model comparison",
+                      decision_line="No return certification",
+                      summary=["Assumptions only"], facts=[],
+                      countercase="Probabilities and future returns may differ",
+                      limitations="Original source not independently checked",
+                      next_action="Verify authentic original sources",
+                      candidate_comparison_private=result)
+        text = render_report(packet)
+        self.assertIn("Sensibilite du rendement total conditionnel", text)
+        self.assertIn("IRR conditionnel des flux totaux", text)
+        self.assertIn("NON calibr", text)
+        self.assertIn("not ranked", text)
+
+    def test_missing_or_unusable_weighted_evidence_stays_not_comparable(self):
+        for variant in ("one_missing", "dividends_unknown", "unlinked_quote",
+                        "fx_mismatch", "quote_date_mismatch", "unknown_research"):
+            with self.subTest(variant=variant):
+                d, src = self.weighted_case(
+                    missing_probability=(variant == "one_missing"),
+                    unknown_dividend=(variant == "dividends_unknown"),
+                    unlinked_quote=(variant == "unlinked_quote"))
+                if variant == "fx_mismatch":
+                    d["candidates"][1]["valuation_inputs"]["currency"] = "USD"
+                if variant == "quote_date_mismatch":
+                    d["candidates"][1]["valuation_inputs"]["quoted_at"] = "2026-10-26"
+                if variant == "unknown_research":
+                    d["candidates"][1]["research_status"] = "UNKNOWN"
+                # A changed price observation date would also require a changed
+                # observation link. The comparator must not silently rewrite it.
+                if variant in {"fx_mismatch", "quote_date_mismatch"}:
+                    with self.assertRaises(ValueError):
+                        compare_candidates(**d, source_annex=src,
+                                           ir_research_as_of="2026-10-28")
+                    continue
+                result = compare_candidates(
+                    **d, source_annex=src, ir_research_as_of="2026-10-28")
+                pair = result["pairwise_weighted_cashflow_private"][0]
+                self.assertEqual(pair["status"], "NOT_COMPARABLE")
+                self.assertIsNone(pair["first_minus_second_pp"])
+                self.assertTrue(pair["reason_codes"])
+
+    def test_integrated_route_reports_quote_evidence_gap_without_source(self):
+        from ai_native.integrated_flow import assemble_manual_run
+        data, _source = self.weighted_case()
+        request = {
+            "analysis_id": "SYN-C", "as_of": "2026-10-28",
+            "objective": "Synthetic economic comparison",
+            "strategy_id": "EXPLORATORY", "kind": "DECISION",
+            "method_version": "SYN-IR",
+        }
+        ir = {
+            "analysis_id": "SYN-C", "research_as_of": "2026-10-28",
+            "summary": ["Conditional probabilities and cashflow premises."],
+            "facts": [{"id": "SYN-F", "status": "INDICATIVE",
+                       "claim": "Synthetic data, no original quote verified."}],
+            "limitations": "Source annex for both quotes absent.",
+            "countercase": "Missing original quote evidence.",
+            "decision_line": "No company preference established.",
+            "next_action": "Obtain original date/currency quote sources.",
+        }
+        out = assemble_manual_run(
+            request, ir, candidate_comparison_inputs=data,
+        )
+        result = out["candidate_comparison_private"]
+        pair = result["pairwise_weighted_cashflow_private"][0]
+        self.assertEqual(pair["status"], "NOT_COMPARABLE")
+        self.assertIsNone(pair["first_minus_second_pp"])
+        self.assertIn("WEIGHTED_CASHFLOW_EVIDENCE_UNAVAILABLE",
+                      pair["reason_codes"])
+        self.assertIn("Sensibilite du rendement total conditionnel",
+                      out["markdown"])
+        self.assertIn("NOT_COMPARABLE", out["markdown"])
+        self.assertNotIn("SYN-CALIBRATION-UNVERIFIED", out["markdown"])
+
+    def test_report_rejects_invented_conditional_alpha(self):
+        from ai_native.reporting import render_report
+        d, src = self.weighted_case()
+        result = compare_candidates(
+            **d, source_annex=src, ir_research_as_of="2026-10-28")
+        packet = dict(kind="DECISION", analysis_id="SYN-C", as_of="2026-10-28",
+                      strategy="EXPLORATORY", method_version="SYNTHETIC",
+                      status="CONDITIONAL", objective="Synthetic",
+                      decision_line="No investment admission",
+                      summary=["Unverified"], facts=[],
+                      countercase="No calibration", limitations="Unverified",
+                      next_action="Verify", candidate_comparison_private=result)
+        broken = copy.deepcopy(packet)
+        broken["candidate_comparison_private"]["pairwise_weighted_cashflow_private"][0][
+            "first_minus_second_pp"] = "999"
+        with self.assertRaisesRegex(ValueError, "COMPARISON_WEIGHTED_SPREAD_MISMATCH"):
+            render_report(broken)
+        forged = copy.deepcopy(packet)
+        forged["candidate_comparison_private"]["pairwise_weighted_cashflow_private"][0][
+            "evidence_authority"] = "CERTIFIED_EXPECTED_ALPHA"
+        with self.assertRaisesRegex(ValueError, "COMPARISON_WEIGHTED_PAIR_ID_OR_AUTHORITY_INVALID"):
+            render_report(forged)
+        deleted = copy.deepcopy(packet)
+        deleted["candidate_comparison_private"]["pairwise_weighted_cashflow_private"] = []
+        with self.assertRaisesRegex(ValueError, "COMPARISON_WEIGHTED_PAIR_COUNT_INVALID"):
+            render_report(deleted)
+        hidden = copy.deepcopy(packet)
+        row = hidden["candidate_comparison_private"]["pairwise_weighted_cashflow_private"][0]
+        row["status"] = "NOT_COMPARABLE"
+        row["first_minus_second_pp"] = None
+        row["reason_codes"] = ["WEIGHTED_CASHFLOW_EVIDENCE_UNAVAILABLE"]
+        with self.assertRaisesRegex(ValueError, "COMPARISON_WEIGHTED_REASONS_MISMATCH"):
+            render_report(hidden)
 
     def test_same_currency_price_scenario_differences(self):
         res=self.run_comparison()

@@ -13,6 +13,8 @@ from itertools import combinations
 from typing import Any, Mapping
 
 from .valuation_scenarios import evaluate_valuation_scenarios
+from .valuation_quote_trace import trace_valuation_quote
+from .conditional_weighted_cashflows import calculate_weighted_cashflows
 
 ROLES = frozenset({"SECURITY", "REFERENCE_ETF"})
 CONFIDENCE = frozenset({"SPECIALIST_REPORTED", "UNKNOWN"})
@@ -47,6 +49,8 @@ def _currency(value: Any, name: str) -> str:
 def compare_candidates(
     *, analysis_id: str, analysis_as_of: str, strategy_id: str,
     account_currency: str, candidates: list[Mapping[str, Any]],
+    source_annex: Mapping[str, Any] | None = None,
+    ir_research_as_of: str | None = None,
 ) -> dict[str, Any]:
     """Compute guarded *scenario-to-scenario* pp differences, never Expected Return.
 
@@ -60,6 +64,8 @@ def compare_candidates(
     acct = _currency(account_currency, "account_currency")
     if not isinstance(candidates, list) or not (2 <= len(candidates) <= 6):
         raise ValueError("CANDIDATE_COUNT_MUST_BE_2_TO_6")
+    if ir_research_as_of is not None and _date(ir_research_as_of, "ir_research_as_of") > cutoff:
+        raise ValueError("CANDIDATE_IR_DATE_AFTER_ANALYSIS")
     records: list[dict[str, Any]] = []
     ids: set[str] = set()
     securities: set[str] = set()
@@ -112,12 +118,37 @@ def compare_candidates(
             reasons.append("SCENARIO_INPUT_BASIS_UNAVAILABLE")
         if len(set(measure.values())) != 1:
             reasons.append("MIXED_RETURN_MEASURE_WITHIN_CANDIDATE")
+        # Optional *actual* M2 weighted cashflow path. Recompute from supplied
+        # valuation/quote/probability inputs, never accept a caller's invented
+        # weighted-return result or a precomputed prospective alpha.
+        weighted = None
+        if "probability_inputs" in candidate:
+            probs = candidate["probability_inputs"]
+            if not isinstance(probs, Mapping):
+                raise ValueError("CANDIDATE_PROBABILITY_INPUTS_MAPPING_REQUIRED")
+            trace = trace_valuation_quote(
+                valuation=result, source_annex=source_annex,
+                ir_research_as_of=ir_research_as_of or cutoff,
+            )
+            weighted = calculate_weighted_cashflows(
+                valuation_inputs=valuation,
+                valuation_scenarios=result,
+                quote_trace=trace,
+                probability_inputs=probs,
+            )
+            if (weighted["security_id_private"] != security
+                    or weighted["model_expected_return_authority"] != "NOT_CERTIFIED"
+                    or weighted["probability_calibration"] != "NOT_PERFORMED"
+                    or weighted["account_costs_fx_tax"] != "NOT_EVALUATED"
+                    or weighted["trading_authority"] != "NONE"):
+                raise ValueError("CANDIDATE_WEIGHTED_MODEL_AUTHORITY_INVALID")
         records.append({"candidate_id": cid, "role": role, "security_id": security,
                         "currency": result["currency"], "quoted_at": result["quoted_at"], "account_currency": acct,
                         "horizon_years": result["horizon_years"],
                         "research_method_version": method, "research_status": status,
                         "portfolio_room_status": room, "principal_failure_ref": risk_ref,
                         "valuation_private": deepcopy(result),
+                        "weighted_cashflow_model_private": deepcopy(weighted),
                         "scenario_return_pct_annual": returns,
                         "scenario_return_measure": measure,
                         "qualification_codes": reasons,
@@ -125,6 +156,9 @@ def compare_candidates(
     if len(horizons) != 1:
         raise ValueError("CANDIDATES_MUST_USE_SAME_HORIZON")
     pairs = []
+    weighted_pairs = []
+    has_weighted = any(row["weighted_cashflow_model_private"] is not None
+                       for row in records)
     for first, second in combinations(records, 2):
         differences: dict[str, Any] = {}
         reasons = []
@@ -160,11 +194,54 @@ def compare_candidates(
         pairs.append({"first_candidate_id": first["candidate_id"],
                       "second_candidate_id": second["candidate_id"],
                       "by_scenario": differences})
+        if has_weighted:
+            a, b = (first["weighted_cashflow_model_private"],
+                    second["weighted_cashflow_model_private"])
+            weighted_reasons = []
+            if a is None or b is None:
+                weighted_reasons.append("PROBABILITIES_OR_MODEL_NOT_SUPPLIED_FOR_BOTH")
+            else:
+                required_measure = "IRR_ON_WEIGHTED_YEAR_END_CASHFLOWS_NOT_MEAN_IRR"
+                if a["measure"] != required_measure or b["measure"] != required_measure:
+                    weighted_reasons.append("EXPLICIT_TOTAL_CASHFLOW_IRR_MISSING")
+                if (a["status"] != "CONDITIONAL_CASHFLOW_MODEL_NOT_CERTIFIED"
+                        or b["status"] != "CONDITIONAL_CASHFLOW_MODEL_NOT_CERTIFIED"
+                        or a["conditional_annualized_pct"] is None
+                        or b["conditional_annualized_pct"] is None):
+                    weighted_reasons.append("WEIGHTED_CASHFLOW_EVIDENCE_UNAVAILABLE")
+            if first["currency"] != acct or second["currency"] != acct:
+                weighted_reasons.append("ACCOUNT_CURRENCY_FX_MODEL_MISSING")
+            if first["quoted_at"] != second["quoted_at"]:
+                weighted_reasons.append("QUOTE_OBSERVATION_DATE_MISMATCH")
+            if (first["research_status"] == "UNKNOWN"
+                    or second["research_status"] == "UNKNOWN"):
+                weighted_reasons.append("RESEARCH_STATUS_UNKNOWN")
+            # Room is an independent decision gate: lack of holdings does not
+            # nullify a reproducible economic sensitivity calculation.
+            spread = None
+            if not weighted_reasons:
+                left = Decimal(a["conditional_annualized_pct"])
+                right = Decimal(b["conditional_annualized_pct"])
+                if not left.is_finite() or not right.is_finite():
+                    raise ValueError("CANDIDATE_WEIGHTED_RETURN_NONFINITE")
+                spread = str(left - right)
+            weighted_pairs.append({
+                "first_candidate_id": first["candidate_id"],
+                "second_candidate_id": second["candidate_id"],
+                "status": ("CONDITIONAL_TOTAL_CASHFLOW_IRR_SPREAD_ONLY"
+                           if spread is not None else "NOT_COMPARABLE"),
+                "first_minus_second_pp": spread,
+                "reason_codes": sorted(set(weighted_reasons)),
+                "return_basis": "IRR_ON_WEIGHTED_YEAR_END_CASHFLOWS_NOT_MEAN_IRR",
+                "evidence_authority": "MODEL_INPUTS_STRUCTURALLY_CHECKED_NOT_CERTIFIED",
+                "cost_fx_tax": "NOT_EVALUATED",
+            })
     return {"status": "CONDITIONAL_RESEARCH_COMPARISON_ONLY",
             "analysis_id": run_id, "analysis_as_of": cutoff,
             "strategy_id": strategy, "account_currency": acct,
             "comparison_horizon_years": next(iter(horizons)),
             "candidates_private": records, "pairwise_scenario_differences_private": pairs,
+            "pairwise_weighted_cashflow_private": weighted_pairs,
             "probability_weighted_expected_return": "NOT_ESTABLISHED",
             "benchmark_expected_return": "NOT_ESTABLISHED",
             "forward_alpha_or_superiority": "NOT_ESTABLISHED",

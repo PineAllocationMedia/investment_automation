@@ -357,8 +357,12 @@ def assemble_manual_run(
                 or candidate_comparison_inputs["analysis_as_of"] != as_of
                 or candidate_comparison_inputs["strategy_id"] != strategy):
             raise ValueError("CANDIDATE_COMPARISON_MANDATE_MISMATCH")
-        candidate_comparison = compare_candidates(**candidate_comparison_inputs)
-        limits.append("Candidate comparison contains scenario-to-scenario arithmetic only; no authenticated source, FX-based account return, probability-weighted Expected Return, VFV forward alpha, ranking or trade authority. See private annex.")
+        candidate_comparison = compare_candidates(
+            **candidate_comparison_inputs,
+            source_annex=source_annex,
+            ir_research_as_of=ir_cutoff.isoformat(),
+        )
+        limits.append("Candidate comparison uses supplied scenario inputs and, where separately supplied for BOTH candidates, recomputed probability-weighted year-end total-cashflow IRR sensitivities. These are conditional pre-cost model spreads, NOT calibrated Expected Return, source certification, account FX/tax net returns, VFV alpha, rankings or trade authority. See private annex.")
         status = "CONDITIONAL"
 
     historical_comparison = None
