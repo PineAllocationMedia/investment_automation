@@ -576,6 +576,8 @@ def _portfolio_followup_draft(raw: Any) -> dict[str, Any]:
         ],
         "previous_record_authenticity": "NOT_ESTABLISHED_UNKEYED_CHECKSUM",
         "current_portfolio_observation": "NOT_SUPPLIED",
+        "source_authentication": "NOT_PERFORMED",
+        "method_load_verification": "NOT_PERFORMED",
         "project_invocation": "NONE",
         "storage": "NONE",
         "readiness": "NOT_EVALUATED",
