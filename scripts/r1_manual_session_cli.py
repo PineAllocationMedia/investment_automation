@@ -89,6 +89,7 @@ SAFE_ERROR_CODES = frozenset({
     "GUIDED_PRIVATE_CLOSEOUT_MEMORY_METADATA_INVALID",
     "GUIDED_PRIVATE_CLOSEOUT_CURRENT_OBSERVATION_REQUIRED",
     "GUIDED_RESEARCH_CLOSEOUT_IR_ONLY_REQUIRED",
+    "GUIDED_PORTFOLIO_CLOSEOUT_PI_ONLY_REQUIRED",
     "SCREENSHOT_REENTRY_INPUT_INVALID",
     "SCREENSHOT_REENTRY_NOT_PENDING",
     "SCREENSHOT_REENTRY_SOURCE_INVALID",
@@ -440,6 +441,34 @@ def _sealed_current_private_portfolio(payload: dict[str, Any],
     return seal_private_portfolio_snapshot(original)
 
 
+def _private_portfolio_closeout(
+    payload: dict[str, Any], session: dict[str, Any],
+) -> dict[str, Any]:
+    """Explicit PI-only result + original private M3 copy, never research."""
+    if (session.get("route") != "CC_PI_CC"
+            or session.get("status") != "PI_ONLY_CONDITIONAL_REPORT_ASSEMBLED"):
+        raise ValueError("GUIDED_PORTFOLIO_CLOSEOUT_PI_ONLY_REQUIRED")
+    portfolio = _sealed_current_private_portfolio(payload, session)
+    operator = _private_operator_packet(payload, session)
+    if (operator["continuation_private"] is not None
+            or not isinstance(operator["report_private"], str)
+            or not operator["report_private"].strip()):
+        raise ValueError("PRIVATE_PORTFOLIO_CLOSEOUT_REPORT_UNAVAILABLE")
+    return {
+        "status": "PRIVATE_PORTFOLIO_CLOSEOUT_COPY_NOT_STORED",
+        "operator_packet_private": operator,
+        "private_portfolio_snapshot_envelope": portfolio,
+        "next_manual_step": "HUMAN_REVIEW_THEN_SAVE_ONLY_IN_APPROVED_PRIVATE_ARCHIVE",
+        "archive_integrity": "UNKEYED_SHA256_COPY_CHECK_ONLY_NOT_AUTHENTICITY",
+        "archive_protection": "NOT_ESTABLISHED",
+        "source_authentication": "NOT_PERFORMED",
+        "project_invocation": "NONE",
+        "storage": "NONE",
+        "readiness": "NOT_EVALUATED",
+        "trading_authority": "NONE",
+    }
+
+
 def _private_integrated_closeout(payload: dict[str, Any],
                                  session: dict[str, Any]) -> dict[str, Any]:
     """One deliberately opted-in private CC/IR/PI closing packet.
@@ -593,6 +622,47 @@ def _check_guided_research_archive_memory(payload: dict[str, Any]) -> None:
         raise ValueError("GUIDED_PRIVATE_CLOSEOUT_MEMORY_METADATA_INVALID") from exc
 
 
+def _check_guided_current_m3_observation(
+    payload: dict[str, Any], session: dict[str, Any],
+) -> None:
+    """Shared original dated M3 admission for opt-in PI archive routes."""
+    ledger = session.get("portfolio_observation_private")
+    if not isinstance(ledger, dict) or ledger.get("private_scope") is not True:
+        raise ValueError("GUIDED_PRIVATE_CLOSEOUT_CURRENT_OBSERVATION_REQUIRED")
+    raw = payload.get("observation_inputs")
+    capture = session.get("work_blossom_capture_private")
+    if capture is not None:
+        if (raw is not None
+                or capture.get("status") !=
+                    "PRIVATE_OBSERVATION_PACKET_PREPARED_NOT_SENT"):
+            raise ValueError("GUIDED_PRIVATE_CLOSEOUT_CURRENT_OBSERVATION_REQUIRED")
+        raw = capture.get("observation_inputs_private")
+    if not isinstance(raw, dict):
+        raise ValueError("GUIDED_PRIVATE_CLOSEOUT_CURRENT_OBSERVATION_REQUIRED")
+    try:
+        checked = seal_private_portfolio_snapshot(raw)
+        if (checked["private_snapshot"]["analysis_id"] != request["analysis_id"]
+                or checked["private_snapshot"]["analysis_as_of"] != request["as_of"]
+                or prepare_observation_ledger(**raw) != ledger):
+            raise ValueError
+    except (ValueError, KeyError, TypeError) as exc:
+        raise ValueError("GUIDED_PRIVATE_CLOSEOUT_CURRENT_OBSERVATION_REQUIRED") from exc
+
+
+def _preflight_guided_portfolio_closeout(
+    payload: dict[str, Any], session: dict[str, Any],
+) -> None:
+    """PI-only private copies are possible only with a current original M3."""
+    request = payload.get("request")
+    if (not isinstance(request, dict)
+            or request.get("research_needed") is not False
+            or request.get("portfolio_needed") is not True
+            or session.get("route") != "CC_PI_CC"
+            or "memory_inputs" in payload):
+        raise ValueError("GUIDED_PORTFOLIO_CLOSEOUT_PI_ONLY_REQUIRED")
+    _check_guided_current_m3_observation(payload, session)
+
+
 def _preflight_guided_research_closeout(
     payload: dict[str, Any], session: dict[str, Any],
 ) -> None:
@@ -624,27 +694,7 @@ def _preflight_guided_private_closeout(
             or session.get("route") != "CC_IR_PI_CC"):
         raise ValueError("GUIDED_PRIVATE_CLOSEOUT_IR_PI_REQUIRED")
     _check_guided_research_archive_memory(payload)
-    ledger = session.get("portfolio_observation_private")
-    if not isinstance(ledger, dict) or ledger.get("private_scope") is not True:
-        raise ValueError("GUIDED_PRIVATE_CLOSEOUT_CURRENT_OBSERVATION_REQUIRED")
-    raw = payload.get("observation_inputs")
-    capture = session.get("work_blossom_capture_private")
-    if capture is not None:
-        if (raw is not None
-                or capture.get("status") !=
-                    "PRIVATE_OBSERVATION_PACKET_PREPARED_NOT_SENT"):
-            raise ValueError("GUIDED_PRIVATE_CLOSEOUT_CURRENT_OBSERVATION_REQUIRED")
-        raw = capture.get("observation_inputs_private")
-    if not isinstance(raw, dict):
-        raise ValueError("GUIDED_PRIVATE_CLOSEOUT_CURRENT_OBSERVATION_REQUIRED")
-    try:
-        checked = seal_private_portfolio_snapshot(raw)
-        if (checked["private_snapshot"]["analysis_id"] != request["analysis_id"]
-                or checked["private_snapshot"]["analysis_as_of"] != request["as_of"]
-                or prepare_observation_ledger(**raw) != ledger):
-            raise ValueError
-    except (ValueError, KeyError, TypeError) as exc:
-        raise ValueError("GUIDED_PRIVATE_CLOSEOUT_CURRENT_OBSERVATION_REQUIRED") from exc
+    _check_guided_current_m3_observation(payload, session)
 
 
 def _screenshot_retry_template(
@@ -939,7 +989,7 @@ def run(*, output: str, instream: TextIO, outstream: TextIO,
             resume_payload, result = _resume_manual_transfer(payload)
         elif output == "sealed-followup-operator":
             restored_payload, result = _reenter_sealed_followup(payload)
-        elif (output in {"guided-operator", "guided-integrated-closeout"} and isinstance(payload, dict)
+        elif (output in {"guided-operator", "guided-integrated-closeout", "guided-portfolio-closeout"} and isinstance(payload, dict)
               and "pending_session" in payload):
             # One explicit human-entered visual fallback. The validated
             # source is an already transcribed dated screenshot, not a
@@ -965,13 +1015,16 @@ def run(*, output: str, instream: TextIO, outstream: TextIO,
             guided_resuming = True
             guided_sealed_followup = True
             resume_payload, result = _reenter_sealed_followup(payload)
-        elif (output in {"guided-operator", "guided-integrated-closeout", "guided-research-closeout"} and isinstance(payload, dict)
+        elif (output in {"guided-operator", "guided-integrated-closeout", "guided-research-closeout", "guided-portfolio-closeout"} and isinstance(payload, dict)
               and ("continuation_private" in payload
                    or ("specialist_result" in payload and "request" not in payload))):
             guided_resuming = True
             resume_payload, result = _resume_manual_transfer(payload)
         else:
             result = evaluate(payload)
+        if output == "guided-portfolio-closeout":
+            _preflight_guided_portfolio_closeout(
+                resume_payload if guided_resuming else payload, result)
         if output == "guided-research-closeout":
             _preflight_guided_research_closeout(
                 resume_payload if guided_resuming else payload, result)
@@ -1059,7 +1112,7 @@ def run(*, output: str, instream: TextIO, outstream: TextIO,
         except (ValueError, TypeError, KeyError, RecursionError):
             errstream.write("R1_PROCESSING_ERROR: private operator packet unavailable.\n")
             return 3
-    elif output in {"guided-operator", "guided-integrated-closeout", "guided-research-closeout"}:
+    elif output in {"guided-operator", "guided-integrated-closeout", "guided-research-closeout", "guided-portfolio-closeout"}:
         # One explicitly PRIVATE packet from the existing operator and method
         # components. Assemble fully before emitting any sensitive output.
         try:
@@ -1097,6 +1150,34 @@ def run(*, output: str, instream: TextIO, outstream: TextIO,
                 "method_load_verification": "NOT_PERFORMED",
                 "source_authentication": "NOT_PERFORMED",
             }
+            if output == "guided-portfolio-closeout":
+                # The PI-only path carries a single M3 copy and conditional
+                # CC report with the original private scoped observation,
+                # never an IR case, forced research or automatic archive.
+                final_portfolio = (
+                    _private_portfolio_closeout(actual_payload, result)
+                    if continuation is None else None
+                )
+                guided = {
+                    "status": (
+                        "PRIVATE_GUIDED_PORTFOLIO_CLOSEOUT_COPY_NOT_STORED"
+                        if final_portfolio is not None else
+                        "PRIVATE_GUIDED_PORTFOLIO_CLOSEOUT_PENDING_MANUAL_PI"
+                    ),
+                    "guided_operator_private": guided,
+                    "private_portfolio_closeout": final_portfolio,
+                    "next_manual_step": (
+                        "HUMAN_REVIEW_THEN_SAVE_ONLY_IN_APPROVED_PRIVATE_ARCHIVE"
+                        if final_portfolio is not None else
+                        "COPY_ONLY_PI_PROMPT_AND_KEEP_CC_RESUME_PRIVATE"
+                    ),
+                    "archive_protection": "NOT_ESTABLISHED",
+                    "source_authentication": "NOT_PERFORMED",
+                    "project_invocation": "NONE",
+                    "storage": "NONE",
+                    "readiness": "NOT_EVALUATED",
+                    "trading_authority": "NONE",
+                }
             if output == "guided-research-closeout":
                 # Keep IR-only research and manual archiving in one explicit
                 # user-selected private route; same archive as private-closeout.
@@ -1277,9 +1358,9 @@ def main(argv: list[str] | None = None, *, instream: TextIO | None = None,
          outstream: TextIO | None = None,
          errstream: TextIO | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--output", choices=("request-template", "intake-review", "status", "report", "handoffs", "next-handoff", "continuation", "operator-packet", "resume-operator", "guided-operator", "guided-integrated-closeout", "guided-research-closeout", "candidate-deep-dive-draft", "method-handoff", "specialist-prompt", "followup-draft", "sealed-followup-draft", "sealed-followup-operator", "integrated-followup-draft", "integrated-followup-operator", "private-case", "private-case-envelope", "private-closeout", "private-integrated-closeout", "private-portfolio-snapshot", "review-queue"),
+    parser.add_argument("--output", choices=("request-template", "intake-review", "status", "report", "handoffs", "next-handoff", "continuation", "operator-packet", "resume-operator", "guided-operator", "guided-integrated-closeout", "guided-research-closeout", "guided-portfolio-closeout", "candidate-deep-dive-draft", "method-handoff", "specialist-prompt", "followup-draft", "sealed-followup-draft", "sealed-followup-operator", "integrated-followup-draft", "integrated-followup-operator", "private-case", "private-case-envelope", "private-closeout", "private-integrated-closeout", "private-portfolio-snapshot", "review-queue"),
                         default="status",
-                        help="request-template is an inert blank case and reads no stdin; intake-review reads a private request-only draft and returns field names/status without values; status is redacted; report, handoffs, next-handoff, continuation, operator-packet, resume-operator, guided-operator, guided-integrated-closeout, guided-research-closeout, candidate-deep-dive-draft, method-handoff, specialist-prompt, followup-draft, sealed-followup-draft, sealed-followup-operator, integrated-followup-draft, integrated-followup-operator, private-case, private-case-envelope, private-closeout, private-integrated-closeout, private-portfolio-snapshot and review-queue require a private terminal")
+                        help="request-template is an inert blank case and reads no stdin; intake-review reads a private request-only draft and returns field names/status without values; status is redacted; report, handoffs, next-handoff, continuation, operator-packet, resume-operator, guided-operator, guided-integrated-closeout, guided-research-closeout, guided-portfolio-closeout, candidate-deep-dive-draft, method-handoff, specialist-prompt, followup-draft, sealed-followup-draft, sealed-followup-operator, integrated-followup-draft, integrated-followup-operator, private-case, private-case-envelope, private-closeout, private-integrated-closeout, private-portfolio-snapshot and review-queue require a private terminal")
     opts = parser.parse_args(argv)
     return run(output=opts.output, instream=instream or sys.stdin,
                outstream=outstream or sys.stdout, errstream=errstream or sys.stderr)
