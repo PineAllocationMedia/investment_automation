@@ -23,6 +23,9 @@ from .public_portfolio_reference import (
     prepare_public_portfolio_reference, prepare_public_reference_from_work_table,
     render_public_portfolio_reference,
 )
+from .attested_visible_concentration import (
+    prepare_attested_visible_concentration, render_attested_visible_concentration,
+)
 from .portfolio_exposure import aggregate_portfolio_exposures
 from .portfolio_room import prepare_portfolio_room_review
 from .new_capital_flow import prepare_new_capital_projection
@@ -71,6 +74,7 @@ def complete_manual_session(
     work_blossom_inputs: Mapping[str, Any] | None = None,
     public_reference_inputs: Mapping[str, Any] | None = None,
     public_reference_table_inputs: Mapping[str, Any] | None = None,
+    public_scope_attestation_inputs: Mapping[str, Any] | None = None,
     exposure_classifications: Mapping[str, Any] | None = None,
     room_assessment_inputs: Mapping[str, Any] | None = None,
     source_evidence_inputs: Mapping[str, Any] | None = None,
@@ -150,6 +154,11 @@ def complete_manual_session(
     # authority. Do not let any PI inputs silently mix into this route.
     public_reference = None
     public_reference_report = None
+    public_scope_review = None
+    if (public_scope_attestation_inputs is not None
+            and public_reference_inputs is None
+            and public_reference_table_inputs is None):
+        raise ValueError("ATTESTED_VIEW_REQUIRES_PUBLIC_REFERENCE")
     if public_reference_inputs is not None and public_reference_table_inputs is not None:
         raise ValueError("PUBLIC_REFERENCE_AMBIGUOUS_SOURCE_FORMAT")
     if public_reference_inputs is not None or public_reference_table_inputs is not None:
@@ -173,6 +182,11 @@ def complete_manual_session(
             public_reference = prepare_public_portfolio_reference(
                 public_reference_inputs, **case_identity)
         public_reference_report = render_public_portfolio_reference(public_reference)
+        if public_scope_attestation_inputs is not None:
+            public_scope_review = prepare_attested_visible_concentration(
+                public_reference, public_scope_attestation_inputs)
+            public_reference_report += "\n\n" + render_attested_visible_concentration(
+                public_scope_review)
         if route == "CC_IR_CC":
             # Portable manual IR request only; never self-invoke a Project.
             # Keep the source values marked as a reference, not IR-verified.
@@ -350,6 +364,7 @@ def complete_manual_session(
                "work_blossom_capture_private": visual_capture,
                "public_reference_private": public_reference,
                "public_reference_report_private": public_reference_report,
+               "public_scope_attested_concentration_private": public_scope_review,
                "portfolio_exposures_private": exposures,
                "portfolio_room_review_private": None,
                "exceptional_lifecycle_review_private": None,
