@@ -55,7 +55,10 @@ intelligence, user-initiated deep research, layered reports readable in at
 most ten minutes and about one hour of ordinary human interaction per week.
 No automatic cross-Project coordination, Work/Blossom integration or scheduled
 access is assumed. Preserve research provenance, relevant dated outcomes,
-versioned prompts and separate secure personal financial storage.
+versioned prompts and one private PAM GitHub archive: reviewed non-sensitive
+research in readable form and confidential records only as externally verified
+authenticated ciphertext, with keys/plaintext outside GitHub. Directory paths
+are not per-agent access control; real secure restoration remains unverified.
 
 **CEO update (2026-10-28):** after the pending Command Center T13 handoff,
 prioritize **a first complete integrated AI-native Financial Systems build**

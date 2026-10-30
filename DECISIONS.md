@@ -3856,3 +3856,15 @@ Read-only inventory and verified-preservation planning remain part of the design
 ### Expected impact
 
 Focus resources on a complete, coherent first functional release candidate and then evaluate and refine the whole user experience, without redoing isolated discovery pilots indefinitely. If all 36 cannot be realized, return the explicit coverage gaps and a CEO decision package, not an unsupported claim of completion.
+
+---
+
+## [2026-10-30] R1 Financial Systems — single-repository tiered archive
+
+**CEO decision:** select the *existing private* `PineAllocationMedia/investment_automation` GitHub repository as the primary archive for PAM Financial Systems research covering any authorized issuer, person, account, portfolio or multiportfolio case, rather than a second repository, independent cloud or PC destination. Preserve the CEO's 2026-10-29 option B: **manual, human-controlled archive and retrieval**. Only the storage-location interpretation changes, not the 36 design decisions, approved investment policies, source licensing, confidentiality or CEO control.
+
+**Readable Tier I/II research:** only human-reviewed, rights-/privacy-/consent-cleared, de-identified research summaries, versioned methods, evidence references and minimally identifying index records may be committed to the existing private repository via a separately authorized PR and CEO merge. Never presume private-repo visibility alone renders private case contents safe to upload. Original dates, actual source/method status, countercases and corrections remain traceable.
+
+**Sensitive Tier III records:** any personal/third-party portfolio holdings, account/transaction/tax information, private screenshots, restricted evidence, or confidential raw case envelopes may be placed in this repo ONLY after separate independent authentication of externally generated **encrypted ciphertext**, with encryption/decryption keys, secrets and plaintext retained outside all GitHub surfaces. Confirm source rights, third-party consent, current repo/collaborator/app access, filename/metadata minimization, retention, backups and human-controlled restore before use. Any repo reader can view paths and ciphertext; directories are not ACLs. Existing private-case JSON and unkeyed SHA-256 are not encryption; never upload unencrypted financial payloads, keys or credentials to Git history, PRs, Actions or logs. **No sensitive uploads are authorized until security verification and a separate CEO release.**
+
+GitHub content is not automatically loaded by CC, IR or PI; actual connected read and real re-supply must be verified. No automatic Project calls, archival writes, new financial-data subscription, trading, deployment or V2 promotion. R1 decision #32 remains PARTIAL, and 36-decision acceptance remains after integrated assembly. This protected amendment is explicitly CEO-requested; canonical merge remains a separate CEO decision.

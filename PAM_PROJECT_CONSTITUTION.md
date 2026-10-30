@@ -102,9 +102,13 @@ historical point-in-time authority. The investor alone decides trades.
 The initial operating target is a concise weekly intelligence briefing plus
 on-demand research, reports readable in about ten minutes or less, and
 approximately one hour of routine human work per week; all are **unvalidated
-targets**. Use tiered institutional memory: GitHub for authoritative methods,
-decisions, prompt versions and selected research history; protect personal
-financial records separately. No private portfolio disclosure to Media.
+targets**. Use tiered institutional memory: the existing private GitHub repository may hold
+approved methods, privacy-reviewed research and ONLY externally encrypted
+confidential case data under the CEO's 2026-10-30 single-repository choice.
+Keys, plaintext and credentials remain outside GitHub and its PRs, history,
+Actions and logs. No folder-specific reader permissions are implied. Before any
+Tier-III upload, independently check encryption, rights, access and restoration.
+No private portfolio disclosure to Media.
 
 The **2026-10-28 CEO decision** supersedes the pilot-first sequence **only for
 new AI-native Financial Systems delivery**. After the pending Command Center
