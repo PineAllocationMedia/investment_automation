@@ -560,6 +560,16 @@ def _check_guided_research_archive_memory(payload: dict[str, Any]) -> None:
     memory = payload.get("memory_inputs")
     if not isinstance(memory, dict):
         raise ValueError("GUIDED_PRIVATE_CLOSEOUT_MEMORY_REQUIRED")
+    if set(memory) - {
+            "report_id", "instruction_version", "recorded_at",
+            "parent_report_id", "accessible_parent"}:
+        raise ValueError("GUIDED_PRIVATE_CLOSEOUT_MEMORY_METADATA_INVALID")
+    parent = memory.get("accessible_parent")
+    if (parent is not None and (
+            not isinstance(parent, dict)
+            or not isinstance(memory.get("parent_report_id"), str)
+            or parent.get("report_id") != memory.get("parent_report_id"))):
+        raise ValueError("GUIDED_PRIVATE_CLOSEOUT_MEMORY_METADATA_INVALID")
     report_id = memory.get("report_id")
     instruction_version = memory.get("instruction_version")
     recorded_at = memory.get("recorded_at")
