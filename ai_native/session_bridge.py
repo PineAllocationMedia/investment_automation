@@ -284,6 +284,40 @@ def complete_manual_session(
             pi_request["P_LEDGER_HANDOFF_AUTHORITY"] = (
                 "CALLER_REPORTED_PRIVATE_OBSERVATION_MANUAL_REVIEW_ONLY"
             )
+            if contribution_inputs is not None:
+                # Reuse the SAME CC gross/cost/funding calculation that the
+                # final report will recompute after real PI returns. Previously
+                # PI received the dated P-ledger but never saw the requested
+                # NEW-cash percentage scenario it was expected to review.
+                # Expose only the existing bounded, amount-free summary to
+                # the authorized PI Project, not raw private costs, balances,
+                # share counts, quotes, or a policy-generated allocation.
+                pre_pi = prepare_new_capital_projection(
+                    analysis_id=_required(request, "analysis_id"),
+                    analysis_as_of=_date(_required(request, "as_of"), "request.as_of"),
+                    portfolio_as_of=observation["observed_on"],
+                    contribution_inputs=contribution_inputs,
+                    cost_inputs=cost_inputs,
+                )
+                if (pre_pi.get("execution_status") !=
+                        "UNAVAILABLE_NOT_EXECUTION_CERTIFIED"
+                        or pre_pi.get("storage") != "NONE"):
+                    raise ValueError("PI_CONTRIBUTION_PREVIEW_AUTHORITY_INVALID")
+                pi_request["NEW_CAPITAL_FOR_REVIEW_PRIVATE"] = {
+                    "status": "CALLER_SUPPLIED_SCENARIO_NOT_ALLOCATION_POLICY",
+                    "analysis_id": _required(request, "analysis_id"),
+                    "portfolio_observed_on": observation["observed_on"],
+                    "new_capital_summary_private": deepcopy(
+                        pre_pi["report_summary_private"]),
+                    "limitations": list(pre_pi["limitations"]),
+                    "source_authentication": "NOT_PERFORMED",
+                    "policy_or_trade_authority": "NONE",
+                    "next_action": (
+                        "Review the caller-supplied percentages against dated "
+                        "holdings, account limitations and known/UNKNOWN costs; "
+                        "return PI_DELTA, not an order or endorsed allocation."
+                    ),
+                }
             handoffs["copy_ready_private"]["PI_REQUEST"] = json.dumps(
                 pi_request, ensure_ascii=False, sort_keys=True,
                 indent=2, allow_nan=False,
