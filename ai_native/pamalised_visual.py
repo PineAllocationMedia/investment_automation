@@ -63,7 +63,24 @@ def _view(model: Mapping[str, Any], executive: str, detail: str,
     mode = _safe(req.get("strategy_id"), limit=80)
     horizon = _safe(req.get("horizon"), limit=80)
     objective = _safe(req.get("objective"), limit=240)
-    decision = _safe(ir.get("decision_line") or _extract_decision(executive), limit=320)
+    capital = model.get("high_cagr_destination_review_private")
+    # This input is verified against the existing deterministic capital-path
+    # output by render_pamalised_pdf before reaching this layout function.
+    if capital is not None:
+        if (not isinstance(capital, Mapping)
+                or capital.get("decision_stage") !=
+                    "EVIDENCE_GAP_NOT_AN_ALLOCATION_DECISION"
+                or capital.get("allocation_percentage") is not None
+                or capital.get("trade_authority") != "NONE"):
+            raise ValueError("PAMALISED_HIGH_CAGR_VISUAL_AUTHORITY_INVALID")
+        decision = (
+            "EVIDENCE_GAP — ni la sélection d’une entreprise, ni le repli "
+            "VFV, ni une réserve exceptionnelle ne sont financièrement "
+            "admis par les informations actuellement vérifiées. "
+            "Aucun pourcentage personnel recommandé."
+        )
+    else:
+        decision = _safe(ir.get("decision_line") or _extract_decision(executive), limit=320)
     countercase = _safe(ir.get("countercase"), limit=330)
     next_action = _safe(ir.get("next_action") or pi.get("next_action"), limit=300)
     summary = ([s for s in ir.get("summary", []) if isinstance(s, str) and s.strip()]
@@ -343,10 +360,24 @@ def _view(model: Mapping[str, Any], executive: str, detail: str,
         ("PROPOSITION / SIMULATION", allocation_text or "NON ÉTABLIE - aucun poids inféré"),
     ]))
     story.append(Spacer(1, 12))
-    story.append(box(
-        "<b>LA NUANCE QUI COMPTE</b> La conclusion reste soumise "
-        "aux limites de preuve décrites ci-dessous.", PALE, small,
-    ))
+    if capital is not None:
+        # Both deficiencies are independently decisive, even if PI reports
+        # a Room-supported state. A newer screenshot cannot fix missing ER.
+        story.append(box(
+            "<b>DEUX VÉRIFICATIONS INDÉPENDANTES</b><br/><br/>"
+            "<b>Économie :</b> rendement total prospectif entreprise/VFV "
+            "comparable NON ÉTABLI. "
+            "<b>Portefeuille :</b> Room personnel non authentifié; "
+            "frais, change et fiscalité de VFV NON VÉRIFIÉS. "
+            "<br/><br/>Priorité : établir la comparaison économique "
+            "par instrument et sources, puis vérifier séparément le compte.",
+            PALE, small,
+        ))
+    else:
+        story.append(box(
+            "<b>LA NUANCE QUI COMPTE</b> La conclusion reste soumise "
+            "aux limites de preuve décrites ci-dessous.", PALE, small,
+        ))
     page()
 
     # 02: Actual research, not a fabricated market ranking.
@@ -435,6 +466,14 @@ def _view(model: Mapping[str, Any], executive: str, detail: str,
             story.append(P("Schéma de lecture des sources IR rapportées, "
                            "sans causalité certifiée.", tiny))
         story.append(Spacer(1, 12))
+        if capital is not None:
+            label("Trois destinations examinées — aucune allocation admise")
+            table(["OPTION", "CONSTAT À CE STADE"], [
+                ["ENTREPRISE", "Recherche IR rapportée; admission économique non démontrée."],
+                ["VFV", "Repli normal à examiner; rendement, coûts et éligibilité non certifiés."],
+                ["RÉSERVE", "Exceptionnelle seulement; données manquantes insuffisantes pour la justifier."],
+            ])
+            story.append(Spacer(1, 9))
         story.append(box(
             "<b>POURQUOI PAS SIMPLEMENT LA RÉFÉRENCE ?</b><br/><br/>"
             "Comparaison de rendement total économique avec l’indice/ETF "
@@ -666,7 +705,8 @@ def render_reference_style_pdf(*, executive_report: str, detailed_report: str,
                                pi_delta: Mapping[str, Any] | None = None,
                                logo: bytes | None = None,
                                new_contribution_summary_private: Mapping[str, Any] | None = None,
-                               presentation_inputs: Mapping[str, Any] | None = None) -> bytes:
+                               presentation_inputs: Mapping[str, Any] | None = None,
+                               high_cagr_destination_review_private: Mapping[str, Any] | None = None) -> bytes:
     """Layout only, never evidence admission; validate before calling."""
     if not isinstance(executive_report, str) or not isinstance(detailed_report, str):
         raise ValueError("PAMALISE_PAIR_REQUIRED")
@@ -679,5 +719,6 @@ def render_reference_style_pdf(*, executive_report: str, detailed_report: str,
     return _view(dict(request=request, ir_capsule=ir_capsule or {},
                       pi_delta=pi_delta or {},
                       new_contribution_summary_private=new_contribution_summary_private,
-                      presentation_inputs=presentation_inputs),
+                      presentation_inputs=presentation_inputs,
+                      high_cagr_destination_review_private=high_cagr_destination_review_private),
                  executive_report, detailed_report, logo)
