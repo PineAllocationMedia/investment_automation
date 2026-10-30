@@ -6,7 +6,7 @@
 
 Le CEO a demandé un **seul gabarit universel et reproductible** pour démarrer toute demande d'analyse complète dans Financial Systems Command Center (CC), avec espaces simples pour la situation, les objectifs, le montant, le mode et les autres éléments nécessaires. Ce texte est l'**entrée standard des futurs essais** et peut servir aux demandes financières normales; il n'établit pas que les Projects s'invoquent automatiquement, que Work/Blossom fonctionne, que les politiques de six modes sont toutes approuvées, ou que R1 est accepté.
 
-Les champs facultatifs restent `INCONNU` ou `S/O`, jamais automatiquement zéro. Le texte ci-dessous reprend la version finale choisie par le CEO (30 octobre 2026); seules ses deux valeurs préremplies de contexte de compte/courtier ont été neutralisées pour GitHub. Le CEO n'opère ni terminal, ni JSON, ni code. Les exigences internes détaillées restent dans les instructions canoniques CC/IR/PI, le contrat intégré et le prompt PI-1. Pour améliorer la fiabilité, l'utilisateur peut laisser certains champs non remplis; CC peut poser une seule question indispensable puis avancer conditionnellement.
+Les champs facultatifs restent `INCONNU` ou `S/O`, jamais automatiquement zéro. Le texte ci-dessous reprend exactement la version finale du gabarit sélectionnée par le CEO le 30 octobre 2026, avec les trois champs de la section 4 volontairement laissés vides. Le CEO n'opère ni terminal, ni JSON, ni code. Les exigences internes détaillées restent dans les instructions canoniques CC/IR/PI, le contrat intégré et le prompt PI-1. Pour améliorer la fiabilité, l'utilisateur peut laisser certains champs non remplis; CC peut poser une seule question indispensable puis avancer conditionnellement.
 
 **Source des règles pertinentes:** `docs/ai_native/project_instructions/{FINANCIAL_SYSTEMS_COMMAND_CENTER,INVESTMENT_RESEARCH,PORTFOLIO_INTELLIGENCE}.md`; `docs/ai_native/integrated_build/{DELIVERY_PLAN,OPERATING_CONTRACT}.md`; `docs/ai_native/integrated_build/integration/FIRST_CHATGPT_TRACE_CC_PI_ROUTING_REPAIR_R1.md`; `docs/ai_native/integrated_build/portfolio/PROMPT_PI_1_BLOSSOM_PORTFOLIO_WORK_R1.md`. Les règles protégées et approbations CEO prévalent.
 
@@ -38,9 +38,9 @@ Si les règles propres à mon mode ne sont pas approuvées pour R1, signale-le e
 
 ## 4. COMPTES, COÛTS ET CONTRAINTES
 
-- **Pays, type(s) de compte et courtier(s), sans données sensibles :** [pays ou région, type(s) de compte et courtier(s) concernés]
-- **Devise(s), commissions, frais FX, restrictions fiscales ou d'achat fractionnaire connus :** [règles, frais et contraintes applicables au courtier, à vérifier]
-- **Univers, exclusions, titres à examiner ou préférence de découverte ouverte :** [Pas de préférences ou de restrictions spécifiques. Considère les positions déjà détenues et applique les règles de prévention de concentration selon le mode choisi.]
+- **Pays, type(s) de compte et courtier(s), sans données sensibles :** [ ]
+- **Devise(s), commissions, frais FX, restrictions fiscales ou d'achat fractionnaire connus :** [ ]
+- **Univers, exclusions, titres à examiner ou préférence de découverte ouverte :** []
 
 ## 5. PORTEFEUILLE ACTUEL ET BLOSSOM
 
@@ -86,7 +86,7 @@ Le CEO a retenu la version `CC-START-R1-v1.0` révisée dans la conversation du 
 
 **Le « oui » à la sauvegarde n'est pas une permission générale de déposer les pièces dans GitHub ni une preuve de stockage réalisé.** Il ne remplace pas la sélection et la validation préalables d'un emplacement privé approuvé par le CEO, des permissions, de la confidentialité, des droits de source, de la conservation et de la restauration. Tant que cette destination manque, CC peut préparer une proposition ou un paquet à sauvegarder par un humain dans un contexte privé, et doit indiquer `ARCHIVE_NOT_SAVED`. Aucun stockage silencieux ou automatique. Les rapports antérieurs sont réutilisés seulement s'ils sont **réellement accessibles**, avec identité et horodatage compatibles; aucun suivi récurrent n'est instauré.
 
-**Protection de la vie privée du gabarit public :** les deux champs de la section 4 sont volontairement neutralisés dans le dépôt GitHub; les valeurs de compte, courtier et localisation éventuellement personnalisées par le CEO restent dans son propre prompt privé. Le reste de sa version finale est reproduit tel que retenu, sans nouvelle autorité financière.
+**Gabarit non personnalisé :** les trois champs de la section 4 sont vides dans la version choisie par le CEO. Aucun compte, courtier, restriction ou préférence de placement n'est présumé par ce modèle; les informations propres à chaque demande restent privées et ne sont pas archivées dans GitHub.
 
 ## Versions et apprentissage à partir des essais
 
