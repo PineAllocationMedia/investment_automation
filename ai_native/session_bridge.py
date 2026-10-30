@@ -28,6 +28,9 @@ from .portfolio_room import prepare_portfolio_room_review
 from .new_capital_flow import prepare_new_capital_projection
 from .contribution_observation import reconcile_observed_contribution_basis
 from .exceptional_lifecycle import prepare_exceptional_lifecycle_review
+from .scenario_session_integration import (
+    prepare_scoped_scenario_review, render_scoped_scenario_lines,
+)
 
 ROOM_STATUSES = frozenset({"ROOM_EVIDENCE_SUPPORTED", "ROOM_CONDITIONAL", "ROOM_UNAVAILABLE"})
 
@@ -58,6 +61,7 @@ def complete_manual_session(
     calculation_requests: list[Mapping[str, Any]] | None = None,
     contribution_inputs: Mapping[str, Any] | None = None,
     cost_inputs: Mapping[str, Any] | None = None,
+    scenario_weight_inputs: Mapping[str, Any] | None = None,
     memory_inputs: Mapping[str, Any] | None = None,
     observation_inputs: Mapping[str, Any] | None = None,
     prior_portfolio_observation_inputs: Mapping[str, Any] | None = None,
@@ -98,6 +102,9 @@ def complete_manual_session(
         raise ValueError("PORTFOLIO_ARITHMETIC_REQUIRES_PI_ROUTE")
     if cost_inputs is not None and contribution_inputs is None:
         raise ValueError("COST_INPUTS_REQUIRE_CONTRIBUTION_INPUTS")
+    if scenario_weight_inputs is not None and (
+            route not in {"CC_PI_CC", "CC_IR_PI_CC"} or pi_delta is None):
+        raise ValueError("SCENARIO_REVIEW_REQUIRES_COMPLETED_PI_ROUTE")
     if memory_inputs is not None and route not in {"CC_IR_CC", "CC_IR_PI_CC"}:
         raise ValueError("MEMORY_PACKET_REQUIRES_IR_CAPSULE")
     if calculation_requests is not None and route not in {"CC_IR_CC", "CC_IR_PI_CC"}:
@@ -230,6 +237,13 @@ def complete_manual_session(
                 and observation["known_scope_weights_pct"] is None):
             raise ValueError("UNSUPPORTED_PORTFOLIO_ROOM_ASSERTION: incomplete observation")
 
+    scenario_review = None
+    if scenario_weight_inputs is not None:
+        scenario_review = prepare_scoped_scenario_review(
+            request=request, pi_delta=pi_delta, observation=observation,
+            scenario_weight_inputs=scenario_weight_inputs,
+        )
+
     snapshot_comparison = None
     if prior_portfolio_observation_inputs is not None:
         if observation is None:
@@ -340,6 +354,7 @@ def complete_manual_session(
                "supplied_costs_private": None,
                "funded_contribution_private": None,
                "alternative_cost_details_private": None,
+               "scenario_weight_sensitivity_private": scenario_review,
                "method_load_verification": "NOT_PERFORMED", "project_invocation": "NONE",
                "source_authentication": "NOT_PERFORMED", "storage": "NONE",
                "readiness": "NOT_EVALUATED",
@@ -450,6 +465,8 @@ def complete_manual_session(
             packet["mode_portfolio_trace_private"] = mode_portfolio_trace
             packet["limitations"] += " PI mode questions are specialist-reported and not independently authenticated."
         private["final_report_private"] = render_report(packet)
+        if scenario_review is not None:
+            private["final_report_private"] += "\n\n" + render_scoped_scenario_lines(scenario_review)
         private["executive_report_private"] = render_executive_report(
             packet, detailed_report=private["final_report_private"],
             portfolio_room_status=room)
@@ -541,6 +558,13 @@ def complete_manual_session(
         integrated["public_reference_private"] = public_reference
         integrated["public_reference_report_private"] = public_reference_report
         integrated["markdown"] += "\n\n" + public_reference_report
+    if scenario_review is not None:
+        scenario_lines = render_scoped_scenario_lines(scenario_review)
+        integrated["scenario_weight_sensitivity_private"] = scenario_review
+        integrated["markdown"] += "\n\n" + scenario_lines
+        # Append once after the original executive+annex rendering. This
+        # keeps the original investment summary and its validity intact.
+        integrated["executive_markdown"] += "\n\n" + scenario_lines
     private["final_report_private"] = integrated["markdown"]
     private["executive_report_private"] = integrated["executive_markdown"]
     private["pi_delta_private"] = deepcopy(dict(pi_delta)) if pi_delta is not None else None

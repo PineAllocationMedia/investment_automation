@@ -33,7 +33,7 @@ from ai_native.work_blossom_adapter import prepare_work_blossom_observation
 MAX_INPUT_CHARACTERS = 5_000_000
 OPTIONAL_FIELDS = frozenset({
     "ir_capsule", "pi_delta", "portfolio_context", "calculation_requests",
-    "contribution_inputs", "cost_inputs", "memory_inputs",
+    "contribution_inputs", "cost_inputs", "scenario_weight_inputs", "memory_inputs",
     "observation_inputs", "prior_portfolio_observation_inputs",
     "work_blossom_inputs", "public_reference_inputs",
     "public_reference_table_inputs", "exposure_classifications", "room_assessment_inputs",
