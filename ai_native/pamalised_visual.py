@@ -9,6 +9,7 @@ from __future__ import annotations
 
 from html import escape, unescape
 from io import BytesIO
+from pathlib import Path
 from decimal import Decimal, InvalidOperation
 from typing import Mapping, Any
 
@@ -103,6 +104,24 @@ def _view(model: Mapping[str, Any], executive: str, detail: str,
                     for k, n in numbers.items()
                 ) + " (projection arithmétique, non recommandation)"
 
+    # Lato matches the CEO's prototype. No font is fetched or bundled:
+    # use an installed local Lato, otherwise an explicit Helvetica fallback.
+    base_font, bold_font = "Helvetica", "Helvetica-Bold"
+    try:
+        from reportlab.pdfbase import pdfmetrics
+        from reportlab.pdfbase.ttfonts import TTFont
+        for folder in (Path("/usr/share/fonts/truetype/lato"),
+                       Path("/Library/Fonts")):
+            regular = folder / "Lato-Regular.ttf"
+            bold = folder / "Lato-Bold.ttf"
+            if regular.is_file() and bold.is_file():
+                pdfmetrics.registerFont(TTFont("PAM_Lato", str(regular)))
+                pdfmetrics.registerFont(TTFont("PAM_Lato_Bold", str(bold)))
+                base_font, bold_font = "PAM_Lato", "PAM_Lato_Bold"
+                break
+    except (OSError, ValueError, Exception):
+        base_font, bold_font = "Helvetica", "Helvetica-Bold"
+
     buffer = BytesIO()
     doc = SimpleDocTemplate(
         buffer, pagesize=A4, leftMargin=43, rightMargin=43,
@@ -111,27 +130,27 @@ def _view(model: Mapping[str, Any], executive: str, detail: str,
         author="PAM Financial Systems",
     )
     normal = ParagraphStyle(
-        "body", fontName="Helvetica", fontSize=9.5, leading=14,
+        "body", fontName=base_font, fontSize=9.5, leading=14,
         textColor=colors.HexColor(DARK), spaceAfter=7,
     )
     small = ParagraphStyle("small", parent=normal, fontSize=8.2,
                            leading=12, spaceAfter=4)
     tiny = ParagraphStyle("tiny", parent=normal, fontSize=7.2,
                           leading=10, spaceAfter=3)
-    big = ParagraphStyle("big", parent=normal, fontName="Helvetica-Bold",
+    big = ParagraphStyle("big", parent=normal, fontName=bold_font,
                          fontSize=23, leading=28, spaceAfter=10)
     headline = ParagraphStyle(
-        "head", parent=normal, fontName="Helvetica-Bold", fontSize=14,
+        "head", parent=normal, fontName=bold_font, fontSize=14,
         leading=17, spaceBefore=12, spaceAfter=8,
     )
     mini = ParagraphStyle(
-        "mini", parent=normal, fontName="Helvetica-Bold", fontSize=7.4,
+        "mini", parent=normal, fontName=bold_font, fontSize=7.4,
         leading=10, textColor=colors.HexColor(MID),
     )
     white = ParagraphStyle("white", parent=normal, textColor=colors.white,
                            fontSize=9, leading=14)
     whitebig = ParagraphStyle(
-        "whitebig", parent=white, fontName="Helvetica-Bold",
+        "whitebig", parent=white, fontName=bold_font,
         fontSize=17, leading=21,
     )
     pale = colors.HexColor(PALE)
@@ -458,11 +477,11 @@ def _view(model: Mapping[str, Any], executive: str, detail: str,
             canvas.line(62, H - 43, 53, H - 49)
             canvas.line(62, H - 43, 69, H - 51)
         canvas.setFillColor(dark)
-        canvas.setFont("Helvetica-Bold", 12)
+        canvas.setFont(bold_font, 12)
         canvas.drawString(88, H - 41, "PAM")
-        canvas.setFont("Helvetica", 6)
+        canvas.setFont(base_font, 6)
         canvas.drawString(88, H - 52, "FINANCIAL SYSTEMS")
-        canvas.setFont("Helvetica", 7)
+        canvas.setFont(base_font, 7)
         canvas.drawRightString(W - 43, H - 40, "RAPPORT D’ANALYSE")
         canvas.setStrokeColor(colors.HexColor("#DADFD9"))
         canvas.line(43, H - 74, W - 43, H - 74)
