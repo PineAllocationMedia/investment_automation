@@ -79,6 +79,9 @@ SAFE_ERROR_CODES = frozenset({
     "PRIVATE_PORTFOLIO_FOLLOWUP_REQUIRED",
     "PRIVATE_PORTFOLIO_BASELINE_ID_MISMATCH",
     "PRIVATE_PORTFOLIO_SOURCE_AMBIGUOUS",
+    "PORTFOLIO_FOLLOWUP_EXPLICIT_MANDATE_REQUIRED",
+    "PORTFOLIO_FOLLOWUP_AMBIGUOUS_PRIOR_SOURCE",
+    "PORTFOLIO_FOLLOWUP_CURRENT_OBSERVATION_REQUIRED",
     "INTEGRATED_PRIOR_CLOSEOUT_INVALID",
     "INTEGRATED_PRIOR_CASE_ID_OR_DATE_MISMATCH",
     "INTEGRATED_FOLLOWUP_CURRENT_PORTFOLIO_REQUIRED",
@@ -585,6 +588,50 @@ def _portfolio_followup_draft(raw: Any) -> dict[str, Any]:
     }
 
 
+def _reenter_portfolio_followup(
+    payload: Any,
+) -> tuple[dict[str, Any], dict[str, Any]]:
+    """One new CEO PI mandate with a human-retained prior M3 snapshot.
+
+    Reuse the existing sealed-source, M3 comparison and operator contracts;
+    no historical holdings are inferred as current or forwarded to PI.
+    """
+    if (not isinstance(payload, dict)
+            or set(payload) != {
+                "private_portfolio_snapshot_envelope", "session"}
+            or not isinstance(payload["session"], dict)):
+        raise ValueError("PORTFOLIO_FOLLOWUP_EXPLICIT_MANDATE_REQUIRED")
+    # Verifies accidental-copy integrity and reconstructs the old original
+    # source via M3; this does NOT authenticate a broker or the archive.
+    historical = _portfolio_followup_draft(
+        payload["private_portfolio_snapshot_envelope"])
+    old = historical["prior_observation_reference_private"]
+    current = deepcopy(payload["session"])
+    request = current.get("request")
+    if (not isinstance(request, dict)
+            or request.get("ceo_initiated") is not True
+            or request.get("kind") != "FOLLOWUP"
+            or request.get("research_needed") is not False
+            or request.get("portfolio_needed") is not True
+            or request.get("prior_analysis_id") != old["analysis_id"]
+            or request.get("analysis_id") == old["analysis_id"]
+            or not isinstance(request.get("as_of"), str)
+            or request["as_of"] <= old["analysis_as_of"]):
+        raise ValueError("PORTFOLIO_FOLLOWUP_EXPLICIT_MANDATE_REQUIRED")
+    if ("prior_private_portfolio_envelope" in current
+            or "prior_portfolio_observation_inputs" in current):
+        raise ValueError("PORTFOLIO_FOLLOWUP_AMBIGUOUS_PRIOR_SOURCE")
+    if not any(key in current for key in (
+            "observation_inputs", "work_blossom_inputs",
+            "work_portfolio_result")):
+        raise ValueError("PORTFOLIO_FOLLOWUP_CURRENT_OBSERVATION_REQUIRED")
+    current["prior_private_portfolio_envelope"] = deepcopy(
+        payload["private_portfolio_snapshot_envelope"])
+    # Previous positions are retained ONLY inside CC-owned private state.
+    # Existing M1, Work/M3, snapshot comparison and handoff gates apply.
+    return current, evaluate(current)
+
+
 def _integrated_followup_draft(raw: Any) -> dict[str, Any]:
     """Inert research draft with separately retained optional PI baseline.
 
@@ -1064,6 +1111,14 @@ def run(*, output: str, instream: TextIO, outstream: TextIO,
             resume_payload, result = _resume_manual_transfer(payload)
         elif output == "sealed-followup-operator":
             restored_payload, result = _reenter_sealed_followup(payload)
+        elif (output == "guided-portfolio-closeout"
+              and isinstance(payload, dict)
+              and "private_portfolio_snapshot_envelope" in payload):
+            # Explicit new CEO PI-only follow-up from a checked old M3 copy.
+            # No manual previous-envelope retyping into the new session.
+            guided_resuming = True
+            guided_sealed_followup = True
+            resume_payload, result = _reenter_portfolio_followup(payload)
         elif (output in {"guided-operator", "guided-integrated-closeout", "guided-portfolio-closeout"} and isinstance(payload, dict)
               and "pending_session" in payload):
             # One explicit human-entered visual fallback. The validated
