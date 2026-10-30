@@ -51,9 +51,9 @@ class RepositoryArchiveTests(unittest.TestCase):
     def test_github_blob_readback_example_structure(self):
         import hashlib
         from ai_native.repository_archive import verify_retrieved_research_report
-        report = "# Synthetic GitHub archive demonstration\\nNo real research.\\n"
+        report = "# Synthetic GitHub archive demonstration\nNo real research.\n"
         data = report.encode("utf-8")
-        blob = hashlib.sha1(b"blob " + str(len(data)).encode() + b"\\x00" + data).hexdigest()
+        blob = hashlib.sha1(b"blob " + str(len(data)).encode() + b"\x00" + data).hexdigest()
         record = {**self.sample(), "case_kind": "ISSUER"}
         manifest = {
             "schema_version": "RESEARCH_ARCHIVE_MANIFEST_R1",
