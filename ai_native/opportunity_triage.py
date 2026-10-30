@@ -190,3 +190,96 @@ def prepare_opportunity_triage(
         "portfolio_allocation": "NONE",
         "external_discovery_or_storage": "NONE",
     }
+
+
+def prepare_selected_candidate_draft(
+    triage: Mapping[str, Any], candidate_id: str,
+) -> dict[str, Any]:
+    """One human-selected candidate -> inert NEW CC mandate, not a research run.
+
+    Accept only the already prepared PRIVATE triage *structure*. The CLI must
+    derive it by re-evaluating the original complete session, never from an
+    unauthenticated stand-alone caller-supplied triage or an old report excerpt.
+    No original fact claim, amount, portfolio or source URL becomes new evidence.
+    """
+    if (not isinstance(triage, Mapping)
+            or triage.get("status") != "PRIVATE_RESEARCH_TRIAGE_PREPARED_NOT_RANKED"
+            or triage.get("source_authentication") != "NOT_PERFORMED"
+            or triage.get("ranking_or_buy_recommendation") != "NONE"
+            or triage.get("portfolio_allocation") != "NONE"
+            or triage.get("external_discovery_or_storage") != "NONE"
+            or triage.get("normalized_expected_return") != "NOT_ESTABLISHED"
+            or triage.get("universe_completeness") != "NOT_VERIFIED_NOT_GLOBAL_SCREENING"):
+        raise ValueError("CANDIDATE_DRAFT_TRIAGE_UNAVAILABLE")
+    aid = _text(triage.get("analysis_id"), "analysis_id")
+    cutoff = _text(triage.get("analysis_as_of"), "analysis_as_of")
+    strategy = _text(triage.get("strategy_id"), "strategy_id")
+    _text(candidate_id, "candidate_id")
+    rows = triage.get("candidates_private_in_supplied_order")
+    if (not isinstance(rows, list) or not 1 <= len(rows) <= 30
+            or triage.get("declared_candidate_count") != len(rows)):
+        raise ValueError("CANDIDATE_DRAFT_TRIAGE_UNAVAILABLE")
+    chosen = [r for r in rows if isinstance(r, Mapping)
+              and r.get("candidate_id_private") == candidate_id]
+    if len(chosen) != 1:
+        raise ValueError("CANDIDATE_DRAFT_CANDIDATE_NOT_FOUND")
+    item = chosen[0]
+    if (item.get("research_work_stage") not in
+                {"EVIDENCE_RESOLUTION", "HUMAN_DEEP_DIVE"}
+            or item.get("selection_status") != "CEO_OR_ANALYST_REVIEW_ONLY"
+            or item.get("investability") != "NOT_EVALUATED"
+            or item.get("target_type") not in TARGETS):
+        raise ValueError("CANDIDATE_DRAFT_TRIAGE_UNAVAILABLE")
+    issuer = _text(item.get("economic_issuer_private"), "issuer")
+    instrument = _text(item.get("instrument_private"), "instrument")
+    question = _text(item.get("research_question_private"), "research_question")
+    for key in ("ir_fact_ids_private", "source_observation_ids_private",
+                "open_questions_private", "known_risks_private", "review_reasons"):
+        _items(item.get(key), key, required=(key == "open_questions_private"))
+    # No old report automatically becomes a CEO-authorized follow-up; in
+    # particular, neither a prior subject nor a prior method version is loaded.
+    return {
+        "status": "PRIVATE_CANDIDATE_DEEP_DIVE_DRAFT_REQUIRES_NEW_CEO_MANDATE",
+        "selected_candidate_private": {
+            "candidate_id": candidate_id, "economic_issuer": issuer,
+            "instrument": instrument, "target_type": item["target_type"],
+            "origin_scope": item["origin_scope"],
+            "research_question": question,
+            "open_questions": list(item["open_questions_private"]),
+            "known_risks": list(item["known_risks_private"]),
+            "prior_ir_fact_ids": list(item["ir_fact_ids_private"]),
+            "prior_observation_ids": list(item["source_observation_ids_private"]),
+            "prior_research_work_stage": item["research_work_stage"],
+            "prior_evidence_issue_codes": list(item["review_reasons"]),
+            "prior_analysis_id": aid,
+            "prior_analysis_as_of": cutoff,
+        },
+        "input_template": {"request": {
+            "ceo_initiated": False,
+            "analysis_id": None, "as_of": None, "kind": "DECISION",
+            "objective": None,
+            "strategy_id": strategy,
+            "horizon": "UNKNOWN", "risk_constraints": [],
+            "candidate_universe": issuer + " | " + instrument,
+            "research_needed": True, "portfolio_needed": False,
+            "account_context": {
+                "type": "UNKNOWN", "broker": "UNKNOWN", "tax": "UNKNOWN",
+                "commission": "UNKNOWN", "fx_cost": "UNKNOWN",
+            },
+            "ir_method_version": "UNKNOWN_NOT_LOADED",
+        }},
+        "human_checks": [
+            "CEO must explicitly select this candidate, date and authorize a NEW request.",
+            "Original evidence issues and source rights require independent review; prior fact IDs are NOT current evidence.",
+            "Confirm strategy, objective, horizon, risk, instrument identity, universe and account/FX/tax/commission costs.",
+            "Resolve unresolved evidence before interpreting any deep dive; never infer screening completeness or ranking.",
+            "Run intake-review then guided-operator only after a NEW CEO mandate; no Project is invoked automatically.",
+        ],
+        "research_or_portfolio_execution": "NONE",
+        "ranking_or_buy_recommendation": "NONE",
+        "source_authentication": "NOT_PERFORMED",
+        "project_invocation": "NONE",
+        "storage": "NONE",
+        "readiness": "NOT_EVALUATED",
+        "trading_authority": "NONE",
+    }
