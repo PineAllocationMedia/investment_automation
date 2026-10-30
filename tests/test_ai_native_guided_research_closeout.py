@@ -98,7 +98,14 @@ class GuidedResearchCloseoutTests(unittest.TestCase):
         invalid["memory_inputs"]["report_id"] = "INVALID ID"
         too_old = deepcopy(original)
         too_old["memory_inputs"]["recorded_at"] = "2026-10-27"
+        unknown_key = deepcopy(original)
+        unknown_key["memory_inputs"]["unexpected_private_field"] = "SECRET"
+        impossible_parent = deepcopy(original)
+        impossible_parent["memory_inputs"]["accessible_parent"] = {
+            "report_id": "SYN-OTHER"}
         for packet, expected in (
+            (unknown_key, "GUIDED_PRIVATE_CLOSEOUT_MEMORY_METADATA_INVALID"),
+            (impossible_parent, "GUIDED_PRIVATE_CLOSEOUT_MEMORY_METADATA_INVALID"),
             (missing, "GUIDED_PRIVATE_CLOSEOUT_MEMORY_REQUIRED"),
             (invalid, "GUIDED_PRIVATE_CLOSEOUT_MEMORY_METADATA_INVALID"),
             (too_old, "GUIDED_PRIVATE_CLOSEOUT_MEMORY_METADATA_INVALID"),
