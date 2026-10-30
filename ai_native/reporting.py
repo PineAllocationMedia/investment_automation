@@ -1512,8 +1512,14 @@ def _candidate_comparison_lines(packet: Mapping[str, Any], analysis_id: str,
     # Validate its numeric identity against the calculator outputs instead
     # of trusting an externally rewritten 'alpha' or a forged model verdict.
     weighted_pairs = comp.get("pairwise_weighted_cashflow_private", [])
-    if not isinstance(weighted_pairs, list) or len(weighted_pairs) not in {
-            0, len(expected)}:
+    has_weighted_model = any(
+        isinstance(row, Mapping)
+        and row.get("weighted_cashflow_model_private") is not None
+        for row in candidates
+    )
+    if (not isinstance(weighted_pairs, list)
+            or (has_weighted_model and len(weighted_pairs) != len(expected))
+            or (not has_weighted_model and weighted_pairs)):
         raise ValueError("COMPARISON_WEIGHTED_PAIR_COUNT_INVALID")
     if weighted_pairs:
         allowed_reasons = {
@@ -1544,6 +1550,27 @@ def _candidate_comparison_lines(packet: Mapping[str, Any], analysis_id: str,
                 raise ValueError("COMPARISON_WEIGHTED_REASONS_INVALID")
             av, bv = (a.get("weighted_cashflow_model_private"),
                       b.get("weighted_cashflow_model_private"))
+            expected_why = []
+            if av is None or bv is None:
+                expected_why.append("PROBABILITIES_OR_MODEL_NOT_SUPPLIED_FOR_BOTH")
+            else:
+                required = "IRR_ON_WEIGHTED_YEAR_END_CASHFLOWS_NOT_MEAN_IRR"
+                if av.get("measure") != required or bv.get("measure") != required:
+                    expected_why.append("EXPLICIT_TOTAL_CASHFLOW_IRR_MISSING")
+                if (av.get("status") != "CONDITIONAL_CASHFLOW_MODEL_NOT_CERTIFIED"
+                        or bv.get("status") != "CONDITIONAL_CASHFLOW_MODEL_NOT_CERTIFIED"
+                        or av.get("conditional_annualized_pct") is None
+                        or bv.get("conditional_annualized_pct") is None):
+                    expected_why.append("WEIGHTED_CASHFLOW_EVIDENCE_UNAVAILABLE")
+            if a.get("currency") != currency or b.get("currency") != currency:
+                expected_why.append("ACCOUNT_CURRENCY_FX_MODEL_MISSING")
+            if a.get("quoted_at") != b.get("quoted_at"):
+                expected_why.append("QUOTE_OBSERVATION_DATE_MISMATCH")
+            if (a.get("research_status") == "UNKNOWN"
+                    or b.get("research_status") == "UNKNOWN"):
+                expected_why.append("RESEARCH_STATUS_UNKNOWN")
+            if why != sorted(set(expected_why)):
+                raise ValueError("COMPARISON_WEIGHTED_REASONS_MISMATCH")
             if weighted_pair.get("status") == "NOT_COMPARABLE":
                 if weighted_pair.get("first_minus_second_pp") is not None or not why:
                     raise ValueError("COMPARISON_WEIGHTED_UNSUPPORTED_SPREAD")
