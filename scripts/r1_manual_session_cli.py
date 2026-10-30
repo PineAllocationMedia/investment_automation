@@ -710,7 +710,7 @@ def run(*, output: str, instream: TextIO, outstream: TextIO,
             resume_payload, result = _resume_manual_transfer(payload)
         elif output == "sealed-followup-operator":
             restored_payload, result = _reenter_sealed_followup(payload)
-        elif (output == "guided-operator" and isinstance(payload, dict)
+        elif (output in {"guided-operator", "guided-integrated-closeout"} and isinstance(payload, dict)
               and "prior_integrated_closeout" in payload):
             # Start a NEW CEO-initiated IR+PI follow-up directly from the
             # opt-in historical two-envelope re-entry. The existing guided
@@ -721,7 +721,7 @@ def run(*, output: str, instream: TextIO, outstream: TextIO,
             guided_sealed_followup = True
             guided_integrated_followup = True
             resume_payload, result = _integrated_followup_operator(payload)
-        elif (output == "guided-operator" and isinstance(payload, dict)
+        elif (output in {"guided-operator", "guided-integrated-closeout"} and isinstance(payload, dict)
               and "private_case_envelope" in payload):
             # Reuse the SAME strict sealed-case re-entry plus verified-method
             # guided prompt path. The old case remains in CC-only continuation,
@@ -729,7 +729,7 @@ def run(*, output: str, instream: TextIO, outstream: TextIO,
             guided_resuming = True
             guided_sealed_followup = True
             resume_payload, result = _reenter_sealed_followup(payload)
-        elif (output == "guided-operator" and isinstance(payload, dict)
+        elif (output in {"guided-operator", "guided-integrated-closeout"} and isinstance(payload, dict)
               and ("continuation_private" in payload
                    or ("specialist_result" in payload and "request" not in payload))):
             guided_resuming = True
@@ -814,7 +814,7 @@ def run(*, output: str, instream: TextIO, outstream: TextIO,
         except (ValueError, TypeError, KeyError, RecursionError):
             errstream.write("R1_PROCESSING_ERROR: private operator packet unavailable.\n")
             return 3
-    elif output == "guided-operator":
+    elif output in {"guided-operator", "guided-integrated-closeout"}:
         # One explicitly PRIVATE packet from the existing operator and method
         # components. Assemble fully before emitting any sensitive output.
         try:
@@ -850,6 +850,37 @@ def run(*, output: str, instream: TextIO, outstream: TextIO,
                 "method_load_verification": "NOT_PERFORMED",
                 "source_authentication": "NOT_PERFORMED",
             }
+            if output == "guided-integrated-closeout":
+                # One *explicit* private surface from initial manual IR/PI
+                # prompts to final report and both original archive copies.
+                # Do not export anything until the full IR+PI route completes.
+                # Missing explicit memory/M3 inputs fail closed on completion.
+                # The old guided-operator output never silently includes
+                # holdings or the two plaintext archive records.
+                final_copy = (
+                    _private_integrated_closeout(actual_payload, result)
+                    if continuation is None else None
+                )
+                guided = {
+                    "status": (
+                        "PRIVATE_GUIDED_INTEGRATED_CLOSEOUT_COPY_NOT_STORED"
+                        if final_copy is not None else
+                        "PRIVATE_GUIDED_INTEGRATED_CLOSEOUT_PENDING_MANUAL_HANDOFF"
+                    ),
+                    "guided_operator_private": guided,
+                    "private_integrated_closeout": final_copy,
+                    "next_manual_step": (
+                        "HUMAN_REVIEW_THEN_SAVE_ONLY_IN_APPROVED_PRIVATE_ARCHIVE"
+                        if final_copy is not None else
+                        "COPY_ONLY_SPECIALIST_PROMPT_AND_KEEP_CC_RESUME_PRIVATE"
+                    ),
+                    "archive_protection": "NOT_ESTABLISHED",
+                    "source_authentication": "NOT_PERFORMED",
+                    "project_invocation": "NONE",
+                    "storage": "NONE",
+                    "readiness": "NOT_EVALUATED",
+                    "trading_authority": "NONE",
+                }
             encoded = json.dumps(guided, ensure_ascii=False, sort_keys=True,
                                  indent=2, allow_nan=False)
             if len(encoded) > MAX_INPUT_CHARACTERS:
@@ -971,9 +1002,9 @@ def main(argv: list[str] | None = None, *, instream: TextIO | None = None,
          outstream: TextIO | None = None,
          errstream: TextIO | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--output", choices=("request-template", "intake-review", "status", "report", "handoffs", "next-handoff", "continuation", "operator-packet", "resume-operator", "guided-operator", "method-handoff", "specialist-prompt", "followup-draft", "sealed-followup-draft", "sealed-followup-operator", "integrated-followup-draft", "integrated-followup-operator", "private-case", "private-case-envelope", "private-closeout", "private-integrated-closeout", "private-portfolio-snapshot", "review-queue"),
+    parser.add_argument("--output", choices=("request-template", "intake-review", "status", "report", "handoffs", "next-handoff", "continuation", "operator-packet", "resume-operator", "guided-operator", "guided-integrated-closeout", "method-handoff", "specialist-prompt", "followup-draft", "sealed-followup-draft", "sealed-followup-operator", "integrated-followup-draft", "integrated-followup-operator", "private-case", "private-case-envelope", "private-closeout", "private-integrated-closeout", "private-portfolio-snapshot", "review-queue"),
                         default="status",
-                        help="request-template is an inert blank case and reads no stdin; intake-review reads a private request-only draft and returns field names/status without values; status is redacted; report, handoffs, next-handoff, continuation, operator-packet, resume-operator, guided-operator, method-handoff, specialist-prompt, followup-draft, sealed-followup-draft, sealed-followup-operator, integrated-followup-draft, integrated-followup-operator, private-case, private-case-envelope, private-closeout, private-integrated-closeout, private-portfolio-snapshot and review-queue require a private terminal")
+                        help="request-template is an inert blank case and reads no stdin; intake-review reads a private request-only draft and returns field names/status without values; status is redacted; report, handoffs, next-handoff, continuation, operator-packet, resume-operator, guided-operator, guided-integrated-closeout, method-handoff, specialist-prompt, followup-draft, sealed-followup-draft, sealed-followup-operator, integrated-followup-draft, integrated-followup-operator, private-case, private-case-envelope, private-closeout, private-integrated-closeout, private-portfolio-snapshot and review-queue require a private terminal")
     opts = parser.parse_args(argv)
     return run(output=opts.output, instream=instream or sys.stdin,
                outstream=outstream or sys.stdout, errstream=errstream or sys.stderr)

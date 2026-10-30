@@ -199,5 +199,121 @@ class PrivateIntegratedCloseoutTests(unittest.TestCase):
         self.assertNotIn("private_portfolio_snapshot_envelope", status[1])
 
 
+    def test_one_guided_initial_session_emits_no_archive_until_final_ir_pi(self):
+        original = self.base()
+        ir, pi = original.pop("ir_capsule"), original.pop("pi_delta")
+        retained = deepcopy(original)
+        rc, out, err = self.cli(original, "guided-integrated-closeout")
+        self.assertEqual((rc, err), (0, ""))
+        first = json.loads(out)
+        self.assertEqual(first["status"],
+                         "PRIVATE_GUIDED_INTEGRATED_CLOSEOUT_PENDING_MANUAL_HANDOFF")
+        self.assertIsNone(first["private_integrated_closeout"])
+        guided = first["guided_operator_private"]
+        self.assertEqual(guided["specialist_step"], "IR_REQUEST")
+        self.assertIn("Recipient: Investment Research (IR)",
+                      guided["specialist_prompt_private"])
+        self.assertIn("METHOD_PATH:", guided["specialist_prompt_private"])
+        self.assertNotIn('"resume_input"',
+                         guided["specialist_prompt_private"])
+        self.assertNotIn("SCOPE-A", guided["specialist_prompt_private"])
+        self.assertEqual(guided["storage"], "NONE")
+        self.assertEqual(original, retained)
+
+        rc, out, err = self.cli({
+            "continuation_private":
+                guided["operator_packet_private"]["continuation_private"],
+            "specialist_result": {"IR_CAPSULE": ir},
+        }, "guided-integrated-closeout")
+        self.assertEqual((rc, err), (0, ""))
+        second = json.loads(out)
+        self.assertEqual(second["status"],
+                         "PRIVATE_GUIDED_INTEGRATED_CLOSEOUT_PENDING_MANUAL_HANDOFF")
+        self.assertIsNone(second["private_integrated_closeout"])
+        pi_guided = second["guided_operator_private"]
+        self.assertEqual(pi_guided["specialist_step"], "PI_REQUEST")
+        self.assertIn("Recipient: Portfolio Intelligence (PI)",
+                      pi_guided["specialist_prompt_private"])
+        self.assertEqual(pi_guided["operator_packet_private"][
+            "continuation_private"]["next_handoff"]["PI_REQUEST"][
+                "FORWARD_UNCHANGED"], ir)
+
+        returned = {
+            "continuation_private": pi_guided["operator_packet_private"][
+                "continuation_private"],
+            "specialist_result": {
+                "PI_DELTA": deepcopy(pi),
+                "FORWARD_UNCHANGED": deepcopy(ir),
+            },
+        }
+        untouched = deepcopy(returned)
+        rc, out, err = self.cli(returned, "guided-integrated-closeout")
+        self.assertEqual((rc, err), (0, ""))
+        completed = json.loads(out)
+        self.assertEqual(completed["status"],
+                         "PRIVATE_GUIDED_INTEGRATED_CLOSEOUT_COPY_NOT_STORED")
+        final = completed["private_integrated_closeout"]
+        self.assertEqual(final["status"],
+                         "PRIVATE_INTEGRATED_CLOSEOUT_COPY_NOT_STORED")
+        self.assertEqual(final, json.loads(
+            self.cli(returned, "private-integrated-closeout")[1]))
+        self.assertIsNone(completed["guided_operator_private"]["specialist_step"])
+        self.assertIsNone(completed["guided_operator_private"][
+            "operator_packet_private"]["continuation_private"])
+        self.assertEqual(verify_private_portfolio_snapshot(
+            final["private_portfolio_snapshot_envelope"]),
+            retained["observation_inputs"])
+        self.assertEqual(verify_private_case_envelope(
+            final["private_case_envelope"])["original_ir_capsule"], ir)
+        self.assertEqual(returned, untouched)
+        self.assertEqual(completed["archive_protection"], "NOT_ESTABLISHED")
+        self.assertEqual(completed["project_invocation"], "NONE")
+        self.assertEqual(completed["storage"], "NONE")
+        self.assertEqual(completed["trading_authority"], "NONE")
+
+    def test_guided_integrated_closeout_only_exports_after_explicit_final_prerequisites(self):
+        packet = self.base()
+        missing_memory = deepcopy(packet)
+        missing_memory.pop("memory_inputs")
+        missing_observation = deepcopy(packet)
+        missing_observation.pop("observation_inputs")
+        for bad in (missing_memory, missing_observation):
+            with self.subTest(keys=sorted(bad)):
+                rc, out, err = self.cli(bad, "guided-integrated-closeout")
+                self.assertEqual((rc, out), (3, ""))
+                self.assertIn("private guided operator packet unavailable", err)
+                self.assertNotIn("PRIVATE_CC_CONTEXT_ONLY", err)
+
+        # A report-only guided session never silently includes an archive.
+        rc, out, err = self.cli(packet, "guided-operator")
+        self.assertEqual((rc, err), (0, ""))
+        self.assertNotIn("private_integrated_closeout", out)
+        self.assertNotIn("private_case_envelope", out)
+        self.assertNotIn("private_portfolio_snapshot_envelope", out)
+
+    def test_guided_integrated_closeout_refuses_forged_specialist_original_ir(self):
+        packet = self.base()
+        original_ir, pi = packet.pop("ir_capsule"), packet.pop("pi_delta")
+        first = json.loads(self.cli(packet, "guided-integrated-closeout")[1])
+        second = json.loads(self.cli({
+            "continuation_private": first["guided_operator_private"][
+                "operator_packet_private"]["continuation_private"],
+            "specialist_result": {"IR_CAPSULE": original_ir},
+        }, "guided-integrated-closeout")[1])
+        forged = deepcopy(original_ir)
+        forged["facts"][0]["claim"] = "FORGED_PRIVATE_CLAIM_SENTINEL"
+        rc, out, err = self.cli({
+            "continuation_private": second["guided_operator_private"][
+                "operator_packet_private"]["continuation_private"],
+            "specialist_result": {
+                "PI_DELTA": pi,
+                "FORWARD_UNCHANGED": forged,
+            },
+        }, "guided-integrated-closeout")
+        self.assertEqual((rc, out), (2, ""))
+        self.assertIn("SPECIALIST_FORWARDED_IR_MISMATCH", err)
+        self.assertNotIn("FORGED_PRIVATE_CLAIM_SENTINEL", err)
+
+
 if __name__ == "__main__":
     unittest.main()
