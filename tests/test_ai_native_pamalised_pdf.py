@@ -389,6 +389,119 @@ class PamalisedPdfTests(unittest.TestCase):
         self.assertNotIn("Trois destinations examinées", first)
         self.assertNotIn("DEUX VÉRIFICATIONS INDÉPENDANTES", first)
 
+    def _synthetic_candidate_ir_case(self, *, have_source):
+        """One actual CC→IR combined calculation, never a fake PDF value."""
+        from tests import test_ai_native_candidate_comparison as candidate_tests
+        fx = candidate_tests.CandidateComparisonTests()
+        data, _ = fx.weighted_case()
+        data["candidates"][1]["role"] = "REFERENCE_ETF"
+        request = self.fixtures.request(
+            analysis_id="SYN-C", strategy_id="EXPLORATORY",
+            as_of="2026-10-28", portfolio_needed=False)
+        ir = self.fixtures.ir(analysis_id="SYN-C")
+        payload = {
+            "request": request, "ir_capsule": ir,
+            "candidate_comparison_inputs": data,
+        }
+        if have_source:
+            observations = []
+            for item in data["candidates"]:
+                val = item["valuation_inputs"]
+                observations.append({
+                    "observation_id": val["quote_source_ref"],
+                    "fact_id": "SYN-F-" + item["candidate_id"],
+                    "source_id": "SYN-S-" + item["candidate_id"],
+                    "economic_issuer": item["candidate_id"],
+                    "instrument": val["security_id"],
+                    "metric": "MARKET_PRICE_PER_SHARE",
+                    "period_start": "2026-10-27", "period_end": "2026-10-27",
+                    "currency": "CAD", "unit": "PER_SHARE",
+                    "definition_basis": "EXCHANGE_LAST_REPORTED",
+                    "consolidation": "SECURITY_CLASS", "value": "100",
+                    "observed_at": "2026-10-28", "published_at": "2026-10-27",
+                    "original_checked_at": "2026-10-28",
+                    "source_kind": "SECONDARY", "classification": "SOURCE_FACT",
+                    "source_locator": "https://example.org/synthetic-quote",
+                    "rights_status": "PERMITTED",
+                    "verification_status": "INDICATIVE",
+                })
+            ir["facts"] = [
+                {"id": row["fact_id"], "status": "INDICATIVE",
+                 "claim": "Synthetic quote only: " + row["instrument"]}
+                for row in observations
+            ]
+            payload["source_evidence_inputs"] = {
+                "analysis_id": "SYN-C", "analysis_as_of": "2026-10-28",
+                "observations": observations,
+            }
+        return payload
+
+    def test_actual_ir_comparison_reaches_pdf_as_conditional_not_alpha(self):
+        from pypdf import PdfReader
+        case = self._synthetic_candidate_ir_case(have_source=True)
+        source = deepcopy(case)
+        result = complete_manual_session(**case)
+        comp = result["integrated_private"]["candidate_comparison_private"]
+        self.assertEqual(comp["pairwise_weighted_cashflow_private"][0]["status"],
+                         "CONDITIONAL_TOTAL_CASHFLOW_IRR_SPREAD_ONLY")
+        code, pdf, err = self._cli(case)
+        self.assertEqual((code, err), (0, ""))
+        content = "\n".join(p.extract_text() for p in PdfReader(BytesIO(pdf)).pages)
+        self.assertIn("Sensibilité économique", content)
+        self.assertIn("ÉCART DE RENDEMENT ANNUALISÉ", content)
+        self.assertIn("pp", content)
+        self.assertIn("probabilité", content)
+        self.assertIn("Ni rendement espéré certifié", content)
+        self.assertIn("ARCHIVE_NOT_SAVED", content)
+        self.assertEqual(case, source)
+
+    def test_unlinked_quotes_show_not_comparable_not_invented_spread(self):
+        from pypdf import PdfReader
+        case = self._synthetic_candidate_ir_case(have_source=False)
+        result = complete_manual_session(**case)
+        self.assertEqual(
+            result["integrated_private"]["candidate_comparison_private"][
+                "pairwise_weighted_cashflow_private"][0]["status"],
+            "NOT_COMPARABLE")
+        code, pdf, err = self._cli(case)
+        self.assertEqual((code, err), (0, ""))
+        text = "\n".join(p.extract_text() for p in PdfReader(BytesIO(pdf)).pages)
+        self.assertIn("NON COMPARABLE", text)
+        self.assertIn("Ni rendement espéré certifié", text)
+
+    def test_pdf_rejects_different_pairwise_result_and_no_original_annex(self):
+        case = self._synthetic_candidate_ir_case(have_source=True)
+        result = complete_manual_session(**case)
+        args = {
+            "executive_report": result["executive_report_private"],
+            "detailed_report": result["final_report_private"],
+            "analysis_id": case["request"]["analysis_id"],
+            "as_of": case["request"]["as_of"],
+            "strategy": case["request"]["strategy_id"],
+            "report_status": "CONDITIONAL",
+            "request": case["request"], "ir_capsule": case["ir_capsule"],
+        }
+        actual = result["integrated_private"]["candidate_comparison_private"]
+        fabricated = deepcopy(actual)
+        fabricated["pairwise_weighted_cashflow_private"][0][
+            "first_minus_second_pp"] = "999"
+        with self.assertRaises(ValueError):
+            render_pamalised_pdf(
+                **args, candidate_comparison_private=fabricated)
+        changed_detail = args["detailed_report"].replace(
+            "## Cross-candidate scenario arithmetic — private, not ranked",
+            "## Cross-candidate scenario arithmetic — REMOVED")
+        self.assertNotEqual(changed_detail, args["detailed_report"])
+        changed_executive = args["executive_report"].replace(
+            args["detailed_report"], changed_detail)
+        self.assertNotEqual(changed_executive, args["executive_report"])
+        with self.assertRaisesRegex(
+                ValueError, "PAMALISED_CANDIDATE_SOURCE_DETAIL_PARITY_INVALID"):
+            render_pamalised_pdf(
+                **{**args, "executive_report": changed_executive,
+                   "detailed_report": changed_detail},
+                candidate_comparison_private=actual)
+
     def test_presentation_rejects_wrong_case_and_unrecognized_fact_link(self):
         request = self.fixtures.request()
         ir = self.fixtures.ir()

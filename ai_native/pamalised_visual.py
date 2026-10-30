@@ -63,6 +63,7 @@ def _view(model: Mapping[str, Any], executive: str, detail: str,
     mode = _safe(req.get("strategy_id"), limit=80)
     horizon = _safe(req.get("horizon"), limit=80)
     objective = _safe(req.get("objective"), limit=240)
+    comparison = model.get("candidate_comparison_private")
     capital = model.get("high_cagr_destination_review_private")
     # This input is verified against the existing deterministic capital-path
     # output by render_pamalised_pdf before reaching this layout function.
@@ -479,6 +480,44 @@ def _view(model: Mapping[str, Any], executive: str, detail: str,
             "Comparaison de rendement total économique avec l’indice/ETF "
             "de référence : NON CERTIFIÉE par le présent rapport.", CREAM, small,
         ))
+        # Optional compact view of M2 pairwise cash-flow sensitivities.
+        # render_pamalised_pdf already validated the exact comparison using
+        # reporting._candidate_comparison_lines AND matched the original annex.
+        # Only actually supplied SECURITY↔REFERENCE_ETF pairs are displayed;
+        # a positive model spread is never labelled "alpha" or a recommendation.
+        if isinstance(comparison, Mapping):
+            candidates = comparison["candidates_private"]
+            by_id = {row["candidate_id"]: row for row in candidates}
+            matches = []
+            for item in comparison["pairwise_weighted_cashflow_private"]:
+                left = by_id[item["first_candidate_id"]]
+                right = by_id[item["second_candidate_id"]]
+                if {left["role"], right["role"]} != {"SECURITY", "REFERENCE_ETF"}:
+                    continue
+                value = item["first_minus_second_pp"]
+                reading = (
+                    format(Decimal(value), ".2f") + " pp"
+                    if item["status"] == "CONDITIONAL_TOTAL_CASHFLOW_IRR_SPREAD_ONLY"
+                    else "NON COMPARABLE"
+                )
+                matches.append([
+                    _safe(item["first_candidate_id"], limit=45) + " − " +
+                    _safe(item["second_candidate_id"], limit=45),
+                    reading,
+                ])
+            if matches:
+                story.append(Spacer(1, 13))
+                label("Sensibilité économique — modèle conditionnel")
+                table(["PAIRE (PREMIER − SECOND)", "ÉCART DE RENDEMENT ANNUALISÉ"], matches[:4])
+                story.append(P(
+                    "IRR des flux annuels pondérés par hypothèses de probabilité "
+                    "non calibrées; avant frais, change et fiscalité. "
+                    "Ni rendement espéré certifié, ni alpha attendu, ni classement. "
+                    "Le Room personnel reste indépendant. Détails et limites "
+                    "dans l’annexe originale.", tiny,
+                ))
+                if len(matches) > 4:
+                    story.append(P("Autres comparaisons dans l’annexe.", tiny))
         page()
 
     # 03: Do not turn a Blossom public/profile observation into personal Room.
@@ -706,7 +745,8 @@ def render_reference_style_pdf(*, executive_report: str, detailed_report: str,
                                logo: bytes | None = None,
                                new_contribution_summary_private: Mapping[str, Any] | None = None,
                                presentation_inputs: Mapping[str, Any] | None = None,
-                               high_cagr_destination_review_private: Mapping[str, Any] | None = None) -> bytes:
+                               high_cagr_destination_review_private: Mapping[str, Any] | None = None,
+                               candidate_comparison_private: Mapping[str, Any] | None = None) -> bytes:
     """Layout only, never evidence admission; validate before calling."""
     if not isinstance(executive_report, str) or not isinstance(detailed_report, str):
         raise ValueError("PAMALISE_PAIR_REQUIRED")
@@ -720,5 +760,6 @@ def render_reference_style_pdf(*, executive_report: str, detailed_report: str,
                       pi_delta=pi_delta or {},
                       new_contribution_summary_private=new_contribution_summary_private,
                       presentation_inputs=presentation_inputs,
-                      high_cagr_destination_review_private=high_cagr_destination_review_private),
+                      high_cagr_destination_review_private=high_cagr_destination_review_private,
+                      candidate_comparison_private=candidate_comparison_private),
                  executive_report, detailed_report, logo)

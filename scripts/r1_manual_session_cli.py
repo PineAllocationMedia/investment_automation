@@ -1502,6 +1502,9 @@ def run(*, output: str, instream: TextIO, outstream: TextIO,
                         presentation_inputs=payload.get("presentation_inputs"),
                         high_cagr_destination_review_private=(
                             result.get("high_cagr_destination_review_private")),
+                        candidate_comparison_private=(
+                            (result.get("integrated_private") or {}).get(
+                                "candidate_comparison_private")),
                     )
                     sink = getattr(outstream, "buffer", None)
                     if sink is None:

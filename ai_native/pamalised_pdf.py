@@ -21,7 +21,8 @@ def render_pamalised_pdf(*, executive_report: str, detailed_report: str,
                          pi_delta: Mapping[str, Any] | None = None,
                          new_contribution_summary_private: Mapping[str, Any] | None = None,
                          presentation_inputs: Mapping[str, Any] | None = None,
-                         high_cagr_destination_review_private: Mapping[str, Any] | None = None) -> bytes:
+                         high_cagr_destination_review_private: Mapping[str, Any] | None = None,
+                         candidate_comparison_private: Mapping[str, Any] | None = None) -> bytes:
     """Return a visually PAMalised document as PDF bytes, never save it.
 
     The original HTML source-pair validator is still authoritative. Optional
@@ -69,6 +70,20 @@ def render_pamalised_pdf(*, executive_report: str, detailed_report: str,
         )
         if high_cagr_destination_review_private != expected:
             raise ValueError("PAMALISED_HIGH_CAGR_REVIEW_PARITY_MISMATCH")
+    if candidate_comparison_private is not None:
+        if request is None or ir_capsule is None:
+            raise ValueError("PAMALISED_CANDIDATE_RESEARCH_SCOPE_REQUIRED")
+        # The same report validator that admitted the M2 pairwise arithmetic
+        # must approve the PDF summary. Its exact section must also be present
+        # in the validated original detail, not merely in a caller's proposed
+        # infographic. No second Expected Return or alpha engine is created.
+        from .reporting import _candidate_comparison_lines
+        comparison_lines = _candidate_comparison_lines(
+            {"candidate_comparison_private": candidate_comparison_private},
+            analysis_id, as_of, strategy)
+        if (not comparison_lines
+                or "\n".join(comparison_lines).strip() not in detailed_report):
+            raise ValueError("PAMALISED_CANDIDATE_SOURCE_DETAIL_PARITY_INVALID")
     try:
         from .pamalised_visual import render_reference_style_pdf
     except ImportError as exc:
@@ -82,6 +97,7 @@ def render_pamalised_pdf(*, executive_report: str, detailed_report: str,
         new_contribution_summary_private=new_contribution_summary_private,
         presentation_inputs=presentation_inputs,
         high_cagr_destination_review_private=high_cagr_destination_review_private,
+        candidate_comparison_private=candidate_comparison_private,
     )
     if not pdf.startswith(b"%PDF-"):
         raise ValueError("PAMALISED_PDF_OUTPUT_INVALID")
