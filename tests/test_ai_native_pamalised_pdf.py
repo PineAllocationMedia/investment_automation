@@ -11,7 +11,7 @@ from ai_native.pamalised_pdf import render_pamalised_pdf
 from ai_native.session_bridge import complete_manual_session
 from scripts.r1_manual_session_cli import main
 from tests.test_ai_native_session_bridge import SessionBridgeTests
-from tests.test_ai_native_work_blossom_session_bridge import BlossomSessionBridgeTests
+from tests import test_ai_native_work_blossom_session_bridge as _work_fixtures
 
 _HAS_PDF = (importlib.util.find_spec("reportlab") is not None
             and importlib.util.find_spec("pypdf") is not None)
@@ -84,7 +84,7 @@ class PamalisedPdfTests(unittest.TestCase):
 
     def _completed_m3_case(self, *, ir_requested):
         """Use real synthetic M3/Work data, not a hand-crafted PDF summary."""
-        fx = BlossomSessionBridgeTests()
+        fx = _work_fixtures.BlossomSessionBridgeTests()
         request = self.fixtures.request(
             portfolio_needed=True, research_needed=ir_requested)
         case = {
