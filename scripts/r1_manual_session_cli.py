@@ -82,6 +82,10 @@ SAFE_ERROR_CODES = frozenset({
     "INTEGRATED_FOLLOWUP_CURRENT_PORTFOLIO_REQUIRED",
     "INTEGRATED_FOLLOWUP_PORTFOLIO_ROUTE_REQUIRED",
     "INTEGRATED_FOLLOWUP_PRIOR_SOURCE_AMBIGUOUS",
+    "GUIDED_PRIVATE_CLOSEOUT_IR_PI_REQUIRED",
+    "GUIDED_PRIVATE_CLOSEOUT_MEMORY_REQUIRED",
+    "GUIDED_PRIVATE_CLOSEOUT_MEMORY_METADATA_INVALID",
+    "GUIDED_PRIVATE_CLOSEOUT_CURRENT_OBSERVATION_REQUIRED",
 })
 
 
@@ -534,6 +538,70 @@ def _integrated_followup_operator(payload: Any) -> tuple[dict[str, Any], dict[st
     return _reenter_sealed_followup(recovered)
 
 
+def _preflight_guided_private_closeout(
+    payload: dict[str, Any], session: dict[str, Any],
+) -> None:
+    """Reject a non-completable guided archive BEFORE human IR/PI work begins.
+
+    A saved manual continuation must be replayed unchanged: the operator cannot
+    safely add absent M3 observations or memory metadata at a later specialist
+    return. Use the original M3 seal for source eligibility and original
+    memory contract's essential fields, without inventing an IR record.
+    This is an admission check, not source authentication or final acceptance.
+    """
+    request = payload.get("request")
+    if (not isinstance(request, dict)
+            or request.get("research_needed") is not True
+            or request.get("portfolio_needed") is not True
+            or session.get("route") != "CC_IR_PI_CC"):
+        raise ValueError("GUIDED_PRIVATE_CLOSEOUT_IR_PI_REQUIRED")
+    memory = payload.get("memory_inputs")
+    if not isinstance(memory, dict):
+        raise ValueError("GUIDED_PRIVATE_CLOSEOUT_MEMORY_REQUIRED")
+    report_id = memory.get("report_id")
+    instruction_version = memory.get("instruction_version")
+    recorded_at = memory.get("recorded_at")
+    parent_id = memory.get("parent_report_id")
+    if (not isinstance(report_id, str)
+            or not _FOLLOWUP_SAFE_ID.fullmatch(report_id)
+            or not isinstance(instruction_version, str)
+            or not instruction_version.strip()
+            or not isinstance(recorded_at, str)
+            or (parent_id is not None and (
+                not isinstance(parent_id, str)
+                or not _FOLLOWUP_SAFE_ID.fullmatch(parent_id)
+                or parent_id == report_id))):
+        raise ValueError("GUIDED_PRIVATE_CLOSEOUT_MEMORY_METADATA_INVALID")
+    try:
+        recorded = date.fromisoformat(recorded_at)
+        if (recorded.isoformat() != recorded_at
+                or recorded_at < request["as_of"]):
+            raise ValueError
+    except (ValueError, TypeError, KeyError) as exc:
+        raise ValueError("GUIDED_PRIVATE_CLOSEOUT_MEMORY_METADATA_INVALID") from exc
+    ledger = session.get("portfolio_observation_private")
+    if not isinstance(ledger, dict) or ledger.get("private_scope") is not True:
+        raise ValueError("GUIDED_PRIVATE_CLOSEOUT_CURRENT_OBSERVATION_REQUIRED")
+    raw = payload.get("observation_inputs")
+    capture = session.get("work_blossom_capture_private")
+    if capture is not None:
+        if (raw is not None
+                or capture.get("status") !=
+                    "PRIVATE_OBSERVATION_PACKET_PREPARED_NOT_SENT"):
+            raise ValueError("GUIDED_PRIVATE_CLOSEOUT_CURRENT_OBSERVATION_REQUIRED")
+        raw = capture.get("observation_inputs_private")
+    if not isinstance(raw, dict):
+        raise ValueError("GUIDED_PRIVATE_CLOSEOUT_CURRENT_OBSERVATION_REQUIRED")
+    try:
+        checked = seal_private_portfolio_snapshot(raw)
+        if (checked["private_snapshot"]["analysis_id"] != request["analysis_id"]
+                or checked["private_snapshot"]["analysis_as_of"] != request["as_of"]
+                or prepare_observation_ledger(**raw) != ledger):
+            raise ValueError
+    except (ValueError, KeyError, TypeError) as exc:
+        raise ValueError("GUIDED_PRIVATE_CLOSEOUT_CURRENT_OBSERVATION_REQUIRED") from exc
+
+
 def _resume_manual_transfer(envelope: Any) -> tuple[dict[str, Any], dict[str, Any]]:
     """Rejoin independently supplied specialist JSON with the saved CC step.
 
@@ -736,6 +804,11 @@ def run(*, output: str, instream: TextIO, outstream: TextIO,
             resume_payload, result = _resume_manual_transfer(payload)
         else:
             result = evaluate(payload)
+        if output == "guided-integrated-closeout":
+            # Check the COMPLETE and replayable private session before the
+            # first costly human transfer. No partial prompt/record on failure.
+            _preflight_guided_private_closeout(
+                resume_payload if guided_resuming else payload, result)
     except (ValueError, TypeError, KeyError, RecursionError) as exc:
         errstream.write("R1_INPUT_REJECTED: " + _code(exc) + "\n")
         return 2
