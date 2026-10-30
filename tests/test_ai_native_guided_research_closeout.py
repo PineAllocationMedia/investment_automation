@@ -120,6 +120,8 @@ class GuidedResearchCloseoutTests(unittest.TestCase):
         combined["request"]["portfolio_needed"] = True
         pi_only = self.case()
         pi_only["request"].update(research_needed=False, portfolio_needed=True)
+        # PI-only has no research memory by the existing M1 contract.
+        pi_only.pop("memory_inputs")
         uninitiated = self.case()
         uninitiated["request"]["ceo_initiated"] = False
         for packet, expected in (
