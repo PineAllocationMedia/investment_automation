@@ -84,6 +84,17 @@ class CandidateDeepDiveDraftTests(unittest.TestCase):
         self.assertEqual(req["strategy_id"], "high-cagr")
         self.assertEqual(req["candidate_universe"], "SYN-CO | SYN:NYSE")
         self.assertEqual(req["ir_method_version"], "UNKNOWN_NOT_LOADED")
+        self.assertEqual(draft["prior_context_transfer"],
+                         "PREFILLED_REQUIRES_CEO_REVIEW")
+        self.assertIn("What drives durability?",
+                      req["mandate_prompt_private"])
+        self.assertIn("Check customer churn",
+                      req["mandate_prompt_private"])
+        self.assertIn("UNTRUSTED PRIOR TRIAGE CONTEXT",
+                      req["mandate_prompt_private"])
+        self.assertIn("not verified evidence",
+                      req["mandate_prompt_private"])
+        self.assertLessEqual(len(req["mandate_prompt_private"]), 3000)
         self.assertNotIn("historical_comparison_inputs", draft["input_template"])
         self.assertNotIn("prior_analysis_id", req)
         self.assertEqual(draft["ranking_or_buy_recommendation"], "NONE")
@@ -97,6 +108,68 @@ class CandidateDeepDiveDraftTests(unittest.TestCase):
         rc, output, err = self.cli(draft["input_template"], "next-handoff")
         self.assertEqual((rc, output), (2, ""))
         self.assertIn("CEO_INITIATION_REQUIRED", err)
+
+    def test_new_explicit_ceo_request_transmits_question_into_real_m1_ir_handoff(self):
+        code, raw, err = self.cli({
+            "session": self.session(), "candidate_id": "C1"})
+        self.assertEqual((code, err), (0, ""))
+        draft = json.loads(raw)
+        new_request = deepcopy(draft["input_template"]["request"])
+        new_request.update({
+            "ceo_initiated": True,
+            "analysis_id": "CASE-NEW-DEEP-DIVE",
+            "as_of": "2026-10-29",
+            "objective": "Independently investigate a chosen candidate",
+            "horizon": "5 years",
+            "risk_constraints": ["No authenticated source claims assumed"],
+        })
+        code, body, err = self.cli({"request": new_request}, "next-handoff")
+        self.assertEqual((code, err), (0, ""))
+        handoff = json.loads(body)["IR_REQUEST"]
+        self.assertEqual(
+            handoff["mandate_context_private"]["mandate_prompt_private"],
+            new_request["mandate_prompt_private"])
+        self.assertEqual(handoff["candidate_universe"], "SYN-CO | SYN:NYSE")
+        self.assertIn("Check customer churn",
+                      handoff["mandate_context_private"]["mandate_prompt_private"])
+        self.assertIn("NOT_VERIFIED",
+                      handoff["r1_strategy_method_load"])
+        self.assertNotIn("SECRET_OLD_IR_CLAIM", body)
+        self.assertNotIn("SECRET_SOURCE", body)
+        self.assertNotIn("777.00", body)
+        self.assertNotIn("FORWARD_UNCHANGED", handoff)
+
+        # The ordinary method-checked guided route consumes the SAME request.
+        code, body, err = self.cli({"request": new_request}, "guided-operator")
+        self.assertEqual((code, err), (0, ""))
+        guided = json.loads(body)
+        self.assertEqual(guided["specialist_step"], "IR_REQUEST")
+        self.assertEqual(guided["copy_to_specialist"], "specialist_prompt_private")
+        self.assertIn("Check customer churn",
+                      guided["specialist_prompt_private"])
+        self.assertIn("UNTRUSTED PRIOR TRIAGE CONTEXT",
+                      guided["specialist_prompt_private"])
+        self.assertNotIn("SECRET_SOURCE",
+                         guided["specialist_prompt_private"])
+        self.assertEqual(guided["project_invocation"], "NONE")
+        self.assertEqual(guided["method_load_verification"], "NOT_PERFORMED")
+
+    def test_overlong_prior_questions_are_not_silently_truncated_into_ir(self):
+        data = self.t.setup_case()
+        data["candidates"][0]["open_questions"] = [
+            "Original 1 " + "Q" * 3600,
+        ]
+        old = prepare_opportunity_triage(**data)
+        draft = prepare_selected_candidate_draft(old, "C1")
+        self.assertEqual(draft["prior_context_transfer"],
+                         "NOT_COPIED_TOO_LONG_MANUAL_REVIEW_REQUIRED")
+        self.assertIsNone(draft["input_template"]["request"]["mandate_prompt_private"])
+        self.assertEqual(
+            draft["selected_candidate_private"]["open_questions"],
+            data["candidates"][0]["open_questions"])
+        self.assertIn(
+            "Review/edit the proposed mandate_prompt_private",
+            draft["human_checks"][0])
 
     def test_candidate_with_missing_sources_is_evidence_work_not_ranked(self):
         rc, text, err = self.cli({
