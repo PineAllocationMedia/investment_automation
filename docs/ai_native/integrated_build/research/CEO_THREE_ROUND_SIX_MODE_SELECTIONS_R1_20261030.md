@@ -135,3 +135,7 @@ The three rounds refine design for the 36-decision first integrated build (espec
 Only the next **CEO-initiated** request triggers a future real analysis; no automatic weekly briefing or recurring research. This record is non-sensitive program memory only: no personal account, private holdings, real trade, test PDF or private financial case content.
 
 **Next action upon CEO merge of this documentary PR:** derive bounded detailed proposals P01–P12 from this source plus actual V1/V2 methods and six existing R1 drafts; use proportionate evidence/risk review; return an explicit policy decision package to CEO before any protected policy amendment or application. This document alone makes no change to operating investment policy or Project instructions.
+
+## 2026-10-30 — Suite : propositions P01–P12 préparées, sans approbation financière
+
+Le dossier de propositions détaillées à examiner après ces 38 réponses est [SIX_MODE_FINANCIAL_POLICY_DECISION_PACKAGE_P01_P12_R1_20261030.md](SIX_MODE_FINANCIAL_POLICY_DECISION_PACKAGE_P01_P12_R1_20261030.md). Il fournit pour chaque P la méthode candidate, alternatives, preuves, contre-exemples, tests et décision qui reste au CEO. **Ce lien n'active aucune des propositions.** La référence originelle de sélection, ses nuances et les règles protégées V1/V2 restent inchangées.
