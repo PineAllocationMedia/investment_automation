@@ -38,6 +38,7 @@ QUICK_MODULES = (
     "tests.test_ai_native_private_portfolio_transfer",
     "tests.test_ai_native_private_integrated_closeout",
     "tests.test_ai_native_integrated_followup_roundtrip",
+    "tests.test_ai_native_screenshot_reentry",
     "tests.test_ai_native_r1_private_displayed_weights",
     "tests.test_ai_native_r1_alternative_supplied_costs",
     "tests.test_ai_native_reporting",
