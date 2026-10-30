@@ -51,6 +51,28 @@ def _date(v: Any, label: str, *, unknown: bool = False) -> str:
     return value
 
 
+def _capture_day(raw: Any, observed_on: str, cutoff: str) -> str:
+    """Separate real screenshot capture date from the holdings' effective date.
+
+    This checks reported metadata only. A later capture cannot update holdings
+    or turn a visible public profile into owned private positions.
+    """
+    if raw == "UNKNOWN":
+        return "UNKNOWN"
+    timestamp = _text(raw, "captured_at", 40)
+    try:
+        moment = datetime.fromisoformat(timestamp)
+        if moment.utcoffset() is None:
+            raise ValueError
+        captured_on = moment.date().isoformat()
+        if captured_on > cutoff or (
+                observed_on != "UNKNOWN" and captured_on < observed_on):
+            raise ValueError
+    except ValueError as exc:
+        raise ValueError("PUBLIC_REFERENCE_CAPTURE_TIME_INCONSISTENT") from exc
+    return captured_on
+
+
 def _decimal(v: Any, label: str, *, upper: Decimal | None = None) -> Decimal:
     if not isinstance(v, str) or not v.strip():
         raise ValueError(f"{label}: exact decimal string required")
@@ -83,16 +105,7 @@ def prepare_public_portfolio_reference(
     if visible_on != "UNKNOWN" and visible_on > cutoff:
         raise ValueError("PUBLIC_REFERENCE_AFTER_ANALYSIS_CUTOFF")
     captured = packet["captured_at"]
-    if captured != "UNKNOWN":
-        stamp = _text(captured, "captured_at", 40)
-        try:
-            dt = datetime.fromisoformat(stamp)
-            if dt.utcoffset() is None or dt.date().isoformat() > cutoff:
-                raise ValueError
-            if visible_on != "UNKNOWN" and dt.date().isoformat() != visible_on:
-                raise ValueError
-        except ValueError as exc:
-            raise ValueError("PUBLIC_REFERENCE_CAPTURE_TIME_INCONSISTENT") from exc
+    _capture_day(captured, visible_on, cutoff)
     visible_mode = packet["visibility_context"]
     if visible_mode not in HOST_VISIBILITY:
         raise ValueError("PUBLIC_REFERENCE_VISIBILITY_MODE_UNSUPPORTED")
@@ -163,6 +176,7 @@ def prepare_public_portfolio_reference(
     return {
         "status": "PUBLIC_REFERENCE_DESCRIPTIVE_ONLY", "analysis_id": aid,
         "analysis_as_of": cutoff, "observation_as_of": visible_on,
+        "captured_at": captured,
         "visibility_context": visible_mode, "position_count": len(positions),
         "positions_private": positions, "displayed_weight_sum_pct": (
             f"{total:.2f}" if complete_weights else None),
@@ -257,11 +271,29 @@ def render_public_portfolio_reference(result: Mapping[str, Any]) -> str:
             or result.get("allocation_authority") != "NONE"
             or result.get("source_authentication") != "NOT_PERFORMED"):
         raise ValueError("PUBLIC_REFERENCE_REPORT_AUTHORITY_INVALID")
+    observation_day = _date(result.get("observation_as_of"), "observation_as_of",
+                            unknown=True)
+    cutoff = _date(result.get("analysis_as_of"), "analysis_as_of")
+    if observation_day != "UNKNOWN" and observation_day > cutoff:
+        raise ValueError("PUBLIC_REFERENCE_AFTER_ANALYSIS_CUTOFF")
+    capture_day = _capture_day(result.get("captured_at"), observation_day, cutoff)
+    capture_label = (
+        "Capture timestamp UNKNOWN; observation date " + observation_day + "."
+        if capture_day == "UNKNOWN" else
+        "Capture recorded on " + capture_day +
+        "; effective displayed holdings date " + observation_day +
+        ("; " + str((date.fromisoformat(capture_day) -
+                       date.fromisoformat(observation_day)).days) +
+         " calendar day(s) after the underlying observation."
+         if observation_day != "UNKNOWN" else
+         "; capture time does NOT establish a holdings sync date.")
+    )
     rows = [
         "## Blossom Portfolio — observed profile reference only",
         f"Analysis: {result['analysis_id']} / {result['analysis_as_of']}; "
         f"observation: {result['observation_as_of']}; "
         f"visible positions reported: {result['position_count']}.",
+        capture_label,
         "Reference classification only, not evidence of the CEO's private holdings, "
         "anonymous site access, actual account denominator or broker-verified positions.",
         "",

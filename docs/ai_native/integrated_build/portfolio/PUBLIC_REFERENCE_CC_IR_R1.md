@@ -22,7 +22,7 @@
 | `status` | Literal `PUBLIC_REFERENCE_ONLY`, a handling class **not** proof of anonymous browsing |
 | `analysis_id`, `analysis_as_of` | Match request exactly; date YYYY-MM-DD |
 | `observation_as_of` | Actual dated holdings observation (YYYY-MM-DD not later than cutoff) or `UNKNOWN` |
-| `captured_at` | Offset-aware datetime matching observation date if known, otherwise `UNKNOWN` |
+| `captured_at` | Truthful timezone-aware actual capture datetime (`observed_on` may be earlier), on/after the observation date when known and on/before the analysis cutoff, or `UNKNOWN` |
 | `visibility_context` | `SIGNED_IN_VISIBILITY_ONLY`, `ANONYMOUS_PUBLIC_CONFIRMED`, or `UNKNOWN` |
 | `visible_scope` | Bounded non-sensitive label; **not** copied into IR/report or memory |
 | `account_ownership` | Literal `NOT_ASSUMED_USER`; never accept an unproven private-ownership claim |
@@ -33,7 +33,7 @@
 
 Each row uses `security_id` = visibly observed ticker/identifier of at most 32 characters, no spaces or markup, unique within the captured list; `weight_pct` = **decimal-string percentage points** within 0–100 with at most 2 decimal places or `null` if absent; `value` = visible exact nonnegative decimal-string amount with at most 2 decimals or `null`; `currency` = actual uppercase 3-letter currency or `null`; `visibility` = `VISIBLE` or `UNCERTAIN`. **Visible values are validated but deliberately omitted** from the derived profile report/IR handoff to avoid unnecessary carrying of possibly sensitive account balances. All key/scope/date/visibility and numeric-shape mismatches fail closed.
 
-The reference aggregator sums displayed weights without treating 100.3% as a new account denominator. A top-five sum is **displayed percentage points**, not effective whole-portfolio allocation. `ANONYMOUS_PUBLIC_CONFIRMED` is accepted only as a *Work-reported* assertion; this parser cannot independently test an anonymous session. Unknown ticker names, missing values, incomparability and stale snapshots are NOT filled from the market or guessed.
+The capture timestamp does **not** automatically become the effective date of the displayed holdings. A capture taken after an older visible sync/observation date is admitted, identified separately in the CC report, and never upgrades portfolio freshness or ownership. Future-cutoff capture, capture before the asserted observation date, and timezone-naive timestamps are rejected; if sync/observation date is `UNKNOWN`, even a known capture date cannot fill it. The reference aggregator sums displayed weights without treating 100.3% as a new account denominator. A top-five sum is **displayed percentage points**, not effective whole-portfolio allocation. `ANONYMOUS_PUBLIC_CONFIRMED` is accepted only as a *Work-reported* assertion; this parser cannot independently test an anonymous session. Unknown ticker names, missing values, incomparability and stale snapshots are NOT filled from the market or guessed.
 
 ### Synthetic format example (not a real account)
 
