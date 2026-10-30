@@ -40,6 +40,7 @@ QUICK_MODULES = (
     "tests.test_ai_native_integrated_followup_roundtrip",
     "tests.test_ai_native_screenshot_reentry",
     "tests.test_ai_native_candidate_deep_dive_draft",
+    "tests.test_ai_native_guided_research_closeout",
     "tests.test_ai_native_r1_private_displayed_weights",
     "tests.test_ai_native_r1_alternative_supplied_costs",
     "tests.test_ai_native_reporting",
