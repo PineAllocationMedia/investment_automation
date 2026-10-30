@@ -97,7 +97,7 @@ class NewCapitalPIHandoffTests(unittest.TestCase):
                          "PI_ONLY_CONDITIONAL_REPORT_ASSEMBLED")
         self.assertEqual(finished["gross_contribution_private"]["status"],
                          "GROSS_PROJECTION_ONLY")
-        self.assertIn("100% of new capital",
+        self.assertIn("100.00% of new capital",
                       finished["final_report_private"])
         self.assertEqual(finished["project_invocation"], "NONE")
 
