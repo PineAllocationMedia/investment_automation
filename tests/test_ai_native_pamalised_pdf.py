@@ -133,6 +133,123 @@ class PamalisedPdfTests(unittest.TestCase):
         again = "\n".join(x.extract_text() for x in PdfReader(BytesIO(rejected)).pages)
         self.assertNotIn("TEST_ISSUER : 70.0 %", again)
 
+    def test_cc_authored_intro_and_visuals_use_actual_ir_and_m3(self):
+        from pypdf import PdfReader
+        request = self.fixtures.request(portfolio_needed=True)
+        ir = self.fixtures.ir()
+        ir["facts"][0]["claim"] = "FACT_INPUT_ONLY_XYZ"
+        pi = self.fixtures.pi(forwarded_ir=deepcopy(ir))
+        payload = {"request": request, "ir_capsule": ir, "pi_delta": pi,
+                   "presentation_inputs": {
+                       "analysis_id": request["analysis_id"],
+                       "as_of": request["as_of"],
+                       "opening_paragraph": (
+                           "Le mandat demande une comparaison responsable des "
+                           "options synthétiques. Les faits IR sont rapportés "
+                           "sans authentification indépendante et la situation "
+                           "personnelle reste non vérifiée."
+                       ),
+                       "support_refs": ["F1"],
+                       "visuals": [{"kind": "evidence_flow",
+                                    "title": "Schéma des preuves réellement reçues",
+                                    "fact_ids": ["F1"]},
+                                   {"kind": "contribution_bars",
+                                    "title": "Répartition conditionnelle de l'apport",
+                                    "fact_ids": []}],
+                   }}
+        code, pdf, err = self._cli(payload)
+        self.assertEqual((code, err), (0, ""))
+        txt = "\n".join(x.extract_text() for x in PdfReader(BytesIO(pdf)).pages)
+        self.assertIn("Le mandat demande une comparaison", txt)
+        self.assertIn("Schéma des preuves réellement reçues", txt)
+        self.assertIn("FACT_INPUT_ONLY_XYZ", txt)
+        self.assertNotIn("Répartition conditionnelle de l'apport", txt)
+        # Exact visible first section follows the CC-authored paragraph.
+        self.assertLess(txt.index("Le mandat demande une comparaison"),
+                        txt.index("L’essentiel en 60 secondes"))
+        self.assertIn("Mandat et traçabilité", txt)
+        self.assertNotIn("ANALYSE AU", txt)
+
+    def test_bar_chart_uses_only_validated_m3_percentage_projections(self):
+        from pypdf import PdfReader
+        request = self.fixtures.request(portfolio_needed=True)
+        ir = self.fixtures.ir()
+        pi = self.fixtures.pi(forwarded_ir=deepcopy(ir))
+        session = complete_manual_session(request, ir_capsule=ir, pi_delta=pi)
+        props = dict(executive_report=session["executive_report_private"],
+                     detailed_report=session["final_report_private"],
+                     analysis_id=request["analysis_id"], as_of=request["as_of"],
+                     strategy=request["strategy_id"], report_status="EXPLORATORY",
+                     request=request, ir_capsule=ir, pi_delta=pi)
+        presentation = {
+            "analysis_id": request["analysis_id"], "as_of": request["as_of"],
+            "opening_paragraph": ("Une comparaison synthétique a été effectuée "
+                                  "à la demande du CEO. Les résultats restent "
+                                  "conditionnels aux preuves sources et aux coûts."),
+            "support_refs": ["F1"],
+            "visuals": [{"kind": "contribution_bars",
+                         "title": "Répartition des nouveaux apports selon le modèle",
+                         "fact_ids": []}],
+        }
+        amounts = {"analysis_id": request["analysis_id"],
+                   "gross_status": "GROSS_PROJECTION_ONLY",
+                   "allocations_pct": {"ETF_TEST": "65", "ISSUER_TEST": "35"}}
+        pdf = render_pamalised_pdf(
+            **props, presentation_inputs=presentation,
+            new_contribution_summary_private=amounts)
+        extracted = "\n".join(x.extract_text() for x in PdfReader(BytesIO(pdf)).pages)
+        self.assertIn("Répartition des nouveaux apports selon le modèle", extracted)
+        self.assertIn("ETF_TEST", extracted)
+        self.assertIn("65.0 %", extracted)
+        self.assertIn("projection arithmétique", extracted.lower())
+        invalid = render_pamalised_pdf(
+            **props, presentation_inputs=presentation,
+            new_contribution_summary_private={
+                **amounts, "gross_status": "UNAVAILABLE"})
+        extracted_bad = "\n".join(x.extract_text() for x in PdfReader(BytesIO(invalid)).pages)
+        self.assertNotIn("Répartition des nouveaux apports selon le modèle", extracted_bad)
+        self.assertNotIn("65.0 %", extracted_bad)
+
+    def test_presentation_rejects_wrong_case_and_unrecognized_fact_link(self):
+        request = self.fixtures.request()
+        ir = self.fixtures.ir()
+        session = complete_manual_session(request, ir_capsule=ir)
+        kw = dict(executive_report=session["executive_report_private"],
+                  detailed_report=session["final_report_private"],
+                  analysis_id=request["analysis_id"], as_of=request["as_of"],
+                  strategy=request["strategy_id"], report_status="EXPLORATORY",
+                  request=request, ir_capsule=ir)
+        valid = {"analysis_id": request["analysis_id"],
+                 "as_of": request["as_of"],
+                 "opening_paragraph": ("Le mandat permet une analyse prudente "
+                                       "fondée sur les faits remis, sans preuve "
+                                       "indépendante des sources financières."),
+                 "support_refs": ["F1"], "visuals": []}
+        with self.assertRaisesRegex(ValueError, "PAMALISED_PRESENTATION_IDENTITY_MISMATCH"):
+            render_pamalised_pdf(
+                **kw, presentation_inputs={**valid, "analysis_id": "WRONG"})
+        with self.assertRaisesRegex(ValueError, "PAMALISED_OPENING_SUPPORT_REFS_INVALID"):
+            render_pamalised_pdf(
+                **kw, presentation_inputs={**valid, "support_refs": ["MISSING_F999"]})
+        with self.assertRaisesRegex(ValueError, "PAMALISED_EVIDENCE_FLOW_INVALID"):
+            render_pamalised_pdf(
+                **kw, presentation_inputs={**valid, "visuals": [
+                    {"kind": "evidence_flow", "title": "Source inexistante",
+                     "fact_ids": ["MISSING_F999"]}]})
+
+    def test_presentation_fields_are_not_accepted_by_other_outputs(self):
+        request = self.fixtures.request()
+        payload = {"request": request, "presentation_inputs": {
+            "analysis_id": request["analysis_id"],
+            "as_of": request["as_of"], "opening_paragraph": "Example only."
+        }}
+        out, err = StringIO(), StringIO()
+        code = main(["--output", "status"],
+                    instream=StringIO(json.dumps(payload)),
+                    outstream=out, errstream=err)
+        self.assertEqual(code, 2)
+        self.assertIn("PAMALISED_PRESENTATION_PDF_ONLY", err.getvalue())
+
     def test_pending_does_not_fabricate_file(self):
         code, body, err = self._cli({"request": self.fixtures.request(portfolio_needed=True)})
         self.assertEqual((code, err), (0, ""))
