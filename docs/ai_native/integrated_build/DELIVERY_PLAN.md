@@ -64,6 +64,18 @@ These are **modules of one release**, not seven mandatory sequential qualificati
 7. Report ≤10-minute user-facing conclusions, with expandable evidence and unverified assumptions; keep significant analyses traceable but exclude private portfolio values, secrets and large raw archives from GitHub.
 8. Historical T05–T13 evidence is retained, including T13's observed 30-case source-fusion precedent. No automatic recommendation to buy its five conditional candidates.
 
+## On-demand no-install local R1 smoke (construction aid, not acceptance)
+
+For an **already authorized, clean, locally fetched V2 checkout**, one command executes the critical real `test_ai_native_*.py` modules on **any installed Python >=3.11** with only stdlib, no `pip`, no download, no browser or CI rerun:
+
+```sh
+python3 -B -m scripts.r1_local_validation --quick-stdlib-smoke
+```
+
+The command enforces clean Git and matching local V2 HEAD/tracking ref; for an explicit, nonmerged `pm/` PR checkout also pass `--candidate-head <PR_SHA> --base-sha <V2_SHA>`. The fixed subset covers integrated manual CC→IR→PI→CC smoke, CLI, session handoff, six-mode authority, operator review queue, P-ledger, percent-only dated snapshots, Work-displayed percentages, alternative supplied costs, and CC reporting. Results expose **`PASS_UNPINNED_SYNTHETIC_SMOKE_ONLY`** or explicit failures; Python and dependency **pins are NOT checked**, provenance is local tracking ref only, and a PASS is never `RESEARCH-READY`, `PORTFOLIO-READY`, `ROUTINE-READY` or 36-decision acceptance.
+
+Use the original `python -B -m scripts.r1_local_validation` on the pinned Python/locked-dependency environment for the actual broad canonical synthetic suite. The no-install shortcut is an optional fallback if the pinned environment or GitHub Actions pre-step job is inaccessible, not a substitute for their eventual execution. No software or data is installed and no user device is accessed by this repository change.
+
 ## Build completion versus acceptance
 
 **Functional assembly complete** means all 36 Blueprint decisions have a linked real component or a separately CEO-accepted supported fallback; every unresolved platform/legal/policy feature is visible, and any material inability is elevated to the CEO **before** claiming completeness. Do not reduce this to 'the prompts exist.' Security, source, arithmetic and minimal component checks occur during construction.
