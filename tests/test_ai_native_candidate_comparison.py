@@ -193,6 +193,17 @@ class CandidateComparisonTests(unittest.TestCase):
             "evidence_authority"] = "CERTIFIED_EXPECTED_ALPHA"
         with self.assertRaisesRegex(ValueError, "COMPARISON_WEIGHTED_PAIR_ID_OR_AUTHORITY_INVALID"):
             render_report(forged)
+        deleted = copy.deepcopy(packet)
+        deleted["candidate_comparison_private"]["pairwise_weighted_cashflow_private"] = []
+        with self.assertRaisesRegex(ValueError, "COMPARISON_WEIGHTED_PAIR_COUNT_INVALID"):
+            render_report(deleted)
+        hidden = copy.deepcopy(packet)
+        row = hidden["candidate_comparison_private"]["pairwise_weighted_cashflow_private"][0]
+        row["status"] = "NOT_COMPARABLE"
+        row["first_minus_second_pp"] = None
+        row["reason_codes"] = ["WEIGHTED_CASHFLOW_EVIDENCE_UNAVAILABLE"]
+        with self.assertRaisesRegex(ValueError, "COMPARISON_WEIGHTED_REASONS_MISMATCH"):
+            render_report(hidden)
 
     def test_same_currency_price_scenario_differences(self):
         res=self.run_comparison()
