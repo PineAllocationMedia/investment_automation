@@ -28,6 +28,9 @@ from .portfolio_room import prepare_portfolio_room_review
 from .new_capital_flow import prepare_new_capital_projection
 from .contribution_observation import reconcile_observed_contribution_basis
 from .exceptional_lifecycle import prepare_exceptional_lifecycle_review
+from .high_cagr_destination_path import (
+    prepare_high_cagr_destination_review, render_high_cagr_destination_review,
+)
 from .scenario_session_integration import (
     prepare_scoped_scenario_review, render_scoped_scenario_lines,
 )
@@ -397,6 +400,16 @@ def complete_manual_session(
         private["status"] = "AWAITING_MANUAL_PI_DELTA"
         return private
 
+    # Test #3 F1: visible company research alone cannot justify skipping VFV.
+    # Report all three original High-CAGR branches without promoting evidence
+    # or choosing an investment. All other mode reports stay unchanged.
+    capital_path = None
+    if (route in {"CC_IR_PI_CC", "CC_PI_CC"}
+            and request.get("strategy_id") == "high-cagr"):
+        capital_path = prepare_high_cagr_destination_review(
+            request=request, ir_capsule=ir_capsule, pi_delta=pi_delta)
+        private["high_cagr_destination_review_private"] = capital_path
+
     if route == "CC_PI_CC":
         if not isinstance(pi_delta, Mapping):
             raise ValueError("pi_delta: mapping required")
@@ -465,6 +478,8 @@ def complete_manual_session(
             packet["mode_portfolio_trace_private"] = mode_portfolio_trace
             packet["limitations"] += " PI mode questions are specialist-reported and not independently authenticated."
         private["final_report_private"] = render_report(packet)
+        if capital_path is not None:
+            private["final_report_private"] += "\n\n" + render_high_cagr_destination_review(capital_path)
         if scenario_review is not None:
             private["final_report_private"] += "\n\n" + render_scoped_scenario_lines(scenario_review)
         private["executive_report_private"] = render_executive_report(
@@ -558,6 +573,11 @@ def complete_manual_session(
         integrated["public_reference_private"] = public_reference
         integrated["public_reference_report_private"] = public_reference_report
         integrated["markdown"] += "\n\n" + public_reference_report
+    if capital_path is not None:
+        capital_lines = render_high_cagr_destination_review(capital_path)
+        integrated["high_cagr_destination_review_private"] = capital_path
+        integrated["markdown"] += "\n\n" + capital_lines
+        integrated["executive_markdown"] += "\n\n" + capital_lines
     if scenario_review is not None:
         scenario_lines = render_scoped_scenario_lines(scenario_review)
         integrated["scenario_weight_sensitivity_private"] = scenario_review
