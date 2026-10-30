@@ -9,6 +9,10 @@ La [norme de rapport final PAMalisé](PAMALISED_REPORT_MASTER_R1.md) devient le 
 La nouvelle candidate [CC R1.2 PAMalisé](../project_settings/CC_R1_PAMALISED_REPORT_FIRST_20261030.txt) transporte cette sortie attendue. **Ni le PDF prototype, ni une instruction GitHub fusionnée ne créent un PDF ni ne prouvent l'installation réelle des paramètres CC.** Sur une session dont l'export est indisponible, fournir un rapport autonome prêt à exporter et déclarer `REPORT_EXPORT_NOT_VERIFIED`. Après approbation CEO de la PR et adoption manuelle des instructions, vérifier un vrai rapport rendu et ses preuves, plutôt que de réexécuter une campagne complète de pilotes.
 
 
+## Composant fonctionnel PAMalisé — sortie HTML privée et imprimable
+
+Le mode local explicite `--output pamalised-html` réutilise le **même** rapport décisionnel et détail déjà assemblés par M7/session_bridge; il produit sur **stdout uniquement** un document HTML autonome, avec palette PAM, première lecture, tableau des cinq piliers et **annexe originale conservée comme texte**. Aucun fichier n'est écrit, aucune donnée envoyée au réseau, aucun graphique ou rendement ajouté, aucun PDF produit. Le navigateur de l'utilisateur peut imprimer le HTML en PDF uniquement dans un contexte privé autorisé. En absence de route complétée : `REPORT_NOT_AVAILABLE`. Ce composant n'est **pas** une installation de Project CC, n'établit ni un export PDF direct dans Work ni une acceptation visuelle complète du prototype : `HTML_PRINT_READY_PDF_NOT_GENERATED`. Tests synthétiques isolés uniquement; intégration réelle à démontrer.
+
 ## Decision report — conclusions first, evidence after
 Use [Operating Contract](../OPERATING_CONTRACT.md) and the actual, accessible R1 handoffs. Target at most ten minutes of reading where possible, without making report length an artificial minimum.
 
