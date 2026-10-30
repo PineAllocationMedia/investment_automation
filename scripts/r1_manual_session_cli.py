@@ -1487,6 +1487,9 @@ def run(*, output: str, instream: TextIO, outstream: TextIO,
                         as_of=request["as_of"],
                         strategy=request["strategy_id"],
                         report_status=match.group(1),
+                        request=request,
+                        ir_capsule=payload.get("ir_capsule"),
+                        pi_delta=payload.get("pi_delta"),
                     )
                     sink = getattr(outstream, "buffer", None)
                     if sink is None:
