@@ -147,6 +147,10 @@ class ManualCLIContractTests(unittest.TestCase):
                 "report_id": "REPORT-A", "instruction_version": "R1-SYN",
                 "recorded_at": "2026-10-28"},
         }
+        # The M7a compact private archive intentionally omits the original
+        # account_context. Use an original IR fact sentinel to prove that
+        # historical research is CC-only, never put into fresh IR prompts.
+        original["ir_capsule"]["facts"][0]["claim"] = "PRIVATE_PRIOR_ACCOUNT_SENTINEL"
         code, data, err = self.invoke(original, "private-case-envelope")
         self.assertEqual((code, err), (0, ""))
         return json.loads(data)
@@ -223,8 +227,8 @@ class ManualCLIContractTests(unittest.TestCase):
 
     def test_sealed_followup_rejects_changed_archive_and_hides_private_input(self):
         data = self._new_sealed_followup()
-        data["private_case_envelope"]["private_case"]["original_request"][
-            "account_context"]["account"] = "SECRET_NEVER_PRINT_ME"
+        data["private_case_envelope"]["private_case"]["original_ir_capsule"][
+            "facts"][0]["claim"] = "SECRET_NEVER_PRINT_ME"
         code, body, err = self.invoke(data, "sealed-followup-operator")
         self.assertEqual(code, 2)
         self.assertEqual(body, "")
@@ -348,8 +352,8 @@ class ManualCLIContractTests(unittest.TestCase):
 
     def test_guided_sealed_followup_rejects_tampering_and_implicit_reuse_privately(self):
         tampered = self._new_sealed_followup()
-        tampered["private_case_envelope"]["private_case"]["original_request"][
-            "account_context"]["account"] = "SECRET_GUIDED_TAMPER_SENTINEL"
+        tampered["private_case_envelope"]["private_case"]["original_ir_capsule"][
+            "facts"][0]["claim"] = "SECRET_GUIDED_TAMPER_SENTINEL"
         no_mandate = self._new_sealed_followup(ceo_initiated=False)
         bad_scope = self._new_sealed_followup()
         bad_scope["session"]["historical_comparison_inputs"] = {}
@@ -686,7 +690,7 @@ class ManualCLIContractTests(unittest.TestCase):
         code, output, error = self.invoke(
             {"prior_private_case": saved}, "followup-draft")
         self.assertEqual((code, error), (0, ""))
-        self.assertIn("PRIVATE_ACCOUNT_TOKEN", output)
+        self.assertNotIn("PRIVATE_ACCOUNT_TOKEN", output)
         self.assertNotIn("PRIVATE_ACCOUNT_TOKEN",
                          json.dumps(json.loads(output)["input_template"]["request"]))
         self.assertEqual(json.loads(output)["trading_authority"], "NONE")
@@ -1126,7 +1130,7 @@ class ManualCLIContractTests(unittest.TestCase):
         self.assertEqual(envelope["authenticity"],
                          "NOT_ESTABLISHED_UNKEYED_CHECKSUM")
         self.assertEqual(envelope["storage"], "NONE")
-        self.assertIn("PRIVATE_ACCOUNT_TOKEN", out)
+        self.assertNotIn("PRIVATE_ACCOUNT_TOKEN", out)
         self.assertNotIn("PRIVATE_ACCOUNT_TOKEN", self.invoke(payload, "status")[1])
         code, restored, err = self.invoke(
             {"private_case_envelope": envelope}, "sealed-followup-draft")

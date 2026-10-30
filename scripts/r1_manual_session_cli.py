@@ -77,6 +77,11 @@ SAFE_ERROR_CODES = frozenset({
     "PRIVATE_PORTFOLIO_FOLLOWUP_REQUIRED",
     "PRIVATE_PORTFOLIO_BASELINE_ID_MISMATCH",
     "PRIVATE_PORTFOLIO_SOURCE_AMBIGUOUS",
+    "INTEGRATED_PRIOR_CLOSEOUT_INVALID",
+    "INTEGRATED_PRIOR_CASE_ID_OR_DATE_MISMATCH",
+    "INTEGRATED_FOLLOWUP_CURRENT_PORTFOLIO_REQUIRED",
+    "INTEGRATED_FOLLOWUP_PORTFOLIO_ROUTE_REQUIRED",
+    "INTEGRATED_FOLLOWUP_PRIOR_SOURCE_AMBIGUOUS",
 })
 
 
@@ -444,6 +449,91 @@ def _private_integrated_closeout(payload: dict[str, Any],
     }
 
 
+def _checked_integrated_prior(raw: Any) -> tuple[dict[str, Any], dict[str, Any]]:
+    """Recheck BOTH retained PRIVATE copies, not a self-declared archive status.
+
+    Only original research and M3 observations are restored; the prior report
+    does not become new evidence or an instruction in the fresh mandate.
+    """
+    if (not isinstance(raw, dict)
+            or raw.get("status") != "PRIVATE_INTEGRATED_CLOSEOUT_COPY_NOT_STORED"
+            or raw.get("archive_scope") !=
+                "COMPACT_RESEARCH_CASE_AND_ORIGINAL_M3_OBSERVATION_ONLY"
+            or raw.get("archive_protection") != "NOT_ESTABLISHED"
+            or raw.get("archive_integrity") !=
+                "UNKEYED_SHA256_COPY_CHECK_ONLY_NOT_AUTHENTICITY"
+            or raw.get("source_authentication") != "NOT_PERFORMED"
+            or raw.get("portfolio_source_authentication") != "NOT_PERFORMED"
+            or raw.get("method_load_verification") != "NOT_PERFORMED"
+            or raw.get("storage") != "NONE"
+            or raw.get("readiness") != "NOT_EVALUATED"
+            or raw.get("project_invocation") != "NONE"
+            or raw.get("trading_authority") != "NONE"):
+        raise ValueError("INTEGRATED_PRIOR_CLOSEOUT_INVALID")
+    case = verify_private_case_envelope(raw.get("private_case_envelope"))
+    portfolio = verify_private_portfolio_snapshot(
+        raw.get("private_portfolio_snapshot_envelope"))
+    if (case["analysis_id"] != portfolio["analysis_id"]
+            or case["as_of"] != portfolio["analysis_as_of"]):
+        raise ValueError("INTEGRATED_PRIOR_CASE_ID_OR_DATE_MISMATCH")
+    return case, portfolio
+
+
+def _integrated_followup_draft(raw: Any) -> dict[str, Any]:
+    """Inert research draft with separately retained optional PI baseline.
+
+    A new portfolio mandate and a NEW dated private observation must be
+    independently supplied before comparing historical portfolio weights.
+    """
+    case, _ = _checked_integrated_prior(raw)
+    draft = prepare_explicit_followup_draft(case)
+    draft["private_portfolio_baseline_for_explicit_use"] = deepcopy(
+        raw["private_portfolio_snapshot_envelope"])
+    draft["portfolio_followup"] = "OPT_IN_ONLY_REQUIRES_NEW_DATED_PRIVATE_OBSERVATION"
+    draft["human_checks"].append(
+        "For a new PI follow-up, explicitly set portfolio_needed=true and "
+        "provide a NEW dated private observation, then supply "
+        "private_portfolio_baseline_for_explicit_use as "
+        "prior_private_portfolio_envelope in the private session. "
+        "Do not silently carry old holdings into the new mandate.")
+    return draft
+
+
+def _integrated_followup_operator(payload: Any) -> tuple[dict[str, Any], dict[str, Any]]:
+    """Reuse M4 sealed research and M3 prior snapshot in one NEW user request.
+
+    This is a one-time, manual step; it cannot retrieve, schedule or invoke.
+    It requires a fresh independent current P-ledger before any comparison.
+    """
+    if (not isinstance(payload, dict)
+            or set(payload) != {"prior_integrated_closeout", "session", "fact_links"}
+            or not isinstance(payload["session"], dict)):
+        raise ValueError("INTEGRATED_PRIOR_CLOSEOUT_INVALID")
+    _checked_integrated_prior(payload["prior_integrated_closeout"])
+    session = deepcopy(payload["session"])
+    request = session.get("request")
+    if (not isinstance(request, dict)
+            or request.get("portfolio_needed") is not True):
+        raise ValueError("INTEGRATED_FOLLOWUP_PORTFOLIO_ROUTE_REQUIRED")
+    if "prior_private_portfolio_envelope" in session or (
+            "prior_portfolio_observation_inputs" in session):
+        raise ValueError("INTEGRATED_FOLLOWUP_PRIOR_SOURCE_AMBIGUOUS")
+    if not any(key in session for key in (
+            "observation_inputs", "work_blossom_inputs", "work_portfolio_result")):
+        raise ValueError("INTEGRATED_FOLLOWUP_CURRENT_PORTFOLIO_REQUIRED")
+    # The prior observation is a CC-only comparison input, NOT forwarded to
+    # IR/PI as current holdings or a true account-state assertion.
+    session["prior_private_portfolio_envelope"] = deepcopy(
+        payload["prior_integrated_closeout"]["private_portfolio_snapshot_envelope"])
+    recovered = {
+        "private_case_envelope": deepcopy(
+            payload["prior_integrated_closeout"]["private_case_envelope"]),
+        "session": session,
+        "fact_links": deepcopy(payload["fact_links"]),
+    }
+    return _reenter_sealed_followup(recovered)
+
+
 def _resume_manual_transfer(envelope: Any) -> tuple[dict[str, Any], dict[str, Any]]:
     """Rejoin independently supplied specialist JSON with the saved CC step.
 
@@ -601,6 +691,14 @@ def run(*, output: str, instream: TextIO, outstream: TextIO,
             draft["manual_copy_integrity"] = "SHA256_MATCHED_RETAINED_COPY_ONLY"
             draft["record_authenticity"] = "NOT_ESTABLISHED"
             result = None
+        elif output == "integrated-followup-draft":
+            if (not isinstance(payload, dict)
+                    or set(payload) != {"prior_integrated_closeout"}):
+                raise ValueError("INTEGRATED_PRIOR_CLOSEOUT_INVALID")
+            draft = _integrated_followup_draft(payload["prior_integrated_closeout"])
+            result = None
+        elif output == "integrated-followup-operator":
+            restored_payload, result = _integrated_followup_operator(payload)
         elif output == "resume-operator":
             resume_payload, result = _resume_manual_transfer(payload)
         elif (output in {"private-closeout", "private-integrated-closeout"}
@@ -638,7 +736,7 @@ def run(*, output: str, instream: TextIO, outstream: TextIO,
     if output == "intake-review":
         outstream.write(json.dumps(intake, ensure_ascii=False, sort_keys=True,
                                    indent=2, allow_nan=False) + "\n")
-    elif output in {"followup-draft", "sealed-followup-draft"}:
+    elif output in {"followup-draft", "sealed-followup-draft", "integrated-followup-draft"}:
         # Explicitly PRIVATE. The returned request is intentionally invalid
         # for execution until the CEO fills new details and initiates it.
         outstream.write(json.dumps(draft, ensure_ascii=False, sort_keys=True,
@@ -683,15 +781,17 @@ def run(*, output: str, instream: TextIO, outstream: TextIO,
                                 "complete IR, dated PI observation and explicit "
                                 "memory_inputs required.\n")
             return 3
-    elif output in {"operator-packet", "resume-operator", "sealed-followup-operator"}:
+    elif output in {"operator-packet", "resume-operator", "sealed-followup-operator",
+                   "integrated-followup-operator"}:
         # PRIVATE opt-in. Resume reuses exactly the original validated operator
         # packet contract after a separate, manually received specialist result.
         try:
             case_payload = (resume_payload if output == "resume-operator"
-                            else restored_payload if output == "sealed-followup-operator"
+                            else restored_payload if output in {
+                                "sealed-followup-operator", "integrated-followup-operator"}
                             else payload)
             packet = _private_operator_packet(case_payload, result)
-            if output == "sealed-followup-operator":
+            if output in {"sealed-followup-operator", "integrated-followup-operator"}:
                 packet["manual_copy_integrity"] = "SHA256_MATCHED_RETAINED_COPY_ONLY"
                 packet["record_authenticity"] = "NOT_ESTABLISHED"
             encoded = json.dumps(packet, ensure_ascii=False, sort_keys=True,
@@ -855,9 +955,9 @@ def main(argv: list[str] | None = None, *, instream: TextIO | None = None,
          outstream: TextIO | None = None,
          errstream: TextIO | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--output", choices=("request-template", "intake-review", "status", "report", "handoffs", "next-handoff", "continuation", "operator-packet", "resume-operator", "guided-operator", "method-handoff", "specialist-prompt", "followup-draft", "sealed-followup-draft", "sealed-followup-operator", "private-case", "private-case-envelope", "private-closeout", "private-integrated-closeout", "private-portfolio-snapshot", "review-queue"),
+    parser.add_argument("--output", choices=("request-template", "intake-review", "status", "report", "handoffs", "next-handoff", "continuation", "operator-packet", "resume-operator", "guided-operator", "method-handoff", "specialist-prompt", "followup-draft", "sealed-followup-draft", "sealed-followup-operator", "integrated-followup-draft", "integrated-followup-operator", "private-case", "private-case-envelope", "private-closeout", "private-integrated-closeout", "private-portfolio-snapshot", "review-queue"),
                         default="status",
-                        help="request-template is an inert blank case and reads no stdin; intake-review reads a private request-only draft and returns field names/status without values; status is redacted; report, handoffs, next-handoff, continuation, operator-packet, resume-operator, guided-operator, method-handoff, specialist-prompt, followup-draft, sealed-followup-draft, sealed-followup-operator, private-case, private-case-envelope, private-closeout, private-integrated-closeout, private-portfolio-snapshot and review-queue require a private terminal")
+                        help="request-template is an inert blank case and reads no stdin; intake-review reads a private request-only draft and returns field names/status without values; status is redacted; report, handoffs, next-handoff, continuation, operator-packet, resume-operator, guided-operator, method-handoff, specialist-prompt, followup-draft, sealed-followup-draft, sealed-followup-operator, integrated-followup-draft, integrated-followup-operator, private-case, private-case-envelope, private-closeout, private-integrated-closeout, private-portfolio-snapshot and review-queue require a private terminal")
     opts = parser.parse_args(argv)
     return run(output=opts.output, instream=instream or sys.stdin,
                outstream=outstream or sys.stdout, errstream=errstream or sys.stderr)
