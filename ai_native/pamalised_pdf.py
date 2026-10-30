@@ -18,7 +18,8 @@ def render_pamalised_pdf(*, executive_report: str, detailed_report: str,
                          report_status: str,
                          request: Mapping[str, Any] | None = None,
                          ir_capsule: Mapping[str, Any] | None = None,
-                         pi_delta: Mapping[str, Any] | None = None) -> bytes:
+                         pi_delta: Mapping[str, Any] | None = None,
+                         new_contribution_summary_private: Mapping[str, Any] | None = None) -> bytes:
     """Return a visually PAMalised document as PDF bytes, never save it.
 
     The original HTML source-pair validator is still authoritative. Optional
@@ -64,6 +65,7 @@ def render_pamalised_pdf(*, executive_report: str, detailed_report: str,
         executive_report=executive_report,
         detailed_report=detailed_report, request=current,
         ir_capsule=ir_capsule, pi_delta=pi_delta, logo=logo,
+        new_contribution_summary_private=new_contribution_summary_private,
     )
     if not pdf.startswith(b"%PDF-"):
         raise ValueError("PAMALISED_PDF_OUTPUT_INVALID")
