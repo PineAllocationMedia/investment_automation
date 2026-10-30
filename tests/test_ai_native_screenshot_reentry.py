@@ -78,10 +78,17 @@ class ManualScreenshotReentryTests(unittest.TestCase):
         self.assertIsNone(pending["specialist_step"])
         self.assertIsNone(
             pending["operator_packet_private"]["continuation_private"])
-        # The saved pre-return CC resume, plus independent original IR, is the
-        # only source of truth for explicitly restarting the screenshot route.
-        pending_session = deepcopy(resume["resume_input"])
-        pending_session["specialist_result"] = {"IR_CAPSULE": deepcopy(ir)}
+        # The guided operator now prepares the exact CC-only retry context;
+        # its NEW screenshot field is inert until the human supplies evidence.
+        retry = pending["screenshot_reentry_input_private"]
+        self.assertIsNone(retry["screenshot_work_inputs"])
+        self.assertEqual(set(retry), {
+            "pending_session", "screenshot_work_inputs"})
+        self.assertNotIn("SECRET_WORK_BROWSER_TOKEN_NEVER_TRANSFER",
+                         json.dumps(retry))
+        pending_session = retry["pending_session"]
+        self.assertEqual(
+            pending_session["specialist_result"], {"IR_CAPSULE": ir})
         self.assertEqual(
             set(pending_session["work_blossom_inputs"]),
             {"capture_mode", "view_status", "analysis_id", "analysis_as_of"})
@@ -99,6 +106,7 @@ class ManualScreenshotReentryTests(unittest.TestCase):
         self.assertEqual((rc, err), (0, ""))
         resumed = json.loads(body)
         self.assertEqual(resumed["specialist_step"], "PI_REQUEST")
+        self.assertIsNone(resumed["screenshot_reentry_input_private"])
         self.assertIn("Recipient: Portfolio Intelligence (PI)",
                       resumed["specialist_prompt_private"])
         self.assertIn("METHOD_PATH:", resumed["specialist_prompt_private"])
@@ -191,13 +199,17 @@ class ManualScreenshotReentryTests(unittest.TestCase):
         self.assertEqual((code, err), (0, ""))
         self.assertEqual(json.loads(status)["status"],
                          "AWAITING_MANUAL_PORTFOLIO_SCREENSHOT")
-        rc, body, err = self.cli({
-            "pending_session": pending,
-            "screenshot_work_inputs": self.screenshot(),
-        })
+        rc, blocked, err = self.cli(pending)
+        self.assertEqual((rc, err), (0, ""))
+        retry = json.loads(blocked)["screenshot_reentry_input_private"]
+        self.assertIsNone(retry["screenshot_work_inputs"])
+        self.assertEqual(retry["pending_session"], pending)
+        retry["screenshot_work_inputs"] = self.screenshot()
+        rc, body, err = self.cli(retry)
         self.assertEqual((rc, err), (0, ""))
         packet = json.loads(body)
         self.assertEqual(packet["specialist_step"], "PI_REQUEST")
+        self.assertIsNone(packet["screenshot_reentry_input_private"])
         step = packet["operator_packet_private"]["continuation_private"]
         self.assertNotIn("FORWARD_UNCHANGED",
                          step["next_handoff"]["PI_REQUEST"])
