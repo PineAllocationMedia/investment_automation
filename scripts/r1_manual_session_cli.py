@@ -522,6 +522,67 @@ def _checked_integrated_prior(raw: Any) -> tuple[dict[str, Any], dict[str, Any]]
     return case, portfolio
 
 
+def _portfolio_followup_draft(raw: Any) -> dict[str, Any]:
+    """Explicit inert NEW PI-only mandate from ONE previously saved M3 copy.
+
+    The old source is verified for accidental alteration only. Retain its
+    original holdings strictly in CC-only input, never the fresh request or
+    receiving PI prompt; the next current observation must be newly supplied.
+    """
+    original = verify_private_portfolio_snapshot(raw)
+    previous_analysis = original["analysis_id"]
+    previous_cutoff = original["analysis_as_of"]
+    return {
+        "status": "PRIVATE_PORTFOLIO_FOLLOWUP_DRAFT_REQUIRES_CEO_INITIATION",
+        "input_template": {
+            "request": {
+                "ceo_initiated": False,
+                "analysis_id": None,
+                "as_of": None,
+                "kind": "FOLLOWUP",
+                "prior_analysis_id": previous_analysis,
+                "objective": None,
+                "research_needed": False,
+                "portfolio_needed": True,
+                # A private M3 snapshot does NOT contain an approved strategy,
+                # investment horizon, current account costs or CEO intention.
+                "strategy_id": "EXPLORATORY",
+                "horizon": "UNKNOWN",
+                "risk_constraints": [],
+                "candidate_universe": "UNKNOWN",
+                "account_context": {
+                    "type": "UNKNOWN", "broker": "UNKNOWN",
+                    "tax": "UNKNOWN", "commission": "UNKNOWN",
+                    "fx_cost": "UNKNOWN",
+                },
+                "pi_method_version": "UNKNOWN_NOT_LOADED",
+            },
+            "prior_private_portfolio_envelope": deepcopy(raw),
+        },
+        "prior_observation_reference_private": {
+            "analysis_id": previous_analysis,
+            "analysis_as_of": previous_cutoff,
+            "observed_on": original["observed_on"],
+            "copy_integrity": "UNKEYED_SHA256_MATCHED_RETAINED_COPY_ONLY",
+            "account_or_positions_in_new_request": "NONE",
+        },
+        "next_manual_step": "CEO_REVIEW_FILL_NEW_REQUEST_AND_SUPPLY_FRESH_DATED_PRIVATE_OBSERVATION",
+        "human_checks": [
+            "Human must supply a distinct NEW analysis ID, later current observation date and analysis cutoff, objective and explicit CEO initiation.",
+            "Reconfirm selected strategy, horizon, risk constraints, named account scope, broker, taxes, commissions and FX costs; none are inherited from old M3 holdings.",
+            "Reconfirm authorized read-only current portfolio view or dated screenshot, including coverage, account/currency/cash fields and rights.",
+            "Run intake-review on a request-only copy if useful; run guided-portfolio-closeout only with a NEW original observation and actual CEO authorization.",
+            "Existing M3 comparison refuses mismatched account, currency, dates and unsupported weight/performance inference; do not infer transfers, capital flows or investment returns.",
+        ],
+        "previous_record_authenticity": "NOT_ESTABLISHED_UNKEYED_CHECKSUM",
+        "current_portfolio_observation": "NOT_SUPPLIED",
+        "project_invocation": "NONE",
+        "storage": "NONE",
+        "readiness": "NOT_EVALUATED",
+        "trading_authority": "NONE",
+    }
+
+
 def _integrated_followup_draft(raw: Any) -> dict[str, Any]:
     """Inert research draft with separately retained optional PI baseline.
 
@@ -971,6 +1032,15 @@ def run(*, output: str, instream: TextIO, outstream: TextIO,
             draft["manual_copy_integrity"] = "SHA256_MATCHED_RETAINED_COPY_ONLY"
             draft["record_authenticity"] = "NOT_ESTABLISHED"
             result = None
+        elif output == "portfolio-followup-draft":
+            # One human-retained original M3 envelope only; never an
+            # inferred portfolio account, current holding or CEO mandate.
+            if (not isinstance(payload, dict)
+                    or set(payload) != {"private_portfolio_snapshot_envelope"}):
+                raise ValueError("PRIVATE_PORTFOLIO_ENVELOPE_INVALID")
+            draft = _portfolio_followup_draft(
+                payload["private_portfolio_snapshot_envelope"])
+            result = None
         elif output == "integrated-followup-draft":
             if (not isinstance(payload, dict)
                     or set(payload) != {"prior_integrated_closeout"}):
@@ -1046,7 +1116,7 @@ def run(*, output: str, instream: TextIO, outstream: TextIO,
         outstream.write(json.dumps(intake, ensure_ascii=False, sort_keys=True,
                                    indent=2, allow_nan=False) + "\n")
     elif output in {"followup-draft", "sealed-followup-draft", "integrated-followup-draft",
-                   "candidate-deep-dive-draft"}:
+                   "portfolio-followup-draft", "candidate-deep-dive-draft"}:
         # Explicitly PRIVATE. The returned request is intentionally invalid
         # for execution until the CEO fills new details and initiates it.
         outstream.write(json.dumps(draft, ensure_ascii=False, sort_keys=True,
@@ -1358,9 +1428,9 @@ def main(argv: list[str] | None = None, *, instream: TextIO | None = None,
          outstream: TextIO | None = None,
          errstream: TextIO | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--output", choices=("request-template", "intake-review", "status", "report", "handoffs", "next-handoff", "continuation", "operator-packet", "resume-operator", "guided-operator", "guided-integrated-closeout", "guided-research-closeout", "guided-portfolio-closeout", "candidate-deep-dive-draft", "method-handoff", "specialist-prompt", "followup-draft", "sealed-followup-draft", "sealed-followup-operator", "integrated-followup-draft", "integrated-followup-operator", "private-case", "private-case-envelope", "private-closeout", "private-integrated-closeout", "private-portfolio-snapshot", "review-queue"),
+    parser.add_argument("--output", choices=("request-template", "intake-review", "status", "report", "handoffs", "next-handoff", "continuation", "operator-packet", "resume-operator", "guided-operator", "guided-integrated-closeout", "guided-research-closeout", "guided-portfolio-closeout", "candidate-deep-dive-draft", "method-handoff", "specialist-prompt", "followup-draft", "sealed-followup-draft", "sealed-followup-operator", "integrated-followup-draft", "portfolio-followup-draft", "integrated-followup-operator", "private-case", "private-case-envelope", "private-closeout", "private-integrated-closeout", "private-portfolio-snapshot", "review-queue"),
                         default="status",
-                        help="request-template is an inert blank case and reads no stdin; intake-review reads a private request-only draft and returns field names/status without values; status is redacted; report, handoffs, next-handoff, continuation, operator-packet, resume-operator, guided-operator, guided-integrated-closeout, guided-research-closeout, guided-portfolio-closeout, candidate-deep-dive-draft, method-handoff, specialist-prompt, followup-draft, sealed-followup-draft, sealed-followup-operator, integrated-followup-draft, integrated-followup-operator, private-case, private-case-envelope, private-closeout, private-integrated-closeout, private-portfolio-snapshot and review-queue require a private terminal")
+                        help="request-template is an inert blank case and reads no stdin; intake-review reads a private request-only draft and returns field names/status without values; status is redacted; report, handoffs, next-handoff, continuation, operator-packet, resume-operator, guided-operator, guided-integrated-closeout, guided-research-closeout, guided-portfolio-closeout, candidate-deep-dive-draft, method-handoff, specialist-prompt, followup-draft, sealed-followup-draft, sealed-followup-operator, integrated-followup-draft, portfolio-followup-draft, integrated-followup-operator, private-case, private-case-envelope, private-closeout, private-integrated-closeout, private-portfolio-snapshot and review-queue require a private terminal")
     opts = parser.parse_args(argv)
     return run(output=opts.output, instream=instream or sys.stdin,
                outstream=outstream or sys.stdout, errstream=errstream or sys.stderr)
