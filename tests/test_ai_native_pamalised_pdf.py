@@ -108,6 +108,31 @@ class PamalisedPdfTests(unittest.TestCase):
                 request={"analysis_id": "WRONG", "as_of": "2026-10-30",
                          "strategy_id": "high-cagr"})
 
+    def test_bounded_m3_string_percent_projection_is_not_a_buy_order(self):
+        from pypdf import PdfReader
+        request = self.fixtures.request(portfolio_needed=True)
+        ir = self.fixtures.ir()
+        pi = self.fixtures.pi(forwarded_ir=deepcopy(ir))
+        session = complete_manual_session(request, ir_capsule=ir, pi_delta=pi)
+        base = dict(executive_report=session["executive_report_private"],
+                    detailed_report=session["final_report_private"],
+                    analysis_id=request["analysis_id"], as_of=request["as_of"],
+                    strategy=request["strategy_id"], report_status="EXPLORATORY",
+                    request=request, ir_capsule=ir, pi_delta=pi)
+        scenario = {"analysis_id": request["analysis_id"],
+                    "gross_status": "GROSS_PROJECTION_ONLY",
+                    "allocations_pct": {"TEST_ISSUER": "70", "TEST_ETF": "30"}}
+        pdf = render_pamalised_pdf(
+            **base, new_contribution_summary_private=scenario)
+        text = "\n".join(x.extract_text() for x in PdfReader(BytesIO(pdf)).pages)
+        self.assertIn("TEST_ISSUER : 70.0 %", text)
+        self.assertIn("projection arithmétique, non recommandation", text)
+        rejected = render_pamalised_pdf(
+            **base, new_contribution_summary_private={
+                **scenario, "gross_status": "UNAVAILABLE"})
+        again = "\n".join(x.extract_text() for x in PdfReader(BytesIO(rejected)).pages)
+        self.assertNotIn("TEST_ISSUER : 70.0 %", again)
+
     def test_pending_does_not_fabricate_file(self):
         code, body, err = self._cli({"request": self.fixtures.request(portfolio_needed=True)})
         self.assertEqual((code, err), (0, ""))
