@@ -607,6 +607,42 @@ def _preflight_guided_private_closeout(
         raise ValueError("GUIDED_PRIVATE_CLOSEOUT_CURRENT_OBSERVATION_REQUIRED") from exc
 
 
+def _screenshot_retry_template(
+    payload: dict[str, Any], session: dict[str, Any],
+) -> dict[str, Any] | None:
+    """Provide the exact private retry context after Work is unavailable.
+
+    The retry is inert until the CEO supplies a NEW dated screenshot source.
+    No unavailable browser fields other than the four checked routing markers
+    are copied. This is CC-only state, never an IR/PI transfer.
+    """
+    if session.get("status") != "AWAITING_MANUAL_PORTFOLIO_SCREENSHOT":
+        return None
+    prior = payload.get("work_blossom_inputs")
+    if prior is None:
+        wrapper = payload.get("work_portfolio_result")
+        prior = (wrapper.get("work_blossom_inputs")
+                 if isinstance(wrapper, dict) else None)
+    request = payload.get("request")
+    if (not isinstance(prior, dict)
+            or not isinstance(request, dict)
+            or prior.get("capture_mode") != "WORK_BROWSER"
+            or prior.get("view_status") != "UNAVAILABLE"
+            or prior.get("analysis_id") != request.get("analysis_id")
+            or prior.get("analysis_as_of") != request.get("as_of")):
+        raise ValueError("SCREENSHOT_REENTRY_INPUT_INVALID")
+    pending = deepcopy(payload)
+    pending.pop("work_portfolio_result", None)
+    pending.pop("work_blossom_inputs", None)
+    pending["work_blossom_inputs"] = {
+        key: prior[key] for key in (
+            "capture_mode", "view_status", "analysis_id", "analysis_as_of")
+    }
+    if evaluate(pending)["status"] != session["status"]:
+        raise ValueError("SCREENSHOT_REENTRY_NOT_PENDING")
+    return {"pending_session": pending, "screenshot_work_inputs": None}
+
+
 def _reenter_manual_screenshot(
     envelope: Any,
 ) -> tuple[dict[str, Any], dict[str, Any]]:
@@ -979,8 +1015,10 @@ def run(*, output: str, instream: TextIO, outstream: TextIO,
                 bundle = prepare_verified_method_handoff(continuation)
                 prompt = render_manual_specialist_prompt(bundle)
                 specialist = next(iter(continuation["next_handoff"]))
+            screenshot_retry = _screenshot_retry_template(actual_payload, result)
             guided = {
                 "status": "PRIVATE_GUIDED_OPERATOR_PACKET_NOT_SENT",
+                "screenshot_reentry_input_private": screenshot_retry,
                 "operator_packet_private": operator,
                 "specialist_prompt_private": prompt,
                 "specialist_step": specialist,
