@@ -46,7 +46,7 @@ OPTIONAL_FIELDS = frozenset({
     "fundamental_inputs", "historical_comparison_inputs", "opportunity_triage_inputs",
     "macro_sector_inputs", "work_portfolio_result", "specialist_result",
     "lifecycle_inputs", "lifecycle_current_evidence_inputs",
-    "prior_private_portfolio_envelope",
+    "prior_private_portfolio_envelope", "presentation_inputs",
 })
 PERMITTED_FIELDS = OPTIONAL_FIELDS | {"request"}
 NEXT_ACTIONS = {
@@ -181,7 +181,7 @@ def evaluate(payload: Any) -> dict[str, Any]:
     # authoritative. No browser access, source inference or project invocation.
     fields = {k: v for k, v in payload.items()
               if k not in {"request", "work_portfolio_result", "specialist_result",
-                           "prior_private_portfolio_envelope"}}
+                           "prior_private_portfolio_envelope", "presentation_inputs"}}
     if "prior_private_portfolio_envelope" in payload:
         request = payload.get("request")
         if (not isinstance(request, dict)
@@ -1090,6 +1090,9 @@ def run(*, output: str, instream: TextIO, outstream: TextIO,
         payload = json.loads(raw, parse_constant=_no_nonfinite,
                              parse_float=_finite_json_float,
                              object_pairs_hook=_unique_pairs)
+        if (isinstance(payload, dict) and "presentation_inputs" in payload
+                and output != "pamalised-pdf"):
+            raise ValueError("PAMALISED_PRESENTATION_PDF_ONLY")
         if output == "guided-private-closeout":
             # The only new UX selector is a strict, private, no-action
             # dispatch to the THREE unchanged existing closeout engines.
@@ -1493,6 +1496,7 @@ def run(*, output: str, instream: TextIO, outstream: TextIO,
                         new_contribution_summary_private=(
                             result.get("integrated_private", {}) or {}
                         ).get("new_contribution_summary_private"),
+                        presentation_inputs=payload.get("presentation_inputs"),
                     )
                     sink = getattr(outstream, "buffer", None)
                     if sink is None:
