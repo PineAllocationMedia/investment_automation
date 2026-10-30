@@ -165,6 +165,129 @@ class PortfolioFollowupDraftTests(unittest.TestCase):
         self.assertEqual(final["trading_authority"], "NONE")
         self.assertNotIn("private_case_envelope", body)
 
+    def test_direct_retained_snapshot_starts_guided_pi_without_retyping_prior(self):
+        old, draft = self.prepared()
+        session = self.authorized_session(draft)
+        # The operator presents a fresh CC-only session WITHOUT manually
+        # embedding the past M3 copy; the helper adds it after verification.
+        session.pop("prior_private_portfolio_envelope")
+        original = deepcopy(session)
+        envelope = {
+            "private_portfolio_snapshot_envelope": old,
+            "session": session,
+        }
+        code, body, err = self.cli(envelope, "guided-portfolio-closeout")
+        self.assertEqual((code, err), (0, ""))
+        result = json.loads(body)
+        self.assertEqual(
+            result["status"],
+            "PRIVATE_GUIDED_PORTFOLIO_CLOSEOUT_PENDING_MANUAL_PI")
+        self.assertIsNone(result["private_portfolio_closeout"])
+        operator = result["guided_operator_private"]
+        self.assertEqual(operator["specialist_step"], "PI_REQUEST")
+        self.assertEqual(
+            operator["operator_packet_private"]["manual_copy_integrity"],
+            "SHA256_MATCHED_RETAINED_COPY_ONLY")
+        self.assertEqual(
+            operator["operator_packet_private"]["record_authenticity"],
+            "NOT_ESTABLISHED")
+        prompt = operator["specialist_prompt_private"]
+        self.assertIn("Recipient: Portfolio Intelligence (PI)", prompt)
+        self.assertIn("METHOD_PATH:", prompt)
+        self.assertNotIn("HISTORICAL-ONLY-SECRET", prompt)
+        self.assertNotIn("prior_private_portfolio_envelope", prompt)
+        self.assertNotIn('"resume_input"', prompt)
+        pending = operator["operator_packet_private"]["continuation_private"]
+        self.assertEqual(
+            pending["resume_input"]["prior_private_portfolio_envelope"],
+            old)
+        self.assertNotIn(
+            "HISTORICAL-ONLY-SECRET",
+            json.dumps(pending["next_handoff"]["PI_REQUEST"]))
+        self.assertEqual(session, original)
+        returned = {
+            "continuation_private": pending,
+            "specialist_result": {
+                "PI_DELTA": self.fx.pi(
+                    analysis_id="FRESH-PI-CASE",
+                    portfolio_as_of="2026-10-29"),
+            },
+        }
+        code, body, err = self.cli(returned, "guided-portfolio-closeout")
+        self.assertEqual((code, err), (0, ""))
+        completed = json.loads(body)
+        self.assertEqual(
+            completed["status"],
+            "PRIVATE_GUIDED_PORTFOLIO_CLOSEOUT_COPY_NOT_STORED")
+        snapshot = verify_private_portfolio_snapshot(
+            completed["private_portfolio_closeout"][
+                "private_portfolio_snapshot_envelope"])
+        self.assertEqual(snapshot, session["observation_inputs"])
+        self.assertNotIn("HISTORICAL-ONLY-SECRET", json.dumps(snapshot))
+        self.assertIsInstance(completed["private_portfolio_closeout"][
+            "operator_packet_private"]["report_private"], str)
+        self.assertEqual(completed["trading_authority"], "NONE")
+        self.assertEqual(completed["storage"], "NONE")
+        self.assertEqual(completed["project_invocation"], "NONE")
+
+    def test_direct_followup_missing_ceo_source_or_prior_scope_fails_without_prompt(self):
+        old, draft = self.prepared()
+        valid = self.authorized_session(draft)
+        valid.pop("prior_private_portfolio_envelope")
+        cases = []
+        no_ceo = deepcopy(valid)
+        no_ceo["request"]["ceo_initiated"] = False
+        cases.append((old, no_ceo, "PORTFOLIO_FOLLOWUP_EXPLICIT_MANDATE_REQUIRED"))
+        not_pi_only = deepcopy(valid)
+        not_pi_only["request"]["research_needed"] = True
+        cases.append((old, not_pi_only, "PORTFOLIO_FOLLOWUP_EXPLICIT_MANDATE_REQUIRED"))
+        wrong_prior = deepcopy(valid)
+        wrong_prior["request"]["prior_analysis_id"] = "UNRELATED"
+        cases.append((old, wrong_prior, "PORTFOLIO_FOLLOWUP_EXPLICIT_MANDATE_REQUIRED"))
+        no_current = deepcopy(valid)
+        no_current.pop("observation_inputs")
+        cases.append((old, no_current, "PORTFOLIO_FOLLOWUP_CURRENT_OBSERVATION_REQUIRED"))
+        ambiguous = deepcopy(valid)
+        ambiguous["prior_private_portfolio_envelope"] = deepcopy(old)
+        cases.append((old, ambiguous, "PORTFOLIO_FOLLOWUP_AMBIGUOUS_PRIOR_SOURCE"))
+        changed = deepcopy(old)
+        changed["private_snapshot"]["original_observation_inputs"][
+            "positions"][0]["security_id"] = "SECRET_TAMPERED"
+        cases.append((changed, valid, "PRIVATE_PORTFOLIO_SHA256_MISMATCH"))
+        for saved, session, error in cases:
+            with self.subTest(error=error):
+                code, output, err = self.cli({
+                    "private_portfolio_snapshot_envelope": saved,
+                    "session": session,
+                }, "guided-portfolio-closeout")
+                self.assertEqual((code, output), (2, ""))
+                self.assertIn(error, err)
+                self.assertNotIn("HISTORICAL-ONLY-SECRET", err)
+                self.assertNotIn("SECRET_TAMPERED", err)
+
+    def test_direct_old_snapshot_cannot_become_current_or_override_date(self):
+        old, draft = self.prepared()
+        session = self.authorized_session(draft)
+        session.pop("prior_private_portfolio_envelope")
+        stale = deepcopy(session)
+        stale["observation_inputs"] = verify_private_portfolio_snapshot(old)
+        # The original old observation cannot pass as the newly dated case.
+        code, body, err = self.cli({
+            "private_portfolio_snapshot_envelope": old,
+            "session": stale,
+        }, "guided-portfolio-closeout")
+        self.assertEqual((code, body), (2, ""))
+        self.assertNotIn("HISTORICAL-ONLY-SECRET", err)
+        same_as_of = deepcopy(session)
+        same_as_of["request"]["as_of"] = "2026-10-28"
+        code, body, err = self.cli({
+            "private_portfolio_snapshot_envelope": old,
+            "session": same_as_of,
+        }, "guided-portfolio-closeout")
+        self.assertEqual((code, body), (2, ""))
+        self.assertIn("PORTFOLIO_FOLLOWUP_EXPLICIT_MANDATE_REQUIRED", err)
+
+
     def test_changed_original_envelope_or_wrong_id_fails_closed_without_private_echo(self):
         old = self.old()
         bad = deepcopy(old)
