@@ -460,6 +460,11 @@ def _checked_integrated_prior(raw: Any) -> tuple[dict[str, Any], dict[str, Any]]
             or raw.get("archive_scope") !=
                 "COMPACT_RESEARCH_CASE_AND_ORIGINAL_M3_OBSERVATION_ONLY"
             or raw.get("archive_protection") != "NOT_ESTABLISHED"
+            or raw.get("archive_integrity") !=
+                "UNKEYED_SHA256_COPY_CHECK_ONLY_NOT_AUTHENTICITY"
+            or raw.get("source_authentication") != "NOT_PERFORMED"
+            or raw.get("portfolio_source_authentication") != "NOT_PERFORMED"
+            or raw.get("method_load_verification") != "NOT_PERFORMED"
             or raw.get("storage") != "NONE"
             or raw.get("readiness") != "NOT_EVALUATED"
             or raw.get("project_invocation") != "NONE"
@@ -504,7 +509,7 @@ def _integrated_followup_operator(payload: Any) -> tuple[dict[str, Any], dict[st
             or set(payload) != {"prior_integrated_closeout", "session", "fact_links"}
             or not isinstance(payload["session"], dict)):
         raise ValueError("INTEGRATED_PRIOR_CLOSEOUT_INVALID")
-    _, old_portfolio = _checked_integrated_prior(payload["prior_integrated_closeout"])
+    _checked_integrated_prior(payload["prior_integrated_closeout"])
     session = deepcopy(payload["session"])
     request = session.get("request")
     if (not isinstance(request, dict)
