@@ -14,7 +14,7 @@ _ANNEX = "## Dossier détaillé et traçabilité (annexe)"
 _HEADER = "# PAM R1 — Synthèse décisionnelle"
 _MAX_CHARS = 2_000_000
 _ALLOWED_STATUS = frozenset({"EXPLORATORY", "CONDITIONAL", "COMPONENT_SUPPORTED"})
-_INLINE = re.compile(r"(\*\*[^*\n]+\*\*|\`[^\`\n]+\`)")
+_INLINE = re.compile(r"(\*\*[^*\n]+\*\*|`[^`\n]+`)")
 _RULE = re.compile(r"^\|\s*:?-{3,}:?\s*(?:\|\s*:?-{3,}:?\s*)+\|?$")
 
 
@@ -30,7 +30,7 @@ def _inline(source: str) -> str:
     for part in _INLINE.split(source):
         if part.startswith("**") and part.endswith("**") and len(part) > 4:
             out.append("<strong>" + escape(part[2:-2]) + "</strong>")
-        elif part.startswith("\`") and part.endswith("\`") and len(part) > 2:
+        elif part.startswith("`") and part.endswith("`") and len(part) > 2:
             out.append("<code>" + escape(part[1:-1]) + "</code>")
         else:
             out.append(escape(part))
