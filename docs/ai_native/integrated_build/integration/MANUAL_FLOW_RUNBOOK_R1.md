@@ -2,6 +2,14 @@
 
 **Status:** runnable **local packet-composition component**, not a deployed Project integration. **Invocation:** only after an explicit CEO research/reassessment request. There is **no weekly cadence**, background analysis, scheduled monitoring or autonomous Project-to-Project call.
 
+## Private research closeout after the final manual handoff (optional)
+
+After a **CEO-initiated** IR-only or IR+PI session reaches its final conditional CC report, the operator can explicitly choose `--output private-closeout` with the **same private JSON input**, including `memory_inputs: {"report_id": "...", "instruction_version": "...", "recorded_at": "YYYY-MM-DD"}` and the original IR capsule. The command reuses the exact existing `--output report`, `--output operator-packet`, and `--output private-case-envelope` contracts in one opt-in **PRIVATE** return; it creates no storage. With a saved `continuation_private` and the *separately received* final `specialist_result`, it also reuses the normal strict manual resume gate (including unchanged original IR verification) instead of requiring the operator to retype the complete case.
+
+The output contains `operator_packet_private` (private final report, content-minimal human review queue, no pending specialist handoff), plus `private_case_envelope` (complete unencrypted PRIVATE research record and unkeyed SHA-256 copy check). The complete private record may contain original account context, issuer/source details and research text: **do not paste this output into GitHub, Media, public logs or a shared terminal**. Only a human may review and save it to a separately approved protected location; there is no approved location, encryption, backup, retrieval, source authentication, method loading, case uniqueness or full-system readiness demonstrated by this wrapper. It does not perform a trade or invoke Projects.
+
+A pending IR or PI step, missing `memory_inputs`, or PI-only report cannot produce a fake research archive: `private-closeout` refuses to output a bundle. Existing `--output report`, `--output status`, `--output private-case-envelope`, `--output resume-operator` and `--output guided-operator` remain unchanged; use the ordinary private report for PI-only work. This is a combined **manual closeout path**, not acceptance of all 36 decisions.
+
 ## What is actually connected
 `assemble_manual_run(request, ir_capsule, pi_delta=None, calculation_requests=None, contribution_inputs=None)` is a pure function in `ai_native/integrated_flow.py`.
 - **M2** IR supplies original research conclusions, observed fact records, countercase, limitations and evidence statuses; this function does not generate or verify them.
