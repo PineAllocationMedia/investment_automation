@@ -117,9 +117,12 @@ def _view(model: Mapping[str, Any], executive: str, detail: str,
             if regular.is_file() and bold.is_file():
                 pdfmetrics.registerFont(TTFont("PAM_Lato", str(regular)))
                 pdfmetrics.registerFont(TTFont("PAM_Lato_Bold", str(bold)))
+                pdfmetrics.registerFontFamily("PAM_Lato", normal="PAM_Lato",
+                                              bold="PAM_Lato_Bold",
+                                              italic="PAM_Lato", boldItalic="PAM_Lato_Bold")
                 base_font, bold_font = "PAM_Lato", "PAM_Lato_Bold"
                 break
-    except (OSError, ValueError, Exception):
+    except Exception:
         base_font, bold_font = "Helvetica", "Helvetica-Bold"
 
     buffer = BytesIO()
