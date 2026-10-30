@@ -277,11 +277,15 @@ class PrivateIntegratedCloseoutTests(unittest.TestCase):
         missing_memory.pop("memory_inputs")
         missing_observation = deepcopy(packet)
         missing_observation.pop("observation_inputs")
-        for bad in (missing_memory, missing_observation):
-            with self.subTest(keys=sorted(bad)):
+        for bad, reason in (
+            (missing_memory, "GUIDED_PRIVATE_CLOSEOUT_MEMORY_REQUIRED"),
+            (missing_observation,
+             "GUIDED_PRIVATE_CLOSEOUT_CURRENT_OBSERVATION_REQUIRED"),
+        ):
+            with self.subTest(reason=reason):
                 rc, out, err = self.cli(bad, "guided-integrated-closeout")
-                self.assertEqual((rc, out), (3, ""))
-                self.assertIn("private guided operator packet unavailable", err)
+                self.assertEqual((rc, out), (2, ""))
+                self.assertIn(reason, err)
                 self.assertNotIn("PRIVATE_CC_CONTEXT_ONLY", err)
 
         # A report-only guided session never silently includes an archive.
@@ -313,6 +317,79 @@ class PrivateIntegratedCloseoutTests(unittest.TestCase):
         self.assertEqual((rc, out), (2, ""))
         self.assertIn("SPECIALIST_FORWARDED_IR_MISMATCH", err)
         self.assertNotIn("FORGED_PRIVATE_CLAIM_SENTINEL", err)
+
+
+    def test_guided_integrated_closeout_refuses_incomplete_request_before_ir_transfer(self):
+        """Missing prerequisites are rejected before any original IR response."""
+        valid = self.base()
+        valid.pop("ir_capsule")
+        valid.pop("pi_delta")
+        self.assertEqual(self.cli(valid, "guided-integrated-closeout")[0], 0)
+
+        no_memory = deepcopy(valid)
+        no_memory.pop("memory_inputs")
+        no_observation = deepcopy(valid)
+        no_observation.pop("observation_inputs")
+        no_ir = deepcopy(valid)
+        no_ir["request"]["research_needed"] = False
+        no_pi = deepcopy(valid)
+        no_pi["request"]["portfolio_needed"] = False
+        no_pi.pop("observation_inputs")
+        for case, reason in (
+            (no_memory, "GUIDED_PRIVATE_CLOSEOUT_MEMORY_REQUIRED"),
+            (no_observation,
+             "GUIDED_PRIVATE_CLOSEOUT_CURRENT_OBSERVATION_REQUIRED"),
+            # Existing M1 routing may reject this case first: memory metadata
+            # is illegal on a PI-only route, independently of our preflight.
+            (no_ir, "INPUT_CONTRACT_REJECTED"),
+            (no_pi, "GUIDED_PRIVATE_CLOSEOUT_IR_PI_REQUIRED"),
+        ):
+            with self.subTest(reason=reason):
+                rc, out, err = self.cli(case, "guided-integrated-closeout")
+                self.assertEqual((rc, out), (2, ""))
+                self.assertIn(reason, err)
+                self.assertNotIn("PRIVATE_CC_CONTEXT_ONLY", err)
+                # The normal guided operator retains its older, wider scope.
+        self.assertEqual(self.cli(no_memory, "guided-operator")[0], 0)
+
+    def test_guided_integrated_closeout_checks_memory_metadata_before_ir(self):
+        valid = self.base()
+        valid.pop("ir_capsule")
+        valid.pop("pi_delta")
+        for memory in (
+            {},
+            {"report_id": "BAD ID", "instruction_version": "SYN",
+             "recorded_at": "2026-10-28"},
+            {"report_id": "R-1", "instruction_version": " ",
+             "recorded_at": "2026-10-28"},
+            {"report_id": "R-1", "instruction_version": "SYN",
+             "recorded_at": "2026-10-27"},
+            {"report_id": "R-1", "instruction_version": "SYN",
+             "recorded_at": "2026-1-1"},
+            {"report_id": "R-1", "instruction_version": "SYN",
+             "recorded_at": "2026-10-28", "parent_report_id": "R-1"},
+        ):
+            with self.subTest(keys=list(memory)):
+                packet = deepcopy(valid)
+                packet["memory_inputs"] = memory
+                rc, out, err = self.cli(packet, "guided-integrated-closeout")
+                self.assertEqual((rc, out), (2, ""))
+                self.assertIn(
+                    "GUIDED_PRIVATE_CLOSEOUT_MEMORY_METADATA_INVALID", err)
+
+    def test_guided_integrated_closeout_refuses_unavailable_visual_before_ir(self):
+        packet = self.base()
+        packet.pop("ir_capsule")
+        packet.pop("pi_delta")
+        packet.pop("observation_inputs")
+        packet["work_blossom_inputs"] = {
+            "capture_mode": "WORK_BROWSER", "view_status": "UNAVAILABLE",
+            "analysis_id": "CASE-A", "analysis_as_of": "2026-10-28",
+        }
+        rc, out, err = self.cli(packet, "guided-integrated-closeout")
+        self.assertEqual((rc, out), (2, ""))
+        self.assertIn(
+            "GUIDED_PRIVATE_CLOSEOUT_CURRENT_OBSERVATION_REQUIRED", err)
 
 
 if __name__ == "__main__":
