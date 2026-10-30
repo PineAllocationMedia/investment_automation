@@ -104,8 +104,10 @@ def verify_retrieved_research_report(
     if (manifest["report_path"] != expected_path
             or retrieved_path != expected_path):
         raise ValueError("RESEARCH_ARCHIVE_PATH_MISMATCH")
-    if (manifest["record_class"] not in RECORD_CLASSES
+    if (not isinstance(manifest["record_class"], str)
+            or manifest["record_class"] not in RECORD_CLASSES
             or manifest["source_authentication"] != "NOT_CERTIFIED_BY_ARCHIVE"
+            or not isinstance(manifest["review_claim"], str)
             or manifest["review_claim"] not in {
                 "SYNTHETIC_NOT_REVIEWED",
                 "HUMAN_REVIEW_REPORTED_NOT_VERIFIED",
