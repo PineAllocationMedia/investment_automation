@@ -1508,6 +1508,79 @@ def _candidate_comparison_lines(packet: Mapping[str, Any], analysis_id: str,
             lines.append(f"- **{shown(ids[i])} minus {shown(ids[j])}** — " + "; ".join(entries) + ".")
     if len(pairs) > 4:
         lines.append(f"- {len(pairs) - 4} additional pair comparisons in the private annex.")
+    # The optional paired sensitivity is NOT calibrated Expected Return.
+    # Validate its numeric identity against the calculator outputs instead
+    # of trusting an externally rewritten 'alpha' or a forged model verdict.
+    weighted_pairs = comp.get("pairwise_weighted_cashflow_private", [])
+    if not isinstance(weighted_pairs, list) or len(weighted_pairs) not in {
+            0, len(expected)}:
+        raise ValueError("COMPARISON_WEIGHTED_PAIR_COUNT_INVALID")
+    if weighted_pairs:
+        allowed_reasons = {
+            "PROBABILITIES_OR_MODEL_NOT_SUPPLIED_FOR_BOTH",
+            "EXPLICIT_TOTAL_CASHFLOW_IRR_MISSING",
+            "WEIGHTED_CASHFLOW_EVIDENCE_UNAVAILABLE",
+            "ACCOUNT_CURRENCY_FX_MODEL_MISSING",
+            "QUOTE_OBSERVATION_DATE_MISMATCH",
+            "RESEARCH_STATUS_UNKNOWN",
+        }
+        lines.extend(["", "### Sensibilite du rendement total conditionnel : "
+                      "entreprise / ETF de reference (avant couts)"])
+        for k, (weighted_pair, (i, j)) in enumerate(zip(weighted_pairs, expected)):
+            a, b = candidates[i], candidates[j]
+            if (not isinstance(weighted_pair, Mapping)
+                    or weighted_pair.get("first_candidate_id") != ids[i]
+                    or weighted_pair.get("second_candidate_id") != ids[j]
+                    or weighted_pair.get("return_basis") !=
+                        "IRR_ON_WEIGHTED_YEAR_END_CASHFLOWS_NOT_MEAN_IRR"
+                    or weighted_pair.get("evidence_authority") !=
+                        "MODEL_INPUTS_STRUCTURALLY_CHECKED_NOT_CERTIFIED"
+                    or weighted_pair.get("cost_fx_tax") != "NOT_EVALUATED"):
+                raise ValueError("COMPARISON_WEIGHTED_PAIR_ID_OR_AUTHORITY_INVALID")
+            why = weighted_pair.get("reason_codes")
+            if (not isinstance(why, list) or len(why) > 6
+                    or any(reason not in allowed_reasons for reason in why)
+                    or why != sorted(set(why))):
+                raise ValueError("COMPARISON_WEIGHTED_REASONS_INVALID")
+            av, bv = (a.get("weighted_cashflow_model_private"),
+                      b.get("weighted_cashflow_model_private"))
+            if weighted_pair.get("status") == "NOT_COMPARABLE":
+                if weighted_pair.get("first_minus_second_pp") is not None or not why:
+                    raise ValueError("COMPARISON_WEIGHTED_UNSUPPORTED_SPREAD")
+                message = "NOT_COMPARABLE (" + ", ".join(why) + ")"
+            elif weighted_pair.get("status") == "CONDITIONAL_TOTAL_CASHFLOW_IRR_SPREAD_ONLY":
+                required = "IRR_ON_WEIGHTED_YEAR_END_CASHFLOWS_NOT_MEAN_IRR"
+                if (why or not isinstance(av, Mapping) or not isinstance(bv, Mapping)
+                        or any(model.get("measure") != required
+                               or model.get("status") != "CONDITIONAL_CASHFLOW_MODEL_NOT_CERTIFIED"
+                               or model.get("probability_calibration") != "NOT_PERFORMED"
+                               or model.get("model_expected_return_authority") != "NOT_CERTIFIED"
+                               or model.get("account_costs_fx_tax") != "NOT_EVALUATED"
+                               or model.get("trading_authority") != "NONE"
+                               for model in (av, bv))
+                        or a.get("quoted_at") != b.get("quoted_at")
+                        or a.get("currency") != currency
+                        or b.get("currency") != currency
+                        or a.get("research_status") != "SPECIALIST_REPORTED"
+                        or b.get("research_status") != "SPECIALIST_REPORTED"):
+                    raise ValueError("COMPARISON_WEIGHTED_AUTHORITY_OR_BASIS_INVALID")
+                va = dec(av.get("conditional_annualized_pct"))
+                vb = dec(bv.get("conditional_annualized_pct"))
+                delta = dec(weighted_pair.get("first_minus_second_pp"))
+                if delta != va - vb:
+                    raise ValueError("COMPARISON_WEIGHTED_SPREAD_MISMATCH")
+                message = (f"{format(delta, 'f')} pp (IRR conditionnel des flux "
+                           "totaux, avant couts et fiscalite)")
+            else:
+                raise ValueError("COMPARISON_WEIGHTED_STATUS_INVALID")
+            if k < 4:
+                lines.append(f"- **{shown(ids[i])} moins {shown(ids[j])}** : " + message + ".")
+        if len(weighted_pairs) > 4:
+            lines.append(f"- {len(weighted_pairs) - 4} autres comparaisons dans l'annexe privee.")
+        lines.append("Hypotheses et probabilites rapportees NON calibrées; "
+                     "un ecart conditionnel positif n'est pas une "
+                     "superiorite probable ou un alpha attendu. "
+                     "Portfolio Room personnel est une verification distincte.")
     lines.append("No source/FX/tax/cost certification, probability-weighted Expected Return, VFV forecast, expected alpha, ranking, portfolio allocation or trading authority.")
     return lines
 
