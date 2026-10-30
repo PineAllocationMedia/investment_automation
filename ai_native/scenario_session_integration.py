@@ -9,6 +9,7 @@ from decimal import Decimal
 from typing import Any, Mapping
 
 from .scenario_weight_sensitivity import evaluate_scenario_weight_sensitivity
+from .historical_regime_context import prepare_historical_regime_context
 
 
 def prepare_scoped_scenario_review(
@@ -17,10 +18,11 @@ def prepare_scoped_scenario_review(
     scenario_weight_inputs: Mapping[str, Any],
 ) -> dict[str, Any]:
     """Validate analysis/PI identity and exact observed weight parity, then compute."""
-    if not isinstance(scenario_weight_inputs, Mapping) or set(scenario_weight_inputs) != {
-        "analysis_id", "analysis_as_of", "strategy_id", "denominator_evidence",
-        "positions", "scenarios",
-    }:
+    required = {"analysis_id", "analysis_as_of", "strategy_id",
+                "denominator_evidence", "positions", "scenarios"}
+    if (not isinstance(scenario_weight_inputs, Mapping)
+            or not required <= set(scenario_weight_inputs)
+            or set(scenario_weight_inputs) - (required | {"historical_regime_id"})):
         raise ValueError("SCENARIO_REVIEW_EXACT_SCHEMA_REQUIRED")
     if not isinstance(observation, Mapping) or not isinstance(pi_delta, Mapping):
         raise ValueError("SCENARIO_REVIEW_REQUIRES_PRIVATE_PI_OBSERVATION")
@@ -71,7 +73,13 @@ def prepare_scoped_scenario_review(
         except (ArithmeticError, TypeError) as exc:
             raise ValueError("SCENARIO_REVIEW_DISPLAYED_WEIGHT_INVALID") from exc
 
-    result = evaluate_scenario_weight_sensitivity(**scenario_weight_inputs)
+    core = {name: scenario_weight_inputs[name] for name in required}
+    result = evaluate_scenario_weight_sensitivity(**core)
+    if "historical_regime_id" in scenario_weight_inputs:
+        result["historical_regime_context_private"] = prepare_historical_regime_context(
+            regime_id=scenario_weight_inputs["historical_regime_id"],
+            analysis_as_of=request["as_of"],
+        )
     # Status remains bound to a caller-reported *displayed view*, even if every
     # visible weight has a shock. It is not a full private-account calculation.
     if (result.get("policy_authority") != "NONE"
@@ -98,6 +106,20 @@ def render_scoped_scenario_lines(review: Mapping[str, Any]) -> str:
         "visible. Ni historique calibré, ni rendement prévu, ni portefeuille "
         "personnel authentifié, ni budget de risque, ni recommandation.",
     ]
+    if "historical_regime_context_private" in review:
+        context = review["historical_regime_context_private"]
+        if not isinstance(context, Mapping):
+            raise ValueError("SCENARIO_REGIME_CONTEXT_INVALID")
+        expected = prepare_historical_regime_context(
+            regime_id=context.get("regime_id"),
+            analysis_as_of=review["analysis_as_of"],
+        )
+        if context != expected:
+            raise ValueError("SCENARIO_REGIME_CONTEXT_PARITY_INVALID")
+        lines.append("Contexte historique source : " + expected["label_fr"])
+        lines.append(expected["observed_fr"])
+        lines.append("Source officielle : " + expected["source_name"] + " — " + expected["source_url"])
+        lines.append("Cette source macro ne donne AUCUN rendement de titre ou ETF : les chocs chiffres restent des hypotheses de l'analyste, non une calibration.")
     for i, row in enumerate(review["scenarios"][:5], start=1):
         if not isinstance(row, Mapping) or row.get("status") not in {
             "UNAVAILABLE_DENOMINATOR",

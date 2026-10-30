@@ -118,6 +118,38 @@ class ScenarioSessionIntegrationTests(unittest.TestCase):
                     ValueError, "SCENARIO_REVIEW_"):
                 complete_manual_session(**payload)
 
+    def test_official_macro_context_does_not_certify_caller_shocks(self):
+        payload = self.case(research=True)
+        payload["scenario_weight_inputs"]["historical_regime_id"] = "CA_2022_INFLATION"
+        original = deepcopy(payload)
+        out = complete_manual_session(**payload)
+        self.assertEqual(payload, original)
+        review = out["scenario_weight_sensitivity_private"]
+        context = review["historical_regime_context_private"]
+        self.assertEqual(context["asset_returns"], "NOT_SUPPLIED")
+        self.assertEqual(context["shocks_derived"], "NO")
+        self.assertEqual(review["scenarios"][0]["scoped_displayed_hypothetical_return_pct"],
+                         "-30.00")
+        self.assertIn("Statistique Canada", out["final_report_private"])
+        self.assertIn("Statistics Canada", out["final_report_private"])
+        self.assertIn("AUCUN rendement", out["final_report_private"])
+        self.assertNotIn("SYN_STOCK_DOWN", out["final_report_private"])
+        self.assertNotIn("CA_2022_INFLATION",
+                         str(out["integrated_private"]["memory_proposal_nonprivate"]))
+
+    def test_unknown_historical_regime_fails_closed(self):
+        payload = self.case()
+        payload["scenario_weight_inputs"]["historical_regime_id"] = "BOGUS"
+        with self.assertRaisesRegex(ValueError, "REGIME_CONTEXT_UNKNOWN"):
+            complete_manual_session(**payload)
+        payload["scenario_weight_inputs"]["historical_regime_id"] = None
+        with self.assertRaisesRegex(ValueError, "REGIME_CONTEXT_UNKNOWN"):
+            complete_manual_session(**payload)
+        payload["scenario_weight_inputs"].pop("historical_regime_id")
+        payload["scenario_weight_inputs"]["unexpected"] = "YES"
+        with self.assertRaisesRegex(ValueError, "SCENARIO_REVIEW_EXACT_SCHEMA"):
+            complete_manual_session(**payload)
+
     def test_100_point_2_is_unavailable_in_actual_report(self):
         payload = self.case(weight="100.00")
         payload["observation_inputs"]["positions"][0]["displayed_weight_pct"] = "100.00"
