@@ -88,6 +88,7 @@ SAFE_ERROR_CODES = frozenset({
     "GUIDED_PRIVATE_CLOSEOUT_MEMORY_REQUIRED",
     "GUIDED_PRIVATE_CLOSEOUT_MEMORY_METADATA_INVALID",
     "GUIDED_PRIVATE_CLOSEOUT_CURRENT_OBSERVATION_REQUIRED",
+    "GUIDED_RESEARCH_CLOSEOUT_IR_ONLY_REQUIRED",
     "SCREENSHOT_REENTRY_INPUT_INVALID",
     "SCREENSHOT_REENTRY_NOT_PENDING",
     "SCREENSHOT_REENTRY_SOURCE_INVALID",
@@ -547,23 +548,15 @@ def _integrated_followup_operator(payload: Any) -> tuple[dict[str, Any], dict[st
     return _reenter_sealed_followup(recovered)
 
 
-def _preflight_guided_private_closeout(
-    payload: dict[str, Any], session: dict[str, Any],
-) -> None:
-    """Reject a non-completable guided archive BEFORE human IR/PI work begins.
+def _check_guided_research_archive_memory(payload: dict[str, Any]) -> None:
+    """Reuse the exact archive memory metadata gate on IR-only and IR+PI.
 
-    A saved manual continuation must be replayed unchanged: the operator cannot
-    safely add absent M3 observations or memory metadata at a later specialist
-    return. Use the original M3 seal for source eligibility and original
-    memory contract's essential fields, without inventing an IR record.
-    This is an admission check, not source authentication or final acceptance.
+    An immutable saved CC continuation cannot acquire missing memory inputs
+    after an IR return. Refuse a non-completable archival route up front.
     """
     request = payload.get("request")
-    if (not isinstance(request, dict)
-            or request.get("research_needed") is not True
-            or request.get("portfolio_needed") is not True
-            or session.get("route") != "CC_IR_PI_CC"):
-        raise ValueError("GUIDED_PRIVATE_CLOSEOUT_IR_PI_REQUIRED")
+    if not isinstance(request, dict):
+        raise ValueError("GUIDED_PRIVATE_CLOSEOUT_MEMORY_METADATA_INVALID")
     memory = payload.get("memory_inputs")
     if not isinstance(memory, dict):
         raise ValueError("GUIDED_PRIVATE_CLOSEOUT_MEMORY_REQUIRED")
@@ -588,6 +581,39 @@ def _preflight_guided_private_closeout(
             raise ValueError
     except (ValueError, TypeError, KeyError) as exc:
         raise ValueError("GUIDED_PRIVATE_CLOSEOUT_MEMORY_METADATA_INVALID") from exc
+
+
+def _preflight_guided_research_closeout(
+    payload: dict[str, Any], session: dict[str, Any],
+) -> None:
+    """Fail closed on IR-only archive prerequisites before any specialist work."""
+    request = payload.get("request")
+    if (not isinstance(request, dict)
+            or request.get("research_needed") is not True
+            or request.get("portfolio_needed") is not False
+            or session.get("route") != "CC_IR_CC"):
+        raise ValueError("GUIDED_RESEARCH_CLOSEOUT_IR_ONLY_REQUIRED")
+    _check_guided_research_archive_memory(payload)
+
+
+def _preflight_guided_private_closeout(
+    payload: dict[str, Any], session: dict[str, Any],
+) -> None:
+    """Reject a non-completable guided archive BEFORE human IR/PI work begins.
+
+    A saved manual continuation must be replayed unchanged: the operator cannot
+    safely add absent M3 observations or memory metadata at a later specialist
+    return. Use the original M3 seal for source eligibility and original
+    memory contract's essential fields, without inventing an IR record.
+    This is an admission check, not source authentication or final acceptance.
+    """
+    request = payload.get("request")
+    if (not isinstance(request, dict)
+            or request.get("research_needed") is not True
+            or request.get("portfolio_needed") is not True
+            or session.get("route") != "CC_IR_PI_CC"):
+        raise ValueError("GUIDED_PRIVATE_CLOSEOUT_IR_PI_REQUIRED")
+    _check_guided_research_archive_memory(payload)
     ledger = session.get("portfolio_observation_private")
     if not isinstance(ledger, dict) or ledger.get("private_scope") is not True:
         raise ValueError("GUIDED_PRIVATE_CLOSEOUT_CURRENT_OBSERVATION_REQUIRED")
@@ -921,7 +947,7 @@ def run(*, output: str, instream: TextIO, outstream: TextIO,
             guided_sealed_followup = True
             guided_integrated_followup = True
             resume_payload, result = _integrated_followup_operator(payload)
-        elif (output in {"guided-operator", "guided-integrated-closeout"} and isinstance(payload, dict)
+        elif (output in {"guided-operator", "guided-integrated-closeout", "guided-research-closeout"} and isinstance(payload, dict)
               and "private_case_envelope" in payload):
             # Reuse the SAME strict sealed-case re-entry plus verified-method
             # guided prompt path. The old case remains in CC-only continuation,
@@ -929,13 +955,16 @@ def run(*, output: str, instream: TextIO, outstream: TextIO,
             guided_resuming = True
             guided_sealed_followup = True
             resume_payload, result = _reenter_sealed_followup(payload)
-        elif (output in {"guided-operator", "guided-integrated-closeout"} and isinstance(payload, dict)
+        elif (output in {"guided-operator", "guided-integrated-closeout", "guided-research-closeout"} and isinstance(payload, dict)
               and ("continuation_private" in payload
                    or ("specialist_result" in payload and "request" not in payload))):
             guided_resuming = True
             resume_payload, result = _resume_manual_transfer(payload)
         else:
             result = evaluate(payload)
+        if output == "guided-research-closeout":
+            _preflight_guided_research_closeout(
+                resume_payload if guided_resuming else payload, result)
         if output == "guided-integrated-closeout":
             # Check the COMPLETE and replayable private session before the
             # first costly human transfer. No partial prompt/record on failure.
@@ -1020,7 +1049,7 @@ def run(*, output: str, instream: TextIO, outstream: TextIO,
         except (ValueError, TypeError, KeyError, RecursionError):
             errstream.write("R1_PROCESSING_ERROR: private operator packet unavailable.\n")
             return 3
-    elif output in {"guided-operator", "guided-integrated-closeout"}:
+    elif output in {"guided-operator", "guided-integrated-closeout", "guided-research-closeout"}:
         # One explicitly PRIVATE packet from the existing operator and method
         # components. Assemble fully before emitting any sensitive output.
         try:
@@ -1058,6 +1087,34 @@ def run(*, output: str, instream: TextIO, outstream: TextIO,
                 "method_load_verification": "NOT_PERFORMED",
                 "source_authentication": "NOT_PERFORMED",
             }
+            if output == "guided-research-closeout":
+                # Keep IR-only research and manual archiving in one explicit
+                # user-selected private route; same archive as private-closeout.
+                # Final copy stays null during IR handoff.
+                final_research = (
+                    _private_research_closeout(actual_payload, result)
+                    if continuation is None else None
+                )
+                guided = {
+                    "status": (
+                        "PRIVATE_GUIDED_RESEARCH_CLOSEOUT_COPY_NOT_STORED"
+                        if final_research is not None else
+                        "PRIVATE_GUIDED_RESEARCH_CLOSEOUT_PENDING_MANUAL_IR"
+                    ),
+                    "guided_operator_private": guided,
+                    "private_research_closeout": final_research,
+                    "next_manual_step": (
+                        "HUMAN_REVIEW_THEN_SAVE_ONLY_IN_APPROVED_PRIVATE_ARCHIVE"
+                        if final_research is not None else
+                        "COPY_ONLY_IR_PROMPT_AND_KEEP_CC_RESUME_PRIVATE"
+                    ),
+                    "archive_protection": "NOT_ESTABLISHED",
+                    "source_authentication": "NOT_PERFORMED",
+                    "project_invocation": "NONE",
+                    "storage": "NONE",
+                    "readiness": "NOT_EVALUATED",
+                    "trading_authority": "NONE",
+                }
             if output == "guided-integrated-closeout":
                 # One *explicit* private surface from initial manual IR/PI
                 # prompts to final report and both original archive copies.
@@ -1210,9 +1267,9 @@ def main(argv: list[str] | None = None, *, instream: TextIO | None = None,
          outstream: TextIO | None = None,
          errstream: TextIO | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--output", choices=("request-template", "intake-review", "status", "report", "handoffs", "next-handoff", "continuation", "operator-packet", "resume-operator", "guided-operator", "guided-integrated-closeout", "candidate-deep-dive-draft", "method-handoff", "specialist-prompt", "followup-draft", "sealed-followup-draft", "sealed-followup-operator", "integrated-followup-draft", "integrated-followup-operator", "private-case", "private-case-envelope", "private-closeout", "private-integrated-closeout", "private-portfolio-snapshot", "review-queue"),
+    parser.add_argument("--output", choices=("request-template", "intake-review", "status", "report", "handoffs", "next-handoff", "continuation", "operator-packet", "resume-operator", "guided-operator", "guided-integrated-closeout", "guided-research-closeout", "candidate-deep-dive-draft", "method-handoff", "specialist-prompt", "followup-draft", "sealed-followup-draft", "sealed-followup-operator", "integrated-followup-draft", "integrated-followup-operator", "private-case", "private-case-envelope", "private-closeout", "private-integrated-closeout", "private-portfolio-snapshot", "review-queue"),
                         default="status",
-                        help="request-template is an inert blank case and reads no stdin; intake-review reads a private request-only draft and returns field names/status without values; status is redacted; report, handoffs, next-handoff, continuation, operator-packet, resume-operator, guided-operator, guided-integrated-closeout, candidate-deep-dive-draft, method-handoff, specialist-prompt, followup-draft, sealed-followup-draft, sealed-followup-operator, integrated-followup-draft, integrated-followup-operator, private-case, private-case-envelope, private-closeout, private-integrated-closeout, private-portfolio-snapshot and review-queue require a private terminal")
+                        help="request-template is an inert blank case and reads no stdin; intake-review reads a private request-only draft and returns field names/status without values; status is redacted; report, handoffs, next-handoff, continuation, operator-packet, resume-operator, guided-operator, guided-integrated-closeout, guided-research-closeout, candidate-deep-dive-draft, method-handoff, specialist-prompt, followup-draft, sealed-followup-draft, sealed-followup-operator, integrated-followup-draft, integrated-followup-operator, private-case, private-case-envelope, private-closeout, private-integrated-closeout, private-portfolio-snapshot and review-queue require a private terminal")
     opts = parser.parse_args(argv)
     return run(output=opts.output, instream=instream or sys.stdin,
                outstream=outstream or sys.stdout, errstream=errstream or sys.stderr)
