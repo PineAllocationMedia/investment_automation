@@ -18,6 +18,7 @@ from typing import Any, TextIO
 from ai_native.session_bridge import complete_manual_session
 from ai_native.manual_review_queue import prepare_manual_review_queue
 from ai_native.intake_review import prepare_intake_review
+from ai_native.opportunity_triage import prepare_selected_candidate_draft
 from ai_native.research_memory import prepare_explicit_followup_draft
 from ai_native.method_handoff_bundle import (
     prepare_verified_method_handoff, render_manual_specialist_prompt,
@@ -91,6 +92,9 @@ SAFE_ERROR_CODES = frozenset({
     "SCREENSHOT_REENTRY_NOT_PENDING",
     "SCREENSHOT_REENTRY_SOURCE_INVALID",
     "SCREENSHOT_REENTRY_CASE_MISMATCH",
+    "CANDIDATE_DRAFT_INPUT_INVALID",
+    "CANDIDATE_DRAFT_TRIAGE_UNAVAILABLE",
+    "CANDIDATE_DRAFT_CANDIDATE_NOT_FOUND",
 })
 
 
@@ -846,6 +850,26 @@ def run(*, output: str, instream: TextIO, outstream: TextIO,
             # a session. No input values are copied to the review.
             intake = prepare_intake_review(payload)
             result = None
+        elif output == "candidate-deep-dive-draft":
+            # Re-evaluate the real prior CEO/IR case, including M2 original
+            # facts, provenance and candidate triage. Never accept an isolated
+            # triage JSON as a claimed original or initiate research on behalf
+            # of the CEO. Only the chosen candidate enters the PRIVATE draft.
+            if (not isinstance(payload, dict)
+                    or set(payload) != {"session", "candidate_id"}
+                    or not isinstance(payload["session"], dict)
+                    or not isinstance(payload["candidate_id"], str)):
+                raise ValueError("CANDIDATE_DRAFT_INPUT_INVALID")
+            prior = evaluate(payload["session"])
+            integrated = prior.get("integrated_private")
+            if (prior.get("status") !=
+                    "M7A_COMPONENT_ASSEMBLED_NOT_END_TO_END_ACCEPTANCE"
+                    or not isinstance(integrated, dict)
+                    or not isinstance(integrated.get("opportunity_triage_private"), dict)):
+                raise ValueError("CANDIDATE_DRAFT_TRIAGE_UNAVAILABLE")
+            draft = prepare_selected_candidate_draft(
+                integrated["opportunity_triage_private"], payload["candidate_id"])
+            result = None
         elif output == "followup-draft":
             # Unchanged support for unwrapped historical PRIVATE cases.
             if not isinstance(payload, dict) or set(payload) != {"prior_private_case"}:
@@ -929,7 +953,8 @@ def run(*, output: str, instream: TextIO, outstream: TextIO,
     if output == "intake-review":
         outstream.write(json.dumps(intake, ensure_ascii=False, sort_keys=True,
                                    indent=2, allow_nan=False) + "\n")
-    elif output in {"followup-draft", "sealed-followup-draft", "integrated-followup-draft"}:
+    elif output in {"followup-draft", "sealed-followup-draft", "integrated-followup-draft",
+                   "candidate-deep-dive-draft"}:
         # Explicitly PRIVATE. The returned request is intentionally invalid
         # for execution until the CEO fills new details and initiates it.
         outstream.write(json.dumps(draft, ensure_ascii=False, sort_keys=True,
@@ -1185,9 +1210,9 @@ def main(argv: list[str] | None = None, *, instream: TextIO | None = None,
          outstream: TextIO | None = None,
          errstream: TextIO | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--output", choices=("request-template", "intake-review", "status", "report", "handoffs", "next-handoff", "continuation", "operator-packet", "resume-operator", "guided-operator", "guided-integrated-closeout", "method-handoff", "specialist-prompt", "followup-draft", "sealed-followup-draft", "sealed-followup-operator", "integrated-followup-draft", "integrated-followup-operator", "private-case", "private-case-envelope", "private-closeout", "private-integrated-closeout", "private-portfolio-snapshot", "review-queue"),
+    parser.add_argument("--output", choices=("request-template", "intake-review", "status", "report", "handoffs", "next-handoff", "continuation", "operator-packet", "resume-operator", "guided-operator", "guided-integrated-closeout", "candidate-deep-dive-draft", "method-handoff", "specialist-prompt", "followup-draft", "sealed-followup-draft", "sealed-followup-operator", "integrated-followup-draft", "integrated-followup-operator", "private-case", "private-case-envelope", "private-closeout", "private-integrated-closeout", "private-portfolio-snapshot", "review-queue"),
                         default="status",
-                        help="request-template is an inert blank case and reads no stdin; intake-review reads a private request-only draft and returns field names/status without values; status is redacted; report, handoffs, next-handoff, continuation, operator-packet, resume-operator, guided-operator, guided-integrated-closeout, method-handoff, specialist-prompt, followup-draft, sealed-followup-draft, sealed-followup-operator, integrated-followup-draft, integrated-followup-operator, private-case, private-case-envelope, private-closeout, private-integrated-closeout, private-portfolio-snapshot and review-queue require a private terminal")
+                        help="request-template is an inert blank case and reads no stdin; intake-review reads a private request-only draft and returns field names/status without values; status is redacted; report, handoffs, next-handoff, continuation, operator-packet, resume-operator, guided-operator, guided-integrated-closeout, candidate-deep-dive-draft, method-handoff, specialist-prompt, followup-draft, sealed-followup-draft, sealed-followup-operator, integrated-followup-draft, integrated-followup-operator, private-case, private-case-envelope, private-closeout, private-integrated-closeout, private-portfolio-snapshot and review-queue require a private terminal")
     opts = parser.parse_args(argv)
     return run(output=opts.output, instream=instream or sys.stdin,
                outstream=outstream or sys.stdout, errstream=errstream or sys.stderr)
