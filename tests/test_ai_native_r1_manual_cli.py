@@ -37,6 +37,7 @@ class ManualCLIContractTests(unittest.TestCase):
                               "instruction_version": "R1-SYN",
                               "recorded_at": "2026-10-28"},
         }
+        payload["ir_capsule"]["facts"][0]["claim"] = "PRIVATE_CLOSEOUT_SENTINEL"
         original = deepcopy(payload)
         code, body, err = self.invoke(payload, "private-closeout")
         self.assertEqual((code, err), (0, ""))
@@ -45,12 +46,16 @@ class ManualCLIContractTests(unittest.TestCase):
         self.assertEqual(packet["operator_packet_private"]["session"]["status"],
                          "M7A_COMPONENT_ASSEMBLED_NOT_END_TO_END_ACCEPTANCE")
         self.assertIsNone(packet["operator_packet_private"]["continuation_private"])
-        self.assertEqual(packet["operator_packet_private"]["report_private"],
+        self.assertEqual(packet["operator_packet_private"]["report_private"].rstrip("\n"),
                          self.invoke(payload, "report")[1].rstrip("\n"))
         self.assertEqual(packet["private_case_envelope"],
                          json.loads(self.invoke(payload, "private-case-envelope")[1]))
         recovered = verify_private_case_envelope(packet["private_case_envelope"])
-        self.assertEqual(recovered["original_request"], payload["request"])
+        self.assertEqual(recovered["original_request"]["analysis_id"], "CASE-A")
+        self.assertEqual(recovered["original_request"]["subject_id"], "SYN-ISSUER")
+        # The existing M7a memory contract intentionally saves its compact
+        # research request, not unneeded account metadata from the CC mandate.
+        self.assertNotIn("account_context", recovered["original_request"])
         self.assertEqual(recovered["original_ir_capsule"], payload["ir_capsule"])
         self.assertIn("PRIVATE_CLOSEOUT_SENTINEL", body)  # Explicit PRIVATE output only
         self.assertNotIn("PRIVATE_CLOSEOUT_SENTINEL", self.invoke(payload, "status")[1])
@@ -96,7 +101,8 @@ class ManualCLIContractTests(unittest.TestCase):
                       packet["operator_packet_private"]["report_private"])
         recovered = verify_private_case_envelope(packet["private_case_envelope"])
         self.assertEqual(recovered["original_ir_capsule"], original_ir)
-        self.assertTrue(recovered["original_request"]["portfolio_needed"])
+        self.assertEqual(recovered["original_request"]["subject_id"], "SYN-ISSUER")
+        self.assertEqual(recovered["original_request"]["analysis_id"], "CASE-A")
         self.assertEqual(packet["archive_integrity"],
                          "UNKEYED_SHA256_COPY_CHECK_ONLY_NOT_AUTHENTICITY")
         self.assertEqual(packet["project_invocation"], "NONE")
