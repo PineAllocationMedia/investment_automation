@@ -12,6 +12,19 @@ from typing import Any, Mapping
 COST_TYPES = ("commission", "bid_ask_spread", "fx_conversion", "purchase_tax", "other_fees")
 FUNDING = frozenset({"FROM_CONTRIBUTION", "EXTERNAL_CASH", "UNKNOWN"})
 CENT = Decimal("0.01")
+# A nonempty placeholder is not a supplied cost-source locator, even for 0.00.
+# A real caller-declared source may be an offline/manual reference (not only a URL).
+SOURCE_REF_PLACEHOLDERS = frozenset({
+    "UNKNOWN", "NOT_SUPPLIED", "NOT_VISIBLE", "N/A", "NA", "NONE",
+    "TBD", "PENDING", "UNCERTAIN", "NULL", "SOURCE_NOT_SUPPLIED",
+})
+
+
+def _source_ref_available(raw: Any) -> bool:
+    if not isinstance(raw, str) or not raw.strip():
+        return False
+    normalized = raw.strip().upper().replace("-", "_").replace(" ", "_")
+    return normalized not in SOURCE_REF_PLACEHOLDERS
 
 
 def _money(raw: Any, label: str) -> Decimal:
@@ -95,7 +108,7 @@ def tally_supplied_costs(
                 continue
             value = _money(amount, f"charges:{dest}:{kind}")
             source = row.get("source_ref")
-            if not isinstance(source, str) or not source.strip():
+            if not _source_ref_available(source):
                 missing.append(f"{dest}:{kind}:SOURCE_NOT_SUPPLIED")
                 continue
             known += value

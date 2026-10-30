@@ -41,6 +41,35 @@ class CostTallyTests(unittest.TestCase):
         out=tally_supplied_costs(**a)
         self.assertIn("VFV:TSX:purchase_tax:SOURCE_NOT_SUPPLIED",out["missing_components"])
 
+    def test_nonempty_placeholder_sources_cannot_certify_positive_or_zero_cost(self):
+        for placeholder in ("UNKNOWN", "tbd", " n/a ", "NOT SUPPLIED",
+                            "not-visible", "NONE", "PENDING", "uncertain",
+                            "NULL", "SOURCE_NOT_SUPPLIED"):
+            for destination, component in (("ABC:TSX", "commission"),
+                                           ("VFV:TSX", "purchase_tax")):
+                with self.subTest(source=placeholder, destination=destination,
+                                  component=component):
+                    args = self.args()
+                    args["charges_by_destination"][destination][component][
+                        "source_ref"] = placeholder
+                    out = tally_supplied_costs(**args)
+                    self.assertEqual(out["status"], "INCOMPLETE_COST_INPUTS")
+                    self.assertIn(f"{destination}:{component}:SOURCE_NOT_SUPPLIED",
+                                  out["missing_components"])
+                    self.assertNotIn("total_supplied_costs_base", out)
+                    self.assertNotIn("maximum_remaining_contribution_budget_base", out)
+                    self.assertFalse(any(
+                        x["source_ref"].strip().lower() == placeholder.strip().lower()
+                        for x in out["source_references_private"]))
+
+    def test_offline_real_source_reference_still_supported(self):
+        args = self.args()
+        args["charges_by_destination"]["ABC:TSX"]["commission"][
+            "source_ref"] = "Manual-fee-record-2026-10-29"
+        out = tally_supplied_costs(**args)
+        self.assertEqual(out["status"], "SUPPLIED_COST_TALLY_ONLY")
+        self.assertEqual(out["total_supplied_costs_base"], "5.00")
+
     def test_mismatched_currency_denied(self):
         with self.assertRaisesRegex(ValueError,"CURRENCY_MISMATCH"):
             tally_supplied_costs(**self.args(cost_currency="USD"))

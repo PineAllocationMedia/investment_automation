@@ -150,6 +150,24 @@ class AlternativeSuppliedCostsTests(unittest.TestCase):
         self.assertEqual(a["cost_burden_comparison_basis"], "NOT_COMPARABLE")
         self.assertEqual(b["one_time_supplied_cost_share_pct"], "0.0000")
 
+    def test_placeholder_source_blocks_alternative_fee_comparison_without_baseline_change(self):
+        quotes = self.costs()
+        quotes["alternative_cost_inputs"][0]["charges_by_destination"][
+            "ABC:TSX"]["commission"]["source_ref"] = "UNKNOWN"
+        out = self.project(costs=quotes)
+        self.assertEqual(out["supplied_costs_private"]["status"],
+                         "SUPPLIED_COST_TALLY_ONLY")
+        scenario = out["report_summary_private"][
+            "conditional_alternative_costs_private"]["scenarios"][0]
+        self.assertEqual(scenario["cost_status"], "INCOMPLETE_COST_INPUTS")
+        self.assertEqual(scenario["funded_status"], "UNAVAILABLE_COST_INPUTS")
+        self.assertIsNone(scenario["one_time_supplied_cost_share_pct"])
+        self.assertIsNone(scenario["cost_burden_delta_vs_baseline_pp"])
+        self.assertEqual(scenario["cost_burden_comparison_basis"], "NOT_COMPARABLE")
+        self.assertEqual(out["alternative_cost_details_private"][0][
+            "supplied_costs_private"]["missing_components"],
+            ["ABC:TSX:commission:SOURCE_NOT_SUPPLIED"])
+
     def test_count_destination_and_quote_date_mismatch_fail_closed(self):
         for bad in ([], [self.quote("ABC:TSX","10.00")],
                     "not-a-list", [{"stray":"object"}, {}]):
