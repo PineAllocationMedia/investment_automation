@@ -689,6 +689,9 @@ def _check_guided_current_m3_observation(
     payload: dict[str, Any], session: dict[str, Any],
 ) -> None:
     """Shared original dated M3 admission for opt-in PI archive routes."""
+    request = payload.get("request")
+    if not isinstance(request, dict):
+        raise ValueError("GUIDED_PRIVATE_CLOSEOUT_CURRENT_OBSERVATION_REQUIRED")
     ledger = session.get("portfolio_observation_private")
     if not isinstance(ledger, dict) or ledger.get("private_scope") is not True:
         raise ValueError("GUIDED_PRIVATE_CLOSEOUT_CURRENT_OBSERVATION_REQUIRED")
