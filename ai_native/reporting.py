@@ -5,7 +5,7 @@ All input statuses are caller-provided and preserved, never upgraded.
 """
 from __future__ import annotations
 
-from datetime import date
+from datetime import date, datetime
 from decimal import Decimal, InvalidOperation, ROUND_DOWN
 import re
 from typing import Any, Mapping
@@ -265,6 +265,20 @@ def _portfolio_observation_lines(packet: Mapping[str, Any], analysis_id: str,
     observed = _iso_date(observation.get("observed_on"), "P.observed_on")
     if observed > as_of:
         raise ValueError("REPORT_P_LEDGER_AFTER_CUTOFF")
+    captured_at = observation.get("captured_at")
+    if captured_at == "UNKNOWN":
+        capture_day = None
+    else:
+        if not isinstance(captured_at, str):
+            raise ValueError("REPORT_P_LEDGER_CAPTURE_TIME_INVALID")
+        try:
+            capture_stamp = datetime.fromisoformat(captured_at)
+        except ValueError as exc:
+            raise ValueError("REPORT_P_LEDGER_CAPTURE_TIME_INVALID") from exc
+        if (capture_stamp.utcoffset() is None
+                or not observed <= capture_stamp.date().isoformat() <= as_of):
+            raise ValueError("REPORT_P_LEDGER_CAPTURE_DATE_OUT_OF_RANGE")
+        capture_day = capture_stamp.date().isoformat()
     records = observation.get("p_ledger_private")
     if not isinstance(records, list) or not records or len(records) > 10000:
         raise ValueError("REPORT_P_LEDGER_ROWS_INVALID")
@@ -376,10 +390,22 @@ def _portfolio_observation_lines(packet: Mapping[str, Any], analysis_id: str,
         coverage = "INCOMPLETE_NO_DERIVED_WEIGHTS"
     else:
         raise ValueError("REPORT_P_LEDGER_STAGE_INVALID")
+    lag_to_cutoff = (date.fromisoformat(as_of) -
+                     date.fromisoformat(observed)).days
+    capture_line = (
+        f"Capture timestamp UNKNOWN; effective positions date {observed}; "
+        f"{lag_to_cutoff} calendar day(s) before the analysis cutoff."
+        if capture_day is None else
+        f"Capture recorded on {capture_day}; effective position date {observed}; "
+        f"{(date.fromisoformat(capture_day) - date.fromisoformat(observed)).days} "
+        f"calendar day(s) between position date and capture, "
+        f"{lag_to_cutoff} day(s) before analysis cutoff."
+    )
     lines = [
         "", "## Private portfolio observation — coverage and provenance",
         f"Observed as of {observed}; {len(records)} caller-reported position row(s). "
         f"Coverage: {coverage}.",
+        capture_line,
         f"Cash visibility: {cash['visibility']}; {len(qualifiers)} unresolved qualification(s) "
         "remain in the original private P ledger.",
     ]

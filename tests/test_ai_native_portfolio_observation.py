@@ -138,6 +138,43 @@ class ObservationTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "NEWER_THAN"):
             prepare_observation_ledger(**self.kwargs(analysis_as_of="2026-10-27"))
 
+    def test_later_capture_of_older_positions_remains_dated_observation(self):
+        args = self.kwargs(observed_on="2026-10-27",
+                           captured_at="2026-10-29T10:00:00-04:00",
+                           analysis_as_of="2026-10-30")
+        before = copy.deepcopy(args)
+        actual = prepare_observation_ledger(**args)
+        self.assertEqual(args, before)
+        self.assertEqual(actual["observed_on"], "2026-10-27")
+        self.assertEqual(actual["captured_at"], "2026-10-29T10:00:00-04:00")
+        self.assertEqual(actual["status"],
+                         "SCOPED_WEIGHTS_DERIVED_FROM_CALLER_VISIBLE_DATA")
+        self.assertEqual(actual["known_scope_weights_pct"],
+                         {"P-1": "75.00", "P-CASH": "25.00"})
+        self.assertEqual(actual["verification"],
+                         "CALLER_ASSERTED_NOT_INDEPENDENTLY_AUTHENTICATED")
+        self.assertEqual(actual["portfolio_room_status"], "ROOM_UNAVAILABLE")
+
+    def test_temporal_capture_before_positions_or_after_cutoff_rejected(self):
+        for captured in ("2026-10-26T10:00:00-04:00",
+                         "2026-10-31T10:00:00-04:00"):
+            with self.subTest(captured=captured), self.assertRaisesRegex(
+                    ValueError, "CAPTURE_DATE_OUTSIDE_OBSERVATION_AND_CUTOFF"):
+                prepare_observation_ledger(**self.kwargs(
+                    observed_on="2026-10-27", analysis_as_of="2026-10-30",
+                    captured_at=captured))
+
+    def test_public_reference_late_capture_still_has_no_portfolio_weights(self):
+        r = prepare_observation_ledger(**self.kwargs(
+            source_type="PUBLIC_BLOSSOM_REFERENCE", private_scope=False,
+            observed_on="2026-10-27", analysis_as_of="2026-10-30",
+            captured_at="2026-10-30T10:00:00-04:00"))
+        self.assertEqual(r["status"], "OBSERVATION_LEDGER_ONLY")
+        self.assertIsNone(r["known_scope_weights_pct"])
+        self.assertEqual(r["portfolio_room_status"], "ROOM_UNAVAILABLE")
+        self.assertIn("PUBLIC_REFERENCE_NOT_PRIVATE_PORTFOLIO",
+                      r["missing_or_qualified"])
+
     def test_missing_timezone_rejected(self):
         with self.assertRaisesRegex(ValueError, "timezone-aware"):
             prepare_observation_ledger(**self.kwargs(captured_at="2026-10-28T10:00:00"))
