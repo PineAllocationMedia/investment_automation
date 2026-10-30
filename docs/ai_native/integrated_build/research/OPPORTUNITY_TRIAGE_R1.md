@@ -17,6 +17,20 @@ The CEO or authorized analyst may supply a small opportunity universe (1–30 na
 
 The runtime additionally requires the original supplied `ir_facts` list and a preassembled M2 `source_annex` for the **same ANALYSIS_ID and analysis cutoff**. A candidate references only original IR fact IDs. A linked source observation must carry the same issuer/instrument identity. Any missing observation, unavailable/incomplete/conflicted source, uncertain/restricted rights, non-primary-source record, or unresolved original IR fact produces an explicit **research evidence issue**. A single negative observation is not cancelled by a clean observation; no source becomes authenticated. Original-source retrieval, publisher identity/rights, PIT market availability, security comparability and observation validity still require external verification.
 
+## From a human-selected research candidate to a new deep-dive request (R1 manual CC→IR)
+
+The existing original-source-dependent opportunity triage can now feed a **new, explicitly non-executable** private Command Center draft. Once the user has already completed a CEO-initiated IR analysis with the original `IR_CAPSULE`, supplied M2 `source_evidence_inputs` or original `EVIDENCE_ANNEX`, and `opportunity_triage_inputs`, run:
+
+```sh
+python3 -B -m scripts.r1_manual_session_cli --output candidate-deep-dive-draft < private-selected-candidate.json
+```
+
+Here `private-selected-candidate.json` is an **operator-controlled private input** with **exactly** `{"session": { ...the original complete CEO-authorized R1 session... }, "candidate_id": "the exact triage candidate ID"}`. Never upload private source records or this output to GitHub, Media or a public channel. The CLI **re-evaluates the original complete M1→M2→M7a session** and consumes only its computed `integrated_private.opportunity_triage_private`. It rejects an isolated submitted triage JSON, a pending IR case or an unknown candidate ID. The original candidate order remains unchanged and there is no automatic selection, search, score, recommendation, or implicit extra CEO instruction.
+
+The private draft has the original candidate's named issuer/instrument, open questions, risks, *referenced IDs only* for prior original facts/source observations, and actual `EVIDENCE_RESOLUTION` or `HUMAN_DEEP_DIVE` stage. It **does not copy old source URLs, numeric financial values or research claims into the new request**, nor treat any previous fact ID as a newly checked fact. The new `input_template.request` carries `ceo_initiated=false`, empty analysis identity/cutoff/objective, unknown account costs and method load, and **only the previously selected strategy label**, which the CEO must reconfirm. It defaults to a separate `DECISION` research case (`research_needed=true`, `portfolio_needed=false`), not an unrequested historic `FOLLOWUP` or Portfolio Intelligence analysis. The user must explicitly fill a **new** dated mandate with objective, horizon, risk, account/cost and other constraints and then choose whether to run `intake-review` and `guided-operator`. Until then the draft is inert and the existing R1 request validator rejects it.
+
+All six strategy labels remain non-authorizing: the five new R1 policy designs besides existing scoped High-CAGR are not approved financial policy. An `EVIDENCE_RESOLUTION` candidate remains a research question, never promoted to investable security or admitted solely because it was selected. The prototype does not perform global screening, live Project invocation, independent source/rights certification, private persistence, or trading. Tests are synthetic and require execution in an authenticated clean checkout; no R1 system-wide acceptance is claimed.
+
 ## Two work stages, not investment ratings
 
 - `EVIDENCE_RESOLUTION`: material structural evidence issues, such as missing IR links or source conflicts. Continue research only after human review.
