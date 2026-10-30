@@ -7,8 +7,9 @@ broker action, invented return, fictitious allocation or background execution.
 """
 from __future__ import annotations
 
-from html import escape
+from html import escape, unescape
 from io import BytesIO
+from math import isfinite
 from typing import Mapping, Any
 
 from reportlab.lib import colors
@@ -72,6 +73,30 @@ def _view(model: Mapping[str, Any], executive: str, detail: str,
     pi_summary = (_safe(pi.get("summary"), limit=300) if portfolio_needed
                   else "Aucune analyse personnelle demandée")
     pi_date = (_safe(pi.get("portfolio_as_of"), limit=40) if portfolio_needed else "S/O")
+    room_status = pi.get("room_status")
+    position_scope = (
+        "Données PI rapportées; preuve à examiner"
+        if room_status == "ROOM_EVIDENCE_SUPPORTED" else
+        "Conditionnelles, non certifiées"
+        if room_status == "ROOM_CONDITIONAL" else
+        "Partielles / non vérifiées"
+    )
+    contribution = model.get("new_contribution_summary_private")
+    allocation_text = None
+    if isinstance(contribution, Mapping):
+        pct = contribution.get("allocations_pct")
+        if (contribution.get("analysis_id") == req.get("analysis_id")
+                and contribution.get("gross_status") == "GROSS_PROJECTION_ONLY"
+                and isinstance(pct, Mapping) and 1 <= len(pct) <= 12
+                and all(isinstance(k, str) and 0 < len(k) <= 80
+                        and type(v) in (int, float) and isfinite(v)
+                        and 0 <= v <= 100 for k, v in pct.items())
+                and abs(sum(pct.values()) - 100.0) < 0.0001):
+            allocation_text = " · ".join(
+                _safe(k, limit=80) + " : " + format(v, ".1f") + " %"
+                for k, v in pct.items()
+            ) + " (projection arithmétique, non recommandation)"
+
 
     buffer = BytesIO()
     doc = SimpleDocTemplate(
@@ -110,7 +135,10 @@ def _view(model: Mapping[str, Any], executive: str, detail: str,
     story = []
 
     def P(value, style=normal):
-        return Paragraph(_safe(value), style)
+        # Pre-escaped source strings may be passed by the presentation helpers.
+        # Unescape once then escape once; never interpret source-provided HTML.
+        return Paragraph(_safe(unescape(value) if isinstance(value, str)
+                               else value), style)
 
     def raw(value, style=normal):
         return Paragraph(value, style)
@@ -222,7 +250,7 @@ def _view(model: Mapping[str, Any], executive: str, detail: str,
     label("Allocation envisagée")
     story.append(tiles([
         ("PORTEFEUILLE CONSTATÉ", pi_summary if portfolio_needed else "NON ÉVALUÉ"),
-        ("PROPOSITION / SIMULATION", "NON ÉTABLIE - aucun poids inféré"),
+        ("PROPOSITION / SIMULATION", allocation_text or "NON ÉTABLIE - aucun poids inféré"),
     ]))
     story.append(Spacer(1, 12))
     story.append(box(
@@ -268,14 +296,14 @@ def _view(model: Mapping[str, Any], executive: str, detail: str,
                 "Séparer les positions réellement confirmées "
                 "de toute allocation hypothétique.")
         story.append(tiles([
-            ("POSITIONS", "Partielles ou non vérifiées"),
+            ("POSITIONS", position_scope),
             ("PORTÉE", "PI : source rapportée"),
-            ("APRÈS ALLOCATION", "Simulation NON ÉTABLIE"),
+            ("APRÈS ALLOCATION", allocation_text or "Simulation NON ÉTABLIE"),
         ]))
         label("Comparaison avant / après")
         story.append(tiles([
             ("AVANT", "ND - dénominateur non confirmé"),
-            ("APRÈS", "ND - simulation non établie"),
+            ("APRÈS", allocation_text or "ND - simulation non établie"),
         ]))
         story.append(Spacer(1, 13))
         label("Expositions et concentrations")
@@ -305,8 +333,9 @@ def _view(model: Mapping[str, Any], executive: str, detail: str,
         story.append(Spacer(1, 17))
         label("Scénarios et limites")
         story.append(box(
-            "Aucun stress test numérique reproductible fourni. "
-            "Les fourchettes de perte et corrélations ne sont pas inventées.",
+            "Aucun stress test admissible dans les champs de ce rendu. "
+            "Voir l’annexe pour les scénarios éventuellement présents; "
+            "aucune perte ou corrélation n’est inventée.",
             GREY, normal, 18,
         ))
         label("De l’observation à la décision")
@@ -373,8 +402,8 @@ def _view(model: Mapping[str, Any], executive: str, detail: str,
         story.append(Spacer(1, 9))
     label("Historique et performance théorique")
     story.append(box(
-        "SÉRIE NON RENSEIGNÉE - flux, devises, frais, dates "
-        "et benchmark comparables non prouvés.", GREY, small, 18,
+        "SÉRIE NON DÉMONTRÉE DANS CE RENDU - une courbe nécessite flux, "
+        "devises, frais, dates et benchmark comparables vérifiés.", GREY, small, 18,
     ))
     label("Provenance et limites")
     table(["SOURCE", "DATE / COUVERTURE", "RÔLE / LIMITE"], [
@@ -447,7 +476,8 @@ def render_reference_style_pdf(*, executive_report: str, detailed_report: str,
                                request: Mapping[str, Any],
                                ir_capsule: Mapping[str, Any] | None = None,
                                pi_delta: Mapping[str, Any] | None = None,
-                               logo: bytes | None = None) -> bytes:
+                               logo: bytes | None = None,
+                               new_contribution_summary_private: Mapping[str, Any] | None = None) -> bytes:
     """Layout only, never evidence admission; validate before calling."""
     if not isinstance(executive_report, str) or not isinstance(detailed_report, str):
         raise ValueError("PAMALISE_PAIR_REQUIRED")
@@ -458,5 +488,6 @@ def render_reference_style_pdf(*, executive_report: str, detailed_report: str,
     if len(executive_report) > 200_000 or len(detailed_report) > 200_000:
         raise ValueError("PAMALISE_INPUT_TOO_LARGE")
     return _view(dict(request=request, ir_capsule=ir_capsule or {},
-                      pi_delta=pi_delta or {}), executive_report,
-                 detailed_report, logo)
+                      pi_delta=pi_delta or {},
+                      new_contribution_summary_private=new_contribution_summary_private),
+                 executive_report, detailed_report, logo)
