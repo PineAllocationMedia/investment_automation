@@ -34,6 +34,10 @@ from .exceptional_lifecycle import prepare_exceptional_lifecycle_review
 from .high_cagr_destination_path import (
     prepare_high_cagr_destination_review, render_high_cagr_destination_review,
 )
+from .research_admission_evidence_map import (
+    prepare_research_admission_evidence_map,
+    render_research_admission_evidence_map,
+)
 from .scenario_session_integration import (
     prepare_scoped_scenario_review, render_scoped_scenario_lines,
 )
@@ -582,6 +586,15 @@ def complete_manual_session(
                 or not pi_trace["questions_private"]):
             raise ValueError("MODE_PI_TRACE_NOT_RETURNED_BY_INTEGRATION")
     private["mode_portfolio_trace_private"] = integrated.get("mode_portfolio_trace_private")
+    # Third CEO test F3: read the ALREADY assembled source, economics,
+    # valuation, mode and PI stages. Never promote research to admission.
+    admission_review = prepare_research_admission_evidence_map(
+        request=base_request, ir_capsule=ir_capsule, integrated=integrated)
+    admission_lines = render_research_admission_evidence_map(admission_review)
+    private["research_admission_evidence_map_private"] = admission_review
+    integrated["research_admission_evidence_map_private"] = admission_review
+    integrated["markdown"] += "\n\n" + admission_lines
+    integrated["executive_markdown"] += "\n\n" + admission_lines
     if public_reference is not None:
         # Public profile observation remains separate from the IR model's
         # facts/pillars and the unchanged private institutional memory proposal.
