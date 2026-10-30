@@ -93,6 +93,8 @@ SAFE_ERROR_CODES = frozenset({
     "GUIDED_PRIVATE_CLOSEOUT_CURRENT_OBSERVATION_REQUIRED",
     "GUIDED_RESEARCH_CLOSEOUT_IR_ONLY_REQUIRED",
     "GUIDED_PORTFOLIO_CLOSEOUT_PI_ONLY_REQUIRED",
+    "GUIDED_PRIVATE_ROUTE_REQUEST_INVALID",
+    "GUIDED_PRIVATE_ROUTE_SPECIALIST_REQUIRED",
     "SCREENSHOT_REENTRY_INPUT_INVALID",
     "SCREENSHOT_REENTRY_NOT_PENDING",
     "SCREENSHOT_REENTRY_SOURCE_INVALID",
@@ -1026,6 +1028,45 @@ def _reenter_sealed_followup(envelope: Any) -> tuple[dict[str, Any], dict[str, A
     return current, evaluate(current)
 
 
+def _selected_guided_private_route(payload: Any) -> str:
+    """Select ONE already-implemented private closeout from the real mandate.
+
+    This is routing only, never authorization. Nested saved CC continuations
+    belong to the same existing user request; refuse conflicting sources,
+    ambiguous envelopes and direct/no-specialist sessions.
+    """
+    if not isinstance(payload, dict):
+        raise ValueError("GUIDED_PRIVATE_ROUTE_REQUEST_INVALID")
+    sources: list[Any] = []
+    if "request" in payload:
+        sources.append(payload["request"])
+    if "session" in payload:
+        nested = payload["session"]
+        sources.append(nested.get("request") if isinstance(nested, dict) else None)
+    if "pending_session" in payload:
+        nested = payload["pending_session"]
+        sources.append(nested.get("request") if isinstance(nested, dict) else None)
+    if "continuation_private" in payload:
+        continuation = payload["continuation_private"]
+        resume = (continuation.get("resume_input")
+                  if isinstance(continuation, dict) else None)
+        sources.append(resume.get("request") if isinstance(resume, dict) else None)
+    if len(sources) != 1 or not isinstance(sources[0], dict):
+        raise ValueError("GUIDED_PRIVATE_ROUTE_REQUEST_INVALID")
+    mandate = sources[0]
+    ir = mandate.get("research_needed")
+    pi = mandate.get("portfolio_needed")
+    if type(ir) is not bool or type(pi) is not bool:
+        raise ValueError("GUIDED_PRIVATE_ROUTE_REQUEST_INVALID")
+    if ir and pi:
+        return "guided-integrated-closeout"
+    if ir:
+        return "guided-research-closeout"
+    if pi:
+        return "guided-portfolio-closeout"
+    raise ValueError("GUIDED_PRIVATE_ROUTE_SPECIALIST_REQUIRED")
+
+
 def run(*, output: str, instream: TextIO, outstream: TextIO,
         errstream: TextIO) -> int:
     """Read one bounded JSON payload from stdin, send results to stdout only."""
@@ -1044,6 +1085,11 @@ def run(*, output: str, instream: TextIO, outstream: TextIO,
         payload = json.loads(raw, parse_constant=_no_nonfinite,
                              parse_float=_finite_json_float,
                              object_pairs_hook=_unique_pairs)
+        if output == "guided-private-closeout":
+            # The only new UX selector is a strict, private, no-action
+            # dispatch to the THREE unchanged existing closeout engines.
+            # Every downstream CEO/source/method check remains mandatory.
+            output = _selected_guided_private_route(payload)
         if output == "intake-review":
             # Inspect only a request draft; never run a specialist or create
             # a session. No input values are copied to the review.
@@ -1488,9 +1534,9 @@ def main(argv: list[str] | None = None, *, instream: TextIO | None = None,
          outstream: TextIO | None = None,
          errstream: TextIO | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--output", choices=("request-template", "intake-review", "status", "report", "handoffs", "next-handoff", "continuation", "operator-packet", "resume-operator", "guided-operator", "guided-integrated-closeout", "guided-research-closeout", "guided-portfolio-closeout", "candidate-deep-dive-draft", "method-handoff", "specialist-prompt", "followup-draft", "sealed-followup-draft", "sealed-followup-operator", "integrated-followup-draft", "portfolio-followup-draft", "integrated-followup-operator", "private-case", "private-case-envelope", "private-closeout", "private-integrated-closeout", "private-portfolio-snapshot", "review-queue"),
+    parser.add_argument("--output", choices=("request-template", "intake-review", "status", "report", "handoffs", "next-handoff", "continuation", "operator-packet", "resume-operator", "guided-operator", "guided-integrated-closeout", "guided-research-closeout", "guided-portfolio-closeout", "guided-private-closeout", "candidate-deep-dive-draft", "method-handoff", "specialist-prompt", "followup-draft", "sealed-followup-draft", "sealed-followup-operator", "integrated-followup-draft", "portfolio-followup-draft", "integrated-followup-operator", "private-case", "private-case-envelope", "private-closeout", "private-integrated-closeout", "private-portfolio-snapshot", "review-queue"),
                         default="status",
-                        help="request-template is an inert blank case and reads no stdin; intake-review reads a private request-only draft and returns field names/status without values; status is redacted; report, handoffs, next-handoff, continuation, operator-packet, resume-operator, guided-operator, guided-integrated-closeout, guided-research-closeout, guided-portfolio-closeout, candidate-deep-dive-draft, method-handoff, specialist-prompt, followup-draft, sealed-followup-draft, sealed-followup-operator, integrated-followup-draft, portfolio-followup-draft, integrated-followup-operator, private-case, private-case-envelope, private-closeout, private-integrated-closeout, private-portfolio-snapshot and review-queue require a private terminal")
+                        help="request-template is an inert blank case and reads no stdin; intake-review reads a private request-only draft and returns field names/status without values; status is redacted; report, handoffs, next-handoff, continuation, operator-packet, resume-operator, guided-operator, guided-integrated-closeout, guided-research-closeout, guided-portfolio-closeout, guided-private-closeout, candidate-deep-dive-draft, method-handoff, specialist-prompt, followup-draft, sealed-followup-draft, sealed-followup-operator, integrated-followup-draft, portfolio-followup-draft, integrated-followup-operator, private-case, private-case-envelope, private-closeout, private-integrated-closeout, private-portfolio-snapshot and review-queue require a private terminal")
     opts = parser.parse_args(argv)
     return run(output=opts.output, instream=instream or sys.stdin,
                outstream=outstream or sys.stdout, errstream=errstream or sys.stderr)
