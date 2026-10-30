@@ -140,10 +140,17 @@ def prepare_observation_ledger(
     else:
         try:
             stamp = datetime.fromisoformat(_text(captured_at, "captured_at"))
-            if stamp.utcoffset() is None or stamp.date() != observed:
-                raise ValueError
+            if stamp.utcoffset() is None:
+                raise ValueError("captured_at: timezone-aware ISO datetime required")
+            # A screenshot captured later may show a prior-dated portfolio
+            # snapshot. Admit its *observed-on* state without silently
+            # upgrading it to the capture date or analysis cutoff.
+            if not observed <= stamp.date() <= cutoff:
+                raise ValueError("CAPTURE_DATE_OUTSIDE_OBSERVATION_AND_CUTOFF")
         except ValueError as exc:
-            raise ValueError("captured_at: timezone-aware ISO datetime matching observed_on required") from exc
+            if str(exc) == "CAPTURE_DATE_OUTSIDE_OBSERVATION_AND_CUTOFF":
+                raise
+            raise ValueError("captured_at: timezone-aware ISO datetime required") from exc
     if not source_access_confirmed_by_caller:
         reasons.append("SOURCE_ACCESS_NOT_CONFIRMED_BY_CALLER")
     if not scope_complete:

@@ -42,6 +42,27 @@ class ObservationBridgeTests(unittest.TestCase):
         self.assertIn("NOT authenticated",result["final_report_private"])
         self.assertEqual(result["portfolio_observation_private"]["portfolio_room_status"],"ROOM_UNAVAILABLE")
 
+    def test_pi_late_capture_reports_effective_date_not_capture_as_holdings(self):
+        output = complete_manual_session(
+            self.req(as_of="2026-10-30"),
+            pi_delta=self.pi(portfolio_as_of="2026-10-27"),
+            observation_inputs=self.observation(
+                observed_on="2026-10-27",
+                analysis_as_of="2026-10-30",
+                captured_at="2026-10-29T10:00:00-04:00"))
+        self.assertEqual(output["status"],
+                         "PI_ONLY_CONDITIONAL_REPORT_ASSEMBLED")
+        report = output["final_report_private"]
+        self.assertIn("Capture recorded on 2026-10-29", report)
+        self.assertIn("effective position date 2026-10-27", report)
+        self.assertIn("2 calendar day(s) between position date and capture",
+                      report)
+        self.assertIn("3 day(s) before analysis cutoff", report)
+        self.assertIn("NOT independently authenticated", report)
+        self.assertEqual(
+            output["portfolio_observation_private"]["portfolio_room_status"],
+            "ROOM_UNAVAILABLE")
+
     def test_pi_date_mismatch_rejected(self):
         with self.assertRaisesRegex(ValueError,"OBSERVATION_PI_DATE_MISMATCH"):
             complete_manual_session(self.req(),pi_delta=self.pi(portfolio_as_of="2026-10-27"),observation_inputs=self.observation())
