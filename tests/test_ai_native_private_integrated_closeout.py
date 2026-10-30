@@ -339,7 +339,9 @@ class PrivateIntegratedCloseoutTests(unittest.TestCase):
             (no_memory, "GUIDED_PRIVATE_CLOSEOUT_MEMORY_REQUIRED"),
             (no_observation,
              "GUIDED_PRIVATE_CLOSEOUT_CURRENT_OBSERVATION_REQUIRED"),
-            (no_ir, "GUIDED_PRIVATE_CLOSEOUT_IR_PI_REQUIRED"),
+            # Existing M1 routing may reject this case first: memory metadata
+            # is illegal on a PI-only route, independently of our preflight.
+            (no_ir, "INPUT_CONTRACT_REJECTED"),
             (no_pi, "GUIDED_PRIVATE_CLOSEOUT_IR_PI_REQUIRED"),
         ):
             with self.subTest(reason=reason):
