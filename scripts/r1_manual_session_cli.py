@@ -1490,6 +1490,9 @@ def run(*, output: str, instream: TextIO, outstream: TextIO,
                         request=request,
                         ir_capsule=payload.get("ir_capsule"),
                         pi_delta=payload.get("pi_delta"),
+                        new_contribution_summary_private=(
+                            result.get("integrated_private", {}) or {}
+                        ).get("new_contribution_summary_private"),
                     )
                     sink = getattr(outstream, "buffer", None)
                     if sink is None:
