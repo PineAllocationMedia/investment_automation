@@ -7,7 +7,14 @@ from __future__ import annotations
 from copy import deepcopy
 from io import StringIO
 import json
+import tempfile
 import unittest
+from pathlib import Path
+
+from ai_native.method_handoff_bundle import _read_pinned_document
+from ai_native.method_manifest import (
+    PI_WORK_PROMPT_PATH, PI_WORK_PROMPT_BLOB_SHA,
+)
 
 from scripts.r1_manual_session_cli import main
 from tests.test_ai_native_session_bridge import SessionBridgeTests
@@ -49,7 +56,21 @@ class PiFirstGuidedWorkTests(unittest.TestCase):
         self.assertEqual(first["specialist_step"], "PI_WORK_CAPTURE")
         self.assertEqual(first["status"], "PRIVATE_PI_WORK_CAPTURE_PENDING_MANUAL_ONLY")
         self.assertIn("PI-WORK-PORTFOLIO-R1.5", first["specialist_prompt_private"])
-        self.assertIn("BLOSSOM_TARGET_URL", first["specialist_prompt_private"])
+        self.assertEqual(first["local_method_blob_integrity"],
+                         "GIT_BLOB_MATCHED_PINNED_PI1")
+        self.assertIn(
+            "BLOSSOM_TARGET_URL: https://www.blossomsocial.com/users/SYNTHETIC",
+            first["specialist_prompt_private"])
+        self.assertIn("ANALYSIS_ID: CASE-A", first["specialist_prompt_private"])
+        self.assertIn("ANALYSIS_AS_OF: 2026-10-28", first["specialist_prompt_private"])
+        self.assertIn("coverage_evidence", first["specialist_prompt_private"])
+        self.assertIn("positions_visible", first["specialist_prompt_private"])
+        self.assertIn("displayed_weight_pct", first["specialist_prompt_private"])
+        self.assertIn("INACCESSIBLE_OR_AMBIGUOUS", first["specialist_prompt_private"])
+        self.assertNotIn("[PASTE_THE_EXACT_HTTPS_BLOSSOM_PROFILE_URL_HERE]",
+                         first["specialist_prompt_private"])
+        self.assertNotIn("[use the exact ANALYSIS_ID",
+                         first["specialist_prompt_private"])
         self.assertNotIn("IR_REQUEST", first["specialist_prompt_private"])
         self.assertNotIn("SYNTHETIC_ACCOUNT_SECRET", first["specialist_prompt_private"])
         self.assertEqual(first["project_invocation"], "NONE")
@@ -155,6 +176,33 @@ class PiFirstGuidedWorkTests(unittest.TestCase):
             first, {"public_portfolio_reference": {"status": "PUBLIC_REFERENCE_ONLY"}}))
         self.assertEqual((rc, body), (2, ""))
         self.assertIn("PI_FIRST_CAPTURE_PUBLIC_SEPARATE_ROUTE", err)
+
+    def test_unmodified_pi1_document_is_actually_pinned(self):
+        root = Path(__file__).resolve().parents[1]
+        text = _read_pinned_document(
+            root, PI_WORK_PROMPT_PATH, PI_WORK_PROMPT_BLOB_SHA)
+        self.assertIn("PI-WORK-PORTFOLIO-R1.5", text)
+        self.assertIn("coverage_evidence", text)
+
+    def test_local_pi1_method_tamper_blocks_without_fallback(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            document = root / PI_WORK_PROMPT_PATH
+            document.parent.mkdir(parents=True)
+            document.write_text("INJECTED METHOD", encoding="utf-8")
+            with self.assertRaisesRegex(
+                    ValueError, "METHOD_HANDOFF_LOCAL_BLOB_MISMATCH"):
+                _read_pinned_document(root, PI_WORK_PROMPT_PATH,
+                                      PI_WORK_PROMPT_BLOB_SHA)
+
+        from unittest.mock import patch
+        with patch(
+                "scripts.r1_manual_session_cli._read_pinned_document",
+                side_effect=ValueError("METHOD_HANDOFF_LOCAL_BLOB_MISMATCH")):
+            rc, body, err = self.call(self.initial())
+        self.assertEqual((rc, body), (3, ""))
+        self.assertIn("private guided operator packet unavailable", err)
+        self.assertNotIn("BLOSSOM_TARGET_URL", err)
 
     def test_invalid_capture_url_identity_or_forged_continuation_blocked(self):
         for url in ("https://evil.example/users/SYN", 

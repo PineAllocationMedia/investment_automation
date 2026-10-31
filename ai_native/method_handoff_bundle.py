@@ -1,6 +1,7 @@
 """Read-only, on-demand R1 method handoff from an exact Git-pinned checkout.
 
-Only the existing fixed R1 method manifest may select local repository files.
+Only fixed, reviewed R1 research pins or the separate PI-1 Work prompt pin
+may select local repository files; no arbitrary path or branch-head fallback.
 Git blob checks prove content-byte parity, not actual Project loading, method
 approval, licensed source access, factual correctness or trade authority.
 """
@@ -11,7 +12,10 @@ import json
 from pathlib import Path
 from typing import Any, Mapping
 
-from .method_manifest import DOCUMENT_BLOBS, prepare_method_manifest
+from .method_manifest import (
+    DOCUMENT_BLOBS, PI_WORK_PROMPT_PATH, PI_WORK_PROMPT_BLOB_SHA,
+    prepare_method_manifest,
+)
 from .strategy_research_brief import prepare_strategy_research_brief
 
 MAX_METHOD_BYTES = 200_000
@@ -20,7 +24,11 @@ MAX_BUNDLE_DOCUMENT_BYTES = 600_000
 
 def _read_pinned_document(root: Path, path: str, expected_sha: str) -> str:
     """Fail closed on stale, missing, external or non-UTF-8 local method files."""
-    if path not in DOCUMENT_BLOBS or DOCUMENT_BLOBS[path] != expected_sha:
+    if not (
+        (path in DOCUMENT_BLOBS and DOCUMENT_BLOBS[path] == expected_sha)
+        or (path == PI_WORK_PROMPT_PATH
+            and expected_sha == PI_WORK_PROMPT_BLOB_SHA)
+    ):
         raise ValueError("METHOD_HANDOFF_REFERENCE_NOT_PINNED")
     try:
         candidate = root.joinpath(*path.split("/"))
