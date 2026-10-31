@@ -7,6 +7,7 @@ The caller must provide genuine, authorized inputs and review all conclusions.
 from __future__ import annotations
 
 import argparse
+from pathlib import Path
 from copy import deepcopy
 from datetime import date
 import re
@@ -32,6 +33,10 @@ from ai_native.portfolio_snapshot_transfer import (
 )
 from ai_native.portfolio_observation import prepare_observation_ledger
 from ai_native.work_blossom_adapter import prepare_work_blossom_observation
+from ai_native.method_manifest import (
+    PI_WORK_PROMPT_PATH, PI_WORK_PROMPT_BLOB_SHA, PI_WORK_PROMPT_REF_COMMIT,
+)
+from ai_native.method_handoff_bundle import _read_pinned_document
 
 MAX_INPUT_CHARACTERS = 5_000_000
 OPTIONAL_FIELDS = frozenset({
@@ -114,6 +119,7 @@ SAFE_ERROR_CODES = frozenset({
     "PI_FIRST_CAPTURE_CONTINUATION_INVALID",
     "PI_FIRST_CAPTURE_PUBLIC_SEPARATE_ROUTE",
     "PI_FIRST_CAPTURE_SOURCE_INVALID",
+    "PI_FIRST_WORK_METHOD_UNAVAILABLE",
 })
 
 
@@ -156,26 +162,52 @@ def _pi_first_capture_start(payload: dict[str, Any],
         raise ValueError("PI_FIRST_BLOSSOM_TARGET_INVALID")
     # Only the case identity and exact selected URL leave CC for the one Work
     # handoff; no private account context, contributions or prior IR packet.
+    # Ship the FULL, byte-pinned PI-1 instructions within the first Work
+    # handoff; a short "read R1.5 from GitHub" note is not self-contained.
+    try:
+        root = Path(__file__).resolve().parents[1]
+        document = _read_pinned_document(
+            root, PI_WORK_PROMPT_PATH, PI_WORK_PROMPT_BLOB_SHA)
+        fence = chr(96) * 3
+        opening = fence + "text\nPROMPT PI-1 — BLOSSOM TARGET PORTFOLIO OBSERVATION\n"
+        if document.count(opening) != 1:
+            raise ValueError("PI_WORK_PROMPT_STRUCTURE_INVALID")
+        sections = document.split(opening, 1)[1].split("\n" + fence, 1)
+        if len(sections) != 2 or not sections[0].strip():
+            raise ValueError("PI_WORK_PROMPT_STRUCTURE_INVALID")
+        prompt = sections[0]
+        if (not isinstance(req["analysis_id"], str)
+                or re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9._:-]{0,79}",
+                                req["analysis_id"]) is None):
+            raise ValueError("PI_WORK_CASE_ID_INVALID")
+        for label, value in (
+                ("BLOSSOM_TARGET_URL", url),
+                ("ANALYSIS_ID", req["analysis_id"]),
+                ("ANALYSIS_AS_OF", req["as_of"])):
+            matches = [line for line in prompt.splitlines()
+                       if line.startswith(label + ": ")]
+            if (len(matches) != 1 or not matches[0].endswith("]")
+                    or (label == "BLOSSOM_TARGET_URL"
+                        and matches[0] != (
+                            "BLOSSOM_TARGET_URL: "
+                            "[PASTE_THE_EXACT_HTTPS_BLOSSOM_PROFILE_URL_HERE]"))):
+                raise ValueError("PI_WORK_PROMPT_STRUCTURE_INVALID")
+            prompt = prompt.replace(matches[0], label + ": " + value, 1)
+        if (len(prompt) > 45_000
+                or "PI-WORK-PORTFOLIO-R1.5" not in prompt
+                or "public_portfolio_reference" not in prompt
+                or "work_blossom_inputs" not in prompt
+                or "coverage_evidence" not in prompt):
+            raise ValueError("PI_WORK_PROMPT_STRUCTURE_INVALID")
+    except (ValueError, OSError, UnicodeError, TypeError) as exc:
+        raise ValueError("PI_FIRST_WORK_METHOD_UNAVAILABLE") from exc
     prompt = (
-        "PROMPT PI-1 — BLOSSOM PORTFOLIO | WORK CLOUD BROWSER | READ-ONLY\n"
-        "Owner: Portfolio Intelligence / CEO-launched Work only.\n"
-        "Use version PI-WORK-PORTFOLIO-R1.5 from the connected repo ONLY if "
-        "actually accessible; otherwise flag METHOD_NOT_LOADED.\n"
-        "BLOSSOM_TARGET_URL: " + url + "\n"
-        "ANALYSIS_ID: " + req["analysis_id"] + "\n"
-        "ANALYSIS_AS_OF: " + req["as_of"] + "\n"
-        "Classify the EXACT visible profile's Portfolio as PUBLIC_REFERENCE, "
-        "OWN_PRIVATE_AUTHORIZED or INACCESSIBLE_OR_AMBIGUOUS. Do not treat "
-        "sign-in as proof of ownership. Stop at access/rights blockers.\n"
-        "For genuinely authorized private observation, return a single JSON "
-        "object with top-level work_blossom_inputs using the established "
-        "PI-1 R1.5 private schema, actual effective date, separate capture "
-        "timestamp, field-level visible/unknown labels, and cash status. "
-        "For a public profile, return public_portfolio_reference ONLY (never "
-        "private holdings); for failure return the Work UNAVAILABLE packet.\n"
-        "NO trade, no brokerage linking, no paid services, no credential or "
-        "token in chat, no GitHub/private archive, no autonomous Project call. "
-        "The human must carry this result back to CC before any IR request."
+        "PRIVATE — PI Work acquisition, one CEO-initiated step.\n"
+        "Checked local PI-1 version: PI-WORK-PORTFOLIO-R1.5; Git blob "
+        + PI_WORK_PROMPT_BLOB_SHA + "; reference "
+        + PI_WORK_PROMPT_REF_COMMIT + ".\n"
+        "Byte integrity is NOT proof of Work/Project settings, account "
+        "rights or browser execution.\n\n" + prompt
     )
     # This is an unsent PRIVATE continuation, not the general IR/PI replay
     # envelope. The next return is observational, NOT a PI investment verdict.
@@ -193,6 +225,7 @@ def _pi_first_capture_start(payload: dict[str, Any],
         },
         "next_manual_step": "COPY_ONE_PI_WORK_PROMPT_AND_RETURN_ITS_ORIGINAL_RESULT",
         "method_load_verification": "NOT_PERFORMED",
+        "local_method_blob_integrity": "GIT_BLOB_MATCHED_PINNED_PI1",
         "source_authentication": "NOT_PERFORMED",
         "project_invocation": "NONE",
         "storage": "NONE",
