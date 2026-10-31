@@ -1084,6 +1084,7 @@ def run(*, output: str, instream: TextIO, outstream: TextIO,
     guided_resuming = False
     guided_sealed_followup = False
     guided_integrated_followup = False
+    resume_payload = None
     try:
         raw = instream.read(MAX_INPUT_CHARACTERS + 1)
         if len(raw) > MAX_INPUT_CHARACTERS:
