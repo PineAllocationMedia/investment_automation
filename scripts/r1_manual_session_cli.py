@@ -13,6 +13,7 @@ import re
 import json
 import math
 import sys
+from urllib.parse import urlsplit
 from typing import Any, TextIO
 
 from ai_native.session_bridge import complete_manual_session
@@ -108,7 +109,152 @@ SAFE_ERROR_CODES = frozenset({
     "CANDIDATE_DRAFT_TRIAGE_UNAVAILABLE",
     "CANDIDATE_DRAFT_CANDIDATE_NOT_FOUND",
     "PAMALISED_PRESENTATION_PDF_ONLY",
+    "PI_FIRST_ROUTE_REQUIRES_COMBINED_MANDATE",
+    "PI_FIRST_BLOSSOM_TARGET_INVALID",
+    "PI_FIRST_CAPTURE_CONTINUATION_INVALID",
+    "PI_FIRST_CAPTURE_PUBLIC_SEPARATE_ROUTE",
+    "PI_FIRST_CAPTURE_SOURCE_INVALID",
 })
+
+
+def _pi_first_capture_start(payload: dict[str, Any],
+                            result: dict[str, Any]) -> dict[str, Any]:
+    """One CEO-initiated PI Work source-acquisition step BEFORE combined IR.
+
+    Not a PI_DELTA, a browser invocation, a method-load certificate or a
+    private holding. An actual Work return must separately be carried back.
+    """
+    req = payload.get("request")
+    if (not isinstance(req, dict)
+            or req.get("portfolio_source_first") is not True
+            or req.get("ceo_initiated") is not True
+            or req.get("research_needed") is not True
+            or req.get("portfolio_needed") is not True
+            or result.get("status") != "AWAITING_MANUAL_IR_CAPSULE"):
+        raise ValueError("PI_FIRST_ROUTE_REQUIRES_COMBINED_MANDATE")
+    # A target URL is private CC intake, not a hardcoded user identity,
+    # credential, query token or account authorization.
+    url = req.get("blossom_target_url")
+    if (not isinstance(url, str) or not 0 < len(url) <= 512
+            or any(ord(c) < 33 or ord(c) == 127 for c in url)):
+
+        raise ValueError("PI_FIRST_BLOSSOM_TARGET_INVALID")
+    try:
+        parsed = urlsplit(url)
+        valid = (
+            parsed.scheme == "https"
+            and parsed.hostname in {"www.blossomsocial.com", "blossomsocial.com"}
+            and parsed.username is None and parsed.password is None
+            and parsed.port in (None, 443)
+            and re.fullmatch(r"/users/[A-Za-z0-9_-]{1,200}/?", parsed.path)
+                is not None
+            and not parsed.query and not parsed.fragment
+        )
+    except ValueError:
+        valid = False
+    if not valid:
+        raise ValueError("PI_FIRST_BLOSSOM_TARGET_INVALID")
+    # Only the case identity and exact selected URL leave CC for the one Work
+    # handoff; no private account context, contributions or prior IR packet.
+    prompt = (
+        "PROMPT PI-1 — BLOSSOM PORTFOLIO | WORK CLOUD BROWSER | READ-ONLY\n"
+        "Owner: Portfolio Intelligence / CEO-launched Work only.\n"
+        "Use version PI-WORK-PORTFOLIO-R1.5 from the connected repo ONLY if "
+        "actually accessible; otherwise flag METHOD_NOT_LOADED.\n"
+        "BLOSSOM_TARGET_URL: " + url + "\n"
+        "ANALYSIS_ID: " + req["analysis_id"] + "\n"
+        "ANALYSIS_AS_OF: " + req["as_of"] + "\n"
+        "Classify the EXACT visible profile's Portfolio as PUBLIC_REFERENCE, "
+        "OWN_PRIVATE_AUTHORIZED or INACCESSIBLE_OR_AMBIGUOUS. Do not treat "
+        "sign-in as proof of ownership. Stop at access/rights blockers.\n"
+        "For genuinely authorized private observation, return a single JSON "
+        "object with top-level work_blossom_inputs using the established "
+        "PI-1 R1.5 private schema, actual effective date, separate capture "
+        "timestamp, field-level visible/unknown labels, and cash status. "
+        "For a public profile, return public_portfolio_reference ONLY (never "
+        "private holdings); for failure return the Work UNAVAILABLE packet.\n"
+        "NO trade, no brokerage linking, no paid services, no credential or "
+        "token in chat, no GitHub/private archive, no autonomous Project call. "
+        "The human must carry this result back to CC before any IR request."
+    )
+    # This is an unsent PRIVATE continuation, not the general IR/PI replay
+    # envelope. The next return is observational, NOT a PI investment verdict.
+    return {
+        "status": "PRIVATE_PI_WORK_CAPTURE_PENDING_MANUAL_ONLY",
+        "specialist_step": "PI_WORK_CAPTURE",
+        "specialist_prompt_private": prompt,
+        "pi_capture_continuation_private": {
+            "status": "PI_WORK_CAPTURE_NOT_YET_OBSERVED",
+            "pending_session": deepcopy(payload),
+            "analysis_id": req["analysis_id"],
+            "analysis_as_of": req["as_of"],
+            "project_invocation": "NONE",
+            "storage": "NONE",
+        },
+        "next_manual_step": "COPY_ONE_PI_WORK_PROMPT_AND_RETURN_ITS_ORIGINAL_RESULT",
+        "method_load_verification": "NOT_PERFORMED",
+        "source_authentication": "NOT_PERFORMED",
+        "project_invocation": "NONE",
+        "storage": "NONE",
+        "readiness": "NOT_EVALUATED",
+        "trading_authority": "NONE",
+    }
+
+
+def _pi_first_capture_resume(envelope: Any) -> tuple[dict[str, Any], dict[str, Any]]:
+    """Read one genuine user-carried PI Work result then resume IR-first M1.
+
+    A public profile is not allowed to silently switch this combined private
+    account mandate into a public research case. CC must explicitly reroute it.
+    """
+    if not isinstance(envelope, dict) or set(envelope) != {
+            "pi_capture_continuation_private", "work_portfolio_result"}:
+        raise ValueError("PI_FIRST_CAPTURE_CONTINUATION_INVALID")
+    step = envelope["pi_capture_continuation_private"]
+    if (not isinstance(step, dict)
+            or set(step) != {"status", "pending_session", "analysis_id",
+                             "analysis_as_of", "project_invocation", "storage"}
+            or step.get("status") != "PI_WORK_CAPTURE_NOT_YET_OBSERVED"
+            or step.get("project_invocation") != "NONE"
+            or step.get("storage") != "NONE"):
+        raise ValueError("PI_FIRST_CAPTURE_CONTINUATION_INVALID")
+    pending = step.get("pending_session")
+    if (not isinstance(pending, dict)
+            or "request" not in pending
+            or set(pending) - PERMITTED_FIELDS
+            or any(k in pending for k in (
+                "work_portfolio_result", "work_blossom_inputs",
+                "observation_inputs", "public_reference_inputs",
+                "ir_capsule", "pi_delta", "specialist_result"))
+            or not isinstance(pending.get("request"), dict)
+            or pending["request"].get("analysis_id") != step["analysis_id"]
+            or pending["request"].get("as_of") != step["analysis_as_of"]):
+        raise ValueError("PI_FIRST_CAPTURE_CONTINUATION_INVALID")
+    replay = evaluate(pending)
+    if _pi_first_capture_start(pending, replay)[
+            "pi_capture_continuation_private"] != step:
+        raise ValueError("PI_FIRST_CAPTURE_CONTINUATION_INVALID")
+    observed = envelope["work_portfolio_result"]
+    if not isinstance(observed, dict) or len(observed) != 1:
+        raise ValueError("PI_FIRST_CAPTURE_SOURCE_INVALID")
+    if "public_portfolio_reference" in observed:
+        raise ValueError("PI_FIRST_CAPTURE_PUBLIC_SEPARATE_ROUTE")
+    if (set(observed) != {"work_blossom_inputs"}
+            or not isinstance(observed["work_blossom_inputs"], dict)):
+        raise ValueError("PI_FIRST_CAPTURE_SOURCE_INVALID")
+    raw = observed["work_blossom_inputs"]
+    if (raw.get("analysis_id") != step["analysis_id"]
+            or raw.get("analysis_as_of") != step["analysis_as_of"]):
+        raise ValueError("PI_FIRST_CAPTURE_SOURCE_INVALID")
+    # The existing M3 adapter and complete_manual_session enforce all
+    # private/public rights, date, currency and source coverage checks.
+    updated = deepcopy(pending)
+    updated["work_portfolio_result"] = deepcopy(observed)
+    evaluated = evaluate(updated)
+    if evaluated["status"] not in {
+            "AWAITING_MANUAL_IR_CAPSULE", "AWAITING_MANUAL_PORTFOLIO_SCREENSHOT"}:
+        raise ValueError("PI_FIRST_CAPTURE_SOURCE_INVALID")
+    return updated, evaluated
 
 
 def _inert_new_case_template() -> dict[str, Any]:
@@ -1195,6 +1341,10 @@ def run(*, output: str, instream: TextIO, outstream: TextIO,
             guided_resuming = True
             guided_sealed_followup = True
             resume_payload, result = _reenter_portfolio_followup(payload)
+        elif (output == "guided-operator" and isinstance(payload, dict)
+              and "pi_capture_continuation_private" in payload):
+            guided_resuming = True
+            resume_payload, result = _pi_first_capture_resume(payload)
         elif (output in {"guided-operator", "guided-integrated-closeout", "guided-portfolio-closeout"} and isinstance(payload, dict)
               and "pending_session" in payload):
             # One explicit human-entered visual fallback. The validated
@@ -1323,6 +1473,19 @@ def run(*, output: str, instream: TextIO, outstream: TextIO,
         # components. Assemble fully before emitting any sensitive output.
         try:
             actual_payload = resume_payload if guided_resuming else payload
+            if (output == "guided-operator" and not guided_resuming
+                    and isinstance(actual_payload, dict)
+                    and isinstance(actual_payload.get("request"), dict)
+                    and actual_payload["request"].get("portfolio_source_first") is True
+                    and not any(k in actual_payload for k in (
+                        "work_portfolio_result", "work_blossom_inputs",
+                        "observation_inputs", "public_reference_inputs",
+                        "ir_capsule", "pi_delta", "specialist_result"))):
+                first_capture = _pi_first_capture_start(actual_payload, result)
+                outstream.write(json.dumps(
+                    first_capture, ensure_ascii=False, sort_keys=True,
+                    indent=2, allow_nan=False) + "\n")
+                return 0
             operator = _private_operator_packet(actual_payload, result)
             if guided_sealed_followup:
                 operator["manual_copy_integrity"] = (
