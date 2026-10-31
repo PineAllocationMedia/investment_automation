@@ -12,6 +12,11 @@ from typing import Any
 REPOSITORY = "PineAllocationMedia/investment_automation"
 REFERENCE_COMMIT = "b814f2c7ff04c24e447407658a8c845bd914178c"
 ROOT = "docs/ai_native/integrated_build/"
+# The PI-1 Work capture prompt postdates the fixed strategic-method
+# REFERENCE_COMMIT. Pin it separately, without falsely backdating that ref.
+PI_WORK_PROMPT_PATH = ROOT + "portfolio/PROMPT_PI_1_BLOSSOM_PORTFOLIO_WORK_R1.md"
+PI_WORK_PROMPT_BLOB_SHA = "327424917a544db141afba2d55c940eb2085d3bd"
+PI_WORK_PROMPT_REF_COMMIT = "06882c4152a3ff97ea650ad2ac963a08504b0847"
 DOCUMENT_BLOBS = {
     "docs/ai_native/integrated_build/research/SOURCE_FUSION_R1.md": "c1d1400015c29cc9426e34e9a6edf7e79354f9e1",
     "docs/ai_native/integrated_build/research/VALUATION_R1.md": "be82ed5bdc6ca506ebd8f70e3eaa88410a755abc",
