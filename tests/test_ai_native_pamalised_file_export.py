@@ -132,6 +132,47 @@ class PamalisedFileExportTests(unittest.TestCase):
                             destination=destination, authorized=True)
                     self.assertFalse(destination.exists())
 
+    def test_pi_only_last_return_exports_without_retyped_private_case(self):
+        first = self._manual_step(
+            {"request": self.fixture.request(
+                research_needed=False, portfolio_needed=True)},
+            output="operator-packet")
+        final = {
+            "continuation_private": first["continuation_private"],
+            "specialist_result": {"PI_DELTA": self.fixture.pi()},
+        }
+        source = copy.deepcopy(final)
+        with tempfile.TemporaryDirectory() as folder:
+            destination = Path(folder) / "portfolio.pdf"
+            status = export_private_pdf(
+                case_json=json.dumps(final), destination=destination,
+                authorized=True)
+            self.assertEqual(status, "PDF_CREATED_LOCALLY_NOT_DELIVERED_TO_CC_WORK")
+            self.assertTrue(destination.read_bytes().startswith(b"%PDF-"))
+            self.assertEqual(final, source)
+
+    def test_final_continuation_optional_editorial_inputs_do_not_change_evidence(self):
+        final = self._last_pi_continuation()
+        request = final["continuation_private"]["resume_input"]["request"]
+        final["presentation_inputs"] = {
+            "analysis_id": request["analysis_id"], "as_of": request["as_of"],
+            "opening_paragraph": (
+                "Ce rapport synthétique reprend un mandat déterminé et "
+                "l'analyse de recherche suivie de l'observation PI. "
+                "Les conclusions restent limitées aux preuves reçues."
+            ),
+            "support_refs": [], "visuals": [],
+        }
+        before = copy.deepcopy(final)
+        with tempfile.TemporaryDirectory() as folder:
+            destination = Path(folder) / "editorial.pdf"
+            status = export_private_pdf(
+                case_json=json.dumps(final), destination=destination,
+                authorized=True)
+            self.assertEqual(status, "PDF_CREATED_LOCALLY_NOT_DELIVERED_TO_CC_WORK")
+            self.assertEqual(final, before)
+            self.assertGreater(destination.stat().st_size, 512)
+
     def test_last_ir_only_continuation_exports_without_retyped_ir(self):
         first = self._manual_step(
             {"request": self.fixture.request(portfolio_needed=False)},
