@@ -505,7 +505,7 @@ class PamalisedPdfTests(unittest.TestCase):
     def _private_portfolio_pdf_case(self, *, complete):
         from tests import test_ai_native_observation_bridge as observation_fixtures
         fx = observation_fixtures.ObservationBridgeTests()
-        request = fx.req(as_of="2026-10-30")
+        request = fx.req(as_of="2026-10-30", strategy_id="EXPLORATORY")
         observation = fx.observation(
             observed_on="2026-10-27",
             analysis_as_of="2026-10-30",
