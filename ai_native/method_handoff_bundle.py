@@ -1,6 +1,7 @@
 """Read-only, on-demand R1 method handoff from an exact Git-pinned checkout.
 
-Only the existing fixed R1 method manifest may select local repository files.
+Only fixed, reviewed R1 research pins or the separate PI-1 Work prompt pin
+may select local repository files; no arbitrary path or branch-head fallback.
 Git blob checks prove content-byte parity, not actual Project loading, method
 approval, licensed source access, factual correctness or trade authority.
 """
