@@ -170,12 +170,65 @@ class PiFirstGuidedWorkTests(unittest.TestCase):
         self.assertEqual((rc, err), (0, ""))
         self.assertEqual(json.loads(body)["specialist_step"], "IR_REQUEST")
 
-    def test_public_reference_is_not_promoted_into_private_portfolio(self):
+    def test_public_reference_yields_one_inert_research_only_draft(self):
+        from tests import test_ai_native_public_portfolio_reference as public_fixture
+        original_public = public_fixture.PublicReferenceTests().data()
+        original_public["analysis_id"] = "CASE-A"
+        original_public["analysis_as_of"] = "2026-10-28"
         first = json.loads(self.call(self.initial())[1])
-        rc, body, err = self.call(self.work_return(
-            first, {"public_portfolio_reference": {"status": "PUBLIC_REFERENCE_ONLY"}}))
+        incoming = self.work_return(
+            first, {"public_portfolio_reference": original_public})
+        before = deepcopy(incoming)
+        rc, body, err = self.call(incoming)
+        self.assertEqual((rc, err), (0, ""))
+        response = json.loads(body)
+        self.assertEqual(response["status"],
+            "PI_WORK_PUBLIC_REFERENCE_RESEARCH_DRAFT_NEEDS_CEO_CONFIRMATION")
+        self.assertIsNone(response["specialist_prompt_private"])
+        self.assertEqual(response["public_reference_review_private"][
+            "private_holdings_import"], "NONE")
+        self.assertEqual(response["public_reference_review_private"][
+            "portfolio_room_status"], "NOT_APPLICABLE_PUBLIC_REFERENCE")
+        draft = response["research_only_draft_private"]
+        self.assertIs(draft["request"]["ceo_initiated"], False)
+        self.assertIs(draft["request"]["research_needed"], True)
+        self.assertIs(draft["request"]["portfolio_needed"], False)
+        self.assertNotIn("blossom_target_url", draft["request"])
+        self.assertNotIn("account_context", draft["request"])
+        self.assertNotIn("contribution_inputs", draft)
+        self.assertEqual(draft["public_reference_inputs"], original_public)
+        self.assertEqual(incoming, before)
+        rc, body, err = self.call(draft)
         self.assertEqual((rc, body), (2, ""))
-        self.assertIn("PI_FIRST_CAPTURE_PUBLIC_SEPARATE_ROUTE", err)
+        self.assertIn("CEO_INITIATION_REQUIRED", err)
+
+        # Only a separately confirmed CEO choice activates research-only IR,
+        # and the actual IR_REQUEST excludes P ledger and personal Room.
+        approved = deepcopy(draft)
+        approved["request"]["ceo_initiated"] = True
+        rc, body, err = self.call(approved)
+        self.assertEqual((rc, err), (0, ""))
+        next_step = json.loads(body)
+        self.assertEqual(next_step["specialist_step"], "IR_REQUEST")
+        continuation = next_step["operator_packet_private"][
+            "continuation_private"]
+        self.assertNotIn("PI_REQUEST", continuation["next_handoff"])
+        self.assertEqual(
+            continuation["next_handoff"]["IR_REQUEST"][
+                "public_reference_context"]["status"],
+            "CALLER_REPORTED_REFERENCE_NOT_SOURCE_AUTHENTICATED")
+
+    def test_invalid_public_reference_still_fails_closed(self):
+        first = json.loads(self.call(self.initial())[1])
+        for raw in (
+                {"status": "PUBLIC_REFERENCE_ONLY"},
+                {"status": "PUBLIC_REFERENCE_ONLY", "analysis_id": "DIFFERENT"},
+                {}):
+            rc, body, err = self.call(self.work_return(
+                first, {"public_portfolio_reference": raw}))
+            self.assertEqual((rc, body), (2, ""))
+            self.assertIn("PI_FIRST_CAPTURE_SOURCE_INVALID", err)
+            self.assertNotIn("SYNTHETIC_ACCOUNT_SECRET", err)
 
     def test_unmodified_pi1_document_is_actually_pinned(self):
         root = Path(__file__).resolve().parents[1]

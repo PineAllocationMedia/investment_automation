@@ -33,6 +33,7 @@ from ai_native.portfolio_snapshot_transfer import (
 )
 from ai_native.portfolio_observation import prepare_observation_ledger
 from ai_native.work_blossom_adapter import prepare_work_blossom_observation
+from ai_native.public_portfolio_reference import prepare_public_portfolio_reference
 from ai_native.method_manifest import (
     PI_WORK_PROMPT_PATH, PI_WORK_PROMPT_BLOB_SHA, PI_WORK_PROMPT_REF_COMMIT,
 )
@@ -271,7 +272,65 @@ def _pi_first_capture_resume(envelope: Any) -> tuple[dict[str, Any], dict[str, A
     if not isinstance(observed, dict) or len(observed) != 1:
         raise ValueError("PI_FIRST_CAPTURE_SOURCE_INVALID")
     if "public_portfolio_reference" in observed:
-        raise ValueError("PI_FIRST_CAPTURE_PUBLIC_SEPARATE_ROUTE")
+        if (set(observed) != {"public_portfolio_reference"}
+                or not isinstance(observed["public_portfolio_reference"], dict)):
+            raise ValueError("PI_FIRST_CAPTURE_SOURCE_INVALID")
+        original_public = observed["public_portfolio_reference"]
+        try:
+            validated = prepare_public_portfolio_reference(
+                original_public, analysis_id=step["analysis_id"],
+                analysis_as_of=step["analysis_as_of"])
+        except (ValueError, TypeError, KeyError) as exc:
+            raise ValueError("PI_FIRST_CAPTURE_SOURCE_INVALID") from exc
+        # Research was requested in the original CEO mandate, but a public
+        # reference cannot satisfy a private PI ledger or Portfolio Room.
+        # No automatic rerouting: prepare only a NEW, non-executable scope
+        # option for the CEO to authorize as a separate public IR case.
+        orig = pending["request"]
+        safe_fields = {
+            name: deepcopy(orig[name]) for name in (
+                "analysis_id", "as_of", "kind", "strategy_id", "horizon",
+                "benchmark", "candidate_universe", "risk_constraints",
+                "cc_instruction_version", "ir_method_version",
+            ) if name in orig
+        }
+        safe_fields.update({
+            "ceo_initiated": False,
+            "research_needed": True,
+            "portfolio_needed": False,
+            "objective": (
+                "Research only the observed public profile reference. "
+                "Do not infer CEO ownership, personal Portfolio Room, "
+                "portfolio allocation or trade authority."
+            ),
+        })
+        return {
+            "status": "PI_WORK_PUBLIC_REFERENCE_RESEARCH_DRAFT_NEEDS_CEO_CONFIRMATION",
+            "public_reference_review_private": {
+                "status": validated["status"],
+                "position_count": validated["position_count"],
+                "account_ownership": "NOT_ASSUMED_USER",
+                "portfolio_room_status": "NOT_APPLICABLE_PUBLIC_REFERENCE",
+                "private_holdings_import": "NONE",
+                "source_authentication": "NOT_PERFORMED",
+            },
+            "research_only_draft_private": {
+                "request": safe_fields,
+                # Retain original validated Work reference only in the
+                # authorized PRIVATE CC draft. The existing IR route
+                # revalidates and sanitizes it before any specialist prompt.
+                "public_reference_inputs": deepcopy(original_public),
+            },
+            "next_manual_step": (
+                "ASK_CEO_TO_CONFIRM_PUBLIC_RESEARCH_ONLY_OR_SUPPLY_PRIVATE_SOURCE"
+            ),
+            "specialist_prompt_private": None,
+            "project_invocation": "NONE",
+            "storage": "NONE",
+            "method_load_verification": "NOT_PERFORMED",
+            "readiness": "NOT_EVALUATED",
+            "trading_authority": "NONE",
+        }
     if (set(observed) != {"work_blossom_inputs"}
             or not isinstance(observed["work_blossom_inputs"], dict)):
         raise ValueError("PI_FIRST_CAPTURE_SOURCE_INVALID")
@@ -1376,8 +1435,16 @@ def run(*, output: str, instream: TextIO, outstream: TextIO,
             resume_payload, result = _reenter_portfolio_followup(payload)
         elif (output == "guided-operator" and isinstance(payload, dict)
               and "pi_capture_continuation_private" in payload):
+            resumed = _pi_first_capture_resume(payload)
+            if isinstance(resumed, dict):
+                # This source is PUBLIC REFERENCE ONLY; there is no IR
+                # or PI invocation before a new explicit CEO scope choice.
+                outstream.write(json.dumps(
+                    resumed, ensure_ascii=False, sort_keys=True,
+                    indent=2, allow_nan=False) + "\n")
+                return 0
             guided_resuming = True
-            resume_payload, result = _pi_first_capture_resume(payload)
+            resume_payload, result = resumed
         elif (output in {"guided-operator", "guided-integrated-closeout", "guided-portfolio-closeout"} and isinstance(payload, dict)
               and "pending_session" in payload):
             # One explicit human-entered visual fallback. The validated
