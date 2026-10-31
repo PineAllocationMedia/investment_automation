@@ -99,6 +99,45 @@ class PiFirstGuidedWorkTests(unittest.TestCase):
         self.assertIsNone(result["operator_packet_private"]["continuation_private"])
         self.assertEqual(result["project_invocation"], "NONE")
 
+    def test_source_first_retains_new_contribution_only_for_final_pi(self):
+        initial = self.initial()
+        initial["contribution_inputs"] = {
+            "contribution_base": "123.45",
+            "allocations_pct": {"SYNTHETIC-HOLDING:TSX": "100.00"},
+            "currency": "CAD", "as_of": "2026-10-28",
+            "scope_complete": True, "cash_accounted_for": True,
+            "same_currency_basis_verified": True,
+            "instrument_identity_verified": True,
+        }
+        original = deepcopy(initial)
+        rc, body, err = self.call(initial)
+        self.assertEqual((rc, err), (0, ""))
+        first = json.loads(body)
+        self.assertEqual(first["specialist_step"], "PI_WORK_CAPTURE")
+        self.assertNotIn("123.45", first["specialist_prompt_private"])
+        capture = self.work_return(
+            first, {"work_blossom_inputs": self.work.report()})
+        rc, body, err = self.call(capture)
+        self.assertEqual((rc, err), (0, ""))
+        ir_stage = json.loads(body)
+        self.assertEqual(ir_stage["specialist_step"], "IR_REQUEST")
+        self.assertNotIn("123.45", ir_stage["specialist_prompt_private"])
+        rc, body, err = self.call({
+            "continuation_private": ir_stage["operator_packet_private"][
+                "continuation_private"],
+            "specialist_result": {"IR_CAPSULE": self.fx.ir()},
+        })
+        self.assertEqual((rc, err), (0, ""))
+        final_pi = json.loads(body)
+        self.assertEqual(final_pi["specialist_step"], "PI_REQUEST")
+        self.assertEqual(final_pi["operator_packet_private"][
+            "continuation_private"]["next_handoff"]["PI_REQUEST"][
+                "NEW_CAPITAL_FOR_REVIEW_PRIVATE"]["new_capital_summary_private"][
+                    "allocations_pct"],
+            {"SYNTHETIC-HOLDING:TSX": "100.00"})
+        self.assertNotIn("123.45", final_pi["specialist_prompt_private"])
+        self.assertEqual(initial, original)
+
     def test_unavailable_work_still_allows_original_ir_first(self):
         first = json.loads(self.call(self.initial())[1])
         unavailable = {"capture_mode": "WORK_BROWSER",
@@ -121,6 +160,7 @@ class PiFirstGuidedWorkTests(unittest.TestCase):
         for url in ("https://evil.example/users/SYN", 
                     "http://www.blossomsocial.com/users/SYN",
                     "https://www.blossomsocial.com/users/SYN?token=private",
+                    "https://www.blossomsocial.com/users/SYN\\nINJECT",
                     "https://www.blossomsocial.com/users/"):
             case = self.initial()
             case["request"]["blossom_target_url"] = url
