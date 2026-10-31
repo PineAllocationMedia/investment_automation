@@ -101,6 +101,37 @@ def _view(model: Mapping[str, Any], executive: str, detail: str,
         if room_status == "ROOM_CONDITIONAL" else
         "Partielles / non vérifiées"
     )
+    observation = model.get("portfolio_observation_private")
+    # The PDF gate already verified this object against the authoritative
+    # P-ledger reporter and original annex. Never display broker balances,
+    # account names, individual holdings or derived weights in this summary.
+    observed_date = None
+    capture_date = None
+    coverage = "ND - dénominateur non confirmé"
+    cash_evidence = "ND - aucune encaisse attestée"
+    if isinstance(observation, Mapping):
+        observed_date = observation["observed_on"]
+        capture_date = (
+            observation["captured_at"][:10]
+            if observation["captured_at"] != "UNKNOWN" else "NON DISPONIBLE"
+        )
+        count = len(observation["p_ledger_private"])
+        if observation["status"] == "SCOPED_WEIGHTS_DERIVED_FROM_CALLER_VISIBLE_DATA":
+            coverage = (
+                str(count) + " ligne(s); dénominateur du périmètre "
+                "déclaré complet, NON authentifié"
+            )
+        else:
+            coverage = (
+                str(count) + " ligne(s); périmètre incomplet, "
+                "aucun poids calculé admissible"
+            )
+        cash_state = observation["cash_record_private"]["visibility"]
+        cash_evidence = {
+            "VERIFIED_VISIBLE": "Encaisse déclarée visible; montant non reproduit",
+            "UNCERTAIN": "Encaisse incertaine; montant non présumé",
+            "NOT_VISIBLE": "Encaisse non visible; zéro non inféré",
+        }[cash_state]
     contribution = model.get("new_contribution_summary_private")
     allocation_text = None
     allocation_numbers = None
@@ -527,13 +558,15 @@ def _view(model: Mapping[str, Any], executive: str, detail: str,
                 "de toute allocation hypothétique.")
         story.append(tiles([
             ("POSITIONS", position_scope),
-            ("PORTÉE", "PI : source rapportée"),
+            ("PORTÉE", "Données privées M3 rapportées, non authentifiées"
+             if observation is not None else "PI : source rapportée"),
             ("APRÈS ALLOCATION", allocation_text or "Simulation NON ÉTABLIE"),
         ]))
-        label("Comparaison avant / après")
+        label("Avant / hypothèse après nouvelle contribution")
         story.append(tiles([
-            ("AVANT", "ND - dénominateur non confirmé"),
-            ("APRÈS", allocation_text or "ND - simulation non établie"),
+            ("AVANT · PÉRIMÈTRE", coverage),
+            ("APRÈS · NOUVEAU CAPITAL", allocation_text or
+             "ND - simulation non établie"),
         ]))
         story.append(Spacer(1, 13))
 
@@ -565,9 +598,14 @@ def _view(model: Mapping[str, Any], executive: str, detail: str,
         label("Expositions et concentrations")
         table(["DIMENSION", "OBSERVÉ", "SIMULÉ", "LECTURE"], [
             ["PORTFOLIO ROOM", room, "ND", "Données PI rapportées"],
-            ["DATE DE LA VUE", pi_date, "S/O",
-             "Date de capture ≠ date des positions"],
-            ["CASH / FX / FRAIS", "ND", "ND", "Pas de zéro inféré"],
+            ["POSITIONS · DATE", observed_date or pi_date, "S/O",
+             "Date effective, pas certification"],
+            ["CAPTURE · DATE", capture_date or "ND", "S/O",
+             "La capture peut être plus récente que les positions"],
+            ["ENCAISSE", cash_evidence, "S/O",
+             "Montants privés non reproduits"],
+            ["FRAIS / FX / IMPÔTS", "NON CERTIFIÉS", "ND",
+             "Zéro ou avantage net jamais inférés"],
         ])
         story.append(Spacer(1, 12))
         story.append(box(
@@ -746,7 +784,8 @@ def render_reference_style_pdf(*, executive_report: str, detailed_report: str,
                                new_contribution_summary_private: Mapping[str, Any] | None = None,
                                presentation_inputs: Mapping[str, Any] | None = None,
                                high_cagr_destination_review_private: Mapping[str, Any] | None = None,
-                               candidate_comparison_private: Mapping[str, Any] | None = None) -> bytes:
+                               candidate_comparison_private: Mapping[str, Any] | None = None,
+                               portfolio_observation_private: Mapping[str, Any] | None = None) -> bytes:
     """Layout only, never evidence admission; validate before calling."""
     if not isinstance(executive_report, str) or not isinstance(detailed_report, str):
         raise ValueError("PAMALISE_PAIR_REQUIRED")
@@ -761,5 +800,6 @@ def render_reference_style_pdf(*, executive_report: str, detailed_report: str,
                       new_contribution_summary_private=new_contribution_summary_private,
                       presentation_inputs=presentation_inputs,
                       high_cagr_destination_review_private=high_cagr_destination_review_private,
-                      candidate_comparison_private=candidate_comparison_private),
+                      candidate_comparison_private=candidate_comparison_private,
+                      portfolio_observation_private=portfolio_observation_private),
                  executive_report, detailed_report, logo)

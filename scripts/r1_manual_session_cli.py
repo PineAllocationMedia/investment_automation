@@ -1505,6 +1505,10 @@ def run(*, output: str, instream: TextIO, outstream: TextIO,
                         candidate_comparison_private=(
                             (result.get("integrated_private") or {}).get(
                                 "candidate_comparison_private")),
+                        # The already validated original PRIVATE M3 observation,
+                        # not the profile reference or caller-proposed summary.
+                        portfolio_observation_private=(
+                            result.get("portfolio_observation_private")),
                     )
                     sink = getattr(outstream, "buffer", None)
                     if sink is None:
