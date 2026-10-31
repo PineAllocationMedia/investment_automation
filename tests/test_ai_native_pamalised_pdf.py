@@ -169,6 +169,110 @@ class PamalisedPdfTests(unittest.TestCase):
         self.assertIn("Les opportunités retenues", rendered)
         self.assertNotIn("123.45", rendered)
 
+    def _synthetic_m3_with_costs(self, *, complete_costs):
+        case = self._completed_m3_case(ir_requested=False)
+        categories = (
+            "commission", "bid_ask_spread", "fx_conversion",
+            "purchase_tax", "other_fees"
+        )
+        charges = {
+            component: {"amount_base": "0.00",
+                        "source_ref": "SYN-SOURCE-" + component}
+            for component in categories
+        }
+        charges["commission"] = {
+            "amount_base": "5.00",
+            "source_ref": "SYN-PRIVATE-FEE-RECORD",
+        }
+        if not complete_costs:
+            charges["purchase_tax"]["source_ref"] = "UNKNOWN"
+        case["cost_inputs"] = {
+            "charges_by_destination": {"SYNTHETIC-HOLDING:TSX": charges},
+            "cost_currency": "CAD",
+            "cost_quote_as_of": "2026-10-28",
+            "analysis_as_of": "2026-10-28",
+            "funding": "FROM_CONTRIBUTION",
+        }
+        return case
+
+    def test_funded_m3_shows_conditional_cost_burden_not_net_return(self):
+        from pypdf import PdfReader
+        case = self._synthetic_m3_with_costs(complete_costs=True)
+        result = complete_manual_session(
+            case["request"], pi_delta=case["pi_delta"],
+            work_blossom_inputs=case["work_blossom_inputs"],
+            contribution_inputs=case["contribution_inputs"],
+            cost_inputs=case["cost_inputs"])
+        summary = result["new_contribution_summary_private"]
+        self.assertEqual(summary["cost_status"], "SUPPLIED_COST_TALLY_ONLY")
+        self.assertEqual(summary["funded_status"],
+                         "CONDITIONAL_SUPPLIED_COST_BUDGET_RECONCILED")
+        self.assertIsNotNone(summary["one_time_supplied_cost_share_pct"])
+        code, pdf, error = self._cli(case)
+        self.assertEqual((code, error), (0, ""))
+        text = "\n".join(p.extract_text() for p in PdfReader(BytesIO(pdf)).pages)
+        self.assertIn("Frais fixes déclarés", text)
+        self.assertIn("Budget conditionnel", text)
+        self.assertIn("du nouveau capital", text)
+        self.assertIn("non annualisée", text)
+        self.assertIn("NON CERTIFIÉS", text)
+        self.assertNotIn("SYN-PRIVATE-FEE-RECORD", text)
+
+    def test_incomplete_cost_quote_is_not_displayed_as_zero_or_funded(self):
+        from pypdf import PdfReader
+        case = self._synthetic_m3_with_costs(complete_costs=False)
+        result = complete_manual_session(
+            case["request"], pi_delta=case["pi_delta"],
+            work_blossom_inputs=case["work_blossom_inputs"],
+            contribution_inputs=case["contribution_inputs"],
+            cost_inputs=case["cost_inputs"])
+        summary = result["new_contribution_summary_private"]
+        self.assertEqual(summary["cost_status"], "INCOMPLETE_COST_INPUTS")
+        self.assertNotEqual(summary["funded_status"],
+                            "CONDITIONAL_SUPPLIED_COST_BUDGET_RECONCILED")
+        code, pdf, error = self._cli(case)
+        self.assertEqual((code, error), (0, ""))
+        text = "\n".join(p.extract_text() for p in PdfReader(BytesIO(pdf)).pages)
+        self.assertIn("Frais incomplets", text)
+        self.assertIn("Net indisponible", text)
+        self.assertNotIn("SYN-PRIVATE-FEE-RECORD", text)
+
+    def test_new_capital_pdf_refuses_forged_percentage_and_cost_status(self):
+        case = self._completed_m3_case(ir_requested=False)
+        result = complete_manual_session(
+            case["request"], pi_delta=case["pi_delta"],
+            work_blossom_inputs=case["work_blossom_inputs"],
+            contribution_inputs=case["contribution_inputs"])
+        original = result["new_contribution_summary_private"]
+        args = {
+            "executive_report": result["executive_report_private"],
+            "detailed_report": result["final_report_private"],
+            "analysis_id": case["request"]["analysis_id"],
+            "as_of": case["request"]["as_of"],
+            "strategy": case["request"]["strategy_id"],
+            "report_status": "CONDITIONAL",
+            "request": case["request"], "pi_delta": case["pi_delta"],
+        }
+        fake_pct = deepcopy(original)
+        fake_pct["allocations_pct"] = {"OTHER-SYNTHETIC:TSX": "100.00"}
+        with self.assertRaisesRegex(
+                ValueError, "PAMALISED_NEW_CAPITAL_DETAIL_PARITY_INVALID"):
+            render_pamalised_pdf(
+                **args, new_contribution_summary_private=fake_pct)
+        fake_costs = deepcopy(original)
+        fake_costs["cost_status"] = "SUPPLIED_COST_TALLY_ONLY"
+        fake_costs["funded_status"] = "CONDITIONAL_SUPPLIED_COST_BUDGET_RECONCILED"
+        fake_costs["one_time_supplied_cost_share_pct"] = "0.0000"
+        with self.assertRaises(ValueError):
+            render_pamalised_pdf(
+                **args, new_contribution_summary_private=fake_costs)
+        with self.assertRaisesRegex(
+                ValueError, "PAMALISED_NEW_CAPITAL_PI_DATE_MISMATCH"):
+            render_pamalised_pdf(
+                **{**args, "pi_delta": {
+                    **case["pi_delta"], "portfolio_as_of": "2026-10-27"}},
+                new_contribution_summary_private=original)
+
     def test_requested_m3_chart_is_omitted_without_actual_m3_calculation(self):
         from pypdf import PdfReader
         case = self._completed_m3_case(ir_requested=False)

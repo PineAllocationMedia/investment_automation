@@ -135,6 +135,34 @@ def _view(model: Mapping[str, Any], executive: str, detail: str,
     contribution = model.get("new_contribution_summary_private")
     allocation_text = None
     allocation_numbers = None
+    cost_readout = "NON ÉVALUÉS — pas de plan M3 fourni"
+    funded_readout = "NON ÉVALUÉ — aucun budget conditionnel"
+    if isinstance(contribution, Mapping):
+        # Already validated by the original M3 reporter and its exact annex.
+        # A conditional fixed-fee funding calculation is not broker pricing,
+        # investable net Expected Return or a mandate to place orders.
+        cost_stage = contribution["cost_status"]
+        funded_stage = contribution["funded_status"]
+        if (cost_stage == "SUPPLIED_COST_TALLY_ONLY"
+                and funded_stage == "CONDITIONAL_SUPPLIED_COST_BUDGET_RECONCILED"):
+            cost_readout = "Frais fixes déclarés — non authentifiés"
+            burden = contribution.get("one_time_supplied_cost_share_pct")
+            funded_readout = (
+                "Budget conditionnel; charge unique "
+                + format(Decimal(burden), ".4f")
+                + " % du nouveau capital, non annualisée"
+                if burden is not None else
+                "Budget conditionnel; frais à revalider avant exécution"
+            )
+        elif cost_stage == "NOT_SUPPLIED":
+            cost_readout = "Frais non fournis — aucun zéro présumé"
+            funded_readout = "Net indisponible — financement non évalué"
+        elif cost_stage == "INCOMPLETE_COST_INPUTS":
+            cost_readout = "Frais incomplets — sources ou composants manquants"
+            funded_readout = "Net indisponible — allocation brute seulement"
+        else:
+            cost_readout = "Frais déclarés mais non réconciliés"
+            funded_readout = "Net indisponible — budget à revoir"
     if isinstance(contribution, Mapping):
         pct = contribution.get("allocations_pct")
         if (contribution.get("analysis_id") == req.get("analysis_id")
@@ -604,8 +632,10 @@ def _view(model: Mapping[str, Any], executive: str, detail: str,
              "La capture peut être plus récente que les positions"],
             ["ENCAISSE", cash_evidence, "S/O",
              "Montants privés non reproduits"],
-            ["FRAIS / FX / IMPÔTS", "NON CERTIFIÉS", "ND",
-             "Zéro ou avantage net jamais inférés"],
+            ["FRAIS DE NOUVEAU CAPITAL", cost_readout, funded_readout,
+             "Coûts déclarés, jamais rendements nets"],
+            ["FX / FISCALITÉ / EXÉCUTION", "NON CERTIFIÉS", "ND",
+             "Conditions de compte et droits à confirmer"],
         ])
         story.append(Spacer(1, 12))
         story.append(box(
