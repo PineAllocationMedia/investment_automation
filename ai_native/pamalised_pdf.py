@@ -71,6 +71,24 @@ def render_pamalised_pdf(*, executive_report: str, detailed_report: str,
         )
         if high_cagr_destination_review_private != expected:
             raise ValueError("PAMALISED_HIGH_CAGR_REVIEW_PARITY_MISMATCH")
+    if new_contribution_summary_private is not None:
+        if (request is None or pi_delta is None
+                or request.get("portfolio_needed") is not True):
+            raise ValueError("PAMALISED_NEW_CAPITAL_PI_ROUTE_REQUIRED")
+        if (new_contribution_summary_private.get("portfolio_as_of") !=
+                pi_delta.get("portfolio_as_of")):
+            raise ValueError("PAMALISED_NEW_CAPITAL_PI_DATE_MISMATCH")
+        # Reuse the authoritative M3 financial/coverage/cost validator from
+        # the report itself, and require an exact match to the admitted detail.
+        # The presenter must not accept separately authored PDF percentages
+        # or cost statuses even when they sum to 100%.
+        from .reporting import _new_contribution_lines
+        contribution_lines = _new_contribution_lines(
+            {"new_contribution_summary_private": new_contribution_summary_private},
+            analysis_id, as_of)
+        if (not contribution_lines
+                or "\n".join(contribution_lines).strip() not in detailed_report):
+            raise ValueError("PAMALISED_NEW_CAPITAL_DETAIL_PARITY_INVALID")
     if candidate_comparison_private is not None:
         if request is None or ir_capsule is None:
             raise ValueError("PAMALISED_CANDIDATE_RESEARCH_SCOPE_REQUIRED")
