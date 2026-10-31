@@ -72,6 +72,8 @@ def render_pamalised_pdf(*, executive_report: str, detailed_report: str,
         if high_cagr_destination_review_private != expected:
             raise ValueError("PAMALISED_HIGH_CAGR_REVIEW_PARITY_MISMATCH")
     if new_contribution_summary_private is not None:
+        if not isinstance(new_contribution_summary_private, Mapping):
+            raise ValueError("PAMALISED_NEW_CAPITAL_SUMMARY_INVALID")
         if (request is None or pi_delta is None
                 or request.get("portfolio_needed") is not True):
             raise ValueError("PAMALISED_NEW_CAPITAL_PI_ROUTE_REQUIRED")
