@@ -27,6 +27,18 @@ L'objectif prioritaire est un **rapport autonome, visuellement cohérent et expo
 
 **Les cinq piliers V2 restent visibles** au bon niveau (QUALITY, DURABILITY, EXPECTED RETURN, CONFIDENCE, PORTFOLIO ROOM), sans scores inventés. Les sections conditionnelles sont combinables, abrégées ou omises si elles n'ajoutent pas de valeur à la décision; conserver un repère clair sur les données manquantes matériellement importantes.
 
+### G1 — Fidélité visuelle au prototype (test CC du 30 octobre 2026)
+
+**Observation directe des deux PDF fournis par le CEO au PM :** le fichier de prévalidation CC est un PDF de trois pages lisible, mais **son apparence n'est pas fidèle au prototype PAMalisé**. Il utilise un bloc de couverture bleu marine/turquoise, sans le logo végétal, et des modules génériques. Le prototype approuvé est un rapport éditorial clair, avec un logo végétal à gauche, entête/pied récurrents, titres vert pin, cartes sauge/ivoire, tableaux sobres et sections numérotées. Le prototype contient **6 pages de rapport** et **2 pages internes** (bibliothèque/règles). Trois pages sont acceptables pour une analyse synthétique courte, mais le mauvais thème graphique ne l'est pas.
+
+**Contrôle obligatoire pour `VISUAL_FIDELITY_PASS` :** la session CC doit **réellement lire ou afficher** le fichier CEO `PAM_Financial_Systems_Gabarit_PAMalise_v1 prototype.pdf` depuis les fichiers de **ce Project CC ou de la conversation CC en cours**. Il n'est pas hérité des pièces de la conversation PM ni de GitHub. S'il est absent, déclarer `VISUAL_REFERENCE_UNAVAILABLE`, demander une seule fois l'ajout du fichier original et ne jamais annoncer un PASS visuel. Un texte qui nomme le prototype ne prouve pas son inspection.
+
+Respecter l'identité visible du prototype : fond clair; vert pin `#0B2E24` et `#123F30`; sauge `#56715E` et `#7F9A85`; ivoire `#FBF5E8` et `#F5EBD9`; logo végétal **original et autorisé** s'il est accessible (sinon `BRAND_ASSET_UNAVAILABLE` et mot-symbole textuel, aucun faux logo), entêtes/pieds, hiérarchie typographique, panneau de décision, thèses numérotées, tableaux d'alternatives et d'incertitudes. **Ne pas substituer une couverture générique bleu marine/turquoise.** Garder les six *questions* du rapport, sans imposer six ou huit pages; **ne jamais joindre les pages internes 7–8** au livrable CEO.
+
+Les visualisations doivent rester honnêtes : `AUCUNE ALLOCATION ÉTABLIE` n'est **pas** un KPI de portefeuille égal à `0`. Deux valeurs de prix hypothétiques (100 → 180) ne démontrent pas la trajectoire entre elles : préférer une comparaison de deux points clairement hypothétiques à une ligne qui suggère une histoire observée. `ND ≠ 0`. Aucun graphique ajouté seulement pour remplir une page.
+
+**Avant livraison :** ouvrir/rendre au moins la première page et une page d'analyse du vrai PDF; comparer ces aperçus aux pages 1–3 du prototype (couleur, logo, espacements, hiérarchie, tableaux, légendes, intégrité des axes, texte non coupé). Rapporter séparément `PDF_FILE_DELIVERED` et `VISUAL_FIDELITY_PASS / PARTIAL / UNVERIFIED`. Un PDF existant n'est pas une conformité graphique démontrée; si la visualisation n'est pas possible, `UNVERIFIED`, jamais PASS. Aucune source privée, image originale ou portefeuille ne doit être committé dans GitHub pour ce contrôle.
+
 ## Grammaire visuelle (pages 7–8 = bibliothèque interne, pas sortie client)
 
 - Palette du prototype : `#0B2E24`, `#123F30`, `#56715E`, `#7F9A85`, `#FBF5E8`, `#F5EBD9`. Fonds clairs, titres vert profond, hiérarchie typographique, tuiles sobres et tableaux lisibles. L'image/logo du prototype n'est pas reproduit sans un fichier source autorisé.
