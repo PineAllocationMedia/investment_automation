@@ -63,6 +63,132 @@ class PamalisedFileExportTests(unittest.TestCase):
                                            destination=target, authorized=True)
                     self.assertFalse(target.exists())
 
+    def _manual_step(self, case, *, output):
+        from io import StringIO
+        from scripts.r1_manual_session_cli import main
+        out, err = StringIO(), StringIO()
+        code = main(["--output", output],
+                    instream=StringIO(json.dumps(case)),
+                    outstream=out, errstream=err)
+        self.assertEqual((code, err.getvalue()), (0, ""))
+        return json.loads(out.getvalue())
+
+    def _last_pi_continuation(self, *, original_ir=True):
+        """Manual CC→IR→PI without rebuilding the original request."""
+        first = self._manual_step(
+            {"request": self.fixture.request(portfolio_needed=True)},
+            output="operator-packet")
+        ir = self.fixture.ir()
+        after_ir = self._manual_step(
+            {"continuation_private": first["continuation_private"],
+             "specialist_result": {"IR_CAPSULE": ir}},
+            output="resume-operator")
+        self.assertEqual(after_ir["session"]["status"],
+                         "AWAITING_MANUAL_PI_DELTA")
+        return {
+            "continuation_private": after_ir["continuation_private"],
+            "specialist_result": {
+                "PI_DELTA": self.fixture.pi(),
+                "FORWARD_UNCHANGED": (
+                    copy.deepcopy(ir) if original_ir else
+                    {"analysis_id": "FORGED", "facts": []}),
+            },
+        }
+
+    def test_completed_final_pi_continuation_exports_pdf_without_case_retyping(self):
+        previous = self._last_pi_continuation()
+        original = copy.deepcopy(previous)
+        with tempfile.TemporaryDirectory() as folder:
+            destination = Path(folder) / "completed.pdf"
+            status = export_private_pdf(
+                case_json=json.dumps(previous), destination=destination,
+                authorized=True)
+            self.assertEqual(status, "PDF_CREATED_LOCALLY_NOT_DELIVERED_TO_CC_WORK")
+            data = destination.read_bytes()
+            self.assertTrue(data.startswith(b"%PDF-"))
+            self.assertTrue(data.rstrip().endswith(b"%%EOF"))
+            self.assertEqual(stat.S_IMODE(destination.stat().st_mode), 0o600)
+            self.assertEqual(previous, original)
+
+    def test_modified_forwarded_ir_or_incomplete_continuation_never_writes(self):
+        forged = self._last_pi_continuation(original_ir=False)
+        original = self._last_pi_continuation()
+        pending = {
+            "continuation_private": original["continuation_private"],
+            "specialist_result": {"PI_DELTA": self.fixture.pi()},
+        }
+        wrong_kind = {
+            **original,
+            "extra_private_payload": "UNAUTHORIZED_DATA",
+        }
+        for item in (forged, pending, wrong_kind):
+            with self.subTest(keys=list(item)):
+                with tempfile.TemporaryDirectory() as folder:
+                    destination = Path(folder) / "forbidden.pdf"
+                    with self.assertRaisesRegex(
+                            ValueError, "PDF_EXPORT_SOURCE_NOT_READY"):
+                        export_private_pdf(
+                            case_json=json.dumps(item),
+                            destination=destination, authorized=True)
+                    self.assertFalse(destination.exists())
+
+    def test_pi_only_last_return_exports_without_retyped_private_case(self):
+        first = self._manual_step(
+            {"request": self.fixture.request(
+                research_needed=False, portfolio_needed=True)},
+            output="operator-packet")
+        final = {
+            "continuation_private": first["continuation_private"],
+            "specialist_result": {"PI_DELTA": self.fixture.pi()},
+        }
+        source = copy.deepcopy(final)
+        with tempfile.TemporaryDirectory() as folder:
+            destination = Path(folder) / "portfolio.pdf"
+            status = export_private_pdf(
+                case_json=json.dumps(final), destination=destination,
+                authorized=True)
+            self.assertEqual(status, "PDF_CREATED_LOCALLY_NOT_DELIVERED_TO_CC_WORK")
+            self.assertTrue(destination.read_bytes().startswith(b"%PDF-"))
+            self.assertEqual(final, source)
+
+    def test_final_continuation_optional_editorial_inputs_do_not_change_evidence(self):
+        final = self._last_pi_continuation()
+        request = final["continuation_private"]["resume_input"]["request"]
+        final["presentation_inputs"] = {
+            "analysis_id": request["analysis_id"], "as_of": request["as_of"],
+            "opening_paragraph": (
+                "Ce rapport synthétique reprend un mandat déterminé et "
+                "l'analyse de recherche suivie de l'observation PI. "
+                "Les conclusions restent limitées aux preuves reçues."
+            ),
+            "support_refs": [], "visuals": [],
+        }
+        before = copy.deepcopy(final)
+        with tempfile.TemporaryDirectory() as folder:
+            destination = Path(folder) / "editorial.pdf"
+            status = export_private_pdf(
+                case_json=json.dumps(final), destination=destination,
+                authorized=True)
+            self.assertEqual(status, "PDF_CREATED_LOCALLY_NOT_DELIVERED_TO_CC_WORK")
+            self.assertEqual(final, before)
+            self.assertGreater(destination.stat().st_size, 512)
+
+    def test_last_ir_only_continuation_exports_without_retyped_ir(self):
+        first = self._manual_step(
+            {"request": self.fixture.request(portfolio_needed=False)},
+            output="operator-packet")
+        final = {
+            "continuation_private": first["continuation_private"],
+            "specialist_result": {"IR_CAPSULE": self.fixture.ir()},
+        }
+        with tempfile.TemporaryDirectory() as folder:
+            destination = Path(folder) / "research.pdf"
+            status = export_private_pdf(
+                case_json=json.dumps(final), destination=destination,
+                authorized=True)
+            self.assertEqual(status, "PDF_CREATED_LOCALLY_NOT_DELIVERED_TO_CC_WORK")
+            self.assertTrue(destination.read_bytes().startswith(b"%PDF-"))
+
     def test_never_overwrite_existing_private_report(self):
         payload = self.payload()
         with tempfile.TemporaryDirectory() as temp:

@@ -1084,6 +1084,7 @@ def run(*, output: str, instream: TextIO, outstream: TextIO,
     guided_resuming = False
     guided_sealed_followup = False
     guided_integrated_followup = False
+    resume_payload = None
     try:
         raw = instream.read(MAX_INPUT_CHARACTERS + 1)
         if len(raw) > MAX_INPUT_CHARACTERS:
@@ -1158,6 +1159,26 @@ def run(*, output: str, instream: TextIO, outstream: TextIO,
             restored_payload, result = _integrated_followup_operator(payload)
         elif output == "resume-operator":
             resume_payload, result = _resume_manual_transfer(payload)
+        elif (output == "pamalised-pdf" and isinstance(payload, dict)
+              and "continuation_private" in payload):
+            # File export can resume the LAST, independently validated human
+            # IR/PI return without requiring the operator to retype the full
+            # private case. Optional presentation inputs are editorial only.
+            # All saved continuation replay, stage and FORWARD_UNCHANGED
+            # checks are enforced by the existing resume engine.
+            allowed = {"continuation_private", "specialist_result",
+                       "presentation_inputs"}
+            if (not {"continuation_private", "specialist_result"} <= set(payload)
+                    or set(payload) - allowed):
+                raise ValueError("PAMALISED_PDF_RESUME_ENVELOPE_INVALID")
+            envelope = {
+                "continuation_private": payload["continuation_private"],
+                "specialist_result": payload["specialist_result"],
+            }
+            resume_payload, result = _resume_manual_transfer(envelope)
+            if "presentation_inputs" in payload:
+                resume_payload["presentation_inputs"] = deepcopy(
+                    payload["presentation_inputs"])
         elif (output in {"private-closeout", "private-integrated-closeout"}
               and isinstance(payload, dict)
               and "continuation_private" in payload):
@@ -1472,7 +1493,17 @@ def run(*, output: str, instream: TextIO, outstream: TextIO,
                     report)
                 if match is None or not isinstance(payload, dict):
                     raise ValueError("PAMALISED_REPORT_STATUS_UNAVAILABLE")
-                request = payload["request"]
+                source_payload = (
+                    resume_payload if output == "pamalised-pdf"
+                    and resume_payload is not None else payload)
+                request = source_payload["request"]
+                specialist = source_payload.get("specialist_result")
+                original_ir = source_payload.get("ir_capsule")
+                if original_ir is None and isinstance(specialist, dict):
+                    original_ir = specialist.get("IR_CAPSULE")
+                # This delta comes from the strict original session replay,
+                # not a PI envelope/forwarded IR trusted on its own.
+                original_pi = result.get("pi_delta_private")
                 body = render_pamalised_html(
                     executive_report=report,
                     detailed_report=result["final_report_private"],
@@ -1492,14 +1523,14 @@ def run(*, output: str, instream: TextIO, outstream: TextIO,
                         strategy=request["strategy_id"],
                         report_status=match.group(1),
                         request=request,
-                        ir_capsule=payload.get("ir_capsule"),
-                        pi_delta=payload.get("pi_delta"),
+                        ir_capsule=original_ir,
+                        pi_delta=original_pi,
                         # The SAME M3 summary is now retained by session_bridge
                         # for PI-only and IR+PI. Never accept a separate
                         # caller-authored PDF percentage or recompute weights.
                         new_contribution_summary_private=(
                             result.get("new_contribution_summary_private")),
-                        presentation_inputs=payload.get("presentation_inputs"),
+                        presentation_inputs=source_payload.get("presentation_inputs"),
                         high_cagr_destination_review_private=(
                             result.get("high_cagr_destination_review_private")),
                         candidate_comparison_private=(
