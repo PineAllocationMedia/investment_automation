@@ -135,7 +135,9 @@ def _pi_first_capture_start(payload: dict[str, Any],
     # A target URL is private CC intake, not a hardcoded user identity,
     # credential, query token or account authorization.
     url = req.get("blossom_target_url")
-    if not isinstance(url, str) or not 0 < len(url) <= 512:
+    if (not isinstance(url, str) or not 0 < len(url) <= 512
+            or any(ord(c) < 33 or ord(c) == 127 for c in url)):
+
         raise ValueError("PI_FIRST_BLOSSOM_TARGET_INVALID")
     try:
         parsed = urlsplit(url)
@@ -144,8 +146,8 @@ def _pi_first_capture_start(payload: dict[str, Any],
             and parsed.hostname in {"www.blossomsocial.com", "blossomsocial.com"}
             and parsed.username is None and parsed.password is None
             and parsed.port in (None, 443)
-            and parsed.path.startswith("/users/")
-            and len(parsed.path) > len("/users/")
+            and re.fullmatch(r"/users/[A-Za-z0-9_-]{1,200}/?", parsed.path)
+                is not None
             and not parsed.query and not parsed.fragment
         )
     except ValueError:
@@ -218,7 +220,12 @@ def _pi_first_capture_resume(envelope: Any) -> tuple[dict[str, Any], dict[str, A
         raise ValueError("PI_FIRST_CAPTURE_CONTINUATION_INVALID")
     pending = step.get("pending_session")
     if (not isinstance(pending, dict)
-            or set(pending) != {"request"}
+            or "request" not in pending
+            or set(pending) - PERMITTED_FIELDS
+            or any(k in pending for k in (
+                "work_portfolio_result", "work_blossom_inputs",
+                "observation_inputs", "public_reference_inputs",
+                "ir_capsule", "pi_delta", "specialist_result"))
             or not isinstance(pending.get("request"), dict)
             or pending["request"].get("analysis_id") != step["analysis_id"]
             or pending["request"].get("as_of") != step["analysis_as_of"]):
