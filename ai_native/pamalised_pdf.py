@@ -22,7 +22,8 @@ def render_pamalised_pdf(*, executive_report: str, detailed_report: str,
                          new_contribution_summary_private: Mapping[str, Any] | None = None,
                          presentation_inputs: Mapping[str, Any] | None = None,
                          high_cagr_destination_review_private: Mapping[str, Any] | None = None,
-                         candidate_comparison_private: Mapping[str, Any] | None = None) -> bytes:
+                         candidate_comparison_private: Mapping[str, Any] | None = None,
+                         portfolio_observation_private: Mapping[str, Any] | None = None) -> bytes:
     """Return a visually PAMalised document as PDF bytes, never save it.
 
     The original HTML source-pair validator is still authoritative. Optional
@@ -84,6 +85,22 @@ def render_pamalised_pdf(*, executive_report: str, detailed_report: str,
         if (not comparison_lines
                 or "\n".join(comparison_lines).strip() not in detailed_report):
             raise ValueError("PAMALISED_CANDIDATE_SOURCE_DETAIL_PARITY_INVALID")
+    if portfolio_observation_private is not None:
+        if request is None or pi_delta is None or request.get("portfolio_needed") is not True:
+            raise ValueError("PAMALISED_PRIVATE_OBSERVATION_ROUTE_REQUIRED")
+        if (pi_delta.get("portfolio_as_of") !=
+                portfolio_observation_private.get("observed_on")):
+            raise ValueError("PAMALISED_PRIVATE_OBSERVATION_PI_DATE_MISMATCH")
+        # Reuse the full original reporting validation (including cash,
+        # account denominator, date/weights arithmetic, public/private scope).
+        # The PDF only displays bounded non-sensitive status metadata.
+        from .reporting import _portfolio_observation_lines
+        observation_lines = _portfolio_observation_lines(
+            {"portfolio_observation_private": portfolio_observation_private},
+            analysis_id, as_of)
+        if (not observation_lines
+                or "\n".join(observation_lines).strip() not in detailed_report):
+            raise ValueError("PAMALISED_PRIVATE_OBSERVATION_DETAIL_PARITY_INVALID")
     try:
         from .pamalised_visual import render_reference_style_pdf
     except ImportError as exc:
@@ -98,6 +115,7 @@ def render_pamalised_pdf(*, executive_report: str, detailed_report: str,
         presentation_inputs=presentation_inputs,
         high_cagr_destination_review_private=high_cagr_destination_review_private,
         candidate_comparison_private=candidate_comparison_private,
+        portfolio_observation_private=portfolio_observation_private,
     )
     if not pdf.startswith(b"%PDF-"):
         raise ValueError("PAMALISED_PDF_OUTPUT_INVALID")

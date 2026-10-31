@@ -502,6 +502,83 @@ class PamalisedPdfTests(unittest.TestCase):
                    "detailed_report": changed_detail},
                 candidate_comparison_private=actual)
 
+    def _private_portfolio_pdf_case(self, *, complete):
+        from tests import test_ai_native_observation_bridge as observation_fixtures
+        fx = observation_fixtures.ObservationBridgeTests()
+        request = fx.req(as_of="2026-10-30", strategy_id="EXPLORATORY")
+        observation = fx.observation(
+            observed_on="2026-10-27",
+            analysis_as_of="2026-10-30",
+            captured_at="2026-10-29T10:00:00-04:00",
+            scope_complete=complete,
+            cash_base="100.00" if complete else None,
+            cash_visibility="VERIFIED_VISIBLE" if complete else "NOT_VISIBLE")
+        return {"request": request,
+                "pi_delta": fx.pi(portfolio_as_of="2026-10-27"),
+                "observation_inputs": observation}
+
+    def test_private_scope_and_real_observation_dates_reach_pdf_without_balances(self):
+        from pypdf import PdfReader
+        case = self._private_portfolio_pdf_case(complete=True)
+        source = deepcopy(case)
+        completed = complete_manual_session(**case)
+        self.assertEqual(completed["portfolio_observation_private"]["status"],
+                         "SCOPED_WEIGHTS_DERIVED_FROM_CALLER_VISIBLE_DATA")
+        code, pdf, error = self._cli(case)
+        self.assertEqual((code, error), (0, ""))
+        text = "\n".join(p.extract_text() for p in PdfReader(BytesIO(pdf)).pages)
+        self.assertIn("dénominateur du périmètre", text)
+        self.assertIn("2026-10-27", text)
+        self.assertIn("2026-10-29", text)
+        self.assertIn("Encaisse déclarée visible", text)
+        self.assertIn("NON authentifié", text)
+        self.assertNotIn("SCOPE-A", text)
+        self.assertNotIn("300.00", text)
+        self.assertNotIn("400.00", text)
+        self.assertEqual(case, source)
+
+    def test_incomplete_private_scope_stays_incomplete_in_pdf(self):
+        from pypdf import PdfReader
+        case = self._private_portfolio_pdf_case(complete=False)
+        completed = complete_manual_session(**case)
+        observation = completed["portfolio_observation_private"]
+        self.assertEqual(observation["status"], "OBSERVATION_LEDGER_ONLY")
+        self.assertIsNone(observation["known_scope_weights_pct"])
+        code, pdf, error = self._cli(case)
+        self.assertEqual((code, error), (0, ""))
+        text = "\n".join(p.extract_text() for p in PdfReader(BytesIO(pdf)).pages)
+        self.assertIn("périmètre incomplet", text)
+        self.assertIn("Encaisse non visible", text)
+        self.assertNotIn("dénominateur du périmètre", text)
+
+    def test_pdf_rejects_private_observation_with_invalid_or_missing_report_evidence(self):
+        case = self._private_portfolio_pdf_case(complete=True)
+        done = complete_manual_session(**case)
+        record = done["portfolio_observation_private"]
+        args = {
+            "executive_report": done["executive_report_private"],
+            "detailed_report": done["final_report_private"],
+            "analysis_id": case["request"]["analysis_id"],
+            "as_of": case["request"]["as_of"],
+            "strategy": case["request"].get("strategy_id", "EXPLORATORY"),
+            "report_status": "CONDITIONAL",
+            "request": case["request"], "pi_delta": case["pi_delta"],
+        }
+        # A change that preserves a plausible scoped denominator is not enough:
+        # the exact original report must still be the evidence for the PDF.
+        altered = deepcopy(record)
+        altered["captured_at"] = "2026-10-30T10:00:00-04:00"
+        with self.assertRaisesRegex(
+                ValueError, "PAMALISED_PRIVATE_OBSERVATION_DETAIL_PARITY_INVALID"):
+            render_pamalised_pdf(
+                **args, portfolio_observation_private=altered)
+        fake = deepcopy(record)
+        fake["portfolio_room_status"] = "ROOM_EVIDENCE_SUPPORTED"
+        with self.assertRaisesRegex(
+                ValueError, "REPORT_P_LEDGER_AUTHORITY_OR_ID_MISMATCH"):
+            render_pamalised_pdf(
+                **args, portfolio_observation_private=fake)
+
     def test_presentation_rejects_wrong_case_and_unrecognized_fact_link(self):
         request = self.fixtures.request()
         ir = self.fixtures.ir()
