@@ -1,6 +1,6 @@
 # Archives de gouvernance — octobre 2026
 
-**Owner :** Program Manager / Chief of Staff · **Date :** 2026-11-01 · **Work Order :** WO-PAM-CLEANUP-ARCHIVE-4-20261031, périmètre ajusté pour respecter la gouvernance.  
+**Owner :** Program Manager / Chief of Staff · **Date :** 2026-11-01 · **Work Order :** WO-PAM-CLEANUP-ARCHIVE-4-20261031, périmètre ajusté pour respecter la gouvernance.
 **Statut :** PR #441 candidate / non fusionnée; aucune autorité financière ou nouvelle séquence de développement.
 
 ## Contenus historiques effectivement archivés

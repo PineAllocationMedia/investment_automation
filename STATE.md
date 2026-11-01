@@ -1,7 +1,7 @@
 # PAM — état opérationnel condensé
 
-**Photographie de référence :** 2026-11-01 · branche V2 `model-v2/expected-return-challenger` · commit examiné `23d69e4a0d45c5387a72bfd41beb4049e2cf1e3f`.  
-**Propriétaire :** Program Manager / Chief of Staff · **Statut :** état descriptif, non nouvelle autorisation.  
+**Photographie de référence :** 2026-11-01 · branche V2 `model-v2/expected-return-challenger` · commit examiné `23d69e4a0d45c5387a72bfd41beb4049e2cf1e3f`.
+**Propriétaire :** Program Manager / Chief of Staff · **Statut :** état descriptif, non nouvelle autorisation.
 **Cadence :** actualiser à la suite d'une décision ou fusion matérielle via Governance Sync; vérifier les refs Git et les PR *en direct* avant d'agir. Ne jamais traiter cette photographie comme un HEAD permanent.
 
 ## 1. Lecture minimale
