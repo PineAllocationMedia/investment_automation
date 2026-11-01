@@ -1,54 +1,37 @@
 # Archives de gouvernance — octobre 2026
 
-Propriétaire : Chief of Staff, sous autorité du CEO.
-Créé : 2026-10-31. Échéance de revue de cet index : 2026-11-07.
-Ordre de travail : WO-PAM-CLEANUP-ARCHIVE-4-20261031.
-Base : `76e0ac428365d799c5eed2619ba3156f0e42ac96`.
+**Owner :** Program Manager / Chief of Staff · **Date :** 2026-11-01 · **Work Order :** WO-PAM-CLEANUP-ARCHIVE-4-20261031, périmètre ajusté pour respecter la gouvernance.  
+**Statut :** PR #441 candidate / non fusionnée; aucune autorité financière ou nouvelle séquence de développement.
 
-## Périmètre et intégrité
+## Contenus historiques effectivement archivés
 
-Le CEO a autorisé la préparation d’une PR pour ces quatre archives, sans fusion.
-Les fichiers historiques réutilisent exactement leurs blobs Git d’origine :
-aucune réécriture, normalisation, troncature ni suppression de contenu.
-Les anciens chemins deviennent de courts renvois. Aucun autre document existant
-n’est modifié; integrated_build, les contrats, le code et les règles restent hors périmètre.
+| Chemin vivant (renvoi court) | Archive historique byte-identical | Blob original |
+| --- | --- | --- |
+| [PAM_ROADMAP.md](../../../PAM_ROADMAP.md) | [PAM_ROADMAP.md](PAM_ROADMAP.md) | `2f1eeb93c98ad06003efc6562b81e3e92fd9e78d` |
+| [governance/PAM_CURRENT_STATE.md](../../../governance/PAM_CURRENT_STATE.md) | [governance/PAM_CURRENT_STATE.md](governance/PAM_CURRENT_STATE.md) | `c084781c0fbae83d5d02408314b27385afb2334a` |
+| [governance/PAM_WORKLOG.md](../../../governance/PAM_WORKLOG.md) | [governance/PAM_WORKLOG.md](governance/PAM_WORKLOG.md) | `f2c799bdb1d2232dafd1e3813c6675e58fc4a368` |
 
-| Source | Archive | Blob Git |
-|---|---|---|
-| `governance/PAM_CURRENT_STATE.md` | [governance/PAM_CURRENT_STATE.md](governance/PAM_CURRENT_STATE.md) | `c084781c0fbae83d5d02408314b27385afb2334a` |
-| `PAM_ROADMAP.md` | [PAM_ROADMAP.md](PAM_ROADMAP.md) | `2f1eeb93c98ad06003efc6562b81e3e92fd9e78d` |
-| `governance/PAM_WORKLOG.md` | [governance/PAM_WORKLOG.md](governance/PAM_WORKLOG.md) | `f2c799bdb1d2232dafd1e3813c6675e58fc4a368` |
-| `DECISIONS.md` | [DECISIONS.md](DECISIONS.md) | `af3ec7b1e5a8eb637f69e85890a57b7e803a983d` |
+**Décision de sécurité/gouvernance :** [DECISIONS.md](../../../DECISIONS.md) reste **à son emplacement canonique**, texte intégral inchangé, comme unique registre protégé et append-only. Il n'est ni supprimé, ni remplacé par un renvoi, ni dupliqué dans cette archive. Sa taille reste hors du chemin de lecture ordinaire : consulter seulement les décisions pertinentes.
 
-## Lecture historique et liens
+## Retrouver les ancres d'origine
 
-Ces archives sont des instantanés, pas une description de l’état actuel.
-Leur usage comme état courant expire le 2026-10-31; leur conservation historique
-est sans suppression automatique. Une date de revue ne révoque aucune décision.
-Les décisions et réserves encore applicables restent en vigueur jusqu’à décision du CEO.
+Les copies d'archives sont volontairement byte-identical, y compris leurs anciens liens relatifs. Certains de ces liens ne se résolvent donc pas à partir du nouvel emplacement; les vues GitHub figées ci-dessous permettent de lire les liens dans leur contexte d'origine et de retrouver une ancienne ancre :
 
-Les liens relatifs internes sont conservés comme partie des octets historiques :
-ils ne sont pas tous navigables depuis le nouveau dossier. Pour les parcourir
-dans leur contexte d’origine, utiliser ces vues figées, puis l’ancre recherchée :
+- [Roadmap à l'ancienne position](https://github.com/PineAllocationMedia/investment_automation/blob/76e0ac428365d799c5eed2619ba3156f0e42ac96/PAM_ROADMAP.md)
+- [État à l'ancienne position](https://github.com/PineAllocationMedia/investment_automation/blob/76e0ac428365d799c5eed2619ba3156f0e42ac96/governance/PAM_CURRENT_STATE.md)
+- [Journal à l'ancienne position](https://github.com/PineAllocationMedia/investment_automation/blob/76e0ac428365d799c5eed2619ba3156f0e42ac96/governance/PAM_WORKLOG.md)
 
-- [governance/PAM_CURRENT_STATE.md à la révision d’origine](https://github.com/PineAllocationMedia/investment_automation/blob/76e0ac428365d799c5eed2619ba3156f0e42ac96/governance/PAM_CURRENT_STATE.md)
-- [PAM_ROADMAP.md à la révision d’origine](https://github.com/PineAllocationMedia/investment_automation/blob/76e0ac428365d799c5eed2619ba3156f0e42ac96/PAM_ROADMAP.md)
-- [governance/PAM_WORKLOG.md à la révision d’origine](https://github.com/PineAllocationMedia/investment_automation/blob/76e0ac428365d799c5eed2619ba3156f0e42ac96/governance/PAM_WORKLOG.md)
-- [DECISIONS.md à la révision d’origine](https://github.com/PineAllocationMedia/investment_automation/blob/76e0ac428365d799c5eed2619ba3156f0e42ac96/DECISIONS.md)
+Les anciens liens pointant vers les nouveaux renvois ne redirigent **pas** automatiquement leurs fragments. La PR ne prétend pas réparer exhaustivement l'historique.
 
-Les liens entrants sans fragment atteignent les renvois aux anciens chemins.
-Les anciens fragments n’y sont pas redirigés automatiquement : utiliser les vues
-figées ci-dessus. Cette PR ne prétend pas réparer tous les liens historiques.
+## Validation requise avant fusion
 
-## Validation et passage de relais
+1. Comparer trois SHA blobs archivés aux originaux; aucune réécriture de l'historique.
+2. Vérifier que la racine [DECISIONS.md](../../../DECISIONS.md) est inchangée.
+3. Contrôler les liens locaux des nouveaux STATE, briefings et renvois, ainsi que les vues figées pour les anciens liens.
+4. Exécuter `git diff --check` sur le diff réel V2 → PR; aucune copie de DECISIONS.md contenant les espaces historiques n'est ajoutée.
+5. Vérifier CI réellement disponible, vérifier la branche à jour, examiner la portée et la capacité de rollback.
+6. CEO décide séparément de la fusion; aucun status technique ne confère autorité de merge.
 
-Contrôler l’identité des quatre blobs et le diff limité à neuf chemins Markdown
-(quatre archives, quatre renvois et cet index). Classe attendue : DOCS_ONLY.
-Réutilisation technologique : NOT APPLICABLE, déplacement documentaire sans composant nouveau.
+## Nouveau point d'entrée
 
-Garder cette PR en brouillon jusqu’à la préparation du nouveau STATE.md et des
-briefings, puis décision explicite de fusion par le CEO. Aucun fichier STATE.md
-inexistant n’est présenté comme disponible. L’archivage des rapports terminés
-d’integrated_build reste un lot distinct à identifier et faire approuver.
-Aucune acceptation de R1, résolution de blocage ou autorisation de nouveau chantier
-ne découle de cet archivage.
+[STATE.md](../../../STATE.md) · [Briefing Financial Systems](../../briefings/FINANCIAL_SYSTEMS_R1.md) · [Briefing Media](../../briefings/MEDIA_COMMUNICATION.md) · [Briefing Gouvernance](../../briefings/GOVERNANCE_AND_DELIVERY.md).

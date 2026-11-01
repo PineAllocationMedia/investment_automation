@@ -1,19 +1,9 @@
-# État courant — transition documentaire
+# PAM Current State — lecture minimale de gouvernance
 
-Propriétaire : Chief of Staff, sous autorité du CEO.
-Mis à jour : 2026-10-31. Échéance de revue : 2026-11-07.
-Ordre de travail : WO-PAM-CLEANUP-ARCHIVE-4-20261031.
+**Daté :** 2026-11-01 · **Responsable :** Program Manager.
 
-Le contenu antérieur est déplacé intégralement vers [l’archive](../docs/archive/2026-10/governance/PAM_CURRENT_STATE.md).
-Son blob Git reste inchangé : aucun passage, décision, statut ou réserve n’est supprimé.
-Les décisions encore applicables ne sont pas annulées par ce déplacement.
+**Lire maintenant [STATE.md](../STATE.md).** C'est la photographie opérationnelle datée. Ensuite consulter la [charte applicable](roles/) et le [briefing gouvernance](../docs/briefings/GOVERNANCE_AND_DELIVERY.md), puis uniquement les contrats de la mission.
 
-Pour les anciens liens relatifs et les ancres, consulter la
-[version à son emplacement d’origine](https://github.com/PineAllocationMedia/investment_automation/blob/76e0ac428365d799c5eed2619ba3156f0e42ac96/governance/PAM_CURRENT_STATE.md).
-Ce renvoi ne redirige pas automatiquement les fragments des anciens liens.
+Le texte historique intégral est conservé **à l'identique** dans [l'archive du 2026-10](../docs/archive/2026-10/governance/PAM_CURRENT_STATE.md), blob `c084781c0fbae83d5d02408314b27385afb2334a`. Pour les anciennes ancres et liens internes, ouvrir [la vue figée au chemin historique](https://github.com/PineAllocationMedia/investment_automation/blob/76e0ac428365d799c5eed2619ba3156f0e42ac96/governance/PAM_CURRENT_STATE.md).
 
-Transition uniquement : le nouveau STATE.md et les briefings ne sont pas livrés par cette PR. Ne pas interpréter les anciennes prochaines actions comme un nouveau mandat.
-
-Le CEO conserve seul les décisions et la fusion; Codex est l’implémenteur autorisé.
-Aucune transaction, aucun accès courtier, aucune donnée privée de portefeuille dans GitHub
-ou vers Media & Communication. Aucune promotion, publication ou tâche autonome.
+Cette page est un **renvoi**, pas une décision de redémarrer des travaux. La Constitution, Governance, les décisions approuvées et les restrictions toujours applicables prévalent.
