@@ -8,6 +8,12 @@
 
 This is a **practical Work task**, analogous in interaction style to PAM Media's approved Prompt 4 but with **separate financial-account authorization and privacy**. Media's successful signed-in Posts browsing does **not** prove access to a private Portfolio view. A versioned prompt is not proof of installation, site compatibility, source authenticity, portfolio readiness or comprehensive R1 acceptance.
 
+## v1.4 client-attested shared-profile interpretation — companion note, not a change to the PI-1 packet
+
+See [five-prompt manual workflow v1.4](../operations/FIVE_PROMPT_MANUAL_WORKFLOW_R1_V14.md). In the chat-first, CEO-initiated PI experience, a separate client statement may indicate that the exact selected shared Blossom profile is their own and connected to brokerages. Retain the original **`public_portfolio_reference`** JSON schema and `PUBLIC_REFERENCE` source classification when that is the actual page viewed; **never add unrecognized fields to this JSON** or rename it `work_blossom_inputs`. Pass `OWNER_ATTESTATION=CEO_ATTESTED_LINKED_PROFILE` only as separately labeled case context. If Work actually sees a connected/verified position indicator, record that as an observation, not as verification of every account or the user’s CELI.
+
+This avoids demanding a second brokerage statement before a cautious *descriptive* discussion of the client's displayed portfolio. Continue to require actual compatible date, source scope, cash/currency and monetary denominator for numerical **private** Room or a funded allocation. The existing standalone `ai_native/attested_visible_concentration.py` may describe a complete **displayed view** under its original strict source flags; a 20-line sum of 100.3% is not silently rescaled. Historical PI-1 R1.5 Work text and its adapter schemas below remain unmodified. No automatic Work task or Project Settings update is implied.
+
 ## 1. Copy this entire prompt into a new user-initiated ChatGPT Work task
 
 ```text
