@@ -1,7 +1,7 @@
 # PAM | Blossom — editorial evidence & experiment log v1.1
 
 **Channel:** Blossom `@therealpam`.
-**Status:** 31 distinct accessible originals recorded through 2026-10-30: latest scan found 2 new and refreshed 29 with appended snapshots. All exposed permalinks inspected; historical completeness unproven and some discussion bodies PARTIAL. Earlier observations preserved. No private analytics or post-attributed follows established.
+**Status:** 32 distinct accessible originals recorded through 2026-11-02: latest scan found 1 new and refreshed 31 with appended snapshots. All exposed permalinks inspected; historical completeness unproven and some discussion bodies PARTIAL. Earlier observations and learning preserved. No private analytics or post-attributed follows established.
 **Instructions:** [Playbook](MACRO_LENS_PLAYBOOK.md) · [Templates](MACRO_LENS_TEMPLATES.md).
 
 This existing register now tracks all verified @therealpam original posts: Macro Lens and ordinary content alike. Do not invent approval history for past ordinary posts. Replies to others are distinct from original publications.
@@ -1150,3 +1150,84 @@ Company image-bearing posts provide a limited within-format comparison. Exact te
 **Retain EXP-20261026-01; do not create a second test.** Its design was already CEO-authorized on October 26. State remains APPROVED DESIGN / NOT RUNNING: no prospectively assigned post or result is documented. Question versus declarative wording of the closing research tripwire is the sole major variable. Use at most three naturally useful matched earnings pairs, with comparable depth, format, length and daypart; document assignments and expected reader utility before publication. Each exact post still requires CEO approval. Observe substantive non-PAM reader comments per 100 displayed views near the registered 72h target ±12h, retaining raw counts, actual age, body coverage and missingness; no unique-reader denominator is implied. If timing/body coverage is insufficient, report NA/INCONCLUSIVE. Meta's substantive questions alongside AXP's absence of discussion motivate testing, not a claim that questions caused engagement. Do not relabel any already published post as an experimental assignment or add filler.
 
 **Playbook decision:** Carry forward the October 26 CEO-pending clarification only: make the existing prepublication note concrete (reader question, expected usefulness, subject/format rationale; alternatives when an open-market scan occurs), then assess later evidence without overwriting the note. It is not adopted here. No playbook, template, renderer, public post, publishing rule or automation is changed. Authorized persistence is this single batched learning append to the existing log.
+
+## Profile scan — 2026-11-02 (authorized signed-in Cloud Browser)
+
+**Coverage:** 32 original posts discovered / 32 individually inspected / 1 new record / 31 existing records refreshed with appended snapshots / 0 discovered post URLs inaccessible. Every individual @therealpam author link matched /users/PAM__IwHhSPDG2aOMks63. Original Posts tab only; Blooms, trades and replies to other publications excluded from the originals count. Dynamic loading exposed 10, then 23, then 32 originals. Further bottom navigation at 32 exposed no additional publication or pagination control after the introduction. **All exposed originals inspected; HISTORICAL COMPLETENESS UNPROVEN.** No authoritative historical post total. Signed-in Edit profile and Comment controls were available; no login restriction blocked completion. Some discussion bodies remain PARTIAL.
+
+**Range/time:** newest manufacturing post UI age 1m; oldest introduction 27d. Approximate accessible publication range October 6–November 2, 2026, based only on rounded UI ages. Exact publication dates/timestamps NA; no date inferred from numeric post IDs. Earlier rounded-age approximations remain preserved. Counter observations: 2026-11-02 14:24:44.514–14:25:15.690 EST, America/Toronto (UTC−05:00); discussion captures 14:25:25.479–14:25:30.580 EST, with one Most Recent follow-up at 14:25:46.039 EST. Per-publication timestamps appear below. Prior October captures used EDT (UTC−04:00); their timestamps are unchanged.
+
+**Metric meanings/provenance:** PUBLIC_OBSERVED for every visible counter even in this authenticated session. Views = displayed cumulative views, uniqueness/reader identity unknown. Comments = displayed total, inclusion/counting semantics of replies undocumented. Shares = visible arrow counter, not verified completed external sharing. Saves = bookmark counter. Likes = numeric heart-only count. Mixed emoji totals are recorded as total reactions with heart breakdown NA. No numeric reaction count means NA, not inferred zero. Profile visits and attributed follows NA. No actual private PLATFORM_VERIFIED analytics or CEO_SUPPLIED measurement. At 2026-11-02T14:24:33.629-05:00, profile header showed 12 followers / 5 following; these are account-level observations only.
+
+**History/provenance reuse:** deduplicated by stable Blossom post ID/permalink against the fetched existing register (blob a1708e22dce8f76c94b380ba7ba6b4c707084e49). Previous captions, recorded theses, templates, editorial rationale, source/audit/approval evidence, discussion captures, learning reviews and corrections are preserved. Existing internal history is reused without reconstructing missing preparation details; unavailable history remains NA. This scan observes published content and does not independently fact-check financial claims, participants' forecasts or image/source rights. No scheduled or automatically labelled 24h/72h/7d observation, background monitoring, publication, reply, reaction, save, trade or account alteration.
+
+### New record — existing register continuation
+
+| Issue ID | Class/status | Published thesis | Internal history/evidence | Stable permalink |
+|---|---|---|---|---|
+| BL-POST-1793647372237-kWOskwFg | Macro commentary / PUBLISHED | Manufacturing survey production strengthened while the employment index eased; both remain expansionary. Capacity use, efficiency or delayed hiring are hypotheses; subsequent employment/new orders could weaken the divergence interpretation. | Image-bearing observed. This is a descriptive thesis from the public caption, not a recovered prepublication hypothesis. Original internal thesis, selection rationale, exact template/version, original asset/hash, evidence register, audit and CEO approval references NA. | https://www.blossomsocial.com/posts/US-Manufacturing-Survey-Factories-Up-Hiring-Down__POST-1793647372237-kWOskwFg_IwHhSPDG2aOMks63 |
+
+### Appended snapshots
+
+| Issue ID | Rounded UI age (exact NA) | Observed at — America/Toronto EST | Provenance | Views | Likes | Comments | Shares | Saves | Total reactions | Profile visits | Attributed follows |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| BL-POST-1793647372237-kWOskwFg | 1m | 2026-11-02T14:24:44.514-05:00 | PUBLIC_OBSERVED | 2 | NA | 0 | 0 | 0 | NA | NA | NA |
+| BL-POST-1793390076288-WMzkTcpH | 2d | 2026-11-02T14:24:45.708-05:00 | PUBLIC_OBSERVED | 150 | 1 | 0 | 0 | 0 | 1 | NA | NA |
+| BL-POST-1793282726045-9oXVa71E | 4d | 2026-11-02T14:24:46.442-05:00 | PUBLIC_OBSERVED | 36 | 1 | 0 | 0 | 0 | 1 | NA | NA |
+| BL-POST-1793197767496-cFctFOpJ | 5d | 2026-11-02T14:24:47.277-05:00 | PUBLIC_OBSERVED | 128 | 1 | 0 | 0 | 0 | 1 | NA | NA |
+| BL-POST-1793149368867-cLFb5NMa | 5d | 2026-11-02T14:24:48.069-05:00 | PUBLIC_OBSERVED | 52 | NA | 0 | 0 | 0 | NA | NA | NA |
+| BL-POST-1793107152966-YTBGWH9d | 6d | 2026-11-02T14:24:48.866-05:00 | PUBLIC_OBSERVED | 64 | NA | 0 | 0 | 0 | NA | NA | NA |
+| BL-POST-1793060142652-bt1IJKAo | 6d | 2026-11-02T14:24:49.653-05:00 | PUBLIC_OBSERVED | 126 | NA | 0 | 0 | 0 | NA | NA | NA |
+| BL-POST-1793023468268-JghTaJye | 7d | 2026-11-02T14:24:50.398-05:00 | PUBLIC_OBSERVED | 56 | NA | 0 | 0 | 0 | NA | NA | NA |
+| BL-POST-1792970189363-fIdOdvGU | 7d | 2026-11-02T14:24:51.378-05:00 | PUBLIC_OBSERVED | 142 | 2 | 1 | 0 | 0 | 2 | NA | NA |
+| BL-POST-1792935816952-RmJBGgJl | 8d | 2026-11-02T14:24:52.235-05:00 | PUBLIC_OBSERVED | 424 | 5 | 4 | 1 | 0 | 5 | NA | NA |
+| BL-POST-1792850545800-gNzqcp6X | 9d | 2026-11-02T14:24:53.112-05:00 | PUBLIC_OBSERVED | 110 | 1 | 0 | 0 | 0 | 1 | NA | NA |
+| BL-POST-1792773556527-n3zJCc9e | 10d | 2026-11-02T14:24:54.255-05:00 | PUBLIC_OBSERVED | 116 | 1 | 0 | 0 | 0 | 1 | NA | NA |
+| BL-POST-1792712380652-veFF6JIW | 10d | 2026-11-02T14:24:54.981-05:00 | PUBLIC_OBSERVED | 86 | 2 | 2 | 0 | 0 | 2 | NA | NA |
+| BL-POST-1792632635232-p3wDGaJ3 | 11d | 2026-11-02T14:24:55.775-05:00 | PUBLIC_OBSERVED | 32 | NA | 0 | 0 | 0 | NA | NA | NA |
+| BL-POST-1792618150646-9HYkfaqz | 11d | 2026-11-02T14:24:56.571-05:00 | PUBLIC_OBSERVED | 52 | NA | 0 | 0 | 0 | NA | NA | NA |
+| BL-POST-1792543338595-Ou0WyNVs | 12d | 2026-11-02T14:24:57.333-05:00 | PUBLIC_OBSERVED | 272 | NA | 0 | 1 | 0 | NA | NA | NA |
+| BL-POST-1792445839015-LojFs7Jp | 13d | 2026-11-02T14:25:03.687-05:00 | PUBLIC_OBSERVED | 276 | 4 | 2 | 0 | 0 | 4 | NA | NA |
+| BL-POST-1792413329799-4TDnXVvZ | 14d | 2026-11-02T14:25:04.395-05:00 | PUBLIC_OBSERVED | 60 | NA | 0 | 1 | 0 | NA | NA | NA |
+| BL-POST-1792285181556-dajQRiJ8 | 15d | 2026-11-02T14:25:05.256-05:00 | PUBLIC_OBSERVED | 128 | 1 | 2 | 0 | 0 | 1 | NA | NA |
+| BL-POST-1792243935166-5rY3pW0x | 16d | 2026-11-02T14:25:06.040-05:00 | PUBLIC_OBSERVED | 844 | NA | 0 | 2 | 0 | 6 | NA | NA |
+| BL-POST-1792154075898-WKgQpyWr | 17d | 2026-11-02T14:25:06.842-05:00 | PUBLIC_OBSERVED | 60 | NA | 0 | 0 | 0 | NA | NA | NA |
+| BL-POST-1792015357362-r0k28CcU | 18d | 2026-11-02T14:25:07.658-05:00 | PUBLIC_OBSERVED | 340 | NA | 0 | 0 | 0 | 7 | NA | NA |
+| BL-POST-1791924123452-n0SE9Lsf | 19d | 2026-11-02T14:25:08.445-05:00 | PUBLIC_OBSERVED | 174 | 4 | 1 | 0 | 0 | 4 | NA | NA |
+| BL-POST-1791820180736-IT7xZSEt | 21d | 2026-11-02T14:25:09.248-05:00 | PUBLIC_OBSERVED | 88 | 2 | 0 | 0 | 0 | 2 | NA | NA |
+| BL-POST-1791764804066-6p0ZcQRe | 21d | 2026-11-02T14:25:09.952-05:00 | PUBLIC_OBSERVED | 248 | NA | 0 | 0 | 0 | NA | NA | NA |
+| BL-POST-1791725403770-fzsmjWDJ | 22d | 2026-11-02T14:25:10.721-05:00 | PUBLIC_OBSERVED | 174 | 2 | 0 | 0 | 0 | 2 | NA | NA |
+| BL-POST-1791636358863-EDvN5sp6 | 23d | 2026-11-02T14:25:11.598-05:00 | PUBLIC_OBSERVED | 208 | 2 | 0 | 0 | 0 | 2 | NA | NA |
+| BL-POST-1791589339142-QZtwsSBo | 23d | 2026-11-02T14:25:12.474-05:00 | PUBLIC_OBSERVED | 390 | 3 | 3 | 0 | 0 | 3 | NA | NA |
+| BL-POST-1791501798381-vTsMLRu2 | 24d | 2026-11-02T14:25:13.336-05:00 | PUBLIC_OBSERVED | 124 | NA | 0 | 0 | 0 | 4 | NA | NA |
+| BL-POST-1791495336766-q7dQtifh | 24d | 2026-11-02T14:25:14.100-05:00 | PUBLIC_OBSERVED | 98 | NA | 0 | 0 | 0 | NA | NA | NA |
+| BL-POST-1791416148323-vptp1ie5 | 25d | 2026-11-02T14:25:14.905-05:00 | PUBLIC_OBSERVED | 76 | NA | 0 | 0 | 0 | NA | NA | NA |
+| BL-POST-1791303632255-hNbqeFsO | 27d | 2026-11-02T14:25:15.690-05:00 | PUBLIC_OBSERVED | 12 | NA | 0 | 0 | 0 | NA | NA | NA |
+
+Reaction breakdown limits: BL-POST-1792243935166-5rY3pW0x and BL-POST-1792015357362-r0k28CcU displayed heart + rocket (6 and 7 total). BL-POST-1791501798381-vTsMLRu2 displayed heart + anxious-face (4 total). No numeric heart-only breakdown was available for these mixed totals.
+
+### Discussion observations — PUBLIC_OBSERVED
+
+Top Comments inspected for all seven posts with nonzero displayed comment totals. Existing PAM replies and Liked states were read, not created or changed. Missing bodies are not assumed absent or deleted; fuller earlier captures remain intact. Participants' assertions are not verified financial findings.
+
+| Post | Observed at — America/Toronto EST | Visible discussion / access limits |
+|---|---|---|
+| BL-POST-1792970189363-fIdOdvGU | 2026-11-02T14:25:25.479-05:00 | 1 displayed / 1 rendered: Mike L @noviceadvisor (7d), Venezuela growth comment; 0 likes. |
+| BL-POST-1792935816952-RmJBGgJl | 2026-11-02T14:25:26.150-05:00 | 4 displayed / 4 rendered: Nate @hoodnate (7d) asks if AI spending pays off (1 like/Liked). Existing PAM reply (7d, 1 like) distinguishes better ads from attractive returns on $135–145B capex and watches FCF/margins. Rudolf @rudolfdeleeuw (8d, 1 like/Liked) discusses ~35% versus ~40% margins, depreciation and ad economics. Existing PAM reply (7d, 1 like) emphasizes incremental FCF/ROIC and delayed depreciation. Substance matches previously archived discussion. |
+| BL-POST-1792712380652-veFF6JIW | 2026-11-02T14:25:27.123-05:00 | 2 displayed / 1 rendered: Shael @nickel333 (10d), rough market day, 1 like. Previously captured PAM reply not re-exposed; PARTIAL. |
+| BL-POST-1792445839015-LojFs7Jp | 2026-11-02T14:25:27.772-05:00 | 2 displayed / 2 rendered: Nate @hoodnate (13d), narrow-breadth buying/waiting question, 1 like/Liked. Existing PAM reply (12d, 0 likes) balances selective buying and waiting, focuses on intact fundamentals and asks about opportunities outside big tech. Matches earlier exact caption/reply archive. |
+| BL-POST-1792285181556-dajQRiJ8 | 2026-11-02T14:25:28.772-05:00 | 2 displayed / 1 rendered: solomon @ambessa (15d), skills/manpower/scale/supply-chain constraints to reshoring, 1 like. Existing PAM reply not re-exposed; PARTIAL. |
+| BL-POST-1791924123452-n0SE9Lsf | 2026-11-02T14:25:29.709-05:00 | 1 displayed / 1 rendered: Nate @hoodnate (19d), mood versus numbers and charge-off question, 0 likes. |
+| BL-POST-1791589339142-QZtwsSBo | 2026-11-02T14:25:30.580-05:00 | 3 displayed / 1 rendered: Phil @diversifiedfill (23d), AI-led index strength versus non-AI weakness and earnings skepticism, 1 like. Existing PAM reply and Phil follow-up not re-exposed; PARTIAL. Most Recent sort checked and settled at 2026-11-02T14:25:46.039-05:00: same single Phil body visible; no further bodies obtained. |
+
+The new manufacturing post displayed 0 comments. No new discussion substance was established in the seven existing threads; dates/counts are fresh observations, not new comments.
+
+### Exact new public caption — BL-POST-1793647372237-kWOskwFg
+
+> A busier factory floor doesn't automatically mean a bigger payroll.
+>
+> In October, ISM's production index climbed to 59.0 (+2.3 points from September). Its employment index slipped slightly to 52.4 (−0.3). Both remain above 50, signaling expansion in the survey—not measured output growth or job creation.
+>
+> The interesting question is whether factories are using spare capacity, becoming more efficient, or delaying hires. Those are possibilities, not findings from this report.
+>
+> I'll watch the November employment and new-orders indexes. If hiring breadth picks up alongside output, the divergence loses force.
