@@ -1231,3 +1231,72 @@ The new manufacturing post displayed 0 comments. No new discussion substance was
 > The interesting question is whether factories are using spare capacity, becoming more efficient, or delaying hires. Those are possibilities, not findings from this report.
 >
 > I'll watch the November employment and new-orders indexes. If hiring breadth picks up alongside output, the divergence loses force.
+
+
+## Dated learning review — 2026-11-02 (Marketing & GTM; bounded peer observation)
+
+**Scope:** Existing log read through today's 14:24–14:25 EST scan of 32 originals. Historical comparisons below use the actual archived rows, not a fresh full scan or independent experiments. This review additionally browsed PAM's first loaded feed and individually inspected one newly discovered Oracle original. Three featured peer profiles were inspected in Cloud Browser: Brandon Beavis, Marc Beavis and BD Investing; two selected peer post permalinks and their rendered discussions were inspected. Peer observation date 2026-11-02, review completed approximately 14:52 EST; exact per-peer capture seconds NA. No exhaustive peer history, matched-age peer panel, full video viewing or visual/mobile audit is claimed. Public counters remain PUBLIC_OBSERVED even in a signed-in session.
+
+### Comparable-age findings
+
+| PAM subject | Archived observation | Rounded UI age | Views | Displayed comments | Interpretation |
+|---|---|---|---|---|---|
+| Meta, BL-POST-1792935816952-RmJBGgJl | 2026-10-28T10:31:19.565-04:00 | 3d | 420 | 4 | Two substantive reader contributions plus two PAM replies established by full captures; ROI, depreciation and margins discussed |
+| AXP, BL-POST-1792773556527-n3zJCc9e | 2026-10-26T20:20:46.349-04:00 | 3d | 116 | 0 | Lower observed reach and no displayed discussion |
+| SLB, BL-POST-1792970189363-fIdOdvGU | 2026-10-29T09:55:11.592-04:00 | 3d | 142 | 1 | Venezuela comment is company-related but tangential to data-center scale/profitability |
+| Boeing, BL-POST-1793107152966-YTBGWH9d | 2026-10-30T15:56:50.197-04:00 | 3d | 64 | 0 | Lower observed reach and no displayed discussion |
+
+These are comparable rounded age classes, not exact 72h measures. All four are image-bearing; exact template versions remain NA. Meta's 2 qualifying reader contributions / 420 displayed views = approximately 0.48 per 100 views, descriptive only; views are not unique people. Do not count four independent reader contributions. The first M1 Atlas reached 52 views / 0 comments at rounded 7d (October 29); no template effect can be isolated from one map. The weekly Nasdaq/Dow post's 844 views / 0 comments at rounded 4d (October 22) versus the strong-dollar post's 128 views / 2 displayed comments at the same rounded age/scan further separates attention from discussion.
+
+**Appears effective:** specific headline-versus-business-economics distinctions have elicited thesis-related questions, especially Meta. **Underperformed on observed response:** AXP and Boeing relative to Meta in this small age-class cohort; this is not proof of low educational value. No evidence warrants choosing all AI stories or abandoning macro. The October 30 correction LC-20261030-01 remains controlling: do not reuse the withdrawn China/Atlas/SpaceX three-post comparison.
+
+### Peer evidence and bounded adaptation
+
+- **Marc Beavis, @marcb:** profile displayed 112K followers, Ambassador/Shareholder badges. Individually opened [Remember that Sinking Feeling?](https://www.blossomsocial.com/posts/Remember-that-Sinking-Feeling__POST-1754427149867-d7rwoKun_xUYvG8FaRTLw5BoD): rounded 1yr, 11K views (rounded), 85 displayed comments, 96 hearts; other counters 3 shares / 11 saves under existing UI convention. Read rendered Top Comments, with additional replies still collapsed. The post invites readers to reflect on lessons from a drawdown; visible responses discuss actual risk tolerance, cash availability and changes to investment process. Author replies sustain exchanges. This supports relevance of a concrete, answerable question, not a causal estimate of its effectiveness. Adapt the clear reader problem and acknowledgment of uncertainty to PAM research questions; do not import personal advice, reader portfolio details or unverified assurances.
+- **BD Investing, @bdinvesting:** profile displayed 210K followers, Ambassador/Shareholder badges. Individually opened [Is it time to sell tech stocks?](https://www.blossomsocial.com/posts/Is-it-time-to-sell-tech-stocks__POST-1792959413741-yyr2sXao_0om5ZfPmyNCzlghz): rounded 7d, 4,136 views, 20 displayed comments, 78 mixed reactions (heart-only NA), 7 shares / 2 saves. Rendered discussion includes a patience question and a challenge to tech concentration, but also slogans/jokes and two author requests to read the post. One reader explains that he was agreeing and answering the title: evidence of conversational ambiguity, not proof that all readers misunderstood. Adapt a plain-language investor tension and short explanation; avoid a provocative buy/sell headline that obscures the actual analytical conclusion. The profile's business-role explanations are inspiration only; underlying peer financial claims were not audited. Video/Blooms, trade-linked cards and pinned promotions were not mixed into PAM's original-post performance cohort.
+- **Brandon Beavis, @brandon:** profile displayed 333K followers and Blossom co-founder identity. Initial feed centered on community, events and promotion. Excluded as a close editorial-performance comparator; no individual Brandon post discussion was audited.
+
+Fame/audience size is grounded only in displayed follower counts, not an external ranking. Existing platform relationships, off-platform audiences, different publication ages, pinned placement, video versus text/image, topic selection and market context make peer/PAM volume comparisons invalid. These are convenience-sampled examples, not proof of what causes growth. The useful takeaway is clarity plus an answerable research question, not copying voice, claims, personal credentials, urgency or trade calls.
+
+### Source accuracy, selection rationale and confounders
+
+Targeted fresh checks, not a full historical audit:
+- [ISM October 2026 manufacturing release](https://www.ismworld.org/supply-management-news-and-reports/reports/ism-pmi-reports/pmi/october/) confirms production 59.0 versus 56.7 and employment 52.4 versus 52.7. Both are expansionary survey readings; a lower employment index does not establish job losses. PAM's caption preserves this distinction and labels possible mechanisms as hypotheses. No image audit was performed here.
+- [Meta Q3 issuer release, October 21](https://investor.atmeta.com/investor-news/press-release-details/2026/Meta-Reports-Third-Quarter-2026-Results/default.aspx) freshly corroborates revenue growth 26%, the $9.89B charge, $22.88B operating income excluding it, and $135–145B capex guidance including finance-lease principal. This supports the central accounting/financing distinction, not every reader claim or an audit of exact artwork.
+- [Oracle preliminary 424B5, November 2](https://www.sec.gov/Archives/edgar/data/1341439/000119312526442729/d181425d424b5.htm), cover and Use of Proceeds, corroborates $10B stock plus a separate $10B notes offering, independent closing conditions, incomplete pricing and broad corporate uses. The post's conditional $20B total is sound at that document vintage; no completed financing or all-AI earmark is implied.
+- Atlas 4.32 versus displayed-input 4.33 percentage points remains an unresolved rounding reconciliation, not a newly proven error. Other historical claims not revisited retain prior audit status; no blanket PASS.
+
+**Before versus after remains NOT EVALUABLE for the logged cohort:** contemporaneous prepublication open-scan contenders, expected reader value and subject/format selection notes are absent from this log. The wording of published captions is not recovered prior intent. The newly observed Oracle post has no prepublication rationale attached here; external draft packages were not examined by this review. No hypothesis reconstructed or overwritten after results.
+
+**Audience:** 9 followers in October 22 observations versus 12 on November 2 = +3 account-level net change only. Today's profile and Oracle sidebar still show 12 / 5 following; no valid post attribution, profile visits or conversion rate. Missing numeric likes remain NA; actual displayed zero comments remain 0. Repeated unchanged snapshots are not new observations of independent successes.
+
+**Timing:** Meta's earnings release and Oracle's financing filing establish salient issuer events, not the cause of engagement. Oracle and manufacturing appeared minutes apart today; competition for attention is a plausible unmeasured confounder. Issuer familiarity, tech/AI news, earnings calendar, daypart/weekend, changing audience and platform distribution remain uncontrolled. No timing recommendation or causal performance attribution follows.
+
+### ONE experiment; no playbook implementation
+
+Retain **EXP-20261026-01**, already CEO-authorized October 26: question versus declarative wording of the same closing research tripwire, with no other planned major change. Status remains **APPROVED DESIGN / NOT RUNNING**; no prospective assignment or trial outcome established. Maximum three naturally useful matched earnings pairs, comparable format/depth/length/daypart, assignment and expected usefulness recorded before publishing. Primary measure: substantive non-PAM reader contributions per 100 displayed views at 72h ±12h, retaining raw counts and actual timing/body coverage. If timing or bodies cannot be established, NA/INCONCLUSIVE; do not treat rounded 3d as automatically qualifying. No filler and no retrospective enrollment of Meta, Oracle or peers. Each exact post still requires CEO approval.
+
+Motivation: PAM's Meta thread and Marc's rendered discussion show useful questions are possible; BD's exchange shows why the question must be unambiguous. Neither proves question wording causes better outcomes. Illustrative ending only: “Would sustained free-cash-flow growth change that assessment?” versus “Sustained free-cash-flow growth would change that assessment.” The actual fact-specific tripwire must fit the selected story.
+
+**CEO decision pending:** retain the existing proposed playbook clarification to preserve an immutable prepublication reader question, expected utility, open-scan alternatives and subject/format rationale. Peer adaptations above are draft-level recommendations, not a new template or publishing rule. No playbook, template, renderer, public post, reaction, reply, follow, bookmark, trade or automation changed.
+
+### Newly discovered original — targeted addendum, not full scan
+
+One new PAM original individually inspected; 0 existing originals individually refreshed by this review, 0 attempted PAM permalink failures. Earlier full-scan coverage of 32 remains as recorded; cumulative distinct known originals now 33, historical completeness unproven. Feed-only observations are not promoted to individually audited snapshots.
+
+| Issue ID | Status / format | Observed at | UI age | Views | Likes | Comments | Shares | Saves | Total reactions | Profile visits / attributed follows |
+|---|---|---|---|---|---|---|---|---|---|---|
+| BL-POST-1793648897234-MoL4PwZe | PUBLISHED / text-only observed | 2026-11-02T14:51:15.419-05:00 America/Toronto | 2m, rounded | 2 | NA | 0 | 0 | 0 | NA | NA / NA |
+
+Permalink: https://www.blossomsocial.com/posts/Untitled-Post__POST-1793648897234-MoL4PwZe_IwHhSPDG2aOMks63 . Authorship @therealpam verified; “No comments available” rendered. All counters PUBLIC_OBSERVED; arrow is not verified completed external sharing. Too young for a success/failure judgment. Original exact publication timestamp, internal issue/asset hash, audit/CEO approval reference, template and prospective selection rationale NA. Descriptive thesis: distinguish borrowing from ownership dilution and assess future per-share value against financing costs.
+
+Public caption, whitespace normalized:
+> Oracle is asking investors for $20 billion. If both offerings close, only half would be borrowed.
+>
+> Monday's preliminary filing sets out $10B of new common stock alongside $10B of senior notes. Debt brings interest and repayment obligations. New shares spread ownership across more shares.
+>
+> Neither automatically makes this a bad deal. My question is whether the extra capital can create enough future value per share to justify its cost.
+>
+> The proceeds have broad corporate uses, so this isn't $20B earmarked exclusively for AI. Final pricing and the share count are still open in the preliminary document.
+>
+> AI demand gets the headlines. Financing terms deserve a read too.
