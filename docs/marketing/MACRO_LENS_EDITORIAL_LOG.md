@@ -1,7 +1,7 @@
 # PAM | Blossom — editorial evidence & experiment log v1.1
 
 **Channel:** Blossom `@therealpam`.
-**Status:** 32 distinct accessible originals recorded through 2026-11-02: latest scan found 1 new and refreshed 31 with appended snapshots. All exposed permalinks inspected; historical completeness unproven and some discussion bodies PARTIAL. Earlier observations and learning preserved. No private analytics or post-attributed follows established.
+**Status:** 35 distinct accessible originals recorded through 2026-11-05: latest scan found 1 new and refreshed 34 with appended snapshots. All exposed permalinks inspected; historical completeness unproven and some discussion bodies PARTIAL. Earlier observations and learning preserved. No private analytics or post-attributed follows established.
 **Instructions:** [Playbook](MACRO_LENS_PLAYBOOK.md) · [Templates](MACRO_LENS_TEMPLATES.md).
 
 This existing register now tracks all verified @therealpam original posts: Macro Lens and ordinary content alike. Do not invent approval history for past ordinary posts. Replies to others are distinct from original publications.
@@ -1384,3 +1384,88 @@ Mesure principale inchangée : contributions substantielles de lecteurs hors PAM
 **Apprentissage enregistré :** retours spécifiques sur les distinctions financières; absence de discussion pour ISM; séparation zéro/NA, maturité et attribution; observations de pairs et limites ci-dessus. **Proposition de clarification du playbook, toujours en attente :** conserver une fiche immuable avant publication indiquant question du lecteur, utilité attendue, autres sujets du scan ouvert et raisons du choix sujet/format, puis y rattacher les réponses observées sans réécrire l'attente initiale. Aucune règle ou version du playbook n'est adoptée ici.
 
 Ce complément est placé dans la partie active du journal éditorial de la Bible, après la revue du 2 novembre, avec renvoi dans la navigation Media. L'archive historique reste intacte. Aucune publication, réponse, réaction, suivi de compte, refonte de template ou automatisation n'est réalisée.
+
+
+## Profile scan — 2026-11-05 (authorized signed-in Cloud Browser)
+
+**Coverage:** 35 originals discovered and 35 individually inspected; 1 new record (Qualcomm), 34 existing records refreshed, 0 discovered permalinks inaccessible. Eaton and Oracle already had records in the intervening editorial review and were matched by stable ID. Each individual @therealpam author link matched /users/PAM__IwHhSPDG2aOMks63. Posts tab only; Blooms, trades and replies excluded from the originals count. Loading exposed 14, then 27, then 35 originals; no further posts or pagination control appeared after scrolling to the introduction. No login restriction blocked the scan. Historical completeness remains unproven; some discussion bodies were not exposed.
+
+**Timing:** Newest Qualcomm UI age 2m; oldest introduction 29d. Approximate publication range October 7–November 5, 2026 from rounded UI ages only; exact publication timestamps NA. Counters captured November 5 at 08:19:49.013–08:20:57.649 EST; threads at 08:21:11.279–08:21:31.461 EST (America/Toronto, UTC−05:00). Profile at 2026-11-05T08:19:01.421-05:00 showed 12 followers / 5 following, account-level only.
+
+**Metric meanings and provenance:** All counters PUBLIC_OBSERVED, including in the signed-in session. Views are the displayed cumulative counter, with uniqueness unknown. Comments are the displayed total, with reply-counting semantics undocumented. Shares are the visible arrow counter; completed external sharing is unverified. Saves are the bookmark counter. A numeric heart-only count is recorded as likes and total reactions; mixed reactions are totals only, heart breakdown NA. A missing numeric count is NA, distinct from a displayed zero. Profile visits and post-attributed follows are NA. No PLATFORM_VERIFIED private analytics or CEO_SUPPLIED measurements were used. No scheduled age snapshots were added.
+
+### New record — BL-POST-1793884643604-vls220tt
+
+- **Status and stable ID:** PUBLISHED; POST-1793884643604-vls220tt_IwHhSPDG2aOMks63. [Qualcomm publication](https://www.blossomsocial.com/posts/Qualcomms-Automotive-Revenue-Boosts-Amid-Handset-Decline__POST-1793884643604-vls220tt_IwHhSPDG2aOMks63). Published time NA.
+- **Recorded draft history:** [PAM_Qualcomm_Revenue_2026-11-05_REVIEW_PACKAGE.zip](https://chatgpt.com/library?file_id=libfile_8fdce2f0f9408191b03f06069fcf687f&account_id=personal), issue PAM_Qualcomm_Revenue_2026-11-05, EVIDENCE_AND_HANDOFF.md, caption and manifest. The draft's thesis was that automotive and IoT gains offset about 56% of handset revenue losses, while QCT still fell 8% year over year. It was selected for a timely, clearly reconcilable comparison that teaches readers to compare dollar contributions across differently sized businesses. The selection record considered a cross-asset story, services and hiring, AppLovin and Arm. The E1-derived bespoke working graphic used a shared zero and dollar scale to show the offset; it was not a canonical E1 output. No prospective experiment assignment.
+- **Evidence and audit boundary:** The package records Qualcomm's Q4 release and reconciliation, draft author checks of native/390px readability, text and bar geometry, and a draft PNG SHA-256 of b206ec00f1c5588b75316a237d2d6da6cf91dd98f965a323725866aa7aa73e09. Its manifest says independent review and CEO approval pending at draft handoff; final audit/approval evidence and published asset identity remain NA. Published body matched the three analytical paragraphs in the draft; the draft's final source line did not appear in the captured post text. This scan did not re-audit claims or establish exact-file publication identity.
+
+**Published title and caption as rendered:**
+
+> Qualcomm's Automotive Revenue Boosts Amid Handset Decline
+>
+> Qualcomm’s automotive revenue jumped 89%. That’s $937 million of extra sales against a $1.82 billion drop in handsets. Connected devices added another $81 million, and Qualcomm’s chip business still shrank 8% year over year.
+>
+> Phones still accounted for 57% of chip revenue. That’s why I’d compare the dollar changes before drawing conclusions from the growth rates.
+>
+> If handset revenue falls again next quarter, will gains outside phones cover the shortfall?
+
+### Appended snapshots
+
+| Issue ID | Rounded UI age (exact NA) | Observed at — America/Toronto EST | Provenance | Views | Likes | Comments | Shares | Saves | Total reactions | Profile visits | Attributed follows |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| BL-POST-1793884643604-vls220tt | 2m | 2026-11-05T08:19:49.013-05:00 | PUBLIC_OBSERVED | 0 | NA | 0 | 0 | 0 | NA | NA | NA |
+| BL-POST-1793799253017-3FF59Xu4 | 23h | 2026-11-05T08:19:51.043-05:00 | PUBLIC_OBSERVED | 82 | NA | 1 | 0 | 0 | NA | NA | NA |
+| BL-POST-1793648897234-MoL4PwZe | 2d | 2026-11-05T08:19:52.798-05:00 | PUBLIC_OBSERVED | 246 | NA | 1 | 0 | 0 | NA | NA | NA |
+| BL-POST-1793647372237-kWOskwFg | 2d | 2026-11-05T08:19:54.913-05:00 | PUBLIC_OBSERVED | 66 | NA | 0 | 0 | 0 | NA | NA | NA |
+| BL-POST-1793390076288-WMzkTcpH | 5d | 2026-11-05T08:19:56.512-05:00 | PUBLIC_OBSERVED | 152 | 1 | 0 | 0 | 0 | 1 | NA | NA |
+| BL-POST-1793282726045-9oXVa71E | 6d | 2026-11-05T08:19:58.100-05:00 | PUBLIC_OBSERVED | 36 | 1 | 0 | 0 | 0 | 1 | NA | NA |
+| BL-POST-1793197767496-cFctFOpJ | 7d | 2026-11-05T08:19:59.762-05:00 | PUBLIC_OBSERVED | 130 | 1 | 0 | 0 | 0 | 1 | NA | NA |
+| BL-POST-1793149368867-cLFb5NMa | 8d | 2026-11-05T08:20:01.598-05:00 | PUBLIC_OBSERVED | 52 | NA | 0 | 0 | 0 | NA | NA | NA |
+| BL-POST-1793107152966-YTBGWH9d | 9d | 2026-11-05T08:20:03.267-05:00 | PUBLIC_OBSERVED | 64 | NA | 0 | 0 | 0 | NA | NA | NA |
+| BL-POST-1793060142652-bt1IJKAo | 9d | 2026-11-05T08:20:04.834-05:00 | PUBLIC_OBSERVED | 126 | NA | 0 | 0 | 0 | NA | NA | NA |
+| BL-POST-1793023468268-JghTaJye | 9d | 2026-11-05T08:20:06.342-05:00 | PUBLIC_OBSERVED | 56 | NA | 0 | 0 | 0 | NA | NA | NA |
+| BL-POST-1792970189363-fIdOdvGU | 10d | 2026-11-05T08:20:07.987-05:00 | PUBLIC_OBSERVED | 142 | 2 | 1 | 0 | 0 | 2 | NA | NA |
+| BL-POST-1792935816952-RmJBGgJl | 10d | 2026-11-05T08:20:15.099-05:00 | PUBLIC_OBSERVED | 424 | 5 | 4 | 1 | 0 | 5 | NA | NA |
+| BL-POST-1792850545800-gNzqcp6X | 11d | 2026-11-05T08:20:17.208-05:00 | PUBLIC_OBSERVED | 110 | 1 | 0 | 0 | 0 | 1 | NA | NA |
+| BL-POST-1792773556527-n3zJCc9e | 12d | 2026-11-05T08:20:18.977-05:00 | PUBLIC_OBSERVED | 116 | 1 | 0 | 0 | 0 | 1 | NA | NA |
+| BL-POST-1792712380652-veFF6JIW | 13d | 2026-11-05T08:20:20.631-05:00 | PUBLIC_OBSERVED | 86 | 2 | 2 | 0 | 0 | 2 | NA | NA |
+| BL-POST-1792632635232-p3wDGaJ3 | 14d | 2026-11-05T08:20:22.059-05:00 | PUBLIC_OBSERVED | 32 | NA | 0 | 0 | 0 | NA | NA | NA |
+| BL-POST-1792618150646-9HYkfaqz | 14d | 2026-11-05T08:20:23.675-05:00 | PUBLIC_OBSERVED | 52 | NA | 0 | 0 | 0 | NA | NA | NA |
+| BL-POST-1792543338595-Ou0WyNVs | 15d | 2026-11-05T08:20:25.142-05:00 | PUBLIC_OBSERVED | 272 | NA | 0 | 1 | 0 | NA | NA | NA |
+| BL-POST-1792445839015-LojFs7Jp | 16d | 2026-11-05T08:20:26.552-05:00 | PUBLIC_OBSERVED | 276 | 4 | 2 | 0 | 0 | 4 | NA | NA |
+| BL-POST-1792413329799-4TDnXVvZ | 17d | 2026-11-05T08:20:27.882-05:00 | PUBLIC_OBSERVED | 60 | NA | 0 | 1 | 0 | NA | NA | NA |
+| BL-POST-1792285181556-dajQRiJ8 | 18d | 2026-11-05T08:20:29.257-05:00 | PUBLIC_OBSERVED | 128 | 1 | 2 | 0 | 0 | 1 | NA | NA |
+| BL-POST-1792243935166-5rY3pW0x | 18d | 2026-11-05T08:20:30.717-05:00 | PUBLIC_OBSERVED | 844 | NA | 0 | 2 | 0 | 6 | NA | NA |
+| BL-POST-1792154075898-WKgQpyWr | 20d | 2026-11-05T08:20:32.081-05:00 | PUBLIC_OBSERVED | 60 | NA | 0 | 0 | 0 | NA | NA | NA |
+| BL-POST-1792015357362-r0k28CcU | 21d | 2026-11-05T08:20:43.217-05:00 | PUBLIC_OBSERVED | 340 | NA | 0 | 0 | 0 | 7 | NA | NA |
+| BL-POST-1791924123452-n0SE9Lsf | 22d | 2026-11-05T08:20:44.621-05:00 | PUBLIC_OBSERVED | 174 | 4 | 1 | 0 | 0 | 4 | NA | NA |
+| BL-POST-1791820180736-IT7xZSEt | 23d | 2026-11-05T08:20:45.870-05:00 | PUBLIC_OBSERVED | 88 | 2 | 0 | 0 | 0 | 2 | NA | NA |
+| BL-POST-1791764804066-6p0ZcQRe | 24d | 2026-11-05T08:20:46.874-05:00 | PUBLIC_OBSERVED | 248 | NA | 0 | 0 | 0 | NA | NA | NA |
+| BL-POST-1791725403770-fzsmjWDJ | 24d | 2026-11-05T08:20:48.975-05:00 | PUBLIC_OBSERVED | 174 | 2 | 0 | 0 | 0 | 2 | NA | NA |
+| BL-POST-1791636358863-EDvN5sp6 | 26d | 2026-11-05T08:20:50.343-05:00 | PUBLIC_OBSERVED | 208 | 2 | 0 | 0 | 0 | 2 | NA | NA |
+| BL-POST-1791589339142-QZtwsSBo | 26d | 2026-11-05T08:20:52.333-05:00 | PUBLIC_OBSERVED | 390 | 3 | 3 | 0 | 0 | 3 | NA | NA |
+| BL-POST-1791501798381-vTsMLRu2 | 27d | 2026-11-05T08:20:53.509-05:00 | PUBLIC_OBSERVED | 124 | NA | 0 | 0 | 0 | 4 | NA | NA |
+| BL-POST-1791495336766-q7dQtifh | 27d | 2026-11-05T08:20:54.840-05:00 | PUBLIC_OBSERVED | 98 | NA | 0 | 0 | 0 | NA | NA | NA |
+| BL-POST-1791416148323-vptp1ie5 | 28d | 2026-11-05T08:20:56.193-05:00 | PUBLIC_OBSERVED | 76 | NA | 0 | 0 | 0 | NA | NA | NA |
+| BL-POST-1791303632255-hNbqeFsO | 29d | 2026-11-05T08:20:57.649-05:00 | PUBLIC_OBSERVED | 12 | NA | 0 | 0 | 0 | NA | NA | NA |
+
+Mixed totals: 6 and 7 heart + rocket on BL-POST-1792243935166-5rY3pW0x and BL-POST-1792015357362-r0k28CcU; 4 heart + anxious-face on BL-POST-1791501798381-vTsMLRu2. Heart-only breakdown NA.
+
+### Discussion observations — PUBLIC_OBSERVED
+
+Top Comments inspected for all nine posts with nonzero totals. Rendered bodies may undercount the visible total. Previous fuller captures remain in the log; unrendered replies are not presumed deleted. Participant claims are not independently verified.
+
+| Post | Observed at — America/Toronto EST | Displayed / rendered and substance |
+|---|---|---|
+| BL-POST-1793799253017-3FF59Xu4 | 2026-11-05T08:21:11.279-05:00 | 1 / 1: Nate @hoodnate (22h, 0 likes) found the distinction between organic growth and deals, and the pricing caveat, useful. |
+| BL-POST-1793648897234-MoL4PwZe | 2026-11-05T08:21:13.674-05:00 | 1 / 1: Nate @hoodnate (2d, 0 likes) highlights the stock/notes split and the need for the capital to earn its cost. |
+| BL-POST-1792970189363-fIdOdvGU | 2026-11-05T08:21:17.450-05:00 | 1 / 1: Mike L @noviceadvisor (10d, 0 likes) raises Venezuela as a possible growth source. |
+| BL-POST-1792935816952-RmJBGgJl | 2026-11-05T08:21:19.160-05:00 | 4 / 2: Nate @hoodnate (10d, 1 like) asks whether AI spending pays off. Rudolf @rudolfdeleeuw (10d, 1 like) discusses margins, depreciation and incremental ad economics. Previously archived PAM replies not rendered in this capture; PARTIAL. |
+| BL-POST-1792712380652-veFF6JIW | 2026-11-05T08:21:20.925-05:00 | 2 / 1: Shael @nickel333 (13d, 1 like) describes a rough market day; PARTIAL. |
+| BL-POST-1792445839015-LojFs7Jp | 2026-11-05T08:21:22.885-05:00 | 2 / 1: Nate @hoodnate (15d, 1 like) asks about buying or waiting in a narrow rally. Prior PAM reply preserved; PARTIAL. |
+| BL-POST-1792285181556-dajQRiJ8 | 2026-11-05T08:21:25.097-05:00 | 2 / 1: solomon @ambessa (17d, 1 like) raises workforce, skills, scale and supply-chain constraints to reshoring; PARTIAL. |
+| BL-POST-1791924123452-n0SE9Lsf | 2026-11-05T08:21:27.189-05:00 | 1 / 1: Nate @hoodnate (22d, 0 likes) contrasts sentiment and bank numbers, asks about charge-offs. |
+| BL-POST-1791589339142-QZtwsSBo | 2026-11-05T08:21:31.461-05:00 | 3 / 1: Phil @diversifiedfill (26d, 1 like) contrasts AI-led index gains with weaker non-AI stocks and questions the role of earnings; PARTIAL. |
+
+Previous observations, captions, internal evidence and editorial learning were preserved. No Blossom account actions were taken; no monitoring was started.
