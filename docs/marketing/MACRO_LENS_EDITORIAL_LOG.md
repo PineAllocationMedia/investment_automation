@@ -1300,3 +1300,87 @@ Public caption, whitespace normalized:
 > The proceeds have broad corporate uses, so this isn't $20B earmarked exclusively for AI. Final pricing and the share count are still open in the preliminary document.
 >
 > AI demand gets the headlines. Financing terms deserve a read too.
+
+
+---
+
+## Revue éditoriale — 5 novembre 2026 — apprentissage autorisé, décisions CEO en attente
+
+**Identifiant : REV-20261105-01.** Revue réalisée le 5 novembre 2026, observations cloud entre 12:55 et 12:59 UTC (07:55–07:59 America/Toronto, EST). Périmètre : journal existant, Bible PAM, profil public @therealpam, trois publications PAM ouvertes individuellement et deux discussions de créateurs comparables. Il s'agit d'un complément ciblé, pas d'un nouveau recensement exhaustif ni d'une validation générale de toutes les sources/images. Les mesures antérieures et la correction LC-20261030-01 sont conservées.
+
+### Conclusion décisionnelle
+
+- **Ce qui paraît utile :** expliquer une distinction financière concrète et ses limites. Eaton reçoit un retour précis sur croissance organique/acquisitions et prix; Oracle reçoit une réponse sur le rendement du capital mobilisé. Le fil Meta archivé comporte deux contributions substantielles de lecteurs sur l'économie du capex IA. Ce sont des indices qualitatifs d'utilité, pas une preuve de causalité ni d'attractivité durable.
+- **Ce qui a moins bien répondu :** à âge affiché comparable de 2 jours, ISM atteint 66 vues et aucun commentaire, contre 246 vues et un commentaire pour Oracle. Dans le groupe historique de publications d'entreprises à âge arrondi de 3 jours, Boeing et AXP ont moins de vues et aucune discussion. Cela décrit la réponse observée, sans démontrer qu'un sujet, titre ou format en est la cause.
+- **Ce qui reste incertain :** effet propre du format et du titre, qualité de la sélection en marché ouvert, compréhension silencieuse, croissance attribuable, portée unique et représentativité des lecteurs. Les deux commentaires récents Eaton/Oracle viennent du même compte : deux posts commentés ne constituent pas deux validations indépendantes du public.
+- **Une seule expérience conservée :** EXP-20261026-01, question finale précise versus la même idée sous forme déclarative. Design déjà autorisé; aucun enrôlement prospectif ni résultat expérimental trouvé. État maintenu : APPROVED DESIGN / NOT RUNNING. Aucun post actuel n'est enrôlé rétrospectivement.
+
+### Nouvelles observations PAM : données manquantes et zéros
+
+Toutes les mesures sont **PUBLIC_OBSERVED**, y compris dans la session connectée. « Vues » est le compteur de la plateforme, pas une mesure vérifiée de personnes uniques. Likes absents = **NA**, jamais zéro. Partages = compteur de flèche, sans preuve de partage externe réalisé. Âges = affichage arrondi; timestamps exacts de publication non établis. Visites de profil, follows attribués, portée unique, template/version, asset hash et référence d'approbation : **NA** pour ces nouveaux relevés.
+
+| Publication / identifiant | Observation UTC | Âge UI | Format observé | Vues | Likes | Commentaires | Partages | Saves |
+|---|---|---|---|---:|---:|---:|---:|---:|
+| Eaton / BL-POST-1793799253017-3FF59Xu4 | 2026-11-05T12:55:44.055Z | 23h | texte + image | 82 | NA | 1 | 0 | 0 |
+| Oracle / BL-POST-1793648897234-MoL4PwZe | 2026-11-05T12:56:16.662Z | 2d | texte seul | 246 | NA | 1 | 0 | 0 |
+| ISM / BL-POST-1793647372237-kWOskwFg | 2026-11-05T12:58:22.120Z | 2d | texte + image | 66 | NA | 0 | 0 | 0 |
+
+Liens des publications : [Eaton](https://www.blossomsocial.com/posts/Eatons-Q3-Growth-Organic-vs-Acquisitions__POST-1793799253017-3FF59Xu4_IwHhSPDG2aOMks63), [Oracle](https://www.blossomsocial.com/posts/Untitled-Post__POST-1793648897234-MoL4PwZe_IwHhSPDG2aOMks63), [ISM](https://www.blossomsocial.com/posts/US-Manufacturing-Survey-Factories-Up-Hiring-Down__POST-1793647372237-kWOskwFg_IwHhSPDG2aOMks63).
+
+Couverture : 1 nouvel original identifié (Eaton), 2 anciens originaux actualisés individuellement, aucun échec final d'accès à ces trois permaliens. Le cumul d'originaux distincts connus passe de 33 à **34**, sans garantie d'exhaustivité historique. Le profil expose 12 abonnés à 12:55:21.143Z : inchangé depuis le relevé du 2 novembre; +3 par rapport aux 9 du 22 octobre, au niveau du compte seulement. Aucune attribution à une publication, au format ou à la présente revue.
+
+Eaton : l'unique commentaire visible nomme la séparation de la croissance organique et des acquisitions ainsi que la réserve sur les prix. C'est un retour spécifique d'utilité; il n'ajoute pas d'analyse sur la question finale des marges. Oracle : l'unique commentaire visible reformule le partage actions/dette et l'exigence que le capital génère une valeur suffisante; reconnaissance du mécanisme, sans nouvel élément de preuve. Pour une métrique stricte de contributions analytiques nouvelles, ces deux réponses ne doivent pas être automatiquement comptées comme substantielles. ISM : « No comments available » confirme le zéro. Les compteurs de commentaires ne sont donc pas assimilés à des discussions substantielles.
+
+Oracle et ISM appartiennent au même groupe d'âge UI 2d et avaient déjà été observés le 2 novembre à quelques minutes de leur publication : comparaison descriptive raisonnable de maturité, mais sujets, images et distribution différents. Eaton, à 23h, reste à part. La hausse Oracle de 2 vues à 2m vers 246 à 2d reflète un cumul dans le temps, pas l'effet d'un changement éditorial.
+
+### Comparaison historique à maturité approchée
+
+Ces lignes reprennent le journal, **sans nouvelle mesure aujourd'hui**. Groupe : posts d'entreprises avec image, âge UI 3d. Les jours/heures de publication, l'exposition algorithmique et les événements diffèrent; « 3d » n'atteste pas à lui seul une fenêtre expérimentale exacte de 72h ±12h.
+
+| Sujet / suffixe POST | Relevé archivé (America/Toronto, EDT) | Vues | Likes | Commentaires affichés | Lecture du fil archivée |
+|---|---|---:|---:|---:|---|
+| Meta / 1792935816952-RmJBGgJl | 28 oct. 10:31:19.565 | 420 | 5 | 4 | 2 contributions substantielles de lecteurs + 2 réponses PAM |
+| AXP / 1792773556527-n3zJCc9e | 26 oct. 20:20:46.349 | 116 | 1 | 0 | absence de discussion observée |
+| SLB / 1792970189363-fIdOdvGU | 29 oct. 09:55:11.592 | 142 | 2 | 1 | Venezuela; décalé du mécanisme central data centers/profitabilité |
+| Boeing / 1793107152966-YTBGWH9d | 30 oct. 15:56:50.197 | 64 | NA | 0 | absence de discussion observée |
+
+Meta : environ 0,48 contribution substantielle de lecteur par 100 vues (2/420), ratio descriptif d'un petit échantillon. L'intérêt pour le capex IA et une entreprise très suivie peut expliquer une partie de l'écart. Le journal rapporte aussi 844 vues sans commentaire pour un point Nasdaq/Dow à 4d : portée et discussion sont distinctes. M1 Atlas à 7d/52 vues ne peut pas être directement classé contre ces posts à 3d; une seule observation ne justifie pas de refonte. La comparaison Chine/Atlas/SpaceX retirée par LC-20261030-01 reste retirée.
+
+### Exactitude, titres, choix des sujets et hypothèses antérieures
+
+**Contrôles primaires frais, limités aux affirmations centrales :**
+
+1. [Eaton, 10-Q au 30 septembre 2026](https://www.sec.gov/Archives/edgar/data/1551182/000155118226000040/etn-20260930.htm) : le tableau consolidé confirme croissance des ventes 28%, organique 19%, acquisitions 8 points et change 1 point. La réserve du post évite de confondre organique et volumes physiques. Le chiffre de 19% ne prouve pas la durabilité ni l'attractivité du cours.
+2. [Oracle, prospectus préliminaire du 2 novembre](https://www.sec.gov/Archives/edgar/data/1341439/000119312526442729/d181425d424b5.htm) : 10 Md$ d'actions et offre distincte de 10 Md$ de notes, clôtures non conditionnées l'une à l'autre, usages généraux du capital et champs de prix encore vides dans ce document. Le post conserve correctement cette condition et ce millésime. Cette vérification ne prétend pas que les conditions sont encore non fixées le 5 novembre.
+3. [ISM, rapport manufacturier octobre 2026](https://www.ismworld.org/supply-management-news-and-reports/reports/ism-pmi-reports/pmi/october/) : production 59,0 contre 56,7; emploi 52,4 contre 52,7. Les deux indices signalent l'expansion. Les pistes capacité/efficacité/embauches différées restent des hypothèses, correctement présentées comme telles dans la légende.
+
+**Point de vigilance éditoriale :** le titre de page ISM « Factories Up, Hiring Down » peut être lu comme une baisse effective des emplois; le texte précise pourtant une légère baisse d'indice toujours en expansion. Risque de compression trompeuse, pas preuve d'une confusion réellement exprimée : aucun commentaire ne l'établit. Pour un futur brouillon, préférer une formulation qui nomme l'indice ou le ralentissement. Pas de modification publique automatique. L'accroche Eaton donne un contraste chiffré et l'explique immédiatement; Oracle distingue financement et création de valeur. Les images n'ont pas fait l'objet d'un audit visuel complet ici; aucun PASS global des assets/templates.
+
+**Attentes AVANT publication : non établies dans les pièces consultées.** Aucun enregistrement prospectif vérifiable de l'utilité attendue, des candidats rejetés ou de l'assignation expérimentale n'a été trouvé pour Eaton/Oracle/ISM dans la Bible et le journal; la recherche ciblée « Eaton » dans le dépôt n'a renvoyé aucun résultat. Cela n'établit pas l'absence d'un dossier ailleurs. Les descriptions suivantes restent des lectures rétrospectives du contenu, jamais des hypothèses préenregistrées : Eaton explique la composition de la croissance; Oracle le coût du capital; ISM la divergence entre indices. Les commentaires appuient les deux premières utilités proposées; ISM reste sans retour explicite. **Verdict attendu-versus-observé : INCONCLUSIVE**, faute de baseline antérieure. Ne pas créditer après coup l'employé d'une prévision non documentée ni transformer la publication sélectionnée en preuve que le scan ouvert avait choisi le meilleur sujet.
+
+Confondants : publication des résultats Eaton le 3 novembre, actualité du financement Oracle du 2 novembre, calendrier de l'enquête ISM, notoriété des entreprises, intérêt IA, concurrence des nouvelles, jours/heures et temps d'exposition, texte seul contre image, réponses du même lecteur et distribution inconnue. Les variations de cours affichées dans les cartes ne sont pas une étude événementielle; aucune causalité cours→engagement n'est estimée. Les contrôles Meta et les questions d'arrondi Atlas restent ceux du journal antérieur, non revalidés intégralement aujourd'hui.
+
+### Observation cloud de comptes comparables — pratiques à adapter avec prudence
+
+Échantillon intentionnel de deux comptes déjà identifiés, pas classement exhaustif des meilleurs comptes. BD est proche des sujets croissance/entreprises/IA; Marc est proche de la pédagogie et du raisonnement de portefeuille. Leur taille, ancienneté et visibilité rendent leurs volumes impropres à un benchmark direct de PAM.
+
+| Compte / publication observée le 5 novembre | Contexte public | Compteurs au relevé | Leçon soutenue et limite |
+|---|---|---|---|
+| [BD Investing — Is it time to sell tech stocks?](https://www.blossomsocial.com/posts/Is-it-time-to-sell-tech-stocks__POST-1792959413741-yyr2sXao_0om5ZfPmyNCzlghz) | 211K abonnés arrondis; ambassadeur/actionnaire sur profil; âge 10d; fil lu vers 12:57 UTC | 4 366 vues, 21 commentaires, 81 réactions mixtes, 7 partages, 2 saves | Distinguer fondamentaux et valorisation rend le raisonnement accessible. Mais le fil mélange slogans, humour et quelques questions de patience/concentration. L'auteur invite à lire le texte; un lecteur précise qu'il répondait au titre et était d'accord. Signe d'ambiguïté possible, pas preuve que tous ont mal compris. Réponses repliées : couverture partielle. |
+| [Marc Beavis — Remember that Sinking Feeling?](https://www.blossomsocial.com/posts/Remember-that-Sinking-Feeling__POST-1754427149867-d7rwoKun_xUYvG8FaRTLw5BoD) | 112K abonnés arrondis; âge 1yr; 12:57:34.900Z | 11K vues arrondies, 85 commentaires, 96 cœurs, 3 partages, 11 saves | Question compréhensible sur les leçons d'une correction, ton accueillant, réponses de l'auteur et reconnaissance de l'incertitude du timing. Réponses développées sur préparation/tolérance au risque. Fil ancien et partiellement replié; aucun taux précis ni supériorité causale calculé. |
+
+**Adaptation proposée pour les futurs brouillons PAM :** expliquer un mécanisme concret avant toute conclusion; poser, lorsqu'utile, une question portant sur une preuve qui ferait évoluer l'analyse; aligner le titre avec ce que le texte permet réellement de conclure. Cela prolonge la valeur observée chez Eaton/Oracle et la discussion chez Marc. Ne pas reprendre les injonctions acheter/conserver, les certitudes sur les marchés ou les chiffres des pairs sans contrôle primaire. Les affirmations financières des pairs ne sont pas validées par leur popularité. Les posts épinglés promotionnels, cartes de transactions et Blooms vidéo sont exclus de la comparaison de performance.
+
+### Une seule petite expérience — maintien de EXP-20261026-01
+
+**Hypothèse prospective à tester :** une question finale précise sur le critère qui ferait évoluer l'analyse suscite davantage de contributions analytiques de lecteurs que la même information déclarative, sans dégrader exactitude et compréhension. Motivation : discussion Meta, retours spécifiques Eaton/Oracle, questions de Marc; ambiguïté chez BD. Aucun de ces cas ne prouve l'effet de la formulation.
+
+Conserver le protocole déjà autorisé : au maximum trois paires de publications de résultats naturellement utiles; pas de contenu de remplissage. Une seule variable : la dernière phrase interrogative versus déclarative de sens équivalent. Apparier sujet/type d'annonce, format, profondeur, longueur et créneau autant que possible; garder sources et prudence identiques. Enregistrer **avant** publication utilité attendue, choix du sujet/format, paire et assignation; chaque publication exacte reste soumise au CEO. Aucun lancement ou enrôlement réalisé par cette revue.
+
+Mesure principale inchangée : contributions substantielles de lecteurs hors PAM pour 100 vues affichées à 72h ±12h, avec nombres bruts, horodatage réel et couverture des commentaires. Séparer les remerciements spécifiques, accords, slogans, questions de compréhension et contributions qui apportent un argument, un mécanisme ou une preuve. Conserver les extraits nécessaires à la classification; ne pas gonfler les résultats avec les réponses PAM. Si heure, corps du fil ou vues manquent : NA/INCONCLUSIVE. Un âge UI « 3d » seul n'est pas une preuve suffisante. Consigner événements contemporains et auteurs récurrents. Lire chaque paire séparément; trois paires restent exploratoires, sans conclusion causale ferme. Aucun gagnant si les données sont incomplètes ou contradictoires; toute proposition d'adoption retourne au CEO, même si les ratios favorisent la question. Les likes sont secondaires; confusion factuelle ou erreur matérielle prime sur le volume.
+
+### Statut de l'apprentissage et décision réservée au CEO
+
+**Apprentissage enregistré :** retours spécifiques sur les distinctions financières; absence de discussion pour ISM; séparation zéro/NA, maturité et attribution; observations de pairs et limites ci-dessus. **Proposition de clarification du playbook, toujours en attente :** conserver une fiche immuable avant publication indiquant question du lecteur, utilité attendue, autres sujets du scan ouvert et raisons du choix sujet/format, puis y rattacher les réponses observées sans réécrire l'attente initiale. Aucune règle ou version du playbook n'est adoptée ici.
+
+Ce complément est placé dans la partie active du journal éditorial de la Bible, après la revue du 2 novembre, avec renvoi dans la navigation Media. L'archive historique reste intacte. Aucune publication, réponse, réaction, suivi de compte, refonte de template ou automatisation n'est réalisée.
