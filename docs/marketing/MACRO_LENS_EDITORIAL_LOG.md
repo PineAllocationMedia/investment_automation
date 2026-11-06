@@ -1,7 +1,7 @@
 # PAM | Blossom — editorial evidence & experiment log v1.1
 
 **Channel:** Blossom `@therealpam`.
-**Status:** 35 distinct accessible originals recorded through 2026-11-05: latest scan found 1 new and refreshed 34 with appended snapshots. All exposed permalinks inspected; historical completeness unproven and some discussion bodies PARTIAL. Earlier observations and learning preserved. No private analytics or post-attributed follows established.
+**Status:** 36 distinct accessible originals recorded through 2026-11-06: latest scan found 1 new and refreshed 35 with appended snapshots. All exposed permalinks inspected; historical completeness unproven and some discussion bodies PARTIAL. Earlier observations and learning preserved. No private analytics or post-attributed follows established.
 **Instructions:** [Playbook](MACRO_LENS_PLAYBOOK.md) · [Templates](MACRO_LENS_TEMPLATES.md).
 
 This existing register now tracks all verified @therealpam original posts: Macro Lens and ordinary content alike. Do not invent approval history for past ordinary posts. Replies to others are distinct from original publications.
@@ -1469,3 +1469,87 @@ Top Comments inspected for all nine posts with nonzero totals. Rendered bodies m
 | BL-POST-1791589339142-QZtwsSBo | 2026-11-05T08:21:31.461-05:00 | 3 / 1: Phil @diversifiedfill (26d, 1 like) contrasts AI-led index gains with weaker non-AI stocks and questions the role of earnings; PARTIAL. |
 
 Previous observations, captions, internal evidence and editorial learning were preserved. No Blossom account actions were taken; no monitoring was started.
+
+
+## Profile scan — 2026-11-06 (authorized signed-in Cloud Browser)
+
+**Coverage:** 36 originals discovered and individually inspected; 1 new record (AppLovin/market-session commentary), 35 existing records refreshed, 0 discovered permalinks inaccessible. Each author link for @therealpam matched /users/PAM__IwHhSPDG2aOMks63. Posts tab only; replies, Blooms and trades excluded from the originals count. Scrolling exposed 14, then 27, then 36 originals; no further posts or pagination control appeared at the introduction. No login restriction blocked inspection. Historical completeness remains unproven.
+
+**Timing:** Newest post UI age 14h and oldest introduction 1mo, corresponding roughly to early October through November 5, 2026; exact publication dates/timestamps NA. Counters captured at 07:55:26.851–07:56:13.222 EST and discussion at 07:56:23.860–07:56:34.983 EST, America/Toronto (UTC−05:00). The profile header displayed 13 followers and 5 following at 2026-11-06T07:54:56.035-05:00. This is one more displayed follower than November 5, at account level only; no post-level attribution.
+
+**Metrics:** All visible counters are PUBLIC_OBSERVED, including in the authenticated session. Views = displayed cumulative count, uniqueness unknown. Comments = displayed total; reply-counting semantics undocumented. Shares = arrow counter, not verified completed external shares. Saves = bookmark counter. A numeric heart-only count supplies likes and total reactions; mixed emoji supply only total reactions. Missing counts are NA, distinct from displayed zeros. Profile visits and post-attributed follows are NA. No PLATFORM_VERIFIED private analytics or CEO_SUPPLIED measures. Rounded ages are as displayed; no scheduled or inferred age snapshots.
+
+### New record — BL-POST-1793915784355-d8tg5ADo
+
+- **Stable post:** [AppLovin and market-session commentary](https://www.blossomsocial.com/posts/Untitled-Post__POST-1793915784355-d8tg5ADo_IwHhSPDG2aOMks63), POST-1793915784355-d8tg5ADo_IwHhSPDG2aOMks63; PUBLISHED, exact publication time NA.
+- **Public angle:** Informal reaction to the market session, juxtaposing skepticism about AI's necessity with AppLovin's reported contribution to the author's portfolio that day. This describes the caption, without validating the financial claim. A linked stock card was visible; its price/holding fields are not engagement measures.
+- **Internal history:** Original editorial thesis, selection rationale, template, asset/hash, evidence register, audit, approval and experiment assignment NA. No matching prepublication record established.
+
+**Published caption as rendered:**
+
+> 2 statements after today’s market session
+>
+> S1- maybe AI isn’t so needed after all
+>
+> S2- Why the heck I’m I holding so much APP and why did it carry my portfolio today?
+
+### Appended snapshots
+
+| Issue ID | Rounded UI age (exact NA) | Observed at — America/Toronto EST | Provenance | Views | Likes | Comments | Shares | Saves | Total reactions | Profile visits | Attributed follows |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| BL-POST-1793915784355-d8tg5ADo | 14h | 2026-11-06T07:55:26.851-05:00 | PUBLIC_OBSERVED | 250 | 1 | 0 | 0 | 0 | 1 | NA | NA |
+| BL-POST-1793884643604-vls220tt | 23h | 2026-11-06T07:55:28.354-05:00 | PUBLIC_OBSERVED | 98 | NA | 0 | 0 | 0 | NA | NA | NA |
+| BL-POST-1793799253017-3FF59Xu4 | 1d | 2026-11-06T07:55:29.061-05:00 | PUBLIC_OBSERVED | 86 | NA | 1 | 0 | 0 | NA | NA | NA |
+| BL-POST-1793648897234-MoL4PwZe | 3d | 2026-11-06T07:55:30.130-05:00 | PUBLIC_OBSERVED | 246 | NA | 1 | 0 | 0 | NA | NA | NA |
+| BL-POST-1793647372237-kWOskwFg | 3d | 2026-11-06T07:55:31.187-05:00 | PUBLIC_OBSERVED | 66 | NA | 0 | 0 | 0 | NA | NA | NA |
+| BL-POST-1793390076288-WMzkTcpH | 6d | 2026-11-06T07:55:32.198-05:00 | PUBLIC_OBSERVED | 154 | 1 | 0 | 0 | 0 | 1 | NA | NA |
+| BL-POST-1793282726045-9oXVa71E | 7d | 2026-11-06T07:55:33.207-05:00 | PUBLIC_OBSERVED | 36 | 1 | 0 | 0 | 0 | 1 | NA | NA |
+| BL-POST-1793197767496-cFctFOpJ | 8d | 2026-11-06T07:55:33.922-05:00 | PUBLIC_OBSERVED | 130 | 1 | 0 | 0 | 0 | 1 | NA | NA |
+| BL-POST-1793149368867-cLFb5NMa | 9d | 2026-11-06T07:55:35.007-05:00 | PUBLIC_OBSERVED | 52 | NA | 0 | 0 | 0 | NA | NA | NA |
+| BL-POST-1793107152966-YTBGWH9d | 9d | 2026-11-06T07:55:35.710-05:00 | PUBLIC_OBSERVED | 64 | NA | 0 | 0 | 0 | NA | NA | NA |
+| BL-POST-1793060142652-bt1IJKAo | 10d | 2026-11-06T07:55:36.812-05:00 | PUBLIC_OBSERVED | 126 | NA | 0 | 0 | 0 | NA | NA | NA |
+| BL-POST-1793023468268-JghTaJye | 10d | 2026-11-06T07:55:37.877-05:00 | PUBLIC_OBSERVED | 56 | NA | 0 | 0 | 0 | NA | NA | NA |
+| BL-POST-1792970189363-fIdOdvGU | 11d | 2026-11-06T07:55:42.446-05:00 | PUBLIC_OBSERVED | 142 | 2 | 1 | 0 | 0 | 2 | NA | NA |
+| BL-POST-1792935816952-RmJBGgJl | 11d | 2026-11-06T07:55:43.440-05:00 | PUBLIC_OBSERVED | 424 | 5 | 4 | 1 | 0 | 5 | NA | NA |
+| BL-POST-1792850545800-gNzqcp6X | 12d | 2026-11-06T07:55:44.350-05:00 | PUBLIC_OBSERVED | 110 | 1 | 0 | 0 | 0 | 1 | NA | NA |
+| BL-POST-1792773556527-n3zJCc9e | 13d | 2026-11-06T07:55:45.431-05:00 | PUBLIC_OBSERVED | 116 | 1 | 0 | 0 | 0 | 1 | NA | NA |
+| BL-POST-1792712380652-veFF6JIW | 14d | 2026-11-06T07:55:46.500-05:00 | PUBLIC_OBSERVED | 86 | 2 | 2 | 0 | 0 | 2 | NA | NA |
+| BL-POST-1792632635232-p3wDGaJ3 | 15d | 2026-11-06T07:55:47.474-05:00 | PUBLIC_OBSERVED | 32 | NA | 0 | 0 | 0 | NA | NA | NA |
+| BL-POST-1792618150646-9HYkfaqz | 15d | 2026-11-06T07:55:48.652-05:00 | PUBLIC_OBSERVED | 52 | NA | 0 | 0 | 0 | NA | NA | NA |
+| BL-POST-1792543338595-Ou0WyNVs | 16d | 2026-11-06T07:55:49.438-05:00 | PUBLIC_OBSERVED | 272 | NA | 0 | 1 | 0 | NA | NA | NA |
+| BL-POST-1792445839015-LojFs7Jp | 17d | 2026-11-06T07:55:50.603-05:00 | PUBLIC_OBSERVED | 276 | 4 | 2 | 0 | 0 | 4 | NA | NA |
+| BL-POST-1792413329799-4TDnXVvZ | 18d | 2026-11-06T07:55:51.699-05:00 | PUBLIC_OBSERVED | 60 | NA | 0 | 1 | 0 | NA | NA | NA |
+| BL-POST-1792285181556-dajQRiJ8 | 19d | 2026-11-06T07:55:52.829-05:00 | PUBLIC_OBSERVED | 128 | 1 | 2 | 0 | 0 | 1 | NA | NA |
+| BL-POST-1792243935166-5rY3pW0x | 19d | 2026-11-06T07:55:54.377-05:00 | PUBLIC_OBSERVED | 844 | NA | 0 | 2 | 0 | 6 | NA | NA |
+| BL-POST-1792154075898-WKgQpyWr | 21d | 2026-11-06T07:55:59.217-05:00 | PUBLIC_OBSERVED | 60 | NA | 0 | 0 | 0 | NA | NA | NA |
+| BL-POST-1792015357362-r0k28CcU | 22d | 2026-11-06T07:56:01.142-05:00 | PUBLIC_OBSERVED | 340 | NA | 0 | 0 | 0 | 7 | NA | NA |
+| BL-POST-1791924123452-n0SE9Lsf | 23d | 2026-11-06T07:56:03.153-05:00 | PUBLIC_OBSERVED | 174 | 4 | 1 | 0 | 0 | 4 | NA | NA |
+| BL-POST-1791820180736-IT7xZSEt | 24d | 2026-11-06T07:56:03.868-05:00 | PUBLIC_OBSERVED | 88 | 2 | 0 | 0 | 0 | 2 | NA | NA |
+| BL-POST-1791764804066-6p0ZcQRe | 25d | 2026-11-06T07:56:04.958-05:00 | PUBLIC_OBSERVED | 248 | NA | 0 | 0 | 0 | NA | NA | NA |
+| BL-POST-1791725403770-fzsmjWDJ | 25d | 2026-11-06T07:56:06.228-05:00 | PUBLIC_OBSERVED | 174 | 2 | 0 | 0 | 0 | 2 | NA | NA |
+| BL-POST-1791636358863-EDvN5sp6 | 27d | 2026-11-06T07:56:07.909-05:00 | PUBLIC_OBSERVED | 208 | 2 | 0 | 0 | 0 | 2 | NA | NA |
+| BL-POST-1791589339142-QZtwsSBo | 27d | 2026-11-06T07:56:08.992-05:00 | PUBLIC_OBSERVED | 390 | 3 | 3 | 0 | 0 | 3 | NA | NA |
+| BL-POST-1791501798381-vTsMLRu2 | 28d | 2026-11-06T07:56:10.220-05:00 | PUBLIC_OBSERVED | 124 | NA | 0 | 0 | 0 | 4 | NA | NA |
+| BL-POST-1791495336766-q7dQtifh | 28d | 2026-11-06T07:56:11.518-05:00 | PUBLIC_OBSERVED | 98 | NA | 0 | 0 | 0 | NA | NA | NA |
+| BL-POST-1791416148323-vptp1ie5 | 29d | 2026-11-06T07:56:12.354-05:00 | PUBLIC_OBSERVED | 76 | NA | 0 | 0 | 0 | NA | NA | NA |
+| BL-POST-1791303632255-hNbqeFsO | 1mo | 2026-11-06T07:56:13.222-05:00 | PUBLIC_OBSERVED | 12 | NA | 0 | 0 | 0 | NA | NA | NA |
+
+Mixed totals: heart + rocket (6 and 7) on BL-POST-1792243935166-5rY3pW0x and BL-POST-1792015357362-r0k28CcU; heart + anxious-face (4) on BL-POST-1791501798381-vTsMLRu2. Heart-only breakdown NA.
+
+### Discussion observations — PUBLIC_OBSERVED
+
+Top Comments inspected for all nine posts with nonzero totals. Missing bodies are not presumed deleted. Earlier fuller captures remain in the log. Assertions and forecasts by participants are not verified findings.
+
+| Post | Observed at — America/Toronto EST | Displayed / rendered and substance |
+|---|---|---|
+| BL-POST-1793799253017-3FF59Xu4 | 2026-11-06T07:56:23.860-05:00 | 1 / 1: Nate @hoodnate (1d, 0 likes) found the organic-versus-acquired growth distinction and pricing caveat useful. |
+| BL-POST-1793648897234-MoL4PwZe | 2026-11-06T07:56:25.306-05:00 | 1 / 1: Nate @hoodnate (3d, 0 likes) emphasizes the stock/notes split and that the capital must earn its cost. |
+| BL-POST-1792970189363-fIdOdvGU | 2026-11-06T07:56:26.766-05:00 | 1 / 1: Mike L @noviceadvisor (11d, 0 likes) raises Venezuela as a potential growth source. |
+| BL-POST-1792935816952-RmJBGgJl | 2026-11-06T07:56:27.863-05:00 | 4 / 4: Nate @hoodnate (11d, 1 like) asks about returns on AI spending. Rudolf @rudolfdeleeuw (11d, 1 like) discusses adjusted margin, depreciation and ad economics. Two existing PAM replies (11d, 1 like each) distinguish ad monetization from returns on incremental infrastructure, and identify incremental free cash flow, margins and return on invested capital as evidence to watch. The replies were visible again after the partial November 5 capture. |
+| BL-POST-1792712380652-veFF6JIW | 2026-11-06T07:56:29.427-05:00 | 2 / 1: Shael @nickel333 (14d, 1 like) describes a rough market day; PARTIAL. |
+| BL-POST-1792445839015-LojFs7Jp | 2026-11-06T07:56:30.861-05:00 | 2 / 1: Nate @hoodnate (16d, 1 like) asks whether to buy or wait in a narrow rally. Earlier PAM reply preserved; PARTIAL. |
+| BL-POST-1792285181556-dajQRiJ8 | 2026-11-06T07:56:32.426-05:00 | 2 / 1: solomon @ambessa (18d, 1 like) raises workforce, scale, skills and supply-chain constraints to reshoring; PARTIAL. |
+| BL-POST-1791924123452-n0SE9Lsf | 2026-11-06T07:56:33.596-05:00 | 1 / 1: Nate @hoodnate (23d, 0 likes) contrasts mood with bank numbers and asks about charge-offs. |
+| BL-POST-1791589339142-QZtwsSBo | 2026-11-06T07:56:34.983-05:00 | 3 / 1: Phil @diversifiedfill (26d, 1 like) contrasts AI-led index gains with weaker non-AI stocks and questions the role of earnings; PARTIAL. |
+
+Prior observations, captions, original editorial evidence and learning were preserved. No Blossom account actions or monitoring.
