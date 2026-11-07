@@ -1,7 +1,7 @@
 # PAM | Blossom — editorial evidence & experiment log v1.1
 
 **Channel:** Blossom `@therealpam`.
-**Status:** 36 distinct accessible originals recorded through 2026-11-06: latest scan found 1 new and refreshed 35 with appended snapshots. All exposed permalinks inspected; historical completeness unproven and some discussion bodies PARTIAL. Earlier observations and learning preserved. No private analytics or post-attributed follows established.
+**Status:** 37 distinct accessible originals recorded through 2026-11-07: latest scan found 1 new and refreshed 36 with appended snapshots. All exposed permalinks inspected; historical completeness unproven and some discussion bodies PARTIAL. Earlier observations and learning preserved. No private analytics or post-attributed follows established.
 **Instructions:** [Playbook](MACRO_LENS_PLAYBOOK.md) · [Templates](MACRO_LENS_TEMPLATES.md).
 
 This existing register now tracks all verified @therealpam original posts: Macro Lens and ordinary content alike. Do not invent approval history for past ordinary posts. Replies to others are distinct from original publications.
@@ -1553,3 +1553,92 @@ Top Comments inspected for all nine posts with nonzero totals. Missing bodies ar
 | BL-POST-1791589339142-QZtwsSBo | 2026-11-06T07:56:34.983-05:00 | 3 / 1: Phil @diversifiedfill (26d, 1 like) contrasts AI-led index gains with weaker non-AI stocks and questions the role of earnings; PARTIAL. |
 
 Prior observations, captions, original editorial evidence and learning were preserved. No Blossom account actions or monitoring.
+
+
+## Profile scan — 2026-11-07 (authorized signed-in Cloud Browser)
+
+**Coverage:** 37 originals discovered and individually inspected; 1 new record, 36 refreshed, 0 discovered permalinks inaccessible. Each @therealpam author link matched /users/PAM__IwHhSPDG2aOMks63. Posts only; replies, Blooms and trades excluded from the originals count. Scrolling exposed 14, 27 and then 37 originals, with no further posts or pagination control after the introduction. Signed-in access worked. Historical completeness remains unproven.
+
+**Timing:** November 7, 2026, America/Toronto EST (UTC−05:00). Profile observation 09:12:26.709; post counters 09:12:57.168–09:13:40.741; discussions 09:13:52.611–09:14:02.919. Rounded visible ages 1d through 1mo, approximately early October through November 6; exact publication timestamps NA. Profile displayed 13 followers / 5 following, account-level only, unchanged from prior scan.
+
+**Provenance and metric meanings:** PUBLIC_OBSERVED for all visible counters even when signed in. Views are displayed cumulative views; uniqueness unknown. Comments are the displayed total; inclusion of replies is undocumented. Shares are the arrow counter, not proof of completed external shares; saves are the bookmark counter. Heart-only counts supply likes and total reactions; mixed icons supply totals only. Missing counts, profile visits and post-attributed follows are NA, distinct from visible zero. No private PLATFORM_VERIFIED analytics, CEO_SUPPLIED measurements, or automatic age checkpoints.
+
+### New record — BL-POST-1793970615451-qRo0PMwK
+
+- **Published:** [US Labor Costs and Productivity Trends in Q3](https://www.blossomsocial.com/posts/US-Labor-Costs-and-Productivity-Trends-in-Q3__POST-1793970615451-qRo0PMwK_IwHhSPDG2aOMks63). Stable ID POST-1793970615451-qRo0PMwK_IwHhSPDG2aOMks63; exact publication timestamp NA.
+- **Original thesis and rationale:** [Review package](https://chatgpt.com/library?file_id=libfile_de07cbc3406481918efa891d2870f2a8&account_id=personal), issue PAM_Unit_Labor_Costs_2026-11-06. Productivity outpaced compensation, lowering quarterly unit labor costs while the year-over-year reading remained positive. Selected over a chip-market divergence, Bank of England and company earnings angles because the BLS mechanism is directly explainable and has a scheduled revision test. Expected reader utility: distinguish pay pressure from labor cost per unit and keep comparison periods separate. No prospective experiment assignment.
+- **Format and audit evidence:** Deterministic one-off T1 Evidence+ adaptation, outside canonical renderer; quarterly annualized supporting figures and separate year-over-year check. The draft handoff records BLS preliminary Q3 Table A1, a ratio check, native and 390px preview inspection, and passing creator text/geometry checks. Draft PNG SHA-256 91b164e726b5b3ccf5be2d2538ba15772e66b0cffa06a6537afee72b4ec2aa90. Manifest showed independent review and CEO approval pending at handoff; final audit, approval and published asset identity NA. This scan did not re-audit the data. The four draft paragraphs match the rendered caption; the draft BLS source line did not appear in the captured post text.
+
+**Published title and caption as rendered:**
+
+> US Labor Costs and Productivity Trends in Q3
+>
+> An hour of work cost U.S. businesses more in Q3. The labor behind each unit of output cost less.
+>
+> On an annualized basis, hourly compensation, including benefits, rose 2.9%. Output per hour grew 3.6%, bringing labor cost per unit down 0.7% at the same annualized pace. That can ease pressure on margins if selling prices and other costs per unit hold steady.
+>
+> The longer view is less rosy. Labor cost per unit was still 2.4% higher than a year earlier.
+>
+> Will the Dec. 8 revision still show productivity outpacing hourly compensation?
+
+### Appended snapshots
+
+| Issue ID | Rounded UI age (exact NA) | Observed at — America/Toronto EST | Provenance | Views | Likes | Comments | Shares | Saves | Total reactions | Profile visits | Attributed follows |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| BL-POST-1793970615451-qRo0PMwK | 1d | 2026-11-07T09:12:57.168-05:00 | PUBLIC_OBSERVED | 90 | NA | 0 | 0 | 0 | NA | NA | NA |
+| BL-POST-1793915784355-d8tg5ADo | 1d | 2026-11-07T09:12:57.881-05:00 | PUBLIC_OBSERVED | 292 | 1 | 0 | 0 | 0 | 1 | NA | NA |
+| BL-POST-1793884643604-vls220tt | 2d | 2026-11-07T09:12:59.146-05:00 | PUBLIC_OBSERVED | 100 | NA | 0 | 0 | 0 | NA | NA | NA |
+| BL-POST-1793799253017-3FF59Xu4 | 3d | 2026-11-07T09:12:59.808-05:00 | PUBLIC_OBSERVED | 86 | NA | 1 | 0 | 0 | NA | NA | NA |
+| BL-POST-1793648897234-MoL4PwZe | 4d | 2026-11-07T09:13:00.829-05:00 | PUBLIC_OBSERVED | 246 | NA | 1 | 0 | 0 | NA | NA | NA |
+| BL-POST-1793647372237-kWOskwFg | 4d | 2026-11-07T09:13:02.043-05:00 | PUBLIC_OBSERVED | 66 | NA | 0 | 0 | 0 | NA | NA | NA |
+| BL-POST-1793390076288-WMzkTcpH | 7d | 2026-11-07T09:13:02.709-05:00 | PUBLIC_OBSERVED | 154 | 1 | 0 | 0 | 0 | 1 | NA | NA |
+| BL-POST-1793282726045-9oXVa71E | 9d | 2026-11-07T09:13:03.718-05:00 | PUBLIC_OBSERVED | 36 | 1 | 0 | 0 | 0 | 1 | NA | NA |
+| BL-POST-1793197767496-cFctFOpJ | 9d | 2026-11-07T09:13:04.755-05:00 | PUBLIC_OBSERVED | 130 | 1 | 0 | 0 | 0 | 1 | NA | NA |
+| BL-POST-1793149368867-cLFb5NMa | 10d | 2026-11-07T09:13:05.449-05:00 | PUBLIC_OBSERVED | 52 | NA | 0 | 0 | 0 | NA | NA | NA |
+| BL-POST-1793107152966-YTBGWH9d | 11d | 2026-11-07T09:13:06.374-05:00 | PUBLIC_OBSERVED | 64 | NA | 0 | 0 | 0 | NA | NA | NA |
+| BL-POST-1793060142652-bt1IJKAo | 11d | 2026-11-07T09:13:07.254-05:00 | PUBLIC_OBSERVED | 126 | NA | 0 | 0 | 0 | NA | NA | NA |
+| BL-POST-1793023468268-JghTaJye | 12d | 2026-11-07T09:13:08.172-05:00 | PUBLIC_OBSERVED | 56 | NA | 0 | 0 | 0 | NA | NA | NA |
+| BL-POST-1792970189363-fIdOdvGU | 12d | 2026-11-07T09:13:13.374-05:00 | PUBLIC_OBSERVED | 142 | 2 | 1 | 0 | 0 | 2 | NA | NA |
+| BL-POST-1792935816952-RmJBGgJl | 13d | 2026-11-07T09:13:14.273-05:00 | PUBLIC_OBSERVED | 424 | 5 | 4 | 1 | 0 | 5 | NA | NA |
+| BL-POST-1792850545800-gNzqcp6X | 14d | 2026-11-07T09:13:15.605-05:00 | PUBLIC_OBSERVED | 110 | 1 | 0 | 0 | 0 | 1 | NA | NA |
+| BL-POST-1792773556527-n3zJCc9e | 14d | 2026-11-07T09:13:16.349-05:00 | PUBLIC_OBSERVED | 116 | 1 | 0 | 0 | 0 | 1 | NA | NA |
+| BL-POST-1792712380652-veFF6JIW | 15d | 2026-11-07T09:13:17.470-05:00 | PUBLIC_OBSERVED | 86 | 2 | 2 | 0 | 0 | 2 | NA | NA |
+| BL-POST-1792632635232-p3wDGaJ3 | 16d | 2026-11-07T09:13:18.245-05:00 | PUBLIC_OBSERVED | 32 | NA | 0 | 0 | 0 | NA | NA | NA |
+| BL-POST-1792618150646-9HYkfaqz | 16d | 2026-11-07T09:13:19.375-05:00 | PUBLIC_OBSERVED | 52 | NA | 0 | 0 | 0 | NA | NA | NA |
+| BL-POST-1792543338595-Ou0WyNVs | 17d | 2026-11-07T09:13:20.701-05:00 | PUBLIC_OBSERVED | 272 | NA | 0 | 1 | 0 | NA | NA | NA |
+| BL-POST-1792445839015-LojFs7Jp | 18d | 2026-11-07T09:13:21.576-05:00 | PUBLIC_OBSERVED | 276 | 4 | 2 | 0 | 0 | 4 | NA | NA |
+| BL-POST-1792413329799-4TDnXVvZ | 19d | 2026-11-07T09:13:22.599-05:00 | PUBLIC_OBSERVED | 60 | NA | 0 | 1 | 0 | NA | NA | NA |
+| BL-POST-1792285181556-dajQRiJ8 | 20d | 2026-11-07T09:13:23.803-05:00 | PUBLIC_OBSERVED | 128 | 1 | 2 | 0 | 0 | 1 | NA | NA |
+| BL-POST-1792243935166-5rY3pW0x | 21d | 2026-11-07T09:13:24.719-05:00 | PUBLIC_OBSERVED | 844 | NA | 0 | 2 | 0 | 6 | NA | NA |
+| BL-POST-1792154075898-WKgQpyWr | 22d | 2026-11-07T09:13:29.469-05:00 | PUBLIC_OBSERVED | 60 | NA | 0 | 0 | 0 | NA | NA | NA |
+| BL-POST-1792015357362-r0k28CcU | 23d | 2026-11-07T09:13:30.396-05:00 | PUBLIC_OBSERVED | 340 | NA | 0 | 0 | 0 | 7 | NA | NA |
+| BL-POST-1791924123452-n0SE9Lsf | 24d | 2026-11-07T09:13:31.460-05:00 | PUBLIC_OBSERVED | 174 | 4 | 1 | 0 | 0 | 4 | NA | NA |
+| BL-POST-1791820180736-IT7xZSEt | 25d | 2026-11-07T09:13:32.541-05:00 | PUBLIC_OBSERVED | 88 | 2 | 0 | 0 | 0 | 2 | NA | NA |
+| BL-POST-1791764804066-6p0ZcQRe | 26d | 2026-11-07T09:13:34.015-05:00 | PUBLIC_OBSERVED | 248 | NA | 0 | 0 | 0 | NA | NA | NA |
+| BL-POST-1791725403770-fzsmjWDJ | 27d | 2026-11-07T09:13:34.710-05:00 | PUBLIC_OBSERVED | 174 | 2 | 0 | 0 | 0 | 2 | NA | NA |
+| BL-POST-1791636358863-EDvN5sp6 | 28d | 2026-11-07T09:13:36.077-05:00 | PUBLIC_OBSERVED | 208 | 2 | 0 | 0 | 0 | 2 | NA | NA |
+| BL-POST-1791589339142-QZtwsSBo | 28d | 2026-11-07T09:13:37.125-05:00 | PUBLIC_OBSERVED | 390 | 3 | 3 | 0 | 0 | 3 | NA | NA |
+| BL-POST-1791501798381-vTsMLRu2 | 29d | 2026-11-07T09:13:37.782-05:00 | PUBLIC_OBSERVED | 124 | NA | 0 | 0 | 0 | 4 | NA | NA |
+| BL-POST-1791495336766-q7dQtifh | 29d | 2026-11-07T09:13:38.757-05:00 | PUBLIC_OBSERVED | 98 | NA | 0 | 0 | 0 | NA | NA | NA |
+| BL-POST-1791416148323-vptp1ie5 | 1mo | 2026-11-07T09:13:39.759-05:00 | PUBLIC_OBSERVED | 76 | NA | 0 | 0 | 0 | NA | NA | NA |
+| BL-POST-1791303632255-hNbqeFsO | 1mo | 2026-11-07T09:13:40.741-05:00 | PUBLIC_OBSERVED | 12 | NA | 0 | 0 | 0 | NA | NA | NA |
+
+Mixed totals: heart + rocket (6 and 7) on BL-POST-1792243935166-5rY3pW0x and BL-POST-1792015357362-r0k28CcU; heart + anxious-face (4) on BL-POST-1791501798381-vTsMLRu2. Heart-only breakdown NA.
+
+### Discussion observations — PUBLIC_OBSERVED
+
+Top Comments inspected on all nine posts with nonzero counts. Missing bodies are not presumed deleted; prior fuller captures remain in the log. Participant assertions are not independently verified.
+
+| Post | Observed at — America/Toronto EST | Displayed / rendered and substance |
+|---|---|---|
+| BL-POST-1793799253017-3FF59Xu4 | 2026-11-07T09:13:52.611-05:00 | 1 / 1: Nate @hoodnate (2d, 0 likes) values the separation of organic and acquired growth and the pricing caveat. |
+| BL-POST-1793648897234-MoL4PwZe | 2026-11-07T09:13:53.896-05:00 | 1 / 1: Nate @hoodnate (4d, 0 likes) highlights stock/notes split and the need for capital to earn its cost. |
+| BL-POST-1792970189363-fIdOdvGU | 2026-11-07T09:13:55.164-05:00 | 1 / 1: Mike L @noviceadvisor (12d, 0 likes) raises Venezuela as a growth source. |
+| BL-POST-1792935816952-RmJBGgJl | 2026-11-07T09:13:56.612-05:00 | 4 / 2: Nate @hoodnate (12d, 1 like) asks whether AI investment pays off. Rudolf @rudolfdeleeuw (13d, 1 like) discusses margin, depreciation and ad economics. Prior PAM replies preserved; PARTIAL. |
+| BL-POST-1792712380652-veFF6JIW | 2026-11-07T09:13:57.883-05:00 | 2 / 1: Shael @nickel333 (15d, 1 like) describes a rough session; PARTIAL. |
+| BL-POST-1792445839015-LojFs7Jp | 2026-11-07T09:13:59.245-05:00 | 2 / 1: Nate @hoodnate (17d, 1 like) asks whether to buy or wait in a narrow rally; PARTIAL. |
+| BL-POST-1792285181556-dajQRiJ8 | 2026-11-07T09:14:00.458-05:00 | 2 / 1: solomon @ambessa (19d, 1 like) raises scale, workforce, skills and supply-chain constraints on reshoring; PARTIAL. |
+| BL-POST-1791924123452-n0SE9Lsf | 2026-11-07T09:14:01.405-05:00 | 1 / 1: Nate @hoodnate (24d, 0 likes) contrasts mood with bank numbers and asks about charge-offs. |
+| BL-POST-1791589339142-QZtwsSBo | 2026-11-07T09:14:02.919-05:00 | 3 / 1: Phil @diversifiedfill (28d, 1 like) contrasts AI-led index strength with weaker non-AI stocks and questions earnings sensitivity; PARTIAL. |
+
+Prior snapshots and editorial records preserved. No Blossom account actions or monitoring.
