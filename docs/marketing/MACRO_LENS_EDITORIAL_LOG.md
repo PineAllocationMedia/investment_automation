@@ -1642,3 +1642,66 @@ Top Comments inspected on all nine posts with nonzero counts. Missing bodies are
 | BL-POST-1791589339142-QZtwsSBo | 2026-11-07T09:14:02.919-05:00 | 3 / 1: Phil @diversifiedfill (28d, 1 like) contrasts AI-led index strength with weaker non-AI stocks and questions earnings sensitivity; PARTIAL. |
 
 Prior snapshots and editorial records preserved. No Blossom account actions or monitoring.
+
+
+## Profile scan — 2026-11-07, second pass (authorized signed-in Cloud Browser)
+
+**Coverage:** 37 originals discovered and individually inspected; 0 new, 37 refreshed, 0 inaccessible. Each @therealpam author link matched the profile ID. Posts only; replies, Blooms and trades excluded. Scrolling loaded 14, 27 and then 37; no further pagination appeared. Historical completeness remains unproven. Rounded visible ages 1d to 1mo, approximately early October–November 6; exact publication dates NA. Account header at 09:22:48.460 EST showed 13 followers / 5 following, account-level only.
+
+**Provenance:** PUBLIC_OBSERVED for displayed counters, even signed in. Views are cumulative display counts, uniqueness unknown; comment reply-counting semantics undocumented; shares and saves are arrow and bookmark counters. Heart-only numeric totals are also listed as likes; mixed emoji provide totals only. Missing numeric counts remain NA, distinct from displayed zero. No PLATFORM_VERIFIED or CEO_SUPPLIED metrics, no attributed follows or automatic checkpoints. Times are America/Toronto EST, UTC−05:00.
+
+| Issue ID | Rounded UI age | Observed at (EST) | Provenance | Views | Likes | Comments | Shares | Saves | Total reactions | Profile visits | Attributed follows |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| BL-POST-1793970615451-qRo0PMwK | 1d | 2026-11-07T09:23:20.740-05:00 | PUBLIC_OBSERVED | 90 | NA | 0 | 0 | 0 | NA | NA | NA |
+| BL-POST-1793915784355-d8tg5ADo | 1d | 2026-11-07T09:23:21.671-05:00 | PUBLIC_OBSERVED | 292 | 1 | 0 | 0 | 0 | 1 | NA | NA |
+| BL-POST-1793884643604-vls220tt | 2d | 2026-11-07T09:23:23.279-05:00 | PUBLIC_OBSERVED | 100 | NA | 0 | 0 | 0 | NA | NA | NA |
+| BL-POST-1793799253017-3FF59Xu4 | 3d | 2026-11-07T09:23:24.545-05:00 | PUBLIC_OBSERVED | 86 | NA | 1 | 0 | 0 | NA | NA | NA |
+| BL-POST-1793648897234-MoL4PwZe | 4d | 2026-11-07T09:23:25.370-05:00 | PUBLIC_OBSERVED | 246 | NA | 1 | 0 | 0 | NA | NA | NA |
+| BL-POST-1793647372237-kWOskwFg | 4d | 2026-11-07T09:23:26.507-05:00 | PUBLIC_OBSERVED | 66 | NA | 0 | 0 | 0 | NA | NA | NA |
+| BL-POST-1793390076288-WMzkTcpH | 7d | 2026-11-07T09:23:27.574-05:00 | PUBLIC_OBSERVED | 154 | 1 | 0 | 0 | 0 | 1 | NA | NA |
+| BL-POST-1793282726045-9oXVa71E | 9d | 2026-11-07T09:23:28.673-05:00 | PUBLIC_OBSERVED | 36 | 1 | 0 | 0 | 0 | 1 | NA | NA |
+| BL-POST-1793197767496-cFctFOpJ | 9d | 2026-11-07T09:23:29.770-05:00 | PUBLIC_OBSERVED | 130 | 1 | 0 | 0 | 0 | 1 | NA | NA |
+| BL-POST-1793149368867-cLFb5NMa | 10d | 2026-11-07T09:23:30.842-05:00 | PUBLIC_OBSERVED | 52 | NA | 0 | 0 | 0 | NA | NA | NA |
+| BL-POST-1793107152966-YTBGWH9d | 11d | 2026-11-07T09:23:31.924-05:00 | PUBLIC_OBSERVED | 64 | NA | 0 | 0 | 0 | NA | NA | NA |
+| BL-POST-1793060142652-bt1IJKAo | 11d | 2026-11-07T09:23:33.021-05:00 | PUBLIC_OBSERVED | 126 | NA | 0 | 0 | 0 | NA | NA | NA |
+| BL-POST-1793023468268-JghTaJye | 12d | 2026-11-07T09:23:34.233-05:00 | PUBLIC_OBSERVED | 56 | NA | 0 | 0 | 0 | NA | NA | NA |
+| BL-POST-1792970189363-fIdOdvGU | 12d | 2026-11-07T09:24:00.008-05:00 | PUBLIC_OBSERVED | 142 | 2 | 1 | 0 | 0 | 2 | NA | NA |
+| BL-POST-1792935816952-RmJBGgJl | 13d | 2026-11-07T09:24:00.985-05:00 | PUBLIC_OBSERVED | 424 | 5 | 4 | 1 | 0 | 5 | NA | NA |
+| BL-POST-1792850545800-gNzqcp6X | 14d | 2026-11-07T09:24:02.255-05:00 | PUBLIC_OBSERVED | 110 | 1 | 0 | 0 | 0 | 1 | NA | NA |
+| BL-POST-1792773556527-n3zJCc9e | 14d | 2026-11-07T09:24:03.267-05:00 | PUBLIC_OBSERVED | 116 | 1 | 0 | 0 | 0 | 1 | NA | NA |
+| BL-POST-1792712380652-veFF6JIW | 15d | 2026-11-07T09:24:04.531-05:00 | PUBLIC_OBSERVED | 86 | 2 | 2 | 0 | 0 | 2 | NA | NA |
+| BL-POST-1792632635232-p3wDGaJ3 | 16d | 2026-11-07T09:24:05.680-05:00 | PUBLIC_OBSERVED | 32 | NA | 0 | 0 | 0 | NA | NA | NA |
+| BL-POST-1792618150646-9HYkfaqz | 16d | 2026-11-07T09:24:07.091-05:00 | PUBLIC_OBSERVED | 52 | NA | 0 | 0 | 0 | NA | NA | NA |
+| BL-POST-1792543338595-Ou0WyNVs | 17d | 2026-11-07T09:24:08.466-05:00 | PUBLIC_OBSERVED | 272 | NA | 0 | 1 | 0 | NA | NA | NA |
+| BL-POST-1792445839015-LojFs7Jp | 18d | 2026-11-07T09:24:09.563-05:00 | PUBLIC_OBSERVED | 276 | 4 | 2 | 0 | 0 | 4 | NA | NA |
+| BL-POST-1792413329799-4TDnXVvZ | 19d | 2026-11-07T09:24:10.703-05:00 | PUBLIC_OBSERVED | 60 | NA | 0 | 1 | 0 | NA | NA | NA |
+| BL-POST-1792285181556-dajQRiJ8 | 20d | 2026-11-07T09:24:11.715-05:00 | PUBLIC_OBSERVED | 128 | 1 | 2 | 0 | 0 | 1 | NA | NA |
+| BL-POST-1792243935166-5rY3pW0x | 21d | 2026-11-07T09:24:13.413-05:00 | PUBLIC_OBSERVED | 844 | NA | 0 | 2 | 0 | 6 | NA | NA |
+| BL-POST-1792154075898-WKgQpyWr | 22d | 2026-11-07T09:24:19.278-05:00 | PUBLIC_OBSERVED | 60 | NA | 0 | 0 | 0 | NA | NA | NA |
+| BL-POST-1792015357362-r0k28CcU | 23d | 2026-11-07T09:24:20.713-05:00 | PUBLIC_OBSERVED | 340 | NA | 0 | 0 | 0 | 7 | NA | NA |
+| BL-POST-1791924123452-n0SE9Lsf | 24d | 2026-11-07T09:24:21.660-05:00 | PUBLIC_OBSERVED | 174 | 4 | 1 | 0 | 0 | 4 | NA | NA |
+| BL-POST-1791820180736-IT7xZSEt | 25d | 2026-11-07T09:24:22.900-05:00 | PUBLIC_OBSERVED | 88 | 2 | 0 | 0 | 0 | 2 | NA | NA |
+| BL-POST-1791764804066-6p0ZcQRe | 26d | 2026-11-07T09:24:23.936-05:00 | PUBLIC_OBSERVED | 248 | NA | 0 | 0 | 0 | NA | NA | NA |
+| BL-POST-1791725403770-fzsmjWDJ | 27d | 2026-11-07T09:24:25.292-05:00 | PUBLIC_OBSERVED | 174 | 2 | 0 | 0 | 0 | 2 | NA | NA |
+| BL-POST-1791636358863-EDvN5sp6 | 28d | 2026-11-07T09:24:26.329-05:00 | PUBLIC_OBSERVED | 208 | 2 | 0 | 0 | 0 | 2 | NA | NA |
+| BL-POST-1791589339142-QZtwsSBo | 28d | 2026-11-07T09:24:27.392-05:00 | PUBLIC_OBSERVED | 390 | 3 | 3 | 0 | 0 | 3 | NA | NA |
+| BL-POST-1791501798381-vTsMLRu2 | 29d | 2026-11-07T09:24:28.546-05:00 | PUBLIC_OBSERVED | 124 | NA | 0 | 0 | 0 | 4 | NA | NA |
+| BL-POST-1791495336766-q7dQtifh | 29d | 2026-11-07T09:24:29.615-05:00 | PUBLIC_OBSERVED | 98 | NA | 0 | 0 | 0 | NA | NA | NA |
+| BL-POST-1791416148323-vptp1ie5 | 1mo | 2026-11-07T09:24:31.025-05:00 | PUBLIC_OBSERVED | 76 | NA | 0 | 0 | 0 | NA | NA | NA |
+| BL-POST-1791303632255-hNbqeFsO | 1mo | 2026-11-07T09:24:32.015-05:00 | PUBLIC_OBSERVED | 12 | NA | 0 | 0 | 0 | NA | NA | NA |
+
+### Discussion — PUBLIC_OBSERVED
+
+| Post | Observed at (EST) | Displayed/rendered and substance |
+|---|---|---|
+| BL-POST-1793799253017-3FF59Xu4 | 2026-11-07T09:24:47.169-05:00 | 1/1 — Nate: organic growth versus acquisitions, and pricing caveat. |
+| BL-POST-1793648897234-MoL4PwZe | 2026-11-07T09:24:48.752-05:00 | 1/1 — Nate: stock/notes split and cost of capital. |
+| BL-POST-1792970189363-fIdOdvGU | 2026-11-07T09:24:59.621-05:00 | 1/1 — Mike L: Venezuela as potential growth source. |
+| BL-POST-1792935816952-RmJBGgJl | 2026-11-07T09:25:01.799-05:00 | 4/2 — Nate asks about AI investment returns; Rudolf discusses margin, depreciation and ad economics. PARTIAL. |
+| BL-POST-1792712380652-veFF6JIW | 2026-11-07T09:25:06.058-05:00 | 2/1 — Shael notes a rough session. PARTIAL. |
+| BL-POST-1792445839015-LojFs7Jp | 2026-11-07T09:25:08.818-05:00 | 2/1 — Nate asks whether to buy or wait in a narrow rally. PARTIAL. |
+| BL-POST-1792285181556-dajQRiJ8 | 2026-11-07T09:25:10.106-05:00 | 2/1 — solomon raises scale, workforce, skills and supply-chain constraints. PARTIAL. |
+| BL-POST-1791924123452-n0SE9Lsf | 2026-11-07T09:25:11.446-05:00 | 1/1 — Nate asks about charge-offs versus sentiment. |
+| BL-POST-1791589339142-QZtwsSBo | 2026-11-07T09:25:12.969-05:00 | 3/1 — Phil contrasts AI-led index strength with weaker non-AI stocks. PARTIAL. |
+
+All nine nonzero threads checked; prior fuller discussion and editorial evidence preserved. No Blossom account actions or monitoring. The Bible's active Media editorial section is the presentation copy for this scan; its image archive is scoped to Blossom-rendered artwork (15 originals with visible post images). Draft asset identity is separate from published-image identity.
